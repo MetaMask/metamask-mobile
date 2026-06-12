@@ -25,7 +25,7 @@ describe('MoneySheetOptionsList', () => {
         testID: 'money-sheet-option-convert-crypto',
       }),
       createOption({
-        label: 'Debit card or bank',
+        label: 'Debit card or bank account',
         icon: IconName.Bank,
         testID: 'money-sheet-option-deposit-funds',
       }),
@@ -38,7 +38,7 @@ describe('MoneySheetOptionsList', () => {
     expect(getByTestId('money-sheet-option-convert-crypto')).toBeOnTheScreen();
     expect(getByTestId('money-sheet-option-deposit-funds')).toBeOnTheScreen();
     expect(getByText('Convert crypto')).toBeOnTheScreen();
-    expect(getByText('Debit card or bank')).toBeOnTheScreen();
+    expect(getByText('Debit card or bank account')).toBeOnTheScreen();
   });
 
   it('calls onPress when an enabled option is pressed', () => {
@@ -100,7 +100,7 @@ describe('MoneySheetOptionsList', () => {
   it('renders a "Coming soon" tag next to the label for a comingSoon option', () => {
     const options = [
       createOption({
-        label: 'External wallet',
+        label: 'External address',
         testID: 'money-sheet-option-receive-external',
         comingSoon: true,
       }),
@@ -110,7 +110,7 @@ describe('MoneySheetOptionsList', () => {
       <MoneySheetOptionsList options={options} />,
     );
 
-    expect(getByText('External wallet')).toBeOnTheScreen();
+    expect(getByText('External address')).toBeOnTheScreen();
     expect(
       getByText(strings('money.add_money_sheet.coming_soon')),
     ).toBeOnTheScreen();
@@ -131,7 +131,7 @@ describe('MoneySheetOptionsList', () => {
   it('renders disabled options after enabled ones regardless of input order', () => {
     const options = [
       createOption({
-        label: 'External wallet',
+        label: 'External address',
         testID: 'money-sheet-option-receive-external',
         disabled: true,
       }),
@@ -146,7 +146,7 @@ describe('MoneySheetOptionsList', () => {
         disabled: true,
       }),
       createOption({
-        label: 'Debit card or bank',
+        label: 'Debit card or bank account',
         icon: IconName.Bank,
         testID: 'money-sheet-option-deposit-funds',
       }),

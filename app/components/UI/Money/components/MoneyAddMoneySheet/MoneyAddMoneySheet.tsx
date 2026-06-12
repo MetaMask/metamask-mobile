@@ -235,7 +235,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     },
     {
       label: strings('money.add_money_sheet.receive_external'),
-      icon: IconName.Arrow2Down,
+      icon: IconName.QrCode,
       testID: MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
       disabled: true,
       comingSoon: true,
