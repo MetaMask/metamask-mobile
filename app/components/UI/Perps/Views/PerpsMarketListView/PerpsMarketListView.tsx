@@ -264,11 +264,64 @@ const PerpsMarketListView = ({
     // Watchlist filter active — show watchlisted markets plus suggestions.
     // Mirrors PerpsHome behavior, without the collapsible "Show more" toggle.
     // Only reachable when the watchlist flag is enabled (pill is hidden otherwise).
+    // When a search query is active both watchlist rows and suggested markets are
+    // filtered inline so the user can find any relevant market by name or symbol.
+    // "No tokens found" is only shown when nothing matches in either section.
     if (isWatchlistEnabled && showFavoritesOnly) {
+      const trimmedQuery = searchQuery.trim().toLowerCase();
+      const visibleWatchlistMarkets = trimmedQuery
+        ? watchlistMarketObjects.filter(
+            (m) =>
+              m.symbol.toLowerCase().includes(trimmedQuery) ||
+              m.name.toLowerCase().includes(trimmedQuery),
+          )
+        : watchlistMarketObjects;
+      const visibleSuggestedMarkets = trimmedQuery
+        ? suggestedMarkets?.filter(
+            (m) =>
+              m.symbol.toLowerCase().includes(trimmedQuery) ||
+              m.name.toLowerCase().includes(trimmedQuery),
+          )
+        : suggestedMarkets;
+
+      if (
+        trimmedQuery &&
+        visibleWatchlistMarkets.length === 0 &&
+        !visibleSuggestedMarkets?.length
+      ) {
+        return (
+          <View
+            style={styles.emptyStateContainer}
+            testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+          >
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Xl}
+              color={theme.colors.icon.muted}
+              style={styles.emptyStateIcon}
+            />
+            <Text
+              variant={TextVariant.HeadingSM}
+              color={TextColor.Default}
+              style={styles.emptyStateTitle}
+            >
+              {strings('perps.no_tokens_found')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.emptyStateDescription}
+            >
+              {strings('perps.no_tokens_found_description', { searchQuery })}
+            </Text>
+          </View>
+        );
+      }
+
       return (
         <PerpsWatchlistMarkets
-          markets={watchlistMarketObjects}
-          suggestedMarkets={suggestedMarkets}
+          markets={visibleWatchlistMarkets}
+          suggestedMarkets={visibleSuggestedMarkets}
           showHeader={false}
           enableShowMore={false}
           onMarketPress={handleMarketPress}

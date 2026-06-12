@@ -1098,6 +1098,224 @@ describe('PerpsMarketListView', () => {
         }),
       );
     });
+
+    it('filters watchlist rows by query and also filters suggestions, showing matching suggestions', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const btcMarket = mockMarketData[0]; // BTC — watchlisted
+      const ethMarket = mockMarketData[1]; // ETH — watchlisted
+      const suggested = [mockMarketData[2]]; // SOL — suggested (not watchlisted)
+
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        markets: [btcMarket, ethMarket],
+        searchState: {
+          searchQuery: 'BTC',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [btcMarket, ethMarket],
+          suggestedMarkets: suggested,
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // BTC matches the watchlist query; ETH does not
+      expect(screen.getByTestId('watchlist-row-BTC')).toBeOnTheScreen();
+      expect(screen.queryByTestId('watchlist-row-ETH')).not.toBeOnTheScreen();
+      // SOL is in suggestions but doesn't match "BTC", so it is filtered out too
+      expect(screen.queryByTestId('suggested-row-SOL')).not.toBeOnTheScreen();
+    });
+
+    it('shows a matching suggestion when it is in suggestions but not in the watchlist', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const btcMarket = mockMarketData[0]; // BTC — watchlisted
+      const ethMarket = mockMarketData[1]; // ETH — suggested (not watchlisted)
+
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        markets: [btcMarket],
+        searchState: {
+          searchQuery: 'ETH',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [btcMarket],
+          suggestedMarkets: [ethMarket],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // BTC is watchlisted but doesn't match "ETH"
+      expect(screen.queryByTestId('watchlist-row-BTC')).not.toBeOnTheScreen();
+      // ETH is in suggestions and matches — rendered under suggested section
+      expect(screen.getByTestId('suggested-row-ETH')).toBeOnTheScreen();
+      // No-results state must NOT appear since a suggestion matched
+      expect(
+        screen.queryByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the no-results empty state when a search query matches nothing in watchlist or suggestions', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const btcMarket = mockMarketData[0]; // BTC — watchlisted
+      const ethMarket = mockMarketData[1]; // ETH — suggested
+
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        markets: [btcMarket],
+        searchState: {
+          searchQuery: 'XYZ',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [btcMarket],
+          suggestedMarkets: [ethMarket],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Neither watchlist (BTC) nor suggestion (ETH) matches "XYZ"
+      expect(
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('perps-watchlist-markets'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('restores full watchlist and suggestions when search query is cleared', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const btcMarket = mockMarketData[0];
+      const ethMarket = mockMarketData[1];
+      const suggested = [mockMarketData[2]]; // SOL
+
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        markets: [btcMarket, ethMarket],
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [btcMarket, ethMarket],
+          suggestedMarkets: suggested,
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // All watchlist rows visible, suggestion restored
+      expect(screen.getByTestId('watchlist-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('watchlist-row-ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('suggested-row-SOL')).toBeOnTheScreen();
+    });
   });
 
   describe('Market Selection', () => {
