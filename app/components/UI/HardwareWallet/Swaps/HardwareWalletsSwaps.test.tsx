@@ -688,6 +688,10 @@ describe('HardwareWalletsSwaps', () => {
 
   describe('force-hide bottom sheet', () => {
     describe('non-QR wallets', () => {
+      beforeEach(() => {
+        mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      });
+
       it('force-hides the shared bottom sheet once all steps are signed', () => {
         renderScreen(SUBMITTED_STATE);
 

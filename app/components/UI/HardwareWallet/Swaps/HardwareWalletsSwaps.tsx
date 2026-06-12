@@ -28,7 +28,6 @@ import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import Logger from '../../../../util/Logger';
 import genericHardwareWalletRiveFile from '../../../../animations/generic_hardware_wallet.riv';
 import {
   resetHardwareWalletsSwaps,
@@ -286,6 +285,12 @@ export function HardwareWalletsSwaps() {
       );
       return;
     }
+
+    // Stale-submission guard: capture the current generation before submitting.
+    // If a retry is triggered while this submission is in-flight, the generation
+    // counter is bumped (see retrySubmission). On error, we check whether our
+    // generation is still current — if not, a newer submission has already taken
+    // over and we must not dispatch a TransactionFailed
     const myGeneration = submissionGenerationRef.current;
     try {
       await submitBridgeTxRef.current(cachedSubmissionParams.current);
@@ -293,11 +298,9 @@ export function HardwareWalletsSwaps() {
       if (submissionGenerationRef.current !== myGeneration) {
         return;
       }
-      Logger.error(
-        error as Error,
-        `HardwareWalletsSwaps: submission failed: ${JSON.stringify(error)}`,
-      );
       const currentProgress = progressRef.current;
+      // Avoid overriding user-initiated terminal states. Only Waiting transitions
+      // to Failed in the reducer; Submitted is a no-op since all signing already completed.
       if (
         currentProgress.status === HardwareWalletsSwapsStatus.Waiting ||
         currentProgress.status === HardwareWalletsSwapsStatus.Submitted
@@ -489,12 +492,6 @@ export function HardwareWalletsSwaps() {
             alignment={Alignment.Center}
             style={styles.riveAnimation}
             onPlay={() => setIsRivePlaying(true)}
-            onError={(riveError) => {
-              Logger.error(
-                new Error(riveError.message),
-                `HardwareWalletsSwaps: Rive error: ${JSON.stringify(riveError)}`,
-              );
-            }}
           />
         </Box>
 
@@ -537,6 +534,7 @@ export function HardwareWalletsSwaps() {
             isFullWidth
             testID={HardwareWalletsSwapsSelectorsIDs.SCAN_NEXT_QR_BUTTON}
             onPress={() =>
+              // The +1 is for the title because its 1 based.
               navigation.navigate(Routes.BRIDGE.HW_QR_SCANNER, {
                 currentStep: progress.currentStep + 1,
                 totalSteps: progress.totalSteps,
