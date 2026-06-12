@@ -30,9 +30,14 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
+  getSportsMarketTypeGroupKey,
+  GROUP_ORDER,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
   isPlayerPropMarketType,
+  isSupportedSportsMarketType,
+  SPORTS_MARKET_TYPE_PRIORITIES,
+  SPORTS_MARKET_TYPE_TO_GROUP,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import type {
@@ -48,10 +53,7 @@ import type {
 import {
   ClobAuthDomain,
   DEFAULT_CLOB_BASE_URL,
-  getSportsMarketTypeGroupKey,
   EIP712Domain,
-  GROUP_ORDER,
-  SPORTS_MARKET_TYPE_PRIORITIES,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS_V2,
   MSG_TO_SIGN,
@@ -60,7 +62,6 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
-  SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
 import {
   ApiKeyCreds,
@@ -86,7 +87,10 @@ import { PredictFeeCollection } from '../../types/flags';
 import { roundToFiveDecimals } from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 
-export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+export {
+  SPORTS_MARKET_TYPE_TO_GROUP,
+  GROUP_ORDER,
+} from '../../constants/sports';
 
 /**
  * Parse a fetch `Response` body as JSON, raising a contextual error when the
@@ -267,6 +271,7 @@ function getClobEndpoint({
 
 const clobMarketInfoCache = new Map<string, ClobMarketInfo>();
 const reportedClobMarketInfoFailures = new Set<string>();
+const loggedUnsupportedSportsMarketTypes = new Set<string>();
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -319,6 +324,7 @@ const getClobMarketInfoFailureContext = (conditionId: string) => ({
 export const clearClobMarketInfoSessionState = () => {
   clobMarketInfoCache.clear();
   reportedClobMarketInfoFailures.clear();
+  loggedUnsupportedSportsMarketTypes.clear();
 };
 
 export const clearClobMarketInfoCache = () => {
@@ -708,6 +714,63 @@ interface CardSpec {
   title?: string;
 }
 
+export const filterSupportedSportsOutcomes = (
+  outcomes: PredictOutcome[],
+): {
+  filteredOutcomes: PredictOutcome[];
+  unsupportedOutcomes: Map<string, number>;
+} => {
+  const unsupportedOutcomes = new Map<string, number>();
+
+  const filteredOutcomes = outcomes.filter((outcome) => {
+    if (isSupportedSportsMarketType(outcome.sportsMarketType)) {
+      return true;
+    }
+
+    const sportsMarketType = outcome.sportsMarketType?.toLowerCase();
+    if (sportsMarketType) {
+      unsupportedOutcomes.set(
+        sportsMarketType,
+        (unsupportedOutcomes.get(sportsMarketType) ?? 0) + 1,
+      );
+    }
+
+    return false;
+  });
+
+  return { filteredOutcomes, unsupportedOutcomes };
+};
+
+export const logUnsupportedSportsMarketTypesOnce = ({
+  unsupportedOutcomes,
+}: {
+  unsupportedOutcomes: Map<string, number>;
+}): void => {
+  unsupportedOutcomes.forEach((droppedOutcomeCount, sportsMarketType) => {
+    if (loggedUnsupportedSportsMarketTypes.has(sportsMarketType)) {
+      return;
+    }
+
+    loggedUnsupportedSportsMarketTypes.add(sportsMarketType);
+    const message = `Unsupported Predict sports market type: ${sportsMarketType}`;
+
+    Logger.error(new Error(message), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        provider: POLYMARKET_PROVIDER_ID,
+      },
+      context: {
+        name: 'PolymarketUtils',
+        data: {
+          method: 'logUnsupportedSportsMarketTypesOnce',
+          sportsMarketType,
+          droppedOutcomeCount,
+        },
+      },
+    });
+  });
+};
+
 /**
  * Builds the cards for a single market type within a tab. Moneyline and spread
  * markets render as one card. Over/Under and player-prop markets split by
@@ -773,12 +836,17 @@ const buildCardsForType = (
 export function buildOutcomeGroups(
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] {
-  if (outcomes.length === 0) {
+  const { filteredOutcomes, unsupportedOutcomes } =
+    filterSupportedSportsOutcomes(outcomes);
+
+  logUnsupportedSportsMarketTypesOnce({ unsupportedOutcomes });
+
+  if (filteredOutcomes.length === 0) {
     return [];
   }
 
   const tabMap = new Map<string, PredictOutcome[]>();
-  for (const outcome of outcomes) {
+  for (const outcome of filteredOutcomes) {
     const tabKey = getSportsMarketTypeGroupKey(outcome.sportsMarketType);
 
     const bucket = tabMap.get(tabKey);

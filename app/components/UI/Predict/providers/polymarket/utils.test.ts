@@ -5,9 +5,9 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { getSportsMarketTypeGroupKey } from '../../constants/sports';
 import {
   DEFAULT_CLOB_BASE_URL,
-  getSportsMarketTypeGroupKey,
   MATIC_CONTRACTS_V2,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
@@ -24,6 +24,7 @@ import {
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
+  filterSupportedSportsOutcomes,
   fetchRelatedTagsFromPolymarketApi,
   normalizeRelatedTagsToFilterOptions,
   getAllowance,
@@ -31,6 +32,7 @@ import {
   getClobMarketInfoSafe,
   getContractConfig,
   getIsApprovedForAll,
+  logUnsupportedSportsMarketTypesOnce,
   getOrderBook,
   getRawBalance,
   parsePolymarketEvents,
@@ -302,6 +304,56 @@ describe('polymarket utils', () => {
         'shots',
         'shots_on_target',
         'goalkeeper_saves',
+      ]);
+    });
+
+    it('filters unsupported market types before building groups', () => {
+      const groups = buildOutcomeGroups([
+        mkOutcome('moneyline', 'Mexico'),
+        mkOutcome('basketball_player_blocks', 'Player A: 2+ blocks', {
+          line: 1.5,
+        }),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].key).toBe('game_lines');
+      expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+        'moneyline',
+      ]);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Unsupported Predict sports market type: basketball_player_blocks',
+        }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'logUnsupportedSportsMarketTypesOnce',
+              sportsMarketType: 'basketball_player_blocks',
+              droppedOutcomeCount: 1,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('returns filtered and unsupported outcomes from the shared helper', () => {
+      const { filteredOutcomes, unsupportedOutcomes } =
+        filterSupportedSportsOutcomes([
+          mkOutcome('moneyline', 'Mexico'),
+          mkOutcome('basketball_player_blocks', 'Player A: 2+ blocks', {
+            line: 1.5,
+          }),
+          mkOutcome('basketball_player_blocks', 'Player B: 3+ blocks', {
+            line: 2.5,
+          }),
+        ]);
+
+      expect(
+        filteredOutcomes.map((outcome) => outcome.sportsMarketType),
+      ).toEqual(['moneyline']);
+      expect([...unsupportedOutcomes.entries()]).toEqual([
+        ['basketball_player_blocks', 2],
       ]);
     });
 
@@ -697,6 +749,32 @@ describe('polymarket utils', () => {
       ['Mexico 1 - 0 South Africa'],
     ])('returns null for non-subject market %p', (title) => {
       expect(subjectOf(title)).toBeNull();
+    });
+  });
+
+  describe('logUnsupportedSportsMarketTypesOnce', () => {
+    it('logs unsupported market types only once per type', () => {
+      const unsupportedOutcomes = new Map([['basketball_player_blocks', 2]]);
+
+      logUnsupportedSportsMarketTypesOnce({ unsupportedOutcomes });
+      logUnsupportedSportsMarketTypesOnce({ unsupportedOutcomes });
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Unsupported Predict sports market type: basketball_player_blocks',
+        }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'logUnsupportedSportsMarketTypesOnce',
+              sportsMarketType: 'basketball_player_blocks',
+              droppedOutcomeCount: 2,
+            }),
+          }),
+        }),
+      );
     });
   });
 
