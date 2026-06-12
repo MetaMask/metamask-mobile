@@ -4,13 +4,20 @@ import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { DeeplinkManager } from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import handleDappUrl from '../handlers/legacy/handleDappUrl';
+import {
+  handleDappUrl,
+  createDappDeeplinkIntent,
+  getDappUrl,
+} from '../handlers/legacy/handleDappUrl';
 import handleUniversalLink from '../handlers/legacy/handleUniversalLink';
 import connectWithWC from '../handlers/legacy/connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../AppConstants';
 import handleEthereumUrl from '../handlers/legacy/handleEthereumUrl';
+import type { DeeplinkIntent } from '../types/DeeplinkIntent';
+
+export type DeeplinkParseMode = 'execute' | 'resolve';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -18,13 +25,15 @@ async function parseDeeplink({
   origin,
   browserCallBack,
   onHandled,
+  mode = 'execute',
 }: {
   deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
   browserCallBack?: (url: string) => void;
   onHandled?: () => void;
-}) {
+  mode?: DeeplinkParseMode;
+}): Promise<boolean | DeeplinkIntent | null> {
   try {
     const validatedUrl = new URL(url);
     DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
@@ -54,20 +63,30 @@ async function parseDeeplink({
           `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
         );
         const { urlObj: mappedUrlObj } = extractURLParams(mappedUrl);
-        handleUniversalLink({
+        const result = handleUniversalLink({
           instance,
           handled,
           urlObj: mappedUrlObj,
           browserCallBack,
           url: mappedUrl,
           source: origin,
+          mode,
         });
+        if (mode === 'resolve') {
+          return (await result) ?? null;
+        }
         break;
       }
       case PROTOCOLS.WC:
+        if (mode === 'resolve') {
+          return null;
+        }
         connectWithWC({ handled, wcURL, origin, params });
         break;
       case PROTOCOLS.ETHEREUM:
+        if (mode === 'resolve') {
+          return null;
+        }
         handled();
         handleEthereumUrl({
           url,
@@ -79,6 +98,10 @@ async function parseDeeplink({
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
+        if (mode === 'resolve') {
+          handled();
+          return createDappDeeplinkIntent({ url: getDappUrl(urlObj) });
+        }
         handleDappUrl({ handled, urlObj, browserCallBack });
         break;
       default:

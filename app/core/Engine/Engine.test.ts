@@ -322,42 +322,29 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring gets or creates a snap keyring', async () => {
+  it('getSnapKeyring delegates to SnapAccountService.getLegacySnapKeyring', async () => {
     const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
     const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementation(() => [mockSnapKeyring]);
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+    jest
+      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
+      .mockResolvedValue(mockSnapKeyring as never);
 
     const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
+
     expect(result).toEqual(mockSnapKeyring);
   });
 
-  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
+  it('getSnapKeyring propagates errors from SnapAccountService.getLegacySnapKeyring', async () => {
     const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
 
     jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementationOnce(() => [])
-      .mockImplementationOnce(() => [mockSnapKeyring]);
+      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
+      .mockRejectedValue(new Error('keyring unavailable'));
 
-    jest
-      .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
-
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
-
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
+    await expect(engine.getSnapKeyring()).rejects.toThrow(
+      'keyring unavailable',
+    );
   });
 
   it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
@@ -408,7 +395,6 @@ describe('Engine', () => {
         cacheTimestamp: 0,
       },
     };
-    const keyringState = null;
     const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const enableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
@@ -428,7 +414,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(analyticsId, state, keyringState);
+    Engine.init(analyticsId, state);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option
@@ -452,7 +438,6 @@ describe('Engine', () => {
         cacheTimestamp: 0,
       },
     };
-    const keyringState = null;
     const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const disableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
@@ -472,7 +457,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(analyticsId, state, keyringState);
+    Engine.init(analyticsId, state);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option
@@ -838,17 +823,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -869,17 +850,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -919,17 +896,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: false,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 

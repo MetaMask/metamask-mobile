@@ -1,4 +1,4 @@
-import React, { ReactNode, memo, useCallback, useState } from 'react';
+import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -23,6 +23,7 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
@@ -67,15 +68,19 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 
 export interface CustomAmountInfoProps {
+  autoSelectFiatPayment?: boolean;
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
   hasMax?: boolean;
+  hideAccountSelector?: boolean;
   preferredToken?: SetPayTokenRequest;
   footerText?: string;
   /**
@@ -94,33 +99,34 @@ export interface CustomAmountInfoProps {
    * When true, the account selector is shown.
    */
   supportAccountSelection?: boolean;
-  /**
-   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
-   * Used by Perps Withdraw on Android, where this screen has one extra
-   * balance line and otherwise clips behind the system gesture bar.
-   */
-  hasExtraBottomPadding?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
+    autoSelectFiatPayment,
     children,
     currency,
     disableConfirm,
     disablePay,
     hasMax,
-    hasExtraBottomPadding,
+    hideAccountSelector,
     onAmountSubmit,
     hidePayTokenAmount,
     preferredToken,
     footerText,
     supportAccountSelection,
   }) => {
+    const transactionMeta = useTransactionMetadataRequest();
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
+
     useClearConfirmationOnBackSwipe();
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
     useAutomaticTransactionPayToken({
+      autoSelectFiatPayment,
       disable: disablePay,
       preferredToken,
     });
@@ -130,16 +136,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const { hasTokens } = useTransactionPayAvailableTokens();
+    const { hasTokens: hasAvailableTokens } =
+      useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
-    const transactionMeta = useTransactionMetadataRequest();
+    const isFiatAvailable = useIsFiatPaymentAvailable();
+    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const fiatEverSelectedRef = useRef(false);
+    if (selectedFiatPaymentMethodId) {
+      fiatEverSelectedRef.current = true;
+    }
+    const shouldHideAccountSelector =
+      hideAccountSelector && !fiatEverSelectedRef.current;
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
+
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -155,6 +167,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const {
       amountFiat,
+      amountFiatDebounced,
       amountHuman,
       amountHumanDebounced,
       hasInput,
@@ -168,6 +181,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isInputChanged,
       isKeyboardVisible,
       pendingTokenAmount: amountHumanDebounced,
+      pendingFiatAmount: amountFiatDebounced,
     });
 
     const handleDone = useCallback(async () => {
@@ -179,6 +193,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               fp.amountFiat = amountFiat;
             },
           });
+
+          // Fiat deposits need nested calldata (approve + deposit) populated
+          // with approximate amounts now so the transaction is valid at submit
+          // time. Core will re-encode with exact amounts after settlement.
+          if (isMoneyAccountDeposit) {
+            await updateTokenAmount();
+          }
         } else {
           await updateTokenAmount();
         }
@@ -194,6 +215,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [
       amountFiat,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
@@ -217,7 +239,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             currency={currency}
             hasAlert={Boolean(alertMessage)}
             onPress={handleAmountPress}
-            disabled={!hasTokens}
+            disabled={!hasPaymentOption}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -226,7 +248,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
-                disabled={!hasTokens || isAccountSelectionNeeded}
+                disabled={!hasPaymentOption || isAccountSelectionNeeded}
               />
             ))}
           {!hidePayTokenAmount && children}
@@ -234,23 +256,31 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box
           gap={16}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
-          style={hasExtraBottomPadding && styles.extraBottomPadding}
+          style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
             <>
-              {supportAccountSelection && !selectedFiatPaymentMethodId && (
-                <PayAccountSelector style={styles.separator} />
-              )}
-              {disablePay !== true && hasTokens && <PayWithRow />}
+              {supportAccountSelection &&
+                !selectedFiatPaymentMethodId &&
+                !shouldHideAccountSelector && (
+                  <PayAccountSelector style={styles.separator} />
+                )}
+              <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
+              {disablePay !== true && hasPaymentOption && <PayWithRow />}
             </>
           )}
           {isResultReady && (
             <Box>
-              {supportAccountSelection && !selectedFiatPaymentMethodId && (
-                <PayAccountSelector />
+              {supportAccountSelection &&
+                !selectedFiatPaymentMethodId &&
+                !shouldHideAccountSelector && <PayAccountSelector />}
+              <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
+              {disablePay !== true && hasPaymentOption && (
+                <PayWithRow isResultReady />
               )}
-              {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />
@@ -274,9 +304,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && hasTokens && (
+          {isKeyboardVisible && hasPaymentOption && (
             <DepositKeyboard
-              hidePercentageButtons={Boolean(selectedFiatPaymentMethodId)}
+              hidePercentageButtons={
+                Boolean(selectedFiatPaymentMethodId) ||
+                shouldHideAccountSelector
+              }
               alertMessage={alertTitle}
               value={amountFiat}
               onChange={updatePendingAmount}
@@ -286,7 +319,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && (isWithdraw || !isNativePayToken)}
             />
           )}
-          {!hasTokens && <BuySection />}
+          {!hasPaymentOption && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
@@ -380,7 +413,8 @@ function ConfirmButton({
 }: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
-  const { isHeadlessBuyInProgress } = useConfirmationContext();
+  const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
+    useConfirmationContext();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
   const disabled =
@@ -389,6 +423,16 @@ function ConfirmButton({
     Boolean(disableConfirm) ||
     isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
+
+  const handleConfirm = useCallback(async () => {
+    setIsConfirmationSubmitting(true);
+    try {
+      await onConfirm();
+    } catch (error) {
+      setIsConfirmationSubmitting(false);
+      throw error;
+    }
+  }, [onConfirm, setIsConfirmationSubmitting]);
 
   return (
     <Button
@@ -399,7 +443,7 @@ function ConfirmButton({
       isDisabled={disabled}
       isLoading={isHeadlessBuyInProgress}
       loadingText={strings('confirm.preparing_order')}
-      onPress={() => onConfirm()}
+      onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
       {alertTitle ?? buttonLabel}

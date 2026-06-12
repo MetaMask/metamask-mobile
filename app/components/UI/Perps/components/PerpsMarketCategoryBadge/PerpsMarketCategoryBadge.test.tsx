@@ -5,6 +5,7 @@ import PerpsMarketCategoryBadge from './PerpsMarketCategoryBadge';
 describe('PerpsMarketCategoryBadge', () => {
   const defaultProps = {
     label: 'Crypto',
+    accessibilityLabel: 'Crypto',
     isSelected: false,
     onPress: jest.fn(),
   };

@@ -15,6 +15,7 @@ import {
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
 import { PREDICT_BALANCE_TEST_IDS } from '../PredictBalance/PredictBalance.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export type PredictWithdrawUnavailableSheetRef = PredictBottomSheetRef;
 
@@ -31,6 +32,7 @@ const PredictWithdrawUnavailableSheet = forwardRef<PredictBottomSheetRef>(
       handleSheetClosed,
       getRefHandlers,
     } = usePredictBottomSheet();
+    const surfaceClass = useElevatedSurface();
 
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
@@ -44,13 +46,16 @@ const PredictWithdrawUnavailableSheet = forwardRef<PredictBottomSheetRef>(
         isInteractable
         onClose={handleSheetClosed}
         testID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_SHEET}
+        twClassName={surfaceClass}
       >
         <BottomSheetHeader
           onClose={closeSheet}
           closeButtonProps={{
             testID: PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_CLOSE_BUTTON,
           }}
-          titleTestID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_TITLE}
+          textProps={{
+            testID: PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_TITLE,
+          }}
         >
           {strings('predict.withdraw.unavailable_title')}
         </BottomSheetHeader>

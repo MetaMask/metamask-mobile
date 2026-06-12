@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
@@ -11,7 +12,6 @@ import { Asset } from '../../send/asset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   AssetType,
   isHighlightedItemInAssetList,
@@ -252,11 +252,19 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
       shouldNavigateBack={dismissOnSelectCount <= 1}
+      onClose={(hasCallback) => {
+        // Swipe/overlay/back-button dismiss: navigate back manually.
+        // X button or token selection: postCallback handles it (hasCallback=true).
+        if (!hasCallback && dismissOnSelectCount > 1) {
+          navigation.goBack();
+        }
+      }}
     >
-      <HeaderCompactStandard title={modalTitle} onClose={handleClose} />
+      <HeaderStandard title={modalTitle} onClose={handleClose} />
       <Asset
         includeNoBalance
         hideNfts
+        hideHeader
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}

@@ -16,13 +16,15 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { acceptVipInvite } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
@@ -36,7 +38,10 @@ import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
-import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import {
+  selectHasAcceptedVipInvite,
+  selectReferralCode,
+} from '../../../../reducers/rewards/selectors';
 import { formatCompactValue } from '../utils/formatUtils';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
@@ -59,11 +64,18 @@ const BENEFIT_TILE_SNAP_INTERVAL = VIP_FEE_TILE_WIDTH + BENEFIT_TILE_GAP;
 
 const RewardsVipViewContent: React.FC = () => {
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
-  const canViewVip = Boolean(subscriptionId && isVipEnabled);
+  const canViewVip = Boolean(
+    isVipProgramEnabled && subscriptionId && isVipEnabled,
+  );
   const referralCode = useSelector(selectReferralCode);
+  const hasAcceptedVipInvite = useSelector(
+    selectHasAcceptedVipInvite(subscriptionId),
+  );
 
   const {
     dashboard,
@@ -83,6 +95,14 @@ const RewardsVipViewContent: React.FC = () => {
       navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
     }
   }, [canViewVip, navigation]);
+
+  useEffect(() => {
+    if (!canViewVip || !subscriptionId || hasAcceptedVipInvite) {
+      return;
+    }
+
+    dispatch(acceptVipInvite({ subscriptionId }));
+  }, [canViewVip, dispatch, hasAcceptedVipInvite, subscriptionId]);
 
   const handleTiersPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIP_TIERS_VIEW as never);

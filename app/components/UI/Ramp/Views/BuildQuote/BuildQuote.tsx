@@ -69,7 +69,6 @@ import {
 
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
-import { failSession } from '../../headless/sessionRegistry';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -97,22 +96,14 @@ export interface BuildQuoteParams {
   buyFlowOrigin?: BuyFlowOrigin;
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
-  /**
-   * Legacy param from Phase 3. The headless flow now navigates straight
-   * to `Routes.RAMP.HEADLESS_HOST` and never lands on BuildQuote, so the
-   * field is unused. Kept as `optional` for backward compatibility with
-   * any in-flight deeplinks; safe to remove once we're sure no callers
-   * pass it.
-   *
-   * @deprecated Use `Routes.RAMP.HEADLESS_HOST` instead.
-   */
-  headlessSessionId?: string;
 }
 
 /**
  * Creates navigation details for the BuildQuote screen (RampAmountInput).
  * This screen is nested inside TokenListRoutes, so navigation must go through
- * the parent route Routes.RAMP.TOKEN_SELECTION.
+ * the parent route Routes.RAMP.TOKEN_SELECTION, then the intermediate
+ * RootStack wrapper Routes.RAMP.TOKEN_SELECTION_ROOT, before reaching the
+ * AMOUNT_INPUT leaf screen.
  */
 export const createBuildQuoteNavDetails = (
   params?: BuildQuoteParams,
@@ -129,7 +120,7 @@ export const createBuildQuoteNavDetails = (
   [
     Routes.RAMP.TOKEN_SELECTION,
     {
-      screen: Routes.RAMP.TOKEN_SELECTION,
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
       params: {
         screen: Routes.RAMP.AMOUNT_INPUT,
         params,
@@ -160,24 +151,10 @@ function BuildQuote() {
 
   useEffect(() => {
     if (params?.nativeFlowError) {
-      if (
-        params.headlessSessionId &&
-        failSession(
-          params.headlessSessionId,
-          {
-            code: 'AUTH_FAILED',
-            message: params.nativeFlowError,
-          },
-          'AUTH_FAILED',
-        )
-      ) {
-        navigation.setParams({ nativeFlowError: undefined });
-        return;
-      }
       setRampsError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
-  }, [params?.headlessSessionId, params?.nativeFlowError, navigation]);
+  }, [params?.nativeFlowError, navigation]);
 
   const {
     userRegion,
@@ -644,9 +621,6 @@ function BuildQuote() {
         assetId: selectedToken?.assetId ?? '',
       });
     } catch (err) {
-      if (failSession(params?.headlessSessionId, err)) {
-        return;
-      }
       setRampsError((err as Error).message);
     } finally {
       setIsContinueLoading(false);
@@ -662,7 +636,6 @@ function BuildQuote() {
     selectedPaymentMethod?.id,
     rampRoutingDecision,
     userRegion?.regionCode,
-    params?.headlessSessionId,
     trackEvent,
     createEventBuilder,
     continueWithQuote,

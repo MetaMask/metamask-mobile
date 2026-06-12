@@ -6,10 +6,7 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
-import {
-  remoteFeatureFlagHomepageSectionsV1Enabled,
-  remoteFeatureFlagPredictEnabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -42,8 +39,16 @@ const positionDetails = {
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
+    // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
+    predictBottomSheet: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    predictWithAnyToken: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     carouselBanners: false,
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
