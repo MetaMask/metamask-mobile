@@ -2,19 +2,20 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PredictUnavailableSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class PredictUnavailableView {
-  get title(): DetoxElement {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(PredictUnavailableSelectorsIDs.TITLE_TEXT);
   }
 
-  get description(): DetoxElement {
+  get description(): EncapsulatedElementType {
     return Matchers.getElementByText(
       PredictUnavailableSelectorsIDs.DESCRIPTION_TEXT,
     );
   }
 
-  get gotItButton(): DetoxElement {
+  get gotItButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       PredictUnavailableSelectorsIDs.BUTTON_TEXT,
     );

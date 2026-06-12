@@ -124,11 +124,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getRampRoutingDecision: () => 'AGGREGATOR',
-  UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
-}));
-
 jest.mock('../../hooks/useRampAccountAddress', () => ({
   __esModule: true,
   default: () => '0x1234567890123456789012345678901234567890',
@@ -306,7 +301,7 @@ describe('createBuildQuoteNavDetails', () => {
   it('returns token selection route with amount input screen', () => {
     const result = createBuildQuoteNavDetails();
     expect(result[0]).toBe(Routes.RAMP.TOKEN_SELECTION);
-    expect(result[1].screen).toBe(Routes.RAMP.TOKEN_SELECTION);
+    expect(result[1].screen).toBe(Routes.RAMP.TOKEN_SELECTION_ROOT);
     expect(result[1].params.screen).toBe(Routes.RAMP.AMOUNT_INPUT);
     expect(result[1].params.params).toBeUndefined();
   });
@@ -319,19 +314,6 @@ describe('createBuildQuoteNavDetails', () => {
     expect(result[1].params.params).toEqual({
       assetId: 'eip155:1/slip44:60',
       nativeFlowError: 'error',
-    });
-  });
-
-  it('forwards headlessSessionId for headless buy attempts', () => {
-    const result = createBuildQuoteNavDetails({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
-    });
-    expect(result[1].params.params).toEqual({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
     });
   });
 });

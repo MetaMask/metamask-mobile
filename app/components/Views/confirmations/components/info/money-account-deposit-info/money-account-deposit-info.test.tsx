@@ -10,9 +10,11 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
-const mockUseMoneyAccountDepositNavbar = jest.fn();
-jest.mock('../../../../../UI/Money/hooks/useMoneyAccountDepositNavbar', () => ({
-  useMoneyAccountDepositNavbar: () => mockUseMoneyAccountDepositNavbar(),
+const mockUseNavbar = jest.fn();
+jest.mock('../../../hooks/ui/useNavbar', () => ({
+  __esModule: true,
+  default: (title: string, addBackButton: boolean) =>
+    mockUseNavbar(title, addBackButton),
 }));
 
 const mockCustomAmountInfo = jest.fn();
@@ -38,7 +40,7 @@ describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCustomAmountInfo.mockClear();
-    mockUseMoneyAccountDepositNavbar.mockReturnValue(undefined);
+    mockUseNavbar.mockReturnValue(undefined);
     mockUseParams.mockReturnValue({});
   });
 
@@ -51,10 +53,11 @@ describe('MoneyAccountDepositInfo', () => {
     );
   });
 
-  it('installs the navbar via useMoneyAccountDepositNavbar', () => {
+  it('installs the navbar with the add money title and a back button', () => {
     render(<MoneyAccountDepositInfo />);
 
-    expect(mockUseMoneyAccountDepositNavbar).toHaveBeenCalledTimes(1);
+    expect(mockUseNavbar).toHaveBeenCalledTimes(1);
+    expect(mockUseNavbar).toHaveBeenCalledWith('Add funds', true);
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -69,16 +72,6 @@ describe('MoneyAccountDepositInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.supportAccountSelection).toBe(true);
-  });
-
-  it('passes hasMax=true to CustomAmountInfo', () => {
-    render(<MoneyAccountDepositInfo />);
-
-    const lastCall =
-      mockCustomAmountInfo.mock.calls[
-        mockCustomAmountInfo.mock.calls.length - 1
-      ][0];
-    expect(lastCall.hasMax).toBe(true);
   });
 
   it('passes autoSelectFiatPayment and hideAccountSelector from route params', () => {

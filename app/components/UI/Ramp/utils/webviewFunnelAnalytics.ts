@@ -1,4 +1,3 @@
-import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
 import { redactUrlForAnalytics } from './redactUrlForAnalytics';
 
 export type CloseSource =
@@ -13,25 +12,21 @@ export interface FunnelBaseProps {
   location: 'Checkout';
   ramp_type: 'UNIFIED_BUY_2';
   provider_name?: string;
-  ramp_routing?: UnifiedRampRoutingType;
 }
 
 export interface BuildBaseArgs {
   checkoutSessionId: string;
   providerName?: string;
-  rampRouting?: UnifiedRampRoutingType | null;
 }
 
 export const buildBaseProps = ({
   checkoutSessionId,
   providerName,
-  rampRouting,
 }: BuildBaseArgs): FunnelBaseProps => ({
   checkout_session_id: checkoutSessionId,
   location: 'Checkout',
   ramp_type: 'UNIFIED_BUY_2',
   provider_name: providerName ?? undefined,
-  ramp_routing: rampRouting ?? undefined,
 });
 
 export const extractHostname = (url: string): string | undefined => {

@@ -5,7 +5,7 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import { ParsedArgs, AnalysisContext } from './types';
+import { ParsedArgs, AnalysisContext, SelectTagsAnalysis } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
@@ -384,16 +384,39 @@ async function main() {
     console.log(`🔗 PR #${options.prNumber} - using gh CLI for diffs`);
   }
 
-  // Check hard rules before provider availability — hard rules are deterministic
-  // and require no AI, so we can skip all API calls if one fires.
+  let e2eHardRuleResult: SelectTagsAnalysis | null = null;
+
+  // Check hard rules before provider availability. For select-tags mode, hard
+  // rules still own the E2E tag decision, but performance_tests should be
+  // decided by the AI using tags.performance.js context.
   const { checkHardRules } = MODES[mode];
   if (checkHardRules) {
     const hardRuleResult = checkHardRules(allChangedFiles, analysisContext);
     if (hardRuleResult) {
-      (MODES[mode].outputAnalysis as (a: unknown) => void)(hardRuleResult);
-      return;
+      if (mode === 'select-tags') {
+        e2eHardRuleResult = hardRuleResult as SelectTagsAnalysis;
+        console.log(
+          '🤖 Continuing AI analysis for performance test selection only.',
+        );
+      } else {
+        (MODES[mode].outputAnalysis as (a: unknown) => void)(hardRuleResult);
+        return;
+      }
     }
   }
+
+  const outputAnalysis = (analysis: unknown): void => {
+    if (mode === 'select-tags' && e2eHardRuleResult) {
+      const aiAnalysis = analysis as SelectTagsAnalysis;
+      (MODES[mode].outputAnalysis as (a: unknown) => void)({
+        ...e2eHardRuleResult,
+        performanceTests: aiAnalysis.performanceTests,
+      });
+      return;
+    }
+
+    (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
+  };
 
   // Get provider order (forced provider or priority from config)
   const providerOrder = getProviderOrder(forcedProvider);
@@ -438,7 +461,7 @@ async function main() {
     console.error(`   ${LLM_CONFIG.providers.openai.envKey}`);
     console.error(`   ${LLM_CONFIG.providers.google.envKey}`);
     const fallbackAnalysis = MODES[mode].createConservativeResult();
-    (MODES[mode].outputAnalysis as (a: unknown) => void)(fallbackAnalysis);
+    outputAnalysis(fallbackAnalysis);
     return;
   }
 
@@ -768,10 +791,11 @@ async function main() {
         mode,
         analysisContext,
         availableSkills,
+        { skipHardRules: Boolean(e2eHardRuleResult) },
       );
 
       // Success - output results and exit
-      (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
+      outputAnalysis(analysis);
       return;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -790,7 +814,7 @@ async function main() {
   }
 
   const fallbackAnalysis = MODES[mode].createConservativeResult();
-  (MODES[mode].outputAnalysis as (a: unknown) => void)(fallbackAnalysis);
+  outputAnalysis(fallbackAnalysis);
 }
 
 main().catch((error) => {
