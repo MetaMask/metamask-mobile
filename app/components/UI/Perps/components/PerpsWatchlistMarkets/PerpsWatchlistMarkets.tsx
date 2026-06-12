@@ -30,6 +30,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
+import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
 import {
   Text,
   TextVariant,
@@ -73,7 +74,119 @@ interface PerpsWatchlistMarketsProps {
   showHeader?: boolean;
 }
 
-const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
+// ─── Legacy (flag OFF) ──────────────────────────────────────────────────────
+
+/**
+ * Pre-redesign watchlist: plain list, hidden when empty, no empty state /
+ * suggested markets / show-more / chevron header.
+ */
+const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
+  markets,
+  suggestedMarkets,
+  isLoading,
+  positions = [],
+  orders = [],
+  source,
+  transactionActiveAbTests,
+  sectionStyle,
+  headerStyle,
+  contentContainerStyle,
+  onSeeAllPress,
+  showHeader = true,
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
+
+  const handleMarketPress = useCallback(
+    (market: PerpsMarketData) => {
+      const hasPosition = positions.some((p) => p.symbol === market.symbol);
+      const hasOrder = orders.some((o) => o.symbol === market.symbol);
+
+      let initialTab: 'position' | 'orders' | undefined;
+      if (hasPosition) {
+        initialTab = 'position';
+      } else if (hasOrder) {
+        initialTab = 'orders';
+      }
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market,
+          initialTab,
+          source,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
+        },
+      });
+    },
+    [navigation, positions, orders, source, transactionActiveAbTests],
+  );
+
+  const renderMarket = useCallback(
+    ({ item }: { item: PerpsMarketData }) => (
+      <PerpsMarketRowItem
+        market={item}
+        showBadge={false}
+        onPress={() => handleMarketPress(item)}
+      />
+    ),
+    [handleMarketPress],
+  );
+
+  const SectionHeader = useCallback(
+    () => (
+      <View style={[styles.header, headerStyle]}>
+        <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
+          {strings('perps.home.watchlist')}
+        </Text>
+      </View>
+    ),
+    [styles.header, headerStyle],
+  );
+
+  if (isLoading) {
+    return (
+      <View
+        style={[styles.section, sectionStyle]}
+        testID={PerpsWatchlistSelectorsIDs.SECTION}
+      >
+        <SectionHeader />
+        <View style={contentContainerStyle}>
+          <PerpsRowSkeleton count={3} />
+        </View>
+      </View>
+    );
+  }
+
+  if (markets.length === 0) {
+    return null;
+  }
+
+  return (
+    <View
+      style={[styles.section, sectionStyle]}
+      testID={PerpsWatchlistSelectorsIDs.SECTION}
+    >
+      <SectionHeader />
+      <View style={contentContainerStyle}>
+        <FlatList
+          data={markets}
+          renderItem={renderMarket}
+          keyExtractor={(item) => item.symbol}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={false}
+          contentContainerStyle={styles.listContent}
+        />
+      </View>
+    </View>
+  );
+};
+
+// ─── Redesigned (flag ON) ───────────────────────────────────────────────────
+
+const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   markets,
   suggestedMarkets,
   isLoading,
@@ -281,6 +394,26 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
       </Animated.View>
     </View>
   );
+};
+
+// ─── Public export ──────────────────────────────────────────────────────────
+
+/**
+ * Watchlist section for the Perps home screen.
+ *
+ * Reads the `perpsWatchlistEnabled` remote feature flag first.
+ * When the flag is ON, renders the redesigned watchlist (empty state,
+ * suggested markets, show-more/less, tappable header, animations, 10-asset
+ * limit). When the flag is OFF, renders the pre-redesign plain list that
+ * hides entirely when empty.
+ */
+const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = (props) => {
+  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+
+  if (isWatchlistEnabled) {
+    return <PerpsWatchlistMarketsV2 {...props} />;
+  }
+  return <PerpsWatchlistMarketsV1 {...props} />;
 };
 
 export default PerpsWatchlistMarkets;

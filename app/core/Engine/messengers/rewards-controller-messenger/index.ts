@@ -59,6 +59,7 @@ import {
   RewardsDataServiceGetCampaignParticipantStatusAction,
   RewardsDataServiceGetBenefitsAction,
   RewardsDataServiceGetVIPDashboardAction,
+  RewardsDataServiceGetVipRefereeDashboardAction,
   RewardsDataServiceGetVipFeesAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
@@ -134,6 +135,7 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
   | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPredictThePitchLeaderboardAction
