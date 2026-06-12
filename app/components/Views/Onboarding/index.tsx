@@ -171,7 +171,12 @@ const Onboarding = () => {
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
-  const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
+  const isTelegramLoginEnabledOriginal = useSelector(
+    selectTelegramLoginEnabled,
+  );
+  void isTelegramLoginEnabledOriginal;
+  const isTelegramLoginEnabled = true;
+
   const walletSetupAttributionAnalyticsProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
