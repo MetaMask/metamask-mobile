@@ -13,7 +13,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
+import { Checkbox } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import createStyles from '../../Notification/Modal/styles';
@@ -150,8 +150,8 @@ const BasicFunctionalityModal = () => {
       <View style={styles.bottom}>
         <Checkbox
           label={strings('default_settings.sheet.checkbox_label')}
-          isChecked={isChecked}
-          onPress={() => setIsChecked(!isChecked)}
+          isSelected={isChecked}
+          onChange={setIsChecked}
         />
         <View style={styles.buttonsContainer}>
           <Button
