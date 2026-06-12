@@ -7,6 +7,7 @@ import {
   personalSignatureConfirmationState,
   transferConfirmationState,
 } from '../../../../../../../util/test/confirm-data-helpers';
+import AppConstants from '../../../../../../../core/AppConstants';
 import { MMM_ORIGIN } from '../../../../constants/confirmations';
 import { NetworkAndOriginRow } from './network-and-origin-row';
 
@@ -118,16 +119,22 @@ const externalAppOriginTransactionState = (origin: string) =>
     },
   });
 
-// Override the origin on the pending personal-sign request. The id matches the
-// pending approval / signature request keys in personalSignatureConfirmationState.
-const signatureOriginState = (origin: string) =>
+// Override the origin (and optionally the transport `request_source`) on the
+// pending personal-sign request. The id matches the pending approval /
+// signature request keys in personalSignatureConfirmationState.
+const signatureOriginState = (origin: string, requestSource?: string) =>
   merge({}, personalSignatureConfirmationState, {
     engine: {
       backgroundState: {
         SignatureController: {
           signatureRequests: {
             '76b33b40-7b5c-11ef-bc0a-25bce29dbc09': {
-              messageParams: { origin },
+              messageParams: {
+                origin,
+                ...(requestSource
+                  ? { meta: { analytics: { request_source: requestSource } } }
+                  : {}),
+              },
             },
           },
         },
@@ -215,5 +222,27 @@ describe('NetworkAndOriginRow', () => {
       expect(getByText('External app')).toBeOnTheScreen();
       expect(queryByText(SDK_CONNECTION_UUID)).not.toBeOnTheScreen();
     });
+
+    // The self-reported domain must NOT be shown for remote transports whose
+    // origin we can't verify — even though it looks like a normal domain, the
+    // `request_source` tells us it arrived over SDK v1 / MWP / WalletConnect.
+    it.each([
+      ['SDK v1', AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN],
+      ['MetaMask Connect (MWP)', AppConstants.REQUEST_SOURCES.MM_CONNECT],
+      ['WalletConnect', AppConstants.REQUEST_SOURCES.WC],
+    ])(
+      'displays "External app" for a self-reported %s domain origin',
+      (_label, requestSource) => {
+        const selfReportedDomain = 'opensea.io';
+        const { getByText, queryByText } = renderWithProvider(
+          <NetworkAndOriginRow />,
+          { state: signatureOriginState(selfReportedDomain, requestSource) },
+        );
+
+        expect(getByText('Request from')).toBeOnTheScreen();
+        expect(getByText('External app')).toBeOnTheScreen();
+        expect(queryByText(selfReportedDomain)).not.toBeOnTheScreen();
+      },
+    );
   });
 });

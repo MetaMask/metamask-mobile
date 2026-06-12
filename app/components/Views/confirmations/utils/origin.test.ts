@@ -1,6 +1,10 @@
 import AppConstants from '../../../../core/AppConstants';
 import { MMM_ORIGIN, MM_MOBILE_ORIGIN } from '../constants/confirmations';
-import { isDappOrigin, isExternalAppOrigin } from './origin';
+import {
+  isDappOrigin,
+  isExternalAppOrigin,
+  isExternalAppRequestSource,
+} from './origin';
 
 describe('isDappOrigin', () => {
   it('returns true for dapp origins', () => {
@@ -73,5 +77,34 @@ describe('isExternalAppOrigin', () => {
     expect(isExternalAppOrigin(null)).toBe(false);
     expect(isExternalAppOrigin(undefined)).toBe(false);
     expect(isExternalAppOrigin('')).toBe(false);
+  });
+});
+
+describe('isExternalAppRequestSource', () => {
+  it('returns true for unverifiable remote transports (SDK v1, MWP, WC)', () => {
+    expect(
+      isExternalAppRequestSource(AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN),
+    ).toBe(true);
+    expect(
+      isExternalAppRequestSource(AppConstants.REQUEST_SOURCES.MM_CONNECT),
+    ).toBe(true);
+    expect(isExternalAppRequestSource(AppConstants.REQUEST_SOURCES.WC)).toBe(
+      true,
+    );
+    expect(isExternalAppRequestSource(AppConstants.REQUEST_SOURCES.WC2)).toBe(
+      true,
+    );
+  });
+
+  it('returns false for the verifiable in-app browser source', () => {
+    expect(
+      isExternalAppRequestSource(AppConstants.REQUEST_SOURCES.IN_APP_BROWSER),
+    ).toBe(false);
+  });
+
+  it('returns false for null, undefined, or unknown source', () => {
+    expect(isExternalAppRequestSource(null)).toBe(false);
+    expect(isExternalAppRequestSource(undefined)).toBe(false);
+    expect(isExternalAppRequestSource('something-else')).toBe(false);
   });
 });

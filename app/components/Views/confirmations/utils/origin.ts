@@ -27,4 +27,32 @@ function isExternalAppOrigin(origin?: string | null): boolean {
   );
 }
 
-export { isDappOrigin, isExternalAppOrigin };
+/**
+ * Whether a request's analytics `request_source` indicates a remote transport
+ * whose origin the wallet cannot independently verify: MetaMask SDK (v1),
+ * MetaMask Connect / MWP (v2), or WalletConnect. Each of these reports its
+ * origin (url, name, icon) over the connection rather than via a verified
+ * browser/extension context, so it must not be presented as a trusted origin.
+ *
+ * Used alongside {@link isExternalAppOrigin} so the confirmation UI shows a
+ * generic "External app" label for all unverifiable remote requests, regardless
+ * of whether the transport surfaced the origin as a placeholder, a connection
+ * id, or a self-reported domain.
+ *
+ * Note: `request_source` is currently only populated on signature requests
+ * (`messageParams.meta.analytics.request_source`). Transactions persist only
+ * `origin`, so unverifiable WalletConnect / SDK v1 *transactions* (whose origin
+ * is a self-reported domain) still rely on {@link isExternalAppOrigin} and are
+ * tracked as a follow-up.
+ */
+function isExternalAppRequestSource(requestSource?: string | null): boolean {
+  const { REQUEST_SOURCES } = AppConstants;
+  return (
+    requestSource === REQUEST_SOURCES.SDK_REMOTE_CONN ||
+    requestSource === REQUEST_SOURCES.MM_CONNECT ||
+    requestSource === REQUEST_SOURCES.WC ||
+    requestSource === REQUEST_SOURCES.WC2
+  );
+}
+
+export { isDappOrigin, isExternalAppOrigin, isExternalAppRequestSource };

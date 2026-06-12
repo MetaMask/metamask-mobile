@@ -12,7 +12,10 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import { MMM_ORIGIN } from '../../../../constants/confirmations';
-import { isExternalAppOrigin } from '../../../../utils/origin';
+import {
+  isExternalAppOrigin,
+  isExternalAppRequestSource,
+} from '../../../../utils/origin';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
 import Address from '../../../UI/info-row/info-value/address';
@@ -31,6 +34,14 @@ export const NetworkAndOriginRow = () => {
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
 
+  // `request_source` is the transport the request arrived on. It is only
+  // populated on signature requests; transactions persist only `origin`.
+  const requestSource = (
+    signatureRequest?.messageParams?.meta as
+      | { analytics?: { request_source?: string } }
+      | undefined
+  )?.analytics?.request_source;
+
   const isDappOrigin = origin !== MMM_ORIGIN;
 
   if (!transactionMetadata && !signatureRequest) {
@@ -39,10 +50,13 @@ export const NetworkAndOriginRow = () => {
 
   // For requests where we cannot verify the dapp's identity, display a generic
   // "External app" label rather than the raw origin. This covers `ethereum:`
-  // deeplinks / scanned QR codes (origin === 'deeplink' / 'qr-code') as well as
-  // MetaMask SDK and MetaMask Connect (MWP) connections, whose request origin is
-  // a bare connection UUID and whose self-reported metadata cannot be verified.
-  const displayedOrigin = isExternalAppOrigin(origin)
+  // deeplinks / scanned QR codes (origin === 'deeplink' / 'qr-code'), MetaMask
+  // SDK and MetaMask Connect (MWP) connections (origin is a bare connection
+  // UUID), and any remote transport whose origin is self-reported and therefore
+  // unverifiable (SDK v1, MWP, WalletConnect) as identified by `request_source`.
+  const isExternalApp =
+    isExternalAppOrigin(origin) || isExternalAppRequestSource(requestSource);
+  const displayedOrigin = isExternalApp
     ? strings('confirm.label.external_app')
     : origin;
 
