@@ -168,11 +168,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const { selectedPaymentMethod } = useRampsPaymentMethods();
 
   const { selected: selectedToken } = useSelector(selectTokens);
-  const headlessAssetId = getSession(headlessSessionId)?.params?.assetId;
+  const headlessSessionParams = getSession(headlessSessionId)?.params;
+  const headlessAssetId = headlessSessionParams?.assetId;
   const walletAddressChainId =
     (headlessAssetId ? getChainIdFromAssetId(headlessAssetId) : null) ??
     (selectedToken?.chainId as CaipChainId | undefined);
-  const walletAddress = useRampAccountAddress(walletAddressChainId);
+  const resolvedWalletAddress = useRampAccountAddress(walletAddressChainId);
+  const walletAddress =
+    headlessSessionParams?.walletAddress ?? resolvedWalletAddress;
 
   const fiatCurrency = userRegion?.country?.currency || '';
   const regionIsoCode = userRegion?.regionCode || '';

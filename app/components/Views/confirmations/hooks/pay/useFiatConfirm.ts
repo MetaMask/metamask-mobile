@@ -60,6 +60,7 @@ export function useFiatConfirm() {
         amount: totalAmountToBuy,
         paymentMethodId: fiatPayment?.selectedPaymentMethodId,
         currency: 'USD',
+        walletAddress: transactionMetadata?.txParams?.from,
       },
       {
         onOrderCreated: (orderIdFromCallback) => {
@@ -92,6 +93,7 @@ export function useFiatConfirm() {
     setIsHeadlessBuyInProgress,
     startHeadlessBuy,
     transactionMetadata?.id,
+    transactionMetadata?.txParams?.from,
   ]);
 
   return { onFiatConfirm, isFiatPaymentSelected, orderId };
