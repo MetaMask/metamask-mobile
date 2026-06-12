@@ -38,10 +38,11 @@ perfTest.describe(
       ) => {
         await loginToAppPlaywright();
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.accountIcon),
+          () => asPlaywrightElement(WalletView.accountIcon),
           {
             description:
               'Wallet account icon should be visible before warm start',
+            fastAppiumLookup: true,
           },
         );
 

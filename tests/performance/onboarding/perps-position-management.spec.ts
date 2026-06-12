@@ -7,8 +7,7 @@ import {
   onboardingFlowImportSRPPlaywright,
   selectAccountByDevice,
 } from '../../flows/wallet.flow.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding.js';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
@@ -63,9 +62,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.checkModalVisibility();
-      await WalletActionsBottomSheet.tapPerpsButton();
+      await WalletView.tapOnPerpsTab();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
         testEnvironment,

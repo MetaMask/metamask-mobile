@@ -38,6 +38,8 @@ export interface UnifiedGestureOptions {
   enabledStableReads?: number;
   /** Extra wait (ms) after enabled/interactive, before click — Appium only */
   postEnabledSettleMs?: number;
+  /** Wait until element position is stable before tapping — Appium only */
+  checkForStable?: boolean;
 }
 
 /**
@@ -370,6 +372,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
       waitForInteractive: opts?.waitForInteractive,
       enabledStableReads: opts?.enabledStableReads,
       postEnabledSettleMs: opts?.postEnabledSettleMs,
+      checkForStable: opts?.checkForStable,
     });
   }
 

@@ -792,7 +792,9 @@ class WalletView {
   }
 
   get predictionsTab(): EncapsulatedElementType {
-    return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_DISCOVERY_TAB_PREDICTIONS,
+    );
   }
 
   get availableBalanceLabel(): EncapsulatedElementType {
@@ -1256,7 +1258,15 @@ class WalletView {
   }
 
   get perpsTab(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_DISCOVERY_TAB_PERPS,
+    );
+  }
+
+  get portfolioTab(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_DISCOVERY_TAB_PORTFOLIO,
+    );
   }
 
   async tapOnPerpsTab(): Promise<void> {

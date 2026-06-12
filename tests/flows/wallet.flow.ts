@@ -518,13 +518,9 @@ export const loginToAppPlaywright = async (
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginView.enterPassword(password ?? '');
-  if (!PlatformDetector.isIOS()) {
-    await LoginView.tapLoginButton();
-  }
+  await LoginView.tapLoginButton();
 
   await PlaywrightUtilities.wait(5000);
-  await dismissPushNotificationExistingUserSheet();
-  await dismissExperienceEnhancerModal();
 };
 
 /**

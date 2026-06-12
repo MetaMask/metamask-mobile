@@ -60,8 +60,8 @@ class WalletActionsBottomSheet {
             { exact: true },
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+          PlaywrightMatchers.getElementByIOSPredicate(
+            `name == "${WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}" AND visible == 1 AND enabled == 1`,
           ),
       },
     });
@@ -118,6 +118,10 @@ class WalletActionsBottomSheet {
   async tapPerpsButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.perpsButton, {
       description: 'Perps Button',
+      checkForStable: true,
+      waitForInteractive: true,
+      enabledStableReads: 3,
+      postEnabledSettleMs: 300,
     });
   }
 
