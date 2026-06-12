@@ -5,7 +5,6 @@ import { Hex } from '@metamask/utils';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
-import { useSDKV2Connection } from '../../../../../../hooks/useSDKV2Connection';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
@@ -31,8 +30,6 @@ export const NetworkAndOriginRow = () => {
   const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
-  const sdkV2Connection = useSDKV2Connection(origin);
-  const isMMDSDKV2Origin = Boolean(sdkV2Connection?.isV2);
 
   const isDappOrigin = origin !== MMM_ORIGIN;
 
@@ -40,14 +37,14 @@ export const NetworkAndOriginRow = () => {
     return null;
   }
 
-  // For requests where we cannot verify the dapp's identity (e.g. an
-  // `ethereum:` deeplink launched from an external browser), display a
-  // generic "External app" label rather than the raw `'deeplink'` origin.
+  // For requests where we cannot verify the dapp's identity, display a generic
+  // "External app" label rather than the raw origin. This covers `ethereum:`
+  // deeplinks / scanned QR codes (origin === 'deeplink' / 'qr-code') as well as
+  // MetaMask SDK and MetaMask Connect (MWP) connections, whose request origin is
+  // a bare connection UUID and whose self-reported metadata cannot be verified.
   const displayedOrigin = isExternalAppOrigin(origin)
     ? strings('confirm.label.external_app')
-    : isMMDSDKV2Origin
-      ? sdkV2Connection?.origin
-      : origin;
+    : origin;
 
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.NETWORK}>

@@ -38,9 +38,23 @@ describe('isExternalAppOrigin', () => {
     expect(isExternalAppOrigin('qr-code')).toBe(true);
   });
 
+  it('returns true for a bare connection UUID (SDK v1 channel id / MWP v2 connection id)', () => {
+    expect(isExternalAppOrigin('a5ee1643-3832-4f04-9929-2dd008a36172')).toBe(
+      true,
+    );
+    // UUID matching is case-insensitive.
+    expect(isExternalAppOrigin('A5EE1643-3832-4F04-9929-2DD008A36172')).toBe(
+      true,
+    );
+  });
+
   it('returns false for verifiable dapp origins', () => {
     expect(isExternalAppOrigin('opensea.io')).toBe(false);
     expect(isExternalAppOrigin('https://uniswap.org')).toBe(false);
+    // A domain that merely contains a UUID-like substring is not a bare UUID.
+    expect(
+      isExternalAppOrigin('a5ee1643-3832-4f04-9929-2dd008a36172.example.com'),
+    ).toBe(false);
   });
 
   it('returns false for other deeplink-adjacent sources we do trust', () => {
