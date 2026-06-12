@@ -31,6 +31,10 @@ const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
 
+const PRICE_ALERTS_API_URL =
+  process.env.PRICE_ALERTS_API_URL ??
+  'https://price-alerts.dev-api.cx.metamask.io';
+
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
@@ -45,6 +49,9 @@ export default {
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
   SECURITY_ALERTS_API: {
     URL: SECURITY_ALERTS_API_URL,
+  },
+  PRICE_ALERTS_API: {
+    URL: PRICE_ALERTS_API_URL,
   },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
