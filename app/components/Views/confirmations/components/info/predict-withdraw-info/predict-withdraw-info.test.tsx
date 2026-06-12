@@ -2,9 +2,11 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { PredictWithdrawInfo } from './predict-withdraw-info';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
 import { CustomAmountInfo } from '../custom-amount-info';
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../hooks/pay/useMoneyAccountPaymentOverride');
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../custom-amount-info', () => ({
@@ -36,5 +38,11 @@ describe('PredictWithdrawInfo', () => {
       expect.not.objectContaining({ hasMax: true }),
       undefined,
     );
+  });
+
+  it('calls useMoneyAccountPaymentOverride', () => {
+    render(<PredictWithdrawInfo />);
+
+    expect(useMoneyAccountPaymentOverride).toHaveBeenCalled();
   });
 });

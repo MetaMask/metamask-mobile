@@ -10,14 +10,19 @@ import {
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
+import { useIsDefaultMoneyAccountSection } from './useIsDefaultMoneyAccountSection';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 
 export function useMoneyAccountPaymentOverride() {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isDefaultMoneyAccount = useIsDefaultMoneyAccountSection();
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const appliedRef = useRef<string | undefined>(undefined);
 
-  const isMoneyAccount = payWithOption === PayWithOption.MoneyAccount;
+  const isMoneyAccount =
+    payWithOption === PayWithOption.MoneyAccount || isDefaultMoneyAccount;
   const transactionId = transactionMeta?.id;
 
   useEffect(() => {
@@ -36,10 +41,10 @@ export function useMoneyAccountPaymentOverride() {
       (config) => {
         (config as Record<string, unknown>).paymentOverride =
           PaymentOverride.MoneyAccount;
-        if (moneyAccount?.address) {
+        if (moneyAccount?.address && !isWithdraw) {
           config.refundTo = moneyAccount.address as Hex;
         }
       },
     );
-  }, [isMoneyAccount, transactionId, moneyAccount?.address]);
+  }, [isMoneyAccount, isWithdraw, transactionId, moneyAccount?.address]);
 }
