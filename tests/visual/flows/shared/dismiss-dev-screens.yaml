@@ -1,0 +1,27 @@
+# Shared sub-flow: dismiss developer screens on debug builds.
+# Debug builds show up to 3 screens before the app loads:
+# 1. Development Servers selection (tap the localhost:8081 row)
+# 2. JS bundle download (can take 30s+ on first load)
+# 3. Developer Menu onboarding (tap Continue)
+# 4. Developer Menu options — tap the X icon to close
+appId: io.metamask.MetaMask
+---
+
+# Step 1: Tap the Metro server row on the Development Servers screen
+- runFlow:
+    when:
+      visible: "http://localhost:8081"
+    commands:
+      - tapOn: "http://localhost:8081"
+
+# Step 2: Wait for "Continue" — may take a while as Metro bundles JS
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 60000
+
+# Step 3: Tap "Continue" on the developer menu onboarding
+- tapOn: "Continue"
+
+# Step 4: Dismiss the developer menu by tapping any option (closes the menu)
+- tapOn:
+    id: "fast-refresh"

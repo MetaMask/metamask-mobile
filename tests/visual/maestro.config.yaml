@@ -1,0 +1,3 @@
+# Maestro workspace configuration for visual regression tests.
+# See: https://docs.maestro.dev/maestro-flows/workspace-management/project-configuration
+testOutputDir: baselines
