@@ -12,7 +12,7 @@ function buildV2AnalyticsPayload(
   order: RampsOrder,
   _previousStatus: RampsOrderStatus,
 ) {
-  const isBuy = order.orderType === 'BUY';
+  const isBuy = order.orderType === 'BUY' || order.orderType === 'DEPOSIT';
 
   const baseParams = {
     amount: order.fiatAmount,
@@ -46,7 +46,7 @@ function buildV2AnalyticsPayload(
 
       return {
         event: isBuy
-          ? MetaMetricsEvents.ONRAMP_PURCHASE_COMPLETED
+          ? MetaMetricsEvents.RAMPS_TRANSACTION_COMPLETED
           : MetaMetricsEvents.OFFRAMP_PURCHASE_COMPLETED,
         params: {
           ...baseParams,
@@ -64,7 +64,7 @@ function buildV2AnalyticsPayload(
     case Status.IdExpired:
       return {
         event: isBuy
-          ? MetaMetricsEvents.ONRAMP_PURCHASE_FAILED
+          ? MetaMetricsEvents.RAMPS_TRANSACTION_FAILED
           : MetaMetricsEvents.OFFRAMP_PURCHASE_FAILED,
         params: baseParams,
       };
