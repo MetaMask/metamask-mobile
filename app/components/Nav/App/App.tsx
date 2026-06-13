@@ -169,6 +169,7 @@ import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDet
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
+import DesignerModeOverlay from '../../UI/DesignerMode';
 
 const Stack = createStackNavigator();
 
@@ -1363,6 +1364,8 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
+        {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
+        <DesignerModeOverlay />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
   );
