@@ -419,6 +419,7 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_TESTNET: '0xa5bf';
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
+  readonly WAN: '0x378';
   readonly STABLE_MAINNET: '0x3dc';
   readonly ARC: '0x13b2';
 } & typeof CHAIN_IDS = {
@@ -466,6 +467,7 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_TESTNET: '0xa5bf',
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
+  WAN: '0x378',
   STABLE_MAINNET: '0x3dc',
   ARC: '0x13b2',
   ...CHAIN_IDS,
@@ -518,6 +520,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.TEMPO_TESTNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
+  [NETWORK_CHAIN_ID.WAN]: require('../../images/wanchain.png'),
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
   [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
   [NETWORK_CHAIN_ID.SCROLL]: require('../../images/scroll-mainnet-logo.png'),
