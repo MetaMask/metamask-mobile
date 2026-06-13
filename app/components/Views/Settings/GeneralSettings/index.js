@@ -37,6 +37,7 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import {
   FontWeight,
+  Maskicon,
   Text,
   TextColor,
   TextVariant,
@@ -532,10 +533,10 @@ class Settings extends PureComponent {
                           : styles.unselectedAvatarWrapper,
                       ]}
                     >
-                      <AvatarAccount
-                        type={AvatarAccountType.Maskicon}
-                        accountAddress={selectedAddress}
+                      <Maskicon
+                        address={selectedAddress}
                         size={diameter}
+                        style={{ borderRadius: diameter / 2 }}
                       />
                     </View>
                     <Text
