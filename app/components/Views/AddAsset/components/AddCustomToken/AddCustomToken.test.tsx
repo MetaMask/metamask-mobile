@@ -54,6 +54,9 @@ jest.mock('../../../../../core/Engine', () => ({
     TokensController: {
       addToken: jest.fn(),
     },
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+    },
     AssetsController: {
       addCustomAsset: jest.fn(),
     },
