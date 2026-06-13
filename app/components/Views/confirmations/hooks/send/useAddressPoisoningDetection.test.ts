@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useAddressPoisoningDetection } from './useAddressPoisoningDetection';
 import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -8,6 +9,10 @@ jest.mock('../../../../../core/Engine', () => ({
       checkAddressPoisoning: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 const mockCheckAddressPoisoning = Engine.context.PhishingController
@@ -67,5 +72,24 @@ describe('useAddressPoisoningDetection', () => {
     renderHook(() => useAddressPoisoningDetection('0xcandidate'));
 
     expect(mockCheckAddressPoisoning).toHaveBeenCalledWith('0xcandidate');
+  });
+
+  it('returns no suspect and logs when checkAddressPoisoning throws', () => {
+    const error = new Error('controller failure');
+    mockCheckAddressPoisoning.mockImplementation(() => {
+      throw error;
+    });
+
+    const { result } = renderHook(() =>
+      useAddressPoisoningDetection('0xcandidate'),
+    );
+
+    expect(result.current.isPoisoningSuspect).toBe(false);
+    expect(result.current.bestMatch).toBeNull();
+    expect(result.current.matches).toHaveLength(0);
+    expect(Logger.error).toHaveBeenCalledWith(
+      error,
+      'useAddressPoisoningDetection',
+    );
   });
 });
