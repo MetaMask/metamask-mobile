@@ -1,13 +1,26 @@
 import {
   MONEYLINE_MARKET_TYPES,
+  PLAYER_PROP_MARKET_TYPES,
+  SUPPORTED_SPORTS_MARKET_TYPES,
   filterSupportedLeagues,
   getPrimaryMoneylineOutcomes,
   isMoneylineLikeMarketType,
+  isPlayerPropMarketType,
+  isSupportedSportsMarketType,
 } from './sports';
 
 describe('MONEYLINE_MARKET_TYPES', () => {
-  it('contains exactly 4 entries', () => {
-    expect(MONEYLINE_MARKET_TYPES.size).toBe(4);
+  it('contains exactly the expected entries', () => {
+    expect([...MONEYLINE_MARKET_TYPES].sort()).toEqual(
+      [
+        'moneyline',
+        'first_half_moneyline',
+        'soccer_halftime_result',
+        'soccer_second_half_result',
+        'soccer_first_to_score',
+        'tennis_first_set_winner',
+      ].sort(),
+    );
   });
 
   it('contains moneyline', () => {
@@ -22,8 +35,57 @@ describe('MONEYLINE_MARKET_TYPES', () => {
     expect(MONEYLINE_MARKET_TYPES.has('soccer_halftime_result')).toBe(true);
   });
 
+  it('contains first to score and second half result', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_first_to_score')).toBe(true);
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_second_half_result')).toBe(true);
+  });
+
   it('contains tennis_first_set_winner', () => {
     expect(MONEYLINE_MARKET_TYPES.has('tennis_first_set_winner')).toBe(true);
+  });
+});
+
+describe('isPlayerPropMarketType', () => {
+  it('returns true for listed player prop types', () => {
+    expect(isPlayerPropMarketType('points')).toBe(true);
+    expect(isPlayerPropMarketType('soccer_anytime_goalscorer')).toBe(true);
+    expect(PLAYER_PROP_MARKET_TYPES.has('soccer_player_goals')).toBe(true);
+  });
+
+  it('returns true for any *_player_* type', () => {
+    expect(isPlayerPropMarketType('soccer_player_shots')).toBe(true);
+    expect(isPlayerPropMarketType('basketball_player_blocks')).toBe(true);
+  });
+
+  it('returns false for team and game markets', () => {
+    expect(isPlayerPropMarketType('totals')).toBe(false);
+    expect(isPlayerPropMarketType('soccer_team_totals')).toBe(false);
+    expect(isPlayerPropMarketType(undefined)).toBe(false);
+  });
+});
+
+describe('isSupportedSportsMarketType', () => {
+  it('contains the expected supported market types', () => {
+    expect(SUPPORTED_SPORTS_MARKET_TYPES.has('moneyline')).toBe(true);
+    expect(
+      SUPPORTED_SPORTS_MARKET_TYPES.has('soccer_first_half_team_totals'),
+    ).toBe(true);
+    expect(
+      SUPPORTED_SPORTS_MARKET_TYPES.has('soccer_player_goalkeeper_saves'),
+    ).toBe(true);
+    expect(SUPPORTED_SPORTS_MARKET_TYPES.has('tennis_completed_match')).toBe(
+      true,
+    );
+  });
+
+  it('returns true for supported market types and undefined', () => {
+    expect(isSupportedSportsMarketType('moneyline')).toBe(true);
+    expect(isSupportedSportsMarketType('Soccer_First_To_Score')).toBe(true);
+    expect(isSupportedSportsMarketType(undefined)).toBe(true);
+  });
+
+  it('returns false for unsupported market types', () => {
+    expect(isSupportedSportsMarketType('basketball_player_blocks')).toBe(false);
   });
 });
 

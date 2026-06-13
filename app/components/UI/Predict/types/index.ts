@@ -298,6 +298,13 @@ export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
   subgroups?: PredictOutcomeGroup[];
+  /**
+   * Display title for a card subgroup. Set by the provider when a market type
+   * is split into multiple cards by subject (e.g. team totals -> "Mexico" /
+   * "South Africa"; player props -> the player name). Undefined for cards whose
+   * title the view derives (market-type label, or the single outcome's title).
+   */
+  title?: string;
 };
 
 export type PredictOutcome = {
