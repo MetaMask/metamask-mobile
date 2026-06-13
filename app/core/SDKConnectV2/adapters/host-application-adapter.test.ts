@@ -87,6 +87,20 @@ describe('HostApplicationAdapter', () => {
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
     });
+
+    it('uses a custom autodismiss timeout when provided', () => {
+      adapter.showConnectionLoading(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+        { autodismissMs: 15000 },
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'session-123',
+          autodismiss: 15000,
+        }),
+      );
+    });
   });
 
   describe('hideConnectionLoading', () => {

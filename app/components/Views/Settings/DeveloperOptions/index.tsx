@@ -1,10 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  HeaderStandard,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
@@ -25,7 +29,6 @@ import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDev
 import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
 import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
-import NavigationDevPanelSection from './NavigationDevPanelSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -33,7 +36,6 @@ const DeveloperOptions = () => {
   const isFullScreenModal = params?.isFullScreenModal;
 
   const theme = useTheme();
-  const { colors } = theme;
   const { styles } = useStyles(styleSheet, { theme });
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -42,41 +44,54 @@ const DeveloperOptions = () => {
   );
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.developer_options.title'),
-        navigation,
-        isFullScreenModal,
-        colors,
-        null,
-      ),
-    );
-  }, [navigation, isFullScreenModal, colors]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   return (
-    <ScrollView
-      style={styles.wrapper}
-      contentContainerStyle={styles.contentContainer}
-    >
-      <NavigationDevPanelSection />
-      <SentryTest />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <SampleFeatureDevSettingsEntryPoint />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
-      {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
-      <ConfirmationsDeveloperOptions />
-      {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
-      {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
-      <CardDeveloperOptionsSection />
-      <IdentityDeveloperOptionsSection />
-      <NotificationsDeveloperOptionsSection />
-      <HapticsDeveloperOptionsSection />
-    </ScrollView>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
+      <HeaderStandard
+        title={strings('app_settings.developer_options.title')}
+        titleProps={{ color: TextColor.PrimaryDefault }}
+        onBack={isFullScreenModal ? undefined : handleBack}
+        onClose={isFullScreenModal ? handleClose : undefined}
+        includesTopInset
+        testID="developer-options-header"
+        {...(isFullScreenModal
+          ? {
+              closeButtonProps: {
+                testID: 'developer-options-close-button',
+              },
+            }
+          : {
+              backButtonProps: {
+                testID: 'developer-options-back-button',
+              },
+            })}
+      />
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <SentryTest />
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+        }
+        <SampleFeatureDevSettingsEntryPoint />
+        {
+          ///: END:ONLY_INCLUDE_IF
+        }
+        {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
+        <ConfirmationsDeveloperOptions />
+        {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
+        {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
+        <CardDeveloperOptionsSection />
+        <IdentityDeveloperOptionsSection />
+        <NotificationsDeveloperOptionsSection />
+        <HapticsDeveloperOptionsSection />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

@@ -6,23 +6,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    container: {
-      marginBottom: 16,
-      paddingTop: 32,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 8,
-      paddingHorizontal: 16,
-    },
-    titleRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
     activityItem: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -52,9 +35,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     rightSection: {
       alignItems: 'flex-end',
-    },
-    emptyText: {
-      paddingHorizontal: 16,
     },
   });
 };

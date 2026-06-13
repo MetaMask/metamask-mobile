@@ -16,10 +16,15 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string } | null,
+  []
+>(() => ({
+  address: MOCK_ADDRESS,
+}));
 jest.mock('../utils/accounts', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
-    address: MOCK_ADDRESS,
-  })),
+  getEvmAccountFromSelectedAccountGroup: () =>
+    mockGetEvmAccountFromSelectedAccountGroup(),
 }));
 
 const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
@@ -71,6 +76,20 @@ describe('usePredictActivity', () => {
     jest.clearAllMocks();
     mockGetActivity.mockResolvedValue([]);
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: MOCK_ADDRESS,
+    });
+  });
+
+  it('does not fetch activity when no EVM account is selected', () => {
+    const { Wrapper } = createWrapper();
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
+
+    renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    expect(mockGetActivity).not.toHaveBeenCalled();
   });
 
   it('fetches activity automatically on mount', async () => {

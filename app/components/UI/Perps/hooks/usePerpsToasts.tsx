@@ -189,6 +189,10 @@ export interface PerpsToastOptionsConfig {
       shareFailed: PerpsToastOptions;
     };
   };
+  watchlist: {
+    addError: PerpsToastOptions;
+    limitReached: PerpsToastOptions;
+  };
 }
 
 const getPerpsToastLabels = (
@@ -1001,6 +1005,20 @@ const usePerpsToasts = (): {
               strings('perps.pnl_hero_card.share_failed'),
             ),
           },
+        },
+      },
+      watchlist: {
+        addError: {
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.add_error'),
+          ),
+        },
+        limitReached: {
+          ...perpsBaseToastOptions.info,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.limit_reached', { limit: 10 }),
+          ),
         },
       },
     }),

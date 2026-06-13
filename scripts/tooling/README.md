@@ -8,7 +8,7 @@ Every collection path appends one CSV row to a project-scoped log file:
 
 - `start` when a skill or Yarn script begins
 
-The log accumulates locally. The [dev-tooling-explorer](https://github.com/MetaMask/dev-tooling-explorer) and a nightly cron job drain the log into SQLite for reporting and summarisation.
+The log accumulates locally. The [dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) and a nightly cron job drain the log into SQLite for reporting and summarisation.
 
 ## Skip conditions
 
@@ -113,4 +113,34 @@ To see events in the SQLite database populated by the explorer or cron:
 sqlite3 ~/.tool-usage-collection/events.db \
   "SELECT tool_name, tool_type, event_type, agent_vendor, created_at FROM events ORDER BY created_at DESC LIMIT 20;"
 ```
+
+## Using dev-tooling-explorer
+
+[dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) is a local web UI for browsing the SQLite database written by the collection hooks. It lets you filter events by repo, tool, agent vendor, or date; view per-session history; explore usage charts; and prune or reset the database.
+
+### Installation
+
+```bash
+git clone https://github.com/MetaMask/experimental-dev-tooling-explorer
+cd experimental-dev-tooling-explorer
+yarn install
+```
+
+### Usage
+
+```bash
+yarn start                    # opens local web UI
+yarn start -- --port 4242    # fixed port
+```
+
+### Demo workflow (no collection setup needed)
+
+```bash
+yarn demo:generate
+yarn start:demo
+```
+
+### DB path resolution
+
+The explorer reads the database from `TOOL_USAGE_COLLECTION_DB_PATH` if set, otherwise defaults to `~/.tool-usage-collection/events.db`.
 

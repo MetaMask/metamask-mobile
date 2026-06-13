@@ -10,7 +10,7 @@ export enum TokenSelectorBalanceLayoutVariant {
   Treatment = 'treatment',
 }
 
-interface TokenSelectorBalanceLayoutConfig {
+export interface TokenSelectorBalanceLayoutConfig {
   showTokenBalanceFirst: boolean;
   removeTickerFromTokenBalance: boolean;
 }

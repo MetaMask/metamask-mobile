@@ -162,10 +162,10 @@ jest.mock('../../hooks', () => ({
       marketCounts: {
         crypto: 3, // Set to non-zero so tabs render
         stocks: 0,
-        preIpo: 0,
+        'pre-ipo': 0,
         indices: 0,
         etfs: 0,
-        commodity: 0,
+        commodities: 0,
         forex: 0,
         new: 0,
       },
@@ -218,6 +218,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     showStocksCommoditiesDropdown,
     stocksCommoditiesFilter,
     onStocksCommoditiesPress,
+    showWatchlistBadge,
+    onWatchlistToggle,
     testID,
   }: {
     selectedOptionId: string;
@@ -228,6 +230,9 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     showStocksCommoditiesDropdown?: boolean;
     stocksCommoditiesFilter?: 'all' | 'stock' | 'commodity';
     onStocksCommoditiesPress?: () => void;
+    showWatchlistBadge?: boolean;
+    isWatchlistSelected?: boolean;
+    onWatchlistToggle?: () => void;
     testID?: string;
   }) {
     // Map sort option IDs to display labels
@@ -297,6 +302,15 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
             `Stocks/Commodities: ${stocksCommoditiesFilter || 'all'}`,
           ),
         ),
+      showWatchlistBadge &&
+        MockReact.createElement(
+          RNTouchableOpacity,
+          {
+            testID: testID ? `${testID}-categories-watchlist` : undefined,
+            onPress: onWatchlistToggle,
+          },
+          MockReact.createElement(Text, null, 'Watchlist'),
+        ),
     );
   };
 });
@@ -314,6 +328,11 @@ jest.mock('../../selectors/perpsController', () => ({
     optionId: 'volume',
     direction: 'desc',
   })),
+}));
+
+let mockWatchlistFlagEnabled = false;
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsWatchlistEnabledFlag: jest.fn(() => mockWatchlistFlagEnabled),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -876,6 +895,36 @@ describe('PerpsMarketListView', () => {
 
   // Note: Stocks/Commodities Dropdown and Market Type Dropdown tests removed - replaced with category badges
 
+  describe('Watchlist feature flag gating', () => {
+    beforeEach(() => {
+      mockWatchlistFlagEnabled = false;
+    });
+
+    afterEach(() => {
+      mockWatchlistFlagEnabled = false;
+    });
+
+    it('does not render the watchlist pill when perps-watchlist-v2-enabled is OFF', () => {
+      mockWatchlistFlagEnabled = false;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+      expect(
+        screen.queryByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-categories-watchlist`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the watchlist pill when perps-watchlist-v2-enabled is ON', () => {
+      mockWatchlistFlagEnabled = true;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-categories-watchlist`,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('Edge Cases', () => {
     it('filters markets with whitespace-only query', async () => {
       mockSearchQuery = '   ';
@@ -905,10 +954,10 @@ describe('PerpsMarketListView', () => {
         marketCounts: {
           crypto: 3,
           stocks: 0,
-          preIpo: 0,
+          'pre-ipo': 0,
           indices: 0,
           etfs: 0,
-          commodity: 0,
+          commodities: 0,
           forex: 0,
           new: 0,
         },

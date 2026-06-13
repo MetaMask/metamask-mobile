@@ -9,17 +9,21 @@ class DownloadFile {
       device.getPlatform() === 'android'
         ? Matchers.getElementByText('Download')
         : Matchers.getElementByLabel('Download');
-    await (await downloadButtonInDialog).tap();
+    await ((await downloadButtonInDialog) as Detox.NativeElement).tap();
   }
 
   async verifySuccessStateVisible(): Promise<void> {
     if (device.getPlatform() === 'ios') {
       // Verify for iOS that system file saving dialog is visible
-      waitFor(await Matchers.getElementByLabel('Save')).toExist();
+      waitFor(
+        (await Matchers.getElementByLabel('Save')) as Detox.NativeElement,
+      ).toExist();
     } else {
       // Verify for Android that toast after successful downloading is visible
       waitFor(
-        await Matchers.getElementByText('Downloaded successfully'),
+        (await Matchers.getElementByText(
+          'Downloaded successfully',
+        )) as Detox.NativeElement,
       ).toExist();
     }
   }

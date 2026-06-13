@@ -17,13 +17,17 @@ import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
+import { createPlaywrightLogger } from './playwrightLogger.ts';
+
+const logger = createPlaywrightLogger('PlaywrightUtilities');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
 
 type AndroidIntentExtra = ['s', string, string];
 
-/** Appium `mobile: startActivity` options — not passed to the app via launch arguments. */
+/** Brief pause after force-stopping Android before startActivity (CI emulators). */
+const ANDROID_PRE_LAUNCH_SETTLE_MS = 1500;
 const APPIUM_START_ACTIVITY_CONTROL_KEYS = new Set<keyof LaunchArgs>([
   'stop',
   'wait',
@@ -169,10 +173,7 @@ export function boxedStep<This, Args extends unknown[], Return>(
             });
           } catch (screenshotError) {
             // Don't fail if screenshot fails
-            console.warn(
-              'Failed to capture error screenshot:',
-              screenshotError,
-            );
+            logger.warn('Failed to capture error screenshot:', screenshotError);
           }
           throw error;
         }
@@ -204,7 +205,7 @@ let _tracking = false;
 
 export function startOverheadTracking(): void {
   if (_tracking) {
-    console.warn(
+    logger.warn(
       'TimerHelper: startOverheadTracking() called while already active — nested measure() calls are not supported; inner call ignored',
     );
     return;
@@ -296,7 +297,7 @@ class PlaywrightUtilities {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn(
+      logger.warn(
         `Could not set Chrome as debug app (FRE may show): ${message}`,
       );
     }
@@ -308,7 +309,7 @@ class PlaywrightUtilities {
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn(
+      logger.warn(
         `Could not write Chrome command-line (FRE may show): ${message}`,
       );
     }
@@ -319,7 +320,7 @@ class PlaywrightUtilities {
       execSync(`adb shell pm clear ${CHROME_PACKAGE}`, { stdio: 'pipe' });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn(
+      logger.warn(
         `Could not clear Chrome data (Chrome may open with existing tabs): ${message}`,
       );
     }
@@ -435,6 +436,13 @@ class PlaywrightUtilities {
     const stop = launchArgs?.stop ?? true;
     const wait = launchArgs?.wait ?? true;
 
+    // Mirror iOS: terminate before launch so `-W -S` startActivity is not stuck on a hung process.
+    await drv.terminateApp(pkg).catch(() => undefined);
+    await new Promise((resolve) =>
+      setTimeout(resolve, ANDROID_PRE_LAUNCH_SETTLE_MS),
+    );
+
+    logger.debug(`Launching Android app ${pkg}/${activity}`);
     await drv.execute('mobile: startActivity', {
       component: `${pkg}/${activity}`,
       action: 'android.intent.action.MAIN',
@@ -471,6 +479,7 @@ class PlaywrightUtilities {
       launchArgs,
     });
 
+    logger.debug(`Launching iOS app ${bundleId}`);
     await drv.terminateApp(bundleId);
 
     await drv.execute('mobile: launchApp', {

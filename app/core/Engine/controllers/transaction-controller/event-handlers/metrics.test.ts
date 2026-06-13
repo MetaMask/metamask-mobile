@@ -2,7 +2,6 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
-import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
@@ -33,13 +32,6 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
 
 jest.mock('../../../../../selectors/legalNotices', () => ({
   selectIsPna25Acknowledged: jest.fn().mockReturnValue(false),
-}));
-
-// Mock MetricsEventBuilder (used by generateEvent in utils.ts)
-jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(),
-  },
 }));
 
 jest.mock('../../../../../util/analytics/AnalyticsEventBuilder');
@@ -115,41 +107,27 @@ describe('Transaction Metric Event Handlers', () => {
     smartTransactionsController: mockSmartTransactionsController,
   } as unknown as TransactionEventHandlerRequest;
 
-  // Mock for MetricsEventBuilder (used by generateEvent in utils.ts)
-  const mockMetricsEventBuilder = {
+  // Mock for AnalyticsEventBuilder (used by both generateEvent in utils.ts and metrics.ts)
+  const mockEventBuilder = {
     addProperties: jest.fn().mockReturnThis(),
     addSensitiveProperties: jest.fn().mockReturnThis(),
+    removeProperties: jest.fn().mockReturnThis(),
+    removeSensitiveProperties: jest.fn().mockReturnThis(),
+    setSaveDataRecording: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({
       name: 'Transaction Added',
       properties: {},
       sensitiveProperties: {},
       saveDataRecording: false,
     }),
-  };
-
-  // Mock for AnalyticsEventBuilder (used by metrics.ts)
-  const mockAnalyticsEventBuilder = {
-    addProperties: jest.fn().mockReturnThis(),
-    addSensitiveProperties: jest.fn().mockReturnThis(),
-    setSaveDataRecording: jest.fn().mockReturnThis(),
-    build: jest.fn().mockReturnValue({
-      name: 'Transaction Added',
-      properties: {},
-    }),
-  };
+  } as ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Mock MetricsEventBuilder (used by generateEvent in utils.ts)
-    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
-      mockMetricsEventBuilder,
-    );
-
-    // Mock AnalyticsEventBuilder (used by metrics.ts)
-    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
-      mockAnalyticsEventBuilder,
-    );
+    jest
+      .mocked(AnalyticsEventBuilder.createEventBuilder)
+      .mockReturnValue(mockEventBuilder);
 
     mockGetState.mockReturnValue(
       merge({}, enabledSmartTransactionsState, {
@@ -198,11 +176,11 @@ describe('Transaction Metric Event Handlers', () => {
     async ({ handler, event }) => {
       await handler(mockTransactionMeta, mockTransactionMetricRequest);
 
-      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         event,
       );
 
-      expect(mockMetricsEventBuilder.build).toHaveBeenCalled();
+      expect(mockEventBuilder.build).toHaveBeenCalled();
       expect(mockInitMessengerCall).toHaveBeenCalledWith(
         'AnalyticsController:trackEvent',
         expect.any(Object),
@@ -245,8 +223,8 @@ describe('Transaction Metric Event Handlers', () => {
       mockTransactionMetricRequest,
     );
 
-    expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalled();
-    expect(mockMetricsEventBuilder.addSensitiveProperties).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalled();
+    expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalled();
   });
 
   it('does not throw for undefined transaction metrics', () => {
@@ -270,13 +248,13 @@ describe('Transaction Metric Event Handlers', () => {
       mockTransactionMetricRequest,
     );
 
-    expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         builder_test: true,
       }),
     );
 
-    expect(mockMetricsEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
+    expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         builder_sensitive_test: true,
       }),
@@ -296,7 +274,7 @@ describe('Transaction Metric Event Handlers', () => {
       mockTransactionMetricRequest,
     );
 
-    expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         simulation_receiving_assets_total_value: 123.45,
       }),
@@ -318,7 +296,7 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           security_alert_response: 'Benign',
           security_alert_reason: 'raw_native_token_transfer',
@@ -340,7 +318,7 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           security_alert_response: 'Malicious',
           security_alert_reason: 'malicious_domain',
@@ -363,7 +341,7 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           security_alert_response: 'loading',
           security_alert_reason: 'other',
@@ -390,7 +368,7 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           security_alert_response: 'Benign',
           security_alert_reason: 'other',
@@ -406,7 +384,7 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
         expect.objectContaining({
           security_alert_response: expect.anything(),
         }),
@@ -432,7 +410,7 @@ describe('Transaction Metric Event Handlers', () => {
 
       expect(mockGetStxMetricsProperties).toHaveBeenCalled();
 
-      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           is_smart_transactions_user_opt_in: true,
           is_smart_transactions_available: true,
@@ -456,8 +434,8 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalled();
-      expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).toHaveBeenCalled();
+      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
         expect.objectContaining(mockSmartTransactionMetricsProperties),
       );
     });
@@ -468,15 +446,13 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           builder_test: true,
         }),
       );
 
-      expect(
-        mockMetricsEventBuilder.addSensitiveProperties,
-      ).toHaveBeenCalledWith(
+      expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           builder_sensitive_test: true,
         }),
@@ -492,7 +468,7 @@ describe('Transaction Metric Event Handlers', () => {
           mockTransactionMetricRequest,
         );
 
-        expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
           expect.objectContaining({
             transaction_hash: mockTransactionMeta.hash,
           }),
@@ -507,7 +483,7 @@ describe('Transaction Metric Event Handlers', () => {
           mockTransactionMetricRequest,
         );
 
-        expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
           expect.objectContaining({
             transaction_hash: mockTransactionMeta.hash,
           }),

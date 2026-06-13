@@ -22,11 +22,12 @@ const createStyles = (params: { theme: Theme }) => {
     networkList: {
       flex: NETWORK_LIST_FLEX,
     },
-    centeredNetworkCell: {
-      alignItems: 'center',
-    },
     noNetworkFeeContainer: {
       alignSelf: 'center',
+    },
+    networkNameText: {
+      flex: 1,
+      minWidth: 0,
     },
   });
 };

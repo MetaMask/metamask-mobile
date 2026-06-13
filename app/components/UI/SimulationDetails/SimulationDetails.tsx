@@ -13,10 +13,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { ConfirmationRowComponentIDs } from '../../Views/confirmations/ConfirmationView.testIds';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
 import { use7702TransactionType } from '../../Views/confirmations/hooks/7702/use7702TransactionType';
@@ -27,6 +23,12 @@ import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
 import styleSheet from './SimulationDetails.styles';
 import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export interface SimulationDetailsProps {
   enableMetrics: boolean;
@@ -57,10 +59,10 @@ const ErrorContent: React.FC<{
     <View style={styles.errorContentContainer}>
       <Icon
         name={IconName.Warning}
-        color={TextColor.Warning}
+        color={TextColor.WarningDefault}
         style={styles.errorIcon}
       />
-      <Text color={TextColor.Warning} variant={TextVariant.BodyMD}>
+      <Text color={TextColor.WarningDefault} variant={TextVariant.BodyMd}>
         {getMessage()}
       </Text>
     </View>
@@ -93,7 +95,11 @@ const HeaderLayout: React.FC<{
   return (
     <View style={styles.headerContainer}>
       <View style={styles.innerHeaderContainer}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('simulation_details.title')}
         </Text>
         <Pressable onPress={() => setIsModalVisible(true)}>

@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { useTrackAllQuotesSortedEvent } from './index';
 import Engine from '../../../../../core/Engine';
 import {
+  FeatureId,
   SortOrder,
   UnifiedSwapBridgeEventName,
   type Quote,
@@ -201,6 +202,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
         token_symbol_source: 'ETH',
         token_symbol_destination: 'USDC',
         stx_enabled: true,
+        feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
         sort_order: SortOrder.COST_ASC,
         best_quote_provider: 'lifi',
       });

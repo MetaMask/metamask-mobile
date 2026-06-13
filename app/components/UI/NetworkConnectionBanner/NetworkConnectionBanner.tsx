@@ -79,6 +79,7 @@ const PrimaryMessage = ({
     variant={TextVariant.BodyXs}
     fontWeight={FontWeight.Medium}
     twClassName="inline-block vertical-align-middle pr-1"
+    numberOfLines={2}
   >
     {strings(primaryMessageKey, {
       networkName: networkConnectionBannerState.networkName,

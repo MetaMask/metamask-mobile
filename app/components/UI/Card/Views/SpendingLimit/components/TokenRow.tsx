@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -8,23 +8,18 @@ import {
   IconName,
   IconSize,
   IconColor,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeNetwork,
+  AvatarToken,
+  AvatarBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../../AssetOverview/Balance/Balance';
 import { CardFundingToken } from '../../../types';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
-import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
-import musdAssetIcon from '../../../../../../images/musd-icon-2x.png';
 import { SpendingLimitSelectors } from '../SpendingLimit.testIds';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 export interface TokenRowProps {
   isMoneyAccountLocked: boolean;
@@ -32,7 +27,6 @@ export interface TokenRowProps {
   selectedToken: CardFundingToken | null;
   tokenIconUrl: string | null;
   tokenLabel: string;
-  moneyAccountTokenDisplayLabel: string;
   onPress: () => void;
 }
 
@@ -54,60 +48,28 @@ const Chevron = () => {
   );
 };
 
-const MoneyAccountTokenChip = ({
-  label,
-  showChevron,
-}: {
-  label: string;
-  showChevron: boolean;
-}) => {
-  const tw = useTailwind();
-  return (
-    <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
-      <Image
-        source={musdAssetIcon}
-        style={tw.style('w-6 h-6 rounded-full')}
-        resizeMode="contain"
-      />
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-text-default font-medium self-center shrink"
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-      {showChevron && <Chevron />}
-    </Box>
-  );
-};
-
 const RegularTokenChip = ({
   selectedToken,
   tokenIconUrl,
   tokenLabel,
 }: Pick<TokenRowProps, 'selectedToken' | 'tokenIconUrl' | 'tokenLabel'>) => {
-  const tw = useTailwind();
+  const networkImage = selectedToken?.caipChainId
+    ? getNetworkImageSource({
+        chainId: safeFormatChainIdToHex(selectedToken.caipChainId),
+      })
+    : undefined;
+
   return (
     <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
       {selectedToken && tokenIconUrl && (
         <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          style={tw.style('self-center')}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource(
-                safeFormatChainIdToHex(
-                  selectedToken.caipChainId ?? LINEA_CAIP_CHAIN_ID,
-                ) as `0x${string}`,
-              )}
-            />
-          }
+          position={BadgeWrapperPosition.BottomRight}
+          badge={networkImage ? <BadgeNetwork src={networkImage} /> : null}
         >
           <AvatarToken
             name={selectedToken.symbol ?? ''}
-            imageSource={{ uri: tokenIconUrl }}
-            size={AvatarSize.Xs}
+            src={{ uri: tokenIconUrl }}
+            size={AvatarBaseSize.Sm}
           />
         </BadgeWrapper>
       )}
@@ -129,22 +91,10 @@ const TokenRow: React.FC<TokenRowProps> = ({
   selectedToken,
   tokenIconUrl,
   tokenLabel,
-  moneyAccountTokenDisplayLabel,
   onPress,
 }) => {
-  if (isMoneyAccountLocked) {
-    return (
-      <Box
-        twClassName="flex-row items-center p-4"
-        testID={SpendingLimitSelectors.TOKEN_ROW_LOCKED}
-      >
-        <RowLabel />
-        <MoneyAccountTokenChip
-          label={moneyAccountTokenDisplayLabel}
-          showChevron={false}
-        />
-      </Box>
-    );
+  if (isMoneyAccountLocked || isMoneyAccountSource) {
+    return null;
   }
   return (
     <TouchableOpacity
@@ -154,18 +104,11 @@ const TokenRow: React.FC<TokenRowProps> = ({
     >
       <Box twClassName="flex-row items-center p-4">
         <RowLabel />
-        {isMoneyAccountSource ? (
-          <MoneyAccountTokenChip
-            label={moneyAccountTokenDisplayLabel}
-            showChevron={false}
-          />
-        ) : (
-          <RegularTokenChip
-            selectedToken={selectedToken}
-            tokenIconUrl={tokenIconUrl}
-            tokenLabel={tokenLabel}
-          />
-        )}
+        <RegularTokenChip
+          selectedToken={selectedToken}
+          tokenIconUrl={tokenIconUrl}
+          tokenLabel={tokenLabel}
+        />
       </Box>
     </TouchableOpacity>
   );

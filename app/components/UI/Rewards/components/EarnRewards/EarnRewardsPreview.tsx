@@ -23,6 +23,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
+import { navigateToRewardsRoute } from '../../utils';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -153,7 +154,7 @@ const EarnRewardsPreview: React.FC = () => {
       : strings('rewards.earn_rewards.card_subtitle');
 
   const handleMusdPress = useCallback(() => {
-    navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
+    navigateToRewardsRoute(navigation, Routes.REWARDS_MUSD_CALCULATOR_VIEW);
   }, [navigation]);
 
   const handleCardPress = useCallback(() => {

@@ -7,6 +7,18 @@ import { RiveOnboardingStepperTestIds } from '../../../RiveOnboardingStepper/Riv
 import { __clearLastMockedMethods } from '../../../../../__mocks__/rive-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  MONEY_ONBOARDING_STEP_ACTIONS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+
+const mockTrackOnboardingEvent = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -50,6 +62,9 @@ describe('MoneyOnboardingView', () => {
       (selector: unknown) =>
         selector === selectMoneyOnboardingStepperAnimationEnabled,
     );
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackOnboardingEvent: mockTrackOnboardingEvent,
+    });
   });
 
   describe('Rendering', () => {
@@ -200,6 +215,61 @@ describe('MoneyOnboardingView', () => {
       const { getByTestId } = render(<MoneyOnboardingView />);
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    describe('analytics', () => {
+      it('initialises useMoneyAnalytics with MONEY_ONBOARDING screen_name and RIVE_ONBOARDING_STEPPER component_name', () => {
+        render(<MoneyOnboardingView />);
+
+        expect(useMoneyAnalytics).toHaveBeenCalledWith({
+          screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
+          component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
+        });
+      });
+
+      it('calls trackOnboardingEvent with VIEWED action for step 1 on initial render', () => {
+        render(<MoneyOnboardingView />);
+
+        expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            step: 1,
+            step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+            total_steps: 5,
+          }),
+        );
+      });
+
+      it('calls trackOnboardingEvent with EXITED action for step 1 when close is pressed at step 0', () => {
+        const { getByTestId } = render(<MoneyOnboardingView />);
+
+        fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.CLOSE_BUTTON));
+
+        expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            step: 1,
+            step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+            redirect_target: SCREEN_NAMES.MONEY_HOME,
+            total_steps: 5,
+          }),
+        );
+      });
+
+      it('calls trackOnboardingEvent with VIEWED action for step 2 when footer advances to step 1', () => {
+        const { getByTestId } = render(<MoneyOnboardingView />);
+        jest.clearAllMocks();
+
+        fireEvent.press(
+          getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
+        );
+
+        expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            step: 2,
+            step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+            total_steps: 5,
+          }),
+        );
+      });
     });
   });
 });

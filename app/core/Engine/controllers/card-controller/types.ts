@@ -57,6 +57,8 @@ export type CardControllerState = {
   cardHomeData: Record<string, Json> | null;
   /** Fetch status for cardHomeData. Not persisted. */
   cardHomeDataStatus: CardHomeDataStatus;
+  /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
+  moneyAccountCardLinkInProgress: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<

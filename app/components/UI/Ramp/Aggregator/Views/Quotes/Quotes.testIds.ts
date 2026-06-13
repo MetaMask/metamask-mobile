@@ -7,4 +7,5 @@ export const QuoteSelectors = {
   EXPLORE_MORE_OPTIONS: enContent.fiat_on_ramp_aggregator.explore_more_options,
   EXPANDED_QUOTES_SECTION: 'expanded-quotes-section',
   CONTINUE_WITH_PROVIDER: enContent.fiat_on_ramp_aggregator.continue_with,
+  CLOSE_BUTTON: 'quotes-close-button',
 };

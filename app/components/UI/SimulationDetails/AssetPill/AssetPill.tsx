@@ -4,9 +4,6 @@ import { View, ViewProps } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { NetworkList } from '../../../../util/networks';
@@ -16,6 +13,7 @@ import { NameType } from '../../Name/Name.types';
 import { AssetIdentifier, AssetType } from '../types';
 import styleSheet from './AssetPill.styles';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface AssetPillProperties extends ViewProps {
   asset: AssetIdentifier;
@@ -51,7 +49,7 @@ const NativeAssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
         name={nativeCurrency}
         imageSource={imageSource}
       />
-      <Text variant={TextVariant.BodyMD}>{nativeCurrency}</Text>
+      <Text variant={TextVariant.BodyMd}>{nativeCurrency}</Text>
     </View>
   );
 };

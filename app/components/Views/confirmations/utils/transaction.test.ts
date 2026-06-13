@@ -15,6 +15,7 @@ import {
   isTransactionMarkedAsGasFeeSponsored,
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
+  resolveTransactionType,
   shouldApplyGasFeeSponsorship,
 } from './transaction';
 import {
@@ -219,6 +220,71 @@ describe('hasTransactionType', () => {
         TransactionType.cancel,
       ]),
     ).toBe(false);
+  });
+});
+
+describe('resolveTransactionType', () => {
+  const enabledTypes = [
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+    TransactionType.moneyAccountDeposit,
+  ];
+
+  it('returns the transaction type for non-batch transactions', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.perpsDeposit,
+    );
+  });
+
+  it('returns the first nested type that appears in the enabled types list', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [
+        { type: TransactionType.simpleSend },
+        { type: TransactionType.predictDeposit },
+        { type: TransactionType.perpsDeposit },
+      ],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.predictDeposit,
+    );
+  });
+
+  it('returns batch when no nested transaction type matches the enabled types list', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.simpleSend }],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.batch,
+    );
+  });
+
+  it('returns batch when nested transactions are missing', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.batch,
+    );
+  });
+
+  it('skips nested transactions without a type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{}, { type: TransactionType.moneyAccountDeposit }],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.moneyAccountDeposit,
+    );
   });
 });
 

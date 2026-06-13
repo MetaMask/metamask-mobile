@@ -377,6 +377,11 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import type {
+  SnapAccountService,
+  SnapAccountServiceActions,
+  SnapAccountServiceEvents,
+} from '@metamask/snap-account-service';
 import {
   GatorPermissionsController,
   GatorPermissionsControllerActions,
@@ -517,7 +522,7 @@ type SnapsGlobalEvents =
   | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
-type GlobalActions =
+export type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
@@ -557,6 +562,7 @@ type GlobalActions =
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
+  | SnapAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -607,7 +613,7 @@ type GlobalActions =
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions;
 
-type GlobalEvents =
+export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
@@ -643,6 +649,7 @@ type GlobalEvents =
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
+  | SnapAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -714,7 +721,10 @@ export const getRootExtendedMessenger = (): RootExtendedMessenger =>
  * Type definition for the root messenger used in the Engine.
  * It extends the root messenger with global actions and events.
  */
-export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
+export type RootMessenger<
+  AllowedActions extends GlobalActions = GlobalActions,
+  AllowedEvents extends GlobalEvents = GlobalEvents,
+> = Messenger<'Root', AllowedActions, AllowedEvents>;
 
 export const getRootMessenger = (): RootMessenger =>
   new Messenger<'Root', GlobalActions, GlobalEvents>({
@@ -792,6 +802,7 @@ export type MessengerClients = {
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
+  SnapAccountService: SnapAccountService;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -967,6 +978,7 @@ export type MessengerClientsToInitialize =
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'SnapAccountService'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
@@ -975,7 +987,6 @@ export type MessengerClientsToInitialize =
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
-  | 'ApprovalController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'

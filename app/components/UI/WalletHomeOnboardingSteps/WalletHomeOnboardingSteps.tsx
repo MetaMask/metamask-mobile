@@ -866,7 +866,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       style={[tw.style('w-full'), { opacity: checklistFadeOpacity }]}
     >
       <Box
-        paddingBottom={4}
         justifyContent={BoxJustifyContent.Center}
         flexDirection={BoxFlexDirection.Column}
         gap={4}

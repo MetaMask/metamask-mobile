@@ -30,6 +30,8 @@ import {
 } from '../../../../util/networks/networkToastSuppression';
 
 import { HandleSwapUrlParams } from '../../types/deepLink.types';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
 /**
  * Validates and looks up a token from the bridge token list
@@ -177,61 +179,82 @@ const ensureChainAvailable = async (chainId: Hex | CaipChainId) => {
  *
  * All parameters are optional, allows partial deep linking
  */
+const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => ({
+  type: 'main-stack',
+  routeName: Routes.BRIDGE.ROOT,
+  params: {
+    screen: Routes.BRIDGE.BRIDGE_VIEW,
+    params,
+  },
+});
+
+/**
+ * Resolve the navigation target for a swap deeplink. Token metadata lookup and
+ * chain enabling must complete before navigation, so this builder is async and
+ * fully resolves the Bridge params up front.
+ */
+const resolveSwapTarget = async (
+  swapPath: string,
+): Promise<DeeplinkIntent['target']> => {
+  // Parse URL parameters
+  const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
+  const urlParams = new URLSearchParams(cleanPath);
+
+  const fromCaip = urlParams.get('from');
+  const toCaip = urlParams.get('to');
+  const atomicAmount = urlParams.get('amount');
+
+  // Validate and lookup tokens
+  const sourceToken =
+    fromCaip && isCaipAssetType(fromCaip)
+      ? await validateAndLookupToken(fromCaip)
+      : undefined;
+
+  // Ensure supported source chains exist and are enabled before the Bridge
+  // view tries to switch into them on mount.
+  if (
+    sourceToken?.chainId &&
+    !(await ensureChainAvailable(sourceToken.chainId))
+  ) {
+    throw new Error('Chain not available');
+  }
+
+  const destTokenCandidate =
+    toCaip && isCaipAssetType(toCaip)
+      ? await validateAndLookupToken(toCaip)
+      : undefined;
+
+  const destToken =
+    destTokenCandidate?.chainId &&
+    !(await ensureChainAvailable(destTokenCandidate.chainId))
+      ? undefined
+      : destTokenCandidate;
+
+  // Process amount
+  const sourceAmount =
+    atomicAmount && sourceToken?.decimals !== undefined
+      ? ethers.utils.formatUnits(atomicAmount, sourceToken.decimals)
+      : undefined;
+
+  return bridgeTarget({
+    sourceToken: sourceToken ?? undefined,
+    destToken: destToken ?? undefined,
+    sourceAmount: sourceAmount ?? undefined,
+    sourcePage: 'deeplink',
+    bridgeViewMode: BridgeViewMode.Unified,
+    location: MetaMetricsSwapsEventSource.MainView,
+  });
+};
+
+export const createSwapDeeplinkIntent = async ({
+  swapPath,
+}: HandleSwapUrlParams): Promise<DeeplinkIntent> => ({
+  target: await resolveSwapTarget(swapPath),
+});
+
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   try {
-    // Parse URL parameters
-    const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
-    const urlParams = new URLSearchParams(cleanPath);
-
-    const fromCaip = urlParams.get('from');
-    const toCaip = urlParams.get('to');
-    const atomicAmount = urlParams.get('amount');
-
-    // Validate and lookup tokens
-    const sourceToken =
-      fromCaip && isCaipAssetType(fromCaip)
-        ? await validateAndLookupToken(fromCaip)
-        : undefined;
-
-    // Ensure supported source chains exist and are enabled before the Bridge
-    // view tries to switch into them on mount.
-    if (
-      sourceToken?.chainId &&
-      !(await ensureChainAvailable(sourceToken.chainId))
-    ) {
-      throw new Error('Chain not available');
-    }
-
-    const destTokenCandidate =
-      toCaip && isCaipAssetType(toCaip)
-        ? await validateAndLookupToken(toCaip)
-        : undefined;
-
-    const destToken =
-      destTokenCandidate?.chainId &&
-      !(await ensureChainAvailable(destTokenCandidate.chainId))
-        ? undefined
-        : destTokenCandidate;
-
-    // Process amount
-    const sourceAmount =
-      atomicAmount && sourceToken?.decimals !== undefined
-        ? ethers.utils.formatUnits(atomicAmount, sourceToken.decimals)
-        : undefined;
-
-    // Navigate to bridge view with deep link parameters
-    const params: BridgeRouteParams = {
-      sourceToken: sourceToken ?? undefined,
-      destToken: destToken ?? undefined,
-      sourceAmount: sourceAmount ?? undefined,
-      sourcePage: 'deeplink',
-      bridgeViewMode: BridgeViewMode.Unified,
-      location: MetaMetricsSwapsEventSource.MainView,
-    };
-    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
+    await executeDeeplinkIntent(await createSwapDeeplinkIntent({ swapPath }));
   } catch (error) {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience

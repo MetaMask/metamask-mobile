@@ -128,6 +128,24 @@ describe('StepperCard', () => {
       fireEvent.press(getByText('Go'));
       expect(onPress).toHaveBeenCalledTimes(1);
     });
+
+    it('does not fire primaryCta.onPress when disabled', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <StepperCard
+          steps={[
+            makeStep({
+              primaryCta: { text: 'Go', onPress, disabled: true },
+            }),
+          ]}
+          currentStep={0}
+          testID="stepper-card"
+        />,
+      );
+
+      fireEvent.press(getByTestId('stepper-card-cta-button'));
+      expect(onPress).not.toHaveBeenCalled();
+    });
   });
 
   describe('secondary CTA', () => {

@@ -533,6 +533,16 @@ describe('ActivityView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders SafeAreaView with left, right, and bottom edges only', () => {
+      mockRoute.params = {};
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW).props.edges,
+      ).toEqual(['left', 'right', 'bottom']);
+    });
+
     it('renders HeaderRoot with Activity title when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 

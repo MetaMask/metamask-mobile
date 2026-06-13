@@ -1006,6 +1006,7 @@ describe('AssetSelectionBottomSheet', () => {
         address: '0xmusd',
         walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         isMoneyAccountEntry: true,
+        fundingStatus: FundingStatus.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -1033,6 +1034,7 @@ describe('AssetSelectionBottomSheet', () => {
         address: '0xmusd',
         walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         isMoneyAccountEntry: true,
+        fundingStatus: FundingStatus.Enabled,
       });
       const walletToken = createMockToken({
         symbol: 'USDC',

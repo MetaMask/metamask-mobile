@@ -1,25 +1,26 @@
 import { AddAddressModalSelectorsIDs } from '../../../app/components/UI/AddToAddressBookWrapper/AddAddressModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class AddAddressModal {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AddAddressModalSelectorsIDs.CONTAINER);
   }
 
-  get aliasInput(): DetoxElement {
+  get aliasInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
     );
   }
 
-  get saveButton(): DetoxElement {
+  get saveButton(): EncapsulatedElementType {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(AddAddressModalSelectorsIDs.SAVE_BUTTON)
       : Matchers.getElementByID(AddAddressModalSelectorsIDs.SAVE_BUTTON);
   }
 
-  get title(): DetoxElement {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByID(AddAddressModalSelectorsIDs.TITLE);
   }
 

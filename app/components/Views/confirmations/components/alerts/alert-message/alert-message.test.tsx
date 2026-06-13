@@ -5,9 +5,12 @@ import { AlertMessage } from './alert-message';
 const MESSAGE_MOCK = 'Test message';
 
 describe('AlertMessage', () => {
-  it('renders message', () => {
-    const { getByText } = render(<AlertMessage alertMessage={MESSAGE_MOCK} />);
+  it('renders message in a banner', () => {
+    const { getByText, getByTestId } = render(
+      <AlertMessage alertMessage={MESSAGE_MOCK} />,
+    );
     expect(getByText(MESSAGE_MOCK)).toBeDefined();
+    expect(getByTestId('alert-message-banner')).toBeDefined();
   });
 
   it('renders nothing if no message is provided', () => {

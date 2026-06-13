@@ -37,6 +37,11 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
     await setupRemoteFeatureFlagsMock(mockServer, {
       ...remoteFeatureFlagTrendingTokensEnabled(),
       ...remoteFeatureFlagPredictEnabled(),
+      // TODO: Fix this test to support the FF-enabled What's Happening Explore section.
+      aiSocialWhatsHappeningEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
     });
 
     // Setup API mocks using centralized definition

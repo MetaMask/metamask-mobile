@@ -27,6 +27,18 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
+  __esModule: true,
+  default: (
+    _campaign: unknown,
+    _customRestrictedCountries: unknown,
+    isFeatureGeoRestricted?: boolean,
+  ) => ({
+    isGeoRestricted: isFeatureGeoRestricted === true,
+    isGeoLoading: false,
+  }),
+}));
+
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 

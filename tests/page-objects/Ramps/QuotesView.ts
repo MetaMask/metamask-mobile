@@ -1,29 +1,30 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { QuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class QuotesView {
-  get selectAQuoteLabel(): DetoxElement {
+  get selectAQuoteLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteSelectors.RECOMMENDED_QUOTE);
   }
 
-  get quoteAmountLabel(): DetoxElement {
+  get quoteAmountLabel(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteSelectors.QUOTE_AMOUNT_LABEL);
   }
 
-  get quotes(): DetoxElement {
+  get quotes(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteSelectors.QUOTES);
   }
 
-  get exploreMoreOptions(): DetoxElement {
+  get exploreMoreOptions(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteSelectors.EXPLORE_MORE_OPTIONS);
   }
 
-  get expandedQuotesSection(): DetoxElement {
+  get expandedQuotesSection(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteSelectors.EXPANDED_QUOTES_SECTION);
   }
 
-  get continueWithProvider(): DetoxElement {
+  get continueWithProvider(): EncapsulatedElementType {
     const providerLocator = QuoteSelectors.CONTINUE_WITH_PROVIDER.replace(
       '{{provider}}',
       '.*',

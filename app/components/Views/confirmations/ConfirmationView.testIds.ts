@@ -98,6 +98,20 @@ export const GasFeeTokenModalSelectorsText = {
   GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
 } as const;
 
+export const PerpsAccountPickerSelectorsIDs = {
+  ROW: 'perps-account-picker-row',
+  SHEET: 'perps-account-picker-sheet',
+  SEARCH_INPUT: 'perps-account-picker-search',
+  ACCOUNT_ITEM: 'perps-account-picker-item',
+} as const;
+
+export const PredictAccountPickerSelectorsIDs = {
+  ROW: 'predict-account-picker-row',
+  SHEET: 'predict-account-picker-sheet',
+  SEARCH_INPUT: 'predict-account-picker-search',
+  ACCOUNT_ITEM: 'predict-account-picker-item',
+} as const;
+
 export const TransactionPayComponentIDs = {
   CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
   KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',

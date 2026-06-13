@@ -1,5 +1,3 @@
-import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -17,10 +15,12 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import React, { useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
-import { getTokenKey } from '../sourceTokenCandidates';
+import { getTokenKey } from '../tokenKey';
 
 interface QuickBuyPayWithRowProps {
   token: BridgeToken;

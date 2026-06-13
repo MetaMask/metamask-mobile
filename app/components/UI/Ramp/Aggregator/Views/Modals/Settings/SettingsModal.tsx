@@ -43,7 +43,6 @@ function SettingsModal() {
       location: 'Buy Settings Modal',
       ramp_type: 'DEPOSIT',
       region: selectedRegion?.id as string,
-      ramp_routing: buttonClickData.ramp_routing,
       is_authenticated: buttonClickData.is_authenticated,
       preferred_provider: buttonClickData.preferred_provider,
       order_count: buttonClickData.order_count,

@@ -150,6 +150,24 @@ export function useContinueWithQuote(
       const effectiveChainId = ctx.chainId ?? selectedToken?.chainId ?? '';
       const effectivePaymentMethodId =
         ctx.paymentMethodId ?? selectedPaymentMethod?.id ?? '';
+      // The native Transak quote fetch requires a payment method. An empty
+      // value gets dropped from the request query and Transak rejects it with
+      // HTTP 400, so fail fast with a reported error instead of issuing a
+      // request that can never succeed.
+      //
+      // Gate on `ctx.headlessSessionId` so this guard is scoped to the
+      // headless buy flow. The shared UB2 path (BuildQuote ->
+      // continueWithQuote -> continueNative) never sets `headlessSessionId`,
+      // so its behavior is provably unchanged.
+      if (!effectivePaymentMethodId && ctx.headlessSessionId) {
+        throw new Error(
+          reportRampsError(
+            new Error('Native provider flow requires a payment method'),
+            { message: 'Missing payment method for native provider flow' },
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
+      }
       try {
         const hasToken = await transakCheckExistingToken();
 

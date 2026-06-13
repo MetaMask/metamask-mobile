@@ -39,6 +39,7 @@ export const mockBridgeReducerState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  balanceRefreshKey: 0,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
   batchSellSourceTokens: [],
   batchSellSourceTokenAmounts: {},

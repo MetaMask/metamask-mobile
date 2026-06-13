@@ -1,0 +1,63 @@
+# Prebuild WebDriverAgent for Appium iOS smoke tests.
+#
+# Called from run-appium-smoke-tests-ios-scheduled.yml alongside build-ios-e2e.yml.
+# Writes DerivedData to ~/appium-wda for prepare-ios-appium-runner.mjs and actions/cache.
+
+name: Prebuild WDA (Appium iOS)
+
+on:
+  workflow_call:
+    inputs:
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+
+permissions:
+  contents: read
+
+jobs:
+  prebuild-wda:
+    name: prebuild-wda-ios
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-latest' }}
+
+    steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+
+      - name: Setup E2E environment (WDA prebuild only)
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: ios
+          setup-simulator: 'false'
+          configure-keystores: 'false'
+          install-foundry: 'false'
+          skip-pod-install: 'true'
+          install-applesimutils: 'false'
+          runner_provider: ${{ inputs.runner_provider }}
+
+      - name: Resolve XCUITest driver version for WDA cache key
+        id: xcuitest-version
+        run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
+
+      - name: Get Xcode version for WDA cache key
+        id: xcode-version
+        run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore WDA DerivedData cache
+        uses: actions/cache@v4
+        with:
+          path: ~/appium-wda
+          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          restore-keys: |
+            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+
+      - name: Prebuild WDA if cache miss
+        run: node scripts/e2e/prebuild-wda.mjs
+        env:
+          IOS_SIMULATOR_NAME: iPhone 16 Pro

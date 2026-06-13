@@ -34,6 +34,7 @@ import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger/multichain-assets-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
+import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -44,7 +45,6 @@ import { getNotificationServicesPushControllerMessenger } from './notifications/
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
-import { getApprovalControllerMessenger } from './approval-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
@@ -183,10 +183,6 @@ export const MESSENGER_FACTORIES = {
   },
   ConnectivityController: {
     getMessenger: getConnectivityControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ApprovalController: {
-    getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
   },
   AssetsContractController: {
@@ -334,6 +330,10 @@ export const MESSENGER_FACTORIES = {
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SnapAccountService: {
+    getMessenger: getSnapAccountServiceMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF

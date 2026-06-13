@@ -75,6 +75,24 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Related Markets rail feature flag.
+ * Controls visibility of the discovery rail on Perps market details.
+ *
+ * @returns boolean - true if the related markets rail should be shown.
+ */
+export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_RELATED_MARKETS_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRelatedMarkets as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for button color A/B test variant from LaunchDarkly
  * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
  *
@@ -280,6 +298,22 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Products section feature flag
+ * Controls visibility of the category pills grid on Perps home screen
+ *
+ * @returns boolean - true if Products section should be shown, false otherwise
+ */
+export const selectPerpsProductsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProductsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Perps Competition Banner feature flag
  * Controls visibility of the competition promotion banner on Perps home screen
  *
@@ -307,6 +341,24 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsTopMoversEnabled as unknown as VersionGatedFeatureFlag;
 
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Watchlist redesign feature flag
+ * Controls whether the redesigned Watchlist UI (empty state, suggested markets,
+ * show-more/less, tappable header, animations, 10-asset limit) and the
+ * watchlist filter pill in the markets list are shown.
+ * When disabled, falls back to the pre-redesign plain watchlist list.
+ *
+ * @returns boolean - true if redesigned watchlist should be shown, false otherwise
+ */
+export const selectPerpsWatchlistEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsWatchlistV2Enabled as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

@@ -63,7 +63,6 @@ function ConfigurationModal() {
       location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: selectedRegion?.isoCode as string,
-      ramp_routing: buttonClickData.ramp_routing,
       is_authenticated: buttonClickData.is_authenticated,
       preferred_provider: buttonClickData.preferred_provider,
       order_count: buttonClickData.order_count,

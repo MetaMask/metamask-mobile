@@ -5,6 +5,7 @@
  *
  * Selection logic is defined in: tests/tools/e2e-ai-analyzer/modes/select-tags/prompt.ts
  */
+
 const smokeTags = {
   smokeLedger: {
     tag: 'SmokeLedger:',

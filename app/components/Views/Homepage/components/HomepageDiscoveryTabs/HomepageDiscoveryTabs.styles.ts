@@ -18,7 +18,6 @@ const styleSheet = (_params: { theme: Theme }) =>
     },
     portfolioScrollContent: {
       paddingTop: 14,
-      gap: 16,
     },
   });
 

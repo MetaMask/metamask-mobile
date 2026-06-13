@@ -77,7 +77,7 @@ import {
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import type { RootState } from '../../../reducers';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -356,7 +356,7 @@ const Onboarding = () => {
   const track = useCallback(
     (event: IMetaMetricsEvent, properties: JsonMap = {}): void => {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(event)
+        AnalyticsEventBuilder.createEventBuilder(event)
           .addProperties(properties)
           .build(),
         saveOnboardingEvent,

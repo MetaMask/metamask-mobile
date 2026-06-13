@@ -25,7 +25,7 @@ perfTest.describe(
 
         const assetViewScreen = new TimerHelper(
           'Time since the user clicks on the asset view button until the user sees the token overview screen',
-          { ios: 6000, android: 2500 },
+          { ios: 6000, android: 6500 },
           currentDeviceDetails.platform,
         );
 

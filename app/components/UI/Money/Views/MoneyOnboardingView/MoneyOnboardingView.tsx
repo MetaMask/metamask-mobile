@@ -20,6 +20,12 @@ import { useTheme } from '../../../../../util/theme';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  MONEY_ONBOARDING_STEP_ACTIONS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MoneyOnboardingAnimation = require('../../../../../animations/money_account_onboarding_animation.riv');
@@ -51,7 +57,13 @@ export const MONEY_ONBOARDING_STEP_DURATION_MS = 4 * 1000; // 4 seconds
 const MoneyOnboardingView = () => {
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+
   const dispatch = useDispatch();
+
+  const { trackOnboardingEvent } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
+    component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
+  });
 
   const { colors, themeAppearance } = useTheme();
 
@@ -126,13 +138,80 @@ const MoneyOnboardingView = () => {
     [apyPercent],
   );
 
-  const handleComplete = useCallback(() => {
-    dispatch(setMoneyOnboardingSeen(true));
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [dispatch, navigation]);
+  // Hardcoded to use English step titles to simplify event tracking.
+  const stepTitlesEnglish: string[] = useMemo(
+    () => [
+      strings('money.rive_onboarding.step1_title', { locale: 'en' }),
+      strings('money.rive_onboarding.step2_title', { locale: 'en' }),
+      strings('money.rive_onboarding.step3_title', { locale: 'en' }),
+      strings('money.rive_onboarding.step4_title', { locale: 'en' }),
+      '', // Final step doesn't have a title.
+    ],
+    [],
+  );
+
+  const handleClose = useCallback(
+    (stepIndex: number) => {
+      trackOnboardingEvent({
+        step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
+        step_title: stepTitlesEnglish[stepIndex],
+        total_steps: steps.length,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+
+      dispatch(setMoneyOnboardingSeen(true));
+      navigation.navigate(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    },
+    [
+      dispatch,
+      navigation,
+      stepTitlesEnglish,
+      steps.length,
+      trackOnboardingEvent,
+    ],
+  );
+
+  const handleStepViewed = useCallback(
+    (stepIndex: number) => {
+      trackOnboardingEvent({
+        step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
+        step_title: stepTitlesEnglish[stepIndex],
+        total_steps: steps.length,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    },
+    [stepTitlesEnglish, steps.length, trackOnboardingEvent],
+  );
+
+  const handleComplete = useCallback(
+    (stepIndex: number) => {
+      dispatch(setMoneyOnboardingSeen(true));
+      trackOnboardingEvent({
+        step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
+        step_title: stepTitlesEnglish[stepIndex],
+        total_steps: steps.length,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+
+      navigation.navigate(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    },
+    [
+      dispatch,
+      navigation,
+      stepTitlesEnglish,
+      steps.length,
+      trackOnboardingEvent,
+    ],
+  );
 
   const renderBackground = useCallback(
     () => (
@@ -159,8 +238,9 @@ const MoneyOnboardingView = () => {
       buttonVariant={ButtonVariant.Primary}
       buttonIsInverse={buttonIsInverse}
       closeButtonIconColor={iconColor}
-      onClose={handleComplete}
+      onClose={handleClose}
       onComplete={handleComplete}
+      onStepViewed={handleStepViewed}
       autoCompleteOnLastStep
       enableRiveAnimation={isStepperAnimationEnabled}
     />

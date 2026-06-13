@@ -34,7 +34,18 @@ export const useTraderPositions = (
   options?: UseTraderPositionsOptions,
 ): UseTraderPositionsResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
-  const fetchOptions: FetchPositionsOptions = { addressOrId };
+  const FETCH_LIMIT = 100;
+  const openFetchOptions: FetchPositionsOptions = {
+    addressOrId,
+    limit: FETCH_LIMIT,
+  };
+  // Clicker's default closed-positions sort is value-desc, which buries
+  // smaller recent closes; ask for recency instead.
+  const closedFetchOptions: FetchPositionsOptions = {
+    addressOrId,
+    sort: 'latest',
+    limit: FETCH_LIMIT,
+  };
 
   const {
     data: openData,
@@ -42,7 +53,7 @@ export const useTraderPositions = (
     error: openError,
     refetch: refetchOpen,
   } = useQuery<PositionsResponse>({
-    queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
+    queryKey: ['SocialService:fetchOpenPositions', openFetchOptions],
     enabled: Boolean(addressOrId) && isUnlocked,
     refetchInterval: options?.refetchInterval,
   });
@@ -53,7 +64,7 @@ export const useTraderPositions = (
     error: closedError,
     refetch: refetchClosed,
   } = useQuery<PositionsResponse>({
-    queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
+    queryKey: ['SocialService:fetchClosedPositions', closedFetchOptions],
     enabled: Boolean(addressOrId) && isUnlocked,
   });
 

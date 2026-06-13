@@ -10,11 +10,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { tokenize, sectionTokens, Token } from './markdown-tokenizer';
 
-// ─── Public result type ──────────────────────────────────────────────────────
+// ─── Result types ─────────────────────────────────────────────────────────────
 
-export type PrTemplateCheckResult =
+// Returned by individual validators — no knowledge of the blocking flag, which
+// is a plan-level concern stamped by runAllChecks.
+type ValidatorResult =
   | { ok: true }
   | { ok: false; reason: string };
+
+// Returned by runAllChecks — adds the blocking flag from the plan entry.
+export type PrTemplateCheckResult =
+  | { ok: true }
+  | { ok: false; reason: string; blocking: boolean };
 
 // ─── Validation-plan types ───────────────────────────────────────────────────
 
@@ -24,10 +31,12 @@ interface ValidationPlanEntry {
   // Validator type key, must exist in VALIDATORS or module load throws.
   type: string;
   required: boolean;
+  // Whether a failure of this check fails the workflow. Default: false.
+  blocking: boolean;
 }
 
 type ValidatorContext = { hasNoChangelogLabel: boolean };
-type Validator = (section: string, ctx: ValidatorContext) => PrTemplateCheckResult;
+type Validator = (section: string, ctx: ValidatorContext) => ValidatorResult;
 
 // ─── Template loading (single read at module load) ───────────────────────────
 
@@ -87,13 +96,15 @@ export function buildValidationPlan(tokens: Token[]): ValidationPlanEntry[] {
       !directiveFoundForCurrent
     ) {
       const directive = parseDirective(token.content);
-      if (directive?.type) {
-        plan.push({
-          title: currentHeading,
-          type: directive.type,
-          // Any value other than the explicit string "false" means required.
-          required: directive.required !== 'false',
-        });
+        if (directive?.type) {
+          plan.push({
+            title: currentHeading,
+            type: directive.type,
+            // Any value other than the explicit string "false" means required.
+            required: directive.required !== 'false',
+            // Only the explicit string "true" makes a check blocking; default is false.
+            blocking: directive.blocking === 'true',
+          });
         directiveFoundForCurrent = true;
       }
     }
@@ -280,7 +291,7 @@ export function extractSection(body: string, title: string): string | null {
 
 export function hasNonEmptyDescription(
   descriptionSection: string,
-): PrTemplateCheckResult {
+): ValidatorResult {
   if (stripHtmlComments(descriptionSection).trim().length === 0) {
     return {
       ok: false,
@@ -292,7 +303,7 @@ export function hasNonEmptyDescription(
 
 export function hasValidIssueLink(
   relatedIssuesSection: string,
-): PrTemplateCheckResult {
+): ValidatorResult {
   // Search only in plain text tokens — a Fixes/Closes/Refs line inside a
   // fenced code block (e.g. a doc example) must not count as the real link.
   const textOutsideFences = tokenize(relatedIssuesSection)
@@ -317,7 +328,7 @@ export function hasValidIssueLink(
 
 export function hasRealManualTesting(
   manualTestingSection: string,
-): PrTemplateCheckResult {
+): ValidatorResult {
   const sanitized = stripHtmlComments(manualTestingSection).trim();
   if (sanitized.length === 0) {
     return {
@@ -338,7 +349,7 @@ export function hasRealManualTesting(
 
 export function hasScreenshotsOrNa(
   screenshotsSection: string,
-): PrTemplateCheckResult {
+): ValidatorResult {
   // Subheadings exist in every PR (they ship with the template); they don't
   // count as content. We trust the author for whether the content is
   // meaningful — CI only enforces "section was filled".
@@ -357,7 +368,7 @@ export function hasScreenshotsOrNa(
 
 export function hasAllAuthorChecklistChecked(
   checklistSection: string,
-): PrTemplateCheckResult {
+): ValidatorResult {
   // Use only checkbox tokens — checkboxes that appear inside fenced code
   // blocks are examples or docs, not real checklist items.
   const checkboxes = tokenize(checklistSection).filter(
@@ -400,7 +411,7 @@ export function hasAllAuthorChecklistChecked(
 export function hasChangelogEntry(
   changelogSection: string,
   hasNoChangelogLabel: boolean,
-): PrTemplateCheckResult {
+): ValidatorResult {
   if (hasNoChangelogLabel) {
     return { ok: true };
   }
@@ -442,14 +453,14 @@ export function hasChangelogEntry(
 export function runAllChecks(
   body: string,
   hasNoChangelogLabel: boolean,
-): { ok: false; reason: string }[] {
+): { ok: false; reason: string; blocking: boolean }[] {
   const ctx = { hasNoChangelogLabel };
-  const failures: { ok: false; reason: string }[] = [];
+  const failures: { ok: false; reason: string; blocking: boolean }[] = [];
   for (const entry of VALIDATION_PLAN) {
     if (!entry.required) continue;
     const section = extractSection(body, entry.title) ?? '';
     const result = VALIDATORS[entry.type](section, ctx);
-    if (!result.ok) failures.push(result);
+    if (!result.ok) failures.push({ ...result, blocking: entry.blocking });
   }
   return failures;
 }

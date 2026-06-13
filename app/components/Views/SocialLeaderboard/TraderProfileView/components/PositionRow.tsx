@@ -14,6 +14,7 @@ import type { Position } from '@metamask/social-controllers';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
   formatUsd,
+  formatSignedUsd,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -27,19 +28,76 @@ export interface PositionRowProps {
 const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const isClosed = position.positionAmount === 0 && position.soldUsd > 0;
 
-  const displayValue = isClosed
-    ? position.soldUsd
-    : (position.currentValueUSD ?? null);
-
   const closedPnlPercent =
     isClosed && position.boughtUsd > 0
       ? (position.realizedPnl / position.boughtUsd) * 100
       : null;
 
   const displayPnlPercent = isClosed ? closedPnlPercent : position.pnlPercent;
-  const hasPnl = displayPnlPercent != null;
-  const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
+  const hasPnlPercent = displayPnlPercent != null;
+  const pnlSignSource = isClosed
+    ? position.realizedPnl
+    : (position.pnlValueUsd ?? displayPnlPercent ?? null);
+  const isPnlZero = pnlSignSource === 0;
+  const isPnlPositive = pnlSignSource != null && pnlSignSource > 0;
+  const pnlColorClass =
+    pnlSignSource == null || isPnlZero
+      ? undefined
+      : isPnlPositive
+        ? 'text-success-default'
+        : 'text-error-default';
+
   const testID = `position-row-${position.tokenSymbol}`;
+
+  const topRight = isClosed ? (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      twClassName={pnlColorClass}
+      color={pnlColorClass ? undefined : TextColor.TextAlternative}
+    >
+      {formatSignedUsd(position.realizedPnl)}
+    </Text>
+  ) : (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+    >
+      {formatUsd(position.currentValueUSD ?? null)}
+    </Text>
+  );
+
+  const bottomRight = isClosed ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+    >
+      {!hasPnlPercent ? null : isPnlZero ? (
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {'−'}
+        </Text>
+      ) : (
+        <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
+          {isPnlPositive ? '▲' : '▼'}
+        </Text>
+      )}
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
+      </Text>
+    </Box>
+  ) : (
+    <Text
+      variant={TextVariant.BodySm}
+      twClassName={pnlColorClass}
+      color={pnlColorClass ? undefined : TextColor.TextAlternative}
+    >
+      {position.pnlValueUsd != null
+        ? `${formatSignedUsd(position.pnlValueUsd)} (${formatPercent(displayPnlPercent)})`
+        : formatPercent(displayPnlPercent)}
+    </Text>
+  );
 
   const content = (
     <Box
@@ -79,26 +137,8 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
       </Box>
 
       <Box alignItems={BoxAlignItems.End}>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
-          {formatUsd(displayValue)}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={hasPnl ? undefined : TextColor.TextAlternative}
-          twClassName={
-            hasPnl
-              ? isPnlPositive
-                ? 'text-success-default'
-                : 'text-error-default'
-              : undefined
-          }
-        >
-          {formatPercent(displayPnlPercent)}
-        </Text>
+        {topRight}
+        {bottomRight}
       </Box>
     </Box>
   );

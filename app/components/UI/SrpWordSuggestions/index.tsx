@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react';
 import { View, FlatList, Pressable } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import { useAppTheme } from '../../../util/theme';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createStyles } from './SrpWordSuggestions.styles';
 import { SrpWordSuggestionsProps } from './SrpWordSuggestions.types';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 /**
  * SrpWordSuggestions Component
@@ -57,7 +58,7 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
             onPressIn={onPressIn}
             onPress={() => onSuggestionSelect(item)}
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {item}
             </Text>
           </Pressable>

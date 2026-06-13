@@ -1,5 +1,6 @@
 import {
   formatUsd,
+  formatSignedUsd,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -24,6 +25,29 @@ describe('formatUsd', () => {
 
   it('returns an em dash for undefined', () => {
     expect(formatUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatSignedUsd', () => {
+  it('prefixes positive values with +', () => {
+    expect(formatSignedUsd(1234.5)).toBe('+$1,234.50');
+  });
+
+  it('prefixes negative values with -', () => {
+    expect(formatSignedUsd(-150.5)).toBe('-$150.50');
+  });
+
+  it('renders zero without a sign', () => {
+    expect(formatSignedUsd(0)).toBe('$0.00');
+  });
+
+  it('formats small fractional amounts with two decimal places', () => {
+    expect(formatSignedUsd(0.12)).toBe('+$0.12');
+  });
+
+  it('returns an em dash for null and undefined', () => {
+    expect(formatSignedUsd(null)).toBe('\u2014');
+    expect(formatSignedUsd(undefined)).toBe('\u2014');
   });
 });
 

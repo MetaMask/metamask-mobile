@@ -318,8 +318,8 @@ export function isMatchingPayToken(
  * Resolves the preferred pay token for a transaction.
  *
  * Returns the explicit override when provided. Otherwise, falls back to
- * mUSD on mainnet for moneyAccountWithdraw transactions so the preferred-token
- * row in the pay-with bottom sheet reflects the deposit-default asset.
+ * mUSD on Monad for moneyAccountWithdraw transactions so the preferred-token
+ * row in the pay-with bottom sheet reflects the withdraw-default asset.
  *
  */
 export function resolvePreferredPayToken({
@@ -338,7 +338,7 @@ export function resolvePreferredPayToken({
   ) {
     return {
       address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET,
+      chainId: CHAIN_IDS.MONAD,
     };
   }
 

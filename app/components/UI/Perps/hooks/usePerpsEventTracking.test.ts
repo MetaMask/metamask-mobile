@@ -32,7 +32,7 @@ describe('usePerpsEventTracking', () => {
   });
 
   describe('track', () => {
-    it('should track event with automatic timestamp', () => {
+    it('tracks event with automatic timestamp', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockEvent = 'TEST_EVENT' as any;
@@ -50,7 +50,7 @@ describe('usePerpsEventTracking', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ type: 'mock-event' });
     });
 
-    it('should track event with custom properties', () => {
+    it('tracks event with custom properties', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockEvent = 'TEST_EVENT' as any;
@@ -140,6 +140,38 @@ describe('usePerpsEventTracking', () => {
       expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
+      });
+    });
+  });
+
+  describe('declarative tracking', () => {
+    it('tracks again when reset key changes', () => {
+      const { rerender } = renderHook(
+        ({ resetKey }: { resetKey: string }) =>
+          usePerpsEventTracking({
+            eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+            resetKey,
+            conditions: [true],
+            properties: { asset: resetKey },
+          }),
+        {
+          initialProps: { resetKey: 'BTC' },
+        },
+      );
+
+      // Each PERPS_SCREEN_VIEWED emits a companion ASSET_VIEWED, so the initial
+      // declarative track fires twice (screen viewed + asset viewed).
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+
+      rerender({ resetKey: 'ETH' });
+
+      // Reset key change re-tracks: +1 screen viewed, +1 companion asset viewed.
+      expect(mockTrackEvent).toHaveBeenCalledTimes(4);
+      // Builder order: [0] BTC screen, [1] BTC asset, [2] ETH screen, [3] ETH asset.
+      const eventBuilder = mockCreateEventBuilder.mock.results[2].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        asset: 'ETH',
       });
     });
   });

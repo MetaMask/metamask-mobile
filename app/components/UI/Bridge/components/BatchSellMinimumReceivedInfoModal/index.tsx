@@ -47,7 +47,7 @@ export function BatchSellMinimumReceivedInfoModal() {
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.DESCRIPTION}
         >

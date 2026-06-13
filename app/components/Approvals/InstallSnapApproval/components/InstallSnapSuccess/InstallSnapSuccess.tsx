@@ -4,9 +4,6 @@ import { View } from 'react-native';
 import styleSheet from '../../InstallSnapApproval.styles';
 import { strings } from '../../../../../../locales/i18n';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
@@ -28,6 +25,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 import { SNAP_INSTALL_OK } from '../../InstallSnapApproval.constants';
 import SNAP_INSTALL_SUCCESS from './InstallSnapSuccess.constants';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const InstallSnapSuccess = ({
   onConfirm,
@@ -65,7 +63,7 @@ const InstallSnapSuccess = ({
           </View>
         </View>
         <SheetHeader title={strings('install_snap.installed')} />
-        <Text style={styles.description} variant={TextVariant.BodyMD}>
+        <Text style={styles.description} variant={TextVariant.BodyMd}>
           {strings('install_snap.install_successful', {
             snap: snapName,
           })}

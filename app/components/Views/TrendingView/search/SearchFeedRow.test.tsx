@@ -7,6 +7,7 @@ import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/typ
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 
 const MockPressable = Pressable;
 const MockText = Text;
@@ -31,8 +32,16 @@ jest.mock('./analytics', () => ({
 }));
 
 jest.mock('../feeds/tokens/TokenRowItem', () => ({
-  TokenSearchRowItem: ({ token }: { token: TrendingAsset }) => (
-    <MockText testID="stub-token-row">{token.assetId}</MockText>
+  TokenSearchRowItem: ({
+    token,
+    tokenDetailsSource,
+  }: {
+    token: TrendingAsset;
+    tokenDetailsSource?: TokenDetailsSource;
+  }) => (
+    <MockText testID="stub-token-row" accessibilityLabel={tokenDetailsSource}>
+      {token.assetId}
+    </MockText>
   ),
   CryptoMoversSearchRowItem: ({ token }: { token: TrendingAsset }) => (
     <MockText testID="stub-crypto-movers-search">{token.assetId}</MockText>
@@ -127,6 +136,27 @@ describe('SearchFeedRow', () => {
           item_clicked: itemClicked,
           position: 2,
         }),
+      );
+    },
+  );
+
+  it.each(['tokens', 'stocks'] as const)(
+    'passes explore_search tokenDetailsSource for %s feed',
+    (feedId) => {
+      const token = { assetId: 'asset-1' } as TrendingAsset;
+
+      const { getByTestId } = render(
+        <SearchFeedRow
+          feedId={feedId}
+          item={token}
+          index={0}
+          searchQuery="q"
+          tabName="all"
+        />,
+      );
+
+      expect(getByTestId('stub-token-row').props.accessibilityLabel).toBe(
+        TokenDetailsSource.ExploreSearch,
       );
     },
   );

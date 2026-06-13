@@ -113,13 +113,13 @@ const waitForCommandQueueToProcess = async (
   await commandQueueServer.getExportedState();
 };
 
-// Unblocking CI
-describe.skip(SmokePerps('Perps Position Liquidation'), () => {
+describe(SmokePerps('Perps Position Liquidation'), () => {
   it(`liquidates a ${POSITION_DIRECTION} position when mark price moves ${MARK_PRICE_BY_DIRECTION[POSITION_DIRECTION].liquidatingPriceDirection} liquidation price`, async () => {
     await withFixtures(
       {
         fixture: buildPerpsFixture(),
         restartDevice: true,
+        permissions: { notifications: 'YES' },
         testSpecificMock: setupPerpsMocks,
         useCommandQueueServer: true,
       },

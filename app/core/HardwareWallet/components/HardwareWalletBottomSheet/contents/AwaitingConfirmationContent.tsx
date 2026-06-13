@@ -9,11 +9,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -287,21 +287,23 @@ export const AwaitingConfirmationContent: React.FC<
           footer={
             <>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
-                label={strings('hardware_wallet.common.cancel')}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 onPress={onQrCancel}
-              />
+              >
+                {strings('hardware_wallet.common.cancel')}
+              </Button>
               {isSigningQRObject ? (
                 <Button
                   testID={AWAITING_CONFIRMATION_QR_GET_SIGN_BUTTON_TEST_ID}
-                  variant={ButtonVariants.Primary}
+                  variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
-                  label={strings('confirm.qr_get_sign')}
-                  width={ButtonWidthTypes.Full}
+                  isFullWidth
                   onPress={onShowScanner}
-                />
+                >
+                  {strings('confirm.qr_get_sign')}
+                </Button>
               ) : null}
             </>
           }
@@ -354,12 +356,13 @@ export const AwaitingConfirmationContent: React.FC<
       footer={
         onCancel ? (
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            label={strings('hardware_wallet.common.cancel')}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             onPress={onCancel}
-          />
+          >
+            {strings('hardware_wallet.common.cancel')}
+          </Button>
         ) : undefined
       }
     />

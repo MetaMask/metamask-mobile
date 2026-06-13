@@ -256,4 +256,19 @@ describe('MultichainAddressRow', () => {
     const actionsContainer = getByTestId(MULTICHAIN_ADDRESS_ROW_TEST_ID);
     expect(actionsContainer).toBeTruthy();
   });
+
+  it('truncates long network names to a single line', () => {
+    const longNetworkName =
+      'Monad Mainnet hello this is a wallet ok ok ok ok ok yo it is very long';
+    const { getByTestId } = render(
+      <MultichainAddressRow
+        {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS}
+        networkName={longNetworkName}
+      />,
+    );
+    const networkName = getByTestId(
+      MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID,
+    );
+    expect(networkName.props.numberOfLines).toBe(1);
+  });
 });

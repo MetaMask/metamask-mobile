@@ -8,8 +8,6 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
   getApprovedHosts: (host: string) => ({
     [host]: true,
   }),
-  remoteConnHost:
-    clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
   getRpcMethodMiddleware: ({
     getProviderState,
   }: {

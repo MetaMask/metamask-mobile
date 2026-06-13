@@ -110,30 +110,11 @@ const styleSheet = (params: { theme: Theme }) => {
     footerButton: {
       flex: 1,
     },
-    section: {
-      marginBottom: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-      paddingBottom: 16,
-    },
-    sectionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-      paddingHorizontal: 16,
-    },
     sectionContent: {
       paddingHorizontal: 16,
     },
     positionsOrdersContainer: {
       paddingHorizontal: 16,
-    },
-    whatsHappeningSection: {
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-      paddingTop: 28,
-      marginBottom: 36,
     },
   });
 };

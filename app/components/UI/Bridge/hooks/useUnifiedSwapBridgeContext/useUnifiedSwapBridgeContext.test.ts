@@ -1,4 +1,5 @@
 import '../../_mocks_/initialState';
+import { FeatureId } from '@metamask/bridge-controller';
 import { createBridgeTestState } from '../../testUtils';
 import { useUnifiedSwapBridgeContext } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -95,6 +96,7 @@ describe('useUnifiedSwapBridgeContext', () => {
       security_warnings: [],
       warnings: [],
       usd_amount_source: 0,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 
@@ -199,6 +201,7 @@ describe('useUnifiedSwapBridgeContext', () => {
       security_warnings: [],
       warnings: [],
       usd_amount_source: 0,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 

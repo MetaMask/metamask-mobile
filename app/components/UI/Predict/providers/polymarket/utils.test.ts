@@ -731,6 +731,7 @@ describe('polymarket utils', () => {
       const params = buildMarketListQueryParams({ tags: ['100', '200'] });
 
       expect(params.getAll('tag_id')).toEqual(['100', '200']);
+      expect(params.getAll('tag_slug')).toEqual([]);
     });
 
     it('appends multiple tagSlugs as repeated tag_slug params', () => {

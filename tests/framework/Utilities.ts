@@ -1,6 +1,7 @@
 import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
+import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { createLogger } from './logger.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
@@ -39,8 +40,10 @@ export default class Utilities {
   /**
    * Check if element is enabled (non-retry version)
    */
-  static async checkElementEnabled(detoxElement: DetoxElement): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
+  static async checkElementEnabled(
+    elem: EncapsulatedElementType,
+  ): Promise<void> {
+    const el = (await elem) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {
       throw new Error(
@@ -57,8 +60,10 @@ export default class Utilities {
     }
   }
 
-  static async checkElementDisabled(detoxElement: DetoxElement): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
+  static async checkElementDisabled(
+    elem: EncapsulatedElementType,
+  ): Promise<void> {
+    const el = (await elem) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || attributes.enabled) {
       throw new Error('🚫 Element is enabled, but should be disabled.');
@@ -69,11 +74,11 @@ export default class Utilities {
    * Wait for element to be enabled with retry mechanism
    */
   static async waitForElementToBeEnabled(
-    detoxElement: DetoxElement,
+    elem: EncapsulatedElementType,
     timeout = 3500,
     interval = 100,
   ): Promise<void> {
-    return this.executeWithRetry(() => this.checkElementEnabled(detoxElement), {
+    return this.executeWithRetry(() => this.checkElementEnabled(elem), {
       timeout,
       interval,
       description: 'Element to be enabled',
@@ -85,10 +90,10 @@ export default class Utilities {
    * Android-specific check for element obscuration
    */
   static async checkElementNotObscured(
-    detoxElement: DetoxElement,
+    elem: EncapsulatedElementType,
   ): Promise<void> {
     try {
-      const el = (await detoxElement) as Detox.IndexableNativeElement;
+      const el = (await elem) as Detox.IndexableNativeElement;
       const attributes = await el.getAttributes();
 
       // Check if element has proper frame/bounds
@@ -138,7 +143,7 @@ export default class Utilities {
    * Check if element is stable (non-retry version)
    */
   static async checkElementStable(
-    detoxElement: DetoxElement,
+    elem: EncapsulatedElementType,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 2000, interval = 200, stableCount = 3 } = options;
@@ -165,7 +170,7 @@ export default class Utilities {
     };
 
     while (Date.now() - start < timeout) {
-      const el = (await detoxElement) as Detox.IndexableNativeElement;
+      const el = (await elem) as Detox.IndexableNativeElement;
       const position = await getPosition(el);
 
       if (!position) {
@@ -199,24 +204,21 @@ export default class Utilities {
    * Waits for an element to become stable (not moving) by checking its position multiple times.
    */
   static async waitForElementToStopMoving(
-    detoxElement: DetoxElement,
+    elem: EncapsulatedElementType,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 5000 } = options;
-    return this.executeWithRetry(
-      () => this.checkElementStable(detoxElement, options),
-      {
-        timeout,
-        description: 'Element stability',
-      },
-    );
+    return this.executeWithRetry(() => this.checkElementStable(elem, options), {
+      timeout,
+      description: 'Element stability',
+    });
   }
 
   /**
    * Check element ready state (non-retry version)
    */
   static async checkElementReadyState(
-    detoxElement: DetoxElement,
+    elem: EncapsulatedElementType,
     options: {
       timeout?: number;
       checkStability?: boolean;
@@ -231,7 +233,7 @@ export default class Utilities {
       checkEnabled = true,
     } = options;
 
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const el = (await elem) as Detox.IndexableNativeElement;
     /**
      * IMPORTANT: Default timeout behavior
      *
@@ -279,7 +281,7 @@ export default class Utilities {
    * Wait for element to be in a ready state (visible, enabled, stable)
    */
   static async waitForReadyState(
-    detoxElement: DetoxElement,
+    elem: EncapsulatedElementType,
     options: {
       timeout?: number;
       checkStability?: boolean;
@@ -290,7 +292,7 @@ export default class Utilities {
     const { timeout = TEST_CONFIG_DEFAULTS.timeout, elemDescription } = options;
 
     return this.executeWithRetry(
-      () => this.checkElementReadyState(detoxElement, options),
+      () => this.checkElementReadyState(elem, options),
       {
         timeout,
         description: 'Element ready state check',
@@ -303,10 +305,10 @@ export default class Utilities {
    * Wait for element to be visible and throw on failure
    */
   static async waitForElementToBeVisible(
-    detoxElement: DetoxElement | DetoxMatcher,
+    elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const el = (await elem) as Detox.IndexableNativeElement;
     const isWebElement = this.isWebElement(el);
 
     if (isWebElement) {
@@ -323,10 +325,10 @@ export default class Utilities {
    * Wait for element to be not visible and throw on failure
    */
   static async waitForElementToDisappear(
-    detoxElement: DetoxElement | DetoxMatcher,
+    elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const el = (await elem) as Detox.IndexableNativeElement;
     const isWebElement = this.isWebElement(el);
     if (isWebElement) {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
@@ -343,11 +345,11 @@ export default class Utilities {
    * Returns true if element is visible, false if not visible or doesn't exist
    */
   static async isElementVisible(
-    detoxElement: DetoxElement | DetoxMatcher,
+    elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<boolean> {
     try {
-      await this.waitForElementToBeVisible(detoxElement, timeout);
+      await this.waitForElementToBeVisible(elem, timeout);
       return true;
     } catch {
       return false;

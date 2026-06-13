@@ -1,6 +1,6 @@
 // third party dependencies
 import { View } from 'react-native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { HeaderStandard, Text } from '@metamask/design-system-react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -30,7 +30,6 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text from '../../../component-library/components/Texts/Text';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import AccountAction from '../../Views/AccountAction';
 import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';

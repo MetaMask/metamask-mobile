@@ -68,7 +68,7 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const address = evmAccount?.address ?? '0x0';
+  const address = evmAccount?.address;
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -76,7 +76,9 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     ensurePolygonNetworkExists().catch(() => undefined);
   }, [enabled, ensurePolygonNetworkExists]);
 
-  const queryOpts = predictQueries.positions.options({ address });
+  const queryOpts = predictQueries.positions.options({
+    address: address ?? '',
+  });
 
   const cachedData = queryClient.getQueryData<PredictPosition[]>(
     queryOpts.queryKey,
@@ -87,7 +89,7 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
 
   const query = useQuery({
     ...queryOpts,
-    enabled,
+    enabled: enabled && Boolean(address),
     refetchInterval: hasOptimistic
       ? OPTIMISTIC_POLL_INTERVAL
       : (refetchInterval ?? false),
@@ -95,8 +97,8 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
   });
 
   usePredictLivePositions(query.data ?? EMPTY_POSITIONS, {
-    enabled: enabled && livePriceUpdates,
-    cacheAddress: address,
+    enabled: enabled && livePriceUpdates && Boolean(address),
+    cacheAddress: address ?? '',
   });
 
   return query;

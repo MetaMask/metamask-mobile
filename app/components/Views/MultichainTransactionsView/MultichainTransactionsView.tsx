@@ -14,6 +14,9 @@ import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
+import { getBlockExplorerName } from '../../../util/networks';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
@@ -91,6 +94,7 @@ const MultichainTransactionsView = ({
   const style = styles();
   const defaultNavigation = useNavigation();
   const nav = navigation ?? defaultNavigation;
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { namespace } = parseCaipChainId(chainId as CaipChainId);
   const isBitcoinNetwork = namespace === KnownCaipNamespace.Bip122;
 
@@ -153,6 +157,14 @@ const MultichainTransactionsView = ({
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
+        if (!url) {
+          return;
+        }
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'multichain_activity_tab',
+          text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,
+          url,
+        });
         nav.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url },

@@ -14,7 +14,7 @@ export const CLOSED_SORT_CYCLE: readonly ClosedSortKey[] = [
 const getOpenValue = (position: Position): number =>
   position.currentValueUSD ?? 0;
 
-const getClosedValue = (position: Position): number => position.soldUsd;
+const getClosedValue = (position: Position): number => position.realizedPnl;
 
 const getOpenPnl = (position: Position): number => position.pnlPercent ?? 0;
 

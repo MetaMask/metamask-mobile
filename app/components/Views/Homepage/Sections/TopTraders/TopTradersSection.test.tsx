@@ -85,6 +85,16 @@ describe('TopTradersSection', () => {
     });
   });
 
+  it('queries with the spot chains so the cache key aligns with TopTradersView "All" and the prewarm saga', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(mockUseTopTraders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        limit: 50,
+      }),
+    );
+  });
+
   it('returns null when the API returns no traders', () => {
     mockUseTopTraders.mockReturnValue({
       traders: [],
@@ -129,7 +139,7 @@ describe('TopTradersSection', () => {
   it('navigates to the Top Traders view when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Top Traders'));
+    fireEvent.press(screen.getByText('Weekly Top Traders'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW, {
       source: 'home_carousel',

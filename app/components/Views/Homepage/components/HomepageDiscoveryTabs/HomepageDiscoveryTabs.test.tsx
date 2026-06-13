@@ -60,14 +60,19 @@ jest.mock('../../Homepage', () => {
   };
 });
 
+const mockPerpsHomeViewProps: { current: Record<string, unknown> | null } = {
+  current: null,
+};
 jest.mock('../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView', () => {
   const { View } = jest.requireActual('react-native');
   const ReactLib = jest.requireActual('react');
   return function MockPerpsHomeView({
     tabEnterCallbackRef,
+    ...props
   }: {
     tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
   }) {
+    mockPerpsHomeViewProps.current = props;
     if (tabEnterCallbackRef) tabEnterCallbackRef.current = jest.fn();
     return ReactLib.createElement(View, { testID: 'perps-home-view' });
   };
@@ -285,6 +290,27 @@ describe('HomepageDiscoveryTabs', () => {
       await pressTab('Predictions');
 
       expect(mockPredictFeedProps.current?.hideHeader).toBe(true);
+    });
+
+    it('passes topInset=32 to PredictFeed for discovery tab title spacing', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current?.topInset).toBe(32);
+    });
+  });
+
+  describe('PerpsHomeView discovery tab props', () => {
+    beforeEach(() => {
+      mockPerpsHomeViewProps.current = null;
+    });
+
+    it('passes hideHeader=true and topInset=32 to PerpsHomeView', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+
+      expect(mockPerpsHomeViewProps.current?.hideHeader).toBe(true);
+      expect(mockPerpsHomeViewProps.current?.topInset).toBe(32);
     });
   });
 

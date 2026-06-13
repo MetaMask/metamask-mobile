@@ -42,7 +42,16 @@ interface MoneyPotentialEarningsProps {
    * useMoneyDepositTokens.
    */
   isNoFeeToken?: (token: AssetType) => boolean;
-  onTokenPress?: (token: AssetType) => void;
+  onTokenCardPress?: (
+    token: AssetType,
+    index: number,
+    tokensCount: number,
+  ) => void;
+  onTokenButtonPress?: (
+    token: AssetType,
+    index: number,
+    tokensCount: number,
+  ) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
   /**
@@ -56,7 +65,8 @@ const MoneyPotentialEarnings = ({
   tokens,
   apy,
   isNoFeeToken = () => false,
-  onTokenPress,
+  onTokenCardPress,
+  onTokenButtonPress,
   onViewAllPress,
   onHeaderPress,
   onInfoPress,
@@ -76,9 +86,18 @@ const MoneyPotentialEarnings = ({
   );
   const hasMoreTokens = eligibleTokens.length > VISIBLE_TOKENS_COUNT;
 
-  const handleTokenPress = useCallback(
-    (token: AssetType) => () => onTokenPress?.(token),
-    [onTokenPress],
+  const handleTokenCardPress = useCallback(
+    (token: AssetType, index: number) => () => {
+      onTokenCardPress?.(token, index, eligibleTokens.length);
+    },
+    [onTokenCardPress, eligibleTokens.length],
+  );
+
+  const handleTokenButtonPress = useCallback(
+    (token: AssetType, index: number) => () => {
+      onTokenButtonPress?.(token, index, eligibleTokens.length);
+    },
+    [onTokenButtonPress, eligibleTokens.length],
   );
 
   if (!visibleTokens.length) {
@@ -159,13 +178,14 @@ const MoneyPotentialEarnings = ({
       </Box>
 
       <>
-        {visibleTokens.map((token) => (
+        {visibleTokens.map((token, index) => (
           <PotentialEarningsTokenRow
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
             apyPercent={apyPercent}
-            onPress={handleTokenPress(token)}
+            onCardPress={handleTokenCardPress(token, index)}
+            onButtonPress={handleTokenButtonPress(token, index)}
           />
         ))}
 

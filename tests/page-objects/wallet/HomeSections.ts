@@ -1,4 +1,9 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  EncapsulatedElementType,
+} from '../../framework';
 import {
   WalletAssetSelectorsIDs,
   WalletAssetSelectorsRegex,
@@ -13,18 +18,18 @@ class TokensFullView {
   /**
    * Back button in the tokens full view header
    */
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.BACK_BUTTON);
   }
 
   /**
    * Network filter button in the tokens full view control bar
    */
-  get networkFilterButton(): DetoxElement {
+  get networkFilterButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  get stakedEthereumAssetRow(): DetoxElement {
+  get stakedEthereumAssetRow(): EncapsulatedElementType {
     return Promise.resolve(
       element(
         by

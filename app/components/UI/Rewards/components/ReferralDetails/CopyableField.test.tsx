@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import CopyableField from './CopyableField';
 
@@ -37,6 +38,17 @@ describe('CopyableField', () => {
 
       expect(getByText('Test Label')).toBeTruthy();
       expect(getByText('test-value')).toBeTruthy();
+    });
+
+    it('should render trailingAccessory before the copy button', () => {
+      const { getByText } = render(
+        <CopyableField
+          {...defaultProps}
+          trailingAccessory={<Text>VIP accessory</Text>}
+        />,
+      );
+
+      expect(getByText('VIP accessory')).toBeTruthy();
     });
   });
 

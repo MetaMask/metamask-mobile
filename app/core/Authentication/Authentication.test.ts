@@ -1882,7 +1882,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1955,7 +1955,7 @@ describe('Authentication', () => {
         keyringId: mockMultichainAccountWallet.entropySource,
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2001,7 +2001,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2031,7 +2031,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2070,7 +2070,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2160,7 +2160,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -3876,6 +3876,11 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
+      Engine.context.CardController = {
+        resetAll: jest.fn().mockResolvedValue(undefined),
+        setResetInProgress: jest.fn(),
+      } as unknown as (typeof Engine.context)['CardController'];
+
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
@@ -3959,6 +3964,11 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
+      Engine.context.CardController = {
+        resetAll: jest.fn().mockResolvedValue(undefined),
+        setResetInProgress: jest.fn(),
+      } as unknown as (typeof Engine.context)['CardController'];
+
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
@@ -4019,6 +4029,23 @@ describe('Authentication', () => {
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
 
+    it('re-enables Card reactive fetching even when an error occurs', async () => {
+      // Arrange
+      jest
+        .spyOn(Authentication, 'newWalletAndKeychain')
+        .mockRejectedValueOnce(new Error('Authentication failed'));
+
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert - suppression is lifted despite the error
+      expect(
+        Engine.context.CardController.setResetInProgress,
+      ).toHaveBeenLastCalledWith(false);
+    });
+
     it('calls all required methods to reset wallet state', async () => {
       // Arrange
       const newWalletAndKeychain = jest.spyOn(
@@ -4046,6 +4073,15 @@ describe('Authentication', () => {
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledWith(
         'RewardsController:resetAll',
+      );
+      expect(Engine.context.CardController.resetAll).toHaveBeenCalledTimes(1);
+      const setResetSpy = Engine.context.CardController
+        .setResetInProgress as jest.Mock;
+      expect(setResetSpy).toHaveBeenNthCalledWith(1, true);
+      expect(setResetSpy).toHaveBeenLastCalledWith(false);
+      // Suppression is enabled before the temporary wallet is created
+      expect(setResetSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
       );
       expect(loggerSpy).not.toHaveBeenCalled();
       expect(resetProviderTokenSpy).toHaveBeenCalledTimes(1);

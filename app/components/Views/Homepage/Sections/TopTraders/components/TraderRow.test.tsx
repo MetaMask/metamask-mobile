@@ -44,7 +44,7 @@ describe('TraderRow', () => {
     expect(screen.getByTestId('trader-row-trader-1')).toBeOnTheScreen();
   });
 
-  it('renders fallback AvatarBase when avatarUri is absent', () => {
+  it('renders Maskicon fallback when avatarUri is absent', () => {
     const traderNoAvatar = { ...baseTrader, avatarUri: undefined };
     renderWithProvider(
       <TraderRow trader={traderNoAvatar} onFollowPress={mockOnFollowPress} />,

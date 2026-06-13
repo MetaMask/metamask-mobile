@@ -868,7 +868,7 @@ describe('Transaction Pay Utils', () => {
       expect(result).toBe(OVERRIDE);
     });
 
-    it('returns the mUSD mainnet fallback for moneyAccountWithdraw transactions when no override is provided', () => {
+    it('returns the mUSD Monad fallback for moneyAccountWithdraw transactions when no override is provided', () => {
       const result = resolvePreferredPayToken({
         override: undefined,
         transactionMeta: withdrawTransactionMeta,
@@ -876,7 +876,7 @@ describe('Transaction Pay Utils', () => {
 
       expect(result).toStrictEqual({
         address: MUSD_TOKEN_ADDRESS,
-        chainId: CHAIN_IDS.MAINNET,
+        chainId: CHAIN_IDS.MONAD,
       });
     });
 

@@ -2,13 +2,14 @@ import { ContactsViewSelectorIDs } from '../../../../app/components/Views/Settin
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Assertions from '../../../framework/Assertions';
+import { EncapsulatedElementType } from '../../../framework';
 
 class ContactsView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ContactsViewSelectorIDs.CONTAINER);
   }
 
-  get addButton(): DetoxElement {
+  get addButton(): EncapsulatedElementType {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON)
       : Matchers.getElementByLabel(ContactsViewSelectorIDs.ADD_BUTTON);

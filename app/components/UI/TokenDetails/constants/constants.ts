@@ -22,6 +22,8 @@ export enum TokenDetailsSource {
   ExploreCryptoTrending = 'explore_crypto_trending',
   /** Explore RWAs tab — stocks list */
   ExploreRwasStocks = 'explore_rwas_stocks',
+  /** Explore omni-search result tap */
+  ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
@@ -37,6 +39,7 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreNowStocks,
   TokenDetailsSource.ExploreCryptoTrending,
   TokenDetailsSource.ExploreRwasStocks,
+  TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
 ]);
 

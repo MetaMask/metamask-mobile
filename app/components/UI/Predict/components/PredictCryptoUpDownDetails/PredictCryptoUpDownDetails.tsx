@@ -57,10 +57,10 @@ import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenO
 // chart shrinks so the first position row remains visible above the sticky
 // action buttons.
 const CHART_HEIGHT_MIN_WITH_POSITIONS = 280;
-const CHART_HEIGHT_MAX_WITH_POSITIONS = 380;
+const CHART_HEIGHT_MAX_WITH_POSITIONS = 430;
 const CHART_HEIGHT_MIN_NO_POSITIONS = 420;
 const CHART_HEIGHT_MAX_NO_POSITIONS = 560;
-const CHART_HEIGHT_RATIO_WITH_POSITIONS = 0.4;
+const CHART_HEIGHT_RATIO_WITH_POSITIONS = 0.44;
 const CHART_HEIGHT_RATIO_NO_POSITIONS = 0.55;
 const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
 const NOOP = () => undefined;
@@ -535,7 +535,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
         <Box
           flexDirection={BoxFlexDirection.Row}
-          twClassName="px-4 pt-5 gap-4"
+          twClassName="px-4 pt-3 gap-4"
           testID={PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY}
         >
           <Box twClassName="flex-1">
@@ -650,7 +650,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             onClaimPress={onClaimPress ?? NOOP}
             onBuyPress={handleBuyPress}
             isClaimPending={isClaimPending}
-            showPayoutEstimate
           />
         </Box>
       )}

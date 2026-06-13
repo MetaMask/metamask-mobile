@@ -3,6 +3,7 @@ import { ImageSourcePropType } from 'react-native';
 export interface StepperCardCta {
   text: string;
   onPress: () => void;
+  disabled?: boolean;
 }
 
 export interface StepperCardStep {

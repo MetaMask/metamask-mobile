@@ -1,41 +1,42 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { CardHomeSelectors } from '../../../app/components/UI/Card/Views/CardHome/CardHome.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class CardHomeView {
-  get tryAgainButton(): DetoxElement {
+  get tryAgainButton(): EncapsulatedElementType {
     return Matchers.getElementByID(CardHomeSelectors.TRY_AGAIN_BUTTON);
   }
 
-  get privacyToggleButton(): DetoxElement {
+  get privacyToggleButton(): EncapsulatedElementType {
     return Matchers.getElementByID(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON);
   }
 
-  get addFundsButton(): DetoxElement {
+  get addFundsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BUTTON);
   }
 
-  get addFundsBottomSheet(): DetoxElement {
+  get addFundsBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET);
   }
 
-  get addFundsBottomSheetDepositOption(): DetoxElement {
+  get addFundsBottomSheetDepositOption(): EncapsulatedElementType {
     return Matchers.getElementByID(
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION,
     );
   }
 
-  get addFundsBottomSheetSwapOption(): DetoxElement {
+  get addFundsBottomSheetSwapOption(): EncapsulatedElementType {
     return Matchers.getElementByID(
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
     );
   }
 
-  get cardViewTitle(): DetoxElement {
+  get cardViewTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(CardHomeSelectors.CARD_VIEW_TITLE);
   }
 
-  get swapScreenSourceTokenArea(): DetoxElement {
+  get swapScreenSourceTokenArea(): EncapsulatedElementType {
     return Matchers.getElementByID('source-token-area');
   }
 

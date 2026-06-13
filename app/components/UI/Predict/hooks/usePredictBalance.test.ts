@@ -93,6 +93,17 @@ describe('usePredictBalance', () => {
       });
     });
 
+    it('does not fetch balance when no EVM account is selected', () => {
+      const { Wrapper } = createWrapper();
+      mockGetAccountsFromSelectedAccountGroup.mockReturnValue([]);
+
+      renderHook(() => usePredictBalance(), {
+        wrapper: Wrapper,
+      });
+
+      expect(mockGetBalance).not.toHaveBeenCalled();
+    });
+
     it('fetches against the new address after the selected account changes', async () => {
       const { Wrapper } = createWrapper();
       mockGetBalance.mockImplementation(({ address }) =>

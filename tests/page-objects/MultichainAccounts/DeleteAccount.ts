@@ -1,15 +1,16 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { MultichainDeleteAccountSelectors } from '../../../app/components/Views/MultichainAccounts/sheets/DeleteAccount/DeleteAccount.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class DeleteAccount {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER,
     );
   }
 
-  get deleteAccountButton(): DetoxElement {
+  get deleteAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
     );

@@ -1,13 +1,14 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SpamFilterModalSelectorText } from '../../selectors/Browser/SpamFilterModal.selectors';
+import { EncapsulatedElementType } from '../../framework';
 
 class SpamFilterModal {
-  get title(): DetoxElement {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(SpamFilterModalSelectorText.TITLE);
   }
 
-  get cancelButtonText(): DetoxElement {
+  get cancelButtonText(): EncapsulatedElementType {
     return Matchers.getElementByText(SpamFilterModalSelectorText.CANCEL_BUTTON);
   }
 

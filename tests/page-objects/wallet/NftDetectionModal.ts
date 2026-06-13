@@ -1,17 +1,18 @@
 import { NftDetectionModalSelectorsIDs } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class NftDetectionModal {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(NftDetectionModalSelectorsIDs.CONTAINER);
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(NftDetectionModalSelectorsIDs.CANCEL_BUTTON);
   }
 
-  get allowButton(): DetoxElement {
+  get allowButton(): EncapsulatedElementType {
     return Matchers.getElementByID(NftDetectionModalSelectorsIDs.ALLOW_BUTTON);
   }
 

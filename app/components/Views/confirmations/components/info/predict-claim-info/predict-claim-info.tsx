@@ -13,21 +13,12 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-info.styles';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import Engine from '../../../../../../core/Engine';
 
 export function PredictClaimInfo() {
   useModalNavbar();
   usePredictClaimConfirmationMetrics();
-  const clearPendingClaim = useCallback(() => {
-    Engine.context.PredictController.clearPendingClaim();
-  }, []);
 
-  const rejectConfirmation = useClearConfirmationOnBackSwipe({
-    rejectOnBeforeRemove: true,
-    rejectOnBeforeRemoveWithoutGesture: true,
-    skipNavigationOnGestureEnd: false,
-    onBeforeReject: clearPendingClaim,
-  });
+  const rejectConfirmation = useClearConfirmationOnBackSwipe();
 
   return (
     <>

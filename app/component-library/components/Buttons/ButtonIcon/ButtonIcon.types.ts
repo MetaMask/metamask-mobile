@@ -9,8 +9,8 @@ import { IconName, IconSize, IconColor } from '../../Icons/Icon';
  */
 export enum ButtonIconSizes {
   Sm = '24',
-  Md = '28',
-  Lg = '32',
+  Md = '32',
+  Lg = '40',
 }
 
 /**

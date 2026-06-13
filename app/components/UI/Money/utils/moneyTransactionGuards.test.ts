@@ -8,6 +8,7 @@ import {
   isMoneyDepositTx,
   isMoneyWithdrawTx,
   nestedTxWithType,
+  getMMPayChainIds,
 } from './moneyTransactionGuards';
 
 const baseTx = {
@@ -138,5 +139,52 @@ describe('isMoneyAccountTx', () => {
     expect(isMoneyAccountTx(makeTx(TransactionType.contractInteraction))).toBe(
       false,
     );
+  });
+});
+
+describe('getMMPayChainIds', () => {
+  const makePayTx = (
+    chainId: `0x${string}`,
+    payChainId: `0x${string}` | undefined,
+    isPostQuote: boolean,
+  ): TransactionMeta =>
+    ({
+      ...baseTx,
+      chainId,
+      type: TransactionType.moneyAccountDeposit,
+      metamaskPay:
+        payChainId !== undefined
+          ? { chainId: payChainId, isPostQuote }
+          : undefined,
+    }) as unknown as TransactionMeta;
+
+  it('returns pay chainId as source and local as destination when isPostQuote is false', () => {
+    const tx = makePayTx('0x1', '0x89', false);
+
+    const result = getMMPayChainIds(tx);
+
+    expect(result.sourceChainId).toBe('0x89');
+    expect(result.destinationChainId).toBe('0x1');
+  });
+
+  it('returns local chainId as source and pay chainId as destination when isPostQuote is true', () => {
+    const tx = makePayTx('0x1', '0x89', true);
+
+    const result = getMMPayChainIds(tx);
+
+    expect(result.sourceChainId).toBe('0x1');
+    expect(result.destinationChainId).toBe('0x89');
+  });
+
+  it('returns undefined source and undefined destination when metamaskPay is absent', () => {
+    const tx = {
+      ...baseTx,
+      type: TransactionType.contractInteraction,
+    } as unknown as TransactionMeta;
+
+    const result = getMMPayChainIds(tx);
+
+    expect(result.sourceChainId).toBe(tx.chainId);
+    expect(result.destinationChainId).toBe(tx.chainId);
   });
 });

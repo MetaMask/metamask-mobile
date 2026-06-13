@@ -24,7 +24,6 @@ const FILE_SOURCES: Array<{ key: string; file: string; exportName: string }> = [
   { key: 'BRAZE_BANNER_HOME_FLAG_KEY', file: sel('brazeBannerHome'), exportName: 'BRAZE_BANNER_HOME_FLAG_KEY' },
   { key: 'PRE_PUSH_PROMPT_FLAG_KEY', file: sel('engagement'), exportName: 'PRE_PUSH_PROMPT_FLAG_KEY' },
   { key: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY', file: sel('tokenDetailsOhlcvWsIntegration'), exportName: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY' },
-  { key: 'SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY', file: sel('socialAiAssetDetailsQuickBuy'), exportName: 'SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY' },
   { key: 'SMART_TRANSACTIONS_ALLOWED_RPC_HOSTS_FLAG', file: sel('smartTransactions'), exportName: 'SMART_TRANSACTIONS_ALLOWED_RPC_HOSTS_FLAG' },
 ];
 

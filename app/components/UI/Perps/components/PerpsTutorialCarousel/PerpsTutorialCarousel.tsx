@@ -422,7 +422,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           onChangeTab={handleTabChange}
           initialPage={0}
         >
-          {tutorialScreens.map((screen) => (
+          {tutorialScreens.map((screen, index) => (
             <View key={screen.id} style={styles.fullScreenContainer}>
               <ScrollView
                 style={styles.scrollableContent}
@@ -462,7 +462,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                     <View style={styles.contentSection}>{screen.content}</View>
                   )}
 
-                  {screen?.riveArtboardName && (
+                  {screen?.riveArtboardName && currentTab === index && (
                     <View style={styles.animationContainer}>
                       <Rive
                         key={screen.id}

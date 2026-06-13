@@ -11,6 +11,7 @@ import {
   getTestDappLocalUrl,
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
 
@@ -19,68 +20,68 @@ interface TransactionParams {
 }
 
 class Browser {
-  get reloadButton(): DetoxElement {
+  get reloadButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
   }
 
-  get bookmarkButton(): DetoxElement {
+  get bookmarkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BOOKMARK_BUTTON);
   }
 
-  get newTabButton(): DetoxElement {
+  get newTabButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
   }
 
-  get closeBrowserButton(): DetoxElement {
+  get closeBrowserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
     );
   }
 
   // Legacy getters for backward compatibility with existing tests
-  get homeButton(): DetoxElement {
+  get homeButton(): EncapsulatedElementType {
     // Home button removed, but kept for backward compatibility
     // Tests using this should be updated
     return this.newTabButton;
   }
 
-  get browserScreenID(): DetoxElement {
+  get browserScreenID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
   }
 
-  get androidBrowserWebViewID(): DetoxElement {
+  get androidBrowserWebViewID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
   }
 
-  get addressBar(): DetoxElement {
+  get addressBar(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT);
   }
 
-  get urlInputBoxID(): DetoxElement {
+  get urlInputBoxID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
-  get clearURLButton(): DetoxElement {
+  get clearURLButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
 
-  get cancelUrlInputButton(): DetoxElement {
+  get cancelUrlInputButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
     );
   }
 
-  get backToSafetyButton(): DetoxElement {
+  get backToSafetyButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
     );
   }
 
-  get returnHomeButton(): DetoxElement {
+  get returnHomeButton(): EncapsulatedElementType {
     return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
   }
 
-  get addFavouritesButton(): DetoxElement {
+  get addFavouritesButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
@@ -103,33 +104,33 @@ class Browser {
         );
   }
 
-  get multiTabButton(): DetoxElement {
+  get multiTabButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
-  get DefaultAvatarImageForLocalHost(): DetoxElement {
+  get DefaultAvatarImageForLocalHost(): EncapsulatedElementType {
     return Matchers.getElementByLabel('L');
   }
 
-  get networkAvatarOrAccountButton(): DetoxElement {
+  get networkAvatarOrAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
-  get addBookmarkButton(): DetoxElement {
+  get addBookmarkButton(): EncapsulatedElementType {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get tabsNumber(): DetoxElement {
+  get tabsNumber(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER);
   }
 
-  get closeAllTabsButton(): DetoxElement {
+  get closeAllTabsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.CLOSE_ALL_TABS);
   }
 
-  get noTabsMessage(): DetoxElement {
+  get noTabsMessage(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
   }
 

@@ -1,12 +1,18 @@
-import { Matchers, Gestures, Assertions, Utilities } from '../../framework';
+import {
+  Matchers,
+  Gestures,
+  Assertions,
+  Utilities,
+  EncapsulatedElementType,
+} from '../../framework';
 import { PredictBalanceSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictBalance {
-  get balanceCard(): DetoxElement {
+  get balanceCard(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
   }
 
-  get withdrawButton(): DetoxElement {
+  get withdrawButton(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.WITHDRAW_BUTTON);
   }
 

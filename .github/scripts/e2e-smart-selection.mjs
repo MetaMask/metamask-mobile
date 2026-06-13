@@ -68,6 +68,7 @@ function setGitHubOutputs(analysis) {
   setGithubOutputs('ai_confidence', confidence);
   // Performance test tags (empty array means no performance tests needed)
   setGithubOutputs('ai_performance_test_tags', JSON.stringify(performanceTests.selectedTags));
+  setGithubOutputs('ai_performance_test_reasoning', performanceTests.reasoning);
 }
 
 async function main() {

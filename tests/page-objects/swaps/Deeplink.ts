@@ -1,12 +1,13 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class DeeplinkModal {
-  get continueButton(): DetoxElement {
+  get continueButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Continue');
   }
 
-  get proceedWithCaution(): DetoxElement {
+  get proceedWithCaution(): EncapsulatedElementType {
     return Matchers.getElementByText('Proceed with caution');
   }
 

@@ -60,7 +60,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -73,7 +74,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -86,7 +88,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -99,7 +102,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={0}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -112,7 +116,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -127,7 +132,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -142,7 +148,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -151,14 +158,15 @@ describe('PotentialEarningsTokenRow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onPress when the Add button is pressed', () => {
+  it('calls onButtonPress when the Add button is pressed', () => {
     const mockOnPress = jest.fn();
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={mockOnPress}
+        onCardPress={jest.fn()}
+        onButtonPress={mockOnPress}
       />,
     );
 
@@ -167,14 +175,15 @@ describe('PotentialEarningsTokenRow', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onPress when the row pressable area is pressed', () => {
+  it('calls onCardPress when the row pressable area is pressed', () => {
     const mockOnPress = jest.fn();
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={mockOnPress}
+        onCardPress={mockOnPress}
+        onButtonPress={jest.fn()}
       />,
     );
 

@@ -20,7 +20,7 @@ export const MainNotificationToggle = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
-  const { onToggle, value } = useMainNotificationToggle();
+  const { onToggle, value, isUpdating } = useMainNotificationToggle();
 
   return (
     <>
@@ -40,7 +40,8 @@ export const MainNotificationToggle = () => {
         </Text>
         <Switch
           value={value}
-          onChange={onToggle}
+          disabled={isUpdating}
+          onValueChange={onToggle}
           trackColor={{
             true: theme.colors.primary.default,
             false: theme.colors.border.muted,

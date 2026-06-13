@@ -16,8 +16,8 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: (event: string) => ({
       addProperties: () => ({ build: () => ({ event }) }),

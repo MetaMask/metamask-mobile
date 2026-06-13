@@ -1,8 +1,10 @@
 import { strings } from '../../../../../../locales/i18n';
 import type {
+  CampaignDto,
   CampaignLeaderboardEntry,
   CampaignLeaderboardPositionDto,
   OndoCampaignTier,
+  OndoHoldingDetails,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Re-export shared helpers so existing consumers keep working
@@ -26,11 +28,11 @@ export const formatTierDisplayName = (tier: string): string => {
 };
 
 export const getCampaignTierNames = (
-  campaign:
-    | { details?: { tiers?: OndoCampaignTier[] } | null }
-    | null
-    | undefined,
-): string[] => campaign?.details?.tiers?.map((t) => t.name) ?? [];
+  campaign: Pick<CampaignDto, 'details'> | null | undefined,
+): string[] =>
+  (campaign?.details as OndoHoldingDetails | null | undefined)?.tiers?.map(
+    (t) => t.name,
+  ) ?? [];
 
 export const buildLeaderboardUserPosition = (
   position: CampaignLeaderboardPositionDto | null,

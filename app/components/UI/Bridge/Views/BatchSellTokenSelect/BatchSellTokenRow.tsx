@@ -30,6 +30,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenSelectorItem } from '../../components/TokenSelectorItem';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutVariant,
+} from '../../components/TokenSelectorItem.abTestConfig';
 import { BridgeToken } from '../../types';
 
 const styles = StyleSheet.create({
@@ -211,6 +215,11 @@ export function BatchSellTokenRow({
       shouldChangeSelectedStyle={false}
       shouldShowNetworkIcon={false}
       secondaryRowContent={secondaryRowContent}
+      balanceLayoutConfigOverride={
+        TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+          TokenSelectorBalanceLayoutVariant.Control
+        ]
+      }
       tokenBalanceTextProps={{
         textVariant: ComponentLibraryTextVariant.BodySMMedium,
         textColor: ComponentLibraryTextColor.Alternative,

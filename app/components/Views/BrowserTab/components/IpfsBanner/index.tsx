@@ -7,12 +7,14 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../../component-library/components/Banners/Banner';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const IpfsBanner = ({
   setIpfsBannerVisible,
@@ -28,11 +30,11 @@ const IpfsBanner = ({
         description={
           <Text>
             {strings('ipfs_gateway_banner.ipfs_gateway_banner_content1')}{' '}
-            <Text variant={TextVariant.BodyMDBold}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
               {strings('ipfs_gateway_banner.ipfs_gateway_banner_content2')}
             </Text>{' '}
             {strings('ipfs_gateway_banner.ipfs_gateway_banner_content3')}{' '}
-            <Text variant={TextVariant.BodyMDBold}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
               {strings('ipfs_gateway_banner.ipfs_gateway_banner_content4')}
             </Text>
           </Text>

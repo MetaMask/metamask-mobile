@@ -37,11 +37,13 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
 export const TokenSearchRowItem: React.FC<TokenRowItemProps> = ({
   token,
   index,
+  tokenDetailsSource,
 }) => (
   <TrendingTokenRowItem
     token={token}
     position={index}
     filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
+    tokenDetailsSource={tokenDetailsSource}
   />
 );
 

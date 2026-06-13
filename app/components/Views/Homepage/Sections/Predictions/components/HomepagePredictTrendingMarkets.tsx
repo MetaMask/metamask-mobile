@@ -20,6 +20,7 @@ export interface HomepagePredictTrendingMarketsProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Required when `discoveryLayout` is `list` (World Cup discovery rail). */
   worldCupHomepage?: UseHomepagePredictWorldCupMarketsResult;
+  worldCupEventCount?: number;
   /** Required when `discoveryLayout` is `list` (NBA champion event, separate from World Cup tag). */
   nbaChampionHomepage?: UseHomepagePredictTaggedMarketsResult;
   emptyStateTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -38,6 +39,7 @@ const HomepagePredictTrendingMarkets = ({
   markets,
   transactionActiveAbTests,
   worldCupHomepage,
+  worldCupEventCount,
   nbaChampionHomepage,
   emptyStateTransactionActiveAbTests,
   onEmptyStateTreatmentCtaClick,
@@ -65,6 +67,7 @@ const HomepagePredictTrendingMarkets = ({
       onViewAll={onViewAll}
       headerTestIdKey={headerTestIdKey}
       worldCup={worldCupHomepage}
+      worldCupEventCount={worldCupEventCount}
       nbaChampion={nbaChampionHomepage}
       transactionActiveAbTests={emptyStateTransactionActiveAbTests}
       onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}

@@ -2,21 +2,22 @@ import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
+import { EncapsulatedElementType } from '../../framework';
 
 class StakeView {
-  get stakeContainer(): DetoxElement {
+  get stakeContainer(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER);
   }
 
-  get unstakeContainer(): DetoxElement {
+  get unstakeContainer(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER);
   }
 
-  get reviewButton(): DetoxElement {
+  get reviewButton(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
   }
 
