@@ -8,7 +8,7 @@ import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: 15000,
-  retryInterval: 500,
+  retryInterval: 100,
   actionDelay: 100,
   stabilityCheckInterval: 200,
   stabilityCheckCount: 3,
