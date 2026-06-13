@@ -193,11 +193,15 @@ jest.mock('../../Transactions', () => ({
   default: ({ header }: { header?: React.ReactNode }) => header ?? null,
 }));
 
+const mockMultichainTransactionsView = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 jest.mock(
   '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
   () => ({
     __esModule: true,
-    default: () => null,
+    default: (props: Record<string, unknown>) =>
+      mockMultichainTransactionsView(props),
   }),
 );
 
@@ -368,6 +372,55 @@ describe('TokenDetails', () => {
     const { UNSAFE_getByType } = render(<TokenDetails />);
 
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  describe('non-EVM asset header stability (TSA-656)', () => {
+    const getLastMultichainViewProps = () =>
+      mockMultichainTransactionsView.mock.calls[
+        mockMultichainTransactionsView.mock.calls.length - 1
+      ][0];
+
+    it('keeps the same header element when the transaction list updates', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+        transactions: [{ id: 'tx-1' }],
+      });
+
+      const { rerender } = render(<TokenDetails />);
+      const initialHeader = getLastMultichainViewProps().header;
+
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+        transactions: [{ id: 'tx-1' }, { id: 'tx-2' }],
+      });
+      rerender(<TokenDetails />);
+
+      expect(initialHeader).toBeDefined();
+      expect(getLastMultichainViewProps().header).toBe(initialHeader);
+    });
+
+    it('recreates the header element when transactions first appear', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+        transactions: [],
+      });
+
+      const { rerender } = render(<TokenDetails />);
+      const initialHeader = getLastMultichainViewProps().header;
+
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+        transactions: [{ id: 'tx-1' }],
+      });
+      rerender(<TokenDetails />);
+
+      expect(initialHeader).toBeDefined();
+      expect(getLastMultichainViewProps().header).not.toBe(initialHeader);
+    });
   });
 
   describe('Swap/Buy sticky buttons', () => {
