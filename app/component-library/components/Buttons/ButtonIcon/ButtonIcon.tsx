@@ -2,8 +2,11 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { GestureResponderEvent, TouchableOpacity } from 'react-native';
+import { GestureResponderEvent } from 'react-native';
 
+import Pressable, {
+  PressableVariant,
+} from '../../../components-temp/Pressable';
 // External dependencies.
 import Icon from '../../Icons/Icon';
 import { useStyles } from '../../../hooks';
@@ -59,13 +62,13 @@ const ButtonIcon = ({
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
+      variant={PressableVariant.None}
       style={styles.base}
       onPress={!isDisabled ? onPress : undefined}
       onPressIn={!isDisabled ? triggerOnPressedIn : undefined}
       onPressOut={!isDisabled ? triggerOnPressedOut : undefined}
       accessible
-      activeOpacity={1}
       disabled={isDisabled}
       {...props}
     >
@@ -74,7 +77,7 @@ const ButtonIcon = ({
         size={ICONSIZE_BY_BUTTONICONSIZE[size]}
         color={iconColor}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

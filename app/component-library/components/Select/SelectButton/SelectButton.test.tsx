@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
@@ -19,6 +20,8 @@ describe('SelectButton', () => {
     const { queryByTestId } = render(
       <SelectButton {...SAMPLE_SELECTBUTTON_PROPS} />,
     );
-    expect(queryByTestId(SELECTBUTTON_TESTID)?.props.style.minHeight).toBe(40);
+    const node = queryByTestId(SELECTBUTTON_TESTID);
+    const flat = StyleSheet.flatten(node?.props.style);
+    expect(flat?.minHeight).toBe(40);
   });
 });
