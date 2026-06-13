@@ -47,11 +47,17 @@ jobs:
           git fetch origin "$BRANCH_NAME"
           git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME"
 
+          chmod u+w locales/languages/tr.json 2>/dev/null || true
+
           FIX_SCRIPT="$FIX_SCRIPT_PATH"
           if [ ! -f "$FIX_SCRIPT" ]; then
             FIX_SCRIPT="/tmp/fix-turkish-percentage-placeholders.js"
             git show "${GITHUB_SHA}:${FIX_SCRIPT_PATH}" > "$FIX_SCRIPT"
           fi
+
+          # Crowdin's action can leave downloaded files owned by a different user.
+          sudo chown "$(id -u):$(id -g)" locales/languages/tr.json
+          chmod u+w locales/languages/tr.json
 
           node "$FIX_SCRIPT"
           node "$FIX_SCRIPT" --check
