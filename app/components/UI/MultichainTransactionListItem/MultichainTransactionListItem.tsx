@@ -113,7 +113,7 @@ const MultichainTransactionListItem = ({
     }
 
     if (transaction.type === TransactionType.Unknown) {
-      return `${baseFee?.amount} ${baseFee?.unit}`;
+      return baseFee ? `${baseFee.amount} ${baseFee.unit}` : ``;
     }
 
     return `${to?.amount} ${to?.unit}`;
