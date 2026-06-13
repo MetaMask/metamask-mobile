@@ -144,7 +144,7 @@ function resolvePlaygroundApkPath(): string {
       '  1. Run: ./tests/scripts/fetch-rn-playground-apk.sh\n' +
       '     (downloads the latest APK from connect-monorepo GitHub Releases)\n' +
       '  2. Build locally:\n' +
-      '     cd connect-monorepo && yarn install && yarn build\n' +
+      '     cd metamask-connect && yarn install && yarn build\n' +
       '     cd playground/react-native-playground && npx expo prebuild --platform android\n' +
       '     cd android && ./gradlew assembleRelease\n' +
       '  3. Set RN_PLAYGROUND_APK_PATH to the APK location\n\n' +
