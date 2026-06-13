@@ -494,10 +494,19 @@ describe('useTransakRouting', () => {
         id: 'order-123',
         providerOrderId: 'order-123',
         walletAddress: '0xabc',
+        cryptoCurrency: {
+          assetId: 'eip155:42161/slip44:60',
+          chainId: 'eip155:42161',
+          symbol: 'ETH',
+        },
       });
       mockRefreshOrder.mockResolvedValue({
         providerOrderId: 'order-123',
-        cryptoCurrency: { symbol: 'ETH' },
+        cryptoCurrency: {
+          assetId: 'eip155:42161/slip44:60',
+          chainId: 'eip155:42161',
+          symbol: 'ARB',
+        },
         cryptoAmount: '0.05',
         status: 'Pending',
       });
@@ -524,6 +533,16 @@ describe('useTransakRouting', () => {
               params: expect.objectContaining({ orderId: 'order-123' }),
             }),
           ],
+        }),
+      );
+      expect(mockAddOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerOrderId: 'order-123',
+          cryptoCurrency: expect.objectContaining({
+            assetId: 'eip155:42161/slip44:60',
+            chainId: 'eip155:42161',
+            symbol: 'ETH',
+          }),
         }),
       );
     });
@@ -1399,11 +1418,20 @@ describe('useTransakRouting', () => {
         provider: 'transak-native',
         walletAddress: MOCK_WALLET_ADDRESS,
         paymentDetails: { instructions: 'Wire transfer' },
+        cryptoCurrency: {
+          assetId: 'eip155:42161/slip44:60',
+          chainId: 'eip155:42161',
+          symbol: 'ETH',
+        },
       };
       mockGetOrder.mockResolvedValue(depositOrder);
       mockRefreshOrder.mockResolvedValue({
         providerOrderId: 'order-123',
-        cryptoCurrency: { symbol: 'ETH' },
+        cryptoCurrency: {
+          assetId: 'eip155:42161/slip44:60',
+          chainId: 'eip155:42161',
+          symbol: 'ARB',
+        },
         cryptoAmount: '0.05',
         status: 'Pending',
         fiatAmount: 100,
@@ -1435,6 +1463,11 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           providerOrderId: 'order-123',
           paymentDetails: { instructions: 'Wire transfer' },
+          cryptoCurrency: expect.objectContaining({
+            assetId: 'eip155:42161/slip44:60',
+            chainId: 'eip155:42161',
+            symbol: 'ETH',
+          }),
         }),
       );
       expect(mockShowV2OrderToast).toHaveBeenCalledWith({
