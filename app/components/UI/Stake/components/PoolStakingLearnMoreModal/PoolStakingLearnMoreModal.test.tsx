@@ -18,8 +18,13 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
-    useRoute: jest.fn().mockReturnValue({ params: { chainId: '1' } }),
   };
+});
+
+const createMockRoute = () => ({
+  params: { chainId: '0x1' as const },
+  key: 'LearnMore',
+  name: 'LearnMore' as const,
 });
 
 jest.mock('../../hooks/useStakeContext', () => ({
@@ -58,7 +63,7 @@ describe('PoolStakingLearnMoreModal', () => {
   it('renders chart container', async () => {
     const { getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
-        <PoolStakingLearnMoreModal />
+        <PoolStakingLearnMoreModal route={createMockRoute()} />
       </SafeAreaProvider>,
     );
 
@@ -72,5 +77,74 @@ describe('PoolStakingLearnMoreModal', () => {
     expect(
       getByTestId(INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID),
     ).toBeOnTheScreen();
+  });
+
+  it('renders with different chainId from route params', async () => {
+    const customRoute = {
+      params: { chainId: '0xaa36a7' as const }, // Sepolia
+      key: 'LearnMore',
+      name: 'LearnMore' as const,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <PoolStakingLearnMoreModal route={customRoute} />
+      </SafeAreaProvider>,
+    );
+
+    const chartContainer = getByTestId(
+      INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+    );
+    expect(chartContainer).toBeOnTheScreen();
+  });
+
+  it('uses default chainId when route params are undefined', async () => {
+    const routeWithNoParams = {
+      params: undefined,
+      key: 'LearnMore',
+      name: 'LearnMore' as const,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <PoolStakingLearnMoreModal
+          route={
+            routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
+          }
+        />
+      </SafeAreaProvider>,
+    );
+
+    // Should render with default chainId '0x1'
+    const chartContainer = getByTestId(
+      INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+    );
+    expect(chartContainer).toBeOnTheScreen();
+  });
+
+  it('uses default chainId when route params exist but chainId is missing', async () => {
+    const routeWithEmptyParams = {
+      params: {},
+      key: 'LearnMore',
+      name: 'LearnMore' as const,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <PoolStakingLearnMoreModal
+          route={
+            routeWithEmptyParams as unknown as ReturnType<
+              typeof createMockRoute
+            >
+          }
+        />
+      </SafeAreaProvider>,
+    );
+
+    // Should render with default chainId '0x1'
+    const chartContainer = getByTestId(
+      INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+    );
+    expect(chartContainer).toBeOnTheScreen();
   });
 });

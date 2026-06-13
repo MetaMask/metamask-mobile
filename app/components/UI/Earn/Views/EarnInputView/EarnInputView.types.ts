@@ -6,10 +6,15 @@ export enum EARN_INPUT_VIEW_ACTIONS {
   WITHDRAW = 'WITHDRAW',
 }
 
-interface EarnInputViewRouteParams {
+export interface EarnInputViewRouteParams {
   token: TokenI;
 }
 
+interface EarnInputViewParamList {
+  Stake: EarnInputViewRouteParams;
+  [key: string]: object | undefined;
+}
+
 export interface EarnInputViewProps {
-  route: RouteProp<{ params: EarnInputViewRouteParams }, 'params'>;
+  route: RouteProp<EarnInputViewParamList, 'Stake'>;
 }
