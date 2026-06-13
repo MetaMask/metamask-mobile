@@ -147,6 +147,41 @@ tail -20 ~/.tool-usage-collection/metamask-mobile-events.log
 
 See [`scripts/tooling/README.md`](./scripts/tooling/README.md) for full implementation details.
 
+### PR Review guidelines
+
+- **Skills**: Always use Vercel Composition ski
+  ll and Vercel React Native skills
+
+* - **TypeScript**: Always use Matt Pocock's Total TypeScript guidance and recommended conventions
+* - **Code design**: Always use Rich Hickey's "Simple Made Easy" principles which distinguish between:
+* - Simple: Having one role, one task, one concept, one dimension (opposite: complex)
+* - Easy: Near, familiar, near our capabilities (opposite: hard)
+* Key principles include:
+* 1. Avoid complecting (intertwining) concepts
+* 2. Favor composition over inheritance
+* 3. Keep things decoupled
+* 4. Make things explicit rather than implicit
+* 5. Separate concerns
+* 6. Avoid state where possible
+* 7. Use data, not objects
+* 8. Keep functions pure when possible
+
+### PR Review Scope Guardrail (Mainline Baseline)
+
+- Treat `origin/main` as the baseline truth. Only report findings that are **introduced or materially worsened by this
+  PR branch**.
+- Before raising any finding, verify the bug-producing code is in the PR diff from merge-base:
+  1. `git fetch origin main`
+  2. `git diff origin/main...HEAD -- <file>` (PR-introduced changes only)
+- If the suspect code is unchanged from main (`git show origin/main:<file>` shows same code), **do not** include it as a
+  PR finding.
+- Only include unchanged-on-main issues if the PR changes make them newly reachable/impactful; in that case, explicitly
+  explain the causal regression.
+- If a concern is pre-existing and not changed by the PR, put it in a separate non-blocking section: `Pre-existing
+issues (not caused by this PR)`.
+- Every finding must include: (a) changed hunk reference, and (b) one-sentence proof of why this PR introduced/regressed
+  it.
+
 ## Key Patterns
 
 ### State Management

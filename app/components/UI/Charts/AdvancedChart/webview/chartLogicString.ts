@@ -45,6 +45,14 @@ window.ohlcvPagination = {
   assetId: null,
   vsCurrency: null,
 };
+/**
+ * RN-backed pagination: when enabled, getBars sends FETCH_OLDER_BARS_REQUEST to RN
+ * instead of fetching the Price API directly. Used when the data source is only
+ * accessible from RN (e.g. Perps candle channel via PerpsController).
+ */
+window.rnBackedPagination = { enabled: false };
+/** Pending getBars callbacks waiting for a FETCH_OLDER_BARS_RESPONSE from RN. */
+window.pendingOlderBarsCallbacks = {};
 /** Bumped on each \`SET_OHLCV_DATA\` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
 /** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
@@ -224,7 +232,16 @@ function handleMessage(event) {
     var message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
+    // SET_OHLCV_DATA bootstraps the chart, and FETCH_OLDER_BARS_RESPONSE resolves a
+    // datafeed getBars() callback — both can legitimately arrive before \`onChartReady\`
+    // (TradingView calls getBars during initial load). Queuing the older-bars response
+    // would deadlock: onChartReady drains the queue, but it cannot fire until the pending
+    // getBars callback this response carries is resolved.
+    if (
+      !window.isChartReady &&
+      message.type !== 'SET_OHLCV_DATA' &&
+      message.type !== 'FETCH_OLDER_BARS_RESPONSE'
+    ) {
       window.pendingMessages.push(message);
       return;
     }
@@ -253,6 +270,9 @@ function handleMessage(event) {
         break;
       case 'TOGGLE_VOLUME':
         handleToggleVolume(message.payload);
+        break;
+      case 'FETCH_OLDER_BARS_RESPONSE':
+        handleFetchOlderBarsResponse(message.payload);
         break;
     }
   } catch (error) {
@@ -434,6 +454,13 @@ function handleSetOHLCVData(payload) {
     };
   }
 
+  window.rnBackedPagination = payload.rnBackedPagination
+    ? { enabled: !!payload.rnBackedPagination.enabled }
+    : { enabled: false };
+
+  // Clear any pending older-bar callbacks from the previous series.
+  window.pendingOlderBarsCallbacks = {};
+
   var visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
   window.visibleFromMs = visibleFromMs;
@@ -479,17 +506,43 @@ function handleSetOHLCVData(payload) {
     try {
       var chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
-        chart.setResolution(newResolution, function () {
+        // resetCache before setResolution so TradingView's single getBars call after
+        // setResolution loads from window.ohlcvData without a second resetData cycle.
+        try {
+          if (
+            window.chartWidget &&
+            typeof window.chartWidget.resetCache === 'function'
+          ) {
+            window.chartWidget.resetCache();
+          }
+        } catch (resetCacheError) {}
+        beginDeferredLayoutSettleAfterOhlcvReload();
+        var resolutionPromise = chart.setResolution(newResolution, function () {
           try {
-            chart.resetData();
-            beginDeferredLayoutSettleAfterOhlcvReload();
+            // Range settle only — resetData already triggered by setResolution internals.
             scheduleVisibleRangeAfterDataLoad(chart);
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
             return;
           }
         });
+        if (
+          resolutionPromise &&
+          typeof resolutionPromise.catch === 'function'
+        ) {
+          resolutionPromise.catch(function () {
+            abortDeferredLayoutSettleAndNotify();
+          });
+        }
       } else {
+        try {
+          if (
+            window.chartWidget &&
+            typeof window.chartWidget.resetCache === 'function'
+          ) {
+            window.chartWidget.resetCache();
+          }
+        } catch (resetCacheError) {}
         try {
           chart.resetData();
           beginDeferredLayoutSettleAfterOhlcvReload();
@@ -724,7 +777,8 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -2033,6 +2087,13 @@ function handleSetPositionLines(payload) {
 
   var position = payload.position;
   var theme = window.CONFIG.theme;
+  // Position lines are consumer-specific (currently Perps only); the consumer
+  // supplies colors via the payload. Fall back to theme-derived defaults.
+  var colors = payload.positionLineColors || {};
+  var entryColor = colors.entry || '#858585';
+  var takeProfitColor = colors.takeProfit || theme.successColor;
+  var stopLossColor = colors.stopLoss || '#858585';
+  var liquidationColor = colors.liquidation || theme.errorColor;
 
   try {
     var chart = window.chartWidget.activeChart();
@@ -2042,7 +2103,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.entryPrice,
         text: 'Entry',
-        color: '#858585',
+        color: entryColor,
         lineStyle: 2,
       });
     }
@@ -2050,7 +2111,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.takeProfitPrice,
         text: 'TP',
-        color: theme.successColor,
+        color: takeProfitColor,
         lineStyle: 2,
       });
     }
@@ -2058,7 +2119,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.stopLossPrice,
         text: 'SL',
-        color: '#858585',
+        color: stopLossColor,
         lineStyle: 2,
       });
     }
@@ -2066,13 +2127,10 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.liquidationPrice,
         text: 'Liq',
-        color: theme.errorColor,
+        color: liquidationColor,
         lineStyle: 2,
       });
     }
-    // TODO: currentPrice is defined in PositionLines but not yet rendered here.
-    // Add a line for position.currentPrice (e.g. a solid line showing live mark
-    // price) when the Perps integration is ready.
 
     for (var i = 0; i < lines.length; i++) {
       (function (line) {
@@ -2257,7 +2315,8 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3039,7 +3098,8 @@ function refreshLineEndDot() {
     return;
   }
 
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
@@ -3286,6 +3346,58 @@ function filterBarsForRange(fromMs, toMs, countBack) {
   return barsInRange;
 }
 
+/**
+ * Handles FETCH_OLDER_BARS_RESPONSE from RN.
+ * Merges returned bars into window.ohlcvData and resolves the pending getBars callback.
+ */
+function handleFetchOlderBarsResponse(payload) {
+  if (!payload || typeof payload.requestId !== 'string') {
+    return;
+  }
+  var pending = window.pendingOlderBarsCallbacks[payload.requestId];
+  if (!pending) {
+    return; // already resolved or timed out
+  }
+  delete window.pendingOlderBarsCallbacks[payload.requestId];
+
+  // Discard stale response if series changed since request was sent.
+  if (
+    payload.seriesGeneration !== pending.gen ||
+    payload.seriesGeneration !== window.ohlcvGeneration
+  ) {
+    return;
+  }
+
+  if (
+    payload.error ||
+    payload.noData ||
+    !Array.isArray(payload.bars) ||
+    payload.bars.length === 0
+  ) {
+    pending.onResult([], { noData: true });
+    if (window.__mmLayoutSettlePending) {
+      queueTryCompleteLayoutSettleAfterData();
+    }
+    return;
+  }
+
+  var olderBars = [];
+  for (var i = 0; i < payload.bars.length; i++) {
+    if (payload.bars[i].time < pending.oldestAtDefer) {
+      olderBars.push(payload.bars[i]);
+    }
+  }
+
+  if (olderBars.length > 0) {
+    window.ohlcvData = olderBars.concat(window.ohlcvData);
+  }
+
+  pending.onResult(olderBars, { noData: olderBars.length === 0 });
+  if (window.__mmLayoutSettlePending) {
+    queueTryCompleteLayoutSettleAfterData();
+  }
+}
+
 var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 
 /**
@@ -3477,10 +3589,38 @@ var customDatafeed = {
 
       var oldestTs = window.ohlcvData[0].time;
 
-      fetchOlderBars({
-        onResult: onResult,
-        oldestAtDefer: oldestTs,
-      });
+      if (window.ohlcvPagination.assetId) {
+        // Token details path: WebView fetches older pages from Price API directly.
+        fetchOlderBars({
+          onResult: onResult,
+          oldestAtDefer: oldestTs,
+        });
+      } else if (window.rnBackedPagination.enabled) {
+        // RN-backed path: send a request to RN and store the pending callback.
+        var requestId =
+          'obr-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        var gen = window.ohlcvGeneration;
+        window.pendingOlderBarsCallbacks[requestId] = {
+          onResult: onResult,
+          oldestAtDefer: oldestTs,
+          gen: gen,
+        };
+        sendToReactNative('FETCH_OLDER_BARS_REQUEST', {
+          requestId: requestId,
+          seriesGeneration: gen,
+          symbol: window.currentSymbol || symbolInfo.name,
+          resolution: resolution,
+          fromSec: periodParams.from,
+          toSec: periodParams.to,
+          countBack: periodParams.countBack,
+          oldestLoadedTimeMs: oldestTs,
+        });
+      } else {
+        onResult([], { noData: true });
+        if (window.__mmLayoutSettlePending) {
+          queueTryCompleteLayoutSettleAfterData();
+        }
+      }
     } catch (error) {
       abortDeferredLayoutSettleAndNotify();
       onError(error && error.message ? error.message : String(error));
