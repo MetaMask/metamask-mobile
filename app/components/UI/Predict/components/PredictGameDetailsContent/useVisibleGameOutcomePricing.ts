@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ViewToken } from '@shopify/flash-list';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictPrices } from '../../hooks/usePredictPrices';
@@ -38,6 +37,7 @@ const areSetsEqual = (left: Set<string>, right: Set<string>) => {
 
 interface UseVisibleGameOutcomePricingParams {
   cardModels: OutcomeCardModel[];
+  visibleCardKeys?: Set<string>;
   visibilityDebounceMs?: number;
 }
 
@@ -47,7 +47,7 @@ interface UseVisibleGameOutcomePricingResult {
   onViewableItemsChanged: ({
     viewableItems,
   }: {
-    viewableItems: ViewToken<OutcomeCardModel>[];
+    viewableItems: { item?: OutcomeCardModel | null }[];
   }) => void;
   selectedLineIndices: Record<string, number | undefined>;
   viewabilityConfig: {
@@ -58,6 +58,7 @@ interface UseVisibleGameOutcomePricingResult {
 
 export const useVisibleGameOutcomePricing = ({
   cardModels,
+  visibleCardKeys,
   visibilityDebounceMs = VISIBILITY_DEBOUNCE_MS,
 }: UseVisibleGameOutcomePricingParams): UseVisibleGameOutcomePricingResult => {
   const [rawVisibleCardKeys, setRawVisibleCardKeys] = useState<Set<string>>(
@@ -81,7 +82,11 @@ export const useVisibleGameOutcomePricing = ({
   const [hasStartedCurrentBatch, setHasStartedCurrentBatch] = useState(false);
 
   const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<OutcomeCardModel>[] }) => {
+    ({
+      viewableItems,
+    }: {
+      viewableItems: { item?: OutcomeCardModel | null }[];
+    }) => {
       const nextVisibleCardKeys = new Set(
         viewableItems
           .map((item) => item.item?.key)
@@ -97,9 +102,21 @@ export const useVisibleGameOutcomePricing = ({
     [],
   );
 
+  useEffect(() => {
+    if (!visibleCardKeys) {
+      return;
+    }
+
+    setRawVisibleCardKeys((prevVisibleCardKeys) =>
+      areSetsEqual(prevVisibleCardKeys, visibleCardKeys)
+        ? prevVisibleCardKeys
+        : new Set(visibleCardKeys),
+    );
+  }, [visibleCardKeys]);
+
   const viewabilityConfig = useMemo(
     () => ({
-      itemVisiblePercentThreshold: 1,
+      itemVisiblePercentThreshold: 50,
       minimumViewTime: 50,
     }),
     [],
