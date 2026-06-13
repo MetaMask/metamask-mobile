@@ -37,4 +37,29 @@ describe('usePolling', () => {
       );
     }
   });
+
+  it('does not start or stop polling when re-rendered with unchanged inputs', () => {
+    const inputs = ['foo', 'bar'];
+    const mockStartPolling = jest
+      .fn()
+      .mockImplementation((input) => `${input}_token`);
+    const mockStopPollingByPollingToken = jest.fn();
+
+    const { rerender } = renderHook(() =>
+      usePolling({
+        startPolling: mockStartPolling,
+        stopPollingByPollingToken: mockStopPollingByPollingToken,
+        input: inputs,
+      }),
+    );
+
+    expect(mockStartPolling).toHaveBeenCalledTimes(2);
+
+    // Same input contents -> the deep-equality dependency is unchanged, so the
+    // effect must not re-run and no polls should be (re)started or stopped.
+    rerender({ input: inputs });
+
+    expect(mockStartPolling).toHaveBeenCalledTimes(2);
+    expect(mockStopPollingByPollingToken).not.toHaveBeenCalled();
+  });
 });
