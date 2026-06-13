@@ -120,6 +120,7 @@ const RootRPCMethodsUI = (props) => {
           address: transactionMeta.txParams.from,
           operationType: 'transaction',
           ensureDeviceReady,
+          ensureDeviceReadyOptions: { requireBlindSigning: true },
           setPendingOperationAddress,
           showAwaitingConfirmation,
           hideAwaitingConfirmation,

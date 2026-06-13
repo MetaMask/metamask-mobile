@@ -53,10 +53,12 @@ jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
 
 // Mock the Eth app
 const mockGetAddress = jest.fn();
+const mockGetAppConfiguration = jest.fn();
 jest.mock('@ledgerhq/hw-app-eth', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     getAddress: mockGetAddress,
+    getAppConfiguration: mockGetAppConfiguration,
   })),
 }));
 
@@ -385,6 +387,10 @@ describe('LedgerBluetoothAdapter', () => {
     beforeEach(async () => {
       jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockResolvedValue({ address: '0x1234' });
+      mockGetAppConfiguration.mockResolvedValue({
+        arbitraryDataEnabled: 1,
+        version: '1.0.0',
+      });
     });
 
     it('throws when adapter is destroyed', async () => {
@@ -877,8 +883,54 @@ describe('LedgerBluetoothAdapter', () => {
         'device-123',
       );
     });
-  });
 
+    describe('blind signing', () => {
+      it('checks blind signing when requireBlindSigning is true', async () => {
+        const result = await adapter.ensureDeviceReady('device-123', {
+          requireBlindSigning: true,
+        });
+
+        expect(result).toBe(true);
+        expect(mockGetAppConfiguration).toHaveBeenCalledTimes(1);
+      });
+
+      it('throws HardwareWalletError when blind signing is required but not enabled', async () => {
+        mockGetAppConfiguration.mockResolvedValue({
+          arbitraryDataEnabled: 0,
+          version: '1.0.0',
+        });
+
+        await expect(
+          adapter.ensureDeviceReady('device-123', {
+            requireBlindSigning: true,
+          }),
+        ).rejects.toThrow('Blind signing is not enabled');
+      });
+
+      it('skips blind signing check when requireBlindSigning is false', async () => {
+        const result = await adapter.ensureDeviceReady('device-123', {
+          requireBlindSigning: false,
+        });
+
+        expect(result).toBe(true);
+        expect(mockGetAppConfiguration).not.toHaveBeenCalled();
+      });
+
+      it('skips blind signing check by default', async () => {
+        const result = await adapter.ensureDeviceReady('device-123');
+
+        expect(result).toBe(true);
+        expect(mockGetAppConfiguration).not.toHaveBeenCalled();
+      });
+
+      it('skips blind signing check when options object is empty', async () => {
+        const result = await adapter.ensureDeviceReady('device-123', {});
+
+        expect(result).toBe(true);
+        expect(mockGetAppConfiguration).not.toHaveBeenCalled();
+      });
+    });
+  });
   describe('reset', () => {
     it('resets adapter state', async () => {
       await adapter.connect('device-123');
