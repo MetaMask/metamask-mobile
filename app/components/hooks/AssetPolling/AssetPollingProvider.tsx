@@ -6,6 +6,7 @@ import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
+import useAccountTrackerPolling from './useAccountTrackerPolling';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 export interface AssetPollingProviderProps {
@@ -40,6 +41,8 @@ export const AssetPollingProvider = memo((props: AssetPollingProviderProps) => {
   useMultichainAssetsRatePolling(
     account?.id ? { accountId: account.id } : { accountId: '' },
   );
+
+  useAccountTrackerPolling();
 
   return null;
 });

@@ -638,8 +638,10 @@ export async function withFixtures(
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
+        const useNewInstance = restartDevice === 'newInstance';
         await TestHelpers.launchApp({
-          delete: true,
+          delete: !useNewInstance,
+          ...(useNewInstance ? { newInstance: true } : {}),
           launchArgs: {
             fixtureServerPort: isAndroid
               ? `${FALLBACK_FIXTURE_SERVER_PORT}`

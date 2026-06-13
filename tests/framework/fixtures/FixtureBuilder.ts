@@ -6,6 +6,7 @@ import {
   getDappUrlForFixture,
 } from './FixtureUtils.ts';
 import { merge } from 'lodash';
+import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import defaultFixture from './json/default-fixture.json';
 import onboardingFixture from './json/onboarding-fixture.json';
 import { encryptVault } from './helpers.ts';
@@ -1045,6 +1046,21 @@ class FixtureBuilder {
   }
 
   /**
+   * Disables the auto-lock timer. Required for long-running E2E flows (e.g. Ledger
+   * signing) that exceed the default 30s lock window — otherwise the wallet
+   * auto-locks mid-flow, the KeyringController vault is not re-unlockable, and
+   * downstream Redux selectors return empty values, causing screens to fail to
+   * render. `lockTime: -1` is the magic value handled by LockManagerService
+   * (app/core/LockManagerService/index.ts:46).
+   *
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withNoAutoLock() {
+    this.fixture.state.settings.lockTime = -1;
+    return this;
+  }
+
+  /**
    * Merges provided data into the KeyringController's state with a random imported account.
    * and also includes the default HD Key Tree fixture account.
    *
@@ -1118,8 +1134,9 @@ class FixtureBuilder {
    * @returns The FixtureBuilder instance for method chaining.
    */
   withLedgerAccount(address: string) {
-    const ledgerAccountId = 'ledger-account-fixture-id';
     const ledgerAddress = address.toLowerCase();
+
+    const ledgerAccountId = getUUIDFromAddressOfNormalAccount(ledgerAddress);
 
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
@@ -1161,6 +1178,25 @@ class FixtureBuilder {
         },
         selectedAccount: ledgerAccountId,
       },
+    });
+
+    return this;
+  }
+
+  withLedgerKeyringOnly(address: string) {
+    const ledgerAddress = address.toLowerCase();
+
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          type: 'HD Key Tree',
+        },
+        {
+          type: 'Ledger Hardware',
+          accounts: [ledgerAddress],
+        },
+      ],
     });
 
     return this;

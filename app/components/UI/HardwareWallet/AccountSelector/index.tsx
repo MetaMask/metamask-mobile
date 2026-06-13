@@ -88,9 +88,11 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         data={formattedAccounts}
         keyExtractor={(item) => `address-${item.index}`}
         renderItem={({ item }) => (
-          <View
-            style={[styles.account]}
+          <TouchableOpacity
+            style={styles.account}
             testID={`${AccountSelectorSelectorsIDs.CHECKBOX}-${item.index}`}
+            onPress={() => onCheckBoxClick(item.index)}
+            disabled={item.exist}
           >
             <CheckBox
               style={[styles.checkBox]}
@@ -113,7 +115,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
               ticker={providerConfig.ticker}
               toBlockExplorer={toBlockExplorer}
             />
-          </View>
+          </TouchableOpacity>
         )}
       />
       <View style={styles.pagination}>

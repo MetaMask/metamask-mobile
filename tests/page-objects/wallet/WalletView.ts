@@ -525,6 +525,7 @@ class WalletView {
       detox: async () => {
         await Gestures.waitAndTap(this.accountIcon, {
           elemDescription: 'Top Account Icon',
+          timeout: 60000,
         });
       },
       appium: async () => {

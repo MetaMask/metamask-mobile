@@ -220,6 +220,21 @@ async function setupAndroidPortForwarding(
       logger.debug(
         `✓ Android port forwarding: ${fallbackPort} → ${actualPort} (${resourceType}${instanceIndex !== undefined ? `:${instanceIndex}` : ''})`,
       );
+
+      // Also forward actualPort → actualPort so the app can reach the server
+      // using the actual port directly (e.g., when fixture RPC URL uses the real port)
+      if (fallbackPort !== actualPort) {
+        try {
+          const samePortCommand = `adb ${deviceFlag} reverse tcp:${actualPort} tcp:${actualPort}`;
+          await execAsync(samePortCommand);
+          logger.debug(
+            `✓ Android port forwarding: ${actualPort} → ${actualPort} (${resourceType} same-port)`,
+          );
+        } catch {
+          // Non-critical — the fallback port forwarding above is sufficient for most cases
+        }
+      }
+
       return; // success
     } catch (error) {
       const errorMessage =

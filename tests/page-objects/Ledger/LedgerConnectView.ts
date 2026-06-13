@@ -66,12 +66,31 @@ class LedgerConnectView {
   }
 
   async tapAddHardwareWallet(): Promise<void> {
-    await TestHelpers.delay(3000);
+    await TestHelpers.delay(5000);
+    // Try scrolling down in case the button is below viewport
+    try {
+      await waitFor(this.addHardwareWalletButton)
+        .toBeVisible()
+        .withTimeout(30000);
+    } catch {
+      // Button may be off-screen, try scrolling
+      const scrollView = element(by.id('add-wallet-scroll-view')).atIndex(0);
+      try {
+        await scrollView.scrollTo('bottom');
+        await TestHelpers.delay(2000);
+      } catch {
+        // No scroll view, continue
+      }
+      await waitFor(this.addHardwareWalletButton)
+        .toBeVisible()
+        .withTimeout(30000);
+    }
     await this.addHardwareWalletButton.tap();
   }
 
   async tapLedgerButton(): Promise<void> {
     await TestHelpers.delay(2000);
+    await waitFor(this.ledgerButton).toExist().withTimeout(30000);
     await this.ledgerButton.tap();
   }
 
@@ -84,6 +103,7 @@ class LedgerConnectView {
   }
 
   async tapConnect(): Promise<void> {
+    await waitFor(this.connectButton).toBeVisible().withTimeout(30000);
     await this.connectButton.tap();
   }
 
@@ -99,13 +119,19 @@ class LedgerConnectView {
   }
 
   async selectFirstAccount(): Promise<void> {
+    await TestHelpers.delay(2000);
+    const checkbox = this.firstAccountCheckbox();
+    await waitFor(checkbox).toBeVisible().withTimeout(30000);
+    await checkbox.tap();
     await TestHelpers.delay(1000);
-    await this.firstAccountCheckbox().tap();
   }
 
   async tapUnlockButton(): Promise<void> {
     await TestHelpers.delay(1000);
-    await this.unlockButton.tap();
+    const btn = this.unlockButton;
+    await waitFor(btn).toBeVisible().withTimeout(30000);
+    await TestHelpers.delay(2000);
+    await btn.tap();
   }
 
   async assertDeviceSelectionVisible(): Promise<void> {

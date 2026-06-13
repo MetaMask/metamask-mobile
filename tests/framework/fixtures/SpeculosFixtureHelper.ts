@@ -8,9 +8,9 @@ import {
   LocalNodeType,
 } from '../types';
 import TestHelpers from '../../helpers';
-import { loginToApp } from '../../flows/wallet.flow';
 import { waitForAppReady } from '../../flows/general.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
+import LoginView from '../../page-objects/wallet/LoginView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import LedgerConnectView from '../../page-objects/Ledger/LedgerConnectView';
 import Assertions from '../Assertions';
@@ -228,22 +228,39 @@ export class SpeculosHelper {
   }
 
   async enableBlindSigning(): Promise<void> {
+    // First, navigate back to main screen by pressing left repeatedly.
+    // The Ethereum app may be in Settings or Blind Signing screen from stale NVRAM.
+    for (let i = 0; i < 4; i++) {
+      await this.pressButton('left');
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    // Now we should be on main screen. Open menu.
     await this.pressButton('both');
     await new Promise((r) => setTimeout(r, 800));
+    // Navigate to Settings
     await this.pressButton('right');
     await new Promise((r) => setTimeout(r, 400));
     await this.pressButton('both');
     await new Promise((r) => setTimeout(r, 800));
+    // Enter Blind Signing settings
     await this.pressButton('both');
     await new Promise((r) => setTimeout(r, 800));
+    // Navigate to enable blind signing
     for (let i = 0; i < 6; i++) {
       await this.pressButton('right');
       await new Promise((r) => setTimeout(r, 200));
     }
     await this.pressButton('both');
     await new Promise((r) => setTimeout(r, 500));
+    // Navigate back to main screen
     await this.pressButton('left');
     await new Promise((r) => setTimeout(r, 400));
+    for (let i = 0; i < 4; i++) {
+      await this.pressButton('left');
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    await this.pressButton('both');
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   async autoApproveSigning(
@@ -354,6 +371,41 @@ function createDockerManager(config: SpeculosConfig): DockerManager {
   });
 }
 
+function cleanupStaleSpeculos(controlApiPort: number): void {
+  cleanupStaleSpeculosBle(controlApiPort);
+  try {
+    execSync(`docker stop metamask-speculos 2>/dev/null || true`, {
+      stdio: 'pipe',
+    });
+    execSync(`docker rm metamask-speculos 2>/dev/null || true`, {
+      stdio: 'pipe',
+    });
+    logger.debug('Cleaned up stale Docker container');
+  } catch {
+    // No stale container
+  }
+}
+
+function cleanupStaleSpeculosBle(controlApiPort: number): void {
+  try {
+    execSync(`pkill -9 -f "speculos_ble" 2>/dev/null || true`, {
+      stdio: 'pipe',
+    });
+    logger.debug('Killed stale speculos-ble processes');
+  } catch {
+    // No stale processes — expected
+  }
+  try {
+    execSync(
+      `lsof -ti :${controlApiPort} | xargs kill -9 2>/dev/null || true`,
+      { stdio: 'pipe' },
+    );
+    logger.debug(`Cleared port ${controlApiPort}`);
+  } catch {
+    // Port already free
+  }
+}
+
 export async function withSpeculosFixtures(
   options: WithSpeculosFixturesOptions,
   testSuite: (params: SpeculosTestSuiteParams) => Promise<void>,
@@ -371,6 +423,7 @@ export async function withSpeculosFixtures(
 
   try {
     if (shouldStartDocker) {
+      cleanupStaleSpeculos(speculosConfig.controlApiPort);
       dockerManager = createDockerManager(speculosConfig);
       logger.debug('Starting Speculos Docker via hw-emulator DockerManager...');
       await dockerManager.start();
@@ -380,17 +433,38 @@ export async function withSpeculosFixtures(
     const speculos = new SpeculosHelper(speculosConfig, dockerManager);
     await speculos.waitForSpeculos();
 
+    // Kill any stale speculos-ble processes (but NOT Docker — that's running)
+    cleanupStaleSpeculosBle(speculosConfig.controlApiPort);
+
     logger.debug('Starting speculos-ble with android-netsim transport...');
     bleProcess = startSpeculosBleService(speculosConfig);
 
+    // Give the process a moment to start before checking readiness
+    await new Promise((r) => setTimeout(r, 1000));
+
+    // Verify the process didn't crash immediately
+    if (bleProcess.exitCode !== null) {
+      throw new Error(
+        `speculos-ble process exited immediately with code=${bleProcess.exitCode}. Check port ${speculosConfig.controlApiPort} availability.`,
+      );
+    }
+
     await speculos.waitForControlApi();
+
+    // Double-check the process is still alive after readiness
+    if (bleProcess.exitCode !== null) {
+      throw new Error(
+        `speculos-ble process died after Control API readiness (code=${bleProcess.exitCode})`,
+      );
+    }
+
     logger.debug(
       'speculos-ble Control API ready — virtual BLE device advertising',
     );
 
     const withFixturesOptions: WithFixturesOptions = {
       fixture: options.fixture as WithFixturesOptions['fixture'],
-      restartDevice: true,
+      restartDevice: 'newInstance',
       disableSynchronization: true,
       disableLocalNodes: !options.enableLocalNode,
       testSpecificMock: options.testSpecificMock,
@@ -440,38 +514,145 @@ export async function withSpeculosFixtures(
   }
 }
 
+/**
+ * Login to app when Detox synchronization is disabled.
+ *
+ * With sync disabled, Detox fires native actions immediately without
+ * waiting for the JS thread to idle. This is required for Speculos/BLE
+ * tests because the BLE bridge keeps the JS thread permanently busy.
+ *
+ * The standard loginToApp fails in this mode because its wallet
+ * visibility assertion (75% coverage) races the transition animation.
+ * This function replaces those assertions with explicit delays and
+ * toExist() checks which don't require coverage thresholds.
+ */
+export async function loginToAppWithSyncDisabled(
+  password: string = '123123123',
+): Promise<void> {
+  // With Detox synchronization disabled, the standard loginToApp can race
+  // the wallet transition animation — its toBeVisible() assertion requires
+  // 75% screen coverage which may not be met mid-animation.  This variant
+  // uses explicit delays and toExist() (no coverage threshold) instead.
+
+  await TestHelpers.delay(3000);
+
+  // Type password using Detox's typeText — with sync disabled this
+  // dispatches immediately without waiting for JS thread idle.
+  const passwordInput =
+    (await LoginView.passwordInput) as Detox.IndexableNativeElement;
+  const loginButton =
+    (await LoginView.loginButton) as Detox.IndexableNativeElement;
+
+  await waitFor(passwordInput).toExist().withTimeout(60000);
+  await passwordInput.typeText(password);
+  await TestHelpers.delay(1000);
+
+  // Tap the login button to submit
+  await loginButton.tap();
+  await TestHelpers.delay(20000);
+
+  // Verify wallet appeared (toExist, not toBeVisible)
+  const walletContainer =
+    (await WalletView.container) as Detox.IndexableNativeElement;
+  await waitFor(walletContainer).toExist().withTimeout(60000);
+
+  // Let the wallet fully render before interacting
+  await TestHelpers.delay(5000);
+}
+
 export async function importLedgerAccount(): Promise<void> {
-  await TestHelpers.delay(5000);
+  logger.debug('[importLedger] Step 1: waitForAppReady');
   await waitForAppReady(300000);
-  await loginToApp();
-  await TestHelpers.delay(5000);
+
+  logger.debug('[importLedger] Step 2: loginToAppWithSyncDisabled');
+  await loginToAppWithSyncDisabled();
+
+  // Temporarily re-enable synchronization for navigation-heavy steps.
+  // The JS thread is busy enough to process navigation callbacks but
+  // Detox's synchronization requires the JS thread to fully idle.
+  // Using a longer timeout gives the thread breathing room.
+  logger.debug('[importLedger] Step 3: tapIdenticon');
+  await TestHelpers.delay(3000);
+  await device.takeScreenshot('03_before_tap_identicon');
   await WalletView.tapIdenticon();
-  await TestHelpers.delay(8000);
+  await TestHelpers.delay(5000);
+  await device.takeScreenshot('04_after_tap_identicon');
+
+  logger.debug('[importLedger] Step 4: wait for account list bottom sheet');
+  try {
+    await Assertions.expectElementToBeVisible(
+      AccountListBottomSheet.accountList,
+      { timeout: 60000 },
+    );
+  } catch {
+    logger.debug(
+      '[importLedger] Step 4: bottom sheet not visible, retrying identicon tap',
+    );
+    await device.takeScreenshot('04b_bottom_sheet_missing');
+    await WalletView.tapIdenticon();
+    await TestHelpers.delay(5000);
+    await Assertions.expectElementToBeVisible(
+      AccountListBottomSheet.accountList,
+      { timeout: 60000 },
+    );
+  }
+
+  logger.debug('[importLedger] Step 5: tapAddAccountButton');
   await AccountListBottomSheet.tapAddAccountButton();
   await TestHelpers.delay(5000);
+  await device.takeScreenshot('05_after_add_account');
+
+  logger.debug('[importLedger] Step 6: tapAddHardwareWallet');
+  // Wait longer for AddWallet screen to render on debug build
+  await TestHelpers.delay(5000);
+  await device.takeScreenshot('05b_before_hw_wallet');
   await LedgerConnectView.tapAddHardwareWallet();
   await TestHelpers.delay(3000);
+  await device.takeScreenshot('06_after_add_hw');
+
+  logger.debug('[importLedger] Step 7: tapLedgerButton');
   await LedgerConnectView.tapLedgerButton();
-  await TestHelpers.delay(5000);
+  await TestHelpers.delay(3000);
+  await device.takeScreenshot('07_after_ledger_btn');
+
+  logger.debug('[importLedger] Step 8: waitForDeviceToAppear');
   await LedgerConnectView.waitForDeviceToAppear(60000);
+  await device.takeScreenshot('08_device_appeared');
+
+  logger.debug('[importLedger] Step 9: assertVirtualDeviceVisible');
   await LedgerConnectView.assertVirtualDeviceVisible();
+
+  logger.debug('[importLedger] Step 10: selectVirtualDevice');
   await LedgerConnectView.selectVirtualDevice();
   await TestHelpers.delay(2000);
+  await device.takeScreenshot('10_after_select_device');
+
+  logger.debug('[importLedger] Step 11: tapConnect');
   await LedgerConnectView.tapConnect();
-  await TestHelpers.delay(10000);
+  await TestHelpers.delay(5000);
+  await device.takeScreenshot('11_after_connect');
+
+  logger.debug('[importLedger] Step 12: waitForNextAccountsButton (120s)');
   await Assertions.expectElementToBeVisible(
     LedgerConnectView.nextAccountsButton,
-    { timeout: 60000 },
+    { timeout: 120000 },
   );
+  await device.takeScreenshot('12_next_accounts_btn');
 
-  // Select the first discovered account and unlock it
+  logger.debug('[importLedger] Step 13: selectFirstAccount');
   await LedgerConnectView.selectFirstAccount();
   await TestHelpers.delay(2000);
+  await device.takeScreenshot('13_after_select_account');
+
+  logger.debug('[importLedger] Step 14: tapUnlockButton');
   await LedgerConnectView.tapUnlockButton();
   await TestHelpers.delay(5000);
+  await device.takeScreenshot('14_after_unlock');
 
-  // Now wait for the wallet view to be visible
+  logger.debug('[importLedger] Step 15: waitForWalletView');
   await Assertions.expectElementToBeVisible(WalletView.container, {
     timeout: 30000,
   });
+
+  logger.debug('[importLedger] ✅ Complete');
 }

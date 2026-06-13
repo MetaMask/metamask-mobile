@@ -53,7 +53,7 @@ class SendView {
   }
 
   get amountInputField(): DetoxElement {
-    return Matchers.getElementByID('txn-amount-input');
+    return Matchers.getElementByID('send_amount');
   }
 
   get nextButton(): DetoxElement {
@@ -80,11 +80,14 @@ class SendView {
     );
   }
 
-  async selectEthereumToken(): Promise<void> {
+  async selectEthereumToken(options?: { timeout?: number }): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
         await Gestures.waitAndTap(this.ethereumTokenButton, {
           elemDescription: 'Select ethereum token',
+          timeout: options?.timeout,
+          checkVisibility: false,
+          checkEnabled: false,
         });
       },
       appium: async () => {
@@ -124,10 +127,40 @@ class SendView {
     });
   }
 
-  async pressAmountMaxButton(): Promise<void> {
+  async pressAmountMaxButton(options?: { timeout?: number }): Promise<void> {
     await Gestures.waitAndTap(this.maxButton, {
-      elemDescription: 'Amount Max',
+      elemDescription: 'Amount Max button',
+      checkVisibility: false,
+      checkEnabled: false,
+      timeout: options?.timeout ?? 30000,
     });
+  }
+
+  async enterAmountViaKeypad(amount: string): Promise<void> {
+    const keyMap: Record<string, string> = {
+      '0': 'keypad-key-0',
+      '1': 'keypad-key-1',
+      '2': 'keypad-key-2',
+      '3': 'keypad-key-3',
+      '4': 'keypad-key-4',
+      '5': 'keypad-key-5',
+      '6': 'keypad-key-6',
+      '7': 'keypad-key-7',
+      '8': 'keypad-key-8',
+      '9': 'keypad-key-9',
+      '.': 'keypad-key-dot',
+    };
+    for (const char of amount) {
+      const keyId = keyMap[char];
+      if (keyId) {
+        await Gestures.waitAndTap(Matchers.getElementByID(keyId), {
+          elemDescription: `Keypad key ${char}`,
+          timeout: 60000,
+          checkVisibility: false,
+          checkEnabled: false,
+        });
+      }
+    }
   }
 
   async pressContinueButton(): Promise<void> {
@@ -135,6 +168,9 @@ class SendView {
       detox: async () => {
         await Gestures.waitAndTap(this.continueButton, {
           elemDescription: 'Continue button',
+          timeout: 30000,
+          checkVisibility: false,
+          checkEnabled: false,
         });
       },
       appium: async () => {

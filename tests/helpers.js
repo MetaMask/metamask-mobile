@@ -394,14 +394,11 @@ export default class TestHelpers {
   static async launchApp(launchOptions) {
     const config = await resolveConfig();
     const platform = device.getPlatform();
-    // Use debug launch for configs explicitly named 'debug' (original behavior)
-    // AND for any non-CI config (e.g. ios.sim.main which uses ios.debug app locally).
-    // CI configs (*.ci) use release apps and the normal recovery-based launch.
-    if (
-      config.configurationName.endsWith('debug') ||
-      (!config.configurationName.endsWith('.ci') &&
-        !config.configurationName.includes('speculos'))
-    ) {
+    // Use debug launch (with Expo DevLauncher deep link) for configs named 'debug'.
+    // Non-debug configs (CI, release) use standard launch.
+    // Speculos debug builds also need the deep link to auto-connect to Metro
+    // after app restart, preventing Detox disconnect from the DevLauncher server picker.
+    if (config.configurationName.endsWith('debug')) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 
