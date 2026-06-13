@@ -490,8 +490,8 @@ export class CardController extends BaseController<
     }
   }
 
-  async initiateAuth(country: string): Promise<void> {
-    this.currentSession = await this.getActiveProvider().initiateAuth(country);
+  async initiateAuth(): Promise<void> {
+    this.currentSession = await this.getActiveProvider().initiateAuth();
   }
 
   getCurrentAuthStep(): CardAuthStep | null {
