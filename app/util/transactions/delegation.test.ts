@@ -1,5 +1,4 @@
 import {
-  IsAtomicBatchSupportedRequest,
   TransactionController,
   TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -12,18 +11,6 @@ const mockGetNonceLock = jest.fn();
 const mockIsAtomicBatchSupported: jest.MockedFn<
   TransactionController['isAtomicBatchSupported']
 > = jest.fn();
-
-jest.spyOn(Math, 'random').mockReturnValue(0);
-
-jest.mock('../../core/Engine', () => ({
-  context: {
-    TransactionController: {
-      getNonceLock: () => mockGetNonceLock(),
-      isAtomicBatchSupported: (request: IsAtomicBatchSupportedRequest) =>
-        mockIsAtomicBatchSupported(request),
-    },
-  },
-}));
 
 const DELEGATION_SIGNATURE_MOCK = '0x111222333';
 const UPGRADE_CONTRACT_ADDRESS_MOCK = '0x456' as Hex;
@@ -68,6 +55,16 @@ describe('Transaction Delegation Utils', () => {
     messengerMock.registerActionHandler(
       'KeyringController:signEip7702Authorization',
       sign7702Mock,
+    );
+
+    messengerMock.registerActionHandler(
+      'TransactionController:getNonceLock',
+      mockGetNonceLock,
+    );
+
+    messengerMock.registerActionHandler(
+      'TransactionController:isAtomicBatchSupported',
+      mockIsAtomicBatchSupported,
     );
 
     signDelegationMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
