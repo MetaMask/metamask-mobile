@@ -242,6 +242,7 @@ const defaultDashboard: VipDashboardState = {
     start: '2099-06-01T00:00:00.000Z',
     end: '2099-06-30T23:59:59.999Z',
   },
+  computedAt: '2099-06-30T14:52:00.000Z',
   currentTier: { id: 'mock-tier-alpha-3', name: 'Mock Tier Alpha 3', tier: 3 },
   nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
   progress: {
@@ -412,6 +413,36 @@ describe('RewardsVipView', () => {
       page_type: 'vip',
       enabled: true,
     });
+  });
+
+  it('renders the "Last updated" row when computedAt is present', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the "Last updated" row when computedAt is null', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: { ...defaultDashboard, computedAt: null },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(queryByTestId(REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED)).toBeNull();
   });
 
   it('renders skeleton placeholders while loading without dashboard data', () => {
