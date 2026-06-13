@@ -1,0 +1,57 @@
+name: Preserve release branch after merge
+
+# Re-creates `release/*` head branches that GitHub auto-deletes immediately
+# after a release PR merges into `stable`. The repo-level "Automatically delete
+# head branches" setting drops the head ref of every merged PR; for release
+# branches we want to keep them around for OTA hotfix forks (`-ota`),
+# cherry-picks, post-release audits, and tag back-references.
+#
+# The workflow is idempotent — if the branch is still present (e.g. someone
+# disables `delete_branch_on_merge` or the ruleset starts blocking the
+# auto-delete again), it no-ops.
+
+permissions:
+  contents: write
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - stable
+
+jobs:
+  preserve:
+    name: Preserve release/* head branch
+    if: |
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for auto-delete to settle
+        # GitHub fires HeadRefDeletedEvent ~2-5s after merge. Sleep beyond that
+        # so the existence check below reflects the post-auto-delete state.
+        run: sleep 15
+
+      - name: Re-create branch if it was auto-deleted
+        env:
+          # STABLE_SYNC_TOKEN bypasses the "Release branch" ruleset's `creation`
+          # rule, which would otherwise block re-creating `release/X.Y.Z` refs.
+          # The same token is used by stable-branch-sync.yml /
+          # release-branch-sync.yml for the same reason.
+          GH_TOKEN: ${{ secrets.STABLE_SYNC_TOKEN }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if gh api "repos/$REPO/git/ref/heads/$HEAD_REF" >/dev/null 2>&1; then
+            echo "Branch $HEAD_REF still exists; nothing to restore."
+            exit 0
+          fi
+
+          echo "Branch $HEAD_REF was auto-deleted; restoring at $HEAD_SHA"
+          gh api --method POST "repos/$REPO/git/refs" \
+            -f ref="refs/heads/$HEAD_REF" \
+            -f sha="$HEAD_SHA"
+          echo "Restored $HEAD_REF -> $HEAD_SHA"
