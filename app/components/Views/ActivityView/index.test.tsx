@@ -4,7 +4,7 @@ import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { cleanup, fireEvent } from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
@@ -213,6 +213,18 @@ jest.mock('../UnifiedTransactionsView/UnifiedTransactionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function MockUnifiedTransactionsView() {
     return <View testID="unified-transactions-view-mock" />;
+  };
+});
+
+// The redesigned screen is lazily imported by ActivityView; mock it so the
+// dynamic import resolves to a lightweight component in tests.
+jest.mock('../ActivityScreen/ActivityScreen', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockActivityScreen() {
+      return <View testID="activity-screen-mock" />;
+    },
   };
 });
 
@@ -769,6 +781,53 @@ describe('ActivityView', () => {
       renderComponent(mockInitialState);
 
       expect(getRenderedTabs()).toEqual(['transactions', 'orders']);
+    });
+  });
+
+  describe('activity redesign feature flag', () => {
+    const stateWithRedesignEnabled = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            ...backgroundState.RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...backgroundState.RemoteFeatureFlagController
+                ?.remoteFeatureFlags,
+              tmcuActivityRedesignEnabled: true,
+            },
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRoute.params = {};
+    });
+
+    it('renders the legacy activity view when the flag is off', () => {
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
+      ).toBeOnTheScreen();
+      expect(getByTestId('unified-transactions-view-mock')).toBeOnTheScreen();
+      expect(queryByTestId('activity-screen-mock')).toBeNull();
+    });
+
+    it('renders the redesigned activity screen when the flag is on', async () => {
+      const { getByTestId, queryByTestId } = renderComponent(
+        stateWithRedesignEnabled,
+      );
+
+      await waitFor(() =>
+        expect(getByTestId('activity-screen-mock')).toBeOnTheScreen(),
+      );
+      expect(queryByTestId('unified-transactions-view-mock')).toBeNull();
+      expect(
+        queryByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
+      ).toBeNull();
     });
   });
 });
