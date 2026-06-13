@@ -135,6 +135,7 @@ export interface PriceAdvancedProps {
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+  hasInsufficientCoverage?: boolean;
 }
 
 const PriceAdvanced = ({
@@ -150,6 +151,7 @@ const PriceAdvanced = ({
   setTimePeriod,
   onPriceDirectionChange,
   useAmbientColor = false,
+  hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -558,6 +560,7 @@ const PriceAdvanced = ({
         isLoading={isLoading}
         onPriceDirectionChange={onPriceDirectionChange}
         useAmbientColor={useAmbientColor}
+        hasInsufficientCoverage={hasInsufficientCoverage}
       />
     );
   }
