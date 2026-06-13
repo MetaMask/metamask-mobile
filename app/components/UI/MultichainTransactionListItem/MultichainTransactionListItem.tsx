@@ -136,7 +136,7 @@ const MultichainTransactionListItem = ({
           <ListItem.Icon>
             {renderTxElementIcon(isRedeposit ? 'redeposit' : transaction.type)}
           </ListItem.Icon>
-          <ListItem.Body>
+          <ListItem.Body style={style.listItemBody}>
             <ListItem.Title
               numberOfLines={1}
               style={style.listItemTitle as TextStyle}

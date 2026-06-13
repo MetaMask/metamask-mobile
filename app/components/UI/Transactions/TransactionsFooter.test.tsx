@@ -38,7 +38,7 @@ jest.mock('../../../component-library/components/Buttons/Button', () => ({
       </TouchableOpacity>
     );
   },
-  ButtonVariants: { Link: 'link' },
+  ButtonVariants: { Secondary: 'secondary' },
   ButtonSize: { Lg: 'lg' },
 }));
 

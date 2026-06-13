@@ -20,7 +20,9 @@ interface Styles {
 const createStyles = (colors: Theme['colors']): Styles =>
   StyleSheet.create({
     viewMoreWrapper: {
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 0,
     },
     viewMoreButton: {
       width: '100%',
@@ -71,7 +73,7 @@ const MultichainTransactionsFooter = ({
       {hasTransactions && showExplorerLink && (
         <View style={styles.viewMoreWrapper}>
           <Button
-            variant={ButtonVariants.Link}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             label={`${strings(
               'transactions.view_full_history_on',
