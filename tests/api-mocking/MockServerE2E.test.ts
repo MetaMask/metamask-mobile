@@ -572,12 +572,17 @@ describe('raw device-proxy ingress (loopback re-entry)', () => {
   const sendRawProxyFormRequest = (
     proxyPort: number,
     absoluteUrl: string,
+    options: { method?: string; headers?: Record<string, string> } = {},
   ): Promise<string> =>
     new Promise((resolve, reject) => {
+      const { method = 'GET', headers: requestHeaders = {} } = options;
       const socket = connect(proxyPort, '127.0.0.1', () => {
         const { host } = new URL(absoluteUrl);
+        const extraHeaders = Object.entries(requestHeaders)
+          .map(([key, value]) => `${key}: ${value}\r\n`)
+          .join('');
         socket.write(
-          `GET ${absoluteUrl} HTTP/1.1\r\nHost: ${host}\r\nConnection: close\r\n\r\n`,
+          `${method} ${absoluteUrl} HTTP/1.1\r\nHost: ${host}\r\n${extraHeaders}Connection: close\r\n\r\n`,
         );
       });
       let data = '';
@@ -646,6 +651,66 @@ describe('raw device-proxy ingress (loopback re-entry)', () => {
 
     expect(raw).toContain('HTTP/1.1 200');
     expect(raw).toContain('{"flags":[]}');
+  }, 15000);
+
+  it('injects permissive CORS headers into mock-served device-proxy responses', async () => {
+    // The snaps execution WebView fetches cross-origin: without an
+    // Access-Control-Allow-Origin header, Chromium rejects the mock-served
+    // body with "Failed to fetch" even though the mock matched (live
+    // forwards preserve upstream CORS headers; mock serves had none).
+    mockServer = new MockServerE2E({
+      events: {},
+      testSpecificMock: async (server) => {
+        await setupMockRequest(server, {
+          requestMethod: 'GET',
+          url: 'http://solana-rpc.example.test/genesis',
+          response: { result: 'genesis-hash' },
+          responseCode: 200,
+        });
+      },
+    });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    const raw = await sendRawProxyFormRequest(
+      mockServer.getServerPort(),
+      'http://solana-rpc.example.test/genesis',
+      { headers: { origin: 'https://metamask.github.io' } },
+    );
+
+    expect(raw).toContain('HTTP/1.1 200');
+    expect(raw.toLowerCase()).toContain(
+      'access-control-allow-origin: https://metamask.github.io',
+    );
+  }, 15000);
+
+  it('synthesizes permissive preflight responses for device-proxied OPTIONS', async () => {
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    const raw = await sendRawProxyFormRequest(
+      mockServer.getServerPort(),
+      'http://solana-rpc.example.test/genesis',
+      {
+        method: 'OPTIONS',
+        headers: {
+          origin: 'https://metamask.github.io',
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type,solana-client',
+        },
+      },
+    );
+
+    expect(raw).toContain('HTTP/1.1 204');
+    const lowered = raw.toLowerCase();
+    expect(lowered).toContain(
+      'access-control-allow-origin: https://metamask.github.io',
+    );
+    expect(lowered).toContain('access-control-allow-methods: post');
+    expect(lowered).toContain(
+      'access-control-allow-headers: content-type,solana-client',
+    );
   }, 15000);
 
   it('keeps device-proxy source semantics through the loopback (no live-request failures)', async () => {

@@ -579,6 +579,67 @@ const NON_FORWARDABLE_REQUEST_HEADERS = new Set([
   'host',
 ]);
 
+const CORS_PREFLIGHT_REQUEST_METHOD_HEADER = 'access-control-request-method';
+
+const getSingleHeaderValue = (
+  value: string | string[] | undefined,
+): string | undefined => (Array.isArray(value) ? value[0] : value);
+
+/**
+ * Builds a permissive CORS preflight (OPTIONS) response echoing whatever the
+ * client asked for. Device-proxied preflights previously depended on the
+ * LIVE upstream answering them — a hidden network dependency that happened
+ * to work only while a cached preflight or a reachable upstream existed.
+ */
+const synthesizeCorsPreflightResponse = (
+  requestHeaders: MockttpHeaders,
+): ProxyHandlerResponse => {
+  const origin = getSingleHeaderValue(requestHeaders.origin) ?? '*';
+  const requestedMethod = getSingleHeaderValue(
+    requestHeaders[CORS_PREFLIGHT_REQUEST_METHOD_HEADER],
+  );
+  const requestedHeaders = getSingleHeaderValue(
+    requestHeaders['access-control-request-headers'],
+  );
+
+  return {
+    statusCode: 204,
+    body: '',
+    headers: {
+      'access-control-allow-origin': origin,
+      'access-control-allow-methods':
+        requestedMethod ?? 'GET, POST, PUT, DELETE, HEAD, OPTIONS',
+      'access-control-allow-headers': requestedHeaders ?? '*',
+      'access-control-max-age': '300',
+      vary: 'origin',
+    },
+  };
+};
+
+/**
+ * Injects a permissive Access-Control-Allow-Origin into responses that lack
+ * one so CORS-bound clients (WebViews) can read mock-served bodies. Live
+ * forwards keep whatever the upstream sent; only header-less responses are
+ * touched. Native (non-CORS) clients ignore the extra header.
+ */
+const withCorsResponseHeaders = (
+  result: ProxyHandlerResult,
+  requestHeaders: MockttpHeaders,
+): ProxyHandlerResult => {
+  if (result === 'close') {
+    return result;
+  }
+
+  const headers: MockttpHeaders = { ...(result.headers ?? {}) };
+  if (!headers['access-control-allow-origin']) {
+    headers['access-control-allow-origin'] =
+      getSingleHeaderValue(requestHeaders.origin) ?? '*';
+    headers.vary = headers.vary ? `${String(headers.vary)}, origin` : 'origin';
+  }
+
+  return { ...result, headers };
+};
+
 const NETWORK_ERROR_CODES = new Set([
   'ENOTFOUND',
   'ECONNREFUSED',
@@ -892,6 +953,7 @@ export default class MockServerE2E implements Resource {
   private _originalRejectionHandlers: ((...args: unknown[]) => void)[] = [];
   private _originalExceptionHandlers: ((...args: unknown[]) => void)[] = [];
   private _webSocketUrlsByStreamId = new Map<string, string>();
+  private _httpRequestLogContextById = new Map<string, string>();
 
   constructor(params: {
     events: MockEventsObject;
@@ -981,6 +1043,7 @@ export default class MockServerE2E implements Resource {
     this._testSpecificMock = params.testSpecificMock;
     this._shuttingDown = false;
     this._webSocketUrlsByStreamId.clear();
+    this._httpRequestLogContextById.clear();
     this._server._liveRequests = [];
 
     this._server.reset();
@@ -1003,6 +1066,8 @@ export default class MockServerE2E implements Resource {
     const server = this.server;
 
     await server.on('request-initiated', logNativeProxyRequestInitiated);
+    await server.on('request-initiated', this._trackHttpRequestForResponseLog);
+    await server.on('response', this._logHttpProxyResponseServed);
     await server.on('tls-client-error', logNativeProxyTlsClientError);
     await server.on('client-error', logNativeProxyClientError);
     await server.on('websocket-request', this._logNativeProxyWebSocketRequest);
@@ -1154,6 +1219,20 @@ export default class MockServerE2E implements Resource {
           // Ignore URL parsing errors
         }
 
+        // CORS-bound clients (the snaps execution WebView, in-app browser
+        // pages) preflight cross-origin requests and reject responses
+        // without Access-Control-Allow-*. Live forwards preserve upstream
+        // CORS headers, but MOCK-served responses carry none — Chromium
+        // then fails the fetch ("Failed to fetch") even though the mock
+        // matched. Synthesize permissive preflight answers here, and inject
+        // a permissive allow-origin into relayed responses lacking one.
+        if (
+          method === 'OPTIONS' &&
+          request.headers[CORS_PREFLIGHT_REQUEST_METHOD_HEADER]
+        ) {
+          return synthesizeCorsPreflightResponse(request.headers);
+        }
+
         // Re-enter raw device-proxy arrivals through our own /proxy ingress
         // instead of consulting the events table directly. testSpecificMock
         // registers priority-999 mockttp RULES on the /proxy path, which raw
@@ -1166,7 +1245,7 @@ export default class MockServerE2E implements Resource {
         const loopbackUrl = `http://127.0.0.1:${
           this._serverPort
         }/proxy?url=${encodeURIComponent(request.url)}`;
-        return await handleDirectFetch(
+        const relayedResult = await handleDirectFetch(
           loopbackUrl,
           method,
           {
@@ -1175,6 +1254,7 @@ export default class MockServerE2E implements Resource {
           },
           bodyText,
         );
+        return withCorsResponseHeaders(relayedResult, request.headers);
       } catch (error) {
         // Client dropped the connection before we could respond (e.g. bridge
         // controller AbortController fired mid-request). Return a benign
@@ -1237,6 +1317,43 @@ export default class MockServerE2E implements Resource {
       `[E2E_NATIVE_PROXY_WS_LOCAL_BRIDGE] device fallback port ${fallbackPort} -> host port ${actualPort}`,
     );
   }
+
+  /**
+   * Tracks request context so the 'response' subscription can log which
+   * request a status belongs to — mockttp's CompletedResponse only carries
+   * the request id. Rule-served (priority-999) mock responses produce no
+   * other log line, which previously made mock serving invisible in CI logs.
+   */
+  private _trackHttpRequestForResponseLog = (
+    request: InitiatedRequest,
+  ): void => {
+    let target = request.url;
+    if (isShimProxyRequest(request.path)) {
+      try {
+        target = new URL(request.url).searchParams.get('url') ?? request.url;
+      } catch {
+        // Keep the raw URL when the wrapper is malformed.
+      }
+    }
+    if (isUrlSuppressedFromLogs(target)) {
+      return;
+    }
+    this._httpRequestLogContextById.set(
+      request.id,
+      `${request.method} ${redactNativeProxyUrl(target)}`,
+    );
+  };
+
+  private _logHttpProxyResponseServed = (response: CompletedResponse): void => {
+    const context = this._httpRequestLogContextById.get(response.id);
+    if (!context) {
+      return;
+    }
+    this._httpRequestLogContextById.delete(response.id);
+    logger.info(
+      `[E2E_PROXY_RESPONSE_SERVED] ${context} status=${response.statusCode}`,
+    );
+  };
 
   private _logNativeProxyWebSocketRequest = (
     request: CompletedRequest,
@@ -1367,6 +1484,7 @@ export default class MockServerE2E implements Resource {
       logger.error('Error stopping mock server:', error);
     } finally {
       this._webSocketUrlsByStreamId.clear();
+      this._httpRequestLogContextById.clear();
       this._shuttingDown = false;
       this._server = null;
       this._serverStatus = ServerStatus.STOPPED;
