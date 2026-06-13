@@ -1,9 +1,20 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { AvatarTokenSize } from '@metamask/design-system-react-native';
 import { EarnNetworkAvatar } from './index';
 import { TokenI } from '../../../Tokens/types';
 
-// Mock the hooks and components
+jest.mock('@metamask/design-system-react-native', () => ({
+  AvatarToken: jest.fn(() => null),
+  AvatarTokenSize: {
+    Xs: 'xs',
+    Sm: 'sm',
+    Md: 'md',
+    Lg: 'lg',
+    Xl: 'xl',
+  },
+}));
+
 jest.mock('../../../../hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {
@@ -17,10 +28,8 @@ jest.mock('../../../../hooks/useStyles', () => ({
 }));
 
 jest.mock('../../../NetworkAssetLogo', () => 'NetworkAssetLogo');
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => 'AvatarToken',
-);
+
+const { AvatarToken } = jest.requireMock('@metamask/design-system-react-native');
 
 describe('EarnNetworkAvatar', () => {
   const mockNativeToken: TokenI = {
@@ -51,6 +60,10 @@ describe('EarnNetworkAvatar', () => {
     isNative: false,
   };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders NetworkAssetLogo for native tokens', () => {
     const { getByTestId } = render(
       <EarnNetworkAvatar token={mockNativeToken} />,
@@ -71,23 +84,19 @@ describe('EarnNetworkAvatar', () => {
     });
   });
 
-  it('renders AvatarToken for non-native tokens', () => {
-    const { getByTestId } = render(
-      <EarnNetworkAvatar token={mockNonNativeToken} />,
-    );
+  it('renders MMDS AvatarToken for non-native tokens', () => {
+    render(<EarnNetworkAvatar token={mockNonNativeToken} />);
 
-    const avatarToken = getByTestId('earn-token-avatar-USDC');
-    expect(avatarToken.props).toEqual({
-      name: 'USDC',
-      imageSource: { uri: 'https://example.com/usdc.png' },
-      size: '32',
-      style: {
-        height: 32,
-        width: 32,
-        flexShrink: 0,
-      },
-      testID: 'earn-token-avatar-USDC',
-    });
+    expect(AvatarToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'USDC',
+        src: { uri: 'https://example.com/usdc.png' },
+        size: AvatarTokenSize.Md,
+        twClassName: 'h-8 w-8 shrink-0',
+        testID: 'earn-token-avatar-USDC',
+      }),
+      undefined,
+    );
   });
 
   it('handles undefined chainId and ticker for native tokens', () => {
