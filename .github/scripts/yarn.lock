@@ -134,7 +134,7 @@ __metadata:
     "@actions/github": "npm:^6.0.0"
     "@lavamoat/allow-scripts": "npm:^3.2.0"
     "@lavamoat/preinstall-always-fail": "npm:^2.1.0"
-    "@types/node": "npm:^20.16.2"
+    "@types/node": "npm:^22.0.0"
     ts-node: "npm:^10.5.0"
     typescript: "npm:~5.4.5"
     xml2js: "npm:^0.5.0"
@@ -380,12 +380,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.16.2":
-  version: 20.16.2
-  resolution: "@types/node@npm:20.16.2"
+"@types/node@npm:^22.0.0":
+  version: 22.19.20
+  resolution: "@types/node@npm:22.19.20"
   dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10/fcae2ffaa681c2947cd3dae67a6dcf83ef666fc0994281ad881b9e3bb542fec3a9206d9ce899c20e5cdddace2b96b42e32f247864de9baf95756c07b9eff15d7
+    undici-types: "npm:~6.21.0"
+  checksum: 10/85a4c97c4b2b918e9b5a3afc980d5b97f0198a4b2baf1f9d06f0b059999ecab5e4833e9600898c0762dd0905a7c58baaffa064a5bd7f53fcb894cd259d532586
   languageName: node
   linkType: hard
 
@@ -1491,10 +1491,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: 10/cf0b48ed4fc99baf56584afa91aaffa5010c268b8842f62e02f752df209e3dea138b372a60a963b3b2576ed932f32329ce7ddb9cb5f27a6c83040d8cd74b7a70
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
   languageName: node
   linkType: hard
 

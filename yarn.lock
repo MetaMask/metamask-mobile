@@ -19190,12 +19190,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.1.0, @types/node@npm:^20.11.30, @types/node@npm:^20.12.8":
+"@types/node@npm:^20.1.0, @types/node@npm:^20.11.30":
   version: 20.19.25
   resolution: "@types/node@npm:20.19.25"
   dependencies:
     undici-types: "npm:~6.21.0"
   checksum: 10/f0ed863599da289df5838380e211f9e010414dc7df8127b79f6a7eeca80a8d6e3daf3e58ddad1884f8dfafd17c16b02f56cee1689b7ebdf5df6d0e5770165ac1
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.0.0":
+  version: 22.19.20
+  resolution: "@types/node@npm:22.19.20"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10/85a4c97c4b2b918e9b5a3afc980d5b97f0198a4b2baf1f9d06f0b059999ecab5e4833e9600898c0762dd0905a7c58baaffa064a5bd7f53fcb894cd259d532586
   languageName: node
   linkType: hard
 
@@ -35476,7 +35485,7 @@ __metadata:
     "@types/koa": "npm:^2.15.0"
     "@types/lodash": "npm:^4.14.184"
     "@types/luxon": "npm:^3.4.2"
-    "@types/node": "npm:^20.12.8"
+    "@types/node": "npm:^22.0.0"
     "@types/pako": "npm:^2.0.4"
     "@types/prompts": "npm:^2.4.9"
     "@types/qs": "npm:^6.9.15"
