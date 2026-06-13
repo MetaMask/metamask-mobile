@@ -119,9 +119,12 @@ static Braze *_braze = nil;
 // the Braze RN bridge JS event and once from the system URL handler).
 //
 // Universal links (Branch domains) are forwarded to Branch for proper routing.
-// All other URLs are suppressed here; they are handled exclusively through
-// the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
+// Notification URLs are suppressed here; they are handled exclusively through
+// the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE. Other Braze UI
+// surfaces are allowed through Braze so their CTAs can open app links.
 - (BOOL)braze:(Braze *)braze shouldOpenURL:(BRZURLContext *)context {
+  NSString *scheme = context.url.scheme ?: @"";
+
   NSString *host = context.url.host;
   if (host &&
       ([host containsString:@"app.link"] ||
@@ -131,7 +134,16 @@ static Braze *_braze = nil;
     [[Branch getInstance] handleDeepLink:context.url];
     return NO;
   }
-  return NO;
+
+  switch (context.channel) {
+    case BRZChannelInAppMessage:
+    case BRZChannelContentCard:
+    case BRZChannelBanner:
+      return [scheme isEqualToString:@"metamask"];
+    case BRZChannelNotification:
+    default:
+      return NO;
+  }
 }
 
 @end
