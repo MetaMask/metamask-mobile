@@ -1,0 +1,47 @@
+name: Code Owners Breakdown
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  codeowners-comment:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get changed files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" \
+            --paginate --jq '.[].filename' > /tmp/changed-files.txt
+
+      - name: Generate comment body
+        run: node .github/scripts/codeowners-comment.mjs /tmp/changed-files.txt > /tmp/comment-body.md
+
+      - name: Post or update comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          MARKER="<!-- codeowners-breakdown -->"
+
+          COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --paginate --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" | head -1)
+
+          if [ -n "$COMMENT_ID" ]; then
+            gh api "repos/${{ github.repository }}/issues/comments/${COMMENT_ID}" \
+              -X PATCH -F "body=@/tmp/comment-body.md"
+          else
+            gh pr comment "${PR_NUMBER}" --body-file /tmp/comment-body.md
+          fi
