@@ -18,7 +18,10 @@ import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from '../Constants.ts';
-import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
+import {
+  ACCOUNT_ACTIVITY_WS,
+  SOLANA_INFURA_WS,
+} from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
 import { FrameworkDetector } from '../FrameworkDetector.ts';
@@ -53,6 +56,8 @@ function getFallbackPort(resourceType: ResourceType): number {
       return FALLBACK_DAPP_SERVER_PORT;
     case ResourceType.ACCOUNT_ACTIVITY_WS:
       return ACCOUNT_ACTIVITY_WS.fallbackPort;
+    case ResourceType.SOLANA_INFURA_WS:
+      return SOLANA_INFURA_WS.fallbackPort;
     default:
       throw new Error(`No fallback port defined for ${resourceType}`);
   }
@@ -98,6 +103,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     FALLBACK_DAPP_SERVER_PORT + 1, // 8086 (dapp-server-1)
     FALLBACK_DAPP_SERVER_PORT + 2, // 8087 (dapp-server-2)
     ACCOUNT_ACTIVITY_WS.fallbackPort, // 8089
+    SOLANA_INFURA_WS.fallbackPort, // 8090
   ];
 
   logger.debug('Cleaning up test port forwards before test...');
@@ -139,7 +145,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
  * @param actualPort - The actual port allocated by PortManager
  * @param instanceIndex - Optional instance index for multi-instance resources (e.g., dapp-server-0 uses index 0)
  */
-async function setupAndroidPortForwarding(
+export async function setupAndroidPortForwarding(
   resourceType: ResourceType,
   actualPort: number,
   instanceIndex?: number,
@@ -169,6 +175,7 @@ async function setupAndroidPortForwarding(
     ResourceType.GANACHE,
     ResourceType.ANVIL,
     ResourceType.ACCOUNT_ACTIVITY_WS,
+    ResourceType.SOLANA_INFURA_WS,
   ];
 
   if (!forwardedResources.includes(resourceType)) {

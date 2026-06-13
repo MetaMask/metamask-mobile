@@ -19,7 +19,16 @@ function assertEqual<T>(actual: T, expected: T, message?: string): void {
   }
 }
 
-describe.skip(
+// Re-enabled on Android for MMQA-1923 S2 (device-level proxy active; this
+// suite is the exit-gate evidence that native WSS routes through MockServerE2E
+// on Android). Kept skipped on iOS: the device proxy is dormant on Detox iOS
+// (see tests/framework/DEVICE_PROXY_MOCKING.md) and the suite was quarantined
+// for flakiness (#30951). Re-evaluate the iOS gate when the Detox iOS proxy
+// launch arg is activated.
+const describeAndroidOnly =
+  device.getPlatform() === 'android' ? describe : describe.skip;
+
+describeAndroidOnly(
   SmokeWalletPlatform('Account Activity WebSocket Connection'),
   () => {
     beforeAll(async () => {

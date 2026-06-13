@@ -8,7 +8,10 @@ import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from './Constants.ts';
-import { ACCOUNT_ACTIVITY_WS as ACCOUNT_ACTIVITY_WS_CONFIG } from '../websocket/constants.ts';
+import {
+  ACCOUNT_ACTIVITY_WS as ACCOUNT_ACTIVITY_WS_CONFIG,
+  SOLANA_INFURA_WS as SOLANA_INFURA_WS_CONFIG,
+} from '../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
 const logger = createLogger({
@@ -23,6 +26,7 @@ export enum ResourceType {
   GANACHE = 'ganache',
   ANVIL = 'anvil',
   ACCOUNT_ACTIVITY_WS = 'account-activity-ws',
+  SOLANA_INFURA_WS = 'solana-infura-ws',
 }
 
 export interface AllocatedPort {
@@ -56,6 +60,8 @@ function getFallbackPortForResource(resourceType: ResourceType): number {
       return FALLBACK_DAPP_SERVER_PORT;
     case ResourceType.ACCOUNT_ACTIVITY_WS:
       return ACCOUNT_ACTIVITY_WS_CONFIG.fallbackPort;
+    case ResourceType.SOLANA_INFURA_WS:
+      return SOLANA_INFURA_WS_CONFIG.fallbackPort;
     default:
       throw new Error(`Unknown resource type: ${resourceType}`);
   }

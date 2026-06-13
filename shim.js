@@ -421,7 +421,8 @@ if (enableApiCallLogs || isTestEnvironment) {
         const wsRoutes = {};
         for (const svc of WS_SERVICES) {
           const port = raw?.[svc.launchArgKey] ?? svc.fallbackPort;
-          wsRoutes[svc.url] = `ws://localhost:${port}`;
+          wsRoutes[svc.url] =
+            `ws://localhost:${port}${svc.localPathPrefix || ''}`;
         }
 
         global.WebSocket = function (url, protocols) {
@@ -429,7 +430,7 @@ if (enableApiCallLogs || isTestEnvironment) {
           if (typeof url === 'string') {
             for (const [prefix, localUrl] of Object.entries(wsRoutes)) {
               if (url.startsWith(prefix)) {
-                targetUrl = localUrl;
+                targetUrl = `${localUrl}${url.slice(prefix.length)}`;
                 break;
               }
             }
