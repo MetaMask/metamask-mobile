@@ -99,11 +99,11 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
 
     // Assert
     expect(
-      getByText(`Get ${MUSD_CONVERSION_APY}% on your stablecoins`),
+      getByText(`Get ${MUSD_CONVERSION_APY}% on your ${mockAsset.symbol}`),
     ).toBeOnTheScreen();
     expect(
       getByText(
-        `Convert your stablecoins to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
+        `Convert your stablecoins and aTokens to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
       ),
     ).toBeOnTheScreen();
   });
@@ -503,7 +503,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
 
     // Assert
     expect(
-      getByText(`Get ${MUSD_CONVERSION_APY}% on your stablecoins`),
+      getByText(`Get ${MUSD_CONVERSION_APY}% on your ${mockAsset.symbol}`),
     ).toBeOnTheScreen();
   });
 
@@ -537,7 +537,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     // Assert
     expect(
       getByText(
-        `Convert your stablecoins to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
+        `Convert your stablecoins and aTokens to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
       ),
     ).toBeOnTheScreen();
   });

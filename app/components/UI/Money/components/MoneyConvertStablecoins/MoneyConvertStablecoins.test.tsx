@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import Logger from '../../../../../util/Logger';
 import { useSelector } from 'react-redux';
 import MoneyConvertStablecoins from './MoneyConvertStablecoins';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
@@ -62,6 +63,20 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../../Earn/utils/network', () => ({
   getNetworkName: jest.fn(() => 'Ethereum Mainnet'),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
+const mockLoggerError = Logger.error as jest.Mock;
+
+const mockUseTheme = jest.fn(() => ({ themeAppearance: 'light' }));
+
+jest.mock('../../../../../util/theme', () => ({
+  ...jest.requireActual('../../../../../util/theme'),
+  useTheme: () => mockUseTheme(),
 }));
 
 jest.mock('../../../../../component-library/base-components/TagBase', () => ({
@@ -146,11 +161,40 @@ const MOCK_DAI: AssetType = {
   balanceInSelectedCurrency: '$1,000.00',
 } as AssetType;
 
+const MOCK_AUSDC: AssetType = {
+  name: 'Aave USDC',
+  symbol: 'aUSDC',
+  address: '0x98c23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
+  chainId: '0x1',
+  decimals: 6,
+  balanceInSelectedCurrency: '$1,500.00',
+} as AssetType;
+
+const MOCK_AUSDT: AssetType = {
+  name: 'Aave USDT',
+  symbol: 'aUSDT',
+  address: '0x23878914EFE38d27C4D67Ab83ed1b93A74D4086a',
+  chainId: '0x1',
+  decimals: 6,
+  balanceInSelectedCurrency: '$2,500.00',
+} as AssetType;
+
+const MOCK_ADAI: AssetType = {
+  name: 'Aave DAI',
+  symbol: 'aDAI',
+  address: '0x018008bfb33d285247A21d44E50697654f754e63',
+  chainId: '0x1',
+  decimals: 18,
+  balanceInSelectedCurrency: '$3,500.00',
+} as AssetType;
+
 const mockTokens: AssetType[] = [MOCK_USDC, MOCK_USDT, MOCK_DAI];
+const mockATokens: AssetType[] = [MOCK_AUSDC, MOCK_AUSDT, MOCK_ADAI];
 
 describe('MoneyConvertStablecoins', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTheme.mockReturnValue({ themeAppearance: 'light' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockBuild.mockReturnValue({ event: 'built' });
     mockUseSelector.mockImplementation((selector) => {
@@ -181,16 +225,22 @@ describe('MoneyConvertStablecoins', () => {
       expect(
         getByText(strings('money.convert_stablecoins.title')),
       ).toBeOnTheScreen();
+      expect(getByText('Convert to mUSD')).toBeOnTheScreen();
     });
 
     it('renders the description with bonus text', () => {
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.DESCRIPTION),
-      ).toBeOnTheScreen();
+      const description = getByTestId(
+        MoneyConvertStablecoinsTestIds.DESCRIPTION,
+      );
+      expect(description).toBeOnTheScreen();
+      expect(description).toHaveTextContent(/3% annualized bonus/);
+      expect(description).toHaveTextContent(
+        /by converting your stablecoins and aTokens to mUSD\./,
+      );
     });
 
     it('renders feature tags', () => {
@@ -201,6 +251,23 @@ describe('MoneyConvertStablecoins', () => {
       expect(
         getByTestId(MoneyConvertStablecoinsTestIds.FEATURE_TAGS),
       ).toBeOnTheScreen();
+    });
+
+    it('renders all five feature tags', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      const featureTagsContainer = getByTestId(
+        MoneyConvertStablecoinsTestIds.FEATURE_TAGS,
+      );
+
+      expect(getByText('Dollar-backed')).toBeOnTheScreen();
+      expect(getByText('No lockups')).toBeOnTheScreen();
+      expect(getByText('Daily bonus')).toBeOnTheScreen();
+      expect(getByText('No MetaMask fee')).toBeOnTheScreen();
+      expect(getByText('MetaMask stablecoin')).toBeOnTheScreen();
+      expect(featureTagsContainer.children).toHaveLength(5);
     });
 
     it('renders a MusdConversionAssetRow for each token', () => {
@@ -220,6 +287,27 @@ describe('MoneyConvertStablecoins', () => {
       expect(getByText('USDC')).toBeOnTheScreen();
       expect(getByText('USDT')).toBeOnTheScreen();
       expect(getByText('DAI')).toBeOnTheScreen();
+    });
+
+    it('renders aToken rows with Max and edit buttons', () => {
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: mockATokens });
+
+      const { getByText, getAllByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      expect(getByText('aUSDC')).toBeOnTheScreen();
+      expect(getByText('aUSDT')).toBeOnTheScreen();
+      expect(getByText('aDAI')).toBeOnTheScreen();
+      expect(
+        getAllByTestId(MusdConversionAssetRowTestIds.CONTAINER),
+      ).toHaveLength(3);
+      expect(
+        getAllByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON),
+      ).toHaveLength(3);
+      expect(
+        getAllByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON),
+      ).toHaveLength(3);
     });
 
     it('initiates max conversion and tracks event with location when Max is pressed', () => {
@@ -271,6 +359,82 @@ describe('MoneyConvertStablecoins', () => {
           button_action: 'custom',
           asset_symbol: 'USDT',
           redirects_to: MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+        }),
+      );
+    });
+
+    it('logs an error when max conversion fails', async () => {
+      const error = new Error('max failed');
+      mockInitiateMaxConversion.mockRejectedValueOnce(error);
+
+      const { getAllByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      fireEvent.press(
+        getAllByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON)[0],
+      );
+
+      await waitFor(() =>
+        expect(mockLoggerError).toHaveBeenCalledWith(error, {
+          message:
+            '[MoneyConvertStablecoins] Failed to initiate max conversion',
+        }),
+      );
+    });
+
+    it('logs an error when custom conversion fails', async () => {
+      const error = new Error('custom failed');
+      mockInitiateCustomConversion.mockRejectedValueOnce(error);
+
+      const { getAllByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      fireEvent.press(
+        getAllByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON)[0],
+      );
+
+      await waitFor(() =>
+        expect(mockLoggerError).toHaveBeenCalledWith(error, {
+          message:
+            '[MoneyConvertStablecoins] Failed to initiate custom conversion',
+        }),
+      );
+    });
+
+    it('renders feature tags in dark theme', () => {
+      mockUseTheme.mockReturnValue({ themeAppearance: 'dark' });
+
+      const { getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      expect(
+        getByTestId(MoneyConvertStablecoinsTestIds.FEATURE_TAGS),
+      ).toBeOnTheScreen();
+    });
+
+    it('tracks unknown network and skips pending lookup when token has no chainId', () => {
+      const tokenWithoutChainId = {
+        ...MOCK_USDC,
+        chainId: undefined,
+      } as unknown as AssetType;
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [tokenWithoutChainId],
+      });
+
+      const { getAllByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      fireEvent.press(
+        getAllByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON)[0],
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          network_name: 'unknown',
         }),
       );
     });
@@ -329,6 +493,23 @@ describe('MoneyConvertStablecoins', () => {
       expect(
         getByTestId(MoneyConvertStablecoinsTestIds.FEATURE_TAGS),
       ).toBeOnTheScreen();
+    });
+
+    it('renders all five feature tags when no eligible tokens', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      const featureTagsContainer = getByTestId(
+        MoneyConvertStablecoinsTestIds.FEATURE_TAGS,
+      );
+
+      expect(getByText('Dollar-backed')).toBeOnTheScreen();
+      expect(getByText('No lockups')).toBeOnTheScreen();
+      expect(getByText('Daily bonus')).toBeOnTheScreen();
+      expect(getByText('No MetaMask fee')).toBeOnTheScreen();
+      expect(getByText('MetaMask stablecoin')).toBeOnTheScreen();
+      expect(featureTagsContainer.children).toHaveLength(5);
     });
 
     it('does not render token rows', () => {

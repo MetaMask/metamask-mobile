@@ -50,6 +50,7 @@ const MusdConversionAssetOverviewCta = ({
 
     const ctaText = strings('earn.musd_conversion.bonus_title', {
       percentage: MUSD_CONVERSION_APY,
+      symbol: asset.symbol,
     });
 
     const getRedirectLocation = () => {
@@ -110,6 +111,7 @@ const MusdConversionAssetOverviewCta = ({
         <Text variant={TextVariant.BodySMMedium} style={styles.title}>
           {strings('earn.musd_conversion.bonus_title', {
             percentage: MUSD_CONVERSION_APY,
+            symbol: asset.symbol,
           })}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>

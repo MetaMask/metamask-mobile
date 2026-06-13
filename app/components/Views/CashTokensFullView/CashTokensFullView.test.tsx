@@ -129,10 +129,12 @@ jest.mock('../../UI/Tokens', () => {
     isFullView,
     showOnlyMusd,
     listHeaderComponent,
+    listFooterComponent,
   }: {
     isFullView?: boolean;
     showOnlyMusd?: boolean;
     listHeaderComponent?: React.ReactElement;
+    listFooterComponent?: React.ReactElement;
   }) =>
     createElement(
       View,
@@ -143,6 +145,7 @@ jest.mock('../../UI/Tokens', () => {
         `isFullView=${isFullView} showOnlyMusd=${showOnlyMusd}`,
       ),
       listHeaderComponent,
+      listFooterComponent,
     );
   return { __esModule: true, default: MockTokens };
 });
@@ -291,6 +294,49 @@ describe('CashTokensFullView', () => {
       expect(
         screen.getByTestId('money-convert-stablecoins-location'),
       ).toHaveTextContent('money_hub');
+    });
+
+    it('renders the "How it works" section in the empty Money Hub layout', () => {
+      renderWithProvider(<CashTokensFullView />);
+
+      expect(
+        screen.getByTestId(CashTokensFullViewTestIds.HOW_IT_WORKS_TITLE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CashTokensFullViewTestIds.HOW_IT_WORKS_DESCRIPTION),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('How it works')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'mUSD is the official MetaMask stablecoin. Convert supported stablecoins and aTokens to mUSD and earn a daily bonus. Your money is always liquid.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the "How it works" section when user has mUSD balance and token list is ready', async () => {
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        tokenBalanceByChain: { '0x1': '1000' },
+      });
+
+      renderWithProvider(<CashTokensFullView />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('tokens-cash-view')).toBeOnTheScreen();
+      });
+
+      expect(
+        screen.getByTestId(CashTokensFullViewTestIds.HOW_IT_WORKS_TITLE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CashTokensFullViewTestIds.HOW_IT_WORKS_DESCRIPTION),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('How it works')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'mUSD is the official MetaMask stablecoin. Convert supported stablecoins and aTokens to mUSD and earn a daily bonus. Your money is always liquid.',
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('renders Swap/Buy footer with no stablecoins; switches to Convert when stablecoins exist', () => {

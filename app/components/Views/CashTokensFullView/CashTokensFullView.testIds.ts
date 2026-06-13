@@ -3,4 +3,6 @@ export const CashTokensFullViewTestIds = {
   SWAP_BUTTON: 'cash-tokens-full-view-swap-button',
   BUY_BUTTON: 'cash-tokens-full-view-buy-button',
   HEADING: 'cash-tokens-full-view-heading',
+  HOW_IT_WORKS_TITLE: 'cash-tokens-full-view-how-it-works-title',
+  HOW_IT_WORKS_DESCRIPTION: 'cash-tokens-full-view-how-it-works-description',
 };
