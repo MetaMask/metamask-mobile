@@ -17,7 +17,7 @@ import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
-  TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT,
+  TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
@@ -32,6 +32,7 @@ import {
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
+  type LegendOverlayConfig,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
@@ -40,6 +41,10 @@ import TimeRangeSelector, {
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
+import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
+import { createIntervalPickerNavDetails } from '../../Charts/AdvancedChart/IntervalPickerSheet';
+import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   FontWeight,
@@ -67,7 +72,62 @@ import {
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
-const EMPTY_INDICATORS: IndicatorType[] = [];
+/* eslint-disable @metamask/design-tokens/color-no-hex */
+const TOKEN_DETAILS_LEGEND_OVERLAY: LegendOverlayConfig = {
+  enabled: true,
+  config: {
+    MACD: {
+      plots: [
+        { tvTitle: 'MACD', label: 'MACD(12,26)', color: '#2962FF' },
+        { tvTitle: 'Signal', label: 'Signal', color: '#FF6D00' },
+        { tvTitle: 'Histogram', label: 'Hist', color: '#26A69A' },
+      ],
+      useIndex: true,
+    },
+    RSI: {
+      plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#E91E90' }],
+      useIndex: true,
+    },
+    BOL: {
+      plots: [
+        { tvTitle: 'Upper', label: 'BB(20,2)', color: '#E040FB' },
+        { tvTitle: 'Median', label: 'M', color: '#E040FB' },
+        { tvTitle: 'Lower', label: 'L', color: '#E040FB' },
+      ],
+      useIndex: true,
+    },
+    Volume: {
+      plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
+      useIndex: true,
+    },
+    MA5: {
+      isMA: true,
+      useIndex: true,
+      plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: '#8B8BF5' }],
+    },
+    MA25: {
+      isMA: true,
+      useIndex: true,
+      plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: '#FF6B9D' }],
+    },
+    MA50: {
+      isMA: true,
+      useIndex: true,
+      plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: '#F5A623' }],
+    },
+    MA75: {
+      isMA: true,
+      useIndex: true,
+      plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: '#B8E62E' }],
+    },
+    MA99: {
+      isMA: true,
+      useIndex: true,
+      plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: '#5CC9F5' }],
+    },
+  },
+};
+/* eslint-enable @metamask/design-tokens/color-no-hex */
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -152,6 +212,7 @@ const PriceAdvanced = ({
   useAmbientColor = false,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
@@ -190,22 +251,24 @@ const PriceAdvanced = ({
     );
   }, [createEventBuilder, trackEvent, chartType]);
 
-  const toggleChartType = useCallback(() => {
-    const next =
-      chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
-    if (next !== ChartType.Candles) {
-      setCrosshairData(null);
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-        .addProperties({
-          interaction_type: 'chart_type_changed',
-          chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
-        })
-        .build(),
-    );
-    dispatch(setTokenOverviewChartType(next));
-  }, [chartType, createEventBuilder, trackEvent, dispatch]);
+  const handleChartTypeSelect = useCallback(
+    (next: ChartType) => {
+      if (next === chartType) return;
+      if (next !== ChartType.Candles) {
+        setCrosshairData(null);
+      }
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: 'chart_type_changed',
+            chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
+          })
+          .build(),
+      );
+      dispatch(setTokenOverviewChartType(next));
+    },
+    [chartType, createEventBuilder, trackEvent, dispatch],
+  );
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -311,6 +374,74 @@ const PriceAdvanced = ({
   });
 
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  const [displayInterval, setDisplayInterval] = useState(
+    wsInterval.toUpperCase(),
+  );
+
+  useEffect(() => {
+    setDisplayInterval(wsInterval.toUpperCase());
+  }, [wsInterval]);
+
+  const handleIntervalPress = useCallback(() => {
+    navigation.navigate(
+      ...createIntervalPickerNavDetails({
+        selectedInterval: displayInterval,
+        onSelect: (interval: string) => {
+          setDisplayInterval(interval);
+        },
+      }),
+    );
+  }, [navigation, displayInterval]);
+
+  const [selectedMAs, setSelectedMAs] = useState<string[]>([]);
+
+  const maLabel = useMemo(() => {
+    if (selectedMAs.length === 0) return 'MA';
+    if (selectedMAs.length === 1) return selectedMAs[0];
+    return `MA x${selectedMAs.length}`;
+  }, [selectedMAs]);
+
+  const handleMAPress = useCallback(() => {
+    navigation.navigate(
+      ...createMAPickerNavDetails({
+        selectedMAs,
+        onDone: (selected: string[]) => {
+          setSelectedMAs(selected);
+        },
+      }),
+    );
+  }, [navigation, selectedMAs]);
+
+  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const indicatorsArray = useMemo(
+    () =>
+      ([...activeIndicators] as IndicatorType[]).filter((i) => i !== 'Volume'),
+    [activeIndicators],
+  );
+
+  const chartHeight = BASE_CHART_HEIGHT;
+
+  const handleIndicatorToggle = useCallback((name: string) => {
+    const subPaneIndicators = ['MACD', 'RSI'];
+    setActiveIndicators((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        if (subPaneIndicators.includes(name)) {
+          subPaneIndicators.forEach((i) => {
+            if (i !== name) next.delete(i);
+          });
+        }
+        next.add(name);
+      }
+      return next;
+    });
+  }, []);
+
   const wsEnabled =
     isOhlcvWsEnabled &&
     !chartLoading &&
@@ -643,29 +774,45 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName="mt-3 w-full">
+      <View style={styles.timeRangeContainer}>
+        <View style={styles.timeRangeSelectorWrap}>
+          <TimeRangeSelector
+            isChartLoading={chartLoading}
+            selected={timeRange}
+            onSelect={handleTimeRangeSelect}
+            chartType={chartType}
+            onChartTypeSelect={handleChartTypeSelect}
+            selectedColor={initialAmbientColor}
+          />
+        </View>
+      </View>
+      <Box twClassName="w-full">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
         <View
           testID="advanced-chart-touch-container"
-          style={[styles.chartContainer, { height: CHART_HEIGHT }]}
+          style={[styles.chartContainer, { height: chartHeight }]}
         >
           {Platform.OS === 'ios' && (
             <View style={styles.edgeOverlay} pointerEvents="box-only" />
           )}
           {useAmbientColor && initialAmbientColor === undefined ? (
-            <Skeleton height={CHART_HEIGHT} width="100%" />
+            <Skeleton height={chartHeight} width="100%" />
           ) : (
             <AdvancedChart
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
               realtimeBar={realtimeBar}
-              height={CHART_HEIGHT}
-              showVolume={chartType === ChartType.Candles}
+              height={chartHeight}
+              showVolume={
+                chartType === ChartType.Candles &&
+                activeIndicators.has('Volume')
+              }
               volumeOverlay
               chartType={chartType}
-              indicators={EMPTY_INDICATORS}
+              indicators={indicatorsArray}
+              selectedMAs={selectedMAs}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
@@ -683,23 +830,25 @@ const PriceAdvanced = ({
               errorColorOverride={
                 initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
               }
+              legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
             />
           )}
         </View>
       </Box>
-
-      <View style={styles.timeRangeContainer}>
-        <View style={styles.timeRangeSelectorWrap}>
-          <TimeRangeSelector
-            isChartLoading={chartLoading}
-            selected={timeRange}
-            onSelect={handleTimeRangeSelect}
-            chartType={chartType}
-            onChartTypeToggle={toggleChartType}
-            selectedColor={initialAmbientColor}
+      {chartType === ChartType.Candles ? (
+        <Box twClassName="w-full mb-3">
+          <IndicatorBar
+            intervalLabel={displayInterval}
+            onIntervalPress={handleIntervalPress}
+            maLabel={maLabel}
+            onMAPress={handleMAPress}
+            activeIndicators={activeIndicators}
+            onIndicatorToggle={handleIndicatorToggle}
           />
-        </View>
-      </View>
+        </Box>
+      ) : (
+        <Box twClassName="pb-4" />
+      )}
     </>
   );
 };

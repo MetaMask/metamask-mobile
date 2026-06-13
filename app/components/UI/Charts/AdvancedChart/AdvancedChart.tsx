@@ -78,6 +78,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       realtimeBar,
       ohlcvPagination,
       indicators = [],
+      selectedMAs = [],
       positionLines,
       chartType,
       showVolume = false,
@@ -97,6 +98,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
+      legendOverlay,
     },
     ref,
   ) => {
@@ -139,6 +141,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           lineColorOverride,
           successColorOverride,
           errorColorOverride,
+          legendOverlay,
         }),
       [
         theme,
@@ -148,6 +151,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
+        legendOverlay,
       ],
     );
 
@@ -549,6 +553,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         }
       });
     }, [indicators, chartReadyCount, addIndicator, removeIndicator]);
+
+    // Sync selectedMAs prop — toggles individual MA plots
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      postMessage({
+        type: 'SET_MA_VISIBILITY',
+        payload: { visible: selectedMAs },
+      });
+    }, [selectedMAs, chartReadyCount, postMessage]);
 
     // Sync positionLines prop
     useEffect(() => {

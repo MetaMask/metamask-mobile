@@ -2,6 +2,7 @@ import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type LineChromeOptions,
+  type LegendOverlayConfig,
   resolveLineChromeOptions,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
@@ -56,6 +57,7 @@ interface ChartFeatures {
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
+  legendOverlay?: LegendOverlayConfig;
 }
 
 const createConfigScript = (
@@ -89,7 +91,8 @@ window.CONFIG = {
     useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
     useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
-  }
+  },
+  legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })}
 };
 `;
 };
