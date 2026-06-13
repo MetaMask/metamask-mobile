@@ -7,6 +7,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
+import { normalizeRampsOrderTypeForFiatOrder } from '../../../../util/ramps/normalizeRampsOrderTypeForFiatOrder';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
@@ -59,7 +60,7 @@ export const rampsOrderToFiatOrder = (rampsOrder: RampsOrder) => ({
   account: rampsOrder.walletAddress,
   txHash: rampsOrder.txHash,
   excludeFromPurchases: rampsOrder.excludeFromPurchases,
-  orderType: rampsOrder.orderType as FiatOrder['orderType'],
+  orderType: normalizeRampsOrderTypeForFiatOrder(rampsOrder.orderType),
   errorCount: 0,
   lastTimeFetched: Date.now(),
   data: rampsOrder,

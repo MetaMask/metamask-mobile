@@ -43,6 +43,15 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
+const mockHandleOrderStatusChangedForMetrics = jest.fn();
+jest.mock(
+  '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    handleOrderStatusChangedForMetrics: (...args: unknown[]) =>
+      mockHandleOrderStatusChangedForMetrics(...args),
+  }),
+);
+
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -206,6 +215,34 @@ describe('OrderDetails', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
+  it('invokes purchase analytics when callback fetch resolves with a status change', async () => {
+    const completedOrder = {
+      providerOrderId: 'ord-cb-1',
+      status: RampsOrderStatus.Completed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(completedOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockHandleOrderStatusChangedForMetrics).toHaveBeenCalledWith({
+        order: completedOrder,
+        previousStatus: RampsOrderStatus.Precreated,
+      });
+    });
+    expect(mockAddOrder).toHaveBeenCalledWith(completedOrder);
+  });
+
   it('shows error state with retry when initial callback fetch fails', async () => {
     mockUseParams.mockReturnValue({
       callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc',
@@ -222,6 +259,7 @@ describe('OrderDetails', () => {
     await waitFor(() => {
       expect(getByText('Network request failed')).toBeOnTheScreen();
     });
+    expect(mockHandleOrderStatusChangedForMetrics).not.toHaveBeenCalled();
     expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
 
     await act(async () => {

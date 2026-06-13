@@ -34,6 +34,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
+import { handleOrderStatusChangedForMetrics } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -110,7 +111,19 @@ const OrderDetails = () => {
           });
           return;
         }
+        const priorOrder = getOrderById(fetchedOrder.providerOrderId);
+        const previousStatus =
+          priorOrder?.status ?? RampsOrderStatus.Precreated;
+
         addOrder(fetchedOrder);
+
+        if (previousStatus !== fetchedOrder.status) {
+          handleOrderStatusChangedForMetrics({
+            order: fetchedOrder,
+            previousStatus,
+          });
+        }
+
         navigation.setParams({
           orderId: fetchedOrder.providerOrderId,
           callbackUrl: undefined,
@@ -131,7 +144,7 @@ const OrderDetails = () => {
         setIsLoading(false);
       }
     },
-    [getOrderFromCallback, addOrder, navigation],
+    [getOrderFromCallback, getOrderById, addOrder, navigation],
   );
 
   const handleHeaderBack = useCallback(() => {

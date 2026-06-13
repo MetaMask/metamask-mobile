@@ -7,12 +7,21 @@ import { MetaMetricsEvents } from '../../../../Analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Logger from '../../../../../util/Logger';
+import {
+  isRampsOrderTypeBuy,
+  isRampsOrderTypeSell,
+} from '../../../../../util/ramps/normalizeRampsOrderTypeForFiatOrder';
 
 function buildV2AnalyticsPayload(
   order: RampsOrder,
   _previousStatus: RampsOrderStatus,
 ) {
-  const isBuy = order.orderType === 'BUY';
+  const isSell = isRampsOrderTypeSell(order.orderType);
+  const isBuy = isRampsOrderTypeBuy(order.orderType);
+
+  if (!isBuy && !isSell) {
+    return null;
+  }
 
   const baseParams = {
     amount: order.fiatAmount,

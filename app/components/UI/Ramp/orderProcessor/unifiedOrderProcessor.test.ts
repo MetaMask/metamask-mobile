@@ -5,6 +5,7 @@ import {
   processUnifiedOrder,
   POLLING_FREQUENCY_IN_SECONDS,
   MAX_ERROR_COUNT,
+  rampsOrderToFiatOrder,
 } from './unifiedOrderProcessor';
 import {
   FIAT_ORDER_STATES,
@@ -82,6 +83,16 @@ const mockOrder: FiatOrder = {
   lastTimeFetched: 0,
   data: mockRampsOrder,
 };
+
+describe('rampsOrderToFiatOrder', () => {
+  it('normalizes lowercase buy orderType to OrderOrderTypeEnum.Buy', () => {
+    const fiat = rampsOrderToFiatOrder({
+      ...mockRampsOrder,
+      orderType: 'buy',
+    });
+    expect(fiat.orderType).toBe(OrderOrderTypeEnum.Buy);
+  });
+});
 
 describe('orderStatusToFiatOrderState', () => {
   it.each([

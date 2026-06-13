@@ -97,6 +97,22 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
     });
 
+    it('tracks ONRAMP_PURCHASE_COMPLETED when orderType is lowercase buy (V2 stub / API)', () => {
+      const order = createMockOrder({
+        status: Status.Completed,
+        orderType: 'buy',
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.name).toBe('On-ramp Purchase Completed');
+    });
+
     it('tracks ONRAMP_PURCHASE_FAILED for Failed status', () => {
       const order = createMockOrder({ status: Status.Failed });
 
@@ -206,6 +222,54 @@ describe('handleOrderStatusChangedForMetrics', () => {
           properties: expect.objectContaining({ order_type: 'SELL' }),
         }),
       );
+    });
+
+    it('tracks OFFRAMP_PURCHASE_COMPLETED when orderType has surrounding whitespace', () => {
+      const order = createMockOrder({
+        orderType: '  SELL  ',
+        status: Status.Completed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Off-ramp Purchase Completed',
+        }),
+      );
+    });
+  });
+
+  describe('non buy/sell order types', () => {
+    it('does not track TRANSFER orders on terminal status', () => {
+      const order = createMockOrder({
+        orderType: 'TRANSFER',
+        status: Status.Completed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track DEPOSIT orders on terminal status', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Failed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 

@@ -52,7 +52,7 @@ describe('getRampsV2AnalyticsPayload', () => {
     const [eventName, params] = getRampsV2AnalyticsPayload({
       ...mockBuyOrder,
       state: FIAT_ORDER_STATES.CANCELLED,
-    } as FiatOrder);
+    } as unknown as FiatOrder);
 
     expect(eventName).toBe('ONRAMP_PURCHASE_CANCELLED');
     expect(params).toEqual({
@@ -76,7 +76,7 @@ describe('getRampsV2AnalyticsPayload', () => {
         ...mockBuyOrder.data,
         fiatAmountInUsd: 99,
       },
-    } as FiatOrder);
+    } as unknown as FiatOrder);
 
     expect(eventName).toBe('ONRAMP_PURCHASE_COMPLETED');
     expect(params).toEqual({
@@ -92,6 +92,22 @@ describe('getRampsV2AnalyticsPayload', () => {
       provider_onramp: 'Transak',
       total_fee: 1,
     });
+  });
+
+  it('treats lowercase buy orderType as on-ramp for completed orders', () => {
+    const [eventName] = getRampsV2AnalyticsPayload({
+      ...mockBuyOrder,
+      orderType: 'buy',
+      state: FIAT_ORDER_STATES.COMPLETED,
+      fee: '1',
+      cryptoAmount: '0.01',
+      data: {
+        ...mockBuyOrder.data,
+        fiatAmountInUsd: 99,
+      },
+    } as unknown as FiatOrder);
+
+    expect(eventName).toBe('ONRAMP_PURCHASE_COMPLETED');
   });
 
   it('returns null for pending buy order state', () => {
@@ -197,5 +213,22 @@ describe('getRampsV2AnalyticsPayload', () => {
       chain_id_destination: '1',
       provider_onramp: '',
     });
+  });
+
+  it('returns null for completed TRANSFER orders', () => {
+    const [eventName, params] = getRampsV2AnalyticsPayload({
+      ...mockBuyOrder,
+      orderType: 'TRANSFER',
+      state: FIAT_ORDER_STATES.COMPLETED,
+      fee: '1',
+      cryptoAmount: '0.01',
+      data: {
+        ...mockBuyOrder.data,
+        fiatAmountInUsd: 99,
+      },
+    } as FiatOrder);
+
+    expect(eventName).toBeNull();
+    expect(params).toBeNull();
   });
 });
