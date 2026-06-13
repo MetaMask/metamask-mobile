@@ -9,11 +9,6 @@ import type {
 } from '../types';
 import { getPredictBuyPrice } from '../utils/prices';
 
-const EMPTY_PRICE_RESPONSE: GetPriceResponse = {
-  providerId: '',
-  results: [],
-};
-
 const EMPTY_TOKEN_IDS: string[] = [];
 const visibleOutcomePriceCache = new Map<string, PriceResult>();
 const requestedOutcomeTokenIds = new Set<string>();

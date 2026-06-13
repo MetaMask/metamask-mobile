@@ -1,20 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { areSetsEqual } from '../utils/sets';
 
 const DEFAULT_SETTLE_DELAY_MS = 200;
-
-const areSetsEqual = (left: Set<string>, right: Set<string>) => {
-  if (left.size !== right.size) {
-    return false;
-  }
-
-  for (const value of left) {
-    if (!right.has(value)) {
-      return false;
-    }
-  }
-
-  return true;
-};
 
 interface UseSettledFlashListVisibilityParams<TItem> {
   enabled?: boolean;

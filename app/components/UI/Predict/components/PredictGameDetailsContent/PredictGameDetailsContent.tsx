@@ -88,7 +88,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     outcomeGroups: market.outcomeGroups ?? [],
   });
 
-  const showStickyHeader = showTabBar || showChips;
   const hasExtendedOutcomes = tabsEnabled && groupMap.size > 0;
   const showFooter =
     !hasExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));

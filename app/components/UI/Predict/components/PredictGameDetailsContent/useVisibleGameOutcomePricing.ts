@@ -1,39 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { usePredictPrices } from '../../hooks/usePredictPrices';
-import type {
-  GetPriceResponse,
-  PredictOutcomeToken,
-  PriceQuery,
-  PriceResult,
-} from '../../types';
-import { getPredictBuyPrice } from '../../utils/prices';
-import type { GetTokenPrice, OutcomeCardModel } from './PredictGameOutcomeCard';
-import { resolveCardPricing } from './usePredictGameOutcomeRows';
+import { useVisibleOutcomePrices } from '../../hooks/useVisibleOutcomePrices';
+import { PREDICT_FLASH_LIST_VIEWABILITY_CONFIG } from '../../constants/viewability';
+import type { PredictOutcomeToken, PriceQuery } from '../../types';
+import { areSetsEqual } from '../../utils/sets';
+import {
+  resolveCardPricing,
+  type GetTokenPrice,
+  type OutcomeCardModel,
+} from './outcomeCardModel';
 
 const VISIBILITY_DEBOUNCE_MS = 200;
-
-const getQuerySetKey = (queries: PriceQuery[]) =>
-  JSON.stringify(
-    [...queries]
-      .map((query) => query.outcomeTokenId)
-      .sort((a, b) => a.localeCompare(b)),
-  );
-
-const areSetsEqual = (left: Set<string>, right: Set<string>) => {
-  if (left.size !== right.size) {
-    return false;
-  }
-
-  for (const value of left) {
-    if (!right.has(value)) {
-      return false;
-    }
-  }
-
-  return true;
-};
 
 interface UseVisibleGameOutcomePricingParams {
   cardModels: OutcomeCardModel[];
@@ -75,15 +52,6 @@ export const useVisibleGameOutcomePricing = ({
     rawVisibleCardKeys,
     visibilityDebounceMs,
   );
-  const fetchedQuerySetKeysRef = useRef<Set<string>>(new Set());
-  const [restResultsByTokenId, setRestResultsByTokenId] = useState<
-    Record<string, PriceResult>
-  >({});
-  const [currentFetchBatch, setCurrentFetchBatch] = useState<{
-    querySetKeys: string[];
-    queries: PriceQuery[];
-  } | null>(null);
-  const [hasStartedCurrentBatch, setHasStartedCurrentBatch] = useState(false);
 
   const onViewableItemsChanged = useCallback(
     ({
@@ -116,14 +84,6 @@ export const useVisibleGameOutcomePricing = ({
     );
   }, [enabled]);
 
-  const viewabilityConfig = useMemo(
-    () => ({
-      itemVisiblePercentThreshold: 50,
-      minimumViewTime: 50,
-    }),
-    [],
-  );
-
   const effectiveVisibleCardKeys = visibleCardKeys ?? debouncedVisibleCardKeys;
 
   const visiblePricingScopes = useMemo(() => {
@@ -146,114 +106,32 @@ export const useVisibleGameOutcomePricing = ({
     selectedLineIndices,
   ]);
 
-  const activeTokenIds = useMemo(
-    () => [...new Set(visiblePricingScopes.flatMap((scope) => scope.tokenIds))],
-    [visiblePricingScopes],
-  );
-
-  const nextFetchBatch = useMemo(() => {
-    if (currentFetchBatch) {
-      return null;
-    }
-
-    const scopesToFetch = visiblePricingScopes.filter((scope) => {
-      if (scope.queries.length === 0) {
-        return false;
-      }
-
-      return !fetchedQuerySetKeysRef.current.has(getQuerySetKey(scope.queries));
-    });
-
-    if (scopesToFetch.length === 0) {
-      return null;
-    }
-
+  const visiblePricing = useMemo(() => {
     const queriesByTokenId = new Map<string, PriceQuery>();
-    const querySetKeys = scopesToFetch.map((scope) =>
-      getQuerySetKey(scope.queries),
-    );
+    const tokensById = new Map<string, PredictOutcomeToken>();
 
-    scopesToFetch.forEach((scope) => {
+    visiblePricingScopes.forEach((scope) => {
+      scope.tokens.forEach((token) => {
+        tokensById.set(token.id, token);
+      });
+
       scope.queries.forEach((query) => {
         queriesByTokenId.set(query.outcomeTokenId, query);
       });
     });
 
     return {
-      querySetKeys,
       queries: [...queriesByTokenId.values()],
+      tokens: [...tokensById.values()],
     };
-  }, [currentFetchBatch, visiblePricingScopes]);
+  }, [visiblePricingScopes]);
 
-  useEffect(() => {
-    if (!currentFetchBatch && nextFetchBatch) {
-      setCurrentFetchBatch(nextFetchBatch);
-      setHasStartedCurrentBatch(false);
-    }
-  }, [currentFetchBatch, nextFetchBatch]);
-
-  const { prices: fetchedBatchPrices, isFetching: isFetchingBatchPrices } =
-    usePredictPrices({
-      queries: currentFetchBatch?.queries ?? [],
-      enabled: Boolean(currentFetchBatch),
-    });
-
-  useEffect(() => {
-    if (currentFetchBatch && isFetchingBatchPrices) {
-      setHasStartedCurrentBatch(true);
-    }
-  }, [currentFetchBatch, isFetchingBatchPrices]);
-
-  useEffect(() => {
-    if (
-      !currentFetchBatch ||
-      !hasStartedCurrentBatch ||
-      isFetchingBatchPrices
-    ) {
-      return;
-    }
-
-    if (fetchedBatchPrices.results.length > 0) {
-      setRestResultsByTokenId((prevResults) => {
-        const nextResults = { ...prevResults };
-        fetchedBatchPrices.results.forEach((result) => {
-          nextResults[result.outcomeTokenId] = result;
-        });
-        return nextResults;
-      });
-    }
-
-    currentFetchBatch.querySetKeys.forEach((querySetKey) => {
-      fetchedQuerySetKeysRef.current.add(querySetKey);
-    });
-
-    setCurrentFetchBatch(null);
-    setHasStartedCurrentBatch(false);
-  }, [
-    currentFetchBatch,
-    fetchedBatchPrices,
-    hasStartedCurrentBatch,
-    isFetchingBatchPrices,
-  ]);
-
-  const { getPrice: getLivePrice } = useLiveMarketPrices(activeTokenIds, {
-    enabled: activeTokenIds.length > 0,
+  const { getTokenPrice } = useVisibleOutcomePrices({
+    queries: visiblePricing.queries,
+    tokens: visiblePricing.tokens,
+    visible: enabled && visiblePricing.tokens.length > 0,
+    enabled,
   });
-
-  const restPrices = useMemo<GetPriceResponse>(
-    () => ({
-      providerId: fetchedBatchPrices.providerId,
-      results: Object.values(restResultsByTokenId),
-    }),
-    [fetchedBatchPrices.providerId, restResultsByTokenId],
-  );
-
-  const getTokenPrice = useCallback<GetTokenPrice>(
-    (token: PredictOutcomeToken) =>
-      getPredictBuyPrice(token, getLivePrice(token.id), restPrices) ??
-      token.price,
-    [getLivePrice, restPrices],
-  );
 
   const onSelectedLineIndexChange = useCallback(
     (cardKey: string, nextIndex: number) => {
@@ -269,6 +147,6 @@ export const useVisibleGameOutcomePricing = ({
     onSelectedLineIndexChange,
     onViewableItemsChanged,
     selectedLineIndices,
-    viewabilityConfig,
+    viewabilityConfig: PREDICT_FLASH_LIST_VIEWABILITY_CONFIG,
   };
 };

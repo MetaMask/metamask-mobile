@@ -4,9 +4,11 @@ import type {
   PredictOutcomeGroup,
   PredictOutcomeToken,
 } from '../../types';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
-import Logger from '../../../../../util/Logger';
-import { usePredictGameOutcomeRows } from './usePredictGameOutcomeRows';
+import {
+  getSportsMarketTypeLabel,
+  resolveCardPricing,
+  usePredictGameOutcomeRows,
+} from './usePredictGameOutcomeRows';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -18,11 +20,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
     return translations[key] ?? key;
   }),
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn() },
 }));
 
 const createToken = (
@@ -309,6 +306,97 @@ describe('usePredictGameOutcomeRows', () => {
       'corners-under-85',
       'corners-over-95',
       'corners-under-95',
+    ]);
+  });
+
+  it('falls back to readable sports market labels when i18n is missing', () => {
+    expect(getSportsMarketTypeLabel('soccer_player_shots_on_target')).toBe(
+      'Shots on Target',
+    );
+  });
+
+  it('resolves selected line pricing from the same line ordering used by cards', () => {
+    const group = createGroup('corners', [
+      createCard({
+        key: 'total_corners',
+        outcomes: [
+          createOutcome({
+            id: 'corners-85',
+            sportsMarketType: 'total_corners',
+            groupItemTitle: 'Total Corners: O/U 8.5',
+            line: 8.5,
+            volume: 1000,
+            tokens: [
+              createToken({ id: 'corners-over-85' }),
+              createToken({ id: 'corners-under-85' }),
+            ],
+          }),
+          createOutcome({
+            id: 'corners-95',
+            sportsMarketType: 'total_corners',
+            groupItemTitle: 'Total Corners: O/U 9.5',
+            line: 9.5,
+            volume: 5000,
+            tokens: [
+              createToken({ id: 'corners-over-95' }),
+              createToken({ id: 'corners-under-95' }),
+            ],
+          }),
+        ],
+      }),
+    ]);
+
+    const { result } = renderHook(() => usePredictGameOutcomeRows(group));
+    const lineCard = result.current.cardModels[0];
+
+    expect(resolveCardPricing(lineCard).tokenIds).toEqual([
+      'corners-over-95',
+      'corners-under-95',
+    ]);
+    expect(resolveCardPricing(lineCard, 0).queries).toEqual([
+      {
+        marketId: 'market-1',
+        outcomeId: 'corners-85',
+        outcomeTokenId: 'corners-over-85',
+      },
+      {
+        marketId: 'market-1',
+        outcomeId: 'corners-85',
+        outcomeTokenId: 'corners-under-85',
+      },
+    ]);
+  });
+
+  it('queries only the primary token for moneyline pricing', () => {
+    const group = createGroup('game_lines', [
+      createCard({
+        key: 'moneyline',
+        outcomes: [
+          createOutcome({
+            id: 'moneyline-home',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              createToken({ id: 'home-yes' }),
+              createToken({ id: 'home-no' }),
+            ],
+          }),
+          createOutcome({
+            id: 'moneyline-away',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              createToken({ id: 'away-yes' }),
+              createToken({ id: 'away-no' }),
+            ],
+          }),
+        ],
+      }),
+    ]);
+
+    const { result } = renderHook(() => usePredictGameOutcomeRows(group));
+
+    expect(resolveCardPricing(result.current.cardModels[0]).tokenIds).toEqual([
+      'home-yes',
+      'away-yes',
     ]);
   });
 });

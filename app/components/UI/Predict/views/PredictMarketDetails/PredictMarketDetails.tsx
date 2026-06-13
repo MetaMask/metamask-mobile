@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { InteractionManager, Pressable, RefreshControl } from 'react-native';
+import { InteractionManager, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import {
   SafeAreaView,
@@ -29,10 +29,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -46,7 +42,6 @@ import {
   PredictMarketStatus,
   type PredictOutcome,
   type PredictOutcomeToken,
-  type PriceQuery,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -67,15 +62,17 @@ import PredictMarketDetailsActions from './components/PredictMarketDetailsAction
 import PredictMarketDetailsAbout from './components/PredictMarketDetailsAbout';
 import PredictMarketDetailsPositions from './components/PredictMarketDetailsPositions';
 import PredictMarketDetailsOutcomes from './components/PredictMarketDetailsOutcomes';
+import PredictResolvedOutcomesToggle from './components/PredictResolvedOutcomesToggle';
 import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
-import PredictMarketOutcomeResolved from '../../components/PredictMarketOutcomeResolved';
 import { useSettledFlashListVisibility } from '../../hooks/useSettledFlashListVisibility';
 import { useVisibleOutcomePrices } from '../../hooks/useVisibleOutcomePrices';
+import { PREDICT_FLASH_LIST_VIEWABILITY_CONFIG } from '../../constants/viewability';
+import { buildVisibleOutcomePricingInput } from '../../utils/pricingQueries';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -208,14 +205,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const isMarketUnavailable = isMarketUnresolved;
 
   // calculate sticky header indices based on content structure
-  const viewabilityConfig = useMemo(
-    () => ({
-      itemVisiblePercentThreshold: 50,
-      minimumViewTime: 50,
-    }),
-    [],
-  );
-
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
     [title, market?.title],
@@ -486,9 +475,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   }, [market, openOutcomes]);
 
   const visibleOpenOutcomePricing = useMemo(() => {
-    const queriesByTokenId = new Map<string, PriceQuery>();
-    const tokensById = new Map<string, PredictOutcomeToken>();
-
     if (!shouldRenderOpenOutcomeRows) {
       return {
         queries: [],
@@ -496,25 +482,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       };
     }
 
-    openOutcomeRows.forEach(({ outcome }) => {
-      if (!visibleOutcomeIds.has(outcome.id)) {
-        return;
-      }
-
-      outcome.tokens.forEach((token) => {
-        tokensById.set(token.id, token);
-        queriesByTokenId.set(token.id, {
-          marketId: outcome.marketId,
-          outcomeId: outcome.id,
-          outcomeTokenId: token.id,
-        });
-      });
+    return buildVisibleOutcomePricingInput({
+      items: openOutcomeRows,
+      visibleKeys: visibleOutcomeIds,
+      getItemKey: ({ outcome }) => outcome.id,
+      getOutcomes: ({ outcome }) => [outcome],
     });
-
-    return {
-      queries: [...queriesByTokenId.values()],
-      tokens: [...tokensById.values()],
-    };
   }, [openOutcomeRows, shouldRenderOpenOutcomeRows, visibleOutcomeIds]);
 
   const { getTokenPrice: getVisibleOutcomeTokenPrice } =
@@ -756,68 +729,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         case 'resolved-toggle':
           return (
             <Box twClassName="px-3 pb-8">
-              <Pressable
-                onPress={() => setIsResolvedExpanded((prev: boolean) => !prev)}
-                style={({ pressed }) =>
-                  tw.style(
-                    'w-full rounded-xl bg-default px-4 py-3 mt-2 mb-4 bg-muted',
-                    pressed && 'bg-pressed',
-                  )
-                }
-                accessibilityRole="button"
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName="gap-3"
-                >
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="gap-2"
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      twClassName="font-medium"
-                      color={TextColor.TextDefault}
-                    >
-                      {strings('predict.resolved_outcomes')}
-                    </Text>
-                    <Box twClassName="px-2 py-0.5 rounded bg-muted">
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {closedOutcomes.length}
-                      </Text>
-                    </Box>
-                  </Box>
-                  <Box
-                    testID={`icon-${
-                      isResolvedExpanded ? IconName.ArrowUp : IconName.ArrowDown
-                    }`}
-                  >
-                    <Icon
-                      name={
-                        isResolvedExpanded
-                          ? IconName.ArrowUp
-                          : IconName.ArrowDown
-                      }
-                      size={IconSize.Md}
-                      color={IconColor.IconAlternative}
-                    />
-                  </Box>
-                </Box>
-                {isResolvedExpanded &&
-                  closedOutcomes.map((outcome) => (
-                    <PredictMarketOutcomeResolved
-                      key={outcome.id}
-                      outcome={outcome}
-                      noContainer
-                    />
-                  ))}
-              </Pressable>
+              <PredictResolvedOutcomesToggle
+                closedOutcomes={closedOutcomes}
+                isExpanded={isResolvedExpanded}
+                onToggle={() => setIsResolvedExpanded((prev: boolean) => !prev)}
+              />
             </Box>
           );
         case 'closed-outcomes':
@@ -831,18 +747,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 marketStatus={market?.status as PredictMarketStatus | undefined}
                 singleOutcomeMarket={singleOutcomeMarket}
                 multipleOutcomes={multipleOutcomes}
-                multipleOpenOutcomesPartiallyResolved={
-                  multipleOpenOutcomesPartiallyResolved
-                }
                 winningOutcome={winningOutcome}
                 losingOutcome={losingOutcome}
                 winningOutcomeToken={winningOutcomeToken}
                 losingOutcomeToken={losingOutcomeToken}
-                openOutcomes={openOutcomes}
                 closedOutcomes={closedOutcomes}
-                entryPoint={entryPoint}
-                isResolvedExpanded={isResolvedExpanded}
-                onResolvedExpandedToggle={setIsResolvedExpanded}
               />
             </Box>
           );
@@ -868,13 +777,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       market,
       multipleOpenOutcomesPartiallyResolved,
       multipleOutcomes,
-      openOutcomes,
       resolutionStatus,
       selectedTimeframe,
       singleOutcomeMarket,
       tabs,
       timeframes,
-      tw,
       visibleOutcomeIds,
       winningOutcome,
       winningOutcomeToken,
@@ -960,7 +867,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           onScrollBeginDrag={onScrollBeginDrag}
           onScrollEndDrag={onScrollEndDrag}
           onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
+          viewabilityConfig={PREDICT_FLASH_LIST_VIEWABILITY_CONFIG}
         />
       </Box>
 

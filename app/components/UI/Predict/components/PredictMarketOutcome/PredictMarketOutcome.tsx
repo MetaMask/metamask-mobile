@@ -25,7 +25,6 @@ import {
   PredictMarket,
   PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
-  PriceQuery,
 } from '../../types';
 import {
   PredictNavigationParamList,
@@ -41,6 +40,7 @@ import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useVisibleOutcomePrices } from '../../hooks/useVisibleOutcomePrices';
+import { buildPriceQueriesFromOutcome } from '../../utils/pricingQueries';
 
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
@@ -73,14 +73,9 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   });
   const { openBuySheet } = usePredictPreviewSheet();
 
-  const priceQueries = React.useMemo<PriceQuery[]>(
-    () =>
-      outcome.tokens.map((token) => ({
-        marketId: outcome.marketId,
-        outcomeId: outcome.id,
-        outcomeTokenId: token.id,
-      })),
-    [outcome.id, outcome.marketId, outcome.tokens],
+  const priceQueries = React.useMemo(
+    () => buildPriceQueriesFromOutcome(outcome),
+    [outcome],
   );
   const { getTokenPrice: internalGetTokenPrice } = useVisibleOutcomePrices({
     queries: priceQueries,

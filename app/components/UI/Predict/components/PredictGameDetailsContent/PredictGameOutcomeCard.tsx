@@ -10,56 +10,28 @@ import PredictSportOutcomeCard, {
 } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
+import {
+  getDefaultSelectedLineIndex,
+  getSafeSelectedLineIndex,
+  getSortedLineIndices,
+} from '../../utils/outcomeLines';
+import {
+  formatOutcomeCardTitle,
+  type BuyHandler,
+  type GetTokenPrice,
+  type OutcomeCardModel,
+} from './outcomeCardModel';
 
-export type BuyHandler = (
-  outcome: PredictOutcome,
-  token: PredictOutcomeToken,
-) => void;
-
-export type GetTokenPrice = (token: PredictOutcomeToken) => number;
-
-export interface SharedPricingStrategy {
-  kind: 'shared';
-  tokenIds: string[];
-}
-
-export interface SelectedLinePricingStrategy {
-  kind: 'selected-line';
-}
-
-export interface MoneylineCardModel {
-  kind: 'moneyline';
-  key: string;
-  title: string;
-  testID: string;
-  outcomes: PredictOutcome[];
-  pricing: SharedPricingStrategy;
-}
-
-export interface SimpleCardModel {
-  kind: 'simple';
-  key: string;
-  title: string;
-  testID: string;
-  outcome: PredictOutcome;
-  sportsMarketType?: string;
-  pricing: SharedPricingStrategy;
-}
-
-export interface LineCardModel {
-  kind: 'line';
-  key: string;
-  title?: string;
-  testID: string;
-  outcomes: PredictOutcome[];
-  sportsMarketType?: string;
-  pricing: SelectedLinePricingStrategy;
-}
-
-export type OutcomeCardModel =
-  | MoneylineCardModel
-  | SimpleCardModel
-  | LineCardModel;
+export type {
+  BuyHandler,
+  GetTokenPrice,
+  LineCardModel,
+  MoneylineCardModel,
+  OutcomeCardModel,
+  SelectedLinePricingStrategy,
+  SharedPricingStrategy,
+  SimpleCardModel,
+} from './outcomeCardModel';
 
 export interface PredictGameOutcomeCardProps {
   cardModel: OutcomeCardModel;
@@ -69,21 +41,6 @@ export interface PredictGameOutcomeCardProps {
   selectedLineIndex?: number;
   onSelectedLineIndexChange?: (selectedIndex: number) => void;
 }
-
-const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
-
-export const formatOutcomeCardTitle = (outcome: PredictOutcome): string => {
-  const raw = outcome.groupItemTitle || outcome.title;
-  if (!raw.includes('O/U')) return raw;
-
-  const match = raw.match(O_U_PLAYER_PATTERN);
-  if (match) return match[1].trim();
-
-  const colonIdx = raw.indexOf(': ');
-  if (colonIdx !== -1) return raw.slice(0, colonIdx).trim();
-
-  return raw;
-};
 
 const getTeamColor = (
   tokenTitle: string,
@@ -131,36 +88,20 @@ const buildButtons = (
 ): PredictSportOutcomeButton[] => {
   const moneyline = isMoneylineLikeMarketType(sportsMarketType);
   return outcome.tokens.map((token, index) => ({
-      label: token.shortTitle ?? token.title,
-      price: Math.round(
-        (getTokenPrice ? getTokenPrice(token) : token.price) * 100,
-      ),
-      onPress: () => onBuyPress(outcome, token),
-      variant: getButtonVariant(index, outcome.tokens.length, moneyline),
-      teamColor: moneyline
-        ? getTeamColor(token.shortTitle ?? token.title, game)
-        : undefined,
-    }));
+    label: token.shortTitle ?? token.title,
+    price: Math.round(
+      (getTokenPrice ? getTokenPrice(token) : token.price) * 100,
+    ),
+    onPress: () => onBuyPress(outcome, token),
+    variant: getButtonVariant(index, outcome.tokens.length, moneyline),
+    teamColor: moneyline
+      ? getTeamColor(token.shortTitle ?? token.title, game)
+      : undefined,
+  }));
 };
 
 const buildSubtitle = (outcome: PredictOutcome): string =>
   `$${formatVolume(outcome.volume)} Vol`;
-
-export const getDefaultSelectedLineIndex = (
-  outcomes: PredictOutcome[],
-  lineIndices: number[],
-): number => {
-  if (lineIndices.length === 0) {
-    return 0;
-  }
-
-  return lineIndices.reduce((bestIdx, outcomeIdx, currentIdx) => {
-    const bestVolume = outcomes[lineIndices[bestIdx]]?.volume ?? 0;
-    const currentVolume = outcomes[outcomeIdx]?.volume ?? 0;
-
-    return currentVolume > bestVolume ? currentIdx : bestIdx;
-  }, 0);
-};
 
 const SimpleOutcomeCard = memo(
   ({
@@ -220,15 +161,7 @@ const LineOutcomeCard = memo(
     onSelectedLineIndexChange?: (selectedIndex: number) => void;
   }) => {
     const lineIndices = useMemo(
-      () =>
-        outcomes
-          .map((o, i) => (o.line != null ? i : -1))
-          .filter((i) => i !== -1)
-          .sort((a, b) => {
-            const lineA = outcomes[a].line ?? 0;
-            const lineB = outcomes[b].line ?? 0;
-            return lineA - lineB;
-          }),
+      () => getSortedLineIndices(outcomes),
       [outcomes],
     );
 
@@ -251,12 +184,11 @@ const LineOutcomeCard = memo(
       }
     }, [initialSelectedIdx, selectedLineIndex]);
 
-    const resolvedSelectedIdx =
-      selectedLineIndex ?? uncontrolledSelectedIdx ?? initialSelectedIdx;
-    const safeSelectedIdx =
-      lineIndices[resolvedSelectedIdx] !== undefined
-        ? resolvedSelectedIdx
-        : initialSelectedIdx;
+    const safeSelectedIdx = getSafeSelectedLineIndex(
+      outcomes,
+      lineIndices,
+      selectedLineIndex ?? uncontrolledSelectedIdx ?? initialSelectedIdx,
+    );
 
     const handleSelectLine = useCallback(
       (_line: number, indexInLines: number) => {

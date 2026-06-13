@@ -52,12 +52,4 @@ describe('useOpenOutcomes', () => {
     expect(result.current.closedOutcomes).toEqual([]);
     expect(result.current.yesPercentage).toBe(0);
   });
-
-  it('ignores the enabled flag and still returns static outcomes', () => {
-    const { result } = renderHook(() =>
-      useOpenOutcomes({ market: createMarket(), enabled: false }),
-    );
-    expect(result.current.openOutcomes).toHaveLength(1);
-    expect(result.current.yesPercentage).toBe(51);
-  });
 });

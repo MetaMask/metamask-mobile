@@ -7,7 +7,6 @@ import {
 
 interface UseOpenOutcomesParams {
   market: PredictMarket | null;
-  enabled?: boolean;
 }
 
 interface UseOpenOutcomesResult {
@@ -18,10 +17,7 @@ interface UseOpenOutcomesResult {
 
 export const useOpenOutcomes = ({
   market,
-  enabled = true,
 }: UseOpenOutcomesParams): UseOpenOutcomesResult => {
-  void enabled;
-
   const closedOutcomes = useMemo(
     () =>
       market?.outcomes?.filter((outcome) => outcome.status === 'closed') ?? [],

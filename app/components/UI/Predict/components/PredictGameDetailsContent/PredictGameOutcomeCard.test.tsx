@@ -170,7 +170,7 @@ const renderCard = (
       cardModel={cardModel}
       onBuyPress={mockOnBuyPress}
       game={game}
-      getPrice={mockParentGetPrice}
+      getTokenPrice={mockParentGetPrice}
     />,
   );
 
@@ -178,7 +178,9 @@ describe('PredictGameOutcomeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCapturedCards = [];
-    mockParentGetPrice.mockReturnValue(undefined);
+    mockParentGetPrice.mockImplementation(
+      (token: PredictOutcomeToken) => token.price,
+    );
   });
 
   describe('simple cards', () => {
@@ -235,10 +237,9 @@ describe('PredictGameOutcomeCard', () => {
         },
       };
 
-      mockParentGetPrice.mockImplementation((tokenId: string) =>
-        tokenId === 'tok-press'
-          ? { tokenId, price: 0, bestBid: 0, bestAsk: 0.76 }
-          : undefined,
+      mockParentGetPrice.mockImplementation(
+        (currentToken: PredictOutcomeToken) =>
+          currentToken.id === 'tok-press' ? 0.76 : currentToken.price,
       );
 
       const { getByTestId } = renderCard(cardModel);
@@ -300,14 +301,14 @@ describe('PredictGameOutcomeCard', () => {
     });
 
     it('uses parent live prices and updates when the line changes', () => {
-      mockParentGetPrice.mockImplementation((tokenId: string) => {
-        if (tokenId === 'o85') {
-          return { tokenId, price: 0, bestBid: 0, bestAsk: 0.53 };
+      mockParentGetPrice.mockImplementation((token: PredictOutcomeToken) => {
+        if (token.id === 'o85') {
+          return 0.53;
         }
-        if (tokenId === 'o95') {
-          return { tokenId, price: 0, bestBid: 0, bestAsk: 0.42 };
+        if (token.id === 'o95') {
+          return 0.42;
         }
-        return undefined;
+        return token.price;
       });
 
       const { getByTestId } = renderCard(lineCardModel);
@@ -326,7 +327,7 @@ describe('PredictGameOutcomeCard', () => {
           cardModel={lineCardModel}
           onBuyPress={mockOnBuyPress}
           game={mockGame}
-          getPrice={mockParentGetPrice}
+          getTokenPrice={mockParentGetPrice}
           selectedLineIndex={0}
         />,
       );
@@ -339,7 +340,7 @@ describe('PredictGameOutcomeCard', () => {
           cardModel={lineCardModel}
           onBuyPress={mockOnBuyPress}
           game={mockGame}
-          getPrice={mockParentGetPrice}
+          getTokenPrice={mockParentGetPrice}
           selectedLineIndex={1}
         />,
       );
@@ -422,12 +423,9 @@ describe('PredictGameOutcomeCard', () => {
     });
 
     it('uses parent live best ask prices and calls onBuyPress', () => {
-      mockParentGetPrice.mockImplementation((tokenId: string) => ({
-        tokenId,
-        price: 0,
-        bestBid: 0,
-        bestAsk: tokenId === 't-hom' ? 0.76 : 0,
-      }));
+      mockParentGetPrice.mockImplementation((token: PredictOutcomeToken) =>
+        token.id === 't-hom' ? 0.76 : token.price,
+      );
 
       const { getByTestId } = renderCard(moneylineCardModel);
 
