@@ -268,7 +268,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
   const whatsHappeningSection = isWhatsHappeningEnabled ? (
-    <Box key="whats-happening" twClassName="-mx-4" marginBottom={6}>
+    <Box key="whats-happening" twClassName="-mx-4">
       <WhatsHappeningSection
         ref={whatsHappeningRef}
         source={WhatsHappeningSource.Explore}
