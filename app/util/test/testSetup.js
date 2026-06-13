@@ -1164,16 +1164,6 @@ jest.mock('@react-native-firebase/messaging', () => {
   return module;
 });
 
-jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
-  return {
-    default: {
-      getInstance: jest.fn().mockReturnValue({
-        trackEvent: jest.fn(),
-      }),
-    },
-  };
-});
-
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.
 // Components that trigger analytics (trackView/trackEvent) cause the queue to call
 // whenEngineReady(), which uses setTimeout and can run after tests finish.
