@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
@@ -132,7 +133,15 @@ function getDisplayState(
 export function useDisplayName(
   request: UseDisplayNameRequest,
 ): UseDisplayNameResponse {
-  return useDisplayNames([request])[0];
+  const { type, value, variation, preferContractSymbol } = request;
+  // Memoize the single-element request array on the primitive fields so the
+  // sub-hooks (and the memoized result below) see a stable `requests`
+  // reference instead of a fresh `[request]` literal on every render.
+  const requests = useMemo(
+    () => [{ type, value, variation, preferContractSymbol }],
+    [type, value, variation, preferContractSymbol],
+  );
+  return useDisplayNames(requests)[0];
 }
 
 export function useDisplayNames(
@@ -145,60 +154,81 @@ export function useDisplayNames(
   const accountWalletNames = useAccountWalletNames(requests);
   const { getResolvedENSName } = useSendFlowEnsResolutions();
 
-  const trustSignalRequests = requests.map(({ value, variation }) => ({
-    address: value,
-    chainId: variation,
-  }));
+  const trustSignalRequests = useMemo(
+    () =>
+      requests.map(({ value, variation }) => ({
+        address: value,
+        chainId: variation,
+      })),
+    [requests],
+  );
   const trustSignals = useAddressTrustSignals(trustSignalRequests);
 
-  return requests.map(({ value, variation }, index) => {
-    const watchedNftName = watchedNftNames[index];
-    const firstPartyContractName = firstPartyContractNames[index];
-    const erc20Token = erc20Tokens[index];
-    const accountName = accountNames[index];
-    const subtitle = accountWalletNames[index];
-    const ensName = getResolvedENSName(variation, value);
-    const trustSignal = trustSignals[index];
+  // Memoize the mapped result so consumers receive a referentially stable
+  // array (and stable per-row objects) across renders with identical inputs,
+  // instead of a brand-new array of new objects on every render.
+  return useMemo(
+    () =>
+      requests.map(({ value, variation }, index) => {
+        const watchedNftName = watchedNftNames[index];
+        const firstPartyContractName = firstPartyContractNames[index];
+        const erc20Token = erc20Tokens[index];
+        const accountName = accountNames[index];
+        const subtitle = accountWalletNames[index];
+        const ensName = getResolvedENSName(variation, value);
+        const trustSignal = trustSignals[index];
 
-    let name =
-      accountName ||
-      ensName ||
-      firstPartyContractName ||
-      watchedNftName ||
-      erc20Token?.name;
+        let name =
+          accountName ||
+          ensName ||
+          firstPartyContractName ||
+          watchedNftName ||
+          erc20Token?.name;
 
-    const hasPetname = Boolean(accountName);
+        const hasPetname = Boolean(accountName);
 
-    const displayState = getDisplayState(
-      trustSignal?.state,
-      hasPetname,
-      name || null,
-    );
+        const displayState = getDisplayState(
+          trustSignal?.state,
+          hasPetname,
+          name || null,
+        );
 
-    // Applied after displayState to avoid the label triggering Recognized state
-    if (!name && trustSignal?.label) {
-      name = trustSignal.label;
-    }
+        // Applied after displayState to avoid the label triggering Recognized state
+        if (!name && trustSignal?.label) {
+          name = trustSignal.label;
+        }
 
-    const image = erc20Token?.image;
+        const image = erc20Token?.image;
 
-    const isFirstPartyContractName =
-      firstPartyContractName !== undefined && firstPartyContractName !== null;
+        const isFirstPartyContractName =
+          firstPartyContractName !== undefined &&
+          firstPartyContractName !== null;
 
-    const icon = getTrustSignalIcon(displayState);
+        const icon = getTrustSignalIcon(displayState);
 
-    return {
-      contractDisplayName: erc20Token?.name,
-      image,
-      isFirstPartyContractName,
-      name,
-      subtitle,
-      variant: getVariant({ name, accountName }),
-      displayState,
-      icon,
-      isAccount: Boolean(accountName),
-    };
-  });
+        return {
+          contractDisplayName: erc20Token?.name,
+          image,
+          isFirstPartyContractName,
+          name,
+          subtitle,
+          variant: getVariant({ name, accountName }),
+          displayState,
+          icon,
+          isAccount: Boolean(accountName),
+        };
+      }),
+    [
+      requests,
+      firstPartyContractNames,
+      watchedNftNames,
+      erc20Tokens,
+      accountNames,
+      accountWalletNames,
+      getResolvedENSName,
+      trustSignals,
+    ],
+  );
 }
 
 export default useDisplayName;
