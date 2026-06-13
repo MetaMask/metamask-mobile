@@ -90,6 +90,7 @@ import {
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import { isSameOrigin } from '../../util/url';
+import { BLOCKED_HOSTNAMES } from '../../constants/background';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
@@ -128,6 +129,12 @@ export class BackgroundBridge extends EventEmitter {
     channelId,
   }) {
     super();
+
+    const { hostname } = new URL(url);
+    if (BLOCKED_HOSTNAMES.includes(hostname)) {
+      throw new Error(`Connections from "${hostname}" are not allowed.`);
+    }
+
     this.url = url;
     this.origin = new URL(url).origin;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!

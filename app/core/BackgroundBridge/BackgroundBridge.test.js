@@ -273,6 +273,29 @@ describe('BackgroundBridge', () => {
   beforeEach(() => jest.clearAllMocks());
 
   describe('constructor', () => {
+    describe('blocked hostnames', () => {
+      it.each([
+        'https://execution.metamask.io/',
+        'https://execution.metamask.io/iframe/11.1.1/index.html',
+        'https://execution.consensys.io/',
+        'https://execution.consensys.io/iframe/11.1.1/index.html',
+      ])('throws for blocked url %s', (url) => {
+        expect(() => setupBackgroundBridge(url)).toThrow(/are not allowed/u);
+      });
+
+      it('does not throw for a normal dapp url', () => {
+        expect(() =>
+          setupBackgroundBridge('https://app.uniswap.org/'),
+        ).not.toThrow();
+      });
+
+      it('does not block a subdomain of a blocked hostname', () => {
+        expect(() =>
+          setupBackgroundBridge('https://sub.execution.metamask.io/'),
+        ).not.toThrow();
+      });
+    });
+
     it('requests getProviderNetworkState from origin getter when network state is updated', async () => {
       const mockNetworkState = {
         chainId: '0x2',
