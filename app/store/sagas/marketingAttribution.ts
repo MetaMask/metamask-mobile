@@ -1,10 +1,12 @@
-import { takeEvery, put } from 'redux-saga/effects';
+import { takeEvery, put, call } from 'redux-saga/effects';
 import {
   ActionType,
   type SetDataCollectionForMarketing,
 } from '../../actions/security';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
 import { clearAttribution } from '../../core/redux/slices/attribution';
+import ReduxService from '../../core/redux';
+import { persistAttributionFromPendingDeeplink } from '../../util/analytics/persistAttributionFromPendingDeeplink';
 
 /**
  * Clear persisted acquisition data when marketing consent is disabled.
@@ -17,6 +19,11 @@ export function* watchMarketingAttributionOnConsentChange() {
     }: SetDataCollectionForMarketing) {
       if (enabled === false) {
         yield put(clearAttribution());
+      } else {
+        yield call(
+          persistAttributionFromPendingDeeplink,
+          ReduxService.store.dispatch,
+        );
       }
     },
   );
