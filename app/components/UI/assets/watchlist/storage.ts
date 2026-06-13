@@ -8,9 +8,7 @@ import {
   string,
 } from '@metamask/superstruct';
 
-import StorageWrapper from '../../../../store/storage-wrapper';
-
-export const WATCHLIST_STORAGE_PATH = 'watchlistV1.tokens';
+import Engine from '../../../../core/Engine';
 
 const WatchlistBlobSchema = object({
   assets: defaulted(array(string()), () => []),
@@ -21,42 +19,37 @@ export type WatchlistBlob = Infer<typeof WatchlistBlobSchema>;
 
 export const EMPTY_BLOB: WatchlistBlob = { assets: [], version: 1 };
 
-/**
- * Read the watchlist blob from local device storage.
- *
- * The raw value is parsed through {@link WatchlistBlobSchema} before it is
- * returned, so callers can rely on the shape (and the schema-applied
- * defaults) of the result.
- *
- * NOTE: This is a temporary local-storage backed implementation. Once the
- * Account Universal Storage (AUS) SDK is ready, swap the body of this
- * function to delegate to the SDK while preserving the same signature and
- * validation contract.
- */
+const CLIENT_TYPE = 'mobile' as const;
+const GET_ASSETS_WATCHLIST_ACTION =
+  'AuthenticatedUserStorageService:getAssetsWatchlist' as const;
+const SET_ASSETS_WATCHLIST_ACTION =
+  'AuthenticatedUserStorageService:setAssetsWatchlist' as const;
+
+type ControllerMessengerCall = (
+  action: string,
+  ...args: readonly unknown[]
+) => Promise<unknown>;
+const callControllerMessenger =
+  Engine.controllerMessenger.call as unknown as ControllerMessengerCall;
+
 export async function readFromTokenWatchList(): Promise<WatchlistBlob> {
-  const raw = await StorageWrapper.getItem(WATCHLIST_STORAGE_PATH);
-  if (!raw) return EMPTY_BLOB;
-  return create(JSON.parse(raw), WatchlistBlobSchema);
+  const blob = await callControllerMessenger(GET_ASSETS_WATCHLIST_ACTION);
+
+  if (!blob) {
+    return EMPTY_BLOB;
+  }
+
+  return create(blob, WatchlistBlobSchema);
 }
 
-/**
- * Write the watchlist blob to local device storage.
- *
- * The input blob is validated against {@link WatchlistBlobSchema} before it
- * is serialized and persisted, guaranteeing that only well-formed data ever
- * reaches storage.
- *
- * NOTE: This is a temporary local-storage backed implementation. Once the
- * Account Universal Storage (AUS) SDK is ready, swap the body of this
- * function to delegate to the SDK while preserving the same signature and
- * validation contract.
- */
 export async function writeToTokenWatchList(
   blob: WatchlistBlob,
 ): Promise<void> {
   const validated = create(blob, WatchlistBlobSchema);
-  await StorageWrapper.setItem(
-    WATCHLIST_STORAGE_PATH,
-    JSON.stringify(validated),
+
+  await callControllerMessenger(
+    SET_ASSETS_WATCHLIST_ACTION,
+    validated,
+    CLIENT_TYPE,
   );
 }
