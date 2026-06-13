@@ -49,6 +49,7 @@ interface PredictMarketOutcomeProps {
   outcomeToken?: PredictOutcomeToken;
   isClosed?: boolean;
   visible?: boolean;
+  getTokenPrice?: (token: PredictOutcomeToken) => number;
 }
 
 const MAX_LABEL_LENGTH = 6;
@@ -60,6 +61,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   isClosed = false,
   outcomeToken,
   visible = true,
+  getTokenPrice: externalGetTokenPrice,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
@@ -80,11 +82,13 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
       })),
     [outcome.id, outcome.marketId, outcome.tokens],
   );
-  const { getTokenPrice } = useVisibleOutcomePrices({
+  const { getTokenPrice: internalGetTokenPrice } = useVisibleOutcomePrices({
     queries: priceQueries,
     tokens: outcome.tokens,
     visible: visible && !isClosed,
+    enabled: !externalGetTokenPrice,
   });
+  const getTokenPrice = externalGetTokenPrice ?? internalGetTokenPrice;
   const displayedTokens = React.useMemo(
     () =>
       outcome.tokens.map((token) => ({

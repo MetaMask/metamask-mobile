@@ -17,33 +17,33 @@ const liveMarketPriceCache = new Map<
   string,
   { price: PriceUpdate; updatedAt: number }
 >();
-const LIVE_MARKET_PRICE_CACHE_TTL_MS = 10_000;
+const LIVE_MARKET_PRICE_LOG_PREFIX = '[Predict][LiveMarketPrices]';
+
+const logLiveMarketPriceSubscription = (
+  event: 'subscribe' | 'unsubscribe' | 'skip',
+  tokenIds: string[],
+  metadata?: Record<string, unknown>,
+) => {
+  // Temporary debug log for validating visibility-driven subscriptions.
+  // eslint-disable-next-line no-console
+  console.debug(LIVE_MARKET_PRICE_LOG_PREFIX, event, {
+    tokenIds,
+    tokenCount: tokenIds.length,
+    ...metadata,
+  });
+};
 
 export const __resetLiveMarketPricesCacheForTest = () => {
   liveMarketPriceCache.clear();
 };
 
-const pruneExpiredCachedPrices = (now = Date.now()) => {
-  liveMarketPriceCache.forEach((cached, tokenId) => {
-    if (now - cached.updatedAt > LIVE_MARKET_PRICE_CACHE_TTL_MS) {
-      liveMarketPriceCache.delete(tokenId);
-    }
-  });
-};
-
 const getCachedPrices = (tokenIds: string[]) => {
   const prices = new Map<string, PriceUpdate>();
   let lastUpdateTime: number | null = null;
-  const now = Date.now();
-  pruneExpiredCachedPrices(now);
 
   tokenIds.forEach((tokenId) => {
     const cached = liveMarketPriceCache.get(tokenId);
     if (!cached) return;
-    if (now - cached.updatedAt > LIVE_MARKET_PRICE_CACHE_TTL_MS) {
-      liveMarketPriceCache.delete(tokenId);
-      return;
-    }
 
     prices.set(tokenId, cached.price);
     lastUpdateTime = Math.max(lastUpdateTime ?? 0, cached.updatedAt);
@@ -90,7 +90,6 @@ export const useLiveMarketPrices = (
     if (!isMountedRef.current) return;
 
     const updatedAt = Date.now();
-    pruneExpiredCachedPrices(updatedAt);
     updates.forEach((update) => {
       liveMarketPriceCache.set(update.tokenId, { price: update, updatedAt });
     });
@@ -113,14 +112,13 @@ export const useLiveMarketPrices = (
     const currentTokenIdSet = new Set(currentTokenIds);
     const cachedPrices = getCachedPrices(currentTokenIds);
 
-    // Keep the last known live price for still-selected tokens while a new
-    // subscription warms up. This prevents brief flashes to older REST or
-    // market snapshots when a CTA remounts for the same token IDs.
+    // Keep every received live price for this screen session. Subscription
+    // inputs only control the socket, not whether offscreen rows can keep
+    // rendering their last live value while they are unsubscribed.
     setPrices((prevPrices) => {
-      const nextPrices = new Map<string, PriceUpdate>();
+      const nextPrices = new Map(prevPrices);
       currentTokenIds.forEach((tokenId) => {
-        const cachedPrice =
-          cachedPrices.prices.get(tokenId) ?? prevPrices.get(tokenId);
+        const cachedPrice = cachedPrices.prices.get(tokenId);
         if (cachedPrice) {
           nextPrices.set(tokenId, cachedPrice);
         }
@@ -136,10 +134,17 @@ export const useLiveMarketPrices = (
 
     if (!enabled || currentTokenIds.length === 0) {
       setIsConnected(false);
+      logLiveMarketPriceSubscription('skip', currentTokenIds, {
+        enabled,
+        reason: !enabled ? 'disabled' : 'empty-token-ids',
+      });
       return;
     }
 
     const { PredictController } = Engine.context;
+    logLiveMarketPriceSubscription('subscribe', currentTokenIds, {
+      enabled,
+    });
     const unsubscribe = PredictController.subscribeToMarketPrices(
       currentTokenIds,
       handlePriceUpdates,
@@ -156,13 +161,17 @@ export const useLiveMarketPrices = (
 
     return () => {
       isMountedRef.current = false;
+      logLiveMarketPriceSubscription('unsubscribe', currentTokenIds, {
+        enabled,
+      });
       unsubscribe();
       clearInterval(intervalId);
     };
   }, [tokenIdsKey, enabled, handlePriceUpdates]);
 
   const getPrice = useCallback(
-    (tokenId: string): PriceUpdate | undefined => prices.get(tokenId),
+    (tokenId: string): PriceUpdate | undefined =>
+      prices.get(tokenId) ?? liveMarketPriceCache.get(tokenId)?.price,
     [prices],
   );
 

@@ -38,6 +38,7 @@ const runAfterInteractionsMockImpl: typeof InteractionManager.runAfterInteractio
       cancel: jest.fn(),
     } as ReturnType<typeof InteractionManager.runAfterInteractions>;
   };
+let mockVisibleItemKeys: string[] | null = null;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -69,6 +70,7 @@ jest.mock('@shopify/flash-list', () => {
       keyExtractor,
       testID,
       ListFooterComponent,
+      refreshControl,
     }: {
       data: unknown[];
       renderItem: (params: { item: unknown; index: number }) => React.ReactNode;
@@ -78,16 +80,19 @@ jest.mock('@shopify/flash-list', () => {
       keyExtractor?: (item: unknown, index: number) => string;
       testID?: string;
       ListFooterComponent?: React.ReactNode;
+      refreshControl?: React.ReactNode;
     }) => {
-      const hasReportedVisibilityRef = ReactActual.useRef(false);
-
       ReactActual.useEffect(() => {
-        if (hasReportedVisibilityRef.current) {
-          return;
-        }
-        hasReportedVisibilityRef.current = true;
+        const visibleItems = mockVisibleItemKeys
+          ? data.filter((item, index) =>
+              mockVisibleItemKeys?.includes(
+                keyExtractor ? keyExtractor(item, index) : `${index}`,
+              ),
+            )
+          : data;
+
         onViewableItemsChanged?.({
-          viewableItems: data.map((item, index) => ({
+          viewableItems: visibleItems.map((item, index) => ({
             item,
             key: keyExtractor ? keyExtractor(item, index) : `${index}`,
             index,
@@ -97,6 +102,7 @@ jest.mock('@shopify/flash-list', () => {
 
       return (
         <View testID={testID ?? 'mock-flash-list'}>
+          {refreshControl}
           {data.map((item, index) => (
             <ReactActual.Fragment
               key={keyExtractor ? keyExtractor(item, index) : index}
@@ -349,11 +355,17 @@ jest.mock('../../components/PredictMarketOutcome', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictMarketOutcome({
     outcome,
+    visible,
   }: {
-    outcome: { title?: string };
+    outcome: { id?: string; title?: string };
+    visible?: boolean;
   }) {
     return (
-      <View testID="predict-market-outcome">
+      <View
+        testID="predict-market-outcome"
+        accessibilityLabel={outcome?.id}
+        accessibilityHint={`visible:${visible === true}`}
+      >
         <Text>{outcome?.title || 'Outcome'}</Text>
       </View>
     );
@@ -832,6 +844,7 @@ describe('PredictMarketDetails', () => {
     jest.clearAllMocks();
     mockRunAfterInteractions.mockReset();
     mockIsBuySheetOpen = false;
+    mockVisibleItemKeys = null;
   });
 
   afterAll(() => {
@@ -1435,6 +1448,63 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByText('predict.market_details.resolution_details'),
+      ).toBeOnTheScreen();
+    });
+
+    it('allows About tab selection while positions queries are still loading', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          positions: {
+            active: { isLoading: true },
+            claimable: { isLoading: true },
+          },
+        },
+      );
+
+      const aboutTab = screen.getByTestId(
+        getPredictMarketDetailsSelector.tabBarTab('about'),
+      );
+      fireEvent.press(aboutTab);
+
+      expect(
+        screen.getByText('predict.market_details.volume'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders open market outcomes when outcome statuses are missing', () => {
+      setupPredictMarketDetailsTest({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'First Outcome Without Status',
+            groupItemTitle: 'First Outcome Without Status',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Second Outcome Without Status',
+            groupItemTitle: 'Second Outcome Without Status',
+            tokens: [
+              { id: 'token-3', title: 'Yes', price: 0.45 },
+              { id: 'token-4', title: 'No', price: 0.55 },
+            ],
+            volume: 500000,
+          },
+        ],
+      });
+
+      expect(
+        screen.getByText('First Outcome Without Status'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('Second Outcome Without Status'),
       ).toBeOnTheScreen();
     });
 
@@ -3595,6 +3665,75 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
+    });
+
+    it('passes visible=true only to root FlashList visible outcome rows', async () => {
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
+      );
+      mockVisibleItemKeys = ['market-details-open-outcome-outcome-1'];
+
+      setupPredictMarketDetailsTest({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Visible Outcome',
+            groupItemTitle: 'Visible Outcome',
+            status: 'open',
+            tokens: [
+              { id: 'visible-token-yes', title: 'Yes', price: 0.65 },
+              { id: 'visible-token-no', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Hidden Outcome',
+            groupItemTitle: 'Hidden Outcome',
+            status: 'open',
+            tokens: [
+              { id: 'hidden-token-yes', title: 'Yes', price: 0.55 },
+              { id: 'hidden-token-no', title: 'No', price: 0.45 },
+            ],
+            volume: 500000,
+          },
+        ],
+      });
+
+      await waitFor(() => {
+        const outcomeRows = screen.getAllByTestId('predict-market-outcome');
+        const visibleOutcome = outcomeRows.find(
+          (row) => row.props.accessibilityLabel === 'outcome-1',
+        );
+        const hiddenOutcome = outcomeRows.find(
+          (row) => row.props.accessibilityLabel === 'outcome-2',
+        );
+
+        expect(visibleOutcome?.props.accessibilityHint).toBe('visible:true');
+        expect(hiddenOutcome?.props.accessibilityHint).toBe('visible:false');
+      });
+
+      await waitFor(() => {
+        expect(useLiveMarketPrices.mock.calls).toEqual(
+          expect.arrayContaining([
+            [['visible-token-yes', 'visible-token-no'], { enabled: true }],
+          ]),
+        );
+      });
+      expect(useLiveMarketPrices.mock.calls).not.toEqual(
+        expect.arrayContaining([
+          [
+            [
+              'visible-token-yes',
+              'visible-token-no',
+              'hidden-token-yes',
+              'hidden-token-no',
+            ],
+            { enabled: true },
+          ],
+        ]),
+      );
     });
   });
 

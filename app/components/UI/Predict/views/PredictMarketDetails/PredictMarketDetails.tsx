@@ -5,7 +5,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
+import { InteractionManager, Pressable, RefreshControl } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -14,7 +15,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
-import { PredictNavigationParamList } from '../../types/navigation';
+import type {
+  PredictEntryPoint,
+  PredictNavigationParamList,
+} from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { estimateLineCount } from '../../utils/format';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
@@ -25,6 +29,10 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -36,7 +44,9 @@ import { usePredictMarket } from '../../hooks/usePredictMarket';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
-  PredictOutcomeToken,
+  type PredictOutcome,
+  type PredictOutcomeToken,
+  type PriceQuery,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -54,16 +64,64 @@ import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus'
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
 import PredictMarketDetailsTabBar from './components/PredictMarketDetailsTabBar';
 import PredictMarketDetailsActions from './components/PredictMarketDetailsActions';
-import PredictMarketDetailsTabContent from './components/PredictMarketDetailsTabContent';
+import PredictMarketDetailsAbout from './components/PredictMarketDetailsAbout';
+import PredictMarketDetailsPositions from './components/PredictMarketDetailsPositions';
+import PredictMarketDetailsOutcomes from './components/PredictMarketDetailsOutcomes';
 import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
+import PredictMarketOutcome from '../../components/PredictMarketOutcome';
+import PredictMarketOutcomeResolved from '../../components/PredictMarketOutcomeResolved';
+import { useSettledFlashListVisibility } from '../../hooks/useSettledFlashListVisibility';
+import { useVisibleOutcomePrices } from '../../hooks/useVisibleOutcomePrices';
 
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
+
+type TabKey = 'positions' | 'outcomes' | 'about';
+
+type PredictMarketDetailsListItem =
+  | {
+      type: 'header';
+      key: string;
+    }
+  | {
+      type: 'loading';
+      key: string;
+    }
+  | {
+      type: 'unavailable';
+      key: string;
+    }
+  | {
+      type: 'tab-bar';
+      key: string;
+    }
+  | {
+      type: 'positions';
+      key: string;
+    }
+  | {
+      type: 'about';
+      key: string;
+    }
+  | {
+      type: 'open-outcome';
+      key: string;
+      outcome: PredictOutcome;
+      isFirstOpenOutcome: boolean;
+    }
+  | {
+      type: 'resolved-toggle';
+      key: string;
+    }
+  | {
+      type: 'closed-outcomes';
+      key: string;
+    };
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
@@ -147,14 +205,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   const isMarketUnresolved = !isResolvedMarketLoading && !resolvedMarketId;
+  const isMarketUnavailable = isMarketUnresolved;
 
   // calculate sticky header indices based on content structure
-  const stickyHeaderIndices = useMemo(() => {
-    if (isResolvedMarketLoading || isMarketUnresolved) {
-      return [];
-    }
-    return [1];
-  }, [isResolvedMarketLoading, isMarketUnresolved]);
+  const viewabilityConfig = useMemo(
+    () => ({
+      itemVisiblePercentThreshold: 50,
+      minimumViewTime: 50,
+    }),
+    [],
+  );
 
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
@@ -288,11 +348,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
   };
 
-  const handleTabPress = (tabIndex: number) => {
-    if (!tabsReady) return;
+  const handleTabPress = useCallback((tabIndex: number) => {
     setUserSelectedTab(true);
     setActiveTab(tabIndex);
-  };
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -324,8 +383,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       });
     });
   }, [navigation]);
-
-  type TabKey = 'positions' | 'outcomes' | 'about';
 
   const trackMarketDetailsOpened = useCallback(
     (tabKey: TabKey) => {
@@ -381,6 +438,180 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     market?.status,
   ]);
 
+  const activeTabKey = activeTab === null ? tabs[0]?.key : tabs[activeTab]?.key;
+  const shouldRenderOpenOutcomeRows =
+    !isResolvedMarketLoading &&
+    !isMarketUnavailable &&
+    Boolean(market) &&
+    activeTabKey === 'outcomes' &&
+    market?.status === PredictMarketStatus.OPEN;
+  const getVisibleOutcomeId = useCallback(
+    (item: PredictMarketDetailsListItem) =>
+      item.type === 'open-outcome' ? item.outcome.id : undefined,
+    [],
+  );
+  const {
+    onMomentumScrollBegin,
+    onMomentumScrollEnd,
+    onScroll,
+    onScrollBeginDrag,
+    onScrollEndDrag,
+    onViewableItemsChanged,
+    visibleKeys: visibleOutcomeIds,
+  } = useSettledFlashListVisibility<PredictMarketDetailsListItem>({
+    enabled: shouldRenderOpenOutcomeRows,
+    getVisibleKey: getVisibleOutcomeId,
+  });
+
+  const openOutcomeRows = useMemo<
+    Extract<PredictMarketDetailsListItem, { type: 'open-outcome' }>[]
+  >(() => {
+    if (!market || market.status !== PredictMarketStatus.OPEN) {
+      return [];
+    }
+
+    const rowOutcomes =
+      openOutcomes.length > 0
+        ? openOutcomes
+        : (market.outcomes ?? []).filter(
+            (outcome) => outcome.status !== 'closed',
+          );
+
+    return rowOutcomes.map((outcome, index) => ({
+      type: 'open-outcome',
+      key: `market-details-open-outcome-${outcome.id}`,
+      outcome,
+      isFirstOpenOutcome: index === 0,
+    }));
+  }, [market, openOutcomes]);
+
+  const visibleOpenOutcomePricing = useMemo(() => {
+    const queriesByTokenId = new Map<string, PriceQuery>();
+    const tokensById = new Map<string, PredictOutcomeToken>();
+
+    if (!shouldRenderOpenOutcomeRows) {
+      return {
+        queries: [],
+        tokens: [],
+      };
+    }
+
+    openOutcomeRows.forEach(({ outcome }) => {
+      if (!visibleOutcomeIds.has(outcome.id)) {
+        return;
+      }
+
+      outcome.tokens.forEach((token) => {
+        tokensById.set(token.id, token);
+        queriesByTokenId.set(token.id, {
+          marketId: outcome.marketId,
+          outcomeId: outcome.id,
+          outcomeTokenId: token.id,
+        });
+      });
+    });
+
+    return {
+      queries: [...queriesByTokenId.values()],
+      tokens: [...tokensById.values()],
+    };
+  }, [openOutcomeRows, shouldRenderOpenOutcomeRows, visibleOutcomeIds]);
+
+  const { getTokenPrice: getVisibleOutcomeTokenPrice } =
+    useVisibleOutcomePrices({
+      queries: visibleOpenOutcomePricing.queries,
+      tokens: visibleOpenOutcomePricing.tokens,
+      visible:
+        shouldRenderOpenOutcomeRows &&
+        visibleOpenOutcomePricing.tokens.length > 0,
+      enabled: shouldRenderOpenOutcomeRows,
+    });
+
+  const listData = useMemo<PredictMarketDetailsListItem[]>(() => {
+    const items: PredictMarketDetailsListItem[] = [
+      {
+        type: 'header',
+        key: 'market-details-header-content',
+      },
+    ];
+
+    if (isResolvedMarketLoading) {
+      items.push({
+        type: 'loading',
+        key: 'market-details-loading',
+      });
+      return items;
+    }
+
+    if (isMarketUnavailable) {
+      items.push({
+        type: 'unavailable',
+        key: 'market-details-unavailable',
+      });
+      return items;
+    }
+
+    items.push({
+      type: 'tab-bar',
+      key: 'market-details-tab-bar',
+    });
+
+    if (!market || activeTabKey === undefined) {
+      return items;
+    }
+
+    if (activeTabKey === 'positions') {
+      items.push({
+        type: 'positions',
+        key: 'market-details-positions',
+      });
+      return items;
+    }
+
+    if (activeTabKey === 'about') {
+      items.push({
+        type: 'about',
+        key: 'market-details-about',
+      });
+      return items;
+    }
+
+    if (activeTabKey === 'outcomes') {
+      if (market.status === PredictMarketStatus.OPEN) {
+        items.push(...openOutcomeRows);
+
+        if (multipleOutcomes && multipleOpenOutcomesPartiallyResolved) {
+          items.push({
+            type: 'resolved-toggle',
+            key: 'market-details-resolved-toggle',
+          });
+        }
+
+        return items;
+      }
+
+      items.push({
+        type: 'closed-outcomes',
+        key: 'market-details-closed-outcomes',
+      });
+    }
+
+    return items;
+  }, [
+    activeTabKey,
+    isMarketUnavailable,
+    isResolvedMarketLoading,
+    market,
+    multipleOpenOutcomesPartiallyResolved,
+    multipleOutcomes,
+    openOutcomeRows,
+  ]);
+
+  const stickyHeaderIndices = useMemo(() => {
+    const tabBarIndex = listData.findIndex((item) => item.type === 'tab-bar');
+    return tabBarIndex === -1 ? undefined : [tabBarIndex];
+  }, [listData]);
+
   useEffect(() => {
     if (!tabsReady) return;
 
@@ -426,7 +657,229 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     (position) => position.percentPnl > 0,
   );
 
-  const isMarketUnavailable = isMarketUnresolved;
+  const renderListItem = useCallback(
+    ({ item }: { item: PredictMarketDetailsListItem }) => {
+      switch (item.type) {
+        case 'header':
+          return (
+            <Box twClassName="px-3 gap-4">
+              <PredictMarketDetailsStatus
+                winningOutcomeToken={winningOutcomeToken}
+                multipleOpenOutcomesPartiallyResolved={
+                  multipleOpenOutcomesPartiallyResolved
+                }
+                resolutionStatus={resolutionStatus}
+                marketStatus={market?.status as PredictMarketStatus | undefined}
+              />
+              {chartOpenOutcomes.length > 0 && (
+                <PredictDetailsChart
+                  data={chartData}
+                  timeframes={timeframes}
+                  selectedTimeframe={selectedTimeframe}
+                  onTimeframeChange={handleTimeframeChange}
+                  isLoading={isPriceHistoryFetching}
+                  emptyLabel={chartEmptyLabel}
+                />
+              )}
+            </Box>
+          );
+        case 'loading':
+          return (
+            <Box twClassName="px-3">
+              <PredictDetailsContentSkeleton />
+            </Box>
+          );
+        case 'unavailable':
+          return (
+            <Box
+              testID={PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE}
+              twClassName="px-3 py-8 items-center justify-center gap-2"
+            >
+              <Text
+                variant={TextVariant.HeadingMd}
+                color={TextColor.TextDefault}
+                twClassName="font-medium"
+              >
+                {strings('predict.market_details.market_unavailable')}
+              </Text>
+            </Box>
+          );
+        case 'tab-bar':
+          return (
+            <PredictMarketDetailsTabBar
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabPress={handleTabPress}
+            />
+          );
+        case 'positions':
+          return (
+            <Box
+              twClassName="px-3 pt-4 pb-8"
+              testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT}
+            >
+              <PredictMarketDetailsPositions
+                activePositions={activePositions}
+                claimablePositions={claimablePositions}
+                market={market}
+              />
+            </Box>
+          );
+        case 'about':
+          return (
+            <Box
+              twClassName="px-3 pt-4 pb-8"
+              testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT}
+            >
+              <PredictMarketDetailsAbout
+                market={market}
+                onPolymarketResolution={handlePolymarketResolution}
+              />
+            </Box>
+          );
+        case 'open-outcome':
+          if (!market) {
+            return null;
+          }
+
+          return (
+            <Box twClassName={`px-3 ${item.isFirstOpenOutcome ? 'pt-4' : ''}`}>
+              <PredictMarketOutcome
+                market={market}
+                outcome={item.outcome}
+                entryPoint={entryPoint as PredictEntryPoint | undefined}
+                visible={visibleOutcomeIds.has(item.outcome.id)}
+                getTokenPrice={getVisibleOutcomeTokenPrice}
+              />
+            </Box>
+          );
+        case 'resolved-toggle':
+          return (
+            <Box twClassName="px-3 pb-8">
+              <Pressable
+                onPress={() => setIsResolvedExpanded((prev: boolean) => !prev)}
+                style={({ pressed }) =>
+                  tw.style(
+                    'w-full rounded-xl bg-default px-4 py-3 mt-2 mb-4 bg-muted',
+                    pressed && 'bg-pressed',
+                  )
+                }
+                accessibilityRole="button"
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Between}
+                  twClassName="gap-3"
+                >
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="gap-2"
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      twClassName="font-medium"
+                      color={TextColor.TextDefault}
+                    >
+                      {strings('predict.resolved_outcomes')}
+                    </Text>
+                    <Box twClassName="px-2 py-0.5 rounded bg-muted">
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {closedOutcomes.length}
+                      </Text>
+                    </Box>
+                  </Box>
+                  <Box
+                    testID={`icon-${
+                      isResolvedExpanded ? IconName.ArrowUp : IconName.ArrowDown
+                    }`}
+                  >
+                    <Icon
+                      name={
+                        isResolvedExpanded
+                          ? IconName.ArrowUp
+                          : IconName.ArrowDown
+                      }
+                      size={IconSize.Md}
+                      color={IconColor.IconAlternative}
+                    />
+                  </Box>
+                </Box>
+                {isResolvedExpanded &&
+                  closedOutcomes.map((outcome) => (
+                    <PredictMarketOutcomeResolved
+                      key={outcome.id}
+                      outcome={outcome}
+                      noContainer
+                    />
+                  ))}
+              </Pressable>
+            </Box>
+          );
+        case 'closed-outcomes':
+          return (
+            <Box
+              twClassName="px-3 pt-4 pb-8"
+              testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT}
+            >
+              <PredictMarketDetailsOutcomes
+                market={market}
+                marketStatus={market?.status as PredictMarketStatus | undefined}
+                singleOutcomeMarket={singleOutcomeMarket}
+                multipleOutcomes={multipleOutcomes}
+                multipleOpenOutcomesPartiallyResolved={
+                  multipleOpenOutcomesPartiallyResolved
+                }
+                winningOutcome={winningOutcome}
+                losingOutcome={losingOutcome}
+                winningOutcomeToken={winningOutcomeToken}
+                losingOutcomeToken={losingOutcomeToken}
+                openOutcomes={openOutcomes}
+                closedOutcomes={closedOutcomes}
+                entryPoint={entryPoint}
+                isResolvedExpanded={isResolvedExpanded}
+                onResolvedExpandedToggle={setIsResolvedExpanded}
+              />
+            </Box>
+          );
+      }
+    },
+    [
+      activePositions,
+      activeTab,
+      chartData,
+      chartEmptyLabel,
+      chartOpenOutcomes.length,
+      claimablePositions,
+      closedOutcomes,
+      entryPoint,
+      getVisibleOutcomeTokenPrice,
+      handlePolymarketResolution,
+      handleTabPress,
+      handleTimeframeChange,
+      isPriceHistoryFetching,
+      isResolvedExpanded,
+      losingOutcome,
+      losingOutcomeToken,
+      market,
+      multipleOpenOutcomesPartiallyResolved,
+      multipleOutcomes,
+      openOutcomes,
+      resolutionStatus,
+      selectedTimeframe,
+      singleOutcomeMarket,
+      tabs,
+      timeframes,
+      tw,
+      visibleOutcomeIds,
+      winningOutcome,
+      winningOutcomeToken,
+    ],
+  );
 
   if (upDownEnabled && market && isCryptoUpDown(market)) {
     return (
@@ -479,96 +932,37 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         onBackPress={handleBackPress}
       />
 
-      <ScrollView
-        testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
-        stickyHeaderIndices={stickyHeaderIndices}
-        showsVerticalScrollIndicator={false}
-        style={tw.style('flex-1')}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary.default}
-            colors={[colors.primary.default]}
-          />
-        }
-      >
-        {/* Header content - scrollable */}
-        <Box twClassName="px-3 gap-4">
-          <PredictMarketDetailsStatus
-            winningOutcomeToken={winningOutcomeToken}
-            multipleOpenOutcomesPartiallyResolved={
-              multipleOpenOutcomesPartiallyResolved
-            }
-            resolutionStatus={resolutionStatus}
-            marketStatus={market?.status as PredictMarketStatus | undefined}
-          />
-          {chartOpenOutcomes.length > 0 && (
-            <PredictDetailsChart
-              data={chartData}
-              timeframes={timeframes}
-              selectedTimeframe={selectedTimeframe}
-              onTimeframeChange={handleTimeframeChange}
-              isLoading={isPriceHistoryFetching}
-              emptyLabel={chartEmptyLabel}
+      <Box twClassName="flex-1">
+        <FlashList
+          testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
+          data={listData}
+          extraData={{
+            activeTab,
+            isResolvedExpanded,
+            visibleOutcomeIds,
+          }}
+          keyExtractor={(item) => item.key}
+          renderItem={renderListItem}
+          stickyHeaderIndices={stickyHeaderIndices}
+          showsVerticalScrollIndicator={false}
+          style={tw.style('flex-1')}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary.default}
+              colors={[colors.primary.default]}
             />
-          )}
-        </Box>
-
-        {/* Show content skeleton while initial market data is fetching */}
-        {isResolvedMarketLoading ? (
-          <Box twClassName="px-3">
-            <PredictDetailsContentSkeleton />
-          </Box>
-        ) : isMarketUnavailable ? (
-          <Box
-            testID={PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE}
-            twClassName="px-3 py-8 items-center justify-center gap-2"
-          >
-            <Text
-              variant={TextVariant.HeadingMd}
-              color={TextColor.TextDefault}
-              twClassName="font-medium"
-            >
-              {strings('predict.market_details.market_unavailable')}
-            </Text>
-          </Box>
-        ) : (
-          /* Sticky tab bar */
-          <PredictMarketDetailsTabBar
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabPress={handleTabPress}
-          />
-        )}
-
-        {/* Tab content - only show when market is loaded */}
-        {!isResolvedMarketLoading && !isMarketUnavailable && market && (
-          <PredictMarketDetailsTabContent
-            activeTab={activeTab}
-            tabsReady={tabsReady}
-            tabs={tabs}
-            market={market}
-            activePositions={activePositions}
-            claimablePositions={claimablePositions}
-            onPolymarketResolution={handlePolymarketResolution}
-            singleOutcomeMarket={singleOutcomeMarket}
-            multipleOutcomes={multipleOutcomes}
-            multipleOpenOutcomesPartiallyResolved={
-              multipleOpenOutcomesPartiallyResolved
-            }
-            winningOutcome={winningOutcome}
-            losingOutcome={losingOutcome}
-            winningOutcomeToken={winningOutcomeToken}
-            losingOutcomeToken={losingOutcomeToken}
-            openOutcomes={openOutcomes}
-            closedOutcomes={closedOutcomes}
-            entryPoint={entryPoint}
-            isResolvedExpanded={isResolvedExpanded}
-            onResolvedExpandedToggle={setIsResolvedExpanded}
-          />
-        )}
-      </ScrollView>
+          }
+          onMomentumScrollBegin={onMomentumScrollBegin}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          onScroll={onScroll}
+          onScrollBeginDrag={onScrollBeginDrag}
+          onScrollEndDrag={onScrollEndDrag}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+        />
+      </Box>
 
       {!isMarketUnavailable && (
         <PredictMarketDetailsActions

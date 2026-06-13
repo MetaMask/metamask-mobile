@@ -5,6 +5,7 @@ import type {
   GetPriceResponse,
   PredictOutcomeToken,
   PriceQuery,
+  PriceResult,
 } from '../types';
 import { getPredictBuyPrice } from '../utils/prices';
 
@@ -14,18 +15,20 @@ const EMPTY_PRICE_RESPONSE: GetPriceResponse = {
 };
 
 const EMPTY_TOKEN_IDS: string[] = [];
-const visibleOutcomePriceCache = new Map<string, GetPriceResponse>();
-
-const getQueriesKey = (queries: PriceQuery[]) =>
-  JSON.stringify(
-    [...queries].sort((a, b) =>
-      a.outcomeTokenId.localeCompare(b.outcomeTokenId),
-    ),
-  );
+const visibleOutcomePriceCache = new Map<string, PriceResult>();
+const requestedOutcomeTokenIds = new Set<string>();
 
 export const __resetVisibleOutcomePriceCacheForTest = () => {
   visibleOutcomePriceCache.clear();
+  requestedOutcomeTokenIds.clear();
 };
+
+const getCachedRestPrices = (queries: PriceQuery[]): GetPriceResponse => ({
+  providerId: '',
+  results: queries
+    .map((query) => visibleOutcomePriceCache.get(query.outcomeTokenId))
+    .filter((result): result is PriceResult => Boolean(result)),
+});
 
 interface UseVisibleOutcomePricesParams {
   queries: PriceQuery[];
@@ -44,40 +47,56 @@ export const useVisibleOutcomePrices = ({
   visible,
   enabled = true,
 }: UseVisibleOutcomePricesParams): UseVisibleOutcomePricesResult => {
-  const queriesKey = useMemo(() => getQueriesKey(queries), [queries]);
-  const [restPrices, setRestPrices] = useState<GetPriceResponse>(
-    () => visibleOutcomePriceCache.get(queriesKey) ?? EMPTY_PRICE_RESPONSE,
+  const [restPrices, setRestPrices] = useState<GetPriceResponse>(() =>
+    getCachedRestPrices(queries),
   );
 
   useEffect(() => {
-    setRestPrices(
-      visibleOutcomePriceCache.get(queriesKey) ?? EMPTY_PRICE_RESPONSE,
-    );
-  }, [queriesKey]);
+    setRestPrices(getCachedRestPrices(queries));
+  }, [queries]);
 
   const shouldEnable = enabled && visible && tokens.length > 0;
   const tokenIds = shouldEnable
     ? tokens.map((token) => token.id)
     : EMPTY_TOKEN_IDS;
-  const shouldFetchRestPrices =
-    shouldEnable &&
-    queries.length > 0 &&
-    !visibleOutcomePriceCache.has(queriesKey) &&
-    restPrices.results.length === 0;
+  const uncachedQueries = useMemo(
+    () =>
+      shouldEnable
+        ? queries.filter(
+            (query) =>
+              !visibleOutcomePriceCache.has(query.outcomeTokenId) &&
+              !requestedOutcomeTokenIds.has(query.outcomeTokenId),
+          )
+        : [],
+    [queries, shouldEnable],
+  );
+  const shouldFetchRestPrices = shouldEnable && uncachedQueries.length > 0;
 
   const { prices: fetchedPrices } = usePredictPrices({
-    queries,
+    queries: uncachedQueries,
     enabled: shouldFetchRestPrices,
   });
+
+  useEffect(() => {
+    if (!shouldFetchRestPrices) {
+      return;
+    }
+
+    uncachedQueries.forEach((query) => {
+      requestedOutcomeTokenIds.add(query.outcomeTokenId);
+    });
+  }, [shouldFetchRestPrices, uncachedQueries]);
 
   useEffect(() => {
     if (fetchedPrices.results.length === 0) {
       return;
     }
 
-    visibleOutcomePriceCache.set(queriesKey, fetchedPrices);
-    setRestPrices(fetchedPrices);
-  }, [fetchedPrices, queriesKey]);
+    fetchedPrices.results.forEach((result) => {
+      visibleOutcomePriceCache.set(result.outcomeTokenId, result);
+    });
+    setRestPrices(getCachedRestPrices(queries));
+  }, [fetchedPrices, queries]);
 
   const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
     enabled: shouldEnable,

@@ -1,8 +1,8 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RefreshControl } from 'react-native';
-import { FlashList, type ViewToken } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import { strings } from '../../../../../../locales/i18n';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
 import type {
@@ -23,6 +23,7 @@ import PredictGameOutcomeCard, {
 } from './PredictGameOutcomeCard';
 import { usePredictGameOutcomeRows } from './usePredictGameOutcomeRows';
 import { useVisibleGameOutcomePricing } from './useVisibleGameOutcomePricing';
+import { useSettledFlashListVisibility } from '../../hooks/useSettledFlashListVisibility';
 
 type GameDetailsListItem =
   | {
@@ -44,20 +45,6 @@ type GameDetailsListItem =
       key: string;
       cardModel: OutcomeCardModel;
     };
-
-const areSetsEqual = (left: Set<string>, right: Set<string>) => {
-  if (left.size !== right.size) {
-    return false;
-  }
-
-  for (const value of left) {
-    if (!right.has(value)) {
-      return false;
-    }
-  }
-
-  return true;
-};
 
 interface PredictGameDetailsOutcomesListProps {
   market: PredictMarket;
@@ -104,13 +91,6 @@ const PredictGameDetailsOutcomesList = memo(
     const showStickyHeader = showTabBar || showChips;
     const selectedGroup = groupMap.get(activeChipKey);
     const { cardModels } = usePredictGameOutcomeRows(selectedGroup);
-    const [visibleCardKeys, setVisibleCardKeys] = useState<Set<string>>(
-      () => new Set(),
-    );
-    const cardModelKeys = useMemo(
-      () => new Set(cardModels.map((cardModel) => cardModel.key)),
-      [cardModels],
-    );
     const currentTabKey = showTabBar ? tabs[activeTab]?.key : 'outcomes';
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
@@ -119,6 +99,31 @@ const PredictGameDetailsOutcomesList = memo(
       showDisabledPositions || (enabled && currentTabKey === 'positions');
     const showOutcomes =
       enabled && currentTabKey === 'outcomes' && Boolean(selectedGroup);
+    const visibilityScopeKey = `${currentTabKey ?? 'none'}:${activeChipKey}`;
+    const getVisibleCardKey = useCallback(
+      (item: GameDetailsListItem) =>
+        item.type === 'outcome-card'
+          ? `${visibilityScopeKey}:${item.cardModel.key}`
+          : undefined,
+      [visibilityScopeKey],
+    );
+    const getPricingVisibleKey = useCallback(
+      (cardModel: OutcomeCardModel) => `${visibilityScopeKey}:${cardModel.key}`,
+      [visibilityScopeKey],
+    );
+    const {
+      onMomentumScrollBegin,
+      onMomentumScrollEnd,
+      onScroll,
+      onScrollBeginDrag,
+      onScrollEndDrag,
+      onViewableItemsChanged,
+      visibleKeys: visibleCardKeys,
+    } = useSettledFlashListVisibility<GameDetailsListItem>({
+      enabled: showOutcomes,
+      getVisibleKey: getVisibleCardKey,
+      resetKey: visibilityScopeKey,
+    });
     const {
       getTokenPrice,
       onSelectedLineIndexChange,
@@ -126,28 +131,10 @@ const PredictGameDetailsOutcomesList = memo(
       viewabilityConfig,
     } = useVisibleGameOutcomePricing({
       cardModels,
+      enabled: showOutcomes,
+      getCardVisibleKey: getPricingVisibleKey,
       visibleCardKeys,
     });
-
-    useEffect(() => {
-      setVisibleCardKeys((prevVisibleCardKeys) => {
-        if (!showOutcomes) {
-          return prevVisibleCardKeys.size === 0
-            ? prevVisibleCardKeys
-            : new Set();
-        }
-
-        const nextVisibleCardKeys = new Set(
-          [...prevVisibleCardKeys].filter((cardKey) =>
-            cardModelKeys.has(cardKey),
-          ),
-        );
-
-        return areSetsEqual(prevVisibleCardKeys, nextVisibleCardKeys)
-          ? prevVisibleCardKeys
-          : nextVisibleCardKeys;
-      });
-    }, [cardModelKeys, showOutcomes]);
 
     const listData = useMemo<GameDetailsListItem[]>(() => {
       const items: GameDetailsListItem[] = [];
@@ -208,35 +195,6 @@ const PredictGameDetailsOutcomesList = memo(
         onBetPress(token);
       },
       [onBetPress],
-    );
-
-    const onViewableItemsChanged = useCallback(
-      ({
-        viewableItems,
-      }: {
-        viewableItems: ViewToken<GameDetailsListItem>[];
-      }) => {
-        const nextVisibleCardKeys = new Set(
-          viewableItems
-            .map((viewableItem) => viewableItem.item)
-            .filter(
-              (
-                item,
-              ): item is Extract<
-                GameDetailsListItem,
-                { type: 'outcome-card' }
-              > => item?.type === 'outcome-card',
-            )
-            .map((item) => item.cardModel.key),
-        );
-
-        setVisibleCardKeys((prevVisibleCardKeys) =>
-          areSetsEqual(prevVisibleCardKeys, nextVisibleCardKeys)
-            ? prevVisibleCardKeys
-            : nextVisibleCardKeys,
-        );
-      },
-      [],
     );
 
     const renderItem = useCallback(
@@ -331,7 +289,13 @@ const PredictGameDetailsOutcomesList = memo(
         twClassName="flex-1"
       >
         <FlashList
+          key={visibilityScopeKey}
           data={listData}
+          extraData={{
+            activeChipKey,
+            activeTab,
+            visibleCardKeys,
+          }}
           keyExtractor={(item) => item.key}
           renderItem={renderItem}
           style={tw.style('flex-1')}
@@ -346,6 +310,11 @@ const PredictGameDetailsOutcomesList = memo(
             />
           }
           showsVerticalScrollIndicator={false}
+          onMomentumScrollBegin={onMomentumScrollBegin}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          onScroll={onScroll}
+          onScrollBeginDrag={onScrollBeginDrag}
+          onScrollEndDrag={onScrollEndDrag}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
         />

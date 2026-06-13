@@ -37,6 +37,8 @@ const areSetsEqual = (left: Set<string>, right: Set<string>) => {
 
 interface UseVisibleGameOutcomePricingParams {
   cardModels: OutcomeCardModel[];
+  enabled?: boolean;
+  getCardVisibleKey?: (cardModel: OutcomeCardModel) => string;
   visibleCardKeys?: Set<string>;
   visibilityDebounceMs?: number;
 }
@@ -58,6 +60,8 @@ interface UseVisibleGameOutcomePricingResult {
 
 export const useVisibleGameOutcomePricing = ({
   cardModels,
+  enabled = true,
+  getCardVisibleKey = (cardModel) => cardModel.key,
   visibleCardKeys,
   visibilityDebounceMs = VISIBILITY_DEBOUNCE_MS,
 }: UseVisibleGameOutcomePricingParams): UseVisibleGameOutcomePricingResult => {
@@ -103,16 +107,14 @@ export const useVisibleGameOutcomePricing = ({
   );
 
   useEffect(() => {
-    if (!visibleCardKeys) {
+    if (enabled) {
       return;
     }
 
     setRawVisibleCardKeys((prevVisibleCardKeys) =>
-      areSetsEqual(prevVisibleCardKeys, visibleCardKeys)
-        ? prevVisibleCardKeys
-        : new Set(visibleCardKeys),
+      prevVisibleCardKeys.size === 0 ? prevVisibleCardKeys : new Set(),
     );
-  }, [visibleCardKeys]);
+  }, [enabled]);
 
   const viewabilityConfig = useMemo(
     () => ({
@@ -122,15 +124,27 @@ export const useVisibleGameOutcomePricing = ({
     [],
   );
 
-  const visiblePricingScopes = useMemo(
-    () =>
-      cardModels
-        .filter((cardModel) => debouncedVisibleCardKeys.has(cardModel.key))
-        .map((cardModel) =>
-          resolveCardPricing(cardModel, selectedLineIndices[cardModel.key]),
-        ),
-    [cardModels, debouncedVisibleCardKeys, selectedLineIndices],
-  );
+  const effectiveVisibleCardKeys = visibleCardKeys ?? debouncedVisibleCardKeys;
+
+  const visiblePricingScopes = useMemo(() => {
+    if (!enabled) {
+      return [];
+    }
+
+    return cardModels
+      .filter((cardModel) =>
+        effectiveVisibleCardKeys.has(getCardVisibleKey(cardModel)),
+      )
+      .map((cardModel) =>
+        resolveCardPricing(cardModel, selectedLineIndices[cardModel.key]),
+      );
+  }, [
+    cardModels,
+    effectiveVisibleCardKeys,
+    enabled,
+    getCardVisibleKey,
+    selectedLineIndices,
+  ]);
 
   const activeTokenIds = useMemo(
     () => [...new Set(visiblePricingScopes.flatMap((scope) => scope.tokenIds))],

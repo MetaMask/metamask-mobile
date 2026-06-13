@@ -311,7 +311,31 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(false);
     });
 
-    it('removes prices for tokens that are no longer selected', () => {
+    it('keeps cached prices when unsubscribed with empty token ids', () => {
+      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
+      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const { result, rerender } = renderHook(
+        ({ tokenIds }) => useLiveMarketPrices(tokenIds),
+        { initialProps: { tokenIds: ['token1'] } },
+      );
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.75, bestBid: 0.74, bestAsk: 0.76 },
+        ]);
+      });
+
+      rerender({ tokenIds: [] });
+
+      expect(result.current.getPrice('token1')?.price).toBe(0.75);
+      expect(result.current.isConnected).toBe(false);
+    });
+
+    it('keeps prices for tokens that are no longer selected', () => {
       let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
       mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
@@ -336,8 +360,8 @@ describe('useLiveMarketPrices', () => {
 
       rerender({ tokenIds: ['token2'] });
 
-      expect(result.current.prices.size).toBe(0);
-      expect(result.current.getPrice('token1')).toBeUndefined();
+      expect(result.current.prices.size).toBe(1);
+      expect(result.current.getPrice('token1')?.price).toBe(0.75);
     });
 
     it('seeds a new hook instance from the last live update cache', () => {

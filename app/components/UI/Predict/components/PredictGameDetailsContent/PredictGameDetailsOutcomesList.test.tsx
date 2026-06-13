@@ -268,6 +268,11 @@ describe('PredictGameDetailsOutcomesList', () => {
   const settleVisibility = async () => {
     await act(async () => {
       jest.advanceTimersByTime(200);
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+    await act(async () => {
       jest.runOnlyPendingTimers();
     });
   };
@@ -413,6 +418,123 @@ describe('PredictGameDetailsOutcomesList', () => {
           { enabled: true },
         ],
       ]),
+    );
+  });
+
+  it('clears live price subscriptions when switching away from sports outcomes tab', async () => {
+    mockVisibleItemKeys = ['game-details-outcome-goal-1'];
+
+    const { rerender } = render(
+      <PredictGameDetailsOutcomesList
+        market={mockMarket}
+        enabled
+        groupMap={groupMap}
+        activeChipKey={otherGroup.key}
+        onBetPress={jest.fn()}
+        refreshing={false}
+        onRefresh={jest.fn()}
+        showTabBar
+        tabs={[
+          { key: 'outcomes', label: 'Outcomes' },
+          { key: 'positions', label: 'Positions' },
+        ]}
+        activeTab={0}
+        onTabPress={jest.fn()}
+        showChips
+        chips={[{ key: otherGroup.key, label: 'Goals' }]}
+        onChipSelect={jest.fn()}
+        activePositions={[]}
+        claimablePositions={[]}
+      />,
+    );
+
+    await settleVisibility();
+
+    expect(mockUseLiveMarketPrices.mock.calls).toEqual(
+      expect.arrayContaining([[['over', 'under'], { enabled: true }]]),
+    );
+
+    rerender(
+      <PredictGameDetailsOutcomesList
+        market={mockMarket}
+        enabled
+        groupMap={groupMap}
+        activeChipKey={otherGroup.key}
+        onBetPress={jest.fn()}
+        refreshing={false}
+        onRefresh={jest.fn()}
+        showTabBar
+        tabs={[
+          { key: 'outcomes', label: 'Outcomes' },
+          { key: 'positions', label: 'Positions' },
+        ]}
+        activeTab={1}
+        onTabPress={jest.fn()}
+        showChips={false}
+        chips={[{ key: otherGroup.key, label: 'Goals' }]}
+        onChipSelect={jest.fn()}
+        activePositions={[]}
+        claimablePositions={[]}
+      />,
+    );
+
+    expect(mockUseLiveMarketPrices.mock.calls).toEqual(
+      expect.arrayContaining([[[], { enabled: false }]]),
+    );
+  });
+
+  it('switches sports outcome group subscriptions without waiting for timers', async () => {
+    mockVisibleItemKeys = ['game-details-outcome-goal-1'];
+
+    const commonProps = {
+      market: mockMarket,
+      enabled: true,
+      groupMap,
+      onBetPress: jest.fn(),
+      refreshing: false,
+      onRefresh: jest.fn(),
+      showTabBar: false,
+      tabs: [{ key: 'outcomes' as const, label: 'Outcomes' }],
+      activeTab: 0,
+      onTabPress: jest.fn(),
+      showChips: true,
+      chips: [
+        { key: otherGroup.key, label: 'Goals' },
+        { key: lineCardGroup.key, label: 'Game Lines' },
+      ],
+      onChipSelect: jest.fn(),
+      activePositions: [],
+      claimablePositions: [],
+    };
+
+    const { rerender } = render(
+      <PredictGameDetailsOutcomesList
+        {...commonProps}
+        activeChipKey={otherGroup.key}
+      />,
+    );
+
+    await settleVisibility();
+
+    expect(mockUseLiveMarketPrices.mock.calls).toEqual(
+      expect.arrayContaining([[['over', 'under'], { enabled: true }]]),
+    );
+
+    mockUseLiveMarketPrices.mockClear();
+    mockVisibleItemKeys = ['game-details-outcome-total_corners'];
+
+    rerender(
+      <PredictGameDetailsOutcomesList
+        {...commonProps}
+        activeChipKey={lineCardGroup.key}
+      />,
+    );
+
+    expect(mockUseLiveMarketPrices.mock.calls).toEqual(
+      expect.arrayContaining([[[], { enabled: false }]]),
+    );
+    expect(mockUseLiveMarketPrices.mock.calls).toEqual(
+      expect.arrayContaining([[['over-95', 'under-95'], { enabled: true }]]),
     );
   });
 });
