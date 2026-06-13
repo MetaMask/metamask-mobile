@@ -93,6 +93,9 @@ describe('FundingCountdown', () => {
     );
 
     const element = getByTestId('styled-countdown');
-    expect(element.props.style).toEqual(expect.objectContaining(customStyle));
+    const styles = ([] as object[]).concat(element.props.style);
+    expect(styles).toEqual(
+      expect.arrayContaining([expect.objectContaining(customStyle)]),
+    );
   });
 });

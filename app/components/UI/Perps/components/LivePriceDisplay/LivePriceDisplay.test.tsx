@@ -2,10 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import LivePriceDisplay from './LivePriceDisplay';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+import { TextVariant, TextColor } from '@metamask/design-system-react-native';
 
 jest.mock('../../hooks/stream');
 
@@ -115,8 +112,9 @@ describe('LivePriceDisplay', () => {
       <LivePriceDisplay
         symbol="AVAX"
         testID="custom-price"
-        variant={TextVariant.BodyLGMedium}
-        color={TextColor.Primary}
+        variant={TextVariant.BodyLg}
+        fontWeight="medium"
+        color={TextColor.PrimaryDefault}
       />,
     );
 
