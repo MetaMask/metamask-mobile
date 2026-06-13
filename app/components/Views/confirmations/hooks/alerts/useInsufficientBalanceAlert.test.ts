@@ -22,6 +22,7 @@ import {
   useTransactionPayFiatPayment,
 } from '../pay/useTransactionPayData';
 import { Hex } from '@metamask/utils';
+import { useMoneyDepositNoFee } from '../pay/useMoneyDepositNoFee';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -61,6 +62,7 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
 jest.mock('../pay/useTransactionPayData');
+jest.mock('../pay/useMoneyDepositNoFee');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -102,6 +104,7 @@ describe('useInsufficientBalanceAlert', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    jest.mocked(useMoneyDepositNoFee).mockReturnValue(false);
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: false,
       isSupported: false,
@@ -297,7 +300,8 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns empty array if transaction type is moneyAccountWithdraw', () => {
+  it('returns empty array if transaction type is moneyAccountWithdraw and no fee', () => {
+    jest.mocked(useMoneyDepositNoFee).mockReturnValueOnce(true);
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
       type: TransactionType.moneyAccountWithdraw,

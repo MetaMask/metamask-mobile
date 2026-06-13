@@ -63,6 +63,7 @@ export interface MetaMaskPayExtendedFlags {
   enableMoneyHomePagePerpsTransaction: boolean;
   enableMoneyHomePagePredictTransaction: boolean;
   defaultPaySelectedSection?: string;
+  noNetworkFeeChains: Hex[];
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -156,6 +157,9 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
       PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
 
+    const noNetworkFeeChains =
+      (metaMaskPayExtendedFlags?.noNetworkFeeChains as Hex[]) ?? [];
+
     return {
       attemptsMax,
       bufferInitial,
@@ -169,6 +173,7 @@ export const selectMetaMaskPayFlags = createSelector(
       enableMoneyHomePagePerpsTransaction,
       enableMoneyHomePagePredictTransaction,
       defaultPaySelectedSection,
+      noNetworkFeeChains,
     };
   },
 );
