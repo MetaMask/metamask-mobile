@@ -34,7 +34,7 @@ function jsonStringifyStream() {
 function setupMultiplex(connectionStream) {
   const mux = new ObjectMultiplex();
   pump(connectionStream, mux, connectionStream, (err) => {
-    if (err) {
+    if (err && !err.message?.match(/Premature close/i)) {
       console.warn(err);
     }
   });

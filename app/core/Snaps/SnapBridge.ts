@@ -370,7 +370,7 @@ export default class SnapBridge {
     pump(caipStream, caipProviderStream, caipStream, (error: Error | null) => {
       caipEngine.destroy();
 
-      if (error) {
+      if (error && !error.message?.match(/Premature close/i)) {
         Logger.log('[SNAP BRIDGE] Error with CAIP provider stream:', error);
       }
     });
