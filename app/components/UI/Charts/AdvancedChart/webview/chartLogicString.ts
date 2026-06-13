@@ -101,12 +101,12 @@ function sendToReactNative(type, payload) {
  * \`applyChartScaleLayout\` / \`refreshLineChartOverlays\` before invoking this (see
  * \`tryCompleteLayoutSettleAfterDataCore\`).
  */
-function scheduleChartLayoutSettledNotify() {
+function scheduleChartLayoutSettledNotify(payload) {
   try {
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         if (window.chartWidget && window.isChartReady) {
-          sendToReactNative('CHART_LAYOUT_SETTLED', {});
+          sendToReactNative('CHART_LAYOUT_SETTLED', payload || {});
         }
       });
     });
@@ -114,7 +114,7 @@ function scheduleChartLayoutSettledNotify() {
     try {
       setTimeout(function () {
         if (window.chartWidget && window.isChartReady) {
-          sendToReactNative('CHART_LAYOUT_SETTLED', {});
+          sendToReactNative('CHART_LAYOUT_SETTLED', payload || {});
         }
       }, 48);
     } catch (e2) {}
@@ -214,6 +214,47 @@ function abortDeferredLayoutSettleAndNotify() {
   window.__mmLayoutSettlePending = false;
   clearMmLayoutSettleFallbackTimer();
   scheduleChartLayoutSettledNotify();
+}
+
+function runAfterTwoAnimationFrames(callback) {
+  try {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(callback);
+    });
+  } catch (e) {
+    setTimeout(callback, 32);
+  }
+}
+
+function postCurrentVisibleRangeApplied(rangeStatus, retryCount) {
+  if (!window.chartWidget || !window.isChartReady || !window.ohlcvGeneration) {
+    return;
+  }
+
+  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+  var lastBarSec = lastBar ? Math.ceil(lastBar.time / 1000) : undefined;
+  var readback = null;
+  try {
+    readback = window.chartWidget.activeChart().getVisibleRange();
+  } catch (e) {}
+
+  var payload = {
+    seriesGeneration: window.ohlcvGeneration,
+    requestedFromMs:
+      window.visibleFromMs == null ? undefined : window.visibleFromMs,
+    requestedToMs: window.visibleToMs == null ? undefined : window.visibleToMs,
+    actualFromSec: readback ? readback.from : undefined,
+    actualToSec: readback ? readback.to : undefined,
+    lastBarSec: lastBarSec,
+    latestBarVisible:
+      lastBarSec === undefined ||
+      (readback && readback.from <= lastBarSec && readback.to >= lastBarSec),
+    rangeStatus: rangeStatus,
+    rangeApplyRetryCount: retryCount,
+  };
+
+  sendToReactNative('CHART_RANGE_APPLIED', payload);
+  scheduleChartLayoutSettledNotify(payload);
 }
 
 // ============================================
@@ -416,7 +457,12 @@ function handleSetOHLCVData(payload) {
 
   window.ohlcvData = payload.data;
   bumpLineChartOhlcvEpoch();
-  window.ohlcvGeneration++;
+  window.ohlcvGeneration =
+    typeof payload.seriesGeneration === 'number' &&
+    isFinite(payload.seriesGeneration)
+      ? payload.seriesGeneration
+      : window.ohlcvGeneration + 1;
+  var activeGeneration = window.ohlcvGeneration;
 
   if (payload.pagination) {
     window.ohlcvPagination = {
@@ -443,9 +489,160 @@ function handleSetOHLCVData(payload) {
 
   var newResolution = detectResolution(window.ohlcvData);
 
+  function buildRangePayload(rangeStatus, retryCount, reason) {
+    var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+    var lastBarSec = lastBar ? Math.ceil(lastBar.time / 1000) : undefined;
+    var payloadBase = {
+      seriesGeneration: activeGeneration,
+      requestedFromMs: visibleFromMs == null ? undefined : visibleFromMs,
+      requestedToMs: visibleToMs == null ? undefined : visibleToMs,
+      lastBarSec: lastBarSec,
+      latestBarVisible: false,
+      rangeStatus: rangeStatus,
+      rangeApplyRetryCount: retryCount,
+    };
+
+    if (reason) {
+      payloadBase.reason = reason;
+    }
+
+    return payloadBase;
+  }
+
+  function sendRangeApplied(readback, retryCount) {
+    var payloadBase = buildRangePayload('applied', retryCount);
+    if (readback) {
+      payloadBase.actualFromSec = readback.from;
+      payloadBase.actualToSec = readback.to;
+    }
+    payloadBase.latestBarVisible =
+      (readback == null && visibleFromMs == null) ||
+      payloadBase.lastBarSec === undefined ||
+      (payloadBase.actualFromSec !== undefined &&
+        payloadBase.actualToSec !== undefined &&
+        payloadBase.actualFromSec <= payloadBase.lastBarSec &&
+        payloadBase.actualToSec >= payloadBase.lastBarSec);
+    sendToReactNative('CHART_RANGE_APPLIED', payloadBase);
+    scheduleChartLayoutSettledNotify(payloadBase);
+  }
+
+  function sendRangeApplyFailed(retryCount, reason) {
+    sendToReactNative(
+      'CHART_RANGE_APPLY_FAILED',
+      buildRangePayload('failed', retryCount, reason),
+    );
+  }
+
+  function applyVisibleRange(chart, retryCount) {
+    if (activeGeneration !== window.ohlcvGeneration) {
+      return;
+    }
+    if (visibleFromMs == null) {
+      sendRangeApplied(null, retryCount);
+      return;
+    }
+
+    var fromSec = Math.floor(visibleFromMs / 1000);
+    var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+    var toSec =
+      visibleToMs != null
+        ? Math.ceil(visibleToMs / 1000)
+        : lastBar
+          ? Math.ceil(lastBar.time / 1000)
+          : Math.ceil(Date.now() / 1000);
+    // Pad \`to\` forward by 2 bar durations so the end dot clears the price axis.
+    // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
+    var barPadSec = getApproxBarDurationSec() * 2;
+
+    function validateVisibleRange() {
+      if (activeGeneration !== window.ohlcvGeneration) {
+        return;
+      }
+      var readback = null;
+      try {
+        readback = chart.getVisibleRange();
+      } catch (e) {}
+
+      var lastBarSec = lastBar ? Math.ceil(lastBar.time / 1000) : undefined;
+      var latestVisible =
+        lastBarSec === undefined ||
+        (readback &&
+          readback.from <= lastBarSec &&
+          readback.to >= lastBarSec);
+
+      if (latestVisible) {
+        sendRangeApplied(readback, retryCount);
+        return;
+      }
+
+      if (retryCount < 1) {
+        runAfterTwoAnimationFrames(function () {
+          applyVisibleRange(chart, retryCount + 1);
+        });
+        return;
+      }
+
+      sendRangeApplyFailed(retryCount, 'latest_bar_not_visible');
+    }
+
+    try {
+      var rangePromise = chart.setVisibleRange(
+        { from: fromSec, to: toSec + barPadSec },
+        { percentRightMargin: 0 },
+      );
+      if (rangePromise && typeof rangePromise.then === 'function') {
+        rangePromise
+          .then(function () {
+            runAfterTwoAnimationFrames(validateVisibleRange);
+          })
+          .catch(function (error) {
+            if (retryCount < 1) {
+              runAfterTwoAnimationFrames(function () {
+                applyVisibleRange(chart, retryCount + 1);
+              });
+              return;
+            }
+            sendRangeApplyFailed(
+              retryCount,
+              error && error.message ? error.message : 'setVisibleRange_failed',
+            );
+          });
+      } else {
+        runAfterTwoAnimationFrames(validateVisibleRange);
+      }
+    } catch (e) {
+      if (retryCount < 1) {
+        runAfterTwoAnimationFrames(function () {
+          applyVisibleRange(chart, retryCount + 1);
+        });
+        return;
+      }
+      sendRangeApplyFailed(
+        retryCount,
+        e && e.message ? e.message : 'setVisibleRange_threw',
+      );
+    }
+  }
+
   function scheduleVisibleRangeAfterDataLoad(chart) {
-    if (visibleFromMs == null) return;
-    var capturedGeneration = window.ohlcvGeneration;
+    var capturedGeneration = activeGeneration;
+    var didRun = false;
+    var fallbackTimer = setTimeout(function () {
+      run();
+    }, LAYOUT_SETTLE_DATA_FALLBACK_MS + 80);
+
+    function run() {
+      if (didRun) {
+        return;
+      }
+      didRun = true;
+      clearTimeout(fallbackTimer);
+      if (capturedGeneration !== window.ohlcvGeneration) {
+        return;
+      }
+      applyVisibleRange(chart, 0);
+    }
+
     var sub = chart.onDataLoaded();
     sub.subscribe(null, function onLoaded() {
       sub.unsubscribe(null, onLoaded);
@@ -453,22 +650,7 @@ function handleSetOHLCVData(payload) {
       if (capturedGeneration !== window.ohlcvGeneration) {
         return;
       }
-      var fromSec = Math.floor(visibleFromMs / 1000);
-      var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-      var toSec = lastBar
-        ? Math.ceil(lastBar.time / 1000)
-        : Math.ceil(Date.now() / 1000);
-      // Pad \`to\` forward by 2 bar durations so the end dot clears the price axis.
-      // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
-      var barPadSec = getApproxBarDurationSec() * 2;
-      try {
-        chart.setVisibleRange(
-          { from: fromSec, to: toSec + barPadSec },
-          { percentRightMargin: 0 },
-        );
-      } catch (e) {
-        // setVisibleRange can fail if chart is mid-teardown
-      }
+      run();
     });
   }
 
@@ -478,22 +660,40 @@ function handleSetOHLCVData(payload) {
 
     try {
       var chart = window.chartWidget.activeChart();
+      function resetTradingViewData() {
+        try {
+          if (
+            window.chartWidget &&
+            typeof window.chartWidget.resetCache === 'function'
+          ) {
+            window.chartWidget.resetCache();
+          }
+        } catch (resetCacheError) {}
+        beginDeferredLayoutSettleAfterOhlcvReload();
+        chart.resetData();
+        scheduleVisibleRangeAfterDataLoad(chart);
+      }
+
       if (previousResolution !== newResolution) {
-        chart.setResolution(newResolution, function () {
+        var resolutionPromise = chart.setResolution(newResolution, function () {
           try {
-            chart.resetData();
-            beginDeferredLayoutSettleAfterOhlcvReload();
-            scheduleVisibleRangeAfterDataLoad(chart);
+            resetTradingViewData();
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
             return;
           }
         });
+        if (
+          resolutionPromise &&
+          typeof resolutionPromise.catch === 'function'
+        ) {
+          resolutionPromise.catch(function () {
+            abortDeferredLayoutSettleAndNotify();
+          });
+        }
       } else {
         try {
-          chart.resetData();
-          beginDeferredLayoutSettleAfterOhlcvReload();
-          scheduleVisibleRangeAfterDataLoad(chart);
+          resetTradingViewData();
         } catch (e) {
           abortDeferredLayoutSettleAndNotify();
           return;
@@ -724,7 +924,8 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -2257,7 +2458,8 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3039,7 +3241,8 @@ function refreshLineEndDot() {
     return;
   }
 
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
@@ -3245,7 +3448,8 @@ var VARIABLE_TICK_SIZE = [
   '0.1', // prices ≥ $10000    →  1 dp
 ].join(' ');
 
-function filterBarsForRange(fromMs, toMs, countBack) {
+function filterBarsForRange(fromMs, toMs, countBack, options) {
+  var exactRange = !!(options && options.exactRange);
   var barsInRange = [];
   for (var i = 0; i < window.ohlcvData.length; i++) {
     var b = window.ohlcvData[i];
@@ -3259,6 +3463,10 @@ function filterBarsForRange(fromMs, toMs, countBack) {
         volume: b.volume,
       });
     }
+  }
+
+  if (exactRange) {
+    return barsInRange;
   }
 
   if (barsInRange.length < countBack) {
@@ -3463,7 +3671,15 @@ var customDatafeed = {
         }
       }
 
-      var bars = filterBarsForRange(fromMs, toMs, countBack);
+      var exactPrimaryRange =
+        !!firstRequest && window.visibleFromMs != null && window.visibleToMs != null;
+      var requestFromMs = exactPrimaryRange ? window.visibleFromMs : fromMs;
+      // \`filterBarsForRange\` uses an exclusive \`to\`; include the last candle when RN anchors
+      // the visible window to its timestamp.
+      var requestToMs = exactPrimaryRange ? window.visibleToMs + 1 : toMs;
+      var bars = filterBarsForRange(requestFromMs, requestToMs, countBack, {
+        exactRange: exactPrimaryRange,
+      });
 
       if (bars.length > 0) {
         deliverBars(bars, { noData: false });
@@ -3842,6 +4058,11 @@ function initChart() {
       subscribeLastCloseLabelUpdates();
 
       sendToReactNative('CHART_READY', {});
+      if (window.visibleFromMs != null) {
+        runAfterTwoAnimationFrames(function () {
+          postCurrentVisibleRangeApplied('applied', 0);
+        });
+      }
 
       installTradingViewExternalOpenBridge();
 

@@ -29,6 +29,7 @@ import { Skeleton } from '../../../../component-library/components-temp/Skeleton
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
+  type ChartRangeSettlePayload,
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
@@ -64,6 +65,7 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceValue,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
@@ -118,6 +120,28 @@ function getAdvancedChartVisibilityTraceRequest(
     name: TraceName.TokenOverviewAdvancedChartInitialVisible,
     op: TraceOperation.TokenOverviewAdvancedChart,
   };
+}
+
+function getAdvancedChartRangeTraceData(
+  payload?: ChartRangeSettlePayload,
+): Record<string, TraceValue> | undefined {
+  if (!payload) {
+    return undefined;
+  }
+
+  const data: Record<string, TraceValue> = {};
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (
+      typeof value === 'number' ||
+      typeof value === 'string' ||
+      typeof value === 'boolean'
+    ) {
+      data[key] = value;
+    }
+  });
+
+  return Object.keys(data).length > 0 ? data : undefined;
 }
 
 export interface PriceAdvancedProps {
@@ -269,17 +293,22 @@ const PriceAdvanced = ({
     traceName: TraceName;
   } | null>(null);
 
-  const handleAdvancedChartSkeletonHidden = useCallback(() => {
-    const open = activeVisibilityTraceRef.current;
-    if (!open) {
-      return;
-    }
-    endTrace({
-      name: open.traceName,
-      id: open.seriesKey,
-    });
-    activeVisibilityTraceRef.current = null;
-  }, []);
+  const handleAdvancedChartSkeletonHidden = useCallback(
+    (payload?: ChartRangeSettlePayload) => {
+      const open = activeVisibilityTraceRef.current;
+      if (!open) {
+        return;
+      }
+      const data = getAdvancedChartRangeTraceData(payload);
+      endTrace({
+        name: open.traceName,
+        id: open.seriesKey,
+        ...(data ? { data } : {}),
+      });
+      activeVisibilityTraceRef.current = null;
+    },
+    [],
+  );
 
   const handleAdvancedChartError = useCallback((error: string) => {
     const open = activeVisibilityTraceRef.current;

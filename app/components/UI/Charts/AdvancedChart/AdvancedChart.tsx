@@ -26,6 +26,7 @@ import {
   resolveLineChromeOptions,
   type AdvancedChartProps,
   type AdvancedChartRef,
+  type ChartRangeSettlePayload,
   type IndicatorType,
   type OHLCVBar,
   type OHLCVPaginationConfig,
@@ -129,6 +130,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const ohlcvSeriesStaleSnapshotRef = useRef<OHLCVBar[] | null>(null);
     const tradingViewOpenInterceptRef = useRef(0);
     const skeletonHiddenReportedRef = useRef(false);
+    const seriesGenerationRef = useRef(0);
+    const activeSettleGenerationRef = useRef<number | null>(null);
+    const activeSettleRequiresRangeProofRef = useRef(false);
+    const rangeSettlePayloadRef = useRef<ChartRangeSettlePayload | undefined>(
+      undefined,
+    );
+    const webViewRemountedGenerationsRef = useRef<Set<number>>(new Set());
+    const markNextGenerationAsRemountedRef = useRef(false);
+    const [webViewRemountNonce, setWebViewRemountNonce] = useState(0);
 
     const htmlContent = useMemo(
       () =>
@@ -151,21 +161,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       ],
     );
 
-    // Reset all chart state when the WebView reloads due to htmlContent changes
-    useEffect(() => {
-      skeletonHiddenReportedRef.current = false;
-      setChartReadyCount(0);
-      setWebViewLoaded(false);
-      webViewLoadedRef.current = false;
-      setWebViewError(null);
-      activeIndicatorsRef.current.clear();
-      prevPositionLinesRef.current = undefined;
-      prevChartTypeRef.current = undefined;
-      prevOhlcvDataRef.current = [];
-      prevOhlcvSeriesKeyRef.current = undefined;
-      ohlcvSeriesStaleSnapshotRef.current = null;
-    }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
-
     // ---- Helpers ----
 
     const postMessage = useCallback((message: RNToWebViewMessage) => {
@@ -182,37 +177,125 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
     }, []);
 
-    const beginFullOhlcvLayoutSettle = useCallback(() => {
-      if (!isChartReady) {
-        return;
-      }
+    const resetWebViewRuntimeState = useCallback(() => {
+      skeletonHiddenReportedRef.current = false;
+      activeSettleGenerationRef.current = null;
+      activeSettleRequiresRangeProofRef.current = false;
+      rangeSettlePayloadRef.current = undefined;
+      setChartReadyCount(0);
+      setWebViewLoaded(false);
+      webViewLoadedRef.current = false;
+      setLayoutSettling(false);
+      clearLayoutSettleTimeout();
+      setWebViewError(null);
+      activeIndicatorsRef.current.clear();
+      prevPositionLinesRef.current = undefined;
+      prevChartTypeRef.current = undefined;
+      prevOhlcvDataRef.current = [];
+      prevOhlcvSeriesKeyRef.current = undefined;
+      ohlcvSeriesStaleSnapshotRef.current = null;
+    }, [clearLayoutSettleTimeout]);
+
+    // Reset all chart state when the WebView reloads due to htmlContent changes.
+    useEffect(() => {
+      resetWebViewRuntimeState();
+    }, [htmlContent, resetWebViewRuntimeState]);
+
+    const beginFullOhlcvLayoutSettle = useCallback(
+      (seriesGeneration?: number) => {
+        skeletonHiddenReportedRef.current = false;
+        rangeSettlePayloadRef.current = undefined;
+        if (!isChartReady && !activeSettleRequiresRangeProofRef.current) {
+          return;
+        }
+        setLayoutSettling(true);
+        clearLayoutSettleTimeout();
+        layoutSettleTimeoutRef.current = setTimeout(() => {
+          layoutSettleTimeoutRef.current = null;
+          if (
+            seriesGeneration !== undefined &&
+            activeSettleGenerationRef.current !== seriesGeneration
+          ) {
+            return;
+          }
+          if (seriesGeneration !== undefined) {
+            const remounted =
+              webViewRemountedGenerationsRef.current.has(seriesGeneration);
+            rangeSettlePayloadRef.current = {
+              seriesGeneration,
+              rangeStatus: 'fallback',
+              webViewRemounted: remounted,
+            };
+            webViewRemountedGenerationsRef.current.delete(seriesGeneration);
+          }
+          setLayoutSettling(false);
+        }, LAYOUT_SETTLE_FALLBACK_MS);
+      },
+      [isChartReady, clearLayoutSettleTimeout],
+    );
+
+    const completeLayoutSettle = useCallback(
+      (payload?: ChartRangeSettlePayload) => {
+        if (
+          !payload &&
+          activeSettleGenerationRef.current !== null &&
+          activeSettleRequiresRangeProofRef.current
+        ) {
+          return;
+        }
+        if (
+          payload?.seriesGeneration !== undefined &&
+          activeSettleGenerationRef.current !== payload.seriesGeneration
+        ) {
+          return;
+        }
+
+        const payloadWithRemount =
+          payload &&
+          webViewRemountedGenerationsRef.current.has(payload.seriesGeneration)
+            ? { ...payload, webViewRemounted: true }
+            : payload;
+
+        if (payload) {
+          webViewRemountedGenerationsRef.current.delete(
+            payload.seriesGeneration,
+          );
+        }
+        activeSettleRequiresRangeProofRef.current = false;
+        rangeSettlePayloadRef.current = payloadWithRemount;
+        clearLayoutSettleTimeout();
+        setLayoutSettling(false);
+      },
+      [clearLayoutSettleTimeout],
+    );
+
+    const requestFallbackRemount = useCallback(() => {
+      markNextGenerationAsRemountedRef.current = true;
+      resetWebViewRuntimeState();
+      setWebViewRemountNonce((nonce) => nonce + 1);
+    }, [resetWebViewRuntimeState]);
+
+    const beginPendingSeriesSettle = useCallback(() => {
+      skeletonHiddenReportedRef.current = false;
+      rangeSettlePayloadRef.current = undefined;
       setLayoutSettling(true);
       clearLayoutSettleTimeout();
       layoutSettleTimeoutRef.current = setTimeout(() => {
         layoutSettleTimeoutRef.current = null;
         setLayoutSettling(false);
       }, LAYOUT_SETTLE_FALLBACK_MS);
-    }, [isChartReady, clearLayoutSettleTimeout]);
+    }, [clearLayoutSettleTimeout]);
 
-    // WebView remounts when `key` changes; parent state would otherwise still look "ready".
-    // `CHART_READY` clears indicator/position/chart-type refs once the new instance loads.
     useEffect(() => {
       if (ohlcvSeriesKey === undefined) {
         return;
       }
-      skeletonHiddenReportedRef.current = false;
-      setChartReadyCount(0);
-      setWebViewLoaded(false);
-      setLayoutSettling(false);
-      clearLayoutSettleTimeout();
+      beginPendingSeriesSettle();
       ohlcvSeriesStaleSnapshotRef.current =
         prevOhlcvSeriesKeyRef.current !== undefined
           ? prevOhlcvDataRef.current
           : null;
-      activeIndicatorsRef.current.clear();
-      prevPositionLinesRef.current = undefined;
-      prevChartTypeRef.current = undefined;
-    }, [ohlcvSeriesKey, clearLayoutSettleTimeout]);
+    }, [ohlcvSeriesKey, beginPendingSeriesSettle]);
 
     useEffect(
       () => () => {
@@ -234,17 +317,28 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
+        const seriesGeneration = seriesGenerationRef.current + 1;
+        seriesGenerationRef.current = seriesGeneration;
+        activeSettleGenerationRef.current = seriesGeneration;
+        activeSettleRequiresRangeProofRef.current =
+          visibleFromMsRef.current !== undefined;
+        if (markNextGenerationAsRemountedRef.current) {
+          markNextGenerationAsRemountedRef.current = false;
+          webViewRemountedGenerationsRef.current.add(seriesGeneration);
+        }
+        beginFullOhlcvLayoutSettle(seriesGeneration);
         postMessage({
           type: 'SET_OHLCV_DATA',
           payload: {
             data,
+            seriesGeneration,
             pagination: paginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
             visibleToMs: visibleToMsRef.current,
           },
         });
       },
-      [postMessage],
+      [beginFullOhlcvLayoutSettle, postMessage],
     );
 
     const addIndicator = useCallback(
@@ -326,16 +420,32 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             activeIndicatorsRef.current.clear();
             prevPositionLinesRef.current = undefined;
             prevChartTypeRef.current = undefined;
-            clearLayoutSettleTimeout();
-            setLayoutSettling(false);
+            if (!activeSettleRequiresRangeProofRef.current) {
+              clearLayoutSettleTimeout();
+              setLayoutSettling(false);
+            }
             setChartReadyCount((c) => c + 1);
             setWebViewError(null);
             onChartReady?.();
             break;
 
           case 'CHART_LAYOUT_SETTLED':
-            clearLayoutSettleTimeout();
-            setLayoutSettling(false);
+            completeLayoutSettle(message.payload);
+            break;
+
+          case 'CHART_RANGE_APPLIED':
+            if (message.payload.latestBarVisible !== false) {
+              completeLayoutSettle(message.payload);
+            }
+            break;
+
+          case 'CHART_RANGE_APPLY_FAILED':
+            if (
+              activeSettleGenerationRef.current ===
+              message.payload.seriesGeneration
+            ) {
+              requestFallbackRemount();
+            }
             break;
 
           case 'INDICATOR_ADDED':
@@ -384,6 +494,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       [
         isChartReady,
         clearLayoutSettleTimeout,
+        completeLayoutSettle,
+        requestFallbackRemount,
         onChartReady,
         onError,
         onCrosshairMove,
@@ -427,6 +539,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
           ohlcvSeriesStaleSnapshotRef.current = null;
+          activeSettleGenerationRef.current = null;
+          activeSettleRequiresRangeProofRef.current = false;
+          rangeSettlePayloadRef.current = undefined;
+          markNextGenerationAsRemountedRef.current = false;
           webViewRef.current?.reload();
         },
       }),
@@ -457,7 +573,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         ohlcvSeriesKey !== undefined &&
         ohlcvSeriesKey !== prevOhlcvSeriesKeyRef.current
       ) {
-        beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
         prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
@@ -469,7 +584,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         prevData.length === 0 ||
         Math.abs(ohlcvData.length - prevData.length) > 1
       ) {
-        beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
         if (ohlcvSeriesKey !== undefined) {
@@ -500,14 +614,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
 
       prevOhlcvDataRef.current = ohlcvData;
-    }, [
-      ohlcvData,
-      ohlcvSeriesKey,
-      webViewLoaded,
-      sendOHLCVData,
-      postMessage,
-      beginFullOhlcvLayoutSettle,
-    ]);
+    }, [ohlcvData, ohlcvSeriesKey, webViewLoaded, sendOHLCVData, postMessage]);
 
     // Send initial chartType as soon as WebView loads (before chart is ready)
     // This prevents the flash of default chart type during initialization
@@ -604,7 +711,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         return;
       }
       skeletonHiddenReportedRef.current = true;
-      onSkeletonHidden();
+      onSkeletonHidden(rangeSettlePayloadRef.current);
     }, [
       isLoading,
       isChartReady,
@@ -629,7 +736,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       <View style={styles.container}>
         <View style={styles.chartSurface}>
           <WebView
-            key={`advanced-chart-${ohlcvSeriesKey ?? ''}`}
+            key={`advanced-chart-${webViewRemountNonce}`}
             ref={webViewRef}
             source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
             style={styles.webview}
