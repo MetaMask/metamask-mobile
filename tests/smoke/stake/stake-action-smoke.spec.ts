@@ -87,6 +87,35 @@ describe(SmokeStake('Stake from Actions'), (): void => {
             responseCode: 200,
           });
 
+          // Mock Accounts API V5 (account-group balances) funded as well: the
+          // DEFAULT v5 mock returns an empty balance list, and an
+          // authoritative empty answer on this endpoint can win over the
+          // funded v4 response (observed on Android under the device proxy:
+          // the app stayed in the zero-balance empty state with v4 funded +
+          // v5 empty, while the lending specs — which override v5 — render
+          // balances fine on the same device).
+          await setupMockRequest(mockServer, {
+            url: /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
+            response: {
+              count: 1,
+              balances: [
+                {
+                  object: 'token',
+                  assetId: 'eip155:1/slip44:60',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  type: 'native',
+                  decimals: 18,
+                  balance: '10000.000000000000000000',
+                  accountId: `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
+                },
+              ],
+              unprocessedNetworks: [],
+            },
+            requestMethod: 'GET',
+            responseCode: 200,
+          });
+
           // Mock Accounts API V2 (per-account balances) for the same reason.
           await setupMockRequest(mockServer, {
             url: /accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^/]+\/balances/,
