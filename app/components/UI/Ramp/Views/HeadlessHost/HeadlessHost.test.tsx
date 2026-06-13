@@ -295,6 +295,20 @@ describe('HeadlessHost', () => {
       });
     });
 
+    it('uses the walletAddress captured on the session when the account selector no longer resolves one', async () => {
+      mockUseRampAccountAddress.mockReturnValue(null);
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote, { walletAddress: '0xSNAPSHOT' });
+
+      renderHost({ headlessSessionId: session.id });
+
+      await waitFor(() =>
+        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
+      );
+      const [, ctx] = mockContinueWithQuote.mock.calls[0];
+      expect(ctx.walletAddress).toBe('0xSNAPSHOT');
+    });
+
     it('calls continueWithQuote once for a native quote and flips the session status to `continued`', async () => {
       const quote = buildNativeQuote();
       const session = seedSession(quote);
@@ -400,6 +414,23 @@ describe('HeadlessHost', () => {
       });
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('surfaces an unresolved wallet address as onError(UNKNOWN, ...) instead of leaving the invisible host pending', () => {
+      mockUseRampAccountAddress.mockReturnValue(null);
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+
+      renderHost({ headlessSessionId: session.id });
+
+      expect(callbacks.onError).toHaveBeenCalledWith({
+        code: 'UNKNOWN',
+        message: expect.stringContaining('could not resolve wallet address'),
+      });
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
+      expect(getSession(session.id)).toBeUndefined();
+      expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
 
     it('surfaces limit failures as onError(LIMIT_EXCEEDED, ...)', async () => {
