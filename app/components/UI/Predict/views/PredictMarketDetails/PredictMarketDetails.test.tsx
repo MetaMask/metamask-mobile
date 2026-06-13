@@ -1383,6 +1383,28 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
+    it('allows About tab selection while positions queries are still loading', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          positions: {
+            active: { isLoading: true },
+            claimable: { isLoading: true },
+          },
+        },
+      );
+
+      const aboutTab = screen.getByTestId(
+        getPredictMarketDetailsSelector.tabBarTab('about'),
+      );
+      fireEvent.press(aboutTab);
+
+      expect(
+        screen.getByText('predict.market_details.volume'),
+      ).toBeOnTheScreen();
+    });
+
     it('hides Positions tab when user has no positions', () => {
       setupPredictMarketDetailsTest();
 
