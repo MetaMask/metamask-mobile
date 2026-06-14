@@ -69,7 +69,9 @@ export const dismissDevScreens = async (): Promise<void> => {
 
 const getMetroServerUrl = (): string => {
   const port = process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
-  const host = process.env.METRO_HOST_E2E || 'localhost';
+  const host =
+    process.env.METRO_HOST_E2E ??
+    (PlatformDetector.isAndroid() ? '10.0.2.2' : 'localhost');
   return `http://${host}:${port}`;
 };
 

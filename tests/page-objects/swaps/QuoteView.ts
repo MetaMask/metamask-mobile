@@ -32,19 +32,19 @@ const TIMEOUT = {
 } as const;
 
 class QuoteView {
-  get selectAmountLabel(): DetoxElement {
+  get selectAmountLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_AMOUNT);
   }
 
-  get confirmBridge(): DetoxElement {
+  get confirmBridge(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get confirmSwap(): DetoxElement {
+  get confirmSwap(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get sourceTokenArea(): DetoxElement {
+  get sourceTokenArea(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
@@ -96,15 +96,15 @@ class QuoteView {
     });
   }
 
-  get seeAllButton(): DetoxElement {
+  get seeAllButton(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL);
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
-  get networkFeeLabel(): DetoxElement {
+  get networkFeeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
@@ -149,15 +149,15 @@ class QuoteView {
     });
   }
 
-  get maxLink(): DetoxElement {
+  get maxLink(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
 
-  get includedLabel(): DetoxElement {
+  get includedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
   }
 
-  get rateLabel(): DetoxElement {
+  get rateLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
@@ -509,7 +509,7 @@ class QuoteView {
    * Gets the slippage display text element (e.g., "2.5%")
    * @param value - The slippage value to match (e.g., "2.5" for 2.5%)
    */
-  slippageDisplayText(value: string): DetoxElement {
+  slippageDisplayText(value: string): EncapsulatedElementType {
     return Matchers.getElementByText(`${value}%`);
   }
 

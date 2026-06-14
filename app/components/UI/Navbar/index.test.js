@@ -18,7 +18,6 @@ import {
   getBridgeNavbar,
   getBridgeTransactionDetailsNavbar,
   getStakingNavbar,
-  getDeFiProtocolPositionDetailsNavbarOptions,
   getRampsOrderDetailsNavbarOptions,
   getPaymentSelectorMethodNavbar,
   getPaymentMethodApplePayNavbar,
@@ -486,16 +485,6 @@ describe('Navbar', () => {
       );
 
       expect(options).toHaveProperty('headerRight');
-    });
-  });
-
-  describe('getDeFiProtocolPositionDetailsNavbarOptions', () => {
-    it('returns correct options', () => {
-      const options =
-        getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
-
-      expect(options).toHaveProperty('headerTitle');
-      expect(options).toHaveProperty('headerLeft');
     });
   });
 

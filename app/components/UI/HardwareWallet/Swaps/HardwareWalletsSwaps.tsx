@@ -28,7 +28,6 @@ import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import Logger from '../../../../util/Logger';
 import genericHardwareWalletRiveFile from '../../../../animations/generic_hardware_wallet.riv';
 import {
   resetHardwareWalletsSwaps,
@@ -64,7 +63,7 @@ import { useHardwareWallet } from '../../../../core/HardwareWallet';
 
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
-import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { StepRow } from './StepRow';
 
 interface SubmissionParams {
@@ -102,11 +101,23 @@ const STATUS_TO_RIVE_TRIGGER: Record<string, string> = {
   [HardwareWalletsSwapsStatus.Idle]: HardwareWalletRiveTrigger.NotFound,
 };
 
+/**
+ * Determines the appropriate Rive animation trigger based on the current
+ * swap flow state. Terminal statuses map to dedicated triggers; otherwise
+ * the active step's status is inspected to choose between wallet-locked
+ * (signing in progress) and reset (idle/awaiting input).
+ *
+ * @param progress - The current hardware wallet swap flow state.
+ * @returns The Rive state-machine trigger string to fire.
+ */
 function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
+  // Terminal/known statuses have a direct 1:1 mapping to a Rive trigger.
   const mapped = STATUS_TO_RIVE_TRIGGER[progress.status];
   if (mapped) return mapped;
 
-  const activeStep = progress.steps[progress.currentStep - 1];
+  // For non-terminal statuses, choose the animation based on the current step.
+  // Signing → wallet-locked; anything else (e.g. between steps) → reset.
+  const activeStep = progress.steps[progress.currentStep];
   return activeStep?.status === HardwareWalletsSwapsStepStatus.Signing
     ? HardwareWalletRiveTrigger.WalletLocked
     : HardwareWalletRiveTrigger.Reset;
@@ -146,34 +157,42 @@ export function HardwareWalletsSwaps() {
       currentStatus: progress.status,
     });
 
-  const { connectionState, setForceHideBottomSheet } = useHardwareWallet();
+  const { connectionState, setForceHideBottomSheet, walletType } =
+    useHardwareWallet();
+
+  const isLedgerHardwareWallet = useMemo(
+    () => walletType === HardwareWalletType.Ledger,
+    [walletType],
+  );
 
   useEffect(() => {
-    if (!isQrHardwareWallet) return;
+    if (isLedgerHardwareWallet) return;
     setForceHideBottomSheet?.(true);
     return () => {
       setForceHideBottomSheet?.(false);
     };
-  }, [isQrHardwareWallet, setForceHideBottomSheet]);
+  }, [isLedgerHardwareWallet, isQrHardwareWallet, setForceHideBottomSheet]);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { params: routeParams } = useRoute();
+  const routeSubmissionParams = useMemo(
+    () =>
+      (routeParams as { submissionParams?: SubmissionParams })
+        ?.submissionParams ?? null,
+    [routeParams],
+  );
   const cachedSubmissionParams = useRef<SubmissionParams | null>(
-    (routeParams as { submissionParams?: SubmissionParams })
-      ?.submissionParams ?? null,
+    routeSubmissionParams,
   );
   useEffect(() => {
-    const routeSubmissionParams = (
-      routeParams as { submissionParams?: SubmissionParams }
-    )?.submissionParams;
     if (routeSubmissionParams && !cachedSubmissionParams.current) {
       cachedSubmissionParams.current = routeSubmissionParams;
     }
-  }, [routeParams]);
+  }, [routeSubmissionParams]);
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
-  const retryingMutexRef = useRef(false);
+  const retryInProgressRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
   const navigateToTransactions = useCallback(() => {
@@ -227,12 +246,18 @@ export function HardwareWalletsSwaps() {
   // block this signing operation; latch once allStepsSigned so the
   // subsequent navigateToTransactions → resetHardwareWalletsSwaps
   // (which clears steps and flips allStepsSigned back to false)
-  // doesn't un-hide the sheet right before unmount.
+  // doesn't un-hide the sheet right before unmount. Only clear on unmount
+  // if signing never reached the latched force-hide state.
   const forceHideLatchedRef = useRef(false);
   useEffect(() => {
+    if (isQrHardwareWallet) return;
     forceHideLatchedRef.current = false;
     setForceHideBottomSheet?.(false);
-  }, [setForceHideBottomSheet]);
+    return () => {
+      if (forceHideLatchedRef.current) return;
+      setForceHideBottomSheet?.(false);
+    };
+  }, [isQrHardwareWallet, setForceHideBottomSheet]);
   useEffect(() => {
     if (isQrHardwareWallet) return;
     if (!allStepsSigned) return;
@@ -242,6 +267,12 @@ export function HardwareWalletsSwaps() {
   }, [allStepsSigned, isQrHardwareWallet, setForceHideBottomSheet]);
 
   useEffect(() => {
+    // ── Flow termination ──────────────────────────────────────────────
+    // All device signing steps are complete AND a submission was started.
+    // This fires exactly once (guarded by hasAutoNavigatedRef) to show the
+    // success toast, reset hardware-wallet-swaps state, and navigate to the
+    // activity / transactions view. This is where the swaps signing flow ends.
+    // ──────────────────────────────────────────────────────────────────
     if (!allStepsSigned) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
@@ -260,6 +291,12 @@ export function HardwareWalletsSwaps() {
       );
       return;
     }
+
+    // Stale-submission guard: capture the current generation before submitting.
+    // If a retry is triggered while this submission is in-flight, the generation
+    // counter is bumped (see retrySubmission). On error, we check whether our
+    // generation is still current — if not, a newer submission has already taken
+    // over and we must not dispatch a TransactionFailed
     const myGeneration = submissionGenerationRef.current;
     try {
       await submitBridgeTxRef.current(cachedSubmissionParams.current);
@@ -267,11 +304,10 @@ export function HardwareWalletsSwaps() {
       if (submissionGenerationRef.current !== myGeneration) {
         return;
       }
-      Logger.error(
-        error as Error,
-        `HardwareWalletsSwaps: submission failed: ${JSON.stringify(error)}`,
-      );
       const currentProgress = progressRef.current;
+      // We can't use isSigning here because it would skip transaction failed when it isn't signing.
+      // 1. Early throw — submitBridgeTx fails before signing starts (step status still Waiting, overall status Waiting).
+      // 2. Post-signing throw — all steps signed (status Submitted, step status Signed), then broadcast fails.
       if (
         currentProgress.status === HardwareWalletsSwapsStatus.Waiting ||
         currentProgress.status === HardwareWalletsSwapsStatus.Submitted
@@ -309,14 +345,14 @@ export function HardwareWalletsSwaps() {
     ) {
       return false;
     }
-    const activeStep = progress.steps[progress.currentStep - 1];
+    const activeStep = progress.steps[progress.currentStep];
     return activeStep?.status === HardwareWalletsSwapsStepStatus.Signing;
   }, [progress.currentStep, progress.status, progress.steps]);
 
   const signingTitle = useMemo(() => {
     const totalSteps = progress.totalSteps || 1;
     return strings('bridge.hardware_wallet_progress.confirm_title', {
-      current: progress.currentStep || 1,
+      current: (progress.currentStep || 0) + 1,
       total: totalSteps,
     });
   }, [progress.currentStep, progress.totalSteps]);
@@ -347,13 +383,13 @@ export function HardwareWalletsSwaps() {
 
   const retrySubmission = useCallback(
     async (checkConnection: boolean) => {
-      if (retryingMutexRef.current) return;
+      if (retryInProgressRef.current) return;
       if (!cachedSubmissionParams.current) {
         dispatch(resetHardwareWalletsSwaps());
         navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
         return;
       }
-      retryingMutexRef.current = true;
+      retryInProgressRef.current = true;
       setIsRetrying(true);
       hasAutoNavigatedRef.current = false;
 
@@ -380,7 +416,7 @@ export function HardwareWalletsSwaps() {
         );
         await submitWithDeviceReady();
       } finally {
-        retryingMutexRef.current = false;
+        retryInProgressRef.current = false;
         setIsRetrying(false);
       }
     },
@@ -410,6 +446,11 @@ export function HardwareWalletsSwaps() {
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [dispatch, navigation]);
 
+  const handleHeaderClose =
+    progress.status === HardwareWalletsSwapsStatus.Submitted
+      ? handleDone
+      : handleCancel;
+
   const showRejectedActions =
     progress.status === HardwareWalletsSwapsStatus.Rejected ||
     progress.status === HardwareWalletsSwapsStatus.Failed;
@@ -432,7 +473,7 @@ export function HardwareWalletsSwaps() {
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Md}
-          onPress={handleCancel}
+          onPress={handleHeaderClose}
         />
         <Box twClassName="h-10 w-10" />
       </Box>
@@ -458,12 +499,6 @@ export function HardwareWalletsSwaps() {
             alignment={Alignment.Center}
             style={styles.riveAnimation}
             onPlay={() => setIsRivePlaying(true)}
-            onError={(riveError) => {
-              Logger.error(
-                new Error(riveError.message),
-                `HardwareWalletsSwaps: Rive error: ${JSON.stringify(riveError)}`,
-              );
-            }}
           />
         </Box>
 
@@ -506,8 +541,9 @@ export function HardwareWalletsSwaps() {
             isFullWidth
             testID={HardwareWalletsSwapsSelectorsIDs.SCAN_NEXT_QR_BUTTON}
             onPress={() =>
+              // The +1 is for the title because its 1 based.
               navigation.navigate(Routes.BRIDGE.HW_QR_SCANNER, {
-                currentStep: progress.currentStep,
+                currentStep: progress.currentStep + 1,
                 totalSteps: progress.totalSteps,
               })
             }

@@ -188,6 +188,7 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
@@ -202,8 +203,15 @@ const createStyles = ({ colors }: Theme) =>
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
-      gap: 16,
       flexDirection: 'column',
+    },
+    portfolioHeaderCluster: {
+      flexDirection: 'column',
+      gap: 16,
+      paddingBottom: 12,
+    },
+    tabContainer: {
+      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -479,6 +487,7 @@ const Wallet = ({
           title: `${strings(
             'multichain_accounts.address_list.receiving_address',
           )}`,
+          source: AddressListViewedSource.RECEIVE_BUTTON,
         }),
       );
     } else {
@@ -1025,17 +1034,17 @@ const Wallet = ({
   ) : null;
 
   const portfolioHeaderBase = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+    </View>
   );
 
   const portfolioHeader = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
@@ -1043,7 +1052,7 @@ const Wallet = ({
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+    </View>
   );
 
   const renderLoader = useCallback(

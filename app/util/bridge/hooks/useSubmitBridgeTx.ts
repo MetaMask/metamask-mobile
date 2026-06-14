@@ -3,6 +3,7 @@ import type {
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
+import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
@@ -138,7 +139,9 @@ export default function useSubmitBridgeTx() {
       async () => {
         if (quoteResponse.quote.intent) {
           return await Engine.context.BridgeStatusController.submitIntent({
-            quoteResponse,
+            quoteResponse: quoteResponse as Parameters<
+              BridgeStatusController['submitIntent']
+            >[0]['quoteResponse'],
             accountAddress: walletAddress,
             location,
             abTests,
@@ -151,7 +154,7 @@ export default function useSubmitBridgeTx() {
           {
             ...quoteResponse,
             approval: quoteResponse.approval ?? undefined,
-          },
+          } as Parameters<BridgeStatusController['submitTx']>[1],
           stxEnabled,
           undefined, // quotesReceivedContext
           location,

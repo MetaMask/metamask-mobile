@@ -6,6 +6,9 @@ import type {
 import { APP_PACKAGE_IDS } from './Constants';
 import { PlatformDetector } from './PlatformLocator';
 import { getDriver } from './PlaywrightUtilities';
+import { createPlaywrightLogger } from './playwrightLogger.ts';
+
+const logger = createPlaywrightLogger('PlaywrightContextHelpers');
 
 type DetailedContext = IosDetailedContext | AndroidDetailedContext;
 
@@ -17,10 +20,12 @@ export default class PlaywrightContextHelpers {
   private static readonly POLL_INTERVAL_MS = 1_000;
 
   static async switchToNativeContext(): Promise<void> {
+    logger.debug('Switching to native app context');
     await getDriver().switchContext(NATIVE_APP);
   }
 
   static async switchToWebViewContext(dappUrl: string): Promise<void> {
+    logger.debug(`Switching to webview context for URL: ${dappUrl}`);
     // Strategy B: Try WebdriverIO's built-in URL matching first.
     // Falls back to manual polling on any failure (LavaMoat scuttling,
     // stale URL metadata on BrowserStack, platform quirks, etc.).
@@ -29,9 +34,10 @@ export default class PlaywrightContextHelpers {
         url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
         androidWebviewConnectTimeout: this.WEBVIEW_TIMEOUT_MS,
       });
+      logger.debug(`Switched to webview context for URL: ${dappUrl}`);
       return;
     } catch (err) {
-      console.log(
+      logger.debug(
         'WebdriverIO switchContext failed, falling back to manual polling:',
         this.getErrorMessage(err).slice(0, 300),
       );
@@ -52,7 +58,10 @@ export default class PlaywrightContextHelpers {
 
       if (selected?.id) {
         const switched = await this.attemptContextSwitch(selected.id);
-        if (switched) return;
+        if (switched) {
+          logger.debug(`Switched to webview context: ${selected.id}`);
+          return;
+        }
       }
 
       await sleep(this.POLL_INTERVAL_MS);
@@ -111,11 +120,11 @@ export default class PlaywrightContextHelpers {
       const message = this.getErrorMessage(err);
 
       if (LAVAMOAT_PATTERN.test(message)) {
-        console.log('Encountered LavaMoat scuttling, retrying...');
+        logger.debug('Encountered LavaMoat scuttling, retrying context switch');
         return false;
       }
 
-      console.log('Error switching to webview context:', message);
+      logger.debug('Error switching to webview context:', message);
       return false;
     }
   }

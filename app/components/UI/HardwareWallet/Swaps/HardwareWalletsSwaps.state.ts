@@ -151,7 +151,7 @@ function isCurrentStepKind(
   state: HardwareWalletsSwapsState,
   stepKind: HardwareWalletsSwapsStepKind,
 ) {
-  return state.steps[state.currentStep - 1]?.kind === stepKind;
+  return state.steps[state.currentStep]?.kind === stepKind;
 }
 
 /**
@@ -176,9 +176,15 @@ function updateStepStatusByKind(
   stepKind: HardwareWalletsSwapsStepKind,
   status: HardwareWalletsSwapsStepStatus,
 ): HardwareWalletsSwapsStep[] {
-  const index = findStepIndexByKind(steps, stepKind);
-  if (index < 0) return steps;
-  return steps.map((step, i) => (i === index ? { ...step, status } : step));
+  const targetIndex = state.steps.findIndex(
+    (step, index) => step.kind === stepKind && index === state.currentStep,
+  );
+  const fallbackIndex = Math.max(state.currentStep, 0);
+  const indexToUpdate = targetIndex >= 0 ? targetIndex : fallbackIndex;
+
+  return state.steps.map((step, index) =>
+    index === indexToUpdate ? { ...step, status } : step,
+  );
 }
 
 /**
@@ -194,7 +200,7 @@ export function hardwareWalletsSwapsReducer(
       const totalSteps = Math.max(event.payload.totalSteps, 1);
       return {
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
+        currentStep: 0,
         totalSteps,
         steps: buildSteps(
           totalSteps,
@@ -260,12 +266,12 @@ export function hardwareWalletsSwapsReducer(
       return {
         ...state,
         status:
-          nextStep > state.totalSteps
+          nextStep >= state.totalSteps
             ? HardwareWalletsSwapsStatus.Submitted
             : HardwareWalletsSwapsStatus.Waiting,
-        currentStep: Math.min(nextStep, state.totalSteps),
-        steps: updateStepStatusByKind(
-          state.steps,
+        currentStep: Math.min(nextStep, state.totalSteps - 1),
+        steps: updateStepStatus(
+          state,
           event.payload.stepKind,
           HardwareWalletsSwapsStepStatus.Signed,
         ),
@@ -277,7 +283,7 @@ export function hardwareWalletsSwapsReducer(
       }
 
       const stepKind =
-        event.payload?.stepKind ?? state.steps[state.currentStep - 1]?.kind;
+        event.payload?.stepKind ?? state.steps[state.currentStep]?.kind;
       if (stepKind && !isCurrentStepKind(state, stepKind)) {
         return state;
       }
@@ -292,7 +298,7 @@ export function hardwareWalletsSwapsReducer(
               HardwareWalletsSwapsStepStatus.Rejected,
             )
           : state.steps.map((step, index) =>
-              index + 1 === state.currentStep
+              index === state.currentStep
                 ? {
                     ...step,
                     status: HardwareWalletsSwapsStepStatus.Rejected,
@@ -319,10 +325,30 @@ export function hardwareWalletsSwapsReducer(
         status: HardwareWalletsSwapsStatus.Failed,
       };
     case HardwareWalletsSwapsEventType.Retry: {
+      if (state.status === HardwareWalletsSwapsStatus.Disconnected) {
+        const restoredStep = state.disconnectedStep ?? state.currentStep;
+        return {
+          ...state,
+          status: HardwareWalletsSwapsStatus.Waiting,
+          currentStep: restoredStep,
+          steps: state.steps.map((step, index) =>
+            index === restoredStep
+              ? { ...step, status: HardwareWalletsSwapsStepStatus.Waiting }
+              : step,
+          ),
+          disconnectedStep: null,
+        };
+      }
+      if (
+        state.status !== HardwareWalletsSwapsStatus.Rejected &&
+        state.status !== HardwareWalletsSwapsStatus.Failed
+      ) {
+        return state;
+      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
+        currentStep: 0,
         steps: state.steps.map((step) => ({
           ...step,
           status: HardwareWalletsSwapsStepStatus.Waiting,
