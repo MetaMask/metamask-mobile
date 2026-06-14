@@ -4,6 +4,7 @@ import type {
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
+import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 
 import Engine from '../../../../../core/Engine';
 import { selectBatchSellDestToken } from '../../../../../core/redux/slices/bridge';
@@ -37,8 +38,14 @@ export function useSubmitBatchSellTx() {
         : quoteResponse,
     );
 
+    // Type assertion needed: QuoteResponse/QuoteMetadata are imported from
+    // @metamask/bridge-controller v74 but submitBatchSell expects types from
+    // the v75 copy nested in @metamask/bridge-status-controller (FeatureId
+    // enum is structurally identical but nominally incompatible).
     return await Engine.context.BridgeStatusController.submitBatchSell({
-      quoteResponses: normalizedQuoteResponses,
+      quoteResponses: normalizedQuoteResponses as Parameters<
+        BridgeStatusController['submitBatchSell']
+      >[0]['quoteResponses'],
       accountAddress: walletAddress,
       location,
       isStxEnabled: stxEnabled,

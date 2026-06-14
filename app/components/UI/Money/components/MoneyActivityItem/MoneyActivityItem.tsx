@@ -1,15 +1,12 @@
 import React from 'react';
-import {
-  type TransactionMeta,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
+import { type TransactionMeta } from '@metamask/transaction-controller';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import ActivityRowView from './ActivityRowView';
 
 export interface MoneyActivityItemProps {
   tx: TransactionMeta;
   moneyAddress: string | undefined;
-  onPress?: (transactionId: string) => void;
+  onPress?: (transaction: TransactionMeta) => void;
   /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }
@@ -26,9 +23,8 @@ const MoneyActivityItem = ({
     <ActivityRowView
       id={tx.id}
       display={display}
-      isFailed={tx.status === TransactionStatus.failed}
       chainId={tx.chainId}
-      onPress={onPress}
+      onPress={() => onPress?.(tx)}
       showNetworkBadge={showNetworkBadge}
     />
   );

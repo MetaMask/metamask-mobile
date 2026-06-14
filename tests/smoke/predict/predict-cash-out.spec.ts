@@ -40,6 +40,15 @@ const positionDetails = {
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
+    // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
+    predictBottomSheet: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    predictWithAnyToken: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     carouselBanners: false,
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);

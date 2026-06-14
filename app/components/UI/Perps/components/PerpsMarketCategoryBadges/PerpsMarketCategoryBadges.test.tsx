@@ -5,8 +5,8 @@ import type { PerpsCategory } from '../../hooks/usePerpsCategories';
 
 const DEFAULT_CATEGORIES: PerpsCategory[] = [
   { id: 'crypto', label: 'Crypto' },
-  { id: 'stocks', label: 'Stocks' },
-  { id: 'commodities', label: 'Commodities' },
+  { id: 'stock', label: 'Stocks' },
+  { id: 'commodity', label: 'Commodities' },
   { id: 'forex', label: 'Forex' },
 ];
 
@@ -54,7 +54,7 @@ describe('PerpsMarketCategoryBadges', () => {
       expect(onCategorySelect).toHaveBeenCalledWith('crypto');
 
       fireEvent.press(getByText('Stocks'));
-      expect(onCategorySelect).toHaveBeenCalledWith('stocks');
+      expect(onCategorySelect).toHaveBeenCalledWith('stock');
     });
   });
 
@@ -74,8 +74,8 @@ describe('PerpsMarketCategoryBadges', () => {
       expect(getByText('Forex')).toBeTruthy();
 
       expect(queryByTestId('category-badges-crypto-dismiss')).toBeNull();
-      expect(queryByTestId('category-badges-stocks-dismiss')).toBeNull();
-      expect(queryByTestId('category-badges-commodities-dismiss')).toBeNull();
+      expect(queryByTestId('category-badges-stock-dismiss')).toBeNull();
+      expect(queryByTestId('category-badges-commodity-dismiss')).toBeNull();
       expect(queryByTestId('category-badges-forex-dismiss')).toBeNull();
     });
 
@@ -106,11 +106,11 @@ describe('PerpsMarketCategoryBadges', () => {
 
       // Tapping a different badge should select that category
       fireEvent.press(getByText('Stocks'));
-      expect(onCategorySelect).toHaveBeenCalledWith('stocks');
+      expect(onCategorySelect).toHaveBeenCalledWith('stock');
     });
 
     it('renders all badges for each selected category type', () => {
-      const categories = ['crypto', 'stocks', 'commodities', 'forex'] as const;
+      const categories = ['crypto', 'stock', 'commodity', 'forex'] as const;
       const allLabels = ['Crypto', 'Stocks', 'Commodities', 'Forex'];
 
       categories.forEach((category) => {
@@ -135,10 +135,10 @@ describe('PerpsMarketCategoryBadges', () => {
         <PerpsMarketCategoryBadges {...defaultProps} testID="badges" />,
       );
 
-      expect(getByTestId('badges-crypto')).toBeTruthy();
-      expect(getByTestId('badges-stocks')).toBeTruthy();
-      expect(getByTestId('badges-commodities')).toBeTruthy();
-      expect(getByTestId('badges-forex')).toBeTruthy();
+      expect(getByTestId('badges-crypto')).toBeOnTheScreen();
+      expect(getByTestId('badges-stock')).toBeOnTheScreen();
+      expect(getByTestId('badges-commodity')).toBeOnTheScreen();
+      expect(getByTestId('badges-forex')).toBeOnTheScreen();
     });
   });
 });

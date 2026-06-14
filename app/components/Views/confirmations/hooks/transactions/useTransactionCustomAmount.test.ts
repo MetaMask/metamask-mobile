@@ -450,13 +450,28 @@ describe('useTransactionCustomAmount', () => {
       result.current.updatePendingAmount('0');
     });
 
-    expect(result.current.hasInput).toBe(true);
+    expect(result.current.hasInput).toBe(false);
+  });
+
+  it('clears debounced amounts immediately when amount is cleared', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
 
     await act(async () => {
       jest.runAllTimers();
     });
 
-    expect(result.current.hasInput).toBe(false);
+    expect(result.current.amountFiatDebounced).toBe('123.45');
+
+    await act(async () => {
+      result.current.updatePendingAmount('0');
+    });
+
+    expect(result.current.amountFiatDebounced).toBe('0');
+    expect(result.current.amountHumanDebounced).toBe('0');
   });
 
   describe('updatePendingAmountPercentage updates amount fiat', () => {

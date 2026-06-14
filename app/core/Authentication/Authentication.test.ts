@@ -3876,6 +3876,11 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
+      Engine.context.CardController = {
+        resetAll: jest.fn().mockResolvedValue(undefined),
+        setResetInProgress: jest.fn(),
+      } as unknown as (typeof Engine.context)['CardController'];
+
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
@@ -3959,6 +3964,11 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
+      Engine.context.CardController = {
+        resetAll: jest.fn().mockResolvedValue(undefined),
+        setResetInProgress: jest.fn(),
+      } as unknown as (typeof Engine.context)['CardController'];
+
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
@@ -4019,6 +4029,23 @@ describe('Authentication', () => {
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
 
+    it('re-enables Card reactive fetching even when an error occurs', async () => {
+      // Arrange
+      jest
+        .spyOn(Authentication, 'newWalletAndKeychain')
+        .mockRejectedValueOnce(new Error('Authentication failed'));
+
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert - suppression is lifted despite the error
+      expect(
+        Engine.context.CardController.setResetInProgress,
+      ).toHaveBeenLastCalledWith(false);
+    });
+
     it('calls all required methods to reset wallet state', async () => {
       // Arrange
       const newWalletAndKeychain = jest.spyOn(
@@ -4046,6 +4073,15 @@ describe('Authentication', () => {
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledWith(
         'RewardsController:resetAll',
+      );
+      expect(Engine.context.CardController.resetAll).toHaveBeenCalledTimes(1);
+      const setResetSpy = Engine.context.CardController
+        .setResetInProgress as jest.Mock;
+      expect(setResetSpy).toHaveBeenNthCalledWith(1, true);
+      expect(setResetSpy).toHaveBeenLastCalledWith(false);
+      // Suppression is enabled before the temporary wallet is created
+      expect(setResetSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
       );
       expect(loggerSpy).not.toHaveBeenCalled();
       expect(resetProviderTokenSpy).toHaveBeenCalledTimes(1);

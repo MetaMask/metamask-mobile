@@ -54,6 +54,27 @@ export interface PredictMarketListRouteParams {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
+/**
+ * Generic Predict feed route parameters.
+ *
+ * Consumed by the config-driven `PredictFeedView` (powers Sports / Politics /
+ * Crypto / Live / Trending / Popular Today). Carries stable IDs only — the
+ * view resolves them into a render-ready config via `usePredictFeedConfig`.
+ * The route registration + deeplink parsing that populates these params lands
+ * separately (route + deeplinks ticket); the view reads them via `useRoute`.
+ */
+export interface PredictFeedRouteParams {
+  feedId: PredictFeedId;
+  /** Initial sub-tab id within the feed (e.g. `basketball`, `all`). */
+  initialTabId?: string;
+  /** Initial filter chip id within the active tab (e.g. `all`, `live`). */
+  initialFilterId?: string;
+  /** Opens the search overlay pre-filled with this query. */
+  query?: string;
+  entryPoint?: PredictEntryPoint;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
@@ -87,6 +108,7 @@ export type PredictPositionsTabKey = 'positions' | 'history';
 
 /** Predict Positions screen parameters */
 export interface PredictPositionsParams {
+  entryPoint?: PredictEntryPoint;
   initialTab?: PredictPositionsTabKey;
 }
 
@@ -149,6 +171,7 @@ export type PredictSellPreviewProps =
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListRouteParams;
+  PredictFeed: PredictFeedRouteParams;
   PredictMarketDetails: PredictMarketDetailsParams;
   PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;

@@ -41,12 +41,13 @@ describe('useValidateReferralCode', () => {
     expect(result.current.isValidating).toBe(false);
     expect(result.current.isValid).toBe(false);
     expect(result.current.isUnknownError).toBe(false);
+    expect(result.current.isVipReferralCode).toBe(false);
     expect(typeof result.current.setReferralCode).toBe('function');
     expect(typeof result.current.validateCode).toBe('function');
   });
 
   it('initializes with custom initial value and validates after debounce', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
 
     const { result } = renderHook(() => useValidateReferralCode('ABCDEF'));
 
@@ -59,10 +60,11 @@ describe('useValidateReferralCode', () => {
       expect(result.current.isValid).toBe(true);
     });
     expect(result.current.referralCode).toBe('ABCDEF');
+    expect(result.current.isVipReferralCode).toBe(false);
   });
 
   it('validates code directly via validateCode', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
     const { result } = renderHook(() => useValidateReferralCode());
 
     await act(async () => {
@@ -77,7 +79,7 @@ describe('useValidateReferralCode', () => {
   });
 
   it('returns error from validateCode for invalid code', async () => {
-    mockEngineCall.mockResolvedValueOnce(false);
+    mockEngineCall.mockResolvedValueOnce({ valid: false });
     const { result } = renderHook(() => useValidateReferralCode());
 
     await act(async () => {
@@ -87,7 +89,7 @@ describe('useValidateReferralCode', () => {
   });
 
   it('converts code to uppercase, trims whitespace, and validates after debounce', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
@@ -115,6 +117,7 @@ describe('useValidateReferralCode', () => {
     expect(result.current.referralCode).toBe('');
     expect(result.current.isValid).toBe(false);
     expect(result.current.isValidating).toBe(false);
+    expect(result.current.isVipReferralCode).toBe(false);
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -184,7 +187,7 @@ describe('useValidateReferralCode', () => {
   });
 
   it('validates after debounce for a short non-empty code', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
@@ -205,7 +208,7 @@ describe('useValidateReferralCode', () => {
   });
 
   it('validates after debounce for valid 6-char code', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
@@ -225,7 +228,7 @@ describe('useValidateReferralCode', () => {
   });
 
   it('validates after debounce for a vanity code (happy path)', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
@@ -246,6 +249,27 @@ describe('useValidateReferralCode', () => {
     expect(result.current.isValidating).toBe(false);
   });
 
+  it('sets an invalid-code error when the backend rejects the code after debounce', async () => {
+    mockEngineCall.mockResolvedValueOnce({ valid: false, isVipCode: false });
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('ABCDEF');
+    });
+
+    await advanceReferralCodeDebounce();
+
+    await waitFor(() => {
+      expect(result.current.isValid).toBe(false);
+    });
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsController:validateReferralCode',
+      'ABCDEF',
+    );
+    expect(result.current.isUnknownError).toBe(false);
+    expect(result.current.isVipReferralCode).toBe(false);
+  });
+
   it('sets isUnknownError when validation throws', async () => {
     mockEngineCall.mockRejectedValueOnce(new Error('Network error'));
     const { result } = renderHook(() => useValidateReferralCode());
@@ -258,10 +282,11 @@ describe('useValidateReferralCode', () => {
 
     expect(result.current.isUnknownError).toBe(true);
     expect(result.current.isValid).toBe(false);
+    expect(result.current.isVipReferralCode).toBe(false);
   });
 
   it('debounces rapid input changes and only validates the last value', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
@@ -287,7 +312,7 @@ describe('useValidateReferralCode', () => {
   it('clears isUnknownError on subsequent successful validation', async () => {
     mockEngineCall
       .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce(true);
+      .mockResolvedValueOnce({ valid: true, isVipCode: false });
 
     const { result } = renderHook(() => useValidateReferralCode());
 
@@ -310,13 +335,15 @@ describe('useValidateReferralCode', () => {
   });
 
   it('discards stale responses when a newer validation is in flight', async () => {
-    let resolveFirst: (value: boolean) => void;
-    const firstPromise = new Promise<boolean>((resolve) => {
-      resolveFirst = resolve;
-    });
+    let resolveFirst: (value: { valid: boolean; isVipCode: boolean }) => void;
+    const firstPromise = new Promise<{ valid: boolean; isVipCode: boolean }>(
+      (resolve) => {
+        resolveFirst = resolve;
+      },
+    );
     mockEngineCall
       .mockReturnValueOnce(firstPromise)
-      .mockResolvedValueOnce(true);
+      .mockResolvedValueOnce({ valid: true, isVipCode: false });
 
     const { result } = renderHook(() => useValidateReferralCode());
 
@@ -333,7 +360,7 @@ describe('useValidateReferralCode', () => {
     await advanceReferralCodeDebounce();
 
     await act(async () => {
-      resolveFirst?.(false);
+      resolveFirst?.({ valid: false, isVipCode: false });
     });
 
     expect(result.current.isValid).toBe(true);
@@ -341,8 +368,14 @@ describe('useValidateReferralCode', () => {
   });
 
   it('invalidates in-flight request when code is cleared to empty', async () => {
-    let resolveValidation: (value: boolean) => void;
-    const validationPromise = new Promise<boolean>((resolve) => {
+    let resolveValidation: (value: {
+      valid: boolean;
+      isVipCode: boolean;
+    }) => void;
+    const validationPromise = new Promise<{
+      valid: boolean;
+      isVipCode: boolean;
+    }>((resolve) => {
       resolveValidation = resolve;
     });
     mockEngineCall.mockReturnValueOnce(validationPromise);
@@ -365,10 +398,65 @@ describe('useValidateReferralCode', () => {
     expect(result.current.isValid).toBe(false);
 
     await act(async () => {
-      resolveValidation?.(true);
+      resolveValidation?.({ valid: true, isVipCode: true });
     });
 
     expect(result.current.isValid).toBe(false);
     expect(result.current.referralCode).toBe('');
+    expect(result.current.isVipReferralCode).toBe(false);
+  });
+
+  it('sets isVipReferralCode true when code is valid and VIP', async () => {
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: true });
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('VIPCODE');
+    });
+
+    await advanceReferralCodeDebounce();
+
+    await waitFor(() => {
+      expect(result.current.isValid).toBe(true);
+    });
+    expect(result.current.isVipReferralCode).toBe(true);
+  });
+
+  it('keeps isVipReferralCode false when code is valid but not VIP', async () => {
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: false });
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('ABCDEF');
+    });
+
+    await advanceReferralCodeDebounce();
+
+    await waitFor(() => {
+      expect(result.current.isValid).toBe(true);
+    });
+    expect(result.current.isVipReferralCode).toBe(false);
+  });
+
+  it('resets isVipReferralCode to false when code is cleared after VIP validation', async () => {
+    mockEngineCall.mockResolvedValueOnce({ valid: true, isVipCode: true });
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('VIPCODE');
+    });
+
+    await advanceReferralCodeDebounce();
+
+    await waitFor(() => {
+      expect(result.current.isVipReferralCode).toBe(true);
+    });
+
+    act(() => {
+      result.current.setReferralCode('');
+    });
+
+    expect(result.current.isVipReferralCode).toBe(false);
+    expect(result.current.isValid).toBe(false);
   });
 });

@@ -43,6 +43,7 @@ const QuickBuyActionFooter: React.FC = () => {
     sourceToken,
     sourceChainId,
     sourceBalanceFiat,
+    destBalanceFiat,
     destToken,
     selectedDestStable,
     features,
@@ -56,10 +57,12 @@ const QuickBuyActionFooter: React.FC = () => {
           | import('@metamask/utils').Hex
           | undefined)
       : sourceChainId;
+  // Both balances are driven by live, selector-backed state (TSA-632):
+  // `sourceBalanceFiat` from `useLatestBalance` re-keyed off the live cached
+  // balance, and `destBalanceFiat` resynced from the reactive receive-token
+  // list. Either updates the pill the moment the underlying balance changes.
   const pickerBalanceFiat =
-    tradeMode === 'sell'
-      ? (selectedDestStable?.balanceFiat ?? undefined)
-      : sourceBalanceFiat;
+    tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
 
   const networkImage = pickerChainId
     ? getNetworkImageSource({ chainId: pickerChainId })
@@ -101,7 +104,6 @@ const QuickBuyActionFooter: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-full bg-muted px-3 py-1"
           >
             {pickerToken ? (
               networkImage ? (

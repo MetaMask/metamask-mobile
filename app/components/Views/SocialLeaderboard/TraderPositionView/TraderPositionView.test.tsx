@@ -246,7 +246,7 @@ describe('TraderPositionView', () => {
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
+    expect(screen.getByText('No trades yet')).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -506,9 +506,8 @@ describe('TraderPositionView', () => {
     });
   });
 
-  it('filters trades when switching time periods', async () => {
-    const fixedNow = new Date('2026-04-21T12:00:00.000Z').getTime();
-    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
+  it('shows all trades regardless of the active time period, but filters chart markers', async () => {
+    const now = Date.now();
 
     mockRouteParams.position = {
       ...makeDefaultPosition(),
@@ -518,7 +517,7 @@ describe('TraderPositionView', () => {
           direction: 'buy',
           tokenAmount: 1000,
           usdCost: 2200,
-          timestamp: fixedNow - 30 * 60 * 1000,
+          timestamp: now - 30 * 60 * 1000,
           transactionHash: '0xrecent',
         },
         {
@@ -526,7 +525,7 @@ describe('TraderPositionView', () => {
           direction: 'sell',
           tokenAmount: 500,
           usdCost: 1100,
-          timestamp: fixedNow - 2 * 24 * 60 * 60 * 1000,
+          timestamp: now - 2 * 24 * 60 * 60 * 1000,
           transactionHash: '0xolder',
         },
       ],
@@ -540,10 +539,15 @@ describe('TraderPositionView', () => {
     fireEvent.press(screen.getByText('1H'));
 
     await waitFor(() => {
-      expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
+      const chartTrades =
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0]?.trades;
+      expect(chartTrades).toHaveLength(1);
+      expect(chartTrades[0].transactionHash).toBe('0xrecent');
     });
-
-    dateNowSpy.mockRestore();
+    expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
+    expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
   });
 
   it('refetches position and profile on pull-to-refresh', async () => {

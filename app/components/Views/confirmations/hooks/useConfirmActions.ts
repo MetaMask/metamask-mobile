@@ -11,6 +11,7 @@ import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
@@ -23,6 +24,7 @@ export const useConfirmActions = () => {
     approvalRequest,
   } = useApprovalRequest();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
+  const transactionMetadata = useTransactionMetadataRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
   const {
     cancelQRScanRequestIfPresent,
@@ -93,12 +95,22 @@ export const useConfirmActions = () => {
 
   const sharedConfirmOptions = useMemo(
     () => ({
+      fromAddress:
+        (approvalRequest?.requestData?.from as string) ||
+        (transactionMetadata?.txParams?.from as string),
       onReject,
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
     }),
-    [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
+    [
+      approvalRequest?.requestData?.from,
+      transactionMetadata?.txParams?.from,
+      onReject,
+      onTransactionConfirm,
+      executeApproval,
+      isTransactionReq,
+    ],
   );
 
   const { onConfirm: onLedgerConfirm } = useLedgerConfirm(sharedConfirmOptions);
