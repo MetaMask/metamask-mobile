@@ -49,6 +49,7 @@ import { isCryptoUpDown } from '../../utils/cryptoUpDown';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
+  selectExtendedSportsMarketsLeagues,
 } from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
@@ -81,6 +82,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const extendedSportsMarketsLeagues = useSelector(
+    selectExtendedSportsMarketsLeagues,
+  );
   const {
     marketId,
     series,
@@ -228,8 +232,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     timeframes,
   } = useChartData({ market, hasAnyOutcomeToken });
 
+  const gameLeague = market?.game?.league;
+  const isExtendedSportsGameMarket = Boolean(
+    gameLeague &&
+      extendedSportsMarketsLeagues.includes(gameLeague) &&
+      market?.outcomeGroups?.length,
+  );
   const shouldRefreshOpenOutcomePrices =
-    market?.status === PredictMarketStatus.OPEN && !isBuySheetOpen;
+    market?.status === PredictMarketStatus.OPEN &&
+    !isBuySheetOpen &&
+    !isExtendedSportsGameMarket;
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,

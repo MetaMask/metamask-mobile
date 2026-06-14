@@ -354,6 +354,7 @@ jest.mock('../../utils/cryptoUpDown', () => ({
 }));
 
 let mockSelectPredictUpDownEnabledFlag = false;
+let mockSelectExtendedSportsMarketsLeagues: string[] = [];
 const mockSelectPredictFeeCollectionFlag = {
   enabled: true,
   collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
@@ -367,6 +368,9 @@ const mockSelectPredictFeeCollectionFlag = {
 jest.mock('../../selectors/featureFlags', () => ({
   selectPredictUpDownEnabledFlag: jest.fn(
     () => mockSelectPredictUpDownEnabledFlag,
+  ),
+  selectExtendedSportsMarketsLeagues: jest.fn(
+    () => mockSelectExtendedSportsMarketsLeagues,
   ),
   selectPredictFeeCollectionFlag: jest.fn(
     () => mockSelectPredictFeeCollectionFlag,
@@ -777,6 +781,7 @@ describe('PredictMarketDetails', () => {
     jest.clearAllMocks();
     mockRunAfterInteractions.mockReset();
     mockIsBuySheetOpen = false;
+    mockSelectExtendedSportsMarketsLeagues = [];
   });
 
   afterAll(() => {
@@ -3898,6 +3903,84 @@ describe('PredictMarketDetails', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
+    });
+
+    it('disables open outcome price polling for extended sports game markets', () => {
+      mockSelectExtendedSportsMarketsLeagues = ['epl'];
+      const gameMarket = createMockMarket({
+        title: 'EPL: Team A vs Team B',
+        game: {
+          homeTeam: { name: 'Team A', abbreviation: 'TA' },
+          awayTeam: { name: 'Team B', abbreviation: 'TB' },
+          startTime: '2024-12-31T20:00:00Z',
+          status: 'scheduled',
+          league: 'epl',
+        },
+        outcomeGroups: [{ key: 'game_lines', outcomes: [] }],
+      });
+
+      setupPredictMarketDetailsTest(gameMarket);
+
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+      expect(usePredictPrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: false,
+        }),
+      );
+    });
+
+    it('preserves open outcome price polling for sports games outside extended leagues', () => {
+      mockSelectExtendedSportsMarketsLeagues = ['nba'];
+      const gameMarket = createMockMarket({
+        title: 'EPL: Team A vs Team B',
+        game: {
+          homeTeam: { name: 'Team A', abbreviation: 'TA' },
+          awayTeam: { name: 'Team B', abbreviation: 'TB' },
+          startTime: '2024-12-31T20:00:00Z',
+          status: 'scheduled',
+          league: 'epl',
+        },
+        outcomeGroups: [{ key: 'game_lines', outcomes: [] }],
+      });
+
+      setupPredictMarketDetailsTest(gameMarket);
+
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+      expect(usePredictPrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: true,
+        }),
+      );
+    });
+
+    it('preserves open outcome price polling for extended-league games without outcome groups', () => {
+      mockSelectExtendedSportsMarketsLeagues = ['epl'];
+      const gameMarket = createMockMarket({
+        title: 'EPL: Team A vs Team B',
+        game: {
+          homeTeam: { name: 'Team A', abbreviation: 'TA' },
+          awayTeam: { name: 'Team B', abbreviation: 'TB' },
+          startTime: '2024-12-31T20:00:00Z',
+          status: 'scheduled',
+          league: 'epl',
+        },
+        outcomeGroups: [],
+      });
+
+      setupPredictMarketDetailsTest(gameMarket);
+
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+      expect(usePredictPrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: true,
+        }),
+      );
     });
 
     it('threads childMarketIds to usePredictPositions for both active and claimable queries', () => {
