@@ -14,9 +14,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return { ...actual };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 type RichTextNode = Record<string, Json>;
 
@@ -193,6 +195,34 @@ describe('ContentfulRichText', () => {
       <ContentfulRichText document={doc} testID="rt" />,
     );
     expect(getByText('no marks')).toBeOnTheScreen();
+  });
+
+  it('strips U+FFFD replacement character from a plain text node', () => {
+    const doc = makeDoc(
+      paragraph(
+        text(
+          'Stocks, ETFs, crypto, commodities \u2014 \uFFFD264 real world assets.',
+        ),
+      ),
+    );
+    const { getByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+    expect(
+      getByText(
+        'Stocks, ETFs, crypto, commodities \u2014 264 real world assets.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('strips U+FFFD replacement character from a bold text node', () => {
+    const doc = makeDoc(
+      paragraph(text('Hello \uFFFDworld', [{ type: 'bold' }])),
+    );
+    const { getByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+    expect(getByText('Hello world')).toBeOnTheScreen();
   });
 });
 

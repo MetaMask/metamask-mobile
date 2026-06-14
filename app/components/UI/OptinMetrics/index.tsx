@@ -50,8 +50,8 @@ import {
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
-import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import Device from '../../../util/device';
+import { HOWTO_MANAGE_METAMETRICS } from '../../../constants/urls';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
   useNavigation,
@@ -60,6 +60,8 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import Logger from '../../../util/Logger';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -79,7 +81,6 @@ const OptinMetrics = () => {
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   // State
@@ -102,6 +103,9 @@ const OptinMetrics = () => {
     [isMediumDevice],
   );
 
+  const getShouldShowQuestionnaire =
+    useOnboardingInterestQuestionnaireEligibility();
+
   /**
    * Temporary disabling the back button so users can't go back
    */
@@ -115,10 +119,13 @@ const OptinMetrics = () => {
 
   // Component lifecycle effects
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
   }, [handleBackPress]);
 
@@ -228,7 +235,27 @@ const OptinMetrics = () => {
       });
     }
     dispatch(clearOnboardingEvents());
-    continueNavigation();
+
+    let shouldShowInterestQuestionnaire = false;
+    if (isBasicUsageChecked) {
+      try {
+        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      }
+    }
+
+    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+      navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+        onComplete: continueNavigation,
+        ...(accountType && { accountType }),
+      });
+    } else {
+      continueNavigation();
+    }
   }, [
     isBasicUsageChecked,
     isMarketingChecked,
@@ -237,6 +264,8 @@ const OptinMetrics = () => {
     dispatch,
     continueNavigation,
     accountType,
+    getShouldShowQuestionnaire,
+    navigation,
   ]);
 
   /**
@@ -259,7 +288,7 @@ const OptinMetrics = () => {
   const openLearnMore = useCallback(
     () =>
       onPressLink({
-        url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
+        url: HOWTO_MANAGE_METAMETRICS,
         title: 'How to manage your MetaMetrics settings',
       }),
     [onPressLink],
@@ -437,12 +466,7 @@ const OptinMetrics = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-1"
               >
-                {isPna25FlagEnabled
-                  ? strings(
-                      'privacy_policy.gather_basic_usage_description_updated',
-                    ) + ' '
-                  : strings('privacy_policy.gather_basic_usage_description') +
-                    ' '}
+                {strings('privacy_policy.gather_basic_usage_description') + ' '}
                 <Text
                   color={TextColor.PrimaryDefault}
                   variant={TextVariant.BodySm}

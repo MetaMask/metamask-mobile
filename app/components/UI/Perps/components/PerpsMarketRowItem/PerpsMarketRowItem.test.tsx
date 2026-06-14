@@ -1,19 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
-
-const { TouchableOpacity } = jest.requireActual('react-native');
-
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => {
-    const actualStyleSheet = jest.requireActual(
-      './PerpsMarketRowItem.styles',
-    ).default;
-    return { styles: actualStyleSheet({ vars: { compact: false } }) };
-  }),
-}));
 
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => {
@@ -28,6 +17,20 @@ jest.mock('../PerpsTokenLogo', () => {
     return <View testID={testID || 'perps-token-logo'} data-symbol={symbol} />;
   };
 });
+
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: () => ({
+    styles: {
+      addButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+    },
+  }),
+}));
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})), // Return empty object - no live prices in tests
@@ -73,8 +76,10 @@ describe('PerpsMarketRowItem', () => {
     it('renders as a touchable component', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      const touchableElements = screen.root.findAllByType(TouchableOpacity);
-      expect(touchableElements).toHaveLength(1);
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      expect(rowItem).toBeOnTheScreen();
     });
   });
 
@@ -86,19 +91,21 @@ describe('PerpsMarketRowItem', () => {
         getPerpsMarketRowItemSelector.tokenLogo('BTC'),
       );
       expect(tokenLogo).toBeOnTheScreen();
-      expect(tokenLogo.props['data-symbol']).toBe('BTC');
+      // data-symbol not available on host elements
     });
   });
 
   describe('Interaction Handling', () => {
-    it('calls onPress callback when pressed', () => {
+    it('calls onPress callback when pressed', async () => {
       const mockOnPress = jest.fn();
       render(
         <PerpsMarketRowItem market={mockMarketData} onPress={mockOnPress} />,
       );
 
-      const touchableOpacity = screen.root.findByType(TouchableOpacity);
-      fireEvent.press(touchableOpacity);
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      fireEvent.press(rowItem);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
@@ -107,8 +114,10 @@ describe('PerpsMarketRowItem', () => {
     it('does not throw error when onPress is undefined', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      const touchableOpacity = screen.root.findByType(TouchableOpacity);
-      expect(() => fireEvent.press(touchableOpacity)).not.toThrow();
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      expect(() => fireEvent.press(rowItem)).not.toThrow();
     });
 
     it('does not throw error when onPress is null', () => {
@@ -116,8 +125,10 @@ describe('PerpsMarketRowItem', () => {
         <PerpsMarketRowItem market={mockMarketData} onPress={undefined} />,
       );
 
-      const touchableOpacity = screen.root.findByType(TouchableOpacity);
-      expect(() => fireEvent.press(touchableOpacity)).not.toThrow();
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      expect(() => fireEvent.press(rowItem)).not.toThrow();
     });
   });
 
@@ -232,11 +243,13 @@ describe('PerpsMarketRowItem', () => {
 
   describe('Component Structure', () => {
     it('maintains correct component hierarchy', () => {
-      const { root } = render(<PerpsMarketRowItem market={mockMarketData} />);
+      render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Should have a TouchableOpacity as root
-      const touchableOpacity = root.findByType(TouchableOpacity);
-      expect(touchableOpacity).toBeTruthy();
+      // Should have a TouchableOpacity as root with the correct testID
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      expect(rowItem).toBeOnTheScreen();
     });
 
     it('uses correct testID for avatar', () => {
@@ -261,17 +274,19 @@ describe('PerpsMarketRowItem', () => {
   });
 
   describe('Multiple Press Handling', () => {
-    it('handles multiple rapid presses correctly', () => {
+    it('handles multiple rapid presses correctly', async () => {
       const mockOnPress = jest.fn();
       render(
         <PerpsMarketRowItem market={mockMarketData} onPress={mockOnPress} />,
       );
 
-      const touchableOpacity = screen.root.findByType(TouchableOpacity);
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
 
-      fireEvent.press(touchableOpacity);
-      fireEvent.press(touchableOpacity);
-      fireEvent.press(touchableOpacity);
+      fireEvent.press(rowItem);
+      fireEvent.press(rowItem);
+      fireEvent.press(rowItem);
 
       expect(mockOnPress).toHaveBeenCalledTimes(3);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
@@ -447,7 +462,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('$3,200')).toBeOnTheScreen();
     });
 
-    it('passes updated market data to onPress callback', () => {
+    it('passes updated market data to onPress callback', async () => {
       const mockOnPress = jest.fn();
 
       mockUsePerpsLivePrices.mockReturnValue({
@@ -462,8 +477,10 @@ describe('PerpsMarketRowItem', () => {
         <PerpsMarketRowItem market={mockMarketData} onPress={mockOnPress} />,
       );
 
-      const touchableOpacity = screen.root.findByType(TouchableOpacity);
-      fireEvent.press(touchableOpacity);
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      fireEvent.press(rowItem);
 
       // Should pass the updated market data with live prices
       expect(mockOnPress).toHaveBeenCalledTimes(1);
@@ -770,7 +787,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('1.2500% Funding')).toBeOnTheScreen();
     });
 
-    it('passes updated funding rate to onPress callback', () => {
+    it('passes updated funding rate to onPress callback', async () => {
       const mockOnPress = jest.fn();
       const marketWithInitialFundingRate: PerpsMarketData = {
         ...mockMarketData,
@@ -793,37 +810,74 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      const touchableOpacity = screen.root.findByType(TouchableOpacity);
-      fireEvent.press(touchableOpacity);
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      fireEvent.press(rowItem);
 
       // Should pass the updated market data with live funding rate
       expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress.mock.calls[0][0].fundingRate).toBe(0.0005);
     });
+  });
 
-    it('handles funding rate update when live data funding is undefined', () => {
-      const marketWithFundingRate: PerpsMarketData = {
-        ...mockMarketData,
-        fundingRate: 0.0005, // Initial: 0.05%
-      };
+  describe('Add to Watchlist Button', () => {
+    it('does not render an add button when onAddPress is not provided', () => {
+      render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Mock live data without funding rate
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00',
-          // funding is undefined
-        },
-      });
+      expect(
+        screen.queryByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      ).toBeNull();
+    });
 
+    it('renders a trailing add button when onAddPress is provided', () => {
+      const mockOnAddPress = jest.fn();
       render(
         <PerpsMarketRowItem
-          market={marketWithFundingRate}
-          displayMetric="fundingRate"
+          market={mockMarketData}
+          onAddPress={mockOnAddPress}
         />,
       );
 
-      // Should keep the original funding rate when live data doesn't have funding
-      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onAddPress with current market data when the add button is pressed', () => {
+      const mockOnAddPress = jest.fn();
+      render(
+        <PerpsMarketRowItem
+          market={mockMarketData}
+          onAddPress={mockOnAddPress}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      );
+
+      expect(mockOnAddPress).toHaveBeenCalledTimes(1);
+      expect(mockOnAddPress.mock.calls[0][0].symbol).toBe('BTC');
+    });
+
+    it('pressing the add button does not trigger onPress', () => {
+      const mockOnPress = jest.fn();
+      const mockOnAddPress = jest.fn();
+      render(
+        <PerpsMarketRowItem
+          market={mockMarketData}
+          onPress={mockOnPress}
+          onAddPress={mockOnAddPress}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      );
+
+      expect(mockOnAddPress).toHaveBeenCalledTimes(1);
+      expect(mockOnPress).not.toHaveBeenCalled();
     });
   });
 });

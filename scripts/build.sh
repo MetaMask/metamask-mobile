@@ -144,10 +144,10 @@ checkParameters(){
 			exit 1
 	esac
 
-	VALID_METAMASK_BUILD_TYPES="main|flask|qa"
+	VALID_METAMASK_BUILD_TYPES="main|flask"
 	# Check if the METAMASK_BUILD_TYPE is valid
 	case "${METAMASK_BUILD_TYPE}" in
-		main|flask|qa)
+		main|flask)
 			# Valid build type - continue
 			;;
 		*)
@@ -167,14 +167,22 @@ loadBuildConfig() {
 	local build_type="$1"
 	local environment="$2"
 
-	# Normalize environment name (production -> prod for build name)
-	local normalized_env="$environment"
-	case "$environment" in
-		production) normalized_env="prod" ;;
-	esac
-
-	# Construct build name (e.g., main-prod, flask-dev)
-	local build_name="${build_type}-${normalized_env}"
+	# GitHub Actions passes the concrete builds.yml key (e.g. main-e2e-bs-with-srp).
+	# Without this, `main e2e` always resolves to generic `main-e2e` (simulator-only),
+	# while CI steps still expect BrowserStack/device artifacts — IPAs never export.
+	local build_name
+	if [ -n "${BUILD_CONFIG_NAME:-}" ]; then
+		build_name="$BUILD_CONFIG_NAME"
+		echo ""
+		echo "📦 Using BUILD_CONFIG_NAME from environment: '${build_name}'"
+	else
+		# Normalize environment name (production -> prod for build name)
+		local normalized_env="$environment"
+		case "$environment" in
+			production) normalized_env="prod" ;;
+		esac
+		build_name="${build_type}-${normalized_env}"
+	fi
 
 	echo ""
 	echo "📦 Loading configuration from builds.yml for '${build_name}'..."
@@ -206,18 +214,18 @@ loadBuildConfig() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
+# Legacy env remapping. Used only when GITHUB_ACTIONS is not set.
 # GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
 # ─────────────────────────────────────────────────────────────────────────────
-# Remap Bitrise-style vars (*_DEV, *_QA, *_PROD) to canonical names. Skip when source is unset
-# (local / builds.yml use canonical names in .js.env; no _DEV/_QA needed).
+# Remap legacy per-env vars (*_DEV, *_PROD) to canonical names. Skip when source is unset
+# (local / builds.yml use canonical names in .js.env; no _DEV/_PROD needed).
 # Legacy path (not GHA, not builds.yml): missing source var fails fast. Local: set BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY in .js.env to use builds.yml and skip.
 remapEnvVariable() {
 	local old_var_name="$1"
 	local new_var_name="$2"
 	if [ -z "${!old_var_name}" ]; then
 		if [ -z "${GITHUB_ACTIONS:-}" ] && [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" != "true" ]; then
-			echo "❌ Required Bitrise secret is missing: $old_var_name"
+			echo "❌ Required legacy secret is missing: $old_var_name"
 			return 1
 		fi
 		return 0
@@ -240,23 +248,6 @@ remapMainDevEnvVariables() {
 		remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_DEV" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
-remapEnvVariableQA() {
-  	echo "Remapping QA env variable names to match QA values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-
-}
-
 # Mapping for Main env variables in the e2e environment
 remapMainE2EEnvVariables() {
   	echo "Remapping Main target environment variables for the e2e environment"
@@ -264,13 +255,6 @@ remapMainE2EEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -281,13 +265,6 @@ remapMainTestEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -298,13 +275,6 @@ remapMainProdEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -315,13 +285,6 @@ remapFlaskProdEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -332,13 +295,6 @@ remapFlaskTestEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -349,13 +305,6 @@ remapFlaskE2EEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -366,13 +315,6 @@ remapMainBetaEnvVariables() {
     remapEnvVariable "SEGMENT_PROXY_URL_BETA" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -383,13 +325,6 @@ remapMainReleaseCandidateEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -401,13 +336,6 @@ remapMainExperimentalEnvVariables() {
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
 	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
-
-	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
-	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
-	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
 	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
@@ -466,13 +394,6 @@ buildAndroidMainLocal(){
 	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
-# Builds and installs the QA APK for local development
-buildAndroidQALocal(){
-	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device
-}
-
 # Builds and installs the Flask APK for local development
 buildAndroidFlaskLocal(){
 	prebuild_android
@@ -492,12 +413,6 @@ buildIosFlaskLocal(){
 	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device "$IOS_SIMULATOR"
 }
 
-# Builds and installs the QA iOS app for local development
-buildIosQALocal(){
-  	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device "$IOS_SIMULATOR"
-}
-
 # Generates the iOS binary for the given scheme and configuration
 generateIosBinary() {
 	scheme="$1"
@@ -511,37 +426,25 @@ generateIosBinary() {
 	fi
 
 	# Check if scheme is valid
-	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-QA" ] && [ "$scheme" != "MetaMask-Flask" ] ; then
+	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-Flask" ] ; then
 		# Scheme is not recognized
-		echo "Scheme $scheme is not recognized! Only MetaMask, MetaMask-QA, and MetaMask-Flask are supported"
+		echo "Scheme $scheme is not recognized! Only MetaMask, and MetaMask-Flask are supported"
 		exit 1
 	fi
 
+	# PROFILE: 'development' or 'release' (set in builds.yml, defaults to 'release')
+	local profile="${PROFILE:-release}"
+
 	if [ "$scheme" = "MetaMask" ] ; then
-		# Main target
-		if [ "$configuration" = "Debug" ] ; then
-			# Debug configuration
+		if [ "$profile" = "development" ] ; then
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 		else
-			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
 		fi
-	elif [ "$scheme" = "MetaMask-QA" ] ; then
-		# QA target
-		if [ "$configuration" = "Debug" ] ; then
-			# Debug configuration
-			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
-		else
-			# Release configuration
-			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
-		fi
 	elif [ "$scheme" = "MetaMask-Flask" ] ; then
-		# Flask target
-		if [ "$configuration" = "Debug" ] ; then
-			# Debug configuration
+		if [ "$profile" = "development" ] ; then
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
 		else
-			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
 		fi
 	fi
@@ -551,17 +454,25 @@ generateIosBinary() {
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
-
-		# Also generate an .ipa to run on devices
-		if [ "$IS_DEVICE_BUILD" = "true" ]; then
-			echo "Binary build type: Device"
-			xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-			echo "Generating ipa for $scheme"
-			xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
-		fi
-	else
+	fi
+	
+	if [ "$IS_DEVICE_BUILD" = "true" ] || [ "$IS_SIM_BUILD" != "true" ]; then
 		echo "Binary build type: Device"
-		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+
+		# When PROFILE=development, override the signing settings so a Release
+		# archive can be signed with the development certificate and profile
+		# instead of the distribution identity hardcoded in the Xcode project.
+		local -a archiveOverrides=()
+		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
+			archiveOverrides=(
+				CODE_SIGN_STYLE=Manual
+				"PROVISIONING_PROFILE_SPECIFIER=development-metamask"
+				"CODE_SIGN_IDENTITY=Apple Development"
+			)
+			echo "Overriding signing: using development certificate and profile for Release archive"
+		fi
+
+		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}"
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
@@ -570,7 +481,7 @@ generateIosBinary() {
 
 # Generates the Android binary for the given scheme and configuration
 generateAndroidBinary() {
-	# Prod, Flask, or QA (Deprecated - Do not use)
+	# Prod, Flask
 	local flavor="$1"
 	# Lowercase flavor string
 	local lowercaseFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
@@ -590,6 +501,8 @@ generateAndroidBinary() {
 	local testBuildTypeArg=""
 	# Define Gradle logging flags for E2E builds
 	local gradleLoggingFlags=""
+	# Optional Gradle init script used by Namespace remote build cache trials.
+	local -a gradleInitScriptArg=()
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -599,10 +512,14 @@ generateAndroidBinary() {
 	fi
 
 	# Check if flavor is valid
-	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] && [ "$flavor" != "Qa" ] ; then
+	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] ; then
 		# Flavor is not recognized
-		echo "Flavor $flavor is not recognized! Only Prod, Flask, and Qa (Deprecated - Do not use) are supported"
+		echo "Flavor $flavor is not recognized! Only Prod, Flask are supported"
 		exit 1
+	fi
+
+	if [ -n "${GRADLE_INIT_SCRIPT:-}" ] ; then
+		gradleInitScriptArg=(--init-script "$GRADLE_INIT_SCRIPT")
 	fi
 
 	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
@@ -612,7 +529,8 @@ generateAndroidBinary() {
 		testBuildTypeArg="-DtestBuildType=${lowercaseConfiguration}"
 
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
-		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
+		# BrowserStack builds target real ARM devices, so skip x86_64-only restriction.
+		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ] ; then
 			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
 			if [ "${CI:-false}" = "true" ] ; then
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
@@ -621,12 +539,16 @@ generateAndroidBinary() {
 			fi
 			# Enable verbose logging for E2E builds to help diagnose build failures
 			gradleLoggingFlags="--stacktrace --info"
+			# Disable expo-updates delay-load-app to prevent Detox ANR.
+			# expo-updates defaults this to true, which causes a blocking launchAssetFile
+			# call when useDeveloperSupport=false (release-like E2E builds).
+			exUpdatesArgs="-PEX_UPDATES_ANDROID_DELAY_LOAD_APP=false"
 		fi
 	fi
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags
+	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
 
 	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
 	# and is only needed for Play Store distribution
@@ -676,82 +598,54 @@ generateAndroidBinary() {
 createEnvFile() {
 	echo "📝 Creating .env file from environment variables..."
 
-	# List of environment variable names to export
-	local ENV_VARS=(
-		"MM_MUSD_CONVERSION_FLOW_ENABLED"
-		"MM_NETWORK_UI_REDESIGN_ENABLED"
-		"MM_NOTIFICATIONS_UI_ENABLED"
-		"MM_PERMISSIONS_SETTINGS_V1_ENABLED"
-		"MM_PERPS_BLOCKED_REGIONS"
-		"MM_PERPS_ENABLED"
-		"MM_PERPS_HIP3_ALLOWLIST_MARKETS"
-		"MM_PERPS_HIP3_BLOCKLIST_MARKETS"
-		"MM_PERPS_HIP3_ENABLED"
-		"MM_SECURITY_ALERTS_API_ENABLED"
-		"BRIDGE_USE_DEV_APIS"
-		"SEEDLESS_ONBOARDING_ENABLED"
-		"RAMP_INTERNAL_BUILD"
-		"FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
-		"FEATURES_ANNOUNCEMENTS_SPACE_ID"
-		"SEGMENT_WRITE_KEY"
-		"SEGMENT_PROXY_URL"
-		"SEGMENT_DELETE_API_SOURCE_ID"
-		"SEGMENT_REGULATIONS_ENDPOINT"
-		"MM_SENTRY_DSN"
-		"MM_SENTRY_AUTH_TOKEN"
-		"IOS_GOOGLE_CLIENT_ID"
-		"IOS_GOOGLE_REDIRECT_URI"
-		"ANDROID_APPLE_CLIENT_ID"
-		"ANDROID_GOOGLE_CLIENT_ID"
-		"ANDROID_GOOGLE_SERVER_CLIENT_ID"
-		"MM_INFURA_PROJECT_ID"
-		"MM_BRANCH_KEY_LIVE"
-		"MM_BRANCH_KEY_TEST"
-		"MM_CARD_BAANX_API_CLIENT_KEY"
-		"WALLET_CONNECT_PROJECT_ID"
-		"MM_FOX_CODE"
-		"FCM_CONFIG_API_KEY"
-		"FCM_CONFIG_AUTH_DOMAIN"
-		"FCM_CONFIG_STORAGE_BUCKET"
-		"FCM_CONFIG_PROJECT_ID"
-		"FCM_CONFIG_MESSAGING_SENDER_ID"
-		"FCM_CONFIG_APP_ID"
-		"FCM_CONFIG_MEASUREMENT_ID"
-		"QUICKNODE_MAINNET_URL"
-		"QUICKNODE_ARBITRUM_URL"
-		"QUICKNODE_AVALANCHE_URL"
-		"QUICKNODE_BASE_URL"
-		"QUICKNODE_LINEA_MAINNET_URL"
-		"QUICKNODE_MONAD_URL"
-		"QUICKNODE_OPTIMISM_URL"
-		"QUICKNODE_POLYGON_URL"
-		"QUICKNODE_HYPEREVM_URL"
-		"MM_CHARTING_LIBRARY_URL"
-		"MM_BRAZE_API_KEY_IOS"
-		"MM_BRAZE_API_KEY_ANDROID"
-		"MM_BRAZE_SDK_ENDPOINT"
-	)
+	# Derive build name from current METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT
+	local build_type="${METAMASK_BUILD_TYPE:-main}"
+	local environment="${METAMASK_ENVIRONMENT:-production}"
+	local normalized_env="$environment"
+	case "$environment" in
+		production) normalized_env="prod" ;;
+	esac
+	local build_name="${build_type}-${normalized_env}"
+
+	# Read env + secret keys from builds.yml (single source of truth).
+	# Any env var set in the shell (from builds.yml, workflow, or feature flags)
+	# that matches a key in builds.yml will be written to .env.
+	local builds_yml_keys
+	builds_yml_keys=$(node -e "
+		const yaml = require('js-yaml');
+		const fs = require('fs');
+		const config = yaml.load(fs.readFileSync('${__DIRNAME__}/../builds.yml', 'utf8'));
+		const build = config.builds['${build_name}'];
+		if (!build) { console.error('Build not found: ${build_name}'); process.exit(1); }
+		const keys = new Set([
+			...Object.keys(build.env || {}),
+			...Object.keys(build.secrets || {}),
+		]);
+		keys.forEach(k => console.log(k));
+	")
+
+	if [ $? -ne 0 ]; then
+		echo "❌ Failed to read builds.yml for build '${build_name}'"
+		return 1
+	fi
 
 	# Create .env file and export to GITHUB_ENV
 	> .env
 	local exported_count=0
-	for var in "${ENV_VARS[@]}"; do
-		# Check if variable is set (defined), not just non-empty
-		# This allows explicitly empty strings to be written to .env
+	while IFS= read -r var; do
 		if [ -n "${!var+x}" ]; then
 			value="${!var}"
 			echo "${var}=${value}" >> .env
-			
-			# Export to GITHUB_ENV if running in GitHub Actions
+
 			if [ -n "${GITHUB_ENV:-}" ]; then
 				echo "${var}=${value}" >> "$GITHUB_ENV"
 			fi
-			
+
 			exported_count=$((exported_count + 1))
 		fi
-	done
+	done <<< "$builds_yml_keys"
 
-	echo "📄 .env file created with ${exported_count} variables"
+	echo "📄 .env file created with ${exported_count} variables (from build: ${build_name})"
 }
 
 buildExpoUpdate() {
@@ -892,17 +786,6 @@ buildAndroid() {
 			# Generate Android binary
 			generateAndroidBinary "Flask"
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
-		if [ "$IS_LOCAL" = true ] ; then
-			buildAndroidQALocal
-		else
-			# Prepare Android dependencies
-			prebuild_android
-			# Go to android directory
-			cd android
-			# Generate Android binary
-			generateAndroidBinary "Qa"
-		fi
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized."
 		exit 1
@@ -932,17 +815,6 @@ buildIos() {
 			cd ios
 			# Generate iOS binary
 			generateIosBinary "MetaMask-Flask"
-		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
-		if [ "$IS_LOCAL" = true ] ; then
-			buildIosQALocal
-		else
-			# Prepare iOS dependencies
-			prebuild_ios
-			# Go to ios directory
-			cd ios
-			# Generate iOS binary
-			generateIosBinary "MetaMask-QA"
 		fi
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized"
@@ -1002,11 +874,36 @@ checkParameters "$@"
 printTitle
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Load build configuration. Gated by BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:
+# Load build configuration from builds.yml (all platforms including expo-update).
+# Gated by BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:
 #   true  = GHA (set by workflow) and local (set in .js.env) → use builds.yml
-#   false = Bitrise (unset) → skip builds.yml, use legacy remap only
+#   false = unset → skip builds.yml, use legacy remap only
 # Local: .js.env is applied after loadBuildConfig so it overrides (see below).
 # ─────────────────────────────────────────────────────────────────────────────
+
+# Non-GHA: source .js.env early so BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is set for the gate (local can opt in)
+if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
+	source "$JS_ENV_FILE"
+fi
+
+BUILD_TYPE_FOR_CONFIG=$(echo "$METAMASK_BUILD_TYPE" | tr '[:upper:]' '[:lower:]')
+if [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" = "true" ]; then
+	# builds.yml path: GHA or local with flag.
+	if ! loadBuildConfig "$BUILD_TYPE_FOR_CONFIG" "$METAMASK_ENVIRONMENT"; then
+		echo "❌ Build configuration failed. Exiting."
+		exit 1
+	fi
+else
+	echo "⚠️  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is not true; skipping builds.yml, using legacy remap / .js.env"
+	echo ""
+fi
+
+# Local builds: .js.env overrides builds.yml (takes precedence)
+if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
+	source "$JS_ENV_FILE"
+fi
+
+# Native-build-specific flags and legacy env remap (not needed for expo-update)
 if [ "$PLATFORM" != "expo-update" ]; then
 	# Set flags for main builds
 	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
@@ -1014,29 +911,7 @@ if [ "$PLATFORM" != "expo-update" ]; then
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
 	fi
 
-	# Non-GHA: source .js.env early so BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is set for the gate (local can opt in)
-	if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
-		source "$JS_ENV_FILE"
-	fi
-
-	BUILD_TYPE_FOR_CONFIG=$(echo "$METAMASK_BUILD_TYPE" | tr '[:upper:]' '[:lower:]')
-	if [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" = "true" ]; then
-		# builds.yml path: GHA or local with flag.
-		if ! loadBuildConfig "$BUILD_TYPE_FOR_CONFIG" "$METAMASK_ENVIRONMENT"; then
-			echo "❌ Build configuration failed. Exiting."
-			exit 1
-		fi
-	else
-		echo "⚠️  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is not true; skipping builds.yml, using legacy remap / .js.env"
-		echo ""
-	fi
-
-	# Local builds: .js.env overrides builds.yml (takes precedence)
-	if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
-		source "$JS_ENV_FILE"
-	fi
-
-	# Bitrise (or other non-GHA CI): legacy env remapping (secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
+	# Non-GHA CI / local: legacy env remapping (secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
 	if [ -z "${GITHUB_ACTIONS:-}" ]; then
 		if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
@@ -1062,27 +937,22 @@ if [ "$PLATFORM" != "expo-update" ]; then
 			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 				remapFlaskE2EEnvVariables
 			fi
-		elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-			remapEnvVariableQA
 		fi
 	fi
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-	# Build for simulator
-	export IS_SIM_BUILD="true"
-	# Ignore Boxlogs for E2E builds
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
-if [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-	echo "DEBUG SENTRY PROPS"
-	checkAuthToken 'sentry.debug.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+else
+	echo "DEBUG SENTRY PROPS"
+	checkAuthToken 'sentry.debug.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 fi
 
 # Update Expo channel configuration based on environment

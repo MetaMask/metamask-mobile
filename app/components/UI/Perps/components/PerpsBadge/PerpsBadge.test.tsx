@@ -17,7 +17,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const labels: Record<string, string> = {
       'perps.market.badge.experimental': 'Experimental',
       'perps.market.badge.crypto': 'Crypto',
-      'perps.market.badge.equity': 'Equity',
+      'perps.market.badge.stock': 'Stock',
       'perps.market.badge.commodity': 'Commodity',
       'perps.market.badge.forex': 'Forex',
     };
@@ -26,29 +26,27 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('PerpsBadge', () => {
-  it('renders badges with correct labels and styles for all types', () => {
-    // Arrange
+  it('renders correct i18n label for each badge type', () => {
     const badgeTypes: BadgeType[] = [
       'experimental',
       'crypto',
-      'equity',
+      'stock',
       'commodity',
       'forex',
     ];
     const expectedLabels = [
       'Experimental',
       'Crypto',
-      'Equity',
+      'Stock',
       'Commodity',
       'Forex',
     ];
 
-    // Act & Assert - Test each badge type
     badgeTypes.forEach((type, index) => {
-      const { getByText } = render(<PerpsBadge type={type} />);
+      const { getByText, unmount } = render(<PerpsBadge type={type} />);
 
-      const labelElement = getByText(expectedLabels[index]);
-      expect(labelElement).toBeTruthy();
+      expect(getByText(expectedLabels[index])).toBeOnTheScreen();
+      unmount();
     });
   });
 

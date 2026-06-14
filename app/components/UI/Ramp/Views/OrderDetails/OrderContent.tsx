@@ -53,6 +53,15 @@ const localStyles = StyleSheet.create({
   inlineIcon: {
     transform: [{ translateY: 4 }],
   },
+  providerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  orderIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
 
 interface OrderContentProps {
@@ -385,25 +394,23 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 {getStatusText()}
               </Text>
               {providerOrderLink && (
-                <TouchableOpacity onPress={handleProviderLinkPress}>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    twClassName="items-center mt-1"
+                <TouchableOpacity
+                  onPress={handleProviderLinkPress}
+                  style={localStyles.providerLink}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="text-primary-default mr-1"
                   >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      twClassName="text-primary-default mr-1"
-                    >
-                      {strings('ramps_order_details.view_on_provider', {
-                        provider: providerName,
-                      })}
-                    </Text>
-                    <Icon
-                      name={IconName.Export}
-                      size={IconSize.Sm}
-                      twClassName="text-primary-default"
-                    />
-                  </Box>
+                    {strings('ramps_order_details.view_on_provider', {
+                      provider: providerName,
+                    })}
+                  </Text>
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Sm}
+                    twClassName="text-primary-default"
+                  />
                 </TouchableOpacity>
               )}
             </>
@@ -426,24 +433,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {isLoading ? (
           <Box twClassName="bg-muted rounded h-[18px] w-32" />
         ) : (
-          <TouchableOpacity onPress={handleCopyOrderId}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center"
+          <TouchableOpacity
+            onPress={handleCopyOrderId}
+            style={localStyles.orderIdRow}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="mr-2"
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="mr-2"
-              >
-                {shortOrderId}
-              </Text>
-              <Icon
-                name={IconName.Copy}
-                size={IconSize.Md}
-                twClassName="text-default"
-              />
-            </Box>
+              {shortOrderId}
+            </Text>
+            <Icon
+              name={IconName.Copy}
+              size={IconSize.Md}
+              twClassName="text-default"
+            />
           </TouchableOpacity>
         )}
       </Box>
@@ -613,23 +618,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
           showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
         }
       >
-        {order.statusDescription && (
+        {order.statusDescription && isTerminal && (
           <Box twClassName={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
               >
-                {(order.status === RampsOrderStatus.Pending ||
-                  order.status === RampsOrderStatus.Created ||
-                  order.status === RampsOrderStatus.Precreated ||
-                  order.status === RampsOrderStatus.Unknown) &&
-                order.statusDescription.startsWith('Your order')
-                  ? order.statusDescription.replace(
-                      /^Your order.*?is processing\.\s*/,
-                      '',
-                    ) || order.statusDescription
-                  : order.statusDescription}{' '}
+                {order.statusDescription}{' '}
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}

@@ -9,10 +9,6 @@ import { ModalFooterType } from '../../../../../util/notifications/constants/con
 import { createMockFeatureAnnouncementRaw } from '@metamask/notification-services-controller/notification-services/mocks';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
-
 jest.mock('../../../../../core/DeeplinkManager/DeeplinkManager', () => {
   const mockParse = jest.fn().mockResolvedValue(true);
   return {

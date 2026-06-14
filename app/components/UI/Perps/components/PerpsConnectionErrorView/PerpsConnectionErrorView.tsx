@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -48,22 +48,6 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   const errorMessage =
     (typeof error === 'string' ? error : error?.message) ||
     PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN;
-
-  // Track error screen view on mount and after each retry.
-  // Uses imperative track() in a useEffect keyed on retryAttempts so the event
-  // fires reliably every time, unlike the declarative resetConditions API which
-  // can skip renders when the reset condition stays true across retries.
-  useEffect(() => {
-    track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.ERROR,
-      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-        PERPS_EVENT_VALUE.SCREEN_NAME.CONNECTION_ERROR,
-      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.NETWORK,
-      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
-      [PERPS_EVENT_PROPERTY.RETRY_ATTEMPTS]: retryAttempts,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-    });
-  }, [retryAttempts, errorMessage, track]);
 
   // Filter debug messages in production - show generic error message
   const shouldShowDebugDetails =
@@ -119,14 +103,9 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
 
       <View style={styles.buttonContainer}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={
-            isRetrying
-              ? strings('perps.connection.retrying_connection')
-              : strings('perps.errors.connectionFailed.retry')
-          }
+          isFullWidth
           onPress={() => {
             track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
               [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -138,16 +117,19 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
             });
             onRetry();
           }}
-          loading={isRetrying}
+          isLoading={isRetrying}
           style={styles.retryButton}
-        />
+        >
+          {isRetrying
+            ? strings('perps.connection.retrying_connection')
+            : strings('perps.errors.connectionFailed.retry')}
+        </Button>
 
         {shouldShowBackButton && (
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.errors.connectionFailed.go_back')}
+            isFullWidth
             onPress={() => {
               track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
                 [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -160,7 +142,9 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               handleGoBack();
             }}
             style={styles.backButton}
-          />
+          >
+            {strings('perps.errors.connectionFailed.go_back')}
+          </Button>
         )}
       </View>
     </View>

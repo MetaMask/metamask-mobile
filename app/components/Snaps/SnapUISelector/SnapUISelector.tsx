@@ -61,6 +61,10 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
   );
 
   return (
+    // TODO: Migrate to ButtonBase from @metamask/design-system-react-native once it supports
+    // custom flex layouts inside children. The new ButtonBase wraps non-string children in an
+    // unsized intermediate <View>, which breaks SnapUICard's flex: 1 + justifyContent: spaceBetween
+    // layout (right-side value text collapses to center instead of aligning right).
     <ButtonBase
       label={buttonContent}
       width={ButtonWidthTypes.Full}
@@ -131,9 +135,12 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   // We clone the selected option component so that we can pass the render context to it.
   const inlineButtonLabel =
     selectedOptionComponent &&
-    React.cloneElement(selectedOptionComponent as React.ReactElement, {
-      context: 'inline',
-    });
+    React.cloneElement(
+      selectedOptionComponent as React.ReactElement<{ context?: string }>,
+      {
+        context: 'inline',
+      },
+    );
 
   return (
     <>

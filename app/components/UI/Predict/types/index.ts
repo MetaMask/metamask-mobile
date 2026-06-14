@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export enum Side {
   BUY = 'BUY',
@@ -35,11 +36,19 @@ export interface GetPositionsParams {
   offset?: number;
 }
 
+export interface GetActivityParams {
+  address?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export enum PredictMarketStatus {
   OPEN = 'open',
   CLOSED = 'closed',
   RESOLVED = 'resolved',
 }
+
+export const OPEN_PREDICT_OUTCOME_STATUS: PredictOutcome['status'] = 'open';
 
 export enum Recurrence {
   NONE = 'none',
@@ -106,14 +115,20 @@ export type PredictMarket = {
   endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
   recurrence: Recurrence;
   category: PredictCategory;
   tags: string[];
   outcomes: PredictOutcome[];
+  outcomeGroups?: PredictOutcomeGroup[];
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
   series?: PredictSeries;
+  parentMarketId?: string | number | null;
+  childMarketIds?: string[];
+  isHighlighted?: boolean;
+  priceToBeat?: number;
 };
 
 export type PredictSeries = {
@@ -137,12 +152,16 @@ export type PredictCategory =
   | 'sports'
   | 'crypto'
   | 'politics'
-  | 'hot';
+  | 'hot'
+  | 'world-cup';
 
 // Sports league types
 export type PredictSportsLeague =
   | 'nfl'
   | 'nba'
+  | 'wnba'
+  | 'mlb'
+  | 'nhl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -180,7 +199,11 @@ export type PredictSportsLeague =
   | 'bol1'
   | 'itc'
   | 'dfb'
-  | 'cde';
+  | 'cde'
+  | 'fifwc'
+  | 'atp'
+  | 'wta'
+  | 'itf';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -192,7 +215,7 @@ export type PredictSportTeam = {
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
-  alias: string; // Team alias (e.g., "Seahawks")
+  alias?: string; // Team alias (e.g., "Seahawks")
 };
 
 // Parsed score data
@@ -259,6 +282,24 @@ export interface CryptoPriceUpdate {
   timestamp: number;
 }
 
+export interface OrderbookLevel {
+  price: number;
+  size: number;
+}
+
+export interface OrderbookSnapshot {
+  tokenId: string;
+  bids: OrderbookLevel[];
+  asks: OrderbookLevel[];
+  timestamp: number;
+}
+
+export type PredictOutcomeGroup = {
+  key: string;
+  outcomes: PredictOutcome[];
+  subgroups?: PredictOutcomeGroup[];
+};
+
 export type PredictOutcome = {
   id: string;
   providerId: string;
@@ -267,12 +308,17 @@ export type PredictOutcome = {
   description: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
+  acceptingOrders?: boolean;
   tokens: PredictOutcomeToken[];
   volume: number;
+  liquidity?: number;
   groupItemTitle: string;
   groupItemThreshold?: number;
   negRisk?: boolean;
   tickSize?: string;
+  sportsMarketType?: string;
+  line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
 };
@@ -280,6 +326,7 @@ export type PredictOutcome = {
 export type PredictOutcomeToken = {
   id: string;
   title: string;
+  shortTitle?: string;
   price: number;
 };
 
@@ -359,6 +406,37 @@ export interface GetPriceHistoryParams {
   interval?: PredictPriceHistoryInterval;
   startTs?: number;
   endTs?: number;
+}
+
+export interface GetCryptoTargetPriceParams {
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate: string;
+}
+
+/**
+ * Parameters for fetching crypto asset price history from Polymarket.
+ */
+export interface GetCryptoPriceHistoryParams {
+  /** Crypto symbol (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Event start time as ISO 8601 string or Unix timestamp */
+  eventStartTime: string;
+  /** Time variant: 'fiveminute' | 'fifteen' | 'hourly' | 'fourhour' | 'daily' */
+  variant: string;
+  /** Optional end date as ISO 8601 string (omit for live/current data) */
+  endDate?: string;
+}
+
+/**
+ * A single point from the crypto price history source.
+ */
+export interface CryptoPriceHistoryPoint {
+  /** Unix timestamp in seconds */
+  timestamp: number;
+  /** Price value */
+  value: number;
 }
 
 /**
@@ -485,15 +563,74 @@ export interface PredictCarouselMetadata {
 }
 
 export interface GetMarketsParams {
-  q?: string;
-  status?: 'open' | 'closed' | 'resolved';
   category?: PredictCategory;
-
-  sortBy?: 'volume24h' | 'date';
-  sortDirection?: 'asc' | 'desc';
-  offset?: number;
+  afterCursor?: string | null;
   limit?: number;
   customQueryParams?: string;
+}
+
+export interface GetMarketsResult {
+  markets: PredictMarket[];
+  nextCursor: string | null;
+}
+
+export interface PredictMarketListParams {
+  tags?: string[]; // tag IDs -> tag_id (multi).
+  tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
+  series?: string[]; // series IDs -> series_id (multi)
+  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
+  status?: 'open' | 'closed' | 'resolved';
+  live?: boolean;
+  // Free-text title filter. The provider maps this to Polymarket's
+  // `title_search` query param, which composes with cursor pagination, so
+  // search stays on the same feed endpoint (handled in the provider layer, not
+  // the UI). Blank/whitespace is ignored (browse mode).
+  search?: string;
+  limit?: number;
+  afterCursor?: string | null;
+}
+
+export interface PredictMarketListResponse {
+  markets: PredictMarket[];
+  nextCursor?: string | null;
+}
+
+/**
+ * Where a dynamic feed filter list is derived from. Keeps the UI decoupled from
+ * the concrete derivation strategy (V1: Polymarket related-tags endpoint).
+ */
+export type PredictFilterOptionSource =
+  | 'related-tags'
+  | 'hot-tags'
+  | 'trending-series'
+  | 'sports-leagues';
+
+export interface PredictFilterOptionsParams {
+  /** Base list params every derived option should also carry (e.g. a feed's base topic). */
+  baseParams?: PredictMarketListParams;
+  source: PredictFilterOptionSource;
+  /** Polymarket tag slug used as the related-tags root. Defaults to 'all' (general Popular/Trending). */
+  baseTagSlug?: string;
+  /** Max number of options to return. */
+  limit?: number;
+  /** Reserved for a future market-volume-derived fallback strategy (unused in V1). */
+  sampleSize?: number;
+}
+
+export interface PredictFilterOption {
+  /** Stable, slug-based id used for dedupe (not the display label). */
+  id: string;
+  label: string;
+  /** Ready-to-use list params for this filter; feed straight into `listMarkets`. */
+  params: PredictMarketListParams;
+  source: string;
+}
+
+export interface SearchMarketsParams {
+  q: string;
+  limit?: number;
+  page?: number;
 }
 
 export interface GetBalanceParams {
@@ -503,6 +640,7 @@ export interface GetBalanceParams {
 export interface PredictFees {
   metamaskFee: number;
   providerFee: number;
+  marketFee?: number;
   totalFee: number;
   totalFeePercentage: number;
   collector: Hex;
@@ -557,16 +695,25 @@ export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
+  activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;
     marketCategory?: string;
     marketTags?: string[];
+    actionType?: string;
     entryPoint?: string;
+    predictFeedTab?: string;
+    predictScreen?: string;
+    predictComponent?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;
     volume?: number;
+    openPositionsCount?: number;
+    claimablePositionsCount?: number;
+    hasClaimableWinnings?: boolean;
+    portfolioModuleEnabled?: boolean;
     marketType?: string;
     outcome?: string;
     marketSlug?: string;
@@ -590,10 +737,12 @@ export interface PreviewOrderParams {
   positionId?: string;
 }
 
+export type PredictWalletType = 'safe' | 'deposit-wallet';
+
 export interface AccountState {
   address: Hex;
   isDeployed: boolean;
-  hasAllowances: boolean;
+  walletType: PredictWalletType;
 }
 
 export interface GeoBlockResponse {
@@ -610,12 +759,14 @@ export interface ConnectionStatus {
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
 export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
+export type OrderbookCallback = (snapshot: OrderbookSnapshot) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetAccountStateParams {}
+export interface GetAccountStateParams {
+  forceRefresh?: boolean;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareWithdrawParams {}

@@ -10,8 +10,8 @@ let mockUpdateTokenAmountCallback = jest.fn();
 let mockActiveTransactionMeta: { id?: string } | null = null;
 let mockSelectedPaymentToken:
   | {
-      address: string;
-      chainId: string;
+      address?: string;
+      chainId?: string;
     }
   | undefined;
 let mockPayToken:
@@ -133,7 +133,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -149,7 +149,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={1}
           preview={null}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -163,7 +163,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={1}
           preview={createMockPreview({ fees: undefined })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -177,14 +177,17 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0.5}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
-    it('computes the remaining amount needed after predict balance is applied', () => {
+    it('deposits the all-in order amount from the selected ERC20, ignoring Predict balance', () => {
+      // When an ERC20 token is selected the payment only uses that token —
+      // Predict balance is never used first, so the full totalPayForPredictBalance
+      // (preview maxAmountSpent + protocol fees) is deposited regardless of existing balance.
       mockPredictBalance = 80;
       mockActiveTransactionMeta = { id: 'tx-1' };
 
@@ -196,16 +199,17 @@ describe('PredictPayWithAnyTokenInfo', () => {
               totalFee: 5,
               metamaskFee: 2,
               providerFee: 3,
+              marketFee: 0.25,
               totalFeePercentage: 0.05,
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
-      // totalPay = 100 + 3 + 2 = 105, remaining = 105 - 80 = 25
-      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('25');
+      // totalPay = 100 + 3 + 0.25 + 2 = 105.25, full amount deposited (no predict balance deduction)
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('105.25');
     });
 
     it('rounds the remaining amount up to 2 decimals when a deposit is still needed', () => {
@@ -216,6 +220,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={2}
           preview={createMockPreview({
+            maxAmountSpent: 2,
             fees: {
               totalFee: 0.075,
               metamaskFee: 0.035,
@@ -224,11 +229,11 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
-      // totalPay = 2 + 0.04 + 0.035 = 2.075, remaining = 2.075, ROUND_UP → 2.08
+      // totalPay = 2 + 0.04 + 0.035 = 2.075, remaining = 2.075, ROUND_UP -> 2.08
       expect(mockUpdatePendingAmount).toHaveBeenCalledWith('2.08');
     });
 
@@ -240,6 +245,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={2}
           preview={createMockPreview({
+            maxAmountSpent: 2,
             fees: {
               totalFee: 0.074,
               metamaskFee: 0.034,
@@ -248,15 +254,17 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
-      // totalPay = 2 + 0.04 + 0.034 = 2.074, remaining = 2.074, ROUND_UP → 2.08
+      // totalPay = 2 + 0.04 + 0.034 = 2.074, remaining = 2.074, ROUND_UP -> 2.08
       expect(mockUpdatePendingAmount).toHaveBeenCalledWith('2.08');
     });
 
-    it('rounds a tiny positive shortfall up to the minimum cent instead of zero', () => {
+    it('deposits full amount even when predict balance nearly covers the total', () => {
+      // Predict balance is never deducted — the full totalPay is always deposited
+      // from the selected ERC20, regardless of existing Predict balance.
       mockPredictBalance = 2.075889;
       mockActiveTransactionMeta = { id: 'tx-1' };
 
@@ -264,6 +272,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={2}
           preview={createMockPreview({
+            maxAmountSpent: 2,
             fees: {
               totalFee: 0.08,
               metamaskFee: 0.04,
@@ -272,12 +281,29 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
-      // totalPay = 2.08, remaining = 2.08 - 2.075889 ≈ 0.004111, ROUND_UP → 0.01
-      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('0.01');
+      // totalPay = 2 + 0.04 + 0.04 = 2.08, deposited in full
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('2.08');
+    });
+
+    it('uses preview maxAmountSpent instead of the raw currentValue input', () => {
+      mockPredictBalance = 0;
+      mockActiveTransactionMeta = { id: 'tx-1' };
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={createMockPreview({
+            maxAmountSpent: 99.99,
+          })}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('99.99');
     });
 
     it('computes the full preview total when predict balance already covers the bet', () => {
@@ -297,7 +323,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -307,28 +333,28 @@ describe('PredictPayWithAnyTokenInfo', () => {
   });
 
   describe('deposit amount gating', () => {
-    it('does not commit deposit amount while input is focused', () => {
+    it('does not commit deposit amount while relay setup is deferred', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
       render(
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused
+          shouldDeferRelaySetup
         />,
       );
 
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
-    it('commits deposit amount when input loses focus', () => {
+    it('commits deposit amount when relay setup deferral is released', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
       const { rerender } = render(
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused
+          shouldDeferRelaySetup
         />,
       );
 
@@ -338,7 +364,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -352,7 +378,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -365,7 +391,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused
+          shouldDeferRelaySetup
         />,
       );
 
@@ -373,11 +399,42 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+    });
+
+    it('re-emits the same amount when the active transaction changes', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100';
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+
+      mockUpdatePendingAmount.mockClear();
+      mockUpdateTokenAmountCallback.mockClear();
+      mockActiveTransactionMeta = { id: 'tx-2' };
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
     });
 
     it('updates deposit amount when value changes after unfocus', () => {
@@ -387,7 +444,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -397,8 +454,8 @@ describe('PredictPayWithAnyTokenInfo', () => {
       rerender(
         <PredictPayWithAnyTokenInfo
           currentValue={200}
-          preview={defaultPreview}
-          isInputFocused
+          preview={createMockPreview({ maxAmountSpent: 200 })}
+          shouldDeferRelaySetup
         />,
       );
 
@@ -407,8 +464,8 @@ describe('PredictPayWithAnyTokenInfo', () => {
       rerender(
         <PredictPayWithAnyTokenInfo
           currentValue={200}
-          preview={defaultPreview}
-          isInputFocused={false}
+          preview={createMockPreview({ maxAmountSpent: 200 })}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -425,7 +482,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -440,7 +497,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -455,7 +512,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -470,7 +527,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -485,6 +542,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={2}
           preview={createMockPreview({
+            maxAmountSpent: 2,
             fees: {
               totalFee: 0.075,
               metamaskFee: 0.035,
@@ -493,7 +551,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -511,7 +569,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -527,6 +585,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={2}
           preview={createMockPreview({
+            maxAmountSpent: 2,
             fees: {
               totalFee: 0.075,
               metamaskFee: 0.035,
@@ -535,7 +594,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -551,7 +610,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -567,7 +626,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -583,7 +642,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -599,7 +658,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -615,10 +674,66 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
+      expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('payment token transitions', () => {
+    it('does not re-emit the same token amount after Predict balance', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = {
+        address: '0xabc123',
+        chainId: '0x1',
+      };
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100';
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+
+      jest.clearAllMocks();
+      mockIsPredictBalanceSelected = true;
+      mockSelectedPaymentToken = undefined;
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+      expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
+
+      jest.clearAllMocks();
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = {
+        address: '0xAbC123',
+        chainId: '0X1',
+      };
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
       expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
     });
   });
@@ -639,7 +754,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -664,7 +779,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -683,7 +798,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -698,7 +813,41 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockSetPayToken).not.toHaveBeenCalled();
+    });
+
+    it('does not call setPayToken when selectedPaymentToken address is missing', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockSelectedPaymentToken = {
+        chainId: '0x1',
+      };
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockSetPayToken).not.toHaveBeenCalled();
+    });
+
+    it('does not call setPayToken when selectedPaymentToken chainId is missing', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockSelectedPaymentToken = {
+        address: '0xabc123',
+      };
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -716,7 +865,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 

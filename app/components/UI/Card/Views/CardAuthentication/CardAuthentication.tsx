@@ -1,4 +1,9 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  CommonActions,
+} from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
@@ -13,8 +18,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import { useTheme } from '../../../../../util/theme';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
@@ -30,6 +35,7 @@ import { selectCardUserLocation } from '../../../../../selectors/cardController'
 import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
+import NavigationService from '../../../../../core/NavigationService';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
@@ -41,7 +47,12 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
+  CardAuthentication:
+    | {
+        showAuthPrompt?: boolean;
+        postAuthRedirect?: { screen: string; params?: object };
+      }
+    | undefined;
 };
 
 const CardAuthentication = () => {
@@ -51,6 +62,7 @@ const CardAuthentication = () => {
   const route =
     useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
+  const postAuthRedirect = route.params?.postAuthRedirect;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -207,6 +219,23 @@ const CardAuthentication = () => {
           return;
         }
 
+        if (postAuthRedirect) {
+          if (postAuthRedirect.screen === Routes.HOME_TABS) {
+            NavigationService.navigation?.navigate(
+              postAuthRedirect.screen,
+              postAuthRedirect.params,
+            );
+          } else {
+            navigation.dispatch(
+              CommonActions.navigate(
+                postAuthRedirect.screen,
+                postAuthRedirect.params,
+              ),
+            );
+          }
+          return;
+        }
+
         // Successful login — navigate to home
         navigation.reset({
           index: 0,
@@ -228,6 +257,7 @@ const CardAuthentication = () => {
       dispatch,
       trackEvent,
       createEventBuilder,
+      postAuthRedirect,
     ],
   );
 
@@ -293,24 +323,26 @@ const CardAuthentication = () => {
         <>
           <Box>
             <TextField
-              autoCapitalize={'none'}
               onChangeText={handleOtpValueChange}
-              numberOfLines={1}
               value={confirmCode}
-              keyboardType="number-pad"
-              textContentType="oneTimeCode"
-              autoComplete={autoComplete}
-              maxLength={CODE_LENGTH}
-              accessibilityLabel={strings(
-                'card.card_otp_authentication.confirm_code_label',
-              )}
               isError={!!error}
-              testID="otp-code-field"
               autoFocus
+              inputProps={{
+                autoCapitalize: 'none',
+                numberOfLines: 1,
+                keyboardType: 'number-pad',
+                textContentType: 'oneTimeCode',
+                autoComplete,
+                maxLength: CODE_LENGTH,
+                accessibilityLabel: strings(
+                  'card.card_otp_authentication.confirm_code_label',
+                ),
+                testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
+              }}
             />
             {error && (
               <Text
-                testID="otp-code-field-error"
+                testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -324,7 +356,7 @@ const CardAuthentication = () => {
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative"
-              testID="otp-resend-verification"
+              testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
             >
               {resendCooldown > 0 ? (
                 strings('card.card_otp_authentication.resend_cooldown', {
@@ -348,7 +380,7 @@ const CardAuthentication = () => {
             </Text>
             {otpError && (
               <Text
-                testID="otp-error-text"
+                testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -371,7 +403,7 @@ const CardAuthentication = () => {
             >
               <Box
                 twClassName="flex flex-col items-center justify-center w-full p-4"
-                testID="international-location-box"
+                testID={CardAuthenticationSelectors.INTERNATIONAL_LOCATION_BOX}
               >
                 <Icon name={IconName.Global} size={IconSize.Lg} />
                 <Text
@@ -390,7 +422,7 @@ const CardAuthentication = () => {
             >
               <Box
                 twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
-                testID="us-location-box"
+                testID={CardAuthenticationSelectors.US_LOCATION_BOX}
               >
                 <Text twClassName="text-center">{countryCodeToFlag('US')}</Text>
                 <Text
@@ -406,40 +438,33 @@ const CardAuthentication = () => {
           <Box>
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
-              autoCapitalize={'none'}
-              autoComplete="one-time-code"
               onChangeText={handleEmailChange}
-              numberOfLines={1}
               value={email}
-              returnKeyType={'next'}
-              keyboardType="email-address"
-              maxLength={255}
-              accessibilityLabel={strings(
-                'card.card_authentication.email_label',
-              )}
-              testID="email-field"
+              inputProps={{
+                autoCapitalize: 'none',
+                autoComplete: 'username',
+                numberOfLines: 1,
+                returnKeyType: 'next',
+                keyboardType: 'email-address',
+                maxLength: 255,
+                accessibilityLabel: strings(
+                  'card.card_authentication.email_label',
+                ),
+                testID: CardAuthenticationSelectors.EMAIL_FIELD,
+              }}
             />
           </Box>
           <Box>
             <Label>{strings('card.card_authentication.password_label')}</Label>
             <TextField
-              autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="one-time-code"
-              numberOfLines={1}
               value={password}
-              maxLength={255}
-              returnKeyType={'done'}
-              onSubmitEditing={() => performLogin()}
-              secureTextEntry={!isPasswordVisible}
-              accessibilityLabel={strings(
-                'card.card_authentication.password_label',
-              )}
-              testID="password-field"
               endAccessory={
                 <TouchableOpacity
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  testID="password-visibility-toggle"
+                  testID={
+                    CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE
+                  }
                 >
                   <Icon
                     name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
@@ -447,6 +472,19 @@ const CardAuthentication = () => {
                   />
                 </TouchableOpacity>
               }
+              inputProps={{
+                autoCapitalize: 'none',
+                autoComplete: 'password',
+                numberOfLines: 1,
+                maxLength: 255,
+                returnKeyType: 'done',
+                onSubmitEditing: () => performLogin(),
+                secureTextEntry: !isPasswordVisible,
+                accessibilityLabel: strings(
+                  'card.card_authentication.password_label',
+                ),
+                testID: CardAuthenticationSelectors.PASSWORD_FIELD,
+              }}
             />
           </Box>
         </>
@@ -485,13 +523,13 @@ const CardAuthentication = () => {
               loading || !confirmCode || confirmCode.length < CODE_LENGTH
             }
             isFullWidth
-            testID="otp-confirm-button"
+            testID={CardAuthenticationSelectors.OTP_CONFIRM_BUTTON}
           >
             {strings('card.card_otp_authentication.confirm_button')}
           </Button>
           <TouchableOpacity
             onPress={handleBackToLogin}
-            testID="otp-back-to-login-button"
+            testID={CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON}
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -508,7 +546,7 @@ const CardAuthentication = () => {
             <Text
               variant={TextVariant.BodySm}
               style={{ color: theme.colors.error.default }}
-              testID="login-error-text"
+              testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
             >
               {error}
             </Text>
@@ -559,6 +597,7 @@ const CardAuthentication = () => {
       description={description}
       formFields={formFields}
       actions={actions}
+      headerMode="back"
     />
   );
 };

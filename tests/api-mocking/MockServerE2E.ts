@@ -6,6 +6,7 @@ import { createLogger, LogLevel } from '../framework/logger.ts';
 import {
   MockApiEndpoint,
   MockEventsObject,
+  PlatformDetector,
   Resource,
   ServerStatus,
   TestSpecificMock,
@@ -14,6 +15,7 @@ import {
   findMatchingPostEvent,
   processPostRequestBody,
   setupAccountsV2SupportedNetworksMock,
+  setupAccountsV4TransactionsMock,
 } from './helpers/mockHelpers.ts';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
@@ -298,6 +300,7 @@ export default class MockServerE2E implements Resource {
     }
 
     await setupAccountsV2SupportedNetworksMock(this._server);
+    await setupAccountsV4TransactionsMock(this._server);
 
     await this._server
       .forAnyRequest()
@@ -407,10 +410,9 @@ export default class MockServerE2E implements Resource {
             };
           }
 
-          let updatedUrl =
-            device.getPlatform() === 'android'
-              ? urlEndpoint.replace('localhost', '127.0.0.1')
-              : urlEndpoint;
+          let updatedUrl = (await PlatformDetector.isAndroid())
+            ? urlEndpoint.replace('localhost', '127.0.0.1')
+            : urlEndpoint;
 
           // Translate fallback ports to actual allocated ports (host-side forwarding)
           updatedUrl = translateFallbackPortToActual(updatedUrl);

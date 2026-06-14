@@ -13,7 +13,7 @@ export const usePredictBuyAvailableBalance = () => {
     () =>
       isPredictBalanceSelected || !payToken
         ? balance
-        : balance + Number(payToken?.balanceUsd ?? 0),
+        : Number(payToken?.balanceUsd ?? 0),
     [isPredictBalanceSelected, payToken, balance],
   );
 

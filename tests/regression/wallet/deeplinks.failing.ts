@@ -12,7 +12,7 @@ import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/S
 import CommonView from '../../page-objects/CommonView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../flows/wallet.flow';
-import Accounts from '../../../wdio/helpers/Accounts';
+import Accounts from '../../utils/Accounts';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';

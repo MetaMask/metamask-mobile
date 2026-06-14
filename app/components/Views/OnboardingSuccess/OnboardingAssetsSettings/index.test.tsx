@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { strings } from '../../../../../locales/i18n';
 import OnboardingAssetSettings from '.';
 
 jest.mock('@react-navigation/native', () => ({
@@ -40,10 +41,12 @@ describe('OnboardingAssetSettings', () => {
   };
 
   it('should render correctly', () => {
-    const tree = renderWithProvider(<OnboardingAssetSettings />, {
+    const { getByText } = renderWithProvider(<OnboardingAssetSettings />, {
       state: initialState,
     });
-    expect(tree).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.token_detection_title')),
+    ).toBeOnTheScreen();
   });
 
   it('sets navigation options', () => {

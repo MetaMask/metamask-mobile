@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -17,10 +17,15 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 
+interface ActionButtonConfig {
+  onPress: () => void;
+  disabled?: boolean;
+}
+
 interface MoneyActionButtonRowProps {
-  onAddPress: () => void;
-  onTransferPress: () => void;
-  onCardPress: () => void;
+  add: ActionButtonConfig;
+  transfer: ActionButtonConfig;
+  card: ActionButtonConfig;
 }
 
 const ActionButton = ({
@@ -28,16 +33,19 @@ const ActionButton = ({
   label,
   onPress,
   testID,
+  disabled,
 }: {
   iconName: IconName;
   label: string;
   onPress: () => void;
   testID: string;
+  disabled?: boolean;
 }) => (
   <ButtonBase
     twClassName="flex-1 self-stretch h-full min-h-12 rounded-xl bg-muted px-1 py-3"
     onPress={onPress}
     testID={testID}
+    isDisabled={disabled}
   >
     <Box
       flexDirection={BoxFlexDirection.Column}
@@ -65,44 +73,38 @@ const ActionButton = ({
 );
 
 const MoneyActionButtonRow = ({
-  onAddPress,
-  onTransferPress,
-  onCardPress,
-}: MoneyActionButtonRowProps) => {
-  const handleAddPress = useCallback(() => onAddPress(), [onAddPress]);
-  const handleTransferPress = useCallback(
-    () => onTransferPress(),
-    [onTransferPress],
-  );
-  const handleCardPress = useCallback(() => onCardPress(), [onCardPress]);
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Stretch}
-      twClassName="px-4 pt-4 pb-7 gap-2"
-      testID={MoneyActionButtonRowTestIds.CONTAINER}
-    >
-      <ActionButton
-        iconName={IconName.Add}
-        label={strings('money.action.add')}
-        onPress={handleAddPress}
-        testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
-      />
-      <ActionButton
-        iconName={IconName.SwapHorizontal}
-        label={strings('money.action.transfer')}
-        onPress={handleTransferPress}
-        testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
-      />
-      <ActionButton
-        iconName={IconName.Card}
-        label={strings('money.action.card')}
-        onPress={handleCardPress}
-        testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
-      />
-    </Box>
-  );
-};
+  add,
+  transfer,
+  card,
+}: MoneyActionButtonRowProps) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Stretch}
+    twClassName="px-4 pt-6 pb-2 gap-2"
+    testID={MoneyActionButtonRowTestIds.CONTAINER}
+  >
+    <ActionButton
+      iconName={IconName.Add}
+      label={strings('money.action.add')}
+      onPress={add.onPress}
+      disabled={add.disabled}
+      testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
+    />
+    <ActionButton
+      iconName={IconName.Arrow2UpRight}
+      label={strings('money.action.transfer')}
+      onPress={transfer.onPress}
+      disabled={transfer.disabled}
+      testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
+    />
+    <ActionButton
+      iconName={IconName.Card}
+      label={strings('money.action.card')}
+      onPress={card.onPress}
+      disabled={card.disabled}
+      testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
+    />
+  </Box>
+);
 
 export default MoneyActionButtonRow;

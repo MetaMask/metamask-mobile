@@ -26,7 +26,6 @@ SEMVER_REGEX="\
 
 PACKAGE_JSON_FILE=package.json
 ANDROID_BUILD_GRADLE_FILE=android/app/build.gradle
-BITRISE_YML_FILE=bitrise.yml
 IOS_PROJECT_FILE=ios/MetaMask.xcodeproj/project.pbxproj
 
 semver_to_nat () {
@@ -51,12 +50,6 @@ perform_updates () {
     sed -i '' -E "s/(\s*versionCode )[0-9]+/\1$VERSION_NUMBER/" $ANDROID_BUILD_GRADLE_FILE
     echo "- $ANDROID_BUILD_GRADLE_FILE successfully updated"
 
-    # update bitrise.yml
-    echo "Updating Bitrise configuration files..."
-    sed -i '' -E "s/(\s*VERSION_NUMBER: )[0-9]+/\1$VERSION_NUMBER/" $BITRISE_YML_FILE
-    sed -i '' -E "s/(\s*FLASK_VERSION_NUMBER: )[0-9]+/\1$VERSION_NUMBER/" $BITRISE_YML_FILE
-    echo "- $BITRISE_YML_FILE successfully updated"
-
     # update ios/MetaMask.xcodeproj/project.pbxproj
     echo "Updating iOS project settings..."
     sed -i '' -E "s/(\s*CURRENT_PROJECT_VERSION = )[0-9]+/\1$VERSION_NUMBER/" $IOS_PROJECT_FILE
@@ -70,12 +63,6 @@ perform_updates () {
     sed -i -E "s/(\s*versionCode )[0-9]+/\1$VERSION_NUMBER/" $ANDROID_BUILD_GRADLE_FILE
     echo "- $ANDROID_BUILD_GRADLE_FILE successfully updated"
 
-    # update bitrise.yml
-    echo "Updating Bitrise configuration files..."
-    sed -i -E "s/(\s*VERSION_NUMBER: )[0-9]+/\1$VERSION_NUMBER/" $BITRISE_YML_FILE
-    sed -i -E "s/(\s*FLASK_VERSION_NUMBER: )[0-9]+/\1$VERSION_NUMBER/" $BITRISE_YML_FILE
-    echo "- $BITRISE_YML_FILE successfully updated"
-
     # update ios/MetaMask.xcodeproj/project.pbxproj
     echo "Updating iOS project settings..."
     sed -i -E "s/(\s*CURRENT_PROJECT_VERSION = )[0-9]+/\1$VERSION_NUMBER/" $IOS_PROJECT_FILE
@@ -86,16 +73,10 @@ perform_updates () {
   echo "All specified files updated with version number: $VERSION_NUMBER"
 }
 
-# get current numbers
-CURRENT_VERSION_NUMBER=$(awk '/^\s+VERSION_NUMBER: /{print $2}' $BITRISE_YML_FILE);
-CURRENT_FLASK_VERSION_NUMBER=$(awk '/^\s+FLASK_VERSION_NUMBER: /{print $2}' $BITRISE_YML_FILE);
-
-# ensure version number of main variant and flask are aligned
-if [[ "$CURRENT_VERSION_NUMBER" != "$CURRENT_FLASK_VERSION_NUMBER" ]]; then
-  echo "VERSION_NUMBER $CURRENT_VERSION_NUMBER and FLASK_VERSION_NUMBER $CURRENT_FLASK_VERSION_NUMBER should be the same"
-  log_and_exit "Check why they are different and fix it before proceeding"
-fi
-
+# Extract current build numbers from Android and iOS sources of truth.
+# Use POSIX [[:space:]] for cross-platform awk compatibility (macOS BSD awk doesn't support \s).
+CURRENT_ANDROID_VERSION_NUMBER=$(awk '/^[[:space:]]+versionCode /{print $2; exit}' $ANDROID_BUILD_GRADLE_FILE)
+CURRENT_IOS_VERSION_NUMBER=$(awk -F'[[:space:]=;]+' '/CURRENT_PROJECT_VERSION/{print $3; exit}' $IOS_PROJECT_FILE)
 
 if [[ -z $VERSION_NUMBER ]]; then
   log_and_exit "VERSION_NUMBER not specified, aborting!"
@@ -107,12 +88,17 @@ if ! [[ $VERSION_NUMBER =~ $NAT ]] || [[ $VERSION_NUMBER =~ $SEMVER_REGEX ]]; th
 fi
 
 echo "VERSION_NUMBER is $VERSION_NUMBER."
-echo "CURRENT_VERSION_NUMBER is $CURRENT_VERSION_NUMBER."
+echo "CURRENT_ANDROID_VERSION_NUMBER is $CURRENT_ANDROID_VERSION_NUMBER."
+echo "CURRENT_IOS_VERSION_NUMBER is $CURRENT_IOS_VERSION_NUMBER."
 
-# ensure VERSION_NUMBER goes up
-if [[ "$VERSION_NUMBER" -le "$CURRENT_VERSION_NUMBER" ]]; then
-  echo "version $VERSION_NUMBER is less than or equal to current: $CURRENT_VERSION_NUMBER"
-  exit 1
+# ensure Android version number goes up
+if [[ "$VERSION_NUMBER" -le "$CURRENT_ANDROID_VERSION_NUMBER" ]]; then
+  log_and_exit "Android version $VERSION_NUMBER is less than or equal to current: $CURRENT_ANDROID_VERSION_NUMBER"
+fi
+
+# ensure iOS version number goes up
+if [[ "$VERSION_NUMBER" -le "$CURRENT_IOS_VERSION_NUMBER" ]]; then
+  log_and_exit "iOS version $VERSION_NUMBER is less than or equal to current: $CURRENT_IOS_VERSION_NUMBER"
 fi
 
 echo "VERSION_NUMBER is valid."
@@ -120,4 +106,3 @@ echo -e "-------------------"
 echo "Updating files:"
 
 perform_updates
-

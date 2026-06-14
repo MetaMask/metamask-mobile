@@ -9,9 +9,11 @@ import {
 import { AssetType } from '../../../types/token';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { useMMPayHardwareAccountAlert } from '../../../hooks/alerts/useMMPayHardwareAccountAlert';
+import { Severity } from '../../../types/alerts';
 
 const mockToken: AssetType = {
   address: '0x123',
@@ -52,8 +54,8 @@ jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useIsTransactionPayLoading: jest.fn(),
 }));
 
-jest.mock('../../../hooks/transactions/useTransactionConfirm', () => ({
-  useTransactionConfirm: jest.fn(),
+jest.mock('../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(),
 }));
 
 jest.mock('../../../context/alert-system-context', () => ({
@@ -88,13 +90,20 @@ jest.mock('../../rows/percentage-row', () => ({
   PercentageRow: () => null,
 }));
 
+jest.mock('../../../hooks/alerts/useMMPayHardwareAccountAlert', () => ({
+  useMMPayHardwareAccountAlert: jest.fn(),
+}));
+
 const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
-const mockUseTransactionConfirm = jest.mocked(useTransactionConfirm);
+const mockUseConfirmActions = jest.mocked(useConfirmActions);
 const mockUseAlerts = jest.mocked(useAlerts);
 const mockUseFiatFormatter = jest.mocked(useFiatFormatter);
+const mockUseMMPayHardwareAccountAlert = jest.mocked(
+  useMMPayHardwareAccountAlert,
+);
 
 function setupMocksForSuccessPath() {
   mockUseParams.mockReturnValue({ token: mockToken });
@@ -102,13 +111,17 @@ function setupMocksForSuccessPath() {
     chainId: '0x1',
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockUseIsTransactionPayLoading.mockReturnValue(false);
-  mockUseTransactionConfirm.mockReturnValue({ onConfirm: jest.fn() });
+  mockUseConfirmActions.mockReturnValue({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  });
   mockUseAlerts.mockReturnValue({
     alerts: [],
   } as unknown as ReturnType<typeof useAlerts>);
   mockUseFiatFormatter.mockReturnValue((value: { toString: () => string }) =>
     value.toString(),
   );
+  mockUseMMPayHardwareAccountAlert.mockReturnValue([]);
 }
 
 describe('MusdMaxConversionInfo', () => {
@@ -194,7 +207,10 @@ describe('MusdMaxConversionInfo', () => {
   describe('confirm button', () => {
     it('calls onConfirm when confirm button is pressed', () => {
       const mockOnConfirm = jest.fn();
-      mockUseTransactionConfirm.mockReturnValue({ onConfirm: mockOnConfirm });
+      mockUseConfirmActions.mockReturnValue({
+        onConfirm: mockOnConfirm,
+        onReject: jest.fn(),
+      });
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 
@@ -256,6 +272,41 @@ describe('MusdMaxConversionInfo', () => {
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
       expect(confirmButton).toBeEnabled();
+    });
+
+    it('disables confirm button when hardware account alert is blocking', () => {
+      mockUseMMPayHardwareAccountAlert.mockReturnValue([
+        {
+          key: 'MMPayHardwareAccount',
+          message: 'Hardware wallet not supported',
+          title: 'Not Supported',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      const confirmButton = screen.getByTestId(
+        MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeDisabled();
+    });
+
+    it('shows hardware account alert title as button label', () => {
+      mockUseMMPayHardwareAccountAlert.mockReturnValue([
+        {
+          key: 'MMPayHardwareAccount',
+          message: 'Hardware wallet not supported',
+          title: 'Not Supported',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      expect(screen.getByText('Not Supported')).toBeOnTheScreen();
     });
   });
 });

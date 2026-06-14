@@ -4,7 +4,7 @@ import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
+import { deleteFavoriteTestId } from './UrlAutocomplete.testIds';
 import {
   Box,
   Icon,

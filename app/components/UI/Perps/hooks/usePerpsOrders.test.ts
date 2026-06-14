@@ -119,7 +119,10 @@ describe('usePerpsOrders', () => {
       expect(result.current.orders).toEqual(mockOrders);
       expect(result.current.error).toBeNull();
       expect(mockPerpsController.getOrders).toHaveBeenCalledTimes(1);
-      expect(mockPerpsController.getOrders).toHaveBeenCalledWith(undefined);
+      expect(mockPerpsController.getOrders).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ forceRefresh: false }),
+      );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Fetching orders from controller...',
       );
@@ -163,7 +166,10 @@ describe('usePerpsOrders', () => {
       });
 
       // Assert
-      expect(mockPerpsController.getOrders).toHaveBeenCalledWith(params);
+      expect(mockPerpsController.getOrders).toHaveBeenCalledWith(
+        params,
+        expect.any(Object),
+      );
     });
 
     it('updates orders when data changes', async () => {
@@ -434,7 +440,10 @@ describe('usePerpsOrders', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockPerpsController.getOrders).toHaveBeenCalledWith(initialParams);
+      expect(mockPerpsController.getOrders).toHaveBeenCalledWith(
+        initialParams,
+        expect.any(Object),
+      );
 
       // Reset call count
       jest.clearAllMocks();
@@ -444,7 +453,10 @@ describe('usePerpsOrders', () => {
       rerender({ params: newParams });
 
       await waitFor(() => {
-        expect(mockPerpsController.getOrders).toHaveBeenCalledWith(newParams);
+        expect(mockPerpsController.getOrders).toHaveBeenCalledWith(
+          newParams,
+          expect.any(Object),
+        );
       });
     });
 

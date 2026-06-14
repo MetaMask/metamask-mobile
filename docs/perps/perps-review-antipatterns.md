@@ -2,19 +2,9 @@
 
 > Patterns to watch for when reviewing perps-related code. Generic code quality is handled by standard review.
 
-## Controller Portability (Core Sync)
-
-The controller at `app/controllers/perps/` is published as `@metamask/perps-controller` and synced to `core` monorepo via `scripts/perps/validate-core-sync.sh`. It must remain platform-agnostic — no mobile-specific imports.
-
-- **Mobile import in controller** — `react-native`, `Engine`, `Sentry`, `DevLogger` imported directly in `app/controllers/perps/`. All platform services must flow through `PerpsPlatformDependencies` (DI). The sync script checks for these but a PR could introduce them.
-- **Direct controller import from app code** — app files importing `from '../../controllers/perps/...'` instead of `from '@metamask/perps-controller'`. ESLint rule exists but may be suppressed.
-- **`__DEV__` in controller code** — must not appear in controller files. Core replaces it with `false` during sync. If new code adds `__DEV__` checks, sync breaks.
-- **New dependency not in DI interface** — controller code reaching outside its boundary (e.g., importing a hook, React context, or mobile utility). Everything the controller needs must come through `infrastructure: PerpsPlatformDependencies` constructor param.
-- **Breaking the publisher contract** — changing PerpsController's public API (state shape, method signatures, event names) without considering extension consumers. Controller is a publisher — mobile and extension both consume it.
-
 ## Magic Strings, Magic Numbers & Placeholder Values
 
-Constants live in `app/controllers/perps/constants/perpsConfig.ts` (controller-portable) and `app/components/UI/Perps/constants/perpsConfig.ts` (UI-only). PRs must use these — not inline literals.
+Use the exported perps constants instead of inline literals; UI-only constants live under `app/components/UI/Perps/constants/`.
 
 - **Defaulting to `0` when data is unavailable** — the most common mistake. When price/percentage/data hasn't loaded yet, use the placeholder constants, NOT `0`, `$0`, or `0%`:
   - `PERPS_CONSTANTS.FallbackPriceDisplay` (`'$---'`) — price not yet loaded
@@ -68,7 +58,7 @@ All provider access must go through `AggregatedPerpsProvider` → `ProviderRoute
 Single `PerpsAlwaysOnProvider` at wallet root owns lifecycle. All `PerpsConnectionProvider` instances use `manageLifecycle={false}`.
 
 - **New `PerpsConnectionProvider` with lifecycle** — adding a `PerpsConnectionProvider` without `manageLifecycle={false}` creates reference-count bugs. Only `PerpsAlwaysOnProvider` manages connect/disconnect.
-- **Unthrottled WS → setState** — every WS tick triggers state update. Must use `useLivePrices` with appropriate `throttleMs` (100ms for charts, 2s for lists, 10s for order forms).
+- **Unthrottled WS → setState** — every WS tick triggers state update. Must use `useLivePrices` with appropriate `throttleMs` (100ms for charts, 2s for lists, 10s for order forms). Exception: subscriptions that must react to user form input within the same tick (e.g. the L2 order-book subscription in `usePerpsEstimatedSlippage`) can use a sub-second cadence via `PERFORMANCE_CONFIG.SlippageEstimateThrottleMs`; downstream `useMemo` must keep per-tick work cheap so the faster cadence does not cause render pressure.
 - **Per-component WS subscription** — creating a new WebSocket connection per component instead of using `PerpsStreamManager` shared subscriptions with reference counting.
 - **WS subscription leak** — subscribing on mount without unsubscribing on unmount or market switch. `PerpsStreamManager` handles ref counting but custom subscriptions must clean up.
 - **Stale data after async gap** — reading position/order state, awaiting something, then using the stale read. WS updates change state between awaits. Re-read after async boundaries.
@@ -90,12 +80,3 @@ Controller → Redux → Hooks → Components. Standalone mode for lightweight q
 - **Pre-trade checks missing** — submitting trade without verifying: sufficient balance, market open, position limit, leverage within bounds, slippage tolerance set.
 - **Post-trade state not refreshed** — after trade confirmation, not triggering refresh of balances, positions, orders. User sees stale data until next WS tick.
 - **Missing slippage in order params** — creating order without slippage tolerance, or hardcoding slippage instead of user preference.
-
-## Agentic Testability (testIDs)
-
-PRs that touch UI components must include testIDs so agentic recipes and E2E tests can navigate and assert on the app without manual interaction.
-
-- **Missing testID on interactive elements** — any `TextInput`, `Pressable`, `Button`, or touchable in a new or modified component without a `testID` prop. Agentic recipes use `app-state.sh press <testID>` and `eval_sync` fiber-walk queries to interact with and assert on UI. If the element has no testID, the recipe cannot press it or read its value — the fix is untestable agentically.
-- **testID not in `Perps.testIds.ts`** — testIDs defined as inline strings instead of exported constants from `app/components/UI/Perps/Perps.testIds.ts`. All testIDs must be centralized so recipes can reference them by constant name.
-- **testID missing from the element that holds the value** — adding testID to a wrapper View instead of the `TextInput` or Text that actually contains the value. CDP fiber-walk reads `value` from the React element with the matching testID — the testID must be on the element that owns the state.
-- **TP/SL price inputs without testID** — the trigger price `TextInput` components in `PerpsTPSLView` (and similar order-form screens) frequently lack testIDs, making it impossible to assert the accepted decimal precision agentically. Any PR touching these screens must add `testID` to both the Take Profit and Stop Loss price inputs.

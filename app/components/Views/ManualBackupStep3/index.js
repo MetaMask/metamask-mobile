@@ -6,16 +6,17 @@ import { Box } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import HintModal from '../../UI/HintModal';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const hardwareBackPress = () => ({});
 const HARDWARE_BACK_PRESS = 'hardwareBackPress';
@@ -25,6 +26,8 @@ const HARDWARE_BACK_PRESS = 'hardwareBackPress';
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
+  backHandlerSubscription = null;
+
   state = {
     showHint: false,
     hintText: '',
@@ -45,18 +48,12 @@ class ManualBackupStep3 extends PureComponent {
     saveOnboardingEvent: PropTypes.func,
   };
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  };
-
   componentWillUnmount = () => {
-    BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+    this.backHandlerSubscription?.remove?.();
+    this.backHandlerSubscription = null;
   };
 
   componentDidMount = async () => {
-    this.updateNavBar();
     const currentSeedphraseHints =
       await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
@@ -65,11 +62,10 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
+    this.backHandlerSubscription = BackHandler.addEventListener(
+      HARDWARE_BACK_PRESS,
+      hardwareBackPress,
+    );
   };
 
   toggleHint = () => {
@@ -101,7 +97,7 @@ class ManualBackupStep3 extends PureComponent {
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       ).build(),
       this.props.saveOnboardingEvent,
@@ -131,7 +127,10 @@ class ManualBackupStep3 extends PureComponent {
   render() {
     return (
       <Box twClassName="flex-1 bg-default mt-4">
-        <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
+        <OnboardingSuccessComponent
+          onDone={this.done}
+          successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+        />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}
@@ -140,8 +139,6 @@ class ManualBackupStep3 extends PureComponent {
     );
   }
 }
-
-ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),

@@ -37,6 +37,36 @@ const wrapper =
     <Provider store={store}>{children}</Provider>
   );
 
+type QuoteOverride = Exclude<
+  Parameters<typeof useIsInsufficientBalance>[0]['quoteOverride'],
+  undefined
+>;
+type QuoteWithGas = Exclude<QuoteOverride, null>;
+
+const createQuote = ({
+  gasIncluded = false,
+  gasIncluded7702 = false,
+  gasSponsored = false,
+  gasAmount = '0.001',
+}: {
+  gasIncluded?: boolean;
+  gasIncluded7702?: boolean;
+  gasSponsored?: boolean;
+  gasAmount?: string;
+} = {}): QuoteWithGas =>
+  ({
+    quote: {
+      gasIncluded,
+      gasIncluded7702,
+      gasSponsored,
+    },
+    gasFee: {
+      effective: {
+        amount: gasAmount,
+      },
+    },
+  }) as QuoteWithGas;
+
 describe('useIsInsufficientBalance', () => {
   afterEach(() => {
     mockQuotes = null;
@@ -527,6 +557,62 @@ describe('useIsInsufficientBalance', () => {
 
       // Should return true because 1 ETH > 0.5 ETH balance
       // Even without a quote, basic balance check still applies
+      expect(result.current).toBe(true);
+    });
+
+    it('uses quoteOverride instead of the Redux recommended quote', () => {
+      const store = createMockStore({
+        recommendedQuote: createQuote({ gasAmount: '0.02' }),
+      });
+
+      const { result } = renderHook(
+        () =>
+          useIsInsufficientBalance({
+            amount: '0.99',
+            token: ethToken,
+            latestAtomicBalance: BigNumber.from('1000000000000000000'),
+            quoteOverride: createQuote({ gasIncluded: true }),
+          }),
+        { wrapper: wrapper(store) },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('ignores the Redux recommended quote when quoteOverride is null', () => {
+      const store = createMockStore({
+        recommendedQuote: createQuote({ gasAmount: '0.02' }),
+      });
+
+      const { result } = renderHook(
+        () =>
+          useIsInsufficientBalance({
+            amount: '0.99',
+            token: ethToken,
+            latestAtomicBalance: BigNumber.from('1000000000000000000'),
+            quoteOverride: null,
+          }),
+        { wrapper: wrapper(store) },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('uses the Redux recommended quote when quoteOverride is omitted', () => {
+      const store = createMockStore({
+        recommendedQuote: createQuote({ gasAmount: '0.02' }),
+      });
+
+      const { result } = renderHook(
+        () =>
+          useIsInsufficientBalance({
+            amount: '0.99',
+            token: ethToken,
+            latestAtomicBalance: BigNumber.from('1000000000000000000'),
+          }),
+        { wrapper: wrapper(store) },
+      );
+
       expect(result.current).toBe(true);
     });
 

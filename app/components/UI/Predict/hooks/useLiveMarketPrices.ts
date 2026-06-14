@@ -13,6 +13,45 @@ export interface UseLiveMarketPricesResult {
   lastUpdateTime: number | null;
 }
 
+const liveMarketPriceCache = new Map<
+  string,
+  { price: PriceUpdate; updatedAt: number }
+>();
+const LIVE_MARKET_PRICE_CACHE_TTL_MS = 10_000;
+
+export const __resetLiveMarketPricesCacheForTest = () => {
+  liveMarketPriceCache.clear();
+};
+
+const pruneExpiredCachedPrices = (now = Date.now()) => {
+  liveMarketPriceCache.forEach((cached, tokenId) => {
+    if (now - cached.updatedAt > LIVE_MARKET_PRICE_CACHE_TTL_MS) {
+      liveMarketPriceCache.delete(tokenId);
+    }
+  });
+};
+
+const getCachedPrices = (tokenIds: string[]) => {
+  const prices = new Map<string, PriceUpdate>();
+  let lastUpdateTime: number | null = null;
+  const now = Date.now();
+  pruneExpiredCachedPrices(now);
+
+  tokenIds.forEach((tokenId) => {
+    const cached = liveMarketPriceCache.get(tokenId);
+    if (!cached) return;
+    if (now - cached.updatedAt > LIVE_MARKET_PRICE_CACHE_TTL_MS) {
+      liveMarketPriceCache.delete(tokenId);
+      return;
+    }
+
+    prices.set(tokenId, cached.price);
+    lastUpdateTime = Math.max(lastUpdateTime ?? 0, cached.updatedAt);
+  });
+
+  return { prices, lastUpdateTime };
+};
+
 /**
  * Hook for subscribing to real-time market price updates via WebSocket.
  *
@@ -25,10 +64,13 @@ export const useLiveMarketPrices = (
   options: UseLiveMarketPricesOptions = {},
 ): UseLiveMarketPricesResult => {
   const { enabled = true } = options;
-
-  const [prices, setPrices] = useState<Map<string, PriceUpdate>>(new Map());
+  const [prices, setPrices] = useState<Map<string, PriceUpdate>>(
+    () => getCachedPrices(tokenIds).prices,
+  );
   const [isConnected, setIsConnected] = useState(false);
-  const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(
+    () => getCachedPrices(tokenIds).lastUpdateTime,
+  );
 
   const isMountedRef = useRef(true);
   const tokenIdsRef = useRef(tokenIds);
@@ -47,6 +89,12 @@ export const useLiveMarketPrices = (
   const handlePriceUpdates = useCallback((updates: PriceUpdate[]) => {
     if (!isMountedRef.current) return;
 
+    const updatedAt = Date.now();
+    pruneExpiredCachedPrices(updatedAt);
+    updates.forEach((update) => {
+      liveMarketPriceCache.set(update.tokenId, { price: update, updatedAt });
+    });
+
     setPrices((prevPrices) => {
       const newPrices = new Map(prevPrices);
       updates.forEach((update) => {
@@ -55,24 +103,45 @@ export const useLiveMarketPrices = (
       return newPrices;
     });
 
-    setLastUpdateTime(Date.now());
+    setLastUpdateTime(updatedAt);
   }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    // Reset state when token set changes to avoid stale data from previous subscriptions
-    setPrices(new Map());
-    setLastUpdateTime(null);
+    const currentTokenIds = tokenIdsRef.current;
+    const currentTokenIdSet = new Set(currentTokenIds);
+    const cachedPrices = getCachedPrices(currentTokenIds);
 
-    if (!enabled || tokenIdsRef.current.length === 0) {
+    // Keep the last known live price for still-selected tokens while a new
+    // subscription warms up. This prevents brief flashes to older REST or
+    // market snapshots when a CTA remounts for the same token IDs.
+    setPrices((prevPrices) => {
+      const nextPrices = new Map<string, PriceUpdate>();
+      currentTokenIds.forEach((tokenId) => {
+        const cachedPrice =
+          cachedPrices.prices.get(tokenId) ?? prevPrices.get(tokenId);
+        if (cachedPrice) {
+          nextPrices.set(tokenId, cachedPrice);
+        }
+      });
+      return nextPrices;
+    });
+
+    if (currentTokenIdSet.size === 0) {
+      setLastUpdateTime(null);
+    } else if (cachedPrices.lastUpdateTime !== null) {
+      setLastUpdateTime(cachedPrices.lastUpdateTime);
+    }
+
+    if (!enabled || currentTokenIds.length === 0) {
       setIsConnected(false);
       return;
     }
 
     const { PredictController } = Engine.context;
     const unsubscribe = PredictController.subscribeToMarketPrices(
-      tokenIdsRef.current,
+      currentTokenIds,
       handlePriceUpdates,
     );
 

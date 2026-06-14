@@ -5,8 +5,8 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { PlaywrightAssertions, sleep } from '../../framework';
 
 class SignModal {
   get confirmButton(): EncapsulatedElementType {
@@ -36,21 +36,72 @@ class SignModal {
     });
   }
 
-  async tapConfirmButton(): Promise<void> {
-    await UnifiedGestures.tap(this.confirmButton);
+  async tapConfirmButton({
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.confirmButton);
+          await element.waitForDisplayed({
+            timeout: 5000,
+            timeoutMsg: 'SignModal: confirm button not visible',
+          });
+          await element.click();
+        });
+      },
+    });
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 
-  async tapCancelButton(): Promise<void> {
-    await UnifiedGestures.tap(this.cancelButton);
+  async tapCancelButton({
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        await PlaywrightAssertions.expectConditionWithRetry(async () => {
+          const element = await asPlaywrightElement(this.cancelButton);
+          await element.waitForDisplayed({
+            timeout: 5000,
+            timeoutMsg: 'SignModal: cancel button not visible',
+          });
+          await element.click();
+        });
+      },
+    });
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 
   async assertNetworkText(network: string): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        const element = await asPlaywrightElement(this.getNetworkText(network));
-        await element.waitForDisplayed({
-          timeoutMsg: `SignModal: network text "${network}" not visible`,
-        });
+        await PlaywrightAssertions.expectConditionWithRetry(
+          async () => {
+            const element = await asPlaywrightElement(
+              this.getNetworkText(network),
+            );
+            await element.waitForDisplayed({
+              timeout: 10000,
+              timeoutMsg: `SignModal: network text "${network}" not visible`,
+            });
+          },
+          {
+            maxRetries: 5,
+            interval: 1000,
+          },
+        );
       },
     });
   }

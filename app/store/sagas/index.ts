@@ -1,4 +1,14 @@
-import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
+import {
+  fork,
+  take,
+  cancel,
+  put,
+  call,
+  all,
+  select,
+  join,
+  spawn,
+} from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -30,12 +40,52 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
+import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
+import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
+import {
+  watchMarketingAttributionOnClearOnboarding,
+  watchMarketingAttributionOnConsentChange,
+} from './marketingAttribution';
+import { getDevAutoUnlockPassword } from '../../util/environment';
+
+let sdkServicesInitializationTask: Task<void> | undefined;
+
+export const __resetSDKServicesInitializationForTesting = () => {
+  sdkServicesInitializationTask = undefined;
+};
+
+export function* startSDKServicesInitialization() {
+  // Keep a single task so normal deeplinks can warm services in the background
+  // and SDK/WC deeplinks can join that same work when they require it.
+  if (!sdkServicesInitializationTask) {
+    // Detached so callers that only want to warm SDK services are not blocked
+    // by WC/SDK startup; SDK/WC deeplinks still join this task explicitly.
+    sdkServicesInitializationTask = yield spawn(initializeSDKServices);
+  }
+
+  return sdkServicesInitializationTask;
+}
+
+export function* waitForSDKServicesInitialization() {
+  const task: Task<void> = yield call(startSDKServicesInitialization);
+  yield join(task);
+}
+
+export function* parseDeeplink(deeplink: string, origin: string) {
+  try {
+    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
+      origin,
+    });
+  } catch (error) {
+    Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
+  }
+}
 
 /**
  * Creates a channel to listen to app state changes.
@@ -142,6 +192,17 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
+    const devAutoUnlockPassword = getDevAutoUnlockPassword();
+    if (devAutoUnlockPassword) {
+      const { KeyringController } = Engine.context;
+      if (!KeyringController.isUnlocked() && KeyringController.state?.vault) {
+        yield call(Authentication.unlockWallet, {
+          password: devAutoUnlockPassword,
+        });
+        return;
+      }
+    }
+
     yield call(tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen
@@ -188,29 +249,39 @@ export function* basicFunctionalityToggle() {
   }
 }
 
-export function* initializeSDKServices() {
+function* initializeWalletConnectService() {
   try {
-    // Initialize WalletConnect
     yield call(() => WC2Manager.init({}));
-    // Initialize SDKConnect
-    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
   } catch (e) {
-    Logger.log('Failed to initialize services', e);
+    Logger.log('Failed to initialize WalletConnect V2', e);
   }
 }
 
-export function* handleDeeplinkSaga() {
-  // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
-  // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
-  let hasInitializedSDKServices = false;
+function* initializeSDKConnectService() {
+  try {
+    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
+  } catch (e) {
+    Logger.log('Failed to initialize SDKConnect', e);
+  }
+}
 
+export function* initializeSDKServices() {
+  // Init WC2 and SDKConnect in parallel; they are independent and each takes ~1-3 s on cold start.
+  yield all([
+    call(initializeWalletConnectService),
+    call(initializeSDKConnectService),
+  ]);
+}
+
+export function* handleDeeplinkSaga() {
   while (true) {
-    // Handle parsing deeplinks after login or when the lock manager is resolved
+    // Cold-start deeplinks are consumed by Authentication before HomeNav is
+    // displayed. This saga handles deeplinks received while the app is already
+    // unlocked, plus onboarding deeplinks for new users.
     const value = (yield take([
-      UserActionType.LOGIN,
       UserActionType.CHECK_FOR_DEEPLINK,
       SET_COMPLETED_ONBOARDING,
-    ])) as LoginAction | CheckForDeeplinkAction | SetCompletedOnboardingAction;
+    ])) as CheckForDeeplinkAction | SetCompletedOnboardingAction;
 
     let completedOnboarding = false;
 
@@ -230,6 +301,7 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
+        // New-user onboarding lives outside the post-login navigation tree.
         setTimeout(() => {
           SharedDeeplinkManager.parse(url.href, {
             origin: storedSource,
@@ -248,30 +320,53 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Initialize SDK services
-    if (!hasInitializedSDKServices) {
-      yield call(initializeSDKServices);
-      hasInitializedSDKServices = true;
-    }
-
     const deeplink = AppStateEventProcessor.pendingDeeplink;
     const deeplinkSource =
       AppStateEventProcessor.pendingDeeplinkSource ??
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
-      // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
-      setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: deeplinkSource,
-        });
-      }, 200);
+      if (isSDKServiceDeeplink(deeplink)) {
+        yield call(waitForSDKServicesInitialization);
+      }
+
+      yield fork(parseDeeplink, deeplink, deeplinkSource);
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+// Keep SDK warm-up independent from deeplink parsing. Normal app launches have
+// no pending deeplink, but WalletConnect/SDKConnect still need to initialize
+// after unlock; parsing pending links on LOGIN would race startup intents.
+export function* initializeSDKServicesSaga() {
+  while (true) {
+    const value = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    let completedOnboarding = false;
+    if (value.type === SET_COMPLETED_ONBOARDING) {
+      completedOnboarding = value.completedOnboarding;
+    } else {
+      completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    if (!completedOnboarding) {
+      continue;
+    }
+
+    const { KeyringController } = Engine.context;
+    if (!KeyringController.isUnlocked()) {
+      continue;
+    }
+
+    yield call(startSDKServicesInitialization);
+  }
+}
+
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /**
  * Handles updating the Snaps registry when the user has booted the app and is onboarded
  */
@@ -342,13 +437,18 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  yield fork(initializeSDKServicesSaga);
   yield fork(rewardsBulkLinkSaga);
 
   // Send one-time analytics backfill for migrated social login users after
   // persisted state has been rehydrated and app services are available.
   yield fork(backfillSocialLoginMarketingConsentSaga);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  yield fork(watchMarketingAttributionOnConsentChange);
+  yield fork(watchMarketingAttributionOnClearOnboarding);
+
+  yield fork(promptIosGoogleWarningSheetSaga);
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF
 }

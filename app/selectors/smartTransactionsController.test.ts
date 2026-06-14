@@ -28,7 +28,6 @@ jest.mock('./accountsController', () => {
 });
 
 jest.mock('./tokensController', () => ({
-  selectTokensControllerState: jest.fn(),
   selectTokens: jest.fn(() => []),
   selectAllTokens: jest.fn(() => []),
 }));

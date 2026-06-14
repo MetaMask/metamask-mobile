@@ -8,19 +8,19 @@ import {
   selectNetworkConfigurationByChainId,
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
-import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
-
-const selectCurrencyRateControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.CurrencyRateController;
+import {
+  getCurrencyRateControllerCurrentCurrency,
+  getCurrencyRateControllerCurrencyRates,
+} from './assets/assets-migration';
 
 export const selectConversionRate = createSelector(
-  selectCurrencyRateControllerState,
+  getCurrencyRateControllerCurrencyRates,
   selectEvmChainId,
   selectEvmTicker,
   (state: RootState) => state.settings.showFiatOnTestnets,
   (
-    currencyRateControllerState: CurrencyRateState,
+    currencyRates: CurrencyRateState['currencyRates'],
     chainId: string,
     ticker: string,
     showFiatOnTestnets,
@@ -28,21 +28,15 @@ export const selectConversionRate = createSelector(
     if (chainId && isTestNet(chainId) && !showFiatOnTestnets) {
       return undefined;
     }
-    return ticker
-      ? currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate
-      : undefined;
+    return ticker ? currencyRates?.[ticker]?.conversionRate : undefined;
   },
 );
 
-export const selectCurrencyRates = createDeepEqualSelector(
-  selectCurrencyRateControllerState,
-  (currencyRateControllerState: CurrencyRateState) =>
-    currencyRateControllerState?.currencyRates,
-);
+export { getCurrencyRateControllerCurrencyRates as selectCurrencyRates };
 
 export const selectCurrencyRateForChainId = createSelector(
   [
-    selectCurrencyRates,
+    getCurrencyRateControllerCurrencyRates,
     (_state: RootState, chainId: Hex) => chainId,
     (state: RootState, chainId: Hex) =>
       selectNetworkConfigurationByChainId(state, chainId),
@@ -57,30 +51,19 @@ export const selectCurrencyRateForChainId = createSelector(
   },
 );
 
-export const selectCurrentCurrency = createDeepEqualSelector(
-  selectCurrencyRateControllerState,
-  (currencyRateControllerState: CurrencyRateState) =>
-    currencyRateControllerState?.currentCurrency,
-);
+export { getCurrencyRateControllerCurrentCurrency as selectCurrentCurrency };
 
 export const selectConversionRateBySymbol = createSelector(
-  selectCurrencyRateControllerState,
+  getCurrencyRateControllerCurrencyRates,
   (_: RootState, symbol: string) => symbol,
-  (currencyRateControllerState: CurrencyRateState, symbol: string) =>
-    symbol
-      ? currencyRateControllerState?.currencyRates?.[symbol]?.conversionRate ||
-        0
-      : 0,
+  (currencyRates: CurrencyRateState['currencyRates'], symbol: string) =>
+    symbol ? currencyRates?.[symbol]?.conversionRate || 0 : 0,
 );
 
-export const selectConversionRateFoAllChains = createSelector(
-  selectCurrencyRateControllerState,
-  (currencyRateControllerState: CurrencyRateState) =>
-    currencyRateControllerState?.currencyRates,
-);
+export { getCurrencyRateControllerCurrencyRates as selectConversionRateFoAllChains };
 
 export const selectConversionRateByChainId = createSelector(
-  selectConversionRateFoAllChains,
+  getCurrencyRateControllerCurrencyRates,
   (_state: RootState, chainId: string) => chainId,
   (state: RootState) => state.settings.showFiatOnTestnets,
   selectNativeCurrencyByChainId,
@@ -102,15 +85,15 @@ export const selectConversionRateByChainId = createSelector(
 );
 
 export const selectUsdConversionRate = createSelector(
-  selectCurrencyRates,
-  selectCurrentCurrency,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
   (currencyRates, currentCurrency) =>
     currencyRates?.[currentCurrency]?.usdConversionRate,
 );
 
 export const selectUSDConversionRateByChainId = createSelector(
   [
-    selectCurrencyRates,
+    getCurrencyRateControllerCurrencyRates,
     (_state: RootState, chainId: string) => chainId,
     (state: RootState, chainId: string) =>
       selectNetworkConfigurationByChainId(state, chainId),

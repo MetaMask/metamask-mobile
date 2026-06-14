@@ -10,11 +10,21 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendAlerts } from '../../../hooks/send/alerts/useSendAlerts';
+import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
 
 jest.mock('../../../../../../component-library/components-temp/Skeleton');
+
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: () => ({
+    Amount: { header: () => null },
+    Asset: { header: () => null },
+    Recipient: { header: () => null },
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -63,6 +73,14 @@ jest.mock('../../../hooks/send/useContacts', () => ({
 
 jest.mock('../../../hooks/send/useToAddressValidation', () => ({
   useToAddressValidation: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/alerts/useSendAlerts', () => ({
+  useSendAlerts: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useAddressPoisoningDetection', () => ({
+  useAddressPoisoningDetection: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/metrics/useRecipientSelectionMetrics', () => ({
@@ -149,21 +167,20 @@ jest.mock('../send-alert-modal', () => ({
     isOpen,
     onAcknowledge,
     onClose,
-    title,
-    errorMessage,
+    alerts,
   }: {
     isOpen: boolean;
     onAcknowledge: () => void;
     onClose: () => void;
-    title: string;
-    errorMessage: string;
+    alerts: { title: string; message: string }[];
   }) => {
     const { View, Text, Pressable } = jest.requireActual('react-native');
-    if (!isOpen) return null;
+    if (!isOpen || !alerts?.length) return null;
+    const first = alerts[0];
     return (
       <View testID="send-alert-modal">
-        <Text testID="alert-modal-title">{title}</Text>
-        <Text testID="alert-modal-error">{errorMessage}</Text>
+        <Text testID="alert-modal-title">{first.title}</Text>
+        <Text testID="alert-modal-error">{first.message}</Text>
         <Pressable testID="alert-modal-acknowledge" onPress={onAcknowledge}>
           <Text>Acknowledge</Text>
         </Pressable>
@@ -195,10 +212,14 @@ const mockUseSendContext = jest.mocked(useSendContext);
 const mockUseAccounts = jest.mocked(useAccounts);
 const mockUseContacts = jest.mocked(useContacts);
 const mockUseToAddressValidation = jest.mocked(useToAddressValidation);
+const mockUseAddressPoisoningDetection = jest.mocked(
+  useAddressPoisoningDetection,
+);
 const mockUseRecipientSelectionMetrics = jest.mocked(
   useRecipientSelectionMetrics,
 );
 const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseSendAlerts = jest.mocked(useSendAlerts);
 const mockUseSendType = jest.mocked(useSendType);
 
 function createMockUseSendType(
@@ -239,9 +260,21 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [],
+      hasUnacknowledgedAlerts: false,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
+    });
+
+    mockUseAddressPoisoningDetection.mockReturnValue({
+      isPoisoningSuspect: false,
+      bestMatch: null,
+      matches: [],
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
@@ -342,7 +375,6 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: 'some_dummy_address',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -366,6 +398,9 @@ describe('Recipient', () => {
 
     fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
 
+    expect(mockUseAddressPoisoningDetection).toHaveBeenCalledWith(
+      'some_dummy_address',
+    );
     expect(mockHandleSubmitPress).toHaveBeenCalledWith('some_dummy_address');
   });
 
@@ -435,7 +470,6 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -463,7 +497,6 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -501,7 +534,6 @@ describe('Recipient', () => {
       loading: true,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -562,6 +594,12 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: jest.fn(),
     });
+
+    mockUseAddressPoisoningDetection.mockReturnValue({
+      isPoisoningSuspect: false,
+      bestMatch: null,
+      matches: [],
+    });
   });
 
   it('does not auto-submit when pastedRecipient does not match toAddressValidated', () => {
@@ -569,7 +607,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xother',
       toAddressWarning: undefined,
     });
@@ -585,7 +622,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: 'Invalid address',
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -601,7 +637,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: 'Warning',
     });
@@ -617,7 +652,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: true,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -628,13 +662,58 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
   });
 
+  it('does not auto-submit when the resolved recipient is a poisoning match', () => {
+    const knownAddress = '0x1234567890123456789012345678901234567890';
+    const poisoningMatch = {
+      knownAddress,
+      prefixMatchLength: 4,
+      suffixMatchLength: 4,
+      poisoningScore: 8,
+      diffIndices: [6, 7],
+    };
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: '0x1234ffffffffffffffffffffffffffffffff7890',
+      toAddressError: undefined,
+      toAddressValidated: '0xvalid',
+      toAddressWarning: undefined,
+    });
+    mockUseSendContext.mockReturnValue({
+      to: '0xvalid',
+      updateTo: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+    mockUseAddressPoisoningDetection.mockReturnValue({
+      isPoisoningSuspect: true,
+      bestMatch: poisoningMatch,
+      matches: [poisoningMatch],
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+    fireEvent.press(getByTestId('set-pasted'));
+
+    expect(mockUseAddressPoisoningDetection).toHaveBeenCalledWith(
+      '0x1234ffffffffffffffffffffffffffffffff7890',
+    );
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
   it('handles reviews exits early if asset is missing', () => {
     // Given: valid to address, no errors/warnings/loading, but missing asset
     mockUseToAddressValidation.mockReturnValue({
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -668,7 +747,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -700,13 +778,50 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
   });
 
+  it('does not submit when recipient address is empty', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [],
+      hasUnacknowledgedAlerts: false,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '',
+      updateTo: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId('set-pasted'));
+
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
   it('handles reviews exits early if toAddressError is defined', () => {
     // Given: valid to address, no errors/warnings/loading, but missing asset
     mockUseToAddressValidation.mockReturnValue({
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -744,7 +859,10 @@ describe('SendAlertModal integration', () => {
   let mockHandleSubmitPressLocal: jest.Mock;
 
   const setupTokenContractScenario = (
-    overrides: Partial<ReturnType<typeof useToAddressValidation>> = {},
+    validationOverrides: Partial<
+      ReturnType<typeof useToAddressValidation>
+    > = {},
+    sendAlertsOverrides: Partial<ReturnType<typeof useSendAlerts>> = {},
   ) => {
     mockHandleSubmitPressLocal = jest.fn();
     mockUseSendActions.mockReturnValue({
@@ -771,11 +889,30 @@ describe('SendAlertModal integration', () => {
     mockUseToAddressValidation.mockReturnValue({
       loading: false,
       resolvedAddress: undefined,
-      toAddressError: 'Token contract warning',
-      toAddressErrorAllowAcknowledge: true,
+      toAddressError: undefined,
       toAddressValidated: '0x1234567890123456789012345678901234567890',
       toAddressWarning: undefined,
-      ...overrides,
+      ...validationOverrides,
+    });
+
+    mockUseAddressPoisoningDetection.mockReturnValue({
+      isPoisoningSuspect: false,
+      bestMatch: null,
+      matches: [],
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [
+        {
+          key: 'tokenContract',
+          title: 'Smart contract address',
+          message: 'You are sending to a smart contract address',
+        },
+      ],
+      hasUnacknowledgedAlerts: true,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
+      ...sendAlertsOverrides,
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
@@ -793,7 +930,7 @@ describe('SendAlertModal integration', () => {
     jest.clearAllMocks();
   });
 
-  it('opens alert modal when review pressed and toAddressErrorAllowAcknowledge is true', () => {
+  it('opens alert modal when review pressed and has unacknowledged send alerts', () => {
     setupTokenContractScenario();
 
     const { getByTestId } = renderWithProvider(<Recipient />);
@@ -841,11 +978,16 @@ describe('SendAlertModal integration', () => {
     );
   });
 
-  it('does not show alert modal when toAddressErrorAllowAcknowledge is false', () => {
-    setupTokenContractScenario({
-      toAddressError: 'Some error',
-      toAddressErrorAllowAcknowledge: false,
-    });
+  it('does not show alert modal when there are no unacknowledged send alerts', () => {
+    setupTokenContractScenario(
+      {
+        toAddressError: 'Some error',
+      },
+      {
+        alerts: [],
+        hasUnacknowledgedAlerts: false,
+      },
+    );
 
     const { getByTestId, queryByTestId } = renderWithProvider(<Recipient />);
 
@@ -892,9 +1034,20 @@ describe('SendAlertModal integration', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
-      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [],
+      hasUnacknowledgedAlerts: false,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
+    });
+    mockUseAddressPoisoningDetection.mockReturnValue({
+      isPoisoningSuspect: false,
+      bestMatch: null,
+      matches: [],
     });
 
     mockUseAccounts.mockReturnValue(mockAccounts);

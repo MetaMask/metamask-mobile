@@ -6,6 +6,7 @@ import {
   TransactionController as BaseTransactionController,
   IsAtomicBatchSupportedRequest,
   IsAtomicBatchSupportedResult,
+  getAccountAddressRelationship,
   Result,
 } from '@metamask/transaction-controller';
 import { NetworkClientId } from '@metamask/network-controller';
@@ -61,6 +62,13 @@ async function addTempoTransaction({
   // and add excludeNativeTokenForFee to signal to ignore native.
   // We enter this flow is dApp non-0x76 txs as well as send flow.
   if (!isTempoTransactionType(transaction)) {
+    // We use the `to` field to determine if the tx is a contract deployment.
+    if (!transaction.to) {
+      Logger.log(
+        'addTransactionOnTempo: Smart-Contract deployment tx detected. Fallback to classic tx.',
+      );
+      return TransactionController.addTransaction(transaction, options);
+    }
     if (!isEip7702SupportedByAccount) {
       Logger.log(
         'addTransactionOnTempo: Tempo chain but wallet does not support 7702. Falling back to legacy transactions',
@@ -321,6 +329,23 @@ export async function isAtomicBatchSupported(
 ): Promise<IsAtomicBatchSupportedResult> {
   const { TransactionController } = Engine.context;
   return TransactionController?.isAtomicBatchSupported(request);
+}
+
+/**
+ * Returns whether the sender has no prior on-chain interaction with `to` on `chainId`,
+ * or `undefined` when the relationship cannot be determined (API error or unknown count).
+ */
+export async function checkFirstTimeInteraction(request: {
+  from: string;
+  to: string;
+  chainId: number;
+}): Promise<boolean | undefined> {
+  try {
+    const result = await getAccountAddressRelationship(request);
+    return result.count === undefined ? undefined : result.count === 0;
+  } catch {
+    return undefined;
+  }
 }
 
 function sanitizeTransactionParamsGasValues(

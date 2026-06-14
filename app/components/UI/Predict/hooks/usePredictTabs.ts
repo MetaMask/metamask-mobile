@@ -2,18 +2,25 @@ import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
-import { selectPredictHotTabFlag } from '../selectors/featureFlags';
+import {
+  selectPredictHotTabFlag,
+  selectPredictWorldCupConfig,
+  selectPredictWorldCupMainFeedTabEnabledFlag,
+} from '../selectors/featureFlags';
 import {
   PREDICT_BASE_TABS,
   PREDICT_HOT_TAB,
+  PREDICT_WORLD_CUP_TAB,
   isPredictTabKey,
   type PredictTabKey,
 } from '../constants/feedTabs';
 import type { PredictNavigationParamList } from '../types/navigation';
+import { buildPredictWorldCupAllQuery } from '../utils/worldCup';
 
 export interface FeedTab {
   key: PredictTabKey;
   label: string;
+  customQueryParams?: string;
 }
 
 export interface UsePredictTabsResult {
@@ -21,13 +28,16 @@ export interface UsePredictTabsResult {
   activeIndex: number;
   setActiveIndex: (index: number) => void;
   initialTabKey: PredictTabKey;
-  hotTabQueryParams?: string;
 }
 
 export const usePredictTabs = (): UsePredictTabsResult => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const hotTabFlag = useSelector(selectPredictHotTabFlag);
+  const isWorldCupMainFeedTabEnabled = useSelector(
+    selectPredictWorldCupMainFeedTabEnabledFlag,
+  );
+  const worldCupConfig = useSelector(selectPredictWorldCupConfig);
 
   const tabs: FeedTab[] = useMemo(() => {
     const baseTabs: FeedTab[] = PREDICT_BASE_TABS.map((tab) => ({
@@ -39,14 +49,31 @@ export const usePredictTabs = (): UsePredictTabsResult => {
       baseTabs.unshift({
         key: PREDICT_HOT_TAB.key,
         label: strings(PREDICT_HOT_TAB.labelKey),
+        customQueryParams: hotTabFlag.queryParams,
+      });
+    }
+
+    if (isWorldCupMainFeedTabEnabled) {
+      baseTabs.unshift({
+        key: PREDICT_WORLD_CUP_TAB.key,
+        label: strings(PREDICT_WORLD_CUP_TAB.labelKey),
+        customQueryParams: buildPredictWorldCupAllQuery(worldCupConfig),
       });
     }
 
     return baseTabs;
-  }, [hotTabFlag.enabled]);
+  }, [
+    hotTabFlag.enabled,
+    hotTabFlag.queryParams,
+    isWorldCupMainFeedTabEnabled,
+    worldCupConfig,
+  ]);
 
-  const requestedTabKey = isPredictTabKey(route.params?.tab)
+  const requestedValidTabKey = isPredictTabKey(route.params?.tab)
     ? route.params?.tab
+    : undefined;
+  const requestedTabKey = tabs.some((tab) => tab.key === requestedValidTabKey)
+    ? requestedValidTabKey
     : undefined;
 
   const initialTabKeyRef = useRef<PredictTabKey>(
@@ -109,6 +136,5 @@ export const usePredictTabs = (): UsePredictTabsResult => {
     activeIndex,
     setActiveIndex,
     initialTabKey: initialTabKeyRef.current,
-    hotTabQueryParams: hotTabFlag.queryParams,
   };
 };

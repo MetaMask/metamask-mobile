@@ -28,6 +28,7 @@ const STABLECOINS: Record<Hex, Hex[]> = {
   ],
   [CHAIN_IDS.POLYGON]: [
     '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC.e
+    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb', // pUSD
   ],
 };
 

@@ -1,73 +1,72 @@
 import { useRwaTokens } from './useRwaTokens';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
-import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
+import { fetchRwas } from '@metamask/assets-controllers';
 import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
 import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { act, waitFor } from '@testing-library/react-native';
 
-jest.mock('../useSearchRequest/useSearchRequest');
-jest.mock('../../utils/sortTrendingTokens');
+jest.mock('@metamask/assets-controllers', () => ({
+  fetchRwas: jest.fn(),
+}));
 
-const mockUseSearchRequest = jest.mocked(useSearchRequest);
-const mockSortTrendingTokens = jest.mocked(sortTrendingTokens);
+const mockFetchRwas = jest.mocked(fetchRwas);
+type RwaToken = Awaited<ReturnType<typeof fetchRwas>>['data'][number];
 
-const mockRefetch = jest.fn();
-
-const createSearchResult = (overrides: Record<string, unknown> = {}) => ({
-  assetId: 'eip155:1/erc20:0xaaa' as CaipChainId,
+const createRwaToken = (overrides: Partial<RwaToken> = {}): RwaToken => ({
+  id: '1',
+  assetId: 'eip155:1/erc20:0xaaa' as CaipAssetType,
   symbol: 'OUSG',
   name: 'OUSG Token',
   decimals: 18,
-  price: '100.50',
-  aggregatedUsdVolume: 500000,
-  marketCap: 1000000000,
-  pricePercentChange1d: '1.5',
-  rwaData: { underlyingAsset: 'US Treasury' },
+  rwaData: {
+    price: '100.50',
+    priceChange: '1.5',
+    aggregatedUsdVolume: 500000,
+    marketCap: 1000000000,
+    active: true,
+    ticker: 'OUSG',
+    instrumentType: 'fund',
+    custodians: ['ondo'],
+    industry: ['finance'],
+  },
   ...overrides,
 });
 
-const arrangeMocks = (options?: {
-  results?: ReturnType<typeof createSearchResult>[];
-  isLoading?: boolean;
-}) => {
-  mockUseSearchRequest.mockReturnValue({
-    results: (options?.results ?? []) as ReturnType<
-      typeof useSearchRequest
-    >['results'],
-    isLoading: options?.isLoading ?? false,
-    error: null,
-    search: mockRefetch,
-  });
-  mockSortTrendingTokens.mockImplementation((tokens) => tokens);
-};
-
-const NON_RESTRICTED_GEO_STATE = {
-  state: {
-    engine: {
-      backgroundState: {
-        GeolocationController: { location: 'AR' },
-      },
-    },
+const createRwasResponse = (
+  tokens: RwaToken[] = [createRwaToken()],
+  pageInfo: { nextCursor: string | null; hasNextPage: boolean } = {
+    nextCursor: null,
+    hasNextPage: false,
   },
-};
+  totalCount = tokens.length,
+) => ({
+  data: tokens,
+  count: tokens.length,
+  totalCount,
+  pageInfo,
+});
 
-const renderHookWithGeo = (
-  geolocation: string | undefined,
-  hookOpts?: Parameters<typeof useRwaTokens>[0],
-) =>
-  renderHookWithProvider(() => useRwaTokens(hookOpts), {
-    state: {
-      engine: {
-        backgroundState: {
-          GeolocationController: { location: geolocation ?? 'UNKNOWN' },
-        },
-      },
-    },
-  });
+const arrangeMocks = (options?: {
+  tokens?: RwaToken[];
+  rejectWith?: Error;
+  hasNextPage?: boolean;
+  nextCursor?: string;
+}) => {
+  if (options?.rejectWith) {
+    mockFetchRwas.mockRejectedValue(options.rejectWith);
+  } else {
+    mockFetchRwas.mockResolvedValue(
+      createRwasResponse(options?.tokens ?? [createRwaToken()], {
+        nextCursor: options?.nextCursor ?? null,
+        hasNextPage: options?.hasNextPage ?? false,
+      }),
+    );
+  }
+};
 
 describe('useRwaTokens', () => {
   beforeEach(() => {
@@ -75,229 +74,495 @@ describe('useRwaTokens', () => {
     arrangeMocks();
   });
 
-  it('calls useSearchRequest with correct defaults', () => {
-    renderHookWithProvider(() => useRwaTokens(), NON_RESTRICTED_GEO_STATE);
+  it('calls fetchRwas with default params', async () => {
+    renderHookWithProvider(() => useRwaTokens());
 
-    expect(mockUseSearchRequest).toHaveBeenCalledWith({
-      query: '(Ondo Tokenized)',
-      limit: 500,
-      chainIds: RWA_CHAIN_IDS,
-      includeMarketData: true,
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith({
+        chainIds: RWA_CHAIN_IDS,
+        query: undefined,
+        sortBy: 'price_change_desc',
+        limit: 100,
+      });
     });
   });
 
-  it('uses provided chainIds instead of defaults', () => {
+  it('uses provided chainIds instead of defaults', async () => {
     const customChainIds: CaipChainId[] = ['eip155:137' as CaipChainId];
 
-    renderHookWithProvider(
-      () => useRwaTokens({ chainIds: customChainIds }),
-      NON_RESTRICTED_GEO_STATE,
-    );
+    renderHookWithProvider(() => useRwaTokens({ chainIds: customChainIds }));
 
-    expect(mockUseSearchRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ chainIds: customChainIds }),
-    );
-  });
-
-  it('defaults to RWA_CHAIN_IDS when chainIds is null', () => {
-    renderHookWithProvider(
-      () => useRwaTokens({ chainIds: null }),
-      NON_RESTRICTED_GEO_STATE,
-    );
-
-    expect(mockUseSearchRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ chainIds: RWA_CHAIN_IDS }),
-    );
-  });
-
-  it('filters out assets without rwaData', () => {
-    const rwaAsset = createSearchResult({ assetId: 'eip155:1/erc20:0x111' });
-    const nonRwaAsset = createSearchResult({
-      assetId: 'eip155:1/erc20:0x222',
-      symbol: 'ETH',
-      name: 'Ethereum',
-      rwaData: undefined,
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ chainIds: customChainIds }),
+      );
     });
-    arrangeMocks({ results: [rwaAsset, nonRwaAsset] });
-
-    const { result } = renderHookWithProvider(
-      () => useRwaTokens(),
-      NON_RESTRICTED_GEO_STATE,
-    );
-
-    expect(result.current.data).toHaveLength(1);
-    expect(result.current.data[0].symbol).toBe('OUSG');
   });
 
-  it('normalizes pricePercentChange1d to priceChangePct.h24', () => {
+  it('uses provided pageSize as request limit', async () => {
+    renderHookWithProvider(() => useRwaTokens({ pageSize: 3 }));
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ limit: 3 }),
+      );
+    });
+  });
+
+  it('defaults to RWA_CHAIN_IDS when chainIds is null', async () => {
+    renderHookWithProvider(() => useRwaTokens({ chainIds: null }));
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ chainIds: RWA_CHAIN_IDS }),
+      );
+    });
+  });
+
+  it('normalizes rwaData.priceChange to priceChangePct.h24', async () => {
     arrangeMocks({
-      results: [createSearchResult({ pricePercentChange1d: '3.14' })],
+      tokens: [
+        createRwaToken({
+          rwaData: { ...createRwaToken().rwaData, priceChange: '3.14' },
+        }),
+      ],
     });
 
-    const { result } = renderHookWithProvider(
-      () => useRwaTokens(),
-      NON_RESTRICTED_GEO_STATE,
-    );
+    const { result } = renderHookWithProvider(() => useRwaTokens());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     expect(result.current.data[0].priceChangePct).toEqual({ h24: '3.14' });
   });
 
-  it('sorts results with default options when no searchQuery', () => {
-    const results = [
-      createSearchResult({ assetId: 'eip155:1/erc20:0x111', symbol: 'A' }),
-      createSearchResult({ assetId: 'eip155:1/erc20:0x222', symbol: 'B' }),
-    ];
-    arrangeMocks({ results });
-
-    renderHookWithProvider(() => useRwaTokens(), NON_RESTRICTED_GEO_STATE);
-
-    expect(mockSortTrendingTokens).toHaveBeenCalledWith(
-      expect.any(Array),
-      PriceChangeOption.PriceChange,
-      SortDirection.Descending,
-    );
-  });
-
-  it('sorts results with custom sort options', () => {
-    arrangeMocks({ results: [createSearchResult()] });
-
-    renderHookWithProvider(
-      () =>
-        useRwaTokens({
-          sortTrendingTokensOptions: {
-            option: PriceChangeOption.Volume,
-            direction: SortDirection.Ascending,
-          },
+  it('normalizes rwaData.price to price field', async () => {
+    arrangeMocks({
+      tokens: [
+        createRwaToken({
+          rwaData: { ...createRwaToken().rwaData, price: '200.00' },
         }),
-      NON_RESTRICTED_GEO_STATE,
-    );
+      ],
+    });
 
-    expect(mockSortTrendingTokens).toHaveBeenCalledWith(
-      expect.any(Array),
-      PriceChangeOption.Volume,
-      SortDirection.Ascending,
-    );
+    const { result } = renderHookWithProvider(() => useRwaTokens());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data[0].price).toBe('200.00');
   });
 
-  it('applies fuse search instead of sorting when searchQuery is provided', () => {
-    const results = [
-      createSearchResult({
-        assetId: 'eip155:1/erc20:0x111',
+  it('passes price_change_asc sortBy when ascending PriceChange selected', async () => {
+    renderHookWithProvider(() =>
+      useRwaTokens({
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.PriceChange,
+          direction: SortDirection.Ascending,
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ sortBy: 'price_change_asc' }),
+      );
+    });
+  });
+
+  it('passes volume_desc sortBy when descending Volume selected', async () => {
+    renderHookWithProvider(() =>
+      useRwaTokens({
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.Volume,
+          direction: SortDirection.Descending,
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ sortBy: 'volume_desc' }),
+      );
+    });
+  });
+
+  it('passes market_cap_asc sortBy when ascending MarketCap selected', async () => {
+    renderHookWithProvider(() =>
+      useRwaTokens({
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.MarketCap,
+          direction: SortDirection.Ascending,
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ sortBy: 'market_cap_asc' }),
+      );
+    });
+  });
+
+  it('passes searchQuery to fetchRwas instead of filtering locally', async () => {
+    renderHookWithProvider(() => useRwaTokens({ searchQuery: 'OUSG' }));
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'OUSG' }),
+      );
+    });
+  });
+
+  it('returns server search results as-is when searchQuery is provided', async () => {
+    const tokens = [
+      createRwaToken({
+        assetId: 'eip155:1/erc20:0x111' as CaipAssetType,
         symbol: 'OUSG',
         name: 'OUSG Token',
       }),
-      createSearchResult({
-        assetId: 'eip155:1/erc20:0x222',
+      createRwaToken({
+        assetId: 'eip155:1/erc20:0x222' as CaipAssetType,
         symbol: 'USDY',
         name: 'USDY Token',
       }),
     ];
-    arrangeMocks({ results });
+    arrangeMocks({ tokens });
 
-    const { result } = renderHookWithProvider(
-      () => useRwaTokens({ searchQuery: 'OUSG' }),
-      NON_RESTRICTED_GEO_STATE,
+    const { result } = renderHookWithProvider(() =>
+      useRwaTokens({ searchQuery: 'OUSG' }),
     );
 
-    expect(mockSortTrendingTokens).not.toHaveBeenCalled();
-    expect(result.current.data).toHaveLength(1);
-    expect(result.current.data[0].symbol).toBe('OUSG');
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data.map((token) => token.symbol)).toEqual([
+      'OUSG',
+      'USDY',
+    ]);
   });
 
-  it('returns empty array when no results match search query', () => {
-    arrangeMocks({ results: [createSearchResult()] });
+  it('returns isLoading true while fetch is in flight', () => {
+    mockFetchRwas.mockReturnValue(new Promise(() => undefined));
 
-    const { result } = renderHookWithProvider(
-      () => useRwaTokens({ searchQuery: 'nonexistent' }),
-      NON_RESTRICTED_GEO_STATE,
-    );
-
-    expect(result.current.data).toHaveLength(0);
-  });
-
-  it('passes through isLoading from useSearchRequest', () => {
-    arrangeMocks({ isLoading: true });
-
-    const { result } = renderHookWithProvider(
-      () => useRwaTokens(),
-      NON_RESTRICTED_GEO_STATE,
-    );
+    const { result } = renderHookWithProvider(() => useRwaTokens());
 
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('exposes refetch from useSearchRequest', () => {
-    const { result } = renderHookWithProvider(
-      () => useRwaTokens(),
-      NON_RESTRICTED_GEO_STATE,
-    );
+  it('returns empty data and stops loading on fetch error', async () => {
+    arrangeMocks({ rejectWith: new Error('Network error') });
 
-    result.current.refetch();
+    const { result } = renderHookWithProvider(() => useRwaTokens());
 
-    expect(mockRefetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('returns empty data when useSearchRequest returns no results', () => {
-    arrangeMocks({ results: [] });
-
-    const { result } = renderHookWithProvider(
-      () => useRwaTokens(),
-      NON_RESTRICTED_GEO_STATE,
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     expect(result.current.data).toEqual([]);
   });
 
-  describe('geo-restriction (production mode)', () => {
-    const originalDev = (globalThis as Record<string, unknown>).__DEV__;
+  it('returns totalCount from the RWA response', async () => {
+    mockFetchRwas.mockResolvedValue(
+      createRwasResponse(
+        [createRwaToken()],
+        {
+          nextCursor: null,
+          hasNextPage: false,
+        },
+        12,
+      ),
+    );
 
-    beforeEach(() => {
-      (globalThis as Record<string, unknown>).__DEV__ = false;
+    const { result } = renderHookWithProvider(() => useRwaTokens());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-    afterEach(() => {
-      (globalThis as Record<string, unknown>).__DEV__ = originalDev;
+    expect(result.current.totalCount).toBe(12);
+  });
+
+  it('exposes a refetch function that re-calls fetchRwas', async () => {
+    const { result } = renderHookWithProvider(() => useRwaTokens());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-    it('returns empty data for a restricted country', () => {
-      arrangeMocks({ results: [createSearchResult()] });
-
-      const { result } = renderHookWithGeo('US');
-
-      expect(result.current.data).toEqual([]);
+    await act(async () => {
+      await result.current.refetch();
     });
 
-    it('returns empty data when geolocation is unknown', () => {
-      arrangeMocks({ results: [createSearchResult()] });
+    expect(mockFetchRwas).toHaveBeenCalledTimes(2);
+  });
 
-      const { result } = renderHookWithGeo(undefined);
+  it('returns empty data when fetchRwas returns no tokens', async () => {
+    arrangeMocks({ tokens: [] });
 
-      expect(result.current.data).toEqual([]);
+    const { result } = renderHookWithProvider(() => useRwaTokens());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-    it('returns data for a non-restricted country', () => {
-      arrangeMocks({ results: [createSearchResult()] });
+    expect(result.current.data).toEqual([]);
+  });
 
-      const { result } = renderHookWithGeo('AR');
+  describe('pagination', () => {
+    it('exposes hasNextPage false when no next page', async () => {
+      arrangeMocks({ hasNextPage: false });
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.hasNextPage).toBe(false);
+    });
+
+    it('exposes hasNextPage true when server signals more pages', async () => {
+      arrangeMocks({ hasNextPage: true, nextCursor: 'cursor-abc' });
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    it('loadMore appends tokens from the next page', async () => {
+      const page1Token = createRwaToken({
+        assetId: 'eip155:1/erc20:0x111' as CaipAssetType,
+        symbol: 'A',
+      });
+      const page2Token = createRwaToken({
+        assetId: 'eip155:1/erc20:0x222' as CaipAssetType,
+        symbol: 'B',
+      });
+
+      mockFetchRwas
+        .mockResolvedValueOnce(
+          createRwasResponse([page1Token], {
+            nextCursor: 'cursor-1',
+            hasNextPage: true,
+          }),
+        )
+        .mockResolvedValueOnce(
+          createRwasResponse([page2Token], {
+            nextCursor: null,
+            hasNextPage: false,
+          }),
+        );
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
       expect(result.current.data).toHaveLength(1);
-      expect(result.current.data[0].symbol).toBe('OUSG');
+      expect(result.current.data[0].symbol).toBe('A');
+
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(2);
+      });
+
+      expect(result.current.data[1].symbol).toBe('B');
+      expect(result.current.hasNextPage).toBe(false);
     });
 
-    it('handles region suffixes correctly', () => {
-      arrangeMocks({ results: [createSearchResult()] });
+    it('loadMore passes the cursor to fetchRwas', async () => {
+      const page1Token = createRwaToken();
 
-      const { result } = renderHookWithGeo('GB-ENG');
+      mockFetchRwas
+        .mockResolvedValueOnce(
+          createRwasResponse([page1Token], {
+            nextCursor: 'cursor-xyz',
+            hasNextPage: true,
+          }),
+        )
+        .mockResolvedValueOnce(
+          createRwasResponse([], { nextCursor: null, hasNextPage: false }),
+        );
 
-      expect(result.current.data).toEqual([]);
-    });
+      const { result } = renderHookWithProvider(() => useRwaTokens());
 
-    it('sends empty query to search API when restricted', () => {
-      renderHookWithGeo('US');
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-      expect(mockUseSearchRequest).toHaveBeenCalledWith(
-        expect.objectContaining({ query: '' }),
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(mockFetchRwas).toHaveBeenLastCalledWith(
+        expect.objectContaining({ after: 'cursor-xyz' }),
       );
+    });
+
+    it('loadMore does nothing when hasNextPage is false', async () => {
+      arrangeMocks({ hasNextPage: false });
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(mockFetchRwas).toHaveBeenCalledTimes(1);
+    });
+
+    it('loadMore is silent on error and keeps existing tokens', async () => {
+      const page1Token = createRwaToken({ symbol: 'A' });
+
+      mockFetchRwas
+        .mockResolvedValueOnce(
+          createRwasResponse([page1Token], {
+            nextCursor: 'cursor-1',
+            hasNextPage: true,
+          }),
+        )
+        .mockRejectedValueOnce(new Error('Network error'));
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMore).toBe(false);
+      });
+
+      expect(result.current.data).toHaveLength(1);
+      expect(result.current.data[0].symbol).toBe('A');
+    });
+
+    it('ignores a stale loadMore response after refetch', async () => {
+      const page1Token = createRwaToken({ symbol: 'A' });
+      const stalePage2Token = createRwaToken({ symbol: 'B' });
+      const refetchedToken = createRwaToken({ symbol: 'C' });
+      let resolveLoadMore: (
+        response: ReturnType<typeof createRwasResponse>,
+      ) => void = jest.fn();
+
+      mockFetchRwas
+        .mockResolvedValueOnce(
+          createRwasResponse([page1Token], {
+            nextCursor: 'cursor-1',
+            hasNextPage: true,
+          }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise<ReturnType<typeof createRwasResponse>>((resolve) => {
+              resolveLoadMore = resolve;
+            }),
+        )
+        .mockResolvedValueOnce(
+          createRwasResponse([refetchedToken], {
+            nextCursor: null,
+            hasNextPage: false,
+          }),
+        );
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      let loadMorePromise: Promise<void> | undefined;
+      await act(async () => {
+        loadMorePromise = result.current.loadMore();
+      });
+
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      await waitFor(() => {
+        expect(result.current.data.map((token) => token.symbol)).toEqual(['C']);
+      });
+
+      await act(async () => {
+        resolveLoadMore(
+          createRwasResponse([stalePage2Token], {
+            nextCursor: null,
+            hasNextPage: false,
+          }),
+        );
+        await loadMorePromise;
+      });
+
+      expect(result.current.data.map((token) => token.symbol)).toEqual(['C']);
+    });
+
+    it('does not load more while a refetch is starting', async () => {
+      const page1Token = createRwaToken({ symbol: 'A' });
+      let resolveRefetch: (
+        response: ReturnType<typeof createRwasResponse>,
+      ) => void = jest.fn();
+
+      mockFetchRwas
+        .mockResolvedValueOnce(
+          createRwasResponse([page1Token], {
+            nextCursor: 'cursor-1',
+            hasNextPage: true,
+          }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise<ReturnType<typeof createRwasResponse>>((resolve) => {
+              resolveRefetch = resolve;
+            }),
+        );
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      let refetchPromise: Promise<void> = Promise.resolve();
+      await act(async () => {
+        refetchPromise = result.current.refetch();
+        await result.current.loadMore();
+      });
+
+      expect(mockFetchRwas).toHaveBeenCalledTimes(2);
+      expect(mockFetchRwas).not.toHaveBeenCalledWith(
+        expect.objectContaining({ after: 'cursor-1' }),
+      );
+
+      await act(async () => {
+        resolveRefetch(
+          createRwasResponse([], {
+            nextCursor: null,
+            hasNextPage: false,
+          }),
+        );
+        await refetchPromise;
+      });
     });
   });
 });

@@ -106,6 +106,7 @@ function getAlertNames(alerts: Alert[]): string[] {
 }
 
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
+  [AlertKeys.AddressPoisoning]: 'address_poisoning',
   [AlertKeys.AddressTrustSignalMalicious]: 'address_trust_signal_malicious',
   [AlertKeys.AddressTrustSignalWarning]: 'address_trust_signal_warning',
   [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',
@@ -113,12 +114,14 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.BurnAddress]: 'burn_address',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
+  [AlertKeys.HeadlessBuyError]: 'headless_buy_error',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
   [AlertKeys.GasSponsorshipReserveBalance]: 'gas_sponsorship_reserve_balance',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPayTokenFees]: 'insufficient_funds_for_fees',
   [AlertKeys.InsufficientPayTokenNative]: 'insufficient_funds_for_gas',
+  [AlertKeys.InsufficientMoneyAccountBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPerpsBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPredictBalance]: 'insufficient_funds',
   [AlertKeys.AccountNoFunds]: 'account_no_funds',
@@ -127,11 +130,12 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.OriginTrustSignalWarning]: 'origin_trust_signal_warning',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
-  [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
+  [AlertKeys.MMPayHardwareAccount]: 'mmpay_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
   [AlertKeys.TokenContractAddress]: 'token_contract_address',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
+  [AlertKeys.FiatBuyAmountLimit]: 'fiat_buy_amount_limit',
 };
 
 function getAlertName(alertKey: string): string {

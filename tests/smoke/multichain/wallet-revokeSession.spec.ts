@@ -22,17 +22,24 @@ describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
       },
       async () => {
-        // Login and navigate to the test dapp
         await MultichainTestDApp.setupAndNavigateToTestDapp();
 
-        // Create session - use single network for more reliable testing
         const networksToTest =
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-        await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+        await MultichainTestDApp.scrollToPageTop();
+        const connected = await MultichainTestDApp.useAutoConnectButton();
+        if (!connected) {
+          throw new Error('Failed to connect to dapp');
+        }
+        await MultichainTestDApp.tapGetSessionButton();
 
         // Verify session exists before revoke
         const sessionBeforeRevoke = await MultichainTestDApp.getSessionData();

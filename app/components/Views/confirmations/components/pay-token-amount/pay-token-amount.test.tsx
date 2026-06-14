@@ -123,6 +123,7 @@ describe('PayTokenAmount', () => {
   });
 
   it.each([
+    TransactionType.moneyAccountDeposit,
     TransactionType.perpsDeposit,
     TransactionType.perpsDepositAndOrder,
     TransactionType.predictDeposit,

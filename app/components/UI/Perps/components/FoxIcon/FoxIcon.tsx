@@ -30,6 +30,9 @@ const FoxIcon: React.FC<FoxIconProps> = ({
     case IconColor.Primary:
       fillColor = theme.colors.primary.default;
       break;
+    case IconColor.Warning:
+      fillColor = theme.colors.warning.default;
+      break;
     default:
       fillColor = theme.colors.icon.alternative;
   }

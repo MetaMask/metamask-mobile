@@ -7,14 +7,25 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
+  SubscriptionBenefitDto,
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  SubscriptionBenefitsState,
   OndoGmPortfolioDto,
   OndoGmActivityEntryDto,
   OndoGmCampaignDepositsDto,
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignLeaderboardPositionDto,
+  PerpsTradingCampaignVolumeDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchLeaderboardPositionDto,
+  PredictThePitchPositionsDto,
+  PredictThePitchPrizePoolDto,
+  VipDashboardState,
+  VipRefereeMeState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -69,7 +80,6 @@ export interface RewardsState {
   seasonTiers: SeasonTierDto[];
   seasonActivityTypes: SeasonActivityTypeDto[];
   seasonWaysToEarn: SeasonWayToEarnDto[];
-  seasonShouldInstallNewVersion: string | null;
 
   // Subscription Referral state
   referralDetailsLoading: boolean;
@@ -77,6 +87,8 @@ export interface RewardsState {
   referralCode: string | null;
   refereeCount: number;
   referredByCode: string | null;
+  isVipReferee: boolean;
+  referredByVipCode: string | null;
 
   // Season tier state
   currentTier: SeasonTierDto | null;
@@ -85,7 +97,6 @@ export interface RewardsState {
 
   // Season Balance state
   balanceTotal: number | null;
-  balanceRefereePortion: number | null;
   balanceUpdatedAt: Date | null;
 
   // Onboarding state
@@ -121,13 +132,28 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
+  // Benefits state
+  benefits: SubscriptionBenefitDto[];
+  benefitsLoading: boolean;
+  benefitsError: boolean;
+
+  // VIP dashboard state (keyed by subscriptionId)
+  vipDashboard: Record<string, VipDashboardState>;
+  vipDashboardLoading: boolean;
+  vipDashboardError: boolean;
+  vipRefereeDashboard: Record<string, VipRefereeMeState>;
+  vipRefereeDashboardLoading: boolean;
+  vipRefereeDashboardError: boolean;
+  vipSplashAccepted: Record<string, boolean>;
+  vipRefereeSplashAccepted: Record<string, boolean>;
+
   // Campaigns state
   campaigns: CampaignDto[];
   campaignsLoading: boolean;
   campaignsError: boolean;
   campaignsHasLoaded: boolean;
 
-  // Campaign participant status (keyed by campaignId)
+  // Campaign participant status (keyed by `${subscriptionId}:${campaignId}`)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
 
   // Version guard state
@@ -158,6 +184,57 @@ export interface RewardsState {
   ondoCampaignDeposits: OndoGmCampaignDepositsDto | null;
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
+
+  // Perps Trading Campaign leaderboard
+  perpsTradingCampaignLeaderboard: PerpsTradingCampaignLeaderboardDto | null;
+  perpsTradingCampaignLeaderboardLoading: boolean;
+  perpsTradingCampaignLeaderboardError: boolean;
+
+  // Perps Trading Campaign leaderboard position (user's own position)
+  perpsTradingCampaignLeaderboardPositions: Record<
+    string,
+    PerpsTradingCampaignLeaderboardPositionDto
+  >;
+
+  // Perps Trading Campaign volume (public stats; UI derives prize-pool display from notional volume)
+  perpsTradingCampaignVolume: PerpsTradingCampaignVolumeDto | null;
+  perpsTradingCampaignVolumeLoading: boolean;
+  perpsTradingCampaignVolumeError: boolean;
+
+  // Predict The Pitch leaderboard
+  predictThePitchLeaderboard: PredictThePitchLeaderboardDto | null;
+  predictThePitchLeaderboardLoading: boolean;
+  predictThePitchLeaderboardError: boolean;
+
+  // Predict The Pitch leaderboard position (user's own position)
+  predictThePitchLeaderboardPositions: Record<
+    string,
+    PredictThePitchLeaderboardPositionDto
+  >;
+
+  // Predict The Pitch portfolio positions
+  predictThePitchPositions: Record<string, PredictThePitchPositionsDto>;
+
+  // Predict The Pitch prize pool
+  predictThePitchPrizePool: PredictThePitchPrizePoolDto | null;
+  predictThePitchPrizePoolLoading: boolean;
+  predictThePitchPrizePoolError: boolean;
+
+  // Pending deeplink navigation intent, stored in Redux so it survives the
+  // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
+  pendingDeeplink: PendingDeeplink | null;
+
+  // Dismissed outcome toasts (keyed by `${campaignId}:${subscriptionId}:${variant}`)
+  dismissedCampaignOutcomeToasts: Record<string, boolean>;
+}
+
+/**
+ * Typed deeplink navigation parameters for the Rewards feature.
+ * Stored in Redux so the intent is available when RewardsNavigator mounts.
+ */
+export interface PendingDeeplink {
+  page?: 'campaigns' | 'musd' | 'benefits';
+  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch';
 }
 
 export const initialState: RewardsState = {
@@ -178,17 +255,15 @@ export const initialState: RewardsState = {
   referralCode: null,
   refereeCount: 0,
   referredByCode: null,
+  isVipReferee: false,
+  referredByVipCode: null,
 
   currentTier: null,
   nextTier: null,
   nextTierPointsNeeded: null,
 
   balanceTotal: 0,
-  balanceRefereePortion: 0,
   balanceUpdatedAt: null,
-
-  // Should install new version state
-  seasonShouldInstallNewVersion: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
   onboardingReferralCode: null,
@@ -219,6 +294,21 @@ export const initialState: RewardsState = {
     wasInterrupted: false,
     initialSubscriptionId: null,
   },
+
+  // Benefits initial state
+  benefits: [],
+  benefitsLoading: false,
+  benefitsError: false,
+
+  // VIP dashboard initial state
+  vipDashboard: {},
+  vipDashboardLoading: false,
+  vipDashboardError: false,
+  vipRefereeDashboard: {},
+  vipRefereeDashboardLoading: false,
+  vipRefereeDashboardError: false,
+  vipSplashAccepted: {},
+  vipRefereeSplashAccepted: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -253,11 +343,32 @@ export const initialState: RewardsState = {
   ondoCampaignDeposits: null,
   ondoCampaignDepositsLoading: false,
   ondoCampaignDepositsError: false,
+
+  // Perps Trading Campaign initial state
+  perpsTradingCampaignLeaderboard: null,
+  perpsTradingCampaignLeaderboardLoading: false,
+  perpsTradingCampaignLeaderboardError: false,
+  perpsTradingCampaignLeaderboardPositions: {},
+  perpsTradingCampaignVolume: null,
+  perpsTradingCampaignVolumeLoading: false,
+  perpsTradingCampaignVolumeError: false,
+  predictThePitchLeaderboard: null,
+  predictThePitchLeaderboardLoading: false,
+  predictThePitchLeaderboardError: false,
+  predictThePitchLeaderboardPositions: {},
+  predictThePitchPositions: {},
+  predictThePitchPrizePool: null,
+  predictThePitchPrizePoolLoading: false,
+  predictThePitchPrizePoolError: false,
+
+  pendingDeeplink: null,
+
+  dismissedCampaignOutcomeToasts: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   payload?: {
-    rewards?: RewardsState;
+    rewards?: Partial<RewardsState>;
   };
 }
 
@@ -291,8 +402,6 @@ const rewardsSlice = createSlice({
       state.seasonTiers = action.payload?.season.tiers || [];
       state.seasonActivityTypes = action.payload?.season.activityTypes || [];
       state.seasonWaysToEarn = action.payload?.season.waysToEarn || [];
-      state.seasonShouldInstallNewVersion =
-        action.payload?.season?.shouldInstallNewVersion || null;
 
       // Season Balance state
       state.balanceTotal =
@@ -317,7 +426,8 @@ const rewardsSlice = createSlice({
         referralCode?: string;
         refereeCount?: number;
         referredByCode?: string;
-        referralPoints?: number;
+        isVipReferee?: boolean;
+        referredByVipCode?: string | null;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -329,8 +439,11 @@ const rewardsSlice = createSlice({
       if (action.payload.referredByCode !== undefined) {
         state.referredByCode = action.payload.referredByCode;
       }
-      if (action.payload.referralPoints !== undefined) {
-        state.balanceRefereePortion = action.payload.referralPoints;
+      if (action.payload.isVipReferee !== undefined) {
+        state.isVipReferee = action.payload.isVipReferee;
+      }
+      if (action.payload.referredByVipCode !== undefined) {
+        state.referredByVipCode = action.payload.referredByVipCode;
       }
       state.referralDetailsLoading = false;
     },
@@ -368,6 +481,22 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDeposits = null;
       state.ondoCampaignDepositsLoading = false;
       state.ondoCampaignDepositsError = false;
+      state.vipDashboard = {};
+      state.vipDashboardLoading = false;
+      state.vipDashboardError = false;
+      state.vipRefereeDashboard = {};
+      state.vipRefereeDashboardLoading = false;
+      state.vipRefereeDashboardError = false;
+      state.vipSplashAccepted = {};
+      state.vipRefereeSplashAccepted = {};
+      state.predictThePitchLeaderboard = null;
+      state.predictThePitchLeaderboardLoading = false;
+      state.predictThePitchLeaderboardError = false;
+      state.predictThePitchLeaderboardPositions = {};
+      state.predictThePitchPositions = {};
+      state.predictThePitchPrizePool = null;
+      state.predictThePitchPrizePoolLoading = false;
+      state.predictThePitchPrizePoolError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -417,6 +546,9 @@ const rewardsSlice = createSlice({
             state.hideCurrentAccountNotOptedInBanner,
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
+          dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
+          vipSplashAccepted: state.vipSplashAccepted,
+          vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
           versionGuardMinimumMobileVersion:
             state.versionGuardMinimumMobileVersion,
           versionGuardLoading: state.versionGuardLoading,
@@ -513,9 +645,11 @@ const rewardsSlice = createSlice({
 
     // Campaigns reducers
     setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
-      state.campaigns = action.payload;
-      state.campaignsError = false;
-      state.campaignsHasLoaded = true;
+      Object.assign(state, {
+        campaigns: action.payload,
+        campaignsError: false,
+        campaignsHasLoaded: true,
+      });
     },
     setCampaignsLoading: (state, action: PayloadAction<boolean>) => {
       if (action.payload && state.campaigns.length) {
@@ -533,12 +667,13 @@ const rewardsSlice = createSlice({
     setCampaignParticipantStatus: (
       state,
       action: PayloadAction<{
+        subscriptionId: string;
         campaignId: string;
         status: CampaignParticipantStatusDto;
       }>,
     ) => {
-      state.campaignParticipantStatuses[action.payload.campaignId] =
-        action.payload.status;
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      state.campaignParticipantStatuses[key] = action.payload.status;
     },
 
     // Version guard reducers
@@ -630,6 +765,80 @@ const rewardsSlice = createSlice({
       }
     },
 
+    setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
+      state.benefits = action.payload.benefits ?? [];
+    },
+
+    setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
+      state.benefitsLoading = action.payload;
+    },
+
+    setBenefitsError: (state, action: PayloadAction<boolean>) => {
+      state.benefitsError = action.payload;
+    },
+
+    setVipDashboard: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        dashboard: VipDashboardState | null;
+      }>,
+    ) => {
+      if (action.payload.dashboard) {
+        state.vipDashboard[action.payload.subscriptionId] =
+          action.payload.dashboard;
+      } else {
+        delete state.vipDashboard[action.payload.subscriptionId];
+      }
+      state.vipDashboardError = false;
+    },
+
+    setVipDashboardLoading: (state, action: PayloadAction<boolean>) => {
+      state.vipDashboardLoading = action.payload;
+    },
+
+    setVipDashboardError: (state, action: PayloadAction<boolean>) => {
+      state.vipDashboardError = action.payload;
+    },
+
+    setVipRefereeDashboard: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        dashboard: VipRefereeMeState | null;
+      }>,
+    ) => {
+      if (action.payload.dashboard) {
+        state.vipRefereeDashboard[action.payload.subscriptionId] =
+          action.payload.dashboard;
+      } else {
+        delete state.vipRefereeDashboard[action.payload.subscriptionId];
+      }
+      state.vipRefereeDashboardError = false;
+    },
+
+    setVipRefereeDashboardLoading: (state, action: PayloadAction<boolean>) => {
+      state.vipRefereeDashboardLoading = action.payload;
+    },
+
+    setVipRefereeDashboardError: (state, action: PayloadAction<boolean>) => {
+      state.vipRefereeDashboardError = action.payload;
+    },
+
+    acceptVipInvite: (
+      state,
+      action: PayloadAction<{ subscriptionId: string }>,
+    ) => {
+      state.vipSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
+    acceptVipRefereeInvite: (
+      state,
+      action: PayloadAction<{ subscriptionId: string }>,
+    ) => {
+      state.vipRefereeSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -658,6 +867,153 @@ const rewardsSlice = createSlice({
     },
     setOndoCampaignDepositsError: (state, action: PayloadAction<boolean>) => {
       state.ondoCampaignDepositsError = action.payload;
+    },
+
+    // Perps Trading Campaign leaderboard reducers
+    setPerpsTradingCampaignLeaderboard: (
+      state,
+      action: PayloadAction<PerpsTradingCampaignLeaderboardDto | null>,
+    ) => {
+      state.perpsTradingCampaignLeaderboard = action.payload;
+      state.perpsTradingCampaignLeaderboardError = false;
+    },
+    setPerpsTradingCampaignLeaderboardLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.perpsTradingCampaignLeaderboard) {
+        return;
+      }
+      state.perpsTradingCampaignLeaderboardLoading = action.payload;
+    },
+    setPerpsTradingCampaignLeaderboardError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.perpsTradingCampaignLeaderboardError = action.payload;
+    },
+
+    // Perps Trading Campaign leaderboard position reducers
+    setPerpsTradingCampaignLeaderboardPosition: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        position: PerpsTradingCampaignLeaderboardPositionDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.position) {
+        state.perpsTradingCampaignLeaderboardPositions[key] =
+          action.payload.position;
+      } else {
+        delete state.perpsTradingCampaignLeaderboardPositions[key];
+      }
+    },
+
+    // Perps Trading Campaign volume reducers
+    setPerpsTradingCampaignVolume: (
+      state,
+      action: PayloadAction<RewardsState['perpsTradingCampaignVolume']>,
+    ) => {
+      state.perpsTradingCampaignVolume = action.payload;
+      state.perpsTradingCampaignVolumeError = false;
+    },
+    setPerpsTradingCampaignVolumeLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.perpsTradingCampaignVolume) {
+        return;
+      }
+      state.perpsTradingCampaignVolumeLoading = action.payload;
+    },
+    setPerpsTradingCampaignVolumeError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.perpsTradingCampaignVolumeError = action.payload;
+    },
+
+    // Predict The Pitch leaderboard reducers
+    setPredictThePitchLeaderboard: (
+      state,
+      action: PayloadAction<PredictThePitchLeaderboardDto | null>,
+    ) => {
+      state.predictThePitchLeaderboard = action.payload;
+      state.predictThePitchLeaderboardError = false;
+    },
+    setPredictThePitchLeaderboardLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.predictThePitchLeaderboard) {
+        return;
+      }
+      state.predictThePitchLeaderboardLoading = action.payload;
+    },
+    setPredictThePitchLeaderboardError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.predictThePitchLeaderboardError = action.payload;
+    },
+
+    setPredictThePitchLeaderboardPosition: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        position: PredictThePitchLeaderboardPositionDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.position) {
+        state.predictThePitchLeaderboardPositions[key] =
+          action.payload.position;
+      } else {
+        delete state.predictThePitchLeaderboardPositions[key];
+      }
+    },
+
+    setPredictThePitchPositions: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        positions: PredictThePitchPositionsDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.positions) {
+        state.predictThePitchPositions[key] = action.payload.positions;
+      } else {
+        delete state.predictThePitchPositions[key];
+      }
+    },
+
+    // Predict The Pitch prize pool reducers
+    setPredictThePitchPrizePool: (
+      state,
+      action: PayloadAction<PredictThePitchPrizePoolDto | null>,
+    ) => {
+      state.predictThePitchPrizePool = action.payload;
+      state.predictThePitchPrizePoolError = false;
+    },
+    setPredictThePitchPrizePoolLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.predictThePitchPrizePool) {
+        return;
+      }
+      state.predictThePitchPrizePoolLoading = action.payload;
+    },
+    setPredictThePitchPrizePoolError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.predictThePitchPrizePoolError = action.payload;
     },
 
     // Bulk link reducers
@@ -720,6 +1076,24 @@ const rewardsSlice = createSlice({
       state.bulkLink.wasInterrupted = false;
       // Note: We don't reset counts here - the saga will recalculate based on current opt-in status
     },
+    setPendingDeeplink: (
+      state,
+      action: PayloadAction<PendingDeeplink | null>,
+    ) => {
+      state.pendingDeeplink = action.payload;
+    },
+
+    dismissCampaignOutcomeToast: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        subscriptionId: string;
+        variant: 'winner' | 'non_winner';
+      }>,
+    ) => {
+      const key = `${action.payload.campaignId}:${action.payload.subscriptionId}:${action.payload.variant}`;
+      state.dismissedCampaignOutcomeToasts[key] = true;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -745,24 +1119,27 @@ const rewardsSlice = createSlice({
               seasonName: action.payload.rewards.seasonName,
               seasonStartDate: action.payload.rewards.seasonStartDate,
               seasonEndDate: action.payload.rewards.seasonEndDate,
-              seasonTiers: action.payload.rewards.seasonTiers,
-              seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
-              seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
-              seasonShouldInstallNewVersion:
-                action.payload.rewards.seasonShouldInstallNewVersion,
+              seasonTiers: action.payload.rewards.seasonTiers ?? [],
+              seasonActivityTypes:
+                action.payload.rewards.seasonActivityTypes ?? [],
+              seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn ?? [],
               referralCode: action.payload.rewards.referralCode,
               refereeCount: action.payload.rewards.refereeCount,
               currentTier: action.payload.rewards.currentTier,
               nextTier: action.payload.rewards.nextTier,
               nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
               balanceTotal: action.payload.rewards.balanceTotal,
-              balanceRefereePortion:
-                action.payload.rewards.balanceRefereePortion,
               balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
               activeBoosts: action.payload.rewards.activeBoosts,
               pointsEvents: action.payload.rewards.pointsEvents,
               unlockedRewards: action.payload.rewards.unlockedRewards,
-              campaigns: action.payload.rewards.campaigns,
+              campaigns: action.payload.rewards.campaigns ?? [],
+              vipDashboard: action.payload.rewards.vipDashboard ?? {},
+              vipRefereeDashboard:
+                action.payload.rewards.vipRefereeDashboard ?? {},
+              vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
+              vipRefereeSplashAccepted:
+                action.payload.rewards.vipRefereeSplashAccepted ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -771,10 +1148,22 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.ondoCampaignPortfolio ?? {},
               ondoCampaignActivity:
                 action.payload.rewards.ondoCampaignActivity ?? {},
+              predictThePitchLeaderboard:
+                action.payload.rewards.predictThePitchLeaderboard ?? null,
+              predictThePitchLeaderboardPositions:
+                action.payload.rewards.predictThePitchLeaderboardPositions ??
+                {},
+              predictThePitchPositions:
+                action.payload.rewards.predictThePitchPositions ?? {},
+              predictThePitchPrizePool:
+                action.payload.rewards.predictThePitchPrizePool ?? null,
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
                 action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+
+              dismissedCampaignOutcomeToasts:
+                action.payload.rewards.dismissedCampaignOutcomeToasts ?? {},
 
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
@@ -825,6 +1214,18 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  // Benefits actions
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
+  setVipDashboard,
+  setVipDashboardError,
+  setVipDashboardLoading,
+  setVipRefereeDashboard,
+  setVipRefereeDashboardError,
+  setVipRefereeDashboardLoading,
+  acceptVipInvite,
+  acceptVipRefereeInvite,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
@@ -846,6 +1247,22 @@ export const {
   setOndoCampaignDeposits,
   setOndoCampaignDepositsLoading,
   setOndoCampaignDepositsError,
+  // Perps Trading Campaign actions
+  setPerpsTradingCampaignLeaderboard,
+  setPerpsTradingCampaignLeaderboardLoading,
+  setPerpsTradingCampaignLeaderboardError,
+  setPerpsTradingCampaignLeaderboardPosition,
+  setPerpsTradingCampaignVolume,
+  setPerpsTradingCampaignVolumeLoading,
+  setPerpsTradingCampaignVolumeError,
+  setPredictThePitchLeaderboard,
+  setPredictThePitchLeaderboardLoading,
+  setPredictThePitchLeaderboardError,
+  setPredictThePitchLeaderboardPosition,
+  setPredictThePitchPositions,
+  setPredictThePitchPrizePool,
+  setPredictThePitchPrizePoolLoading,
+  setPredictThePitchPrizePoolError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
@@ -854,6 +1271,8 @@ export const {
   bulkLinkSubscriptionChanged,
   bulkLinkReset,
   bulkLinkResumed,
+  setPendingDeeplink,
+  dismissCampaignOutcomeToast,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

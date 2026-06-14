@@ -15,6 +15,11 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 120, // Space for fixed button
       paddingTop: 0,
     },
+    scrollViewContentKeypad: {
+      flexGrow: 0,
+      paddingBottom: 0,
+      paddingTop: 0,
+    },
     fixedBottomContainer: {
       position: 'absolute',
       bottom: 0,
@@ -60,6 +65,11 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       flex: 1,
     },
+    slippageValueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     infoIcon: {
       marginLeft: 0,
       padding: 10, // Increases touch target from 20x20 to 40x40 for better accessibility
@@ -70,6 +80,10 @@ const createStyles = (colors: Colors) =>
     infoSection: {
       paddingHorizontal: 16,
       borderRadius: 12,
+    },
+    infoSectionSpacer: {
+      flex: 1,
+      minHeight: 16,
     },
     infoRow: {
       flexDirection: 'row',

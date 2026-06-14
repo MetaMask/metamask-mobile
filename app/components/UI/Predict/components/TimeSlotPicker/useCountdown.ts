@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { COUNTDOWN_INTERVAL_MS } from './TimeSlotPicker.constants';
 
 /**
- * Returns the remaining time until `targetDate` as "MM:SS".
- * Returns `null` when the target is in the past or undefined.
+ * Returns the remaining time until `targetDate` as `H:MM:SS` when remaining
+ * is >= 1 hour, or `MM:SS` otherwise. Returns `null` when the target is in
+ * the past or undefined.
  */
 export const useCountdown = (targetDate: string | undefined): string | null => {
   const getRemainingSeconds = useCallback((): number => {
@@ -45,7 +46,14 @@ export const useCountdown = (targetDate: string | undefined): string | null => {
 
   if (remaining <= 0) return null;
 
-  const minutes = Math.floor(remaining / 60);
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
   const seconds = remaining % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const mm = String(minutes).padStart(2, '0');
+  const ss = String(seconds).padStart(2, '0');
+
+  if (hours > 0) {
+    return `${hours}:${mm}:${ss}`;
+  }
+  return `${mm}:${ss}`;
 };

@@ -1,6 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useEffect } from 'react';
 import { View } from 'react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import QRScanner from '../QRScanner';
 import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
@@ -10,7 +11,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import { HeaderBase } from '@metamask/design-system-react-native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
 export enum QRTabSwitcherScreens {

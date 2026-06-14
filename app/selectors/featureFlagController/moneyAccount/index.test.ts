@@ -1,7 +1,22 @@
 import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
+  selectMoneyAccountVaultConfig,
+  selectMoneyOnboardingStepperAnimationEnabled,
+  MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
+  DEV_VAULT_CONFIG,
 } from './index';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
 
 describe('Money Account feature flag selectors', () => {
   describe('selectMoneyAccountDepositEnabledFlag', () => {
@@ -75,6 +90,131 @@ describe('Money Account feature flag selectors', () => {
       });
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyOnboardingStepperAnimationEnabled', () => {
+    it('exposes the client-config flag key for registry alignment', () => {
+      expect(MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY).toBe(
+        'moneyEnableOnboardingStepperAnimation',
+      );
+    });
+
+    it('returns true when enabled and the minimum version passes', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when enabled is false', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is absent (safe default)', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc(
+        {},
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyAccountVaultConfig', () => {
+    const originalDevEnabled = process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED;
+
+    afterEach(() => {
+      if (originalDevEnabled === undefined) {
+        delete process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED;
+      } else {
+        process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = originalDevEnabled;
+      }
+    });
+
+    it('returns remote config when present', () => {
+      const remoteConfig = {
+        chainId: '0x1',
+        boringVault: '0xvault',
+        tellerAddress: '0xteller',
+        accountantAddress: '0xaccountant',
+        lensAddress: '0xlens',
+      };
+
+      const result = selectMoneyAccountVaultConfig.resultFunc({
+        moneyAccountVaultConfig: remoteConfig,
+      });
+
+      expect(result).toEqual(remoteConfig);
+    });
+
+    it('returns dev fallback when remote config is absent and dev flag is enabled', () => {
+      process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = 'true';
+
+      const result = selectMoneyAccountVaultConfig.resultFunc({
+        moneyAccountVaultConfig: null,
+      });
+
+      expect(result).toEqual(DEV_VAULT_CONFIG);
+    });
+
+    it('returns undefined when remote config is absent and dev flag is disabled', () => {
+      process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = 'false';
+
+      const result = selectMoneyAccountVaultConfig.resultFunc({
+        moneyAccountVaultConfig: null,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when remote config is absent and dev env var is not set', () => {
+      delete process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED;
+
+      const result = selectMoneyAccountVaultConfig.resultFunc({
+        moneyAccountVaultConfig: null,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('prefers remote config over dev fallback', () => {
+      process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = 'true';
+
+      const remoteConfig = {
+        chainId: '0x89',
+        boringVault: '0xremoteVault',
+        tellerAddress: '0xremoteTeller',
+        accountantAddress: '0xremoteAccountant',
+        lensAddress: '0xremoteLens',
+      };
+
+      const result = selectMoneyAccountVaultConfig.resultFunc({
+        moneyAccountVaultConfig: remoteConfig,
+      });
+
+      expect(result).toEqual(remoteConfig);
     });
   });
 });

@@ -32,6 +32,7 @@ import { createAdapter } from './factory';
 import { HardwareWalletType, ErrorCode } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
+import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
 
 describe('createAdapter', () => {
@@ -44,6 +45,12 @@ describe('createAdapter', () => {
     const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions);
     expect(adapter).toBeInstanceOf(LedgerBluetoothAdapter);
     expect(adapter.walletType).toBe(HardwareWalletType.Ledger);
+  });
+
+  it('creates QRWalletAdapter for QR wallet type', () => {
+    const adapter = createAdapter(HardwareWalletType.Qr, mockOptions);
+    expect(adapter).toBeInstanceOf(QRWalletAdapter);
+    expect(adapter.walletType).toBe(HardwareWalletType.Qr);
   });
 
   it('creates NonHardwareAdapter for null wallet type', () => {

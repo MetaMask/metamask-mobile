@@ -1,7 +1,6 @@
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -22,6 +21,7 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
@@ -33,16 +33,12 @@ import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  getRampRoutingDecision,
-  getDetectedGeolocation,
-} from '../../../../../reducers/fiatOrders';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
@@ -74,7 +70,6 @@ function TokenSelection() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
 
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -82,7 +77,15 @@ function TokenSelection() {
 
   const { topTokens, allTokens, isLoading, error } = useMemo(() => {
     if (!isV2UnifiedEnabled) {
-      return legacyTokens;
+      // V1: useRampTokens returns null tokens with isLoading:false while the
+      // routing decision settles after geo recovery. Treat null (no error) as
+      // loading to avoid a "No tokens match" flash before the fetch. A finished
+      // fetch yields an array, so [] => genuinely empty, never an endless spinner.
+      const legacyNotYetLoaded = !legacyTokens.topTokens && !legacyTokens.error;
+      return {
+        ...legacyTokens,
+        isLoading: legacyTokens.isLoading || legacyNotYetLoaded,
+      };
     }
 
     const filterTokens = <T extends { chainId?: string }>(
@@ -97,10 +100,9 @@ function TokenSelection() {
       });
     };
 
-    // When tokens have never been loaded, controllerTokens is null and
-    // controllerTokensLoading is false (default state). Treat that as loading
-    // so we show spinner instead of "No tokens match" on first load before
-    // controller.init() has completed (e.g. fresh install or update).
+    // null = not loaded (pre-init, or refetch in flight after a region change)
+    // => spinner. A finished fetch yields an array, so [] => genuinely empty.
+    // Gate on null, not length, or an empty region would spin forever.
     const tokensNotYetLoaded =
       controllerTokens === null && !controllerTokensError;
 
@@ -144,19 +146,16 @@ function TokenSelection() {
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
-    if (rampRoutingDecision != null) {
-      hasTrackedScreenViewRef.current = true;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-          .addProperties({
-            location: 'Token Selection',
-            ramp_type: rampType,
-            ramp_routing: rampRoutingDecision,
-          })
-          .build(),
-      );
-    }
-  }, [rampRoutingDecision, rampType, createEventBuilder, trackEvent]);
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Token Selection',
+          ramp_type: rampType,
+        })
+        .build(),
+    );
+  }, [rampType, createEventBuilder, trackEvent]);
 
   const prevSearchStringRef = useRef('');
   useEffect(() => {
@@ -205,7 +204,6 @@ function TokenSelection() {
               is_authenticated: false,
               token_caip19: selectedToken.assetId,
               token_symbol: selectedToken.symbol,
-              ramp_routing: rampRoutingDecision ?? undefined,
             })
             .build(),
         );
@@ -226,7 +224,6 @@ function TokenSelection() {
       createEventBuilder,
       getNetworkName,
       detectedGeolocation,
-      rampRoutingDecision,
       isV2UnifiedEnabled,
       navigation,
       goToBuy,
@@ -322,33 +319,28 @@ function TokenSelection() {
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.token_modal.select_token'),
-          showBack: false,
-        },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Token Selection',
-                ramp_type: rampType,
-              })
-              .build(),
-          );
-        },
-      ),
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Token Selection',
+          ramp_type: rampType,
+        })
+        .build(),
     );
-  }, [navigation, theme, createEventBuilder, trackEvent, rampType]);
+  }, [navigation, trackEvent, createEventBuilder, rampType]);
 
   if (isLoading) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderStandard
+            title={strings('deposit.token_modal.select_token')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <Box twClassName="flex-1 items-center justify-center">
             <ActivityIndicator
               size="large"
@@ -365,6 +357,12 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderStandard
+            title={strings('deposit.token_modal.select_token')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <Box twClassName="flex-1 items-center justify-center px-4">
             <Box twClassName="text-center">
               <Text variant={TextVariant.BodyMd}>
@@ -386,14 +384,13 @@ function TokenSelection() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <Box twClassName="py-2">
-          <TokenNetworkFilterBar
-            networks={uniqueNetworks}
-            networkFilter={networkFilter}
-            setNetworkFilter={handleNetworkFilterChange}
-          />
-        </Box>
-        <Box twClassName="px-4 py-3">
+        <HeaderStandard
+          title={strings('deposit.token_modal.select_token')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
+        <Box twClassName="px-4 pb-3">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
@@ -403,6 +400,13 @@ function TokenSelection() {
             placeholder={strings(
               'deposit.token_modal.search_by_name_or_address',
             )}
+          />
+        </Box>
+        <Box twClassName="pt-2 pb-4 pl-4">
+          <TokenNetworkFilterBar
+            networks={uniqueNetworks}
+            networkFilter={networkFilter}
+            setNetworkFilter={handleNetworkFilterChange}
           />
         </Box>
         <FlatList

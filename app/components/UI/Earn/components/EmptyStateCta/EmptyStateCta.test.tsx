@@ -225,14 +225,13 @@ describe('EmptyStateCta', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
+      identify: jest.fn(),
       createDataDeletionTask: jest.fn(),
       checkDataDeleteStatus: jest.fn(),
       getDeleteRegulationCreationDate: jest.fn(),
       getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
       isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
     });
 
     (
@@ -298,9 +297,11 @@ describe('EmptyStateCta', () => {
     });
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderComponent(mockEarnToken);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders learn more link', () => {
+    const { getByText } = renderComponent(mockEarnToken);
+    expect(
+      getByText(strings('earn.empty_state_cta.learn_more')),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to lending historic apy modal when "learn more" is clicked', async () => {
@@ -453,8 +454,10 @@ describe('EmptyStateCta', () => {
   });
 
   it('does not render if token prop is missing', () => {
-    const { toJSON } = renderComponent({} as TokenI);
-    expect(toJSON()).toBeNull();
+    const { queryByText } = renderComponent({} as TokenI);
+    expect(
+      queryByText(strings('earn.empty_state_cta.learn_more')),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not render if stablecoin lending feature flag is disabled', () => {
@@ -464,8 +467,10 @@ describe('EmptyStateCta', () => {
       >
     ).mockReturnValue(false);
 
-    const { toJSON } = renderComponent(mockEarnToken);
-    expect(toJSON()).toBeNull();
+    const { queryByText } = renderComponent(mockEarnToken);
+    expect(
+      queryByText(strings('earn.empty_state_cta.learn_more')),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not render when user is not eligible', () => {
@@ -476,8 +481,10 @@ describe('EmptyStateCta', () => {
       refreshPooledStakingEligibility: jest.fn(),
     });
 
-    const { toJSON } = renderComponent(mockEarnToken);
+    const { queryByText } = renderComponent(mockEarnToken);
 
-    expect(toJSON()).toBeNull();
+    expect(
+      queryByText(strings('earn.empty_state_cta.learn_more')),
+    ).not.toBeOnTheScreen();
   });
 });

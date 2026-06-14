@@ -44,7 +44,6 @@ import ButtonIcon, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../util/theme';
-import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { useNftDetection } from '../../hooks/useNftDetection';
 
 interface NftGridProps {
@@ -101,10 +100,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,
     }));
-
-    const isHomepageRedesignV1Enabled = useSelector(
-      selectHomepageRedesignV1Enabled,
-    );
 
     const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
@@ -163,8 +158,8 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       if (isFullView) {
         return undefined;
       }
-      return isHomepageRedesignV1Enabled ? 18 : undefined;
-    }, [isFullView, isHomepageRedesignV1Enabled]);
+      return 18;
+    }, [isFullView]);
 
     const collectiblesToRender: Nft[] = useMemo(() => {
       const itemsToProcess = maxItems
@@ -277,14 +272,13 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
             />
           }
           contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-          scrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
+          scrollEnabled={isFullView}
           numColumns={3}
         />
       ),
       [
         collectiblesToRender,
         isFullView,
-        isHomepageRedesignV1Enabled,
         handleLongPress,
         nftSource,
         tw,

@@ -5,6 +5,7 @@ import {
   calculateCandleCount,
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
+  isAbortError,
   type CandleData,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -117,9 +118,69 @@ abstract class StreamChannel<T> {
 export class CandleStreamChannel extends StreamChannel<CandleData> {
   // Timer handles for deferred connect so they can be cancelled on disconnect
   private deferConnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  // Timer handles for deferred WS teardown; a resubscribe inside the window
+  // cancels the teardown instead of churning the connection.
+  private pendingTeardownTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
   private connectRetryCounts = new Map<string, number>();
   private static readonly MAX_CONNECT_RETRIES = 50;
+  // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
+  // so merge-on-update can't cause unbounded memory growth.
+  private static readonly MAX_CACHED_CANDLES = 1000;
   private readonly getIsInitialized: () => boolean;
+
+  /**
+   * Merge incoming candle data into existing cached candles by timestamp.
+   *
+   * Incoming candles take precedence for overlapping timestamps (fresher OHLC
+   * for in-progress bars and final values for closed bars). Older cached
+   * candles outside the incoming range are preserved so a light refetch
+   * (e.g. OneDay on revisit) does not shrink the dataset that previously
+   * contained a longer history (e.g. OneWeek).
+   *
+   * Without this merge, `cache.set(cacheKey, incoming)` on revisit drops every
+   * candle older than the refetch window — the "candles before the visible
+   * range disappear" bug when switching between intervals.
+   */
+  private static mergeCandleData(
+    existing: CandleData | undefined,
+    incoming: CandleData,
+  ): CandleData {
+    if (!existing || existing.candles.length === 0) {
+      return incoming;
+    }
+
+    // Symbol/interval mismatches should never happen (cache is keyed by them),
+    // but if they do we trust the incoming data and discard the stale cache.
+    if (
+      existing.symbol !== incoming.symbol ||
+      existing.interval !== incoming.interval
+    ) {
+      return incoming;
+    }
+
+    const byTime = new Map<number, CandleData['candles'][number]>();
+    for (const candle of existing.candles) {
+      byTime.set(candle.time, candle);
+    }
+    for (const candle of incoming.candles) {
+      byTime.set(candle.time, candle); // incoming wins on overlap
+    }
+
+    const merged = Array.from(byTime.values()).sort((a, b) => a.time - b.time);
+    const capped =
+      merged.length > CandleStreamChannel.MAX_CACHED_CANDLES
+        ? merged.slice(-CandleStreamChannel.MAX_CACHED_CANDLES)
+        : merged;
+
+    return {
+      symbol: incoming.symbol,
+      interval: incoming.interval,
+      candles: capped,
+    };
+  }
 
   /**
    * @param getIsInitialized - Getter for connection initialized state.
@@ -134,8 +195,26 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   public override clearCache(): void {
     this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
     this.deferConnectTimers.clear();
+    this.pendingTeardownTimers.forEach((timer) => clearTimeout(timer));
+    this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
     super.clearCache();
+  }
+
+  /**
+   * Cancel a pending deferred teardown for a cacheKey if one is scheduled.
+   * Called when a new subscriber arrives for a cacheKey whose WS is still
+   * alive in the teardown window — avoids unsubscribe/resubscribe churn
+   * during rapid market switching.
+   */
+  private cancelPendingTeardown(cacheKey: string): boolean {
+    const timer = this.pendingTeardownTimers.get(cacheKey);
+    if (!timer) {
+      return false;
+    }
+    clearTimeout(timer);
+    this.pendingTeardownTimers.delete(cacheKey);
+    return true;
   }
 
   /**
@@ -214,6 +293,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     };
     this.subscribers.set(id, subscription);
 
+    // A pending teardown for this cacheKey means the WS is still alive from
+    // the previous subscriber — cancel the scheduled disconnect and reuse it.
+    const cancelled = this.cancelPendingTeardown(cacheKey);
+    if (cancelled) {
+      DevLogger.log(
+        'CandleStreamChannel: Cancelled pending teardown (resubscribe within window)',
+        { cacheKey },
+      );
+    }
+
     // Give immediate cached data if available
     const cached = this.cache.get(cacheKey);
     if (cached) {
@@ -238,13 +327,31 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         (s) => s.cacheKey === cacheKey,
       ).length;
 
-      // Disconnect WebSocket if no subscribers remain for this symbol+interval
+      // Defer WS teardown so a rapid resubscribe (e.g. back-and-forth market
+      // switch) reuses the connection instead of tearing it down and redialing.
       if (remainingForThisKey === 0) {
-        DevLogger.log(
-          'CandleStreamChannel: Disconnecting WebSocket (no subscribers)',
-          { cacheKey },
+        // Idempotent: clear any prior teardown for this cacheKey first
+        this.cancelPendingTeardown(cacheKey);
+        this.pendingTeardownTimers.set(
+          cacheKey,
+          setTimeout(() => {
+            this.pendingTeardownTimers.delete(cacheKey);
+            // Re-check subscriber count at teardown time — a resubscribe
+            // during the window may have re-added subscribers without
+            // cancelling the teardown (defensive).
+            const stillRemaining = Array.from(this.subscribers.values()).filter(
+              (s) => s.cacheKey === cacheKey,
+            ).length;
+            if (stillRemaining > 0) {
+              return;
+            }
+            DevLogger.log(
+              'CandleStreamChannel: Disconnecting WebSocket (deferred teardown elapsed, no subscribers)',
+              { cacheKey },
+            );
+            this.disconnect(cacheKey);
+          }, PERFORMANCE_CONFIG.CandleTeardownDelayMs),
         );
-        this.disconnect(cacheKey);
       }
     };
   }
@@ -315,11 +422,19 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       interval,
       duration,
       callback: (candleData: CandleData) => {
-        // Update cache
-        this.cache.set(cacheKey, candleData);
+        // Merge incoming candles into the existing cache instead of replacing.
+        // This preserves older candles on revisit (when we intentionally fetch
+        // a lighter OneDay window) and keeps live-tick updates idempotent.
+        const existing = this.cache.get(cacheKey);
+        const merged = CandleStreamChannel.mergeCandleData(
+          existing,
+          candleData,
+        );
+        this.cache.set(cacheKey, merged);
 
-        // Notify all subscribers
-        this.notifySubscribers(cacheKey, candleData);
+        // Notify all subscribers with the merged dataset so consumers see a
+        // stable, monotonic candle history across interval revisits.
+        this.notifySubscribers(cacheKey, merged);
       },
       onError: (error: Error) => {
         // Log initialization failure
@@ -373,6 +488,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       clearTimeout(timer);
       this.deferConnectTimers.delete(cacheKey);
     }
+    // Cancel any pending deferred teardown — explicit disconnect supersedes it
+    this.cancelPendingTeardown(cacheKey);
     this.connectRetryCounts.delete(cacheKey);
     // Disconnect specific subscription
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
@@ -528,6 +645,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
+      // Expected cancellation — skip Sentry to avoid noisy abort reports
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       const errorInstance = ensureError(
         error,
         'CandleStreamChannel.fetchHistoricalCandles',
@@ -562,6 +684,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     // Cancel all deferred connect timers
     this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
     this.deferConnectTimers.clear();
+    // Cancel all deferred teardown timers — explicit disconnect supersedes them
+    this.pendingTeardownTimers.forEach((timer) => clearTimeout(timer));
+    this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
 
     this.subscribers.forEach((subscriber) => {

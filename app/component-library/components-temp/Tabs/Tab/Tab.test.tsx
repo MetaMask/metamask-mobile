@@ -135,7 +135,8 @@ describe('Tab', () => {
         <Tab {...defaultProps} testID="enabled-tab" />,
       );
 
-      expect(getByTestId('enabled-tab').props.disabled).toBeFalsy();
+      const tab = getByTestId('enabled-tab');
+      expect(tab).toBeEnabled();
     });
   });
 

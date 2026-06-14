@@ -326,7 +326,7 @@ describe('AccountListFooter', () => {
   });
 
   describe('Error Handling', () => {
-    it('logs error and sets loading to false when no keyring ID is found', async () => {
+    it('logs error and prevents account creation when no keyring ID is found', async () => {
       (useWalletInfo as jest.Mock).mockReturnValue({ keyringId: undefined });
 
       const mockLogger = Logger as jest.Mocked<typeof Logger>;
@@ -339,22 +339,27 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Add account'));
+      const addButton = getByText('Add account');
 
+      // Button should be on screen but disabled when keyringId is missing
+      expect(addButton).toBeOnTheScreen();
+      expect(addButton).toBeDisabled();
+
+      fireEvent.press(addButton);
+
+      // Logger.error should not be called since button is disabled and press is a no-op
       await waitFor(() => {
-        expect(mockLogger.error).toHaveBeenCalledWith(
+        expect(mockLogger.error).not.toHaveBeenCalledWith(
           expect.any(Error),
           'Cannot create account without keyring ID',
         );
       });
 
-      await waitFor(() => {
-        expect(getByText('Add account')).toBeOnTheScreen();
-      });
-
+      // Account creation should not be attempted
       expect(
         mockMultichainAccountService.createNextMultichainAccountGroup,
       ).not.toHaveBeenCalled();
+      expect(onAccountCreated).not.toHaveBeenCalled();
     });
 
     it('calls onAccountCreated when new account group has an ID', async () => {

@@ -47,6 +47,11 @@ export const createMockHyperLiquidProvider =
       getOrderFills: jest.fn(),
       getOrders: jest.fn(),
       getFunding: jest.fn(),
+      getCurrentAccountId: jest
+        .fn()
+        .mockResolvedValue(
+          'eip155:1:0x0000000000000000000000000000000000000001',
+        ),
       getIsFirstTimeUser: jest.fn(),
       getOpenOrders: jest.fn(),
       subscribeToOrders: jest.fn(),

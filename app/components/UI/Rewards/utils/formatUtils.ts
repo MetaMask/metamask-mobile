@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import {
   type CaipAssetType,
   type CaipChainId,
@@ -8,7 +8,7 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -149,6 +149,100 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
+/**
+ * Formats remaining time until `endDate` (UTC, calendar months).
+ * - Under 1 hour: minutes only (e.g. `45min`).
+ * - Otherwise exactly two units: `y`+`mo`, `mo`+`d`, `d`+`h`, or `h`+`min`.
+ * For long lists, pass one `now` (e.g. `Date.now()`) from the parent per render so each row does not allocate its own clock.
+ */
+export const formatDateRemaining = (
+  endDate: Date | string,
+  now?: Date | number,
+): string | null => {
+  const start = now !== undefined ? new Date(now) : new Date();
+  const end = new Date(endDate);
+
+  if (end <= start) return null;
+
+  const totalRemainingMs = end.getTime() - start.getTime();
+  const msInMinute = 60 * 1000;
+  const msInHour = 60 * msInMinute;
+  const msInDay = 24 * msInHour;
+
+  if (totalRemainingMs < msInHour) {
+    let minutes = Math.floor(totalRemainingMs / msInMinute);
+    if (minutes < 1) {
+      minutes = 1;
+    }
+    return `${minutes}min`;
+  }
+
+  const getDaysInUtcMonth = (year: number, monthIndex: number): number =>
+    new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+
+  // Adds calendar months while clamping day to the target month length.
+  // Example: Jan 31 + 1 month => Feb 28/29.
+  const addUtcMonths = (date: Date, monthsToAdd: number): Date => {
+    const currentYear = date.getUTCFullYear();
+    const currentMonth = date.getUTCMonth();
+    const totalMonth = currentMonth + monthsToAdd;
+    const targetYear = currentYear + Math.floor(totalMonth / 12);
+    const targetMonth = ((totalMonth % 12) + 12) % 12;
+    const targetDay = Math.min(
+      date.getUTCDate(),
+      getDaysInUtcMonth(targetYear, targetMonth),
+    );
+
+    return new Date(
+      Date.UTC(
+        targetYear,
+        targetMonth,
+        targetDay,
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds(),
+      ),
+    );
+  };
+
+  let totalMonths = 0;
+  let year = 0;
+  let month = 0;
+
+  while (addUtcMonths(start, totalMonths + 12) <= end) {
+    totalMonths += 12;
+    year += 1;
+  }
+
+  while (addUtcMonths(start, totalMonths + 1) <= end) {
+    totalMonths += 1;
+    month += 1;
+  }
+
+  const cursor = addUtcMonths(start, totalMonths);
+  const remainingMs = end.getTime() - cursor.getTime();
+  const day = Math.floor(remainingMs / msInDay);
+  const hour = Math.floor((remainingMs % msInDay) / msInHour);
+  const minute = Math.floor(((remainingMs % msInDay) % msInHour) / msInMinute);
+
+  const units = [
+    { value: year, suffix: 'y' },
+    { value: month, suffix: 'mo' },
+    { value: day, suffix: 'd' },
+    { value: hour, suffix: 'h' },
+    { value: minute, suffix: 'min' },
+  ].filter((unit) => unit.value > 0);
+
+  if (units.length === 0) {
+    return null;
+  }
+  if (units.length === 1) {
+    return `${units[0].value}${units[0].suffix}`;
+  }
+  return `${units[0].value}${units[0].suffix} ${units[1].value}${units[1].suffix}`;
+};
+
 // Get icon name with fallback to Star if invalid
 export const getIconName = (iconName: string): IconName =>
   Object.values(IconName).includes(iconName as IconName)
@@ -237,8 +331,51 @@ export const validateEmail = (email: string): boolean => {
  * @example formatUsd('11500.000000') // '$11,500.00'
  * @example formatUsd(12500.5)        // '$12,500.50'
  */
-export const formatUsd = (value: string | number): string =>
-  formatFiat(new BigNumber(value), 'USD');
+export const formatUsd = (
+  value: string | number | null | undefined,
+): string => {
+  const fiatAmount = new BigNumber(value ?? NaN);
+
+  if (!fiatAmount.isFinite()) {
+    return '—';
+  }
+
+  return formatFiat(fiatAmount, 'USD');
+};
+
+interface FormatCompactValueOptions {
+  maximumFractionDigits?: number;
+  millionSuffix?: string;
+  thousandSuffix?: string;
+}
+
+/**
+ * Formats a number in compact notation without a currency symbol.
+ * Implemented manually because Hermes does not support `notation: 'compact'`.
+ *
+ * @example formatCompactValue(750000)  // '750k'
+ * @example formatCompactValue(5750000) // '5.75M'
+ */
+export const formatCompactValue = (
+  value: number,
+  options?: FormatCompactValueOptions,
+): string => {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  const maximumFractionDigits = options?.maximumFractionDigits ?? 2;
+  const millionSuffix = options?.millionSuffix ?? 'M';
+  const thousandSuffix = options?.thousandSuffix ?? 'k';
+  const formatValue = (compact: number) =>
+    `${Number(compact.toFixed(maximumFractionDigits))}`;
+
+  if (abs >= 1_000_000) {
+    return `${sign}${formatValue(abs / 1_000_000)}${millionSuffix}`;
+  }
+  if (abs >= 1_000) {
+    return `${sign}${formatValue(abs / 1_000)}${thousandSuffix}`;
+  }
+  return `${sign}${abs}`;
+};
 
 /**
  * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
@@ -249,21 +386,19 @@ export const formatUsd = (value: string | number): string =>
  * @example formatCompactUsd(25000)   // '$25K'
  * @example formatCompactUsd(500)     // '$500'
  */
-export const formatCompactUsd = (value: number): string => {
+export const formatCompactUsd = (
+  value: number,
+  options?: { maximumFractionDigits?: number },
+): string => {
   const abs = Math.abs(value);
   const sign = value < 0 ? '-' : '';
+  const maximumFractionDigits = options?.maximumFractionDigits ?? 1;
+  const compactValue = formatCompactValue(abs, {
+    maximumFractionDigits,
+    thousandSuffix: 'K',
+  });
 
-  if (abs >= 1_000_000) {
-    const compact = abs / 1_000_000;
-    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
-    return `${sign}$${formatted}M`;
-  }
-  if (abs >= 1_000) {
-    const compact = abs / 1_000;
-    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
-    return `${sign}$${formatted}K`;
-  }
-  return `${sign}$${abs}`;
+  return `${sign}$${compactValue}`;
 };
 
 /**
@@ -273,10 +408,10 @@ export const formatCompactUsd = (value: number): string => {
  * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
  * @example formatSignedUsd(null)           // '—'
  */
-export const formatSignedUsd = (value: string | null): string => {
+export const formatSignedUsd = (value: string | number | null): string => {
   if (value === null) return '—';
-  const num = parseFloat(value);
-  if (Number.isNaN(num)) return value;
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  if (Number.isNaN(num)) return '—';
   const sign = num > 0 ? '+' : '';
   return `${sign}${formatUsd(value)}`;
 };
@@ -308,21 +443,28 @@ export const isPercentChangeNonNegative = (value: string | number): boolean => {
   return !Number.isNaN(num) && num >= 0;
 };
 
-// ── Timestamp formatting ────────────────────────────────────────────────
+// ── Ordinal rank (English) ─────────────────────────────────────────────
 
 /**
- * Formats an ISO 8601 timestamp to `HH:MM:SS`.
- * Returns '' for null or unparseable values.
+ * Formats a 1-based rank as an English ordinal suffix (e.g. `3` → `"3rd"`).
+ * Pair with localized copy such as `"{{place}} place"`.
  */
-export const formatComputedAt = (isoString: string | null): string => {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return '';
-  const h = date.getHours().toString().padStart(2, '0');
-  const m = date.getMinutes().toString().padStart(2, '0');
-  const s = date.getSeconds().toString().padStart(2, '0');
-  return `${h}:${m}:${s}`;
-};
+export function formatOrdinalRank(rank: number): string {
+  const n = Math.floor(Math.abs(rank));
+  const mod100 = n % 100;
+  const mod10 = n % 10;
+  let suffix = 'th';
+  if (mod100 < 11 || mod100 > 13) {
+    if (mod10 === 1) {
+      suffix = 'st';
+    } else if (mod10 === 2) {
+      suffix = 'nd';
+    } else if (mod10 === 3) {
+      suffix = 'rd';
+    }
+  }
+  return `${n}${suffix}`;
+}
 
 // ── CAIP-19 / address helpers ───────────────────────────────────────────
 
@@ -388,3 +530,12 @@ export const shortenAddress = (address: string): string => {
   if (address.length <= 10) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
+
+export function getPortfolioReturnColor(
+  portfolioPnlPercent: string | undefined,
+): TextColor {
+  if (!portfolioPnlPercent) return TextColor.TextDefault;
+  return parseFloat(portfolioPnlPercent) < 0
+    ? TextColor.ErrorDefault
+    : TextColor.SuccessDefault;
+}

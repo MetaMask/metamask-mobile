@@ -15,14 +15,14 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
 import {
   failedSeedPhraseRequirements,
@@ -39,12 +39,14 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
   BoxAlignItems,
@@ -64,9 +66,11 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -112,6 +116,9 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const walletSetupCompletedAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -161,7 +168,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const track = (event, properties) => {
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
@@ -195,7 +202,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const animateToStep = useCallback(
     (nextStep) => {
-      if (isTest) {
+      if (isTestEnvironment) {
         setCurrentStep(nextStep);
         return;
       }
@@ -463,6 +470,7 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
+          ...walletSetupCompletedAttributionProps,
         });
 
         fetchAccountsWithActivity();
@@ -562,7 +570,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -887,9 +895,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Action to save onboarding event
-   */
 };
 
 const mapDispatchToProps = (dispatch) => ({

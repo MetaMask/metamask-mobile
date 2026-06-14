@@ -1,3 +1,5 @@
+source 'https://github.com/CocoaPods/Specs.git'
+
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
@@ -109,10 +111,6 @@ target 'MetaMask' do
   common_target_logic
 end
 
-target 'MetaMask-QA' do
-  common_target_logic
-end
-
 target 'MetaMask-Flask' do
 	common_target_logic
 end
@@ -162,6 +160,24 @@ post_install do |installer|
       system "chmod -w #{file}"
     rescue => e
       Pod::UI.warn "Failed to modify Portability.h: #{e.message}"
+    end
+  end
+
+  # Fix fmt compilation error with Xcode 26 / Clang 21 consteval strictness
+  # Directly disable FMT_USE_CONSTEVAL rather than patching the detection logic.
+  # Uses regex to handle indented preprocessor directives (e.g. "#  define").
+  Dir.glob(installer.sandbox.root + "fmt/include/fmt/base.h") do |file|
+    begin
+      system "chmod +w #{file}"
+      contents = File.read(file)
+      modified = contents.gsub(/#\s*define FMT_USE_CONSTEVAL 1/, '#define FMT_USE_CONSTEVAL 0')
+      if !File.writable?(file)
+        system "sudo chmod +w #{file}"
+      end
+      File.write(file, modified)
+      system "chmod -w #{file}"
+    rescue => e
+      Pod::UI.warn "Failed to modify fmt base.h: #{e.message}"
     end
   end
 

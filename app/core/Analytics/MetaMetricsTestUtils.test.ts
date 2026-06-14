@@ -11,7 +11,7 @@ jest.mock('../../util/test/utils', () => ({
 
 const testEvent: ITrackingEvent = {
   name: 'test_event',
-  properties: { isTest: true },
+  properties: { isTestEnvironment: true },
   sensitiveProperties: {},
   saveDataRecording: false,
   isAnonymous: false,

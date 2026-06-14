@@ -3,6 +3,7 @@
  */
 
 import {
+  formatDateRemaining,
   formatRewardsDate,
   formatRewardsDateLabel,
   formatRewardsTimeOnly,
@@ -16,7 +17,6 @@ import {
   validateEmail,
   formatPercentChange,
   isPercentChangeNonNegative,
-  formatComputedAt,
   getChainHex,
   getAssetReference,
   parseCaip19,
@@ -24,7 +24,9 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatCompactValue,
   formatCompactUsd,
+  formatOrdinalRank,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -41,24 +43,33 @@ jest.mock('../../../../util/date', () => ({
 
 // Mock i18n strings
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const t: Record<string, string> = {
-      'rewards.events.to': 'to',
-      'rewards.events.type.swap': 'Swap',
-      'rewards.events.type.referral_action': 'Referral action',
-      'rewards.events.type.sign_up_bonus': 'Sign up bonus',
-      'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
-      'rewards.events.type.one_time_bonus': 'One-time bonus',
-      'rewards.events.type.open_position': 'Opened position',
-      'rewards.events.type.close_position': 'Closed position',
-      'rewards.events.type.take_profit': 'Take profit',
-      'rewards.events.type.stop_loss': 'Stop loss',
-      'rewards.events.type.uncategorized_event': 'Uncategorized event',
-      'perps.market.long': 'Long',
-      'perps.market.short': 'Short',
-    };
-    return t[key] || key;
-  }),
+  strings: jest.fn(
+    (key: string, params: Record<string, string> | undefined) => {
+      const t: Record<string, string> = {
+        'rewards.events.to': 'to',
+        'rewards.events.type.swap': 'Swap',
+        'rewards.events.type.referral_action': 'Referral action',
+        'rewards.events.type.sign_up_bonus': 'Sign up bonus',
+        'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
+        'rewards.events.type.one_time_bonus': 'One-time bonus',
+        'rewards.events.type.open_position': 'Opened position',
+        'rewards.events.type.close_position': 'Closed position',
+        'rewards.events.type.take_profit': 'Take profit',
+        'rewards.events.type.stop_loss': 'Stop loss',
+        'rewards.events.type.uncategorized_event': 'Uncategorized event',
+        'perps.market.long': 'Long',
+        'perps.market.short': 'Short',
+        'rewards.perps_trading_campaign.last_updated': 'Last updated: {{time}}',
+      };
+      let template = t[key] ?? key;
+      if (params) {
+        for (const [paramKey, value] of Object.entries(params)) {
+          template = template.split(`{{${paramKey}}}`).join(value);
+        }
+      }
+      return template;
+    },
+  ),
   default: {
     locale: 'en-US',
   },
@@ -385,6 +396,96 @@ describe('formatUtils', () => {
 
       // Then: should return days and hours format without trailing space
       expect(result).toBe('2d 3h');
+    });
+  });
+
+  describe('formatDateRemaining', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('handles multi-month day borrowing when previous month is shorter', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z');
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('handles leap-year February correctly with calendar month stepping', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2024-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2024-03-03T00:00:00Z');
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('keeps end-of-month anchor when stepping across shorter months', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-31T00:00:00Z', now);
+
+      expect(result).toBe('2mo');
+    });
+
+    it('returns null for past dates', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-03-03T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-02T00:00:00Z');
+
+      expect(result).toBeNull();
+    });
+
+    it('uses explicit now when provided (no reliance on system time)', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z', now);
+
+      expect(result).toBe('1mo 3d');
+    });
+
+    it('returns minutes only when remaining time is under one hour', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T10:45:00Z', now)).toBe('45min');
+      expect(formatDateRemaining('2025-03-03T10:59:00Z', now)).toBe('59min');
+    });
+
+    it('returns 1m when under one hour but less than one full minute remains', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T10:00:30Z', now)).toBe('1min');
+    });
+
+    it('returns hour and minute pair when same calendar day and at least one hour remains', () => {
+      const now = new Date('2025-03-03T10:00:00Z');
+
+      expect(formatDateRemaining('2025-03-03T11:00:00Z', now)).toBe('1h');
+      expect(formatDateRemaining('2025-03-03T12:30:00Z', now)).toBe('2h 30min');
+    });
+
+    it('returns day and hour pair when no full calendar months remain', () => {
+      const now = new Date('2025-03-01T00:00:00Z');
+
+      expect(formatDateRemaining('2025-03-02T01:00:00Z', now)).toBe('1d 1h');
+    });
+
+    it('returns year and month pair when at least one full year remains', () => {
+      const now = new Date('2024-01-15T00:00:00Z');
+
+      expect(formatDateRemaining('2026-03-20T00:00:00Z', now)).toBe('2y 2mo');
+    });
+
+    it('skips zero-value month and uses next non-zero unit', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-30T00:00:00Z', now)).toBe('1y 20d');
+    });
+
+    it('returns a single unit when only one non-zero unit remains', () => {
+      const now = new Date('2025-01-10T00:00:00Z');
+
+      expect(formatDateRemaining('2026-01-10T00:00:00Z', now)).toBe('1y');
     });
   });
 
@@ -1276,6 +1377,60 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatOrdinalRank', () => {
+    it('formats 1 as 1st', () => {
+      expect(formatOrdinalRank(1)).toBe('1st');
+    });
+
+    it('formats 2 as 2nd', () => {
+      expect(formatOrdinalRank(2)).toBe('2nd');
+    });
+
+    it('formats 3 as 3rd', () => {
+      expect(formatOrdinalRank(3)).toBe('3rd');
+    });
+
+    it('formats 4 as 4th', () => {
+      expect(formatOrdinalRank(4)).toBe('4th');
+    });
+
+    it('formats 11 as 11th', () => {
+      expect(formatOrdinalRank(11)).toBe('11th');
+    });
+
+    it('formats 12 as 12th', () => {
+      expect(formatOrdinalRank(12)).toBe('12th');
+    });
+
+    it('formats 13 as 13th', () => {
+      expect(formatOrdinalRank(13)).toBe('13th');
+    });
+
+    it('formats 21 as 21st', () => {
+      expect(formatOrdinalRank(21)).toBe('21st');
+    });
+
+    it('formats 22 as 22nd', () => {
+      expect(formatOrdinalRank(22)).toBe('22nd');
+    });
+
+    it('formats 23 as 23rd', () => {
+      expect(formatOrdinalRank(23)).toBe('23rd');
+    });
+
+    it('formats 111 as 111th', () => {
+      expect(formatOrdinalRank(111)).toBe('111th');
+    });
+
+    it('uses absolute value for negative ranks', () => {
+      expect(formatOrdinalRank(-5)).toBe('5th');
+    });
+
+    it('floors non-integer ranks', () => {
+      expect(formatOrdinalRank(3.7)).toBe('3rd');
+    });
+  });
+
   describe('isPercentChangeNonNegative', () => {
     it('returns true for positive number', () => {
       expect(isPercentChangeNonNegative(0.15)).toBe(true);
@@ -1295,25 +1450,6 @@ describe('formatUtils', () => {
 
     it('returns false for non-numeric string', () => {
       expect(isPercentChangeNonNegative('—')).toBe(false);
-    });
-  });
-
-  describe('formatComputedAt', () => {
-    it('returns empty string for null', () => {
-      expect(formatComputedAt(null)).toBe('');
-    });
-
-    it('returns empty string for empty string', () => {
-      expect(formatComputedAt('')).toBe('');
-    });
-
-    it('returns HH:MM:SS for a valid ISO timestamp', () => {
-      const result = formatComputedAt('2026-03-28T14:30:45.000Z');
-      expect(result).toMatch(/^\d{2}:\d{2}:\d{2}$/);
-    });
-
-    it('returns empty string for unparseable value', () => {
-      expect(formatComputedAt('not-a-date')).toBe('');
     });
   });
 
@@ -1445,6 +1581,13 @@ describe('formatUtils', () => {
     it('formats an integer string', () => {
       expect(formatUsd('100')).toBe('$100.00');
     });
+
+    it('returns em dash for invalid values', () => {
+      expect(formatUsd(null)).toBe('—');
+      expect(formatUsd(undefined)).toBe('—');
+      expect(formatUsd(Number.NaN)).toBe('—');
+      expect(formatUsd('not-a-number')).toBe('—');
+    });
   });
 
   describe('formatSignedUsd', () => {
@@ -1464,8 +1607,20 @@ describe('formatUtils', () => {
       expect(formatSignedUsd('0')).toBe('$0.00');
     });
 
-    it('returns raw string for non-numeric input', () => {
-      expect(formatSignedUsd('abc')).toBe('abc');
+    it('prepends + for positive number input', () => {
+      expect(formatSignedUsd(5000)).toBe('+$5,000.00');
+    });
+
+    it('formats negative number input', () => {
+      expect(formatSignedUsd(-1250.5)).toBe('$-1,250.50');
+    });
+
+    it('returns em dash for non-numeric string', () => {
+      expect(formatSignedUsd('abc')).toBe('—');
+    });
+
+    it('returns em dash for empty string', () => {
+      expect(formatSignedUsd('')).toBe('—');
     });
   });
 
@@ -1504,6 +1659,47 @@ describe('formatUtils', () => {
 
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
+    });
+
+    it('formats compact values without decimals when requested', () => {
+      expect(formatCompactUsd(123_456, { maximumFractionDigits: 0 })).toBe(
+        '$123K',
+      );
+    });
+
+    it('reuses compact value formatting with custom precision', () => {
+      expect(formatCompactUsd(5_750_000, { maximumFractionDigits: 2 })).toBe(
+        '$5.75M',
+      );
+    });
+  });
+
+  describe('formatCompactValue', () => {
+    it('formats thousands with a lowercase k suffix by default', () => {
+      expect(formatCompactValue(750_000)).toBe('750k');
+      expect(formatCompactValue(2_500)).toBe('2.5k');
+    });
+
+    it('formats millions with an uppercase M suffix by default', () => {
+      expect(formatCompactValue(5_750_000)).toBe('5.75M');
+      expect(formatCompactValue(6_000_000)).toBe('6M');
+    });
+
+    it('formats small values without suffix', () => {
+      expect(formatCompactValue(500)).toBe('500');
+      expect(formatCompactValue(0)).toBe('0');
+    });
+
+    it('respects custom maximum fraction digits and suffixes', () => {
+      expect(formatCompactValue(123_456, { maximumFractionDigits: 0 })).toBe(
+        '123k',
+      );
+      expect(
+        formatCompactValue(123_456, {
+          maximumFractionDigits: 0,
+          thousandSuffix: 'K',
+        }),
+      ).toBe('123K');
     });
   });
 });

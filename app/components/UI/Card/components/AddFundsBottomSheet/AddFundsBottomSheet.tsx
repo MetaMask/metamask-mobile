@@ -20,7 +20,7 @@ import {
 import { createStyles } from './AddFundsBottomSheet.styles';
 import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
-import { CardTokenAllowance } from '../../types';
+import { CardFundingToken } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
 import { isBridgeAllowed } from '../../../Bridge/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
@@ -44,7 +44,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
 interface AddFundsModalNavigationDetails {
-  priorityToken?: CardTokenAllowance;
+  priorityToken?: CardFundingToken;
 }
 
 export const createAddFundsModalNavigationDetails =
@@ -65,7 +65,7 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
@@ -84,8 +84,13 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [priorityToken, openSwaps, closeBottomSheetAndNavigate]);
 
   const openDeposit = useCallback(() => {
+    const assetId =
+      priorityToken?.address && priorityToken?.caipChainId
+        ? `${priorityToken.caipChainId}/erc20:${priorityToken.address}`
+        : undefined;
+
     closeBottomSheetAndNavigate(() => {
-      goToDeposit();
+      goToBuy(assetId ? { assetId } : undefined);
     });
     trackEvent(
       createEventBuilder(
@@ -101,7 +106,6 @@ const AddFundsBottomSheet: React.FC = () => {
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
           ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'DEPOSIT',
           region: rampGeodetectedRegion,
-          ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
           order_count: buttonClickData.order_count,
@@ -115,7 +119,7 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    goToDeposit,
+    goToBuy,
     trackEvent,
     createEventBuilder,
     priorityToken,

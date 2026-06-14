@@ -43,9 +43,4 @@ describe('PredictMarketSkeleton', () => {
     expect(chart).toBeTruthy();
     expect(footer).toBeTruthy();
   });
-
-  it('matches snapshot', () => {
-    const tree = render(<PredictMarketSkeleton />).toJSON();
-    expect(tree).toMatchSnapshot();
-  });
 });

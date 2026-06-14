@@ -1,24 +1,27 @@
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+
 export interface PerpsMarketCategoryBadgeProps {
   /**
-   * Display label for the badge
+   * Display label for the badge. Mutually exclusive with `icon` — provide one or the other.
    */
-  label: string;
+  label?: string;
+  /**
+   * Icon to render inside the badge (icon-only mode). Takes precedence over `label`.
+   */
+  icon?: IconName;
+  /**
+   * Accessibility label — required when using icon-only mode so screen readers can
+   * still announce the badge's purpose.
+   */
+  accessibilityLabel: string;
   /**
    * Whether this badge is currently selected
    */
   isSelected: boolean;
   /**
-   * Whether to show the dismiss "×" icon (typically when selected)
-   */
-  showDismiss?: boolean;
-  /**
    * Callback when the badge is pressed
    */
   onPress: () => void;
-  /**
-   * Callback when the dismiss icon is pressed (only used when showDismiss is true)
-   */
-  onDismiss?: () => void;
   /**
    * Optional test ID for E2E testing
    */

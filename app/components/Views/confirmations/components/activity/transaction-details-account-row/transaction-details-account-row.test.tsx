@@ -65,4 +65,18 @@ describe('TransactionDetailsAccountRow', () => {
     const { toJSON } = render();
     expect(toJSON()).toBeNull();
   });
+
+  it.each([
+    TransactionType.moneyAccountWithdraw,
+    TransactionType.perpsWithdraw,
+    TransactionType.predictClaim,
+    TransactionType.predictWithdraw,
+  ])('renders account row for %s', (type) => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: { ...TRANSACTION_META_MOCK, type },
+    });
+
+    const { getByText } = render();
+    expect(getByText(ACCOUNT_NAME_MOCK)).toBeDefined();
+  });
 });

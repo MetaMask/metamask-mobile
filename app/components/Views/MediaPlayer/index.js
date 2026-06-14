@@ -52,6 +52,14 @@ const styleSheet = ({ theme: { colors }, vars: { isPlaying } }) =>
     },
   });
 
+/**
+ * @param {object} props
+ * @param {any} props.uri
+ * @param {any} [props.style]
+ * @param {() => void} [props.onClose]
+ * @param {any} [props.textTracks]
+ * @param {any} [props.selectedTextTrack]
+ */
 function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -182,10 +190,6 @@ MediaPlayer.propTypes = {
    * The selected text track to display by id, language, title, index
    */
   selectedTextTrack: PropTypes.object,
-};
-
-MediaPlayer.defaultProps = {
-  onError: () => null,
 };
 
 export default MediaPlayer;

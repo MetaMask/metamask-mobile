@@ -2,12 +2,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo, useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import { FundingStatus, CardFundingToken } from '../types';
+import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import Engine from '../../../../core/Engine';
-import { balanceToFiatNumber } from '../../../../util/number';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -15,7 +14,17 @@ import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import {
+  getCurrencyRateControllerCurrencyRates,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllTokens,
+} from '../../../../selectors/assets/assets-migration';
 import { CARD_CHAIN_IDS } from '../constants';
+import { balanceToFiatNumber } from '../../../../util/number/bigint';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+import { toChecksumAddress } from '../../../../util/address';
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
@@ -81,31 +90,23 @@ export interface AssetBalanceInfo {
  * - For non-enabled tokens: shows the user's actual wallet balance from their wallet
  */
 export const useAssetBalances = (
-  tokens: CardTokenAllowance[],
+  tokens: CardFundingToken[],
 ): Map<string, AssetBalanceInfo> => {
-  const { MultichainAssetsRatesController, TokenRatesController } =
-    Engine.context;
   const tokensWithBalance = useTokensWithBalance({
     chainIds: CARD_CHAIN_IDS,
   });
 
   // Get raw state needed for asset lookups - these are stable references from Redux
-  const allAssets = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.TokensController.allTokens,
-  );
-  const allDetectedTokens = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.TokensController.allDetectedTokens,
-  );
+  const allAssets = useSelector(getTokensControllerAllTokens);
   const networkConfigs = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.NetworkController
         .networkConfigurationsByChainId,
   );
-  const currencyRates = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.CurrencyRateController.currencyRates,
+  const currencyRates = useSelector(getCurrencyRateControllerCurrencyRates);
+  const marketData = useSelector(getTokenRatesControllerMarketData);
+  const conversionRates = useSelector(
+    getMultichainAssetsRatesControllerConversionRates,
   );
 
   // Build the walletAssetsMap in useMemo using raw state
@@ -122,23 +123,10 @@ export const useAssetBalances = (
 
           // Manually lookup asset from raw state (similar to selectAsset)
           const allTokensForChain = allAssets?.[chainId as Hex];
-          const detectedTokensForChain = allDetectedTokens?.[chainId as Hex];
 
           let asset: TokenI | undefined;
           if (allTokensForChain) {
             for (const accountTokens of Object.values(allTokensForChain)) {
-              const found = (accountTokens as TokenI[])?.find(
-                (t) =>
-                  t.address?.toLowerCase() === token.address?.toLowerCase(),
-              );
-              if (found) {
-                asset = found;
-                break;
-              }
-            }
-          }
-          if (!asset && detectedTokensForChain) {
-            for (const accountTokens of Object.values(detectedTokensForChain)) {
               const found = (accountTokens as TokenI[])?.find(
                 (t) =>
                   t.address?.toLowerCase() === token.address?.toLowerCase(),
@@ -157,7 +145,7 @@ export const useAssetBalances = (
         }
       });
     return map;
-  }, [tokens, allAssets, allDetectedTokens]);
+  }, [tokens, allAssets]);
 
   // Build the exchangeRatesMap in useMemo using raw state
   const exchangeRatesMap = useMemo(() => {
@@ -181,35 +169,51 @@ export const useAssetBalances = (
 
         const conversionRate = currencyRateEntry?.conversionRate;
 
-        const marketData =
-          TokenRatesController?.state?.marketData?.[chainId]?.[
-            token.address?.toLowerCase() as Hex
-          ];
+        const tokenMarketData =
+          marketData?.[chainId]?.[token.address?.toLowerCase() as Hex];
 
         // Only require conversionRate to be present (marketData is optional)
         if (conversionRate !== undefined && conversionRate !== null) {
           map.set(`${chainId}-${token.address?.toLowerCase()}`, {
             conversionRate,
-            marketData,
+            marketData: tokenMarketData,
           });
         }
       }
     });
 
     return map;
-  }, [
-    tokens,
-    networkConfigs,
-    currencyRates,
-    TokenRatesController?.state?.marketData,
-  ]);
+  }, [tokens, networkConfigs, currencyRates, marketData]);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
+
+  const musdFiatRate = useMemo<number | undefined>(() => {
+    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+    if (!musdAddress) {
+      return undefined;
+    }
+
+    const checksumAddress = toChecksumAddress(musdAddress) as Hex;
+    const nativeCurrency = networkConfigs?.[CHAIN_IDS.MAINNET]?.nativeCurrency;
+    const conversionRate = nativeCurrency
+      ? currencyRates?.[nativeCurrency]?.conversionRate
+      : undefined;
+
+    const priceInNativeCurrency =
+      marketData?.[CHAIN_IDS.MAINNET]?.[checksumAddress]?.price ??
+      marketData?.[CHAIN_IDS.MAINNET]?.[musdAddress]?.price;
+
+    if (!conversionRate || priceInNativeCurrency === undefined) {
+      return undefined;
+    }
+
+    return priceInNativeCurrency * conversionRate;
+  }, [marketData, currencyRates, networkConfigs]);
 
   // Helper: Determine which balance to use based on token state
   const determineBalanceToUse = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       filteredToken: TokenI | undefined,
       walletAsset: TokenI | undefined,
     ): {
@@ -217,14 +221,14 @@ export const useAssetBalances = (
       source: 'availableBalance' | 'filteredToken' | 'walletAsset';
     } => {
       const isEnabled =
-        token.allowanceState === AllowanceState.Enabled ||
-        token.allowanceState === AllowanceState.Limited;
+        token.fundingStatus === FundingStatus.Enabled ||
+        token.fundingStatus === FundingStatus.Limited;
 
       if (isEnabled) {
         // Token is enabled/delegated - use availableBalance
-        if (token.availableBalance) {
+        if (token.spendableBalance) {
           return {
-            balance: token.availableBalance,
+            balance: token.spendableBalance,
             source: 'availableBalance',
           };
         }
@@ -252,11 +256,9 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for Solana tokens
   const calculateSolanaFiat = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       balanceToUse: string,
     ): { balanceFiat: string; rawFiatNumber: number | undefined } => {
-      const conversionRates =
-        MultichainAssetsRatesController?.state?.conversionRates;
       const assetKey =
         `${token.caipChainId}/token:${token.address}` as `${string}:${string}/${string}:${string}`;
       const assetConversionRate = conversionRates?.[assetKey];
@@ -306,7 +308,7 @@ export const useAssetBalances = (
         rawFiatNumber: undefined,
       };
     },
-    [MultichainAssetsRatesController?.state?.conversionRates, currentCurrency],
+    [conversionRates, currentCurrency],
   );
 
   // Helper: Calculate fiat with market data
@@ -375,7 +377,7 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for EVM tokens
   const calculateEvmFiat = useCallback(
     (
-      _token: CardTokenAllowance,
+      _token: CardFundingToken,
       balanceToUse: string,
       balanceSource: 'availableBalance' | 'filteredToken' | 'walletAsset',
       chainId: Hex,
@@ -533,8 +535,7 @@ export const useAssetBalances = (
               logo: buildTokenIconUrl(_token.caipChainId, _token.address ?? ''),
             } as TokenI);
 
-        const allMarketDataForChain =
-          TokenRatesController?.state?.marketData?.[chainId] || {};
+        const allMarketDataForChain = marketData?.[chainId] || {};
 
         const derivedBalance = deriveBalanceFromAssetMarketDetails(
           mockAsset,
@@ -604,7 +605,7 @@ export const useAssetBalances = (
     [
       calculateFiatFromMarketData,
       calculateProportionalFiat,
-      TokenRatesController?.state?.marketData,
+      marketData,
       currentCurrency,
     ],
   );
@@ -612,7 +613,7 @@ export const useAssetBalances = (
   // Helper: Build asset object
   const buildAssetObject = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       balanceToUse: string,
       balanceFiat: string,
       assetChainId: string,
@@ -647,7 +648,7 @@ export const useAssetBalances = (
       }
 
       // Create a unique key for this token
-      const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+      const tokenKey = getAssetBalanceKey(token);
       const isSolana = isSolanaChainId(token.caipChainId);
 
       // Get asset address and chain ID
@@ -711,6 +712,17 @@ export const useAssetBalances = (
       const rawTokenBalance = parseFloat(normalizedBalance);
       const balanceFormatted = `${parseFloat(normalizedBalance).toFixed(6)} ${token.symbol}`;
 
+      if (token.isMoneyAccountEntry) {
+        const safeBalance = Number.isNaN(rawTokenBalance) ? 0 : rawTokenBalance;
+        const convertedFiat =
+          musdFiatRate !== undefined ? safeBalance * musdFiatRate : safeBalance;
+        balanceFiat = formatWithThreshold(convertedFiat, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: currentCurrency?.toUpperCase() || 'USD',
+        });
+        rawFiatNumber = convertedFiat;
+      }
+
       // Build asset object
       const asset = buildAssetObject(
         token,
@@ -738,6 +750,8 @@ export const useAssetBalances = (
     calculateSolanaFiat,
     calculateEvmFiat,
     buildAssetObject,
+    currentCurrency,
+    musdFiatRate,
   ]);
 
   return balancesMap;

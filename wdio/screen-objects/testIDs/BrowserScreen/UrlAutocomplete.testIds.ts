@@ -1,1 +1,0 @@
-export const deleteFavoriteTestId = (url: string) => `delete-favorite-${url}`;

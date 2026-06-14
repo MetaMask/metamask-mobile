@@ -18,6 +18,7 @@ import {
 import { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
 import { RootMessenger } from '../types.ts';
 import { PermissionControllerMessenger } from '@metamask/permission-controller';
+import { SnapAccountServiceHandleKeyringSnapMessageAction } from '@metamask/snap-account-service';
 
 /**
  * Get the messenger for the permission controller. This is scoped to the
@@ -44,7 +45,7 @@ export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
       'ApprovalController:hasRequest',
       'ApprovalController:acceptRequest',
       'ApprovalController:rejectRequest',
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       'SnapController:getPermittedSnaps',
       'SnapController:installSnaps',
       'SubjectMetadataController:getSubjectMetadata',
@@ -61,7 +62,8 @@ type AllowedInitializationActions =
   | MultichainRoutingServiceIsSupportedScopeAction
   | MultichainRoutingServiceGetSupportedAccountsAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | SnapPermissionSpecificationsActions;
+  | SnapPermissionSpecificationsActions
+  | SnapAccountServiceHandleKeyringSnapMessageAction;
 
 type AllowedInitializationEvents = SnapPermissionSpecificationsEvents;
 
@@ -94,9 +96,9 @@ export function getPermissionControllerInitMessenger(
       'ApprovalController:addRequest',
       'AccountsController:listAccounts',
       'CurrencyRateController:getState',
-      'KeyringController:getKeyringsByType',
       'KeyringController:getState',
       'KeyringController:withKeyring',
+      'KeyringController:withKeyringV2Unsafe',
       'MultichainRoutingService:isSupportedScope',
       'MultichainRoutingService:getSupportedAccounts',
       'NetworkController:findNetworkClientIdByChainId',
@@ -113,6 +115,7 @@ export function getPermissionControllerInitMessenger(
       'SnapInterfaceController:getInterface',
       'SnapInterfaceController:setInterfaceDisplayed',
       'SnapInterfaceController:updateInterface',
+      'SnapAccountService:handleKeyringSnapMessage',
     ],
     events: ['KeyringController:unlock'],
     messenger,

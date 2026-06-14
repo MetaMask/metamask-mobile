@@ -12,6 +12,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { TokenList } from '../../token-list';
 import { NftList } from '../../nft-list';
@@ -37,7 +38,17 @@ export interface AssetProps {
   onTokenSelect?: (token: AssetType) => void;
   tokenFilter?: (assets: AssetType[]) => TokenListItem[];
   hideNetworkFilter?: boolean;
+  // Hides the in-body send navbar. Set by consumers that render their own
+  // header (e.g. pay-with-modal) while reusing this asset picker.
+  hideHeader?: boolean;
 }
+
+// Rendered only inside the send flow so that consumers reusing this picker
+// (e.g. pay-with-modal) don't pull in useSendNavbar's dependency chain.
+const AssetSendHeader = () => {
+  const { header: renderHeader } = useSendNavbar().Asset;
+  return renderHeader();
+};
 
 export const Asset: React.FC<AssetProps> = (props = {}) => {
   const {
@@ -46,6 +57,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     onTokenSelect,
     tokenFilter,
     hideNetworkFilter = false,
+    hideHeader = false,
   } = props;
 
   const originalTokens = useSendTokens({ includeNoBalance });
@@ -195,8 +207,9 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   return (
     <Box twClassName="flex-1">
+      {!hideHeader && <AssetSendHeader />}
       {highlightedItemsOutsideAssetList.length > 0 && (
-        <Box>
+        <Box marginBottom={2}>
           {highlightedItemsOutsideAssetList.map((item, index) => (
             <HighlightedItem
               key={`highlighted-action-${item.name}-${index}`}
@@ -205,7 +218,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           ))}
         </Box>
       )}
-      <Box twClassName="w-full px-4 py-2">
+      <Box twClassName="w-full px-4 pb-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}

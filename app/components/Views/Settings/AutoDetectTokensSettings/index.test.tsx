@@ -44,7 +44,7 @@ describe('AssetSettings', () => {
     jest
       .mocked(useAnalytics)
       .mockReturnValue(
-        createMockUseAnalyticsHook({ addTraitsToUser: mockAddTraitsToUser }),
+        createMockUseAnalyticsHook({ identify: mockAddTraitsToUser }),
       );
   });
 

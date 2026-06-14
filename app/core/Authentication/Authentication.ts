@@ -17,10 +17,8 @@ import {
   setIsConnectionRemoved,
 } from '../../actions/user';
 import {
+  clearOnboarding,
   setCompletedOnboarding,
-  clearAccountType,
-  clearSeedlessOnboarding,
-  setPendingSocialLoginMarketingConsentBackfill,
 } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -92,6 +90,7 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -128,6 +127,7 @@ class AuthenticationService {
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
+    ReduxService.store.dispatch(setCompletedOnboarding(true));
   }
 
   /**
@@ -834,9 +834,7 @@ class AuthenticationService {
               ],
             });
           } else {
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+            await navigateToPostUnlockHome();
           }
         } else {
           // No password provided or derived. Navigate to login.
@@ -1126,7 +1124,7 @@ class AuthenticationService {
     );
     const entropySource = wallet.entropySource;
 
-    const [newAccountAddress] = await KeyringController.withKeyring(
+    const [newAccount] = await KeyringController.withKeyringV2(
       { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );
@@ -1142,7 +1140,7 @@ class AuthenticationService {
       // handle seedless controller import error by reverting keyring controller mnemonic import
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccountAddress,
+        newAccount.address,
       );
       throw error;
     }
@@ -1539,21 +1537,16 @@ class AuthenticationService {
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
    * It calls resetWalletState() followed by deleteUser(), and also clears
-   * metrics opt-in UI state and resets onboarding completion status.
+   * metrics opt-in UI state and resets onboarding Redux state.
    *
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
     await this.resetWalletState();
     await this.deleteUser();
-    // Clear metrics opt-in UI state and reset onboarding completion
+    // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    ReduxService.store.dispatch(setCompletedOnboarding(false));
-    ReduxService.store.dispatch(clearAccountType());
-    ReduxService.store.dispatch(clearSeedlessOnboarding());
-    ReduxService.store.dispatch(
-      setPendingSocialLoginMarketingConsentBackfill(null),
-    );
+    ReduxService.store.dispatch(clearOnboarding());
   };
 
   /**
@@ -1572,6 +1565,12 @@ class AuthenticationService {
       // This prevents the temporary wallet (created during reset) from being backed up
       EngineClass.disableAutomaticVaultBackup = true;
 
+      // Suppress Card's reactive data fetching during reset. The temporary
+      // wallet created below emits KeyringController:unlock and rebuilds the
+      // account tree, which would otherwise make CardController fetch CardHome
+      // data (with the still-present old tokens) only to discard it in resetAll.
+      Engine.context.CardController.setResetInProgress(true);
+
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -1586,11 +1585,16 @@ class AuthenticationService {
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
+        // Clear all Card auth/session/onboarding data (CARD-431)
+        await Engine.context.CardController.resetAll();
+
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
+        // ALWAYS re-enable Card reactive fetching, even if an error occurs
+        Engine.context.CardController.setResetInProgress(false);
       }
     } catch (error) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;

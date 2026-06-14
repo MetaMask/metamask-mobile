@@ -8,14 +8,14 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 import { Box } from '../../../../../UI/Box/Box';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
-  IconName,
+import {
+  Icon,
   IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
@@ -71,11 +71,11 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
             <Icon
               name={IconName.Add}
               size={IconSize.Md}
-              color={IconColor.Primary}
+              color={IconColor.PrimaryDefault}
             />
           )}
         </Box>
-        <Text variant={TextVariant.BodyMD} style={styles.addAccountButtonText}>
+        <Text variant={TextVariant.BodyMd} style={styles.addAccountButtonText}>
           {isLoading
             ? strings('multichain_accounts.wallet_details.creating_account')
             : strings('multichain_accounts.wallet_details.create_account')}
@@ -84,5 +84,3 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
     </TouchableOpacity>
   );
 };
-
-export default AddAccountItem;

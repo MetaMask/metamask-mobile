@@ -10,7 +10,16 @@ type NetworkRpcEndpoint = NetworkConfiguration['rpcEndpoints'][number];
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import Networks from '../../../../../util/networks';
 import { allNetworks } from '../NetworkDetailsView.constants';
-import { getDefaultBlockExplorerUrl } from '../NetworkDetailsView.utils';
+import {
+  appendBlockExplorerItemToFormState,
+  appendRpcItemToFormState,
+  applyBlockExplorerSelectionToFormState,
+  applyRpcSelectionToFormState,
+  getDefaultBlockExplorerUrl,
+  networkFormBaselineSnapshot,
+  removeBlockExplorerUrlFromFormState,
+  removeRpcUrlFromFormState,
+} from '../NetworkDetailsView.utils';
 import type {
   NetworkDetailsViewParams,
   NetworkFormState,
@@ -87,6 +96,9 @@ export interface UseNetworkFormReturn
 
   // Register a callback invoked after form changes that require re-validation
   setValidationCallback: (cb: (() => void) | null) => void;
+
+  /** After a successful persist, treat the given form snapshot as the new dirty baseline. */
+  commitBaselineFromFormState: (formState: NetworkFormState) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,9 +140,8 @@ export const useNetworkForm = (
 
   // ---- Derived / tracking state -------------------------------------------
   const [enableAction, setEnableAction] = useState(false);
-  const [initialStateStr, setInitialStateStr] = useState<string | undefined>(
-    undefined,
-  );
+  /** Last-saved baseline for dirty detection; ref (not state) so `getCurrentState` never closes over a stale string after `commitBaselineFromFormState`. */
+  const initialBaselineStrRef = useRef<string | undefined>(undefined);
 
   // Allows the parent to register a callback we invoke after
   // certain form changes (e.g. chainId change, rpc change).
@@ -143,21 +154,20 @@ export const useNetworkForm = (
   // ---- Helpers -------------------------------------------------------------
   const getCurrentState = useCallback(() => {
     setForm((prev) => {
-      const actual =
-        (prev.rpcUrl ?? '') +
-        String(prev.failoverRpcUrls) +
-        (prev.blockExplorerUrl ?? '') +
-        (prev.nickname ?? '') +
-        (prev.chainId ?? '') +
-        (prev.ticker ?? '') +
-        String(prev.editable) +
-        String(prev.rpcUrls) +
-        String(prev.blockExplorerUrls);
+      const actual = networkFormBaselineSnapshot(prev);
 
-      setEnableAction(actual !== initialStateStr);
+      setEnableAction(actual !== initialBaselineStrRef.current);
       return prev; // no mutation
     });
-  }, [initialStateStr]);
+  }, []);
+
+  const commitBaselineFromFormState = useCallback(
+    (formState: NetworkFormState) => {
+      initialBaselineStrRef.current = networkFormBaselineSnapshot(formState);
+      setEnableAction(false);
+    },
+    [],
+  );
 
   // ---- Initialization (componentDidMount equivalent) -----------------------
   useEffect(() => {
@@ -249,19 +259,7 @@ export const useNetworkForm = (
       const selectedRpcEndpointIndex =
         networkConfiguration?.defaultRpcEndpointIndex ?? 0;
 
-      const stateSnapshot =
-        (rpcUrl ?? '') +
-        String(failoverRpcUrls) +
-        (blockExplorerUrl ?? '') +
-        (nickname ?? '') +
-        (chainId ?? '') +
-        (ticker ?? '') +
-        String(editable) +
-        String(rpcUrls) +
-        String(blockExplorerUrls);
-
-      setInitialStateStr(stateSnapshot);
-      setForm({
+      const nextForm: NetworkFormState = {
         rpcUrl,
         failoverRpcUrls,
         rpcName,
@@ -277,7 +275,10 @@ export const useNetworkForm = (
         ticker,
         editable,
         addMode: false,
-      });
+      };
+
+      initialBaselineStrRef.current = networkFormBaselineSnapshot(nextForm);
+      setForm(nextForm);
     } else {
       // --- Add mode --------------------------------------------------------
       const prefill = params?.prefill;
@@ -418,21 +419,9 @@ export const useNetworkForm = (
   const onRpcItemAdd = useCallback(
     (url: string, name: string) => {
       if (!url) return;
-      const newRpcUrl: RpcEndpoint = {
-        url,
-        name: name ?? '',
-        type: RpcEndpointType.Custom,
-      };
-      setForm((prev) => ({
-        ...prev,
-        rpcUrls: [...prev.rpcUrls, newRpcUrl],
-        rpcUrl: newRpcUrl.url,
-        failoverRpcUrls: undefined,
-        rpcName: newRpcUrl.name,
-        rpcUrlForm: '',
-        rpcNameForm: '',
-      }));
+      setForm((prev) => appendRpcItemToFormState(prev, url, name));
       getCurrentState();
+      requestValidation.current?.();
     },
     [getCurrentState],
   );
@@ -444,13 +433,9 @@ export const useNetworkForm = (
       name: string,
       type: string,
     ) => {
-      const nameToUse = name || type;
-      setForm((prev) => ({
-        ...prev,
-        rpcName: nameToUse,
-        rpcUrl: url,
-        failoverRpcUrls: failoverUrls,
-      }));
+      setForm((prev) =>
+        applyRpcSelectionToFormState(prev, url, failoverUrls, name, type),
+      );
       getCurrentState();
       requestValidation.current?.();
     },
@@ -459,21 +444,7 @@ export const useNetworkForm = (
 
   const onRpcUrlDelete = useCallback(
     (url: string) => {
-      setForm((prev) => {
-        const updated = prev.rpcUrls.filter((rpc) => rpc.url !== url);
-        const isCurrentRpc = prev.rpcUrl === url;
-        return {
-          ...prev,
-          rpcUrls: updated,
-          ...(isCurrentRpc && updated.length > 0
-            ? {
-                rpcUrl: updated[0].url,
-                failoverRpcUrls: updated[0].failoverUrls,
-                rpcName: updated[0].name,
-              }
-            : {}),
-        };
-      });
+      setForm((prev) => removeRpcUrlFromFormState(prev, url));
       getCurrentState();
       requestValidation.current?.();
     },
@@ -484,16 +455,9 @@ export const useNetworkForm = (
   const onBlockExplorerItemAdd = useCallback(
     (url: string) => {
       if (!url) return;
-      setForm((prev) => {
-        if (prev.blockExplorerUrls.includes(url)) return prev;
-        return {
-          ...prev,
-          blockExplorerUrls: [...prev.blockExplorerUrls, url],
-          blockExplorerUrl: url,
-          blockExplorerUrlForm: undefined,
-        };
-      });
+      setForm((prev) => appendBlockExplorerItemToFormState(prev, url));
       getCurrentState();
+      requestValidation.current?.();
     },
     [getCurrentState],
   );
@@ -522,21 +486,16 @@ export const useNetworkForm = (
 
   const onBlockExplorerSelect = useCallback(
     (url: string) => {
-      setForm((prev) => ({
-        ...prev,
-        blockExplorerUrl: url,
-      }));
+      setForm((prev) => applyBlockExplorerSelectionToFormState(prev, url));
       getCurrentState();
+      requestValidation.current?.();
     },
     [getCurrentState],
   );
 
   const onBlockExplorerUrlDelete = useCallback(
     (url: string) => {
-      setForm((prev) => ({
-        ...prev,
-        blockExplorerUrls: prev.blockExplorerUrls.filter((u) => u !== url),
-      }));
+      setForm((prev) => removeBlockExplorerUrlFromFormState(prev, url));
       getCurrentState();
       requestValidation.current?.();
     },
@@ -563,5 +522,6 @@ export const useNetworkForm = (
     onBlockExplorerSelect,
     onBlockExplorerUrlDelete,
     setValidationCallback,
+    commitBaselineFromFormState,
   };
 };

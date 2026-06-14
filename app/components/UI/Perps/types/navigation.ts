@@ -5,9 +5,13 @@ import {
   type OrderType,
   type PerpsMarketData,
   type TPSLTrackingData,
+  type SortDirection,
+  type SortOptionId,
+  type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
  * PERPS navigation parameter types
@@ -31,6 +35,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showPerpsHeader?: boolean;
     /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
     source?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsOrderSuccess: {
@@ -82,16 +87,13 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
     showWatchlistOnly?: boolean;
-    defaultMarketTypeFilter?:
-      | 'all'
-      | 'crypto'
-      | 'stocks'
-      | 'commodities'
-      | 'forex'
-      | 'new';
+    defaultMarketTypeFilter?: MarketTypeFilter;
+    defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
     fromHome?: boolean;
     button_clicked?: string;
     button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsMarketDetails: {
@@ -101,6 +103,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     source?: string;
     button_clicked?: string;
     button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsPositions: undefined;
@@ -237,8 +240,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     asset: string;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
-    /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
-    assetsASSETS2493AbtestTokenDetailsLayout?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 }
 

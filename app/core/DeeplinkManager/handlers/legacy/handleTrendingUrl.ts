@@ -1,22 +1,10 @@
-import { InteractionManager } from 'react-native';
-import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import ReduxService from '../../../redux';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
-import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
 interface HandleTrendingUrlParams {
   actionPath: string;
 }
-
-const isGeoBlockedForStocks = (location: string | undefined): boolean => {
-  if (__DEV__) {
-    return false;
-  }
-
-  const countryCode = location?.toUpperCase().split('-')[0];
-  return !countryCode || ONDO_RESTRICTED_COUNTRIES.has(countryCode);
-};
 
 const isStocksPath = (actionPath: string): boolean => {
   const urlParams = new URLSearchParams(
@@ -26,23 +14,34 @@ const isStocksPath = (actionPath: string): boolean => {
   return urlParams.get('screen')?.toLowerCase() === 'stocks';
 };
 
-const shouldOpenStocksScreen = (): boolean => {
-  const state = ReduxService.store.getState();
-  const geolocation = getDetectedGeolocation(state);
-
-  return !isGeoBlockedForStocks(geolocation);
-};
-
-export function handleTrendingUrl({ actionPath }: HandleTrendingUrlParams) {
-  // Explore -> Stocks Deeplink
-  if (isStocksPath(actionPath) && shouldOpenStocksScreen()) {
-    NavigationService.navigation.navigate(Routes.TRENDING_VIEW);
-    InteractionManager.runAfterInteractions(() => {
-      NavigationService.navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
-    });
-    return;
+export const createTrendingDeeplinkIntent = ({
+  actionPath,
+}: HandleTrendingUrlParams): DeeplinkIntent => {
+  // Explore -> Stocks Deeplink: the RWA tokens view is a MainNavigator stack
+  // screen above the tabs, so it is a main-stack target.
+  if (isStocksPath(actionPath)) {
+    return {
+      target: {
+        type: 'main-stack',
+        routeName: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+        // Back from the RWA full view should return to the Explore tab, not
+        // Wallet — matching the previous two-step warm navigation behavior.
+        backTab: Routes.TRENDING_VIEW,
+      },
+    };
   }
 
-  // Explore Deeplink
-  NavigationService.navigation.navigate(Routes.TRENDING_VIEW);
+  // Explore Deeplink: the Explore (Trending) tab inside HOME_TABS.
+  return {
+    target: {
+      type: 'home-tab',
+      routeName: Routes.TRENDING_VIEW,
+    },
+  };
+};
+
+export async function handleTrendingUrl({
+  actionPath,
+}: HandleTrendingUrlParams) {
+  await executeDeeplinkIntent(createTrendingDeeplinkIntent({ actionPath }));
 }

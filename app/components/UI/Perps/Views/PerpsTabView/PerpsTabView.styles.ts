@@ -93,9 +93,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
-    // Watchlist section - inline render (not using shared PerpsWatchlistMarkets component)
+    // Watchlist section — style overrides passed to the shared PerpsWatchlistMarkets component.
+    // These reset the default border/spacing from PerpsWatchlistMarkets.styles so the section
+    // blends into the PerpsTabView empty-state card without a top divider.
     watchlistSection: {
       marginBottom: 0,
+      borderTopWidth: 0,
+      paddingTop: 0,
     },
     watchlistHeaderStyleNoBalance: {
       paddingTop: 16,

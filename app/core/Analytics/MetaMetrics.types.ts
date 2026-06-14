@@ -161,6 +161,7 @@ export enum MonetizedPrimitive {
   Ramps = 'ramps',
   Predict = 'predict',
   MmPay = 'mm_pay',
+  MoneyAccount = 'money_account',
 }
 
 /**

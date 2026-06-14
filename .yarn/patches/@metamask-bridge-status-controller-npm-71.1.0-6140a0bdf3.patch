@@ -1,0 +1,68 @@
+diff --git a/dist/bridge-status-controller.cjs b/dist/bridge-status-controller.cjs
+index c8dcd1f18fd4395b13ac7945e533ae1a92553950..ced9b35dc96c65ffe7ac59d198f4ab2737ae24ac 100644
+--- a/dist/bridge-status-controller.cjs
++++ b/dist/bridge-status-controller.cjs
+@@ -863,16 +863,27 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+                 };
+                 // Record in bridge history with actual transaction metadata
+                 try {
+-                    // Create a bridge transaction metadata that includes the original txId
++                    /**
++                      * Patch to fix ondo swap activity tab status issue logged at
++                      * https://consensyssoftware.atlassian.net/browse/BETR-413
++                      *
++                      */
++                    // Create a bridge transaction metadata keyed by orderUid for intent polling
+                     const bridgeTxMetaForHistory = {
+                         ...syntheticMeta,
+                         id: orderUid,
+-                        originalTransactionId: syntheticMeta.id, // Keep original txId for TransactionController updates
+                     };
+                     // Use orderId as the history key for intent transactions
++                    // IMPORTANT: pass originalTransactionId as a top-level argument so
++                    // `getInitialHistoryItem` reads it. Setting it on `bridgeTxMeta` is a no-op
++                    // because `getInitialHistoryItem` destructures `originalTransactionId` from
++                    // the top-level args, not from `bridgeTxMeta`. Without this, the field
++                    // falls back to `bridgeTxMeta.id` (the orderUid), severing the link between
++                    // the bridge history record and the synthetic TransactionController entry.
+                     const historyKey = __classPrivateFieldGet(this, _BridgeStatusController_addTxToHistory, "f").call(this, {
+                         accountAddress,
+                         bridgeTxMeta: bridgeTxMetaForHistory,
++                        originalTransactionId: syntheticMeta.id, // Keep original txId for TransactionController updates
+                         quoteResponse,
+                         slippagePercentage: 0,
+                         isStxEnabled: false,
+diff --git a/dist/bridge-status-controller.mjs b/dist/bridge-status-controller.mjs
+index 3c285a68a35e69b6898f5c811a000324044213c8..9e0b4ef973b167c39e142b60ca28cf32ea89f41a 100644
+--- a/dist/bridge-status-controller.mjs
++++ b/dist/bridge-status-controller.mjs
+@@ -860,16 +860,27 @@ export class BridgeStatusController extends StaticIntervalPollingController() {
+                 };
+                 // Record in bridge history with actual transaction metadata
+                 try {
+-                    // Create a bridge transaction metadata that includes the original txId
++                    /**
++                      * Patch to fix ondo swap activity tab status issue logged at
++                      * https://consensyssoftware.atlassian.net/browse/BETR-413
++                      *
++                      */
++                    // Create a bridge transaction metadata keyed by orderUid for intent polling
+                     const bridgeTxMetaForHistory = {
+                         ...syntheticMeta,
+                         id: orderUid,
+-                        originalTransactionId: syntheticMeta.id, // Keep original txId for TransactionController updates
+                     };
+                     // Use orderId as the history key for intent transactions
++                    // IMPORTANT: pass originalTransactionId as a top-level argument so
++                    // `getInitialHistoryItem` reads it. Setting it on `bridgeTxMeta` is a no-op
++                    // because `getInitialHistoryItem` destructures `originalTransactionId` from
++                    // the top-level args, not from `bridgeTxMeta`. Without this, the field
++                    // falls back to `bridgeTxMeta.id` (the orderUid), severing the link between
++                    // the bridge history record and the synthetic TransactionController entry.
+                     const historyKey = __classPrivateFieldGet(this, _BridgeStatusController_addTxToHistory, "f").call(this, {
+                         accountAddress,
+                         bridgeTxMeta: bridgeTxMetaForHistory,
++                        originalTransactionId: syntheticMeta.id, // Keep original txId for TransactionController updates
+                         quoteResponse,
+                         slippagePercentage: 0,
+                         isStxEnabled: false,

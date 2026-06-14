@@ -17,6 +17,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
@@ -28,7 +29,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 
-const AddressCopy = ({ iconColor, hitSlop }: AddressCopyProps) => {
+const AddressCopy = ({ iconColor, hitSlop, testID }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
@@ -51,6 +52,7 @@ const AddressCopy = ({ iconColor, hitSlop }: AddressCopyProps) => {
         title: `${strings(
           'multichain_accounts.address_list.receiving_address',
         )}`,
+        source: AddressListViewedSource.COPY_BUTTON,
         onLoad: () => {
           endTrace({ name: TraceName.ShowAccountAddressList });
         },
@@ -59,7 +61,7 @@ const AddressCopy = ({ iconColor, hitSlop }: AddressCopyProps) => {
   }, [navigate, selectedAccountGroupId]);
 
   return (
-    <View style={styles.address}>
+    <View style={styles.address} testID={testID}>
       <ButtonIcon
         iconName={IconName.Copy}
         size={ButtonIconSize.Md}

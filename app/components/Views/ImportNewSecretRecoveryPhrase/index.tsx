@@ -26,6 +26,7 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   IconName,
   IconColor,
   Text,
@@ -35,7 +36,6 @@ import {
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
   ToastContext,
@@ -48,6 +48,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -241,7 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,

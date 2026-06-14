@@ -25,7 +25,7 @@ function getInitRequestMock(): jest.Mocked<
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name) => {
+  requestMock.getMessengerClient.mockImplementation((name) => {
     if (name === 'NetworkController') {
       return {
         state: {

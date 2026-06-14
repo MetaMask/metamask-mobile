@@ -9,6 +9,7 @@ import PerpsMarketListView from './PerpsMarketListView';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -85,6 +86,7 @@ const mockSetSearchQuery = jest.fn((q: string) => {
 const mockClearSearch = jest.fn(() => {
   mockSearchQuery = '';
 });
+const mockNavigateToMarketDetails = jest.fn();
 
 jest.mock('../../hooks', () => ({
   useColorPulseAnimation: jest.fn(() => ({
@@ -115,7 +117,7 @@ jest.mock('../../hooks', () => ({
     navigateToActions: jest.fn(),
     navigateToActivity: jest.fn(),
     navigateToRewards: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToHome: jest.fn(),
     navigateToMarketList: jest.fn(),
     navigateBack: jest.fn(),
@@ -159,9 +161,13 @@ jest.mock('../../hooks', () => ({
       },
       marketCounts: {
         crypto: 3, // Set to non-zero so tabs render
-        equity: 0,
-        commodity: 0,
+        stocks: 0,
+        'pre-ipo': 0,
+        indices: 0,
+        etfs: 0,
+        commodities: 0,
         forex: 0,
+        new: 0,
       },
       isLoading: false,
       error: null,
@@ -212,6 +218,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     showStocksCommoditiesDropdown,
     stocksCommoditiesFilter,
     onStocksCommoditiesPress,
+    showWatchlistBadge,
+    onWatchlistToggle,
     testID,
   }: {
     selectedOptionId: string;
@@ -220,8 +228,11 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     marketTypeFilter?: string;
     onMarketTypePress?: () => void;
     showStocksCommoditiesDropdown?: boolean;
-    stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
+    stocksCommoditiesFilter?: 'all' | 'stock' | 'commodity';
     onStocksCommoditiesPress?: () => void;
+    showWatchlistBadge?: boolean;
+    isWatchlistSelected?: boolean;
+    onWatchlistToggle?: () => void;
     testID?: string;
   }) {
     // Map sort option IDs to display labels
@@ -291,6 +302,15 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
             `Stocks/Commodities: ${stocksCommoditiesFilter || 'all'}`,
           ),
         ),
+      showWatchlistBadge &&
+        MockReact.createElement(
+          RNTouchableOpacity,
+          {
+            testID: testID ? `${testID}-categories-watchlist` : undefined,
+            onPress: onWatchlistToggle,
+          },
+          MockReact.createElement(Text, null, 'Watchlist'),
+        ),
     );
   };
 });
@@ -310,6 +330,11 @@ jest.mock('../../selectors/perpsController', () => ({
   })),
 }));
 
+let mockWatchlistFlagEnabled = false;
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsWatchlistEnabledFlag: jest.fn(() => mockWatchlistFlagEnabled),
+}));
+
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((amount) => `$${amount}`),
 }));
@@ -318,11 +343,14 @@ jest.mock('../../../../../images/image-icons', () => ({
   HL: 'mock-hl-image',
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-  }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = () => ({});
+  twFn.color = () => 'black';
+  return {
+    useTailwind: () => twFn,
+  };
+});
 
 // Mock Animated to prevent act() warnings
 jest.mock('react-native', () => {
@@ -493,6 +521,11 @@ describe('PerpsMarketListView', () => {
   >;
   const { useRoute } = jest.requireMock('@react-navigation/native');
   const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
+  const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+  const mockUsePerpsMarketListView =
+    usePerpsMarketListView as jest.MockedFunction<
+      typeof usePerpsMarketListView
+    >;
 
   const mockMarketData: PerpsMarketData[] = [
     {
@@ -551,6 +584,7 @@ describe('PerpsMarketListView', () => {
     mockSearchQuery = '';
     mockSetSearchQuery.mockClear();
     mockClearSearch.mockClear();
+    mockNavigateToMarketDetails.mockClear();
 
     // Suppress console warnings for Animated during tests
     originalConsoleError = console.error;
@@ -617,6 +651,26 @@ describe('PerpsMarketListView', () => {
       });
     });
 
+    it('passes default sort params from route to market list hook', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: {
+          defaultSortOptionId: 'priceChange',
+          defaultSortDirection: 'asc',
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(mockUsePerpsMarketListView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          defaultSortOptionId: 'priceChange',
+          defaultSortDirection: 'asc',
+        }),
+      );
+    });
+
     it('renders interactive elements', async () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
@@ -636,7 +690,7 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Search Functionality', () => {
-    it('shows search bar always visible', async () => {
+    it('shows search bar always visible', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(
@@ -709,6 +763,55 @@ describe('PerpsMarketListView', () => {
 
       const btcRows = screen.getAllByTestId('market-row-BTC');
       expect(() => fireEvent.press(btcRows[0])).not.toThrow();
+    });
+
+    it('navigates to SPCX details with market-list source when SPCX is pressed', () => {
+      const spcxMarket: PerpsMarketData = {
+        symbol: 'xyz:SPCX',
+        name: 'SPCX',
+        maxLeverage: '5x',
+        price: '$0.00',
+        change24h: '+$0.00',
+        change24hPercent: '+0.00%',
+        volume: '$0',
+        marketSource: 'xyz',
+      };
+      mockMarketDataForHook.length = 0;
+      mockMarketDataForHook.push(spcxMarket);
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId('market-row-xyz:SPCX'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        spcxMarket,
+        'perp_markets',
+        undefined,
+      );
+    });
+
+    it('carries route transactionActiveAbTests when a market opens market details', () => {
+      const transactionActiveAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'treatment',
+        ),
+      ];
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: { transactionActiveAbTests },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-BTC')[0]);
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        mockMarketData[0],
+        'perp_markets',
+        transactionActiveAbTests,
+      );
     });
   });
 
@@ -792,14 +895,42 @@ describe('PerpsMarketListView', () => {
 
   // Note: Stocks/Commodities Dropdown and Market Type Dropdown tests removed - replaced with category badges
 
+  describe('Watchlist feature flag gating', () => {
+    beforeEach(() => {
+      mockWatchlistFlagEnabled = false;
+    });
+
+    afterEach(() => {
+      mockWatchlistFlagEnabled = false;
+    });
+
+    it('does not render the watchlist pill when perps-watchlist-v2-enabled is OFF', () => {
+      mockWatchlistFlagEnabled = false;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+      expect(
+        screen.queryByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-categories-watchlist`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the watchlist pill when perps-watchlist-v2-enabled is ON', () => {
+      mockWatchlistFlagEnabled = true;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-categories-watchlist`,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('Edge Cases', () => {
     it('filters markets with whitespace-only query', async () => {
-      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
-
       mockSearchQuery = '   ';
 
       // Mock to return empty results when search query is whitespace
-      usePerpsMarketListView.mockReturnValue({
+      mockUsePerpsMarketListView.mockReturnValue({
         markets: mockMarketData, // Whitespace is trimmed, so all markets show
         searchState: {
           searchQuery: '   ',
@@ -822,9 +953,13 @@ describe('PerpsMarketListView', () => {
         },
         marketCounts: {
           crypto: 3,
-          equity: 0,
-          commodity: 0,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
           forex: 0,
+          new: 0,
         },
         isLoading: false,
         error: null,

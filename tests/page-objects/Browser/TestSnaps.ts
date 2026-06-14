@@ -20,74 +20,74 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
-import { RetryOptions } from '../../framework';
+import { RetryOptions, EncapsulatedElementType } from '../../framework';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.4.1/';
+  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
 
 class TestSnaps {
-  get getConnectSnapButton(): DetoxElement {
+  get getConnectSnapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
-  get getApproveSnapPermissionsRequestButton(): DetoxElement {
+  get getApproveSnapPermissionsRequestButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
-  get getConnectSnapInstallOkButton(): DetoxElement {
+  get getConnectSnapInstallOkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
-  get getApproveSignRequestButton(): DetoxElement {
+  get getApproveSignRequestButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
   }
 
-  get confirmSignatureButton(): DetoxElement {
+  get confirmSignatureButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
-  get solanaConfirmButton(): DetoxElement {
+  get solanaConfirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'confirm-sign-message-confirm-snap-footer-button',
     );
   }
 
-  get footerButton(): DetoxElement {
+  get footerButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
     );
   }
 
-  get checkboxElement(): DetoxElement {
+  get checkboxElement(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-ui-renderer__checkbox');
   }
 
-  get dateTimePickerTouchable(): DetoxElement {
+  get dateTimePickerTouchable(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--datetime-touchable',
     );
   }
 
-  get datePickerTouchable(): DetoxElement {
+  get datePickerTouchable(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--date-touchable',
     );
   }
 
-  get timePickerTouchable(): DetoxElement {
+  get timePickerTouchable(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--time-touchable',
     );
   }
 
-  get dateTimePickerOkButton(): DetoxElement {
+  get dateTimePickerOkButton(): EncapsulatedElementType {
     return Matchers.getElementByText('OK');
   }
 
@@ -368,9 +368,14 @@ class TestSnaps {
       },
     );
 
-    await Gestures.waitAndTap(this.dateTimePickerTouchable);
+    await Gestures.waitAndTap(this.dateTimePickerTouchable, {
+      checkStability: true,
+      elemDescription: 'open date-time picker',
+    });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: 'date-time picker OK',
+    });
 
     // Android date and time picker is a two-step process, so we need to tap OK again
     if (device.getPlatform() === 'android') {
@@ -379,15 +384,25 @@ class TestSnaps {
   }
 
   async selectDateInDatePicker() {
-    await Gestures.waitAndTap(this.datePickerTouchable);
+    await Gestures.waitAndTap(this.datePickerTouchable, {
+      checkStability: true,
+      elemDescription: 'open date picker',
+    });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: 'date picker OK',
+    });
   }
 
   async selectTimeInTimePicker() {
-    await Gestures.waitAndTap(this.timePickerTouchable);
+    await Gestures.waitAndTap(this.timePickerTouchable, {
+      checkStability: true,
+      elemDescription: 'open time picker',
+    });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: 'time picker OK',
+    });
   }
 
   async installSnap(

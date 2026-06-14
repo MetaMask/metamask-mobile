@@ -252,7 +252,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactHeader).toHaveBeenCalledWith(
         expect.objectContaining({ content: 'bridge.price_impact_error_title' }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -268,7 +268,7 @@ describe('PriceImpactModal', () => {
         expect.objectContaining({
           content: 'bridge.price_impact_warning_description',
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -277,7 +277,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactFooter).toHaveBeenCalledWith(
         expect.objectContaining({ type: PriceImpactModalType.Info }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -290,7 +290,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ formattedPriceImpact: '5%' }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -303,7 +303,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ formattedPriceImpact: undefined }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -316,7 +316,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ formattedPriceImpactFiat: '$3.50' }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -329,7 +329,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ formattedPriceImpactFiat: undefined }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -345,7 +345,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ isDanger: true }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -361,7 +361,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ isDanger: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -379,7 +379,7 @@ describe('PriceImpactModal', () => {
           iconName: IconName.Warning,
           iconColor: IconColor.WarningDefault,
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -391,7 +391,7 @@ describe('PriceImpactModal', () => {
           iconName: undefined,
           iconColor: undefined,
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -400,7 +400,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactFooter).toHaveBeenCalledWith(
         expect.objectContaining({ loading: false }),
-        expect.anything(),
+        undefined,
       );
     });
   });
@@ -434,7 +434,7 @@ describe('PriceImpactModal', () => {
       await waitFor(() => {
         expect(mockPriceImpactFooter).toHaveBeenCalledWith(
           expect.objectContaining({ loading: true }),
-          expect.anything(),
+          undefined,
         );
       });
     });

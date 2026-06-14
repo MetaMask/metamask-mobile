@@ -35,7 +35,9 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
       browser: {
         tabs: [],
         activeTab: null,
+        history: [],
       },
+      bookmarks: [],
       settings: {
         basicFunctionalityEnabled: true,
       },

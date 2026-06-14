@@ -74,6 +74,36 @@ describe('useTooltipModal', () => {
     expect(navigateParams.params.tooltip).toBe(tooltip);
   });
 
+  it('forwards dismissOnButtonPress into navigate params', () => {
+    const { result } = renderHook(() => useTooltipModal());
+    const title = 'Title';
+    const tooltip = 'Tooltip text';
+    const footerText = 'Footer text';
+    const buttonText = 'Button text';
+    const onButtonPress = jest.fn();
+
+    result.current.openTooltipModal(
+      title,
+      tooltip,
+      footerText,
+      buttonText,
+      onButtonPress,
+      false,
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.TOOLTIP_MODAL,
+      params: {
+        title,
+        tooltip,
+        footerText,
+        buttonText,
+        onButtonPress,
+        dismissOnButtonPress: false,
+      },
+    });
+  });
+
   it('returns stable openTooltipModal reference across rerenders', () => {
     const { result, rerender } = renderHook(() => useTooltipModal());
     const firstReturnValue = result.current;

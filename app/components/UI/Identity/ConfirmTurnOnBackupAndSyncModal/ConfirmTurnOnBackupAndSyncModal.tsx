@@ -1,15 +1,13 @@
 import React, { useRef } from 'react';
 
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../locales/i18n';
-
 import {
+  BottomSheet,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
 import ModalContent from '../../Notification/Modal';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
@@ -17,12 +15,15 @@ import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncT
 import { InteractionManager } from 'react-native';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
+import { useElevatedSurface } from '../../../../util/theme/themeUtils';
+
 const ConfirmTurnOnBackupAndSyncModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
     useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
 
   const dispatch = useThunkDispatch();
+  const surfaceClass = useElevatedSurface();
 
   const enableBasicFunctionality = async () => {
     await dispatch(toggleBasicFunctionality(true));
@@ -45,7 +46,7 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
   const turnContent = {
     icon: {
       name: IconName.Check,
-      color: IconColor.Success,
+      color: IconColor.SuccessDefault,
     },
     bottomSheetTitle: strings('backupAndSync.enable.title'),
     bottomSheetMessage: strings('backupAndSync.enable.confirmation'),
@@ -53,7 +54,7 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
+    <BottomSheet ref={bottomSheetRef} twClassName={surfaceClass}>
       <ModalContent
         title={turnContent.bottomSheetTitle}
         message={turnContent.bottomSheetMessage}

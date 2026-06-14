@@ -28,9 +28,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return { ...actual };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { primary: { default: 'blue' } } }),
@@ -42,7 +44,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.earn_rewards.title': 'Earn rewards',
       'rewards.earn_rewards.musd_title': 'Up to 3% bonus on stables',
       'rewards.earn_rewards.musd_subtitle': 'Calculate your mUSD bonus',
-      'rewards.earn_rewards.card_title': 'Up to 3% cash back',
+      'rewards.earn_rewards.card_title': 'Up to 3% back on spend',
       'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
       'rewards.earn_rewards.card_subtitle_cardholder':
         'Access your MetaMask Card benefits',
@@ -202,7 +204,7 @@ describe('EarnRewardsPreview', () => {
     it('renders correct text for MetaMask card', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3% cash back')).toBeOnTheScreen();
+      expect(getByText('Up to 3% back on spend')).toBeOnTheScreen();
       expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
     });
   });
@@ -263,9 +265,10 @@ describe('EarnRewardsPreview', () => {
       fireEvent.press(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARDS_MUSD_CALCULATOR_VIEW,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MUSD_CALCULATOR_VIEW,
+        params: undefined,
+      });
     });
 
     it('triggers card-onboarding deeplink when card card is pressed', () => {

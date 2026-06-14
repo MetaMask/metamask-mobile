@@ -138,6 +138,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           <View
             style={[
               styles.textContainer,
+              styles.noFlex,
               style,
               tiny && styles.tinyImage,
               small && styles.smallImage,

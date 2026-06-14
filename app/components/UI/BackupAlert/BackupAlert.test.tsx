@@ -39,7 +39,7 @@ describe('BackupAlert', () => {
       true,
       false,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('navigates to backupFlow when Protect Wallet button is pressed', () => {

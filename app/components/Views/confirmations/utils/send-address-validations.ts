@@ -2,14 +2,11 @@ import { Hex } from '@metamask/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
-import { toChecksumAddress } from '../../../../util/address';
 import {
   collectConfusables,
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
-import { memoizedGetTokenStandardAndDetails } from './token';
 import {
   isBtcMainnetAddress,
   isTronAddress,
@@ -38,7 +35,6 @@ export const validateHexAddress = async (
 ): Promise<{
   error?: string;
   warning?: string;
-  allowAcknowledge?: boolean;
 }> => {
   if (LOWER_CASED_BURN_ADDRESSES.includes(toAddress?.toLowerCase())) {
     return {
@@ -52,30 +48,6 @@ export const validateHexAddress = async (
     };
   }
 
-  const checksummedAddress = toChecksumAddress(toAddress);
-  if (chainId) {
-    const { NetworkController } = Engine.context;
-
-    try {
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        chainId as Hex,
-      );
-      const token = await memoizedGetTokenStandardAndDetails({
-        tokenAddress: checksummedAddress,
-        tokenId: undefined,
-        userAddress: undefined,
-        networkClientId,
-      });
-      if (token?.standard) {
-        return {
-          error: strings('send.token_contract_warning'),
-          allowAcknowledge: true,
-        };
-      }
-    } catch {
-      // Not a token address
-    }
-  }
   return {};
 };
 

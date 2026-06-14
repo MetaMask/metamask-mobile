@@ -29,11 +29,15 @@ import Routes from '../../../../constants/navigation/Routes';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AdvancedViewSelectorsIDs } from './AdvancedView.testIds';
-import Text, {
-  TextVariant,
+import { getFontFamily } from '../../../../component-library/components/Texts/Text/Text.utils';
+import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text/Text.types';
+import {
+  FontWeight,
+  Text,
   TextColor,
-  getFontFamily,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -45,8 +49,6 @@ import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
-
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -84,7 +86,7 @@ const createStyles = (colors) =>
       alignSelf: 'flex-start',
     },
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
     firstSetting: {
       marginTop: 0,
@@ -128,7 +130,7 @@ const createStyles = (colors) =>
     },
     warningText: {
       ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
+      fontFamily: getFontFamily(LibraryTextVariant.BodyMD),
       color: colors.text.default,
       flex: 1,
       marginStart: 8,
@@ -147,7 +149,11 @@ const SettingsRow = ({
   return (
     <View style={styles.setting}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {heading}
         </Text>
         <View style={styles.toggle}>
@@ -168,8 +174,9 @@ const SettingsRow = ({
       </View>
 
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {description}
@@ -334,7 +341,7 @@ class AdvancedSettings extends PureComponent {
 
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('app_settings.advanced_title')}
           onBack={() => this.props.navigation.goBack()}
           includesTopInset
@@ -355,12 +362,13 @@ class AdvancedSettings extends PureComponent {
               styles={styles}
             />
             <View style={[styles.setting, styles.firstSetting]}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.reset_account')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.reset_desc')}
@@ -380,7 +388,7 @@ class AdvancedSettings extends PureComponent {
                 'app_settings.smart_account_dapp_requests_heading',
               )}
               description={strings(
-                'app_settings.smart_account_dapp_requests_desc',
+                'app_settings.smart_account_dapp_requests_desc_v2',
               )}
               value={!dismissSmartAccountSuggestionEnabled}
               onValueChange={(val) =>
@@ -400,8 +408,10 @@ class AdvancedSettings extends PureComponent {
                     'app_settings.smart_transactions_opt_in_desc_supported_networks',
                   )}{' '}
                   <Text
-                    color={TextColor.Primary}
-                    link
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.PrimaryDefault}
+                    accessibilityRole="link"
                     onPress={this.openLinkAboutStx}
                   >
                     {strings('app_settings.smart_transactions_learn_more')}
@@ -442,12 +452,13 @@ class AdvancedSettings extends PureComponent {
             />
 
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.state_logs')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.state_logs_desc')}

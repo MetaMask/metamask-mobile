@@ -40,18 +40,20 @@ describe('OnboardingSheet', () => {
     mockUseRoute.mockReturnValue({ params: defaultParams });
   });
 
-  describe('Snapshots', () => {
+  describe('Rendering', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
-      const { toJSON } = render(<OnboardingSheet />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = render(<OnboardingSheet />);
+      expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {
       mockUseRoute.mockReturnValue({
         params: { ...defaultParams, createWallet: true },
       });
-      const { toJSON } = render(<OnboardingSheet />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = render(<OnboardingSheet />);
+      expect(
+        getByText(strings('onboarding.continue_with_srp')),
+      ).toBeOnTheScreen();
     });
   });
 

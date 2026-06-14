@@ -1,5 +1,6 @@
 import { BridgeControllerMessenger } from '@metamask/bridge-controller';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
+import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
@@ -44,7 +45,9 @@ export function getBridgeControllerMessenger(
   return messenger;
 }
 
-type BridgeControllerInitMessengerActions = AnalyticsControllerActions;
+type BridgeControllerInitMessengerActions =
+  | AnalyticsControllerActions
+  | RemoteFeatureFlagControllerGetStateAction;
 
 /**
  * Get the BridgeControllerInitMessenger for the BridgeController.
@@ -76,7 +79,10 @@ export function getBridgeControllerInitMessenger(
   });
 
   rootMessenger.delegate({
-    actions: ['AnalyticsController:trackEvent'],
+    actions: [
+      'AnalyticsController:trackEvent',
+      'RemoteFeatureFlagController:getState',
+    ],
     events: [],
     messenger,
   });

@@ -5,10 +5,12 @@ import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { toggleUseSafeChainsListValidation } from '../../../../util/networks/engineNetworkUtils';
 import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
@@ -28,7 +30,11 @@ const NetworkDetailsCheckSettings = () => {
   return (
     <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('wallet.network_details_check')}
         </Text>
         <View style={styles.switchElement}>
@@ -47,12 +53,15 @@ const NetworkDetailsCheckSettings = () => {
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.use_safe_chains_list_validation_desc_1')}
-        <Text variant={TextVariant.BodyMDBold}>chainid.network </Text>
+        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
+          chainid.network{' '}
+        </Text>
         {strings('app_settings.use_safe_chains_list_validation_desc_2')}{' '}
         chainid.network
       </Text>

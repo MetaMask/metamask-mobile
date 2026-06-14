@@ -1,12 +1,12 @@
 /**
  * Quick test to verify deep link command wiring for pushing prices in E2E mode.
- * - Forces isE2E=true
+ * - Forces hasTestOverrides=true
  * - Mocks Linking and E2E modules
  * - Triggers a deep link and asserts mockPushPrice is called with expected args
  */
 
 // Force E2E mode
-jest.mock('../../../../util/test/utils', () => ({ isE2E: true }));
+jest.mock('../../../../util/test/utils', () => ({ hasTestOverrides: true }));
 
 // Capture Linking listeners
 const urlListeners: ((e: { url: string }) => void)[] = [];
@@ -33,7 +33,7 @@ jest.mock(
     PerpsE2EMockService: {
       getInstance: () => ({
         reset: jest.fn(),
-        getMockAccountState: () => ({ availableBalance: '10000.00' }),
+        getMockAccountState: () => ({ spendableBalance: '10000.00' }),
         getMockPositions: () => [],
         getMockMarkets: () => [],
         mockPushPrice,

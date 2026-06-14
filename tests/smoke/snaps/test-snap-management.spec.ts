@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -13,13 +13,14 @@ import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Snap Management Tests'), () => {
+describe(SmokeSnaps('Snap Management Tests'), () => {
   it('can connect to the Dialog Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -36,6 +37,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await BrowserView.tapCloseBrowserButton();
@@ -46,7 +48,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         await SnapSettingsView.toggleEnable();
 
         await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapListBackButton();
         // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
         await AccountMenu.tapBack();
@@ -68,6 +70,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await BrowserView.tapCloseBrowserButton();
@@ -78,7 +81,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         await SnapSettingsView.toggleEnable();
 
         await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapListBackButton();
         // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
         await AccountMenu.tapBack();
@@ -101,6 +104,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await BrowserView.tapCloseBrowserButton();

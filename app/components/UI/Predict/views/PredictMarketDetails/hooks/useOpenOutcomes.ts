@@ -1,10 +1,17 @@
 import { useMemo } from 'react';
 import { usePredictPrices } from '../../../hooks/usePredictPrices';
-import type { PriceQuery, PredictMarket, PredictOutcome } from '../../../types';
+import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
+import { getPredictBuyPrice } from '../../../utils/prices';
+import {
+  OPEN_PREDICT_OUTCOME_STATUS,
+  type PriceQuery,
+  type PredictMarket,
+  type PredictOutcome,
+} from '../../../types';
 
 interface UseOpenOutcomesParams {
   market: PredictMarket | null;
-  isMarketFetching: boolean;
+  enabled?: boolean;
 }
 
 interface UseOpenOutcomesResult {
@@ -13,9 +20,11 @@ interface UseOpenOutcomesResult {
   yesPercentage: number;
 }
 
+const EMPTY_PRICE_QUERIES: PriceQuery[] = [];
+
 export const useOpenOutcomes = ({
   market,
-  isMarketFetching,
+  enabled = true,
 }: UseOpenOutcomesParams): UseOpenOutcomesResult => {
   const closedOutcomes = useMemo(
     () =>
@@ -24,11 +33,12 @@ export const useOpenOutcomes = ({
   );
   const openOutcomesBase = useMemo(
     () =>
-      market?.outcomes?.filter((outcome) => outcome.status === 'open') ?? [],
+      market?.outcomes?.filter(
+        (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
+      ) ?? [],
     [market?.outcomes],
   );
 
-  // build price queries for fetching prices
   const priceQueries: PriceQuery[] = useMemo(
     () =>
       openOutcomesBase.flatMap((outcome) =>
@@ -41,33 +51,39 @@ export const useOpenOutcomes = ({
     [openOutcomesBase],
   );
 
-  // fetch real-time prices once after market loads
+  const shouldFetchPrices = enabled && priceQueries.length > 0;
+  const activePriceQueries = shouldFetchPrices
+    ? priceQueries
+    : EMPTY_PRICE_QUERIES;
+
   const { prices } = usePredictPrices({
-    queries: priceQueries,
-    enabled: !isMarketFetching && priceQueries.length > 0,
+    queries: activePriceQueries,
+    enabled: shouldFetchPrices,
+    pollingInterval: shouldFetchPrices ? 2000 : undefined,
   });
 
-  // create open outcomes with updated prices from real-time data
-  const openOutcomes = useMemo(() => {
-    if (!prices.results.length) {
-      return openOutcomesBase;
-    }
+  const tokenIds = useMemo(
+    () => activePriceQueries.map((q) => q.outcomeTokenId),
+    [activePriceQueries],
+  );
+  const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
+    enabled: shouldFetchPrices,
+  });
 
-    return openOutcomesBase.map((outcome) => ({
-      ...outcome,
-      tokens: outcome.tokens.map((token) => {
-        const priceResult = prices.results.find(
-          (r) => r.outcomeTokenId === token.id,
-        );
-        const realTimePrice = priceResult?.entry.sell;
-        return {
+  // Price precedence: live WebSocket bestAsk > REST buy price > base market price.
+  const openOutcomes = useMemo(
+    () =>
+      openOutcomesBase.map((outcome) => ({
+        ...outcome,
+        tokens: outcome.tokens.map((token) => ({
           ...token,
-          // use real-time (CLOB) price if available, otherwise keep existing price
-          price: realTimePrice ?? token.price,
-        };
-      }),
-    }));
-  }, [openOutcomesBase, prices]);
+          price:
+            getPredictBuyPrice(token, getLivePrice(token.id), prices) ??
+            token.price,
+        })),
+      })),
+    [openOutcomesBase, prices, getLivePrice],
+  );
 
   const yesPercentage = useMemo((): number => {
     // Use real-time price if available from open outcomes

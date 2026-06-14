@@ -1,17 +1,17 @@
-import React, { memo } from 'react';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import React, { memo, useCallback } from 'react';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import type { PredictMarket, PredictPosition } from '../../types';
+import type {
+  PredictMarket,
+  PredictOutcome,
+  PredictOutcomeGroup,
+  PredictOutcomeToken,
+  PredictPosition,
+} from '../../types';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
 import PredictPicks from '../PredictPicks/PredictPicks';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+import PredictGameOutcomesTab from './PredictGameOutcomesTab';
 
 interface PredictGameDetailsTabsContentProps {
   market: PredictMarket;
@@ -21,20 +21,10 @@ interface PredictGameDetailsTabsContentProps {
   showTabBar: boolean;
   activePositions: PredictPosition[];
   claimablePositions: PredictPosition[];
+  groupMap: Map<string, PredictOutcomeGroup>;
+  activeChipKey: string;
+  onBetPress: (token: PredictOutcomeToken) => void;
 }
-
-const OutcomesPlaceholder = () => (
-  <Box
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Center}
-    twClassName="px-4 py-12"
-    testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER}
-  >
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      Outcomes coming soon
-    </Text>
-  </Box>
-);
 
 const PredictGameDetailsTabsContent = memo(
   ({
@@ -45,7 +35,17 @@ const PredictGameDetailsTabsContent = memo(
     showTabBar,
     activePositions,
     claimablePositions,
+    groupMap,
+    activeChipKey,
+    onBetPress,
   }: PredictGameDetailsTabsContentProps) => {
+    const handleBuyPress = useCallback(
+      (_outcome: PredictOutcome, token: PredictOutcomeToken) => {
+        onBetPress(token);
+      },
+      [onBetPress],
+    );
+
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
 
@@ -69,7 +69,14 @@ const PredictGameDetailsTabsContent = memo(
     }
 
     if (!showTabBar) {
-      return <OutcomesPlaceholder />;
+      return (
+        <PredictGameOutcomesTab
+          groupMap={groupMap}
+          game={market.game}
+          activeChipKey={activeChipKey}
+          onBuyPress={handleBuyPress}
+        />
+      );
     }
 
     const currentKey = tabs[activeTab]?.key;
@@ -89,7 +96,14 @@ const PredictGameDetailsTabsContent = memo(
             />
           </Box>
         )}
-        {currentKey === 'outcomes' && <OutcomesPlaceholder />}
+        {currentKey === 'outcomes' && (
+          <PredictGameOutcomesTab
+            groupMap={groupMap}
+            game={market.game}
+            activeChipKey={activeChipKey}
+            onBuyPress={handleBuyPress}
+          />
+        )}
       </>
     );
   },

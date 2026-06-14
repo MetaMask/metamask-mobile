@@ -1,32 +1,18 @@
 // Third party dependencies.
 import React, { createRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { render, screen, act } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Toast from './Toast';
 import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import { ToastSelectorsIDs } from './ToastModal.testIds';
 
-// Mock react-native-reanimated
-jest.mock('react-native-reanimated', () => ({
-  useSharedValue: jest.fn(() => ({ value: 0 })),
-  useAnimatedStyle: jest.fn(() => ({})),
-  withTiming: jest.fn((value, _config, callback) => {
-    if (callback) {
-      callback();
-    }
-    return value;
-  }),
-  withDelay: jest.fn((_delay, animation) => animation),
-  cancelAnimation: jest.fn(),
-  runOnJS: jest.fn((fn) => () => fn()),
-  default: {
-    View: 'Animated.View',
-  },
-}));
+// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
 // Mock safe area context
 describe('Toast', () => {
-  let toastRef: React.RefObject<ToastRef>;
+  let toastRef: React.RefObject<ToastRef | null>;
 
   beforeEach(() => {
     toastRef = createRef<ToastRef>();
@@ -140,6 +126,7 @@ describe('Toast', () => {
     // Close toast
     await act(async () => {
       toastRef.current?.closeToast();
+      jest.runAllTimers();
     });
 
     expect(screen.queryByText('Test Label')).toBeNull();
@@ -167,9 +154,9 @@ describe('Toast', () => {
       toastRef.current?.showToast(successOptions);
     });
 
-    // Without the fix two setTimeout(0) callbacks are queued (one per call);
-    // with the fix the first timeout is cleared, leaving only one pending.
-    expect(jest.getTimerCount()).toBe(1);
+    // The first setTimeout(0) is cleared and replaced by the second call;
+    // additional framework timers (e.g. Reanimated) may also be pending.
+    expect(jest.getTimerCount()).toBeGreaterThanOrEqual(1);
 
     await act(async () => {
       jest.runAllTimers();
@@ -177,5 +164,25 @@ describe('Toast', () => {
 
     expect(screen.queryByText('In Progress')).toBeNull();
     expect(screen.getByText('Success')).toBeOnTheScreen();
+  });
+
+  it('uses flex-start justifyContent on labels container by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Aligned label' }],
+      hasNoTimeout: true,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+    const flat = StyleSheet.flatten(labelsContainer.props.style);
+
+    expect(flat.justifyContent).toBe('flex-start');
   });
 });

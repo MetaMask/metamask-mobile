@@ -1,5 +1,6 @@
 /* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
   StyleSheet,
   Image,
@@ -29,8 +30,8 @@ import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { isProduction } from '../../../../util/environment';
 import {
@@ -154,7 +155,7 @@ class AppInformation extends PureComponent {
   };
 
   onSupportCenter = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -164,7 +165,7 @@ class AppInformation extends PureComponent {
   };
 
   onContactUs = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -207,7 +208,7 @@ class AppInformation extends PureComponent {
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={aboutTitle}
           onBack={() => this.props.navigation.goBack()}

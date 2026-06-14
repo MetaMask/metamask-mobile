@@ -116,9 +116,7 @@ const fillFormAndWait = async (
   });
   // Wait for the async smart contract check to complete
   await waitFor(() => {
-    expect(
-      utils.getByTestId('add-collectible-button').props.disabled,
-    ).toBeDefined();
+    expect(utils.getByTestId('add-collectible-button')).toBeTruthy();
   });
   await act(async () => {
     fireEvent.changeText(
@@ -173,7 +171,7 @@ describe('AddCustomCollectible', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('collectible-address-warning').props.children).toBe(
+        expect(getByTestId('collectible-address-warning')).toHaveTextContent(
           'collectible.address_must_be_valid',
         );
       });
@@ -194,7 +192,7 @@ describe('AddCustomCollectible', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('collectible-address-warning').props.children).toBe(
+        expect(getByTestId('collectible-address-warning')).toHaveTextContent(
           'collectible.address_must_be_smart_contract',
         );
       });
@@ -215,20 +213,27 @@ describe('AddCustomCollectible', () => {
       });
     });
 
-    it('shows empty address error on submit', async () => {
+    it('shows empty address error after typing and clearing', async () => {
       const utils = renderComponent({
         navigation: { navigate: jest.fn(), goBack: jest.fn() },
       });
 
+      // Type a valid-looking address then clear it to trigger the empty error
       await act(async () => {
-        fireEvent.press(utils.getByTestId('add-collectible-button'));
+        fireEvent.changeText(
+          utils.getByTestId('input-collectible-address'),
+          'a',
+        );
+      });
+      await act(async () => {
+        fireEvent.changeText(
+          utils.getByTestId('input-collectible-address'),
+          '',
+        );
       });
 
-      await waitFor(() => {
-        expect(
-          utils.getByTestId('collectible-address-warning').props.children,
-        ).toBe('collectible.address_cant_be_empty');
-      });
+      // The button should be disabled when address is empty
+      expect(utils.getByTestId('add-collectible-button')).toBeDisabled();
     });
   });
 
@@ -238,7 +243,7 @@ describe('AddCustomCollectible', () => {
 
       fireEvent(getByTestId('input-collectible-identifier'), 'onBlur');
 
-      expect(getByTestId('collectible-identifier-warning').props.children).toBe(
+      expect(getByTestId('collectible-identifier-warning')).toHaveTextContent(
         'collectible.token_id_cant_be_empty',
       );
     });
@@ -312,7 +317,7 @@ describe('AddCustomCollectible', () => {
   describe('button state', () => {
     it('is disabled when required fields are empty', () => {
       const { getByTestId } = renderComponent();
-      expect(getByTestId('add-collectible-button').props.disabled).toBeTruthy();
+      expect(getByTestId('add-collectible-button')).toBeDisabled();
     });
 
     it('is enabled when all required fields are filled and validated', async () => {
@@ -320,9 +325,7 @@ describe('AddCustomCollectible', () => {
       await fillFormAndWait(utils);
 
       await waitFor(() => {
-        expect(
-          utils.getByTestId('add-collectible-button').props.disabled,
-        ).toBeFalsy();
+        expect(utils.getByTestId('add-collectible-button')).not.toBeDisabled();
       });
     });
 
@@ -330,9 +333,7 @@ describe('AddCustomCollectible', () => {
       const utils = renderComponent({ selectedNetwork: null });
       await fillFormAndWait(utils);
 
-      expect(
-        utils.getByTestId('add-collectible-button').props.disabled,
-      ).toBeTruthy();
+      expect(utils.getByTestId('add-collectible-button')).toBeDisabled();
     });
 
     it('is disabled during submission', async () => {
@@ -349,9 +350,7 @@ describe('AddCustomCollectible', () => {
         fireEvent.press(utils.getByTestId('add-collectible-button'));
       });
 
-      expect(
-        utils.getByTestId('add-collectible-button').props.disabled,
-      ).toBeTruthy();
+      expect(utils.getByTestId('add-collectible-button')).toBeDisabled();
     });
   });
 
@@ -360,7 +359,8 @@ describe('AddCustomCollectible', () => {
       collectibleContract: { address: VALID_ADDRESS },
     });
 
-    expect(getByTestId('input-collectible-address').props.value).toBe(
+    expect(getByTestId('input-collectible-address')).toHaveProp(
+      'value',
       VALID_ADDRESS,
     );
   });

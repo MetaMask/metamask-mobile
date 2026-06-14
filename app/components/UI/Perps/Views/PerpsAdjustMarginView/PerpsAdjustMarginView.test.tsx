@@ -113,6 +113,10 @@ jest.mock('../../components/PerpsOrderHeader', () => {
   };
 });
 jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip',
+  () => 'PerpsBottomSheetTooltip',
+);
 jest.mock('../../components/PerpsSlider', () => {
   const ReactModule = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -125,6 +129,40 @@ jest.mock('../../components/PerpsSlider', () => {
       testID: 'mock-perps-slider',
       onValueChange,
     });
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        {!isLoading && <Text>{label ?? children}</Text>}
+      </TouchableOpacity>
+    ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+      Sm: 'Sm',
+    },
   };
 });
 
@@ -184,7 +222,7 @@ describe('PerpsAdjustMarginView', () => {
       newLiquidationPrice: 1900,
       currentLiquidationDistance: 5,
       newLiquidationDistance: 5,
-      availableBalance: 1000,
+      spendableBalance: 1000,
       currentPrice: 2000,
       isAddMode: true,
       positionLeverage: 10,
@@ -267,7 +305,7 @@ describe('PerpsAdjustMarginView', () => {
         newLiquidationPrice: 1900,
         currentLiquidationDistance: 5,
         newLiquidationDistance: 5,
-        availableBalance: 1000,
+        spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
         positionLeverage: 10,
@@ -335,7 +373,7 @@ describe('PerpsAdjustMarginView', () => {
         newLiquidationPrice: 0,
         currentLiquidationDistance: 0,
         newLiquidationDistance: 0,
-        availableBalance: 0,
+        spendableBalance: 0,
         currentPrice: 0,
         isAddMode: true,
         positionLeverage: 10,
@@ -455,7 +493,7 @@ describe('PerpsAdjustMarginView', () => {
         newLiquidationPrice: 1900,
         currentLiquidationDistance: 5,
         newLiquidationDistance: 5,
-        availableBalance: 1000,
+        spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
         positionLeverage: 10,

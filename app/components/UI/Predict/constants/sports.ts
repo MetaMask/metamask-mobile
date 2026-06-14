@@ -12,6 +12,9 @@ import { PredictSportsLeague } from '../types';
 export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'nfl',
   'nba',
+  'wnba',
+  'mlb',
+  'nhl',
   'ucl',
   'fif',
   'lal',
@@ -50,6 +53,10 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'itc',
   'dfb',
   'cde',
+  'fifwc',
+  'atp',
+  'wta',
+  'itf',
 ];
 
 export const filterSupportedLeagues = (
@@ -98,7 +105,41 @@ const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
   'itc',
   'dfb',
   'cde',
+  'fifwc',
 ]);
 
 export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>
   DRAW_CAPABLE_LEAGUES.has(league);
+
+/**
+ * Whether a league is association football (soccer).
+ *
+ * Soccer leagues use minute-based match clocks (rendered as "75’") and play in
+ * halves rather than quarters. In this codebase the soccer leagues are exactly
+ * the draw-capable leagues, so we reuse that set here. If a non-soccer
+ * draw-capable league is ever added, introduce a dedicated soccer set.
+ */
+export const isSoccerLeague = (league: PredictSportsLeague): boolean =>
+  isDrawCapableLeague(league);
+
+export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
+  'moneyline',
+  'first_half_moneyline',
+  'soccer_halftime_result',
+  'tennis_first_set_winner',
+]);
+
+export const isMoneylineLikeMarketType = (type?: string): boolean =>
+  type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
+
+export const getPrimaryMoneylineOutcomes = <
+  T extends { sportsMarketType?: string },
+>(
+  outcomes: T[],
+): T[] => {
+  const moneylineOutcomes = outcomes.filter(
+    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+
+  return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
+};

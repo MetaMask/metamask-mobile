@@ -5,6 +5,8 @@ export enum ActionLocation {
   HOME = 'home',
   ASSET_DETAILS = 'asset details',
   NAVBAR = 'navbar',
+  /** Wallet home post-onboarding checklist (TMCU-680). */
+  ONBOARDING_CHECKLIST = 'onboarding_checklist',
 }
 
 export enum ActionButtonType {

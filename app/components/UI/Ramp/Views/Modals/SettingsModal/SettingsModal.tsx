@@ -6,10 +6,12 @@ import React, {
   useEffect,
 } from 'react';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  HeaderStandard,
+  IconName,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import {
   IconName as ComponentLibraryIconName,
   IconColor as ComponentLibraryIconColor,
@@ -23,7 +25,6 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../util/Logger';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsProviders } from '../../../hooks/useRampsProviders';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -33,6 +34,7 @@ import {
   resetProviderToken,
 } from '../../../Deposit/utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 /**
  * Transak native provider path prefix - matches both production
@@ -54,7 +56,7 @@ function SettingsModal() {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
-
+  const surfaceClass = useElevatedSurface();
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
 
@@ -131,8 +133,8 @@ function SettingsModal() {
         await InAppBrowser.open(supportUrl);
       } else {
         // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
-        // shouldNavigateBack would fire goBack() after the close animation and pop the
-        // Webview screen off the stack instead of the modal.
+        // goBack would run after the close animation and pop the Webview screen off the
+        // stack instead of the modal.
         navigation.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url: supportUrl },
@@ -195,8 +197,12 @@ function SettingsModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
+      <HeaderStandard
         title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
         onClose={handleClosePress}
       />

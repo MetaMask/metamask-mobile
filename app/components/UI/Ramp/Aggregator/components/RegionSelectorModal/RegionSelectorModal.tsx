@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
@@ -23,7 +24,6 @@ import { AnimationDuration } from '../../../../../../component-library/constants
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -333,7 +333,7 @@ function RegionSelectorModal() {
       onClose={onModalHide}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={
           activeView === RegionViewType.COUNTRY
             ? strings('fiat_on_ramp_aggregator.region.title')

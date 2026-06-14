@@ -39,6 +39,7 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
+  canDeleteNetwork,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import {
@@ -68,16 +69,20 @@ import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworksSelectorSelectorsIDs } from '../Settings/NetworksSettings/NetworksView.testIds';
 import { PopularList } from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -568,8 +573,14 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
                 name
               ) : (
                 <View>
-                  <Box twClassName="flex-row gap-2">
-                    <Text variant={TextVariant.BodyMD}>{name}</Text>
+                  <Box twClassName="flex-row gap-2 items-center">
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      numberOfLines={1}
+                      style={styles.networkNameText}
+                    >
+                      {name}
+                    </Text>
                     {!isHardwareWallet &&
                     isGasFeesSponsoredNetworkEnabled(chainId) ? (
                       <TagColored
@@ -618,7 +629,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             }
             buttonProps={{
               onButtonClick: () => {
-                openModal(chainId, true, rpcUrl, false);
+                openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
               },
             }}
             onTextClick={() =>
@@ -628,7 +639,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
               })
             }
             onLongPress={() => {
-              openModal(chainId, true, rpcUrl, false);
+              openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
             }}
           />
         );

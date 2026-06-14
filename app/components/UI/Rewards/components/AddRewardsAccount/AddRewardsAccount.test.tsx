@@ -253,7 +253,7 @@ describe('AddRewardsAccount', () => {
       );
 
       const button = getByTestId('add-rewards-account');
-      expect(button).toHaveProp('disabled', true);
+      expect(button).toBeDisabled();
     });
 
     it('enables button when isLoading is false', () => {
@@ -268,7 +268,7 @@ describe('AddRewardsAccount', () => {
       );
 
       const button = getByTestId('add-rewards-account');
-      expect(button).toHaveProp('disabled', false);
+      expect(button).not.toBeDisabled();
     });
 
     it('shows loading state on button when isLoading is true', () => {

@@ -126,26 +126,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock useTailwind
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const mockTw = jest.fn(() => ({}));
-    Object.assign(mockTw, {
-      style: jest.fn((styles) => {
-        if (Array.isArray(styles)) {
-          return styles.reduce(
-            (acc: object, style: object) => ({ ...acc, ...style }),
-            {},
-          );
-        }
-        return styles || {};
-      }),
-    });
-    return mockTw;
-  },
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
 
@@ -210,6 +199,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     );
 
   return {
+    ...actual,
     Box,
     Text: TextComponent,
     Button,
@@ -270,40 +260,6 @@ jest.mock(
         children?: React.ReactNode;
         testID?: string;
       }) => ReactActual.createElement(View, { testID }, children),
-    };
-  },
-);
-
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onClose,
-        closeButtonProps,
-      }: {
-        title?: React.ReactNode;
-        onClose?: () => void;
-        closeButtonProps?: { testID?: string };
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'bottom-sheet-header' },
-          ReactActual.createElement(Text, {}, title),
-          ReactActual.createElement(
-            TouchableOpacity,
-            {
-              onPress: onClose,
-              testID: closeButtonProps?.testID ?? 'close-button',
-            },
-            ReactActual.createElement(Text, {}, 'Close'),
-          ),
-        ),
     };
   },
 );

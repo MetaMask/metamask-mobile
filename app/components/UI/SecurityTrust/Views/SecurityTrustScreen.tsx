@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   ScrollView,
   View,
@@ -16,6 +16,7 @@ import {
   IconName,
   IconSize,
   IconColor,
+  IconAlert,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
@@ -39,8 +40,12 @@ import {
   getResultTypeConfig,
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
+import { useStickyQuickBuy } from '../../TokenDetails/hooks/useStickyQuickBuy';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -58,8 +63,14 @@ const SecurityTrustScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedView = useRef(false);
+  const timeSpentStart = useRef<number>(Date.now());
 
-  const params = route.params as TokenDetailsRouteParams;
+  const params = route.params as TokenDetailsRouteParams & {
+    isPricePositive?: boolean;
+    useAmbientColor?: boolean;
+  };
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
   const evmNetworkConfigurations = useSelector(
@@ -80,12 +91,32 @@ const SecurityTrustScreen: React.FC = () => {
     });
   }, [params?.chainId, evmNetworkConfigurations, nonEvmNetworkConfigurations]);
 
-  // Get action handlers from hook (single source of truth)
-  const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =
-    useTokenActions({
-      token: params,
-      networkName,
-    });
+  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+    token: params,
+    source: 'security_trust',
+  });
+
+  // Track page view once
+  useEffect(() => {
+    if (!hasTrackedView.current) {
+      hasTrackedView.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_VIEWED)
+          .addProperties({
+            token_symbol: params.symbol,
+            chain_id: params.chainId,
+            severity: securityData?.resultType || 'unknown',
+          })
+          .build(),
+      );
+    }
+  }, [
+    params.symbol,
+    params.chainId,
+    securityData?.resultType,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const fees = securityData?.fees ?? null;
   const features = securityData?.features ?? [];
@@ -99,8 +130,7 @@ const SecurityTrustScreen: React.FC = () => {
     label: resultLabel,
     textColor: resultTextColor,
     subtitle: resultSubtitle,
-    icon: tagIcon,
-    iconColor: tagIconColor,
+    iconAlertSeverity,
   } = getResultTypeConfig(securityData?.resultType);
   const financialStats = securityData?.financialStats ?? null;
   const metadata = securityData?.metadata ?? null;
@@ -141,9 +171,38 @@ const SecurityTrustScreen: React.FC = () => {
 
   const tokenType = params?.isNative ? 'Native' : 'ERC-20';
 
-  const openLink = useCallback((url: string) => {
-    Linking.openURL(url).catch(() => null);
-  }, []);
+  const openLink = useCallback(
+    (url: string, ctaType: string, linkText?: string) => {
+      // Track CTA click
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_CTA_CLICKED)
+          .addProperties({
+            token_symbol: params.symbol,
+            chain_id: params.chainId,
+            cta_type: ctaType,
+            severity: securityData?.resultType || 'unknown',
+          })
+          .build(),
+      );
+
+      if (ctaType === 'block_explorer') {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'security_trust_page',
+          text: linkText ?? strings('security_trust.etherscan'),
+          url,
+        });
+      }
+
+      Linking.openURL(url).catch(() => null);
+    },
+    [
+      params.symbol,
+      params.chainId,
+      securityData?.resultType,
+      trackEvent,
+      createEventBuilder,
+    ],
+  );
 
   const scrollContentStyle = React.useMemo(
     () => ({
@@ -157,7 +216,6 @@ const SecurityTrustScreen: React.FC = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
-      {networkModal}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -166,7 +224,20 @@ const SecurityTrustScreen: React.FC = () => {
         style={{ paddingTop: insets.top + 8 }}
       >
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            const timeSpentMs = Date.now() - timeSpentStart.current;
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_DISMISSED)
+                .addProperties({
+                  token_symbol: params.symbol,
+                  chain_id: params.chainId,
+                  time_spent_ms: timeSpentMs,
+                  severity: securityData?.resultType || 'unknown',
+                })
+                .build(),
+            );
+            navigation.goBack();
+          }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           testID="security-trust-back-button"
         >
@@ -228,11 +299,10 @@ const SecurityTrustScreen: React.FC = () => {
                   twClassName="w-full"
                   gap={3}
                 >
-                  {tagIcon && tagIconColor && (
-                    <Icon
-                      name={tagIcon}
+                  {iconAlertSeverity && (
+                    <IconAlert
+                      severity={iconAlertSeverity}
                       size={IconSize.Md}
-                      color={tagIconColor}
                     />
                   )}
                   <Text
@@ -506,7 +576,7 @@ const SecurityTrustScreen: React.FC = () => {
               {metadata.externalLinks.homepage && (
                 <ButtonBase
                   onPress={() =>
-                    openLink(metadata.externalLinks.homepage || '')
+                    openLink(metadata.externalLinks.homepage || '', 'website')
                   }
                   size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
@@ -533,6 +603,7 @@ const SecurityTrustScreen: React.FC = () => {
                   onPress={() =>
                     openLink(
                       `https://x.com/${metadata.externalLinks.twitterPage}`,
+                      'twitter',
                     )
                   }
                   size={ButtonBaseSize.Md}
@@ -560,6 +631,7 @@ const SecurityTrustScreen: React.FC = () => {
                   onPress={() =>
                     openLink(
                       `https://t.me/${metadata.externalLinks.telegramChannelId}`,
+                      'telegram',
                     )
                   }
                   size={ButtonBaseSize.Md}
@@ -584,8 +656,11 @@ const SecurityTrustScreen: React.FC = () => {
               )}
               {Boolean(params?.address && !params.isNative) &&
                 (() => {
+                  const tokenAddress = isCaipAssetType(params.address)
+                    ? parseCaipAssetType(params.address).assetReference
+                    : params.address;
                   const blockExplorerUrl = explorer.getBlockExplorerTokenUrl(
-                    params.address,
+                    tokenAddress,
                     params.chainId,
                   );
                   const blockExplorerName = explorer.getBlockExplorerName(
@@ -594,7 +669,14 @@ const SecurityTrustScreen: React.FC = () => {
 
                   return blockExplorerUrl ? (
                     <ButtonBase
-                      onPress={() => openLink(blockExplorerUrl)}
+                      onPress={() =>
+                        openLink(
+                          blockExplorerUrl,
+                          'block_explorer',
+                          blockExplorerName ||
+                            strings('security_trust.etherscan'),
+                        )
+                      }
                       size={ButtonBaseSize.Md}
                       twClassName={(pressed) =>
                         `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
@@ -636,10 +718,13 @@ const SecurityTrustScreen: React.FC = () => {
       <TokenDetailsStickyFooter
         token={params}
         securityData={securityData}
-        onBuy={onBuy}
-        onSwap={handleStickySwapPress}
-        hasEligibleSwapTokens={hasEligibleSwapTokens}
+        networkName={networkName}
+        sourcePage="SecurityTrustView"
+        isPricePositive={params.isPricePositive}
+        useAmbientColor={params.useAmbientColor}
+        onQuickBuyPress={onQuickBuyPress}
       />
+      {quickBuySheet}
     </View>
   );
 };

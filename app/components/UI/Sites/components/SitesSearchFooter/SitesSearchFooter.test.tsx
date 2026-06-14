@@ -95,6 +95,14 @@ describe('SitesSearchFooter', () => {
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
     });
 
+    it('detects localhost URLs', () => {
+      const { getByTestId } = render(
+        <SitesSearchFooter searchQuery="http://localhost:8000" />,
+      );
+
+      expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
+    });
+
     it('detects URLs with path', () => {
       const { getByTestId } = render(
         <SitesSearchFooter searchQuery="metamask.io/portfolio" />,

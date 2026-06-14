@@ -132,6 +132,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   onPress,
   onDisclaimerPress,
   caip19Id,
+  source,
   testID,
 }) => {
   const tw = useTailwind();
@@ -178,11 +179,12 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       .addProperties({
         caip19: caip19Id,
         asset_symbol: report.asset,
+        source,
         ...(digestId !== undefined ? { digest_id: digestId } : {}),
       })
       .build();
     trackEvent(event);
-  }, [trackEvent, createEventBuilder, caip19Id, report]);
+  }, [trackEvent, createEventBuilder, caip19Id, report, source]);
 
   const { ref: cardRef, onLayout: onVisibilityLayout } = useViewportTracking(
     handleVisible,

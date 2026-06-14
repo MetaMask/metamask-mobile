@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { styleSheet } from './styles';
 import Engine from '../../../../../../core/Engine';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ActionModal from '../../../../../UI/ActionModal';
 import { strings } from '../../../../../../../locales/i18n';
@@ -14,6 +10,10 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
@@ -47,10 +47,10 @@ const ClearPrivacy = () => {
         style={styles.modalView}
         testID={ClearPrivacyModalSelectorsIDs.CONTAINER}
       >
-        <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
+        <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
           {strings('app_settings.clear_approvals_modal_title')}
         </Text>
-        <Text style={styles.modalText}>
+        <Text variant={TextVariant.BodyMd} style={styles.modalText}>
           {strings('app_settings.clear_approvals_modal_message')}
         </Text>
       </View>
@@ -59,12 +59,13 @@ const ClearPrivacy = () => {
 
   return (
     <View style={[styles.setting]} testID={CLEAR_PRIVACY_SECTION}>
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('app_settings.clear_privacy_title')}
       </Text>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.clear_privacy_desc')}

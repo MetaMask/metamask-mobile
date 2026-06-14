@@ -1,29 +1,50 @@
-import React, { useMemo } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
+import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import {
-  StatCell,
-  PendingTag,
-  QualifiedTag,
-} from '../components/Campaigns/CampaignStatsSummary';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+  buildLeaderboardUserPosition,
+  formatTierDisplayName,
+  getCampaignTierNames,
+} from '../components/Campaigns/OndoLeaderboard.utils';
+import { formatRewardsTimeOnly, formatUsd } from '../utils/formatUtils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { useOndoLeaderboardPositionDisplay } from '../hooks/useOndoLeaderboardPositionDisplay';
 import { strings } from '../../../../../locales/i18n';
-import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  selectReferralCode,
+  selectCampaignById,
+} from '../../../../reducers/rewards/selectors';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { computePrizePoolProgress } from '../utils/prizePoolUtils';
+import { BREAKPOINTS } from '../components/Campaigns/OndoPrizePool';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -33,6 +54,7 @@ type OndoLeaderboardRouteParams = {
 
 export const ONDO_LEADERBOARD_VIEW_TEST_IDS = {
   CONTAINER: 'ondo-leaderboard-view-container',
+  TIER_SELECTOR: 'ondo-leaderboard-view-tier-selector',
 } as const;
 
 const OndoLeaderboardView: React.FC = () => {
@@ -42,6 +64,17 @@ const OndoLeaderboardView: React.FC = () => {
     useRoute<RouteProp<OndoLeaderboardRouteParams, 'OndoLeaderboard'>>();
   const { campaignId } = route.params;
   const referralCode = useSelector(selectReferralCode);
+  const selectCampaign = useMemo(
+    () => selectCampaignById(campaignId),
+    [campaignId],
+  );
+  const campaign = useSelector(selectCampaign);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_leaderboard',
+    campaign_id: campaignId,
+  });
 
   const { status: participantStatus } =
     useGetCampaignParticipantStatus(campaignId);
@@ -50,34 +83,91 @@ const OndoLeaderboardView: React.FC = () => {
   const { position, isLoading: isPositionLoading } =
     useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
-  const isPending = position != null && !position.qualified;
-  const isQualified = position != null && position.qualified;
+  const { portfolio: portfolioData, isLoading: isPortfolioLoading } =
+    useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
+
+  const { deposits, isLoading: isDepositsLoading } =
+    useGetOndoCampaignDeposits(campaignId);
+
+  const {
+    isCampaignComplete,
+    isPending,
+    isQualified,
+    isIneligible,
+    rankValue,
+    tierValue,
+    returnValue,
+    returnColor,
+  } = useOndoLeaderboardPositionDisplay({
+    campaign,
+    position,
+    portfolioPnlPercent: portfolioData?.summary?.portfolioPnlPercent,
+  });
+
+  const prizePoolValue = deposits?.totalUsdDeposited
+    ? formatUsd(
+        computePrizePoolProgress(
+          BREAKPOINTS,
+          parseFloat(deposits.totalUsdDeposited),
+          (m) => m.deposit,
+        ).currentPrize,
+      )
+    : undefined;
+
   const {
     leaderboard: leaderboardData,
-    tierNames,
     selectedTier,
     selectedTierData,
     setSelectedTier,
+    computedAt,
     isLoading: isLeaderboardLoading,
     hasError: hasLeaderboardError,
     isLeaderboardNotYetComputed,
+    computedAt: leaderboardComputedAt,
     refetch: refetchLeaderboard,
   } = useGetOndoLeaderboard(campaignId, {
     defaultTier: position?.projectedTier,
   });
 
-  const pendingSheetPosition = useMemo(() => {
-    if (!position || position.qualified) return null;
-    const tierMinDeposit =
-      leaderboardData?.tiers[position.projectedTier]?.minDeposit ?? null;
-    if (tierMinDeposit == null) return null;
-    return {
-      tier: position.projectedTier,
-      netDeposit: position.netDeposit,
-      qualifiedDays: position.qualifiedDays,
-      tierMinDeposit,
-    };
-  }, [position, leaderboardData]);
+  const tierNames = useMemo(() => getCampaignTierNames(campaign), [campaign]);
+
+  const tierOptions = useMemo(
+    () =>
+      tierNames.map((name) => ({
+        key: name,
+        value: name,
+        label: formatTierDisplayName(name),
+      })),
+    [tierNames],
+  );
+
+  const openTierSelector = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_leaderboard_tier_select',
+        })
+        .build(),
+    );
+    navigation.navigate(Routes.MODAL.REWARDS_SELECT_SHEET, {
+      title: strings('rewards.ondo_campaign_leaderboard.select_tier'),
+      options: tierOptions,
+      selectedValue: selectedTier,
+      onSelect: setSelectedTier,
+    });
+  }, [
+    navigation,
+    tierOptions,
+    selectedTier,
+    setSelectedTier,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
+  const leaderboardUserPosition = useMemo(
+    () => buildLeaderboardUserPosition(position),
+    [position],
+  );
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
@@ -86,12 +176,12 @@ const OndoLeaderboardView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <CampaignViewHeader
           title={strings('rewards.ondo_campaign_leaderboard.title')}
-          titleProps={{ variant: TextVariant.HeadingSm }}
-          onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
-          includesTopInset
+          backButtonTestID="ondo-leaderboard-back-button"
+          mechanicsButtonTestID="leaderboard-mechanics-button"
+          hasCampaign={campaign != null}
+          campaignId={campaignId}
         />
 
         <ScrollView
@@ -100,44 +190,90 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position */}
           {position && (
-            <Box twClassName="p-4 gap-3">
-              <Box flexDirection={BoxFlexDirection.Row}>
-                <StatCell
-                  label="Rank"
-                  value={`${position.rank}`}
+            <>
+              <Box twClassName="p-4">
+                <LeaderboardPositionHeader
+                  rank={rankValue}
+                  tier={tierValue}
                   isLoading={isPositionLoading}
-                  suffix={isPending ? <PendingTag /> : undefined}
-                />
-                <StatCell
-                  label="Tier"
-                  value={formatTierDisplayName(position.projectedTier)}
-                  isLoading={isPositionLoading}
-                  suffix={
-                    isPending ? (
-                      <PendingTag />
-                    ) : isQualified ? (
-                      <QualifiedTag />
-                    ) : undefined
-                  }
+                  isPending={!isCampaignComplete && isPending}
+                  isQualified={isQualified}
+                  isIneligible={!isCampaignComplete && isIneligible}
+                  showReturn
+                  returnValue={returnValue}
+                  returnColor={returnColor}
+                  showPrizePool
+                  prizePoolValue={prizePoolValue}
+                  prizePoolLoading={isDepositsLoading && !deposits}
                 />
               </Box>
+              {/* Divider */}
+              <Box twClassName="my-1 border-b border-border-muted" />
+            </>
+          )}
+
+          {/* Tier selector + last updated row */}
+          {selectedTier && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="px-4 py-3"
+            >
+              <Pressable
+                onPress={tierNames.length > 1 ? openTierSelector : undefined}
+                testID={ONDO_LEADERBOARD_VIEW_TEST_IDS.TIER_SELECTOR}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="border border-border-default rounded-full px-3 py-1 gap-1"
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {formatTierDisplayName(selectedTier)}
+                  </Text>
+                  {tierNames.length > 1 && (
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Xs}
+                      color={IconColor.IconDefault}
+                    />
+                  )}
+                </Box>
+              </Pressable>
+              {computedAt && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('rewards.ondo_campaign_leaderboard.updated_at', {
+                    time: formatRewardsTimeOnly(new Date(computedAt)),
+                  })}
+                </Text>
+              )}
             </Box>
           )}
 
           {/* Full leaderboard */}
-          <Box>
+          <Box twClassName="pb-4">
             <OndoLeaderboard
               tierNames={tierNames}
               selectedTier={selectedTier}
               onTierChange={setSelectedTier}
+              currentUserReferralCode={referralCode}
               entries={selectedTierData?.entries ?? []}
               totalParticipants={selectedTierData?.totalParticipants ?? 0}
               isLoading={isLeaderboardLoading}
+              userPosition={leaderboardUserPosition}
               hasError={hasLeaderboardError}
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
-              currentUserReferralCode={referralCode}
-              pendingSheetPosition={pendingSheetPosition}
+              campaignId={campaignId}
+              isCampaignComplete={isCampaignComplete}
+              hideTierHeader
             />
           </Box>
         </ScrollView>

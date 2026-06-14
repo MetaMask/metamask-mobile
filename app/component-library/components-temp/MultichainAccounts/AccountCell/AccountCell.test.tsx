@@ -9,12 +9,14 @@ import {
   createMockState,
   createMockWallet,
 } from '../test-utils';
-import { AvatarAccountType } from '../../../components/Avatars/Avatar';
-import { Maskicon } from '@metamask/design-system-react-native';
-import JazzIcon from 'react-native-jazzicon';
-import { Image as RNImage } from 'react-native';
+import {
+  Blockies,
+  Jazzicon,
+  Maskicon,
+} from '@metamask/design-system-react-native';
 import { AccountCellIds } from './AccountCell.testIds';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { AvatarAccountType } from '../avatarAccountVariant';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -159,18 +161,18 @@ describe('AccountCell', () => {
     expect(UNSAFE_getByType(Maskicon)).toBeTruthy();
   });
 
-  it('renders JazzIcon AvatarAccount when avatarAccountType is JazzIcon', () => {
+  it('renders Jazzicon AvatarAccount when avatarAccountType is JazzIcon', () => {
     const { UNSAFE_getByType } = renderAccountCell({
       avatarAccountType: AvatarAccountType.JazzIcon,
     });
-    expect(UNSAFE_getByType(JazzIcon)).toBeTruthy();
+    expect(UNSAFE_getByType(Jazzicon)).toBeTruthy();
   });
 
   it('renders Blockies AvatarAccount when avatarAccountType is Blockies', () => {
     const { UNSAFE_getByType } = renderAccountCell({
       avatarAccountType: AvatarAccountType.Blockies,
     });
-    expect(UNSAFE_getByType(RNImage)).toBeTruthy();
+    expect(UNSAFE_getByType(Blockies)).toBeTruthy();
   });
 
   it('calls onSelectAccount when account name is pressed', () => {

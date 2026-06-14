@@ -1,9 +1,12 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
 } from '../TimeRangeSelector';
+import { ChartType } from '../AdvancedChart.types';
+import { AMBIENT_NEGATIVE_COLOR } from '../../../TokenDetails/components/abTestConfig';
 
 describe('TimeRangeSelector', () => {
   const defaultProps = {
@@ -58,6 +61,52 @@ describe('TimeRangeSelector', () => {
     fireEvent.press(getByText('1D'));
 
     expect(onSelect).toHaveBeenCalledWith('1D');
+  });
+
+  describe('selectedColor prop', () => {
+    it('applies selectedColor to chart type toggle icon', () => {
+      const { getByLabelText } = render(
+        <TimeRangeSelector
+          {...defaultProps}
+          selectedColor={AMBIENT_NEGATIVE_COLOR}
+          chartType={ChartType.Line}
+          onChartTypeToggle={jest.fn()}
+        />,
+      );
+
+      const toggleButton = getByLabelText('Switch to candlestick chart');
+      const icon = toggleButton.children[0] as ReactTestInstance;
+      expect(icon.props.twClassName).toBe(`text-[${AMBIENT_NEGATIVE_COLOR}]`);
+    });
+
+    it('uses default icon class when selectedColor is not set', () => {
+      const { getByLabelText } = render(
+        <TimeRangeSelector
+          {...defaultProps}
+          chartType={ChartType.Line}
+          onChartTypeToggle={jest.fn()}
+        />,
+      );
+
+      const toggleButton = getByLabelText('Switch to candlestick chart');
+      const icon = toggleButton.children[0] as ReactTestInstance;
+      expect(icon.props.twClassName).toBe('text-icon-alternative');
+    });
+
+    it('applies selectedColor to candlestick toggle icon', () => {
+      const { getByLabelText } = render(
+        <TimeRangeSelector
+          {...defaultProps}
+          selectedColor={AMBIENT_NEGATIVE_COLOR}
+          chartType={ChartType.Candles}
+          onChartTypeToggle={jest.fn()}
+        />,
+      );
+
+      const toggleButton = getByLabelText('Switch to line chart');
+      const icon = toggleButton.children[0] as ReactTestInstance;
+      expect(icon.props.twClassName).toBe(`text-[${AMBIENT_NEGATIVE_COLOR}]`);
+    });
   });
 
   describe('TIME_RANGE_CONFIGS', () => {

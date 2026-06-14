@@ -86,8 +86,8 @@ describe('backfillSocialLoginMarketingConsent', () => {
     await expectSaga(backfillSocialLoginMarketingConsentSaga)
       .withState(state)
       .dispatch(loginAction)
-      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .put(setDataCollectionForMarketing(true))
+      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
     expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
@@ -125,8 +125,8 @@ describe('backfillSocialLoginMarketingConsent', () => {
     await expectSaga(backfillSocialLoginMarketingConsentSaga)
       .withState(state)
       .dispatch(loginAction)
-      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .put(setDataCollectionForMarketing(false))
+      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
     expect(mockedGetMarketingOptInStatus).toHaveBeenCalled();
@@ -166,8 +166,8 @@ describe('backfillSocialLoginMarketingConsent', () => {
     await expectSaga(backfillSocialLoginMarketingConsentSaga)
       .withState(state)
       .dispatch(loginAction)
-      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .put(setDataCollectionForMarketing(true))
+      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
     expect(mockedGetMarketingOptInStatus).toHaveBeenCalled();
@@ -183,7 +183,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
     );
   });
 
-  it('does not clear the marker when getMarketingOptInStatus rejects', async () => {
+  it('clears the marker when getMarketingOptInStatus rejects', async () => {
     mockedGetMarketingOptInStatus.mockRejectedValueOnce(
       new Error('no access token'),
     );
@@ -203,7 +203,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
     await expectSaga(backfillSocialLoginMarketingConsentSaga)
       .withState(state)
       .dispatch(loginAction)
-      .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
+      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
     expect(mockedLoggerError).toHaveBeenCalledWith(
@@ -215,7 +215,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
     expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });
 
-  it('does not clear the marker when trackEvent throws', async () => {
+  it('clears the marker when trackEvent throws', async () => {
     const state = {
       ...initialRootState,
       security: {
@@ -235,12 +235,38 @@ describe('backfillSocialLoginMarketingConsent', () => {
     await expectSaga(backfillSocialLoginMarketingConsentSaga)
       .withState(state)
       .dispatch(loginAction)
-      .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
+      .put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
     expect(mockedIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     });
     expect(updateDataRecordingFlag).not.toHaveBeenCalled();
+  });
+
+  it('persists fetched OAuth marketing consent before clearing the marker when analytics fails', async () => {
+    const state = {
+      ...initialRootState,
+      security: {
+        ...initialRootState.security,
+        dataCollectionForMarketing: false,
+      },
+      onboarding: {
+        ...initialRootState.onboarding,
+        pendingSocialLoginMarketingConsentBackfill: 'google',
+      },
+    };
+
+    mockedGetMarketingOptInStatus.mockResolvedValueOnce({ is_opt_in: true });
+    mockedTrackEvent.mockImplementation(() => {
+      throw new Error('track failed');
+    });
+
+    await expectSaga(backfillSocialLoginMarketingConsentSaga)
+      .withState(state)
+      .dispatch(loginAction)
+      .put(setDataCollectionForMarketing(true))
+      .put(setPendingSocialLoginMarketingConsentBackfill(null))
+      .run();
   });
 });

@@ -36,7 +36,6 @@ const EXCLUDE_PATTERNS = [
   /\.md$/,
   /\.stories\.[jt]sx?$/,
   /^\.github\//,
-  /^bitrise\//,
   /^scripts\/.*\.sh$/,
 ];
 

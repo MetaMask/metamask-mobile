@@ -204,7 +204,7 @@ describe('PerpsOrderHeader', () => {
       <PerpsOrderHeader {...defaultProps} isLoading />,
     );
     const orderTypeButton = getByTestId('perps-order-header-order-type-button');
-    expect(orderTypeButton.props.disabled).toBe(true);
+    expect(orderTypeButton).toBeDisabled();
   });
 
   describe('HIP3 Asset Symbol Handling', () => {

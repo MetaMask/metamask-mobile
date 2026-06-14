@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignParticipantStatusById } from '../../../../reducers/rewards/selectors';
+import { selectCampaignParticipantStatus } from '../../../../reducers/rewards/selectors';
 import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
@@ -26,7 +26,9 @@ export const useGetCampaignParticipantStatus = (
   campaignId: string | undefined,
 ): UseGetCampaignParticipantStatusResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const status = useSelector(selectCampaignParticipantStatusById(campaignId));
+  const status = useSelector(
+    selectCampaignParticipantStatus(subscriptionId ?? undefined, campaignId),
+  );
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(
     () => !status && Boolean(subscriptionId) && Boolean(campaignId),
@@ -46,7 +48,13 @@ export const useGetCampaignParticipantStatus = (
         campaignId,
         subscriptionId,
       );
-      dispatch(setCampaignParticipantStatus({ campaignId, status: result }));
+      dispatch(
+        setCampaignParticipantStatus({
+          subscriptionId,
+          campaignId,
+          status: result,
+        }),
+      );
     } catch {
       setHasError(true);
     } finally {

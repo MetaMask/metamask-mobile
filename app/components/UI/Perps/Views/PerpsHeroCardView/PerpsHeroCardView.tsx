@@ -16,11 +16,12 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import {
   IconName,
   IconColor,
@@ -63,7 +64,6 @@ import {
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
-import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // To add a new card, add the image to the array.
@@ -95,9 +95,6 @@ const PerpsHeroCardView: React.FC = () => {
   const isReferralEnabled = useSelector(
     selectPerpsRewardsReferralCodeEnabledFlag,
   );
-
-  // Fetch season status to populate seasonId (required by useReferralDetails)
-  useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch referral details to ensure code is available for display
   useReferralDetails();
@@ -231,11 +228,9 @@ const PerpsHeroCardView: React.FC = () => {
 
           {/* Asset Info Row */}
           <View style={styles.heroCardAssetRow}>
-            <PerpsTokenLogo
-              symbol={data.asset}
-              size={14.5}
-              style={styles.assetIcon}
-            />
+            <View style={styles.assetIcon}>
+              <PerpsTokenLogo symbol={data.asset} size={14.5} />
+            </View>
             <Text
               variant={TextVariant.BodySMMedium}
               style={styles.assetName}
@@ -519,16 +514,17 @@ const PerpsHeroCardView: React.FC = () => {
       {/* Footer Button */}
       <View style={styles.footerButtonContainer}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.pnl_hero_card.share_button')}
-          startIconName={isSharing ? undefined : IconName.Share}
+          isFullWidth
+          startIconName={isSharing ? undefined : DSIconName.Share}
           onPress={handleShare}
-          loading={isSharing}
+          isLoading={isSharing}
           isDisabled={isSharing}
           testID={PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON}
-        />
+        >
+          {strings('perps.pnl_hero_card.share_button')}
+        </Button>
       </View>
     </SafeAreaView>
   );

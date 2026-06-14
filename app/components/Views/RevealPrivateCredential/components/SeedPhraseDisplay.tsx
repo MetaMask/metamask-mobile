@@ -16,6 +16,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../../ManualBackupStep1/ManualBackUpSteps.testIds';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { SeedPhraseDisplayProps } from '../types';
@@ -60,8 +61,9 @@ const SeedPhraseDisplay = ({
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               key={index}
-              ellipsizeMode="tail"
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
               maxFontSizeMultiplier={1}
               twClassName="flex-1"
               testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}

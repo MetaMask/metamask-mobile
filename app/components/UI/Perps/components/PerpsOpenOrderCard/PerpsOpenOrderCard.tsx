@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -40,7 +40,10 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 /**
@@ -144,14 +147,21 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
 
     if (!isEligible) {
       // Track geo-block screen viewed
+      const geoBlockProperties = {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
+      };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
-          .addProperties({
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
-          })
+          .addProperties(geoBlockProperties)
+          .build(),
+      );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+          .addProperties(
+            mergeAssetViewedProperties('Perps', geoBlockProperties),
+          )
           .build(),
       );
       setIsEligibilityModalVisible(true);
@@ -352,16 +362,17 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       {expanded && (
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Md}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.order.cancel_order')}
+            isFullWidth
             onPress={handleCancelPress}
             isDisabled={isLocallyCancellingRef.current || disabled}
-            loading={isLocallyCancellingRef.current || disabled}
+            isLoading={isLocallyCancellingRef.current || disabled}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
-          />
+          >
+            {strings('perps.order.cancel_order')}
+          </Button>
         </View>
       )}
 

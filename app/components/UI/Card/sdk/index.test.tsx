@@ -42,10 +42,6 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
     getSupportedTokensByChainId: jest.fn(() => []),
-    isCardHolder: jest.fn(),
-    getSupportedTokensAllowances: jest.fn(),
-    getPriorityToken: jest.fn(),
-    refreshLocalToken: jest.fn(),
     getRegistrationStatus: jest.fn(),
   })),
 }));
@@ -154,11 +150,7 @@ describe('CardSDK Context', () => {
     overrides: Partial<CardSDK> = {},
   ): Partial<CardSDK> => ({
     getSupportedTokensByChainId: jest.fn(() => []),
-    isCardHolder: jest.fn(),
-    getSupportedTokensAllowances: jest.fn(),
-    getPriorityToken: jest.fn(),
     getRegistrationStatus: jest.fn(),
-    logout: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   });
 

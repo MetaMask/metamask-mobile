@@ -3,6 +3,7 @@ export {
   DEFAULT_CHART_HEIGHT,
 } from './LivelineChart';
 export type {
+  LivelineChartRef,
   LivelineChartProps,
   LivelinePoint,
   CandlePoint,

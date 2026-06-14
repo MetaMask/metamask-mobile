@@ -26,6 +26,8 @@ import {
   BAANX_MAX_LIMIT,
   SUPPORTED_ASSET_NETWORKS,
   cardNetworkInfos,
+  caipChainIdToNetwork,
+  SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../../../../components/UI/Card/constants';
 import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
 import {
@@ -56,7 +58,6 @@ import {
   OnboardingStepResult,
   RegistrationSettings,
   RegistrationStatus,
-  WalletOperations,
   FundingAssetStatus,
   CardProviderError,
   CardProviderErrorCode,
@@ -64,8 +65,11 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawParams,
   CashbackWithdrawResponse,
+  type DelegationChallengeResponse,
   emptyCardHomeData,
+  isCardAuthTokenError,
 } from '../provider-types';
+import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
@@ -88,6 +92,10 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     context: { name: 'BaanxProvider', data: { method, ...extra } },
   };
 }
+
+const ERC20_BALANCE_OF_ABI = [
+  'function balanceOf(address account) view returns (uint256)',
+];
 
 function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
   if (error instanceof CardApiError) {
@@ -229,33 +237,25 @@ export class BaanxProvider implements ICardProvider {
     supportsPinView: true,
     supportsCashback: true,
   };
-
-  /**
-   * Applies Baanx-specific location overrides:
-   * - US users always get PIN view (regardless of base flag).
-   * - US users do not have cashback (only available outside the US).
-   */
-  resolveCapabilities(location: string): CardProviderCapabilities {
-    const isUS = location === 'us';
-    return {
-      ...this.capabilities,
-      supportsPinView: isUS || this.capabilities.supportsPinView,
-      supportsCashback: !isUS && this.capabilities.supportsCashback,
-    };
-  }
-
   private readonly service: BaanxService;
-  private readonly cardFeatureFlag: CardFeatureFlag | null;
+  private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
 
   constructor({
     service,
     cardFeatureFlag,
+    getCardFeatureFlag,
   }: {
     service: BaanxService;
     cardFeatureFlag?: CardFeatureFlag;
+    getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
   }) {
     this.service = service;
-    this.cardFeatureFlag = cardFeatureFlag ?? null;
+    this.getCardFeatureFlag = () =>
+      getCardFeatureFlag?.() ?? cardFeatureFlag ?? null;
+  }
+
+  private get cardFeatureFlag(): CardFeatureFlag | null {
+    return this.getCardFeatureFlag();
   }
 
   // -- Auth --
@@ -317,20 +317,39 @@ export class BaanxProvider implements ICardProvider {
 
   async refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens> {
     if (!tokens.refreshToken) {
-      throw new Error('No refresh token available');
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'No refresh token available',
+        401,
+      );
     }
 
-    const response = await this.service.request<CardExchangeTokenRawResponse>(
-      '/v1/auth/oauth/token',
-      {
-        method: 'POST',
-        body: {
-          grant_type: 'refresh_token',
-          refresh_token: tokens.refreshToken,
+    let response: CardExchangeTokenRawResponse;
+    try {
+      response = await this.service.request<CardExchangeTokenRawResponse>(
+        '/v1/auth/oauth/token',
+        {
+          method: 'POST',
+          body: {
+            grant_type: 'refresh_token',
+            refresh_token: tokens.refreshToken,
+          },
+          headers: { 'x-secret-key': this.service.apiKey },
         },
-        headers: { 'x-secret-key': this.service.apiKey },
-      },
-    );
+      );
+    } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        [400, 401, 403].includes(error.statusCode)
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.InvalidCredentials,
+          'Refresh token rejected',
+          error.statusCode,
+        );
+      }
+      throw mapApiError(error, 'refreshTokens');
+    }
 
     return {
       accessToken: response.access_token,
@@ -372,6 +391,16 @@ export class BaanxProvider implements ICardProvider {
     _address: string,
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
+    const swallowUnlessAuthError =
+      (logContext: string) =>
+      (err: unknown): null => {
+        if (isCardAuthTokenError(err)) {
+          throw mapApiError(err, logContext);
+        }
+        Logger.error(err as Error, getErrorContext(logContext));
+        return null;
+      };
+
     try {
       const [delegationSettings, cardDetailsResponse, user] = await Promise.all(
         [
@@ -380,26 +409,15 @@ export class BaanxProvider implements ICardProvider {
               '/v1/delegation/chain/config',
               tokens,
             )
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.delegationSettings'),
-              );
-              return null;
-            }),
+            .catch(
+              swallowUnlessAuthError('getCardHomeData.delegationSettings'),
+            ),
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.cardDetails'),
-              );
-              return null;
-            }),
-          this.service.get<UserResponse>('/v1/user', tokens).catch((err) => {
-            Logger.error(err as Error, getErrorContext('getCardHomeData.user'));
-            return null;
-          }),
+            .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
+          this.service
+            .get<UserResponse>('/v1/user', tokens)
+            .catch(swallowUnlessAuthError('getCardHomeData.user')),
         ],
       );
 
@@ -407,26 +425,62 @@ export class BaanxProvider implements ICardProvider {
         ? await this.fetchWalletDetails(tokens)
         : [];
 
-      const assets = this.mapWalletDetailsToAssets(walletDetails);
-      const primaryAsset = this.pickPrimaryAsset(assets);
+      let fundingAssets = this.mapWalletDetailsToAssets(walletDetails);
+
+      const assetsNeedingOriginalCap = fundingAssets.filter(
+        (asset) =>
+          asset.status === FundingAssetStatus.Limited &&
+          asset.chainId.startsWith('eip155:') &&
+          !SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(
+            asset.symbol?.toUpperCase() ?? '',
+          ),
+      );
+
+      if (assetsNeedingOriginalCap.length > 0) {
+        const originalCaps = await Promise.all(
+          assetsNeedingOriginalCap.map((asset) =>
+            this.#fetchOriginalSpendingCap(asset, delegationSettings),
+          ),
+        );
+
+        const capsByKey = new Map<string, string>();
+        assetsNeedingOriginalCap.forEach((asset, index) => {
+          const cap = originalCaps[index];
+          if (cap) {
+            const key = `${asset.walletAddress}-${asset.symbol}-${asset.chainId}`;
+            capsByKey.set(key, cap);
+          }
+        });
+
+        fundingAssets = fundingAssets.map((asset) => {
+          const key = `${asset.walletAddress}-${asset.symbol}-${asset.chainId}`;
+          const originalCap = capsByKey.get(key);
+          return originalCap
+            ? { ...asset, originalSpendingCap: originalCap }
+            : asset;
+        });
+      }
+
+      const primaryFundingAsset = this.pickPrimaryAsset(fundingAssets);
+
       const card = cardDetailsResponse
         ? this.mapCardDetails(cardDetailsResponse)
         : null;
       const account = user
         ? this.mapAccountStatus(user, cardDetailsResponse)
         : null;
-      const alerts = this.buildAlerts(primaryAsset, card, account);
-      const actions = this.buildActions(primaryAsset, card, account);
+      const alerts = this.buildAlerts(primaryFundingAsset, card, account);
+      const actions = this.buildActions(primaryFundingAsset, card, account);
 
-      const supportedTokens = this.buildSupportedTokens(
-        assets,
+      const availableFundingAssets = this.buildSupportedTokens(
+        fundingAssets,
         delegationSettings,
       );
 
       return {
-        primaryAsset,
-        assets,
-        supportedTokens,
+        primaryFundingAsset,
+        fundingAssets,
+        availableFundingAssets,
         card,
         account,
         alerts,
@@ -434,6 +488,9 @@ export class BaanxProvider implements ICardProvider {
         delegationSettings,
       };
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw error;
+      }
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
     }
@@ -546,21 +603,83 @@ export class BaanxProvider implements ICardProvider {
     };
   }
 
+  async fetchDelegationChallenge(
+    params: { network: string; address: string; faucet?: boolean },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationChallengeResponse> {
+    const query = new URLSearchParams({
+      network: params.network,
+      address: params.address,
+      ...(params.faucet ? { faucet: 'true' } : {}),
+    }).toString();
+
+    const response = await this.service.get<{
+      token: string;
+      expiresAt: string;
+      nonce: string;
+    }>(`/v1/delegation/token?${query}`, tokens);
+
+    return {
+      delegationToken: response.token,
+      nonce: response.nonce,
+      expiresAt: response.expiresAt,
+    };
+  }
+
+  generateCardDelegationSignatureMessage(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string {
+    const { network, address, nonce, caipChainId } = params;
+    const now = new Date();
+    const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+    const uri = `https://${domain}`;
+
+    if (network === 'solana') {
+      return `${domain} wants you to sign in with your Solana account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: 1\nNonce: ${nonce}\nIssued At: ${now.toISOString()}`;
+    }
+
+    const expirationTime = new Date(now.getTime() + 2 * 60 * 1000);
+    const chainId = caipChainId?.split(':')[1] ?? '59144';
+    return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
+  }
+
   // -- Funding Approval --
 
   async approveFunding(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
-    _wallet: WalletOperations,
   ): Promise<void> {
+    if (
+      params.txHash === undefined ||
+      params.sigHash === undefined ||
+      params.sigMessage === undefined ||
+      params.token === undefined
+    ) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'approveFunding requires txHash, sigHash, sigMessage, and delegation token',
+      );
+    }
+
+    const isSolana = params.network === 'solana';
+    const endpoint = isSolana
+      ? '/v1/delegation/solana/post-approval'
+      : '/v1/delegation/evm/post-approval';
+
     await this.service.post(
-      '/v1/delegation/evm/post-approval',
+      endpoint,
       {
-        walletAddress: params.address,
-        amount: params.amount,
-        currency: params.currency,
+        address: params.address,
         network: params.network,
-        faucet: params.faucet ?? false,
+        currency: params.currency.toLowerCase(),
+        amount: params.amount,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: params.sigMessage,
+        token: params.token,
       },
       tokens,
     );
@@ -717,7 +836,7 @@ export class BaanxProvider implements ICardProvider {
   async getOnChainAssets(address: string): Promise<CardHomeData> {
     const fallback: CardHomeData = {
       ...emptyCardHomeData(),
-      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+      actions: [{ type: 'add_funds', enabled: true }],
     };
 
     try {
@@ -744,30 +863,27 @@ export class BaanxProvider implements ICardProvider {
         scannerAddress,
       );
 
-      const assets = this.#mapOnChainAllowancesToAssets(
+      const fundingAssets = this.#mapOnChainAllowancesToAssets(
         rawAllowances,
         supportedTokens,
         lineaChainId,
         address,
       );
 
-      const primaryAsset = await this.#pickOnChainPrimaryAsset(
+      const primaryFundingAsset = await this.#pickOnChainPrimaryAsset(
         address,
-        assets,
+        fundingAssets,
         foxConnect as { global: string; us: string },
       );
 
       return {
-        primaryAsset,
-        assets,
-        supportedTokens: assets,
+        primaryFundingAsset,
+        fundingAssets,
+        availableFundingAssets: fundingAssets,
         card: null,
         account: null,
         alerts: [],
-        actions: [
-          { type: 'add_funds', enabled: true },
-          { type: 'change_asset' },
-        ],
+        actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
       };
     } catch (error) {
@@ -788,6 +904,7 @@ export class BaanxProvider implements ICardProvider {
       address: string;
       globalAllowance: ethers.BigNumber;
       usAllowance: ethers.BigNumber;
+      walletBalance: ethers.BigNumber;
     }[]
   > {
     const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
@@ -818,12 +935,35 @@ export class BaanxProvider implements ICardProvider {
         spenders,
       );
 
+    const walletBalances = await Promise.all(
+      tokenAddresses.map(async (tokenAddr) => {
+        try {
+          const erc20 = new ethers.Contract(
+            tokenAddr,
+            ERC20_BALANCE_OF_ABI,
+            provider,
+          );
+          return (await erc20.balanceOf(owner)) as ethers.BigNumber;
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            getErrorContext('fetchOnChainAllowances/balanceOf', {
+              tokenAddr,
+              owner,
+            }),
+          );
+          return ethers.BigNumber.from(0);
+        }
+      }),
+    );
+
     return tokenAddresses.map((addr, i) => {
       const [globalTuple, usTuple] = results[i];
       return {
         address: addr,
         globalAllowance: ethers.BigNumber.from(globalTuple[1]),
         usAllowance: ethers.BigNumber.from(usTuple[1]),
+        walletBalance: walletBalances[i] ?? ethers.BigNumber.from(0),
       };
     });
   }
@@ -833,6 +973,7 @@ export class BaanxProvider implements ICardProvider {
       address: string;
       globalAllowance: ethers.BigNumber;
       usAllowance: ethers.BigNumber;
+      walletBalance: ethers.BigNumber;
     }[],
     supportedTokens: (SupportedToken & { address: string })[],
     chainId: string,
@@ -848,9 +989,14 @@ export class BaanxProvider implements ICardProvider {
         const allowance = raw.usAllowance.isZero()
           ? raw.globalAllowance
           : raw.usAllowance;
+        const decimals = tokenInfo.decimals ?? 6;
         const allowanceFloat = parseFloat(
-          ethers.utils.formatUnits(allowance, tokenInfo.decimals ?? 6),
+          ethers.utils.formatUnits(allowance, decimals),
         );
+        const balanceFloat = parseFloat(
+          ethers.utils.formatUnits(raw.walletBalance, decimals),
+        );
+        const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
         return {
           symbol: tokenInfo.symbol ?? '',
@@ -859,8 +1005,8 @@ export class BaanxProvider implements ICardProvider {
           walletAddress: ownerAddress,
           decimals: tokenInfo.decimals ?? 0,
           chainId,
-          balance: '0',
-          allowance: allowance.toString(),
+          spendableBalance: availableBalance.toString(),
+          spendingCap: allowance.toString(),
           priority: 0,
           status: mapAllowanceToFundingStatus(allowanceFloat),
         } as CardFundingAsset;
@@ -961,6 +1107,96 @@ export class BaanxProvider implements ICardProvider {
     }
 
     return null;
+  }
+
+  /**
+   * Fetches the original spending cap from on-chain Approval event logs.
+   * This returns the last approval value the user set, which represents
+   * their intended spending limit before any spending occurred.
+   *
+   * @param asset - The funding asset to fetch the original cap for
+   * @param delegationSettings - Delegation settings containing contract addresses
+   * @returns The original spending cap as a human-readable string, or null if unavailable
+   */
+  async #fetchOriginalSpendingCap(
+    asset: CardFundingAsset,
+    delegationSettings: DelegationSettingsResponse | null,
+  ): Promise<string | null> {
+    if (!asset.chainId.startsWith('eip155:')) {
+      return null;
+    }
+
+    if (
+      asset.symbol &&
+      SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(asset.symbol.toUpperCase())
+    ) {
+      return null;
+    }
+
+    const cardNetwork = caipChainIdToNetwork[asset.chainId];
+    if (!cardNetwork) return null;
+
+    const rpcUrl = cardNetworkInfos[cardNetwork]?.rpcUrl;
+    if (!rpcUrl) return null;
+
+    const network = delegationSettings?.networks.find(
+      (n) =>
+        cardNetworkInfos[n.network as keyof typeof cardNetworkInfos]
+          ?.caipChainId === asset.chainId,
+    );
+    if (!network?.delegationContract) return null;
+
+    const tokenAddress = asset.stagingTokenAddress || asset.address;
+    if (!tokenAddress) return null;
+
+    try {
+      const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+      const iface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
+
+      const approvalTopic = iface.getEventTopic('Approval');
+      const ownerTopic = ethers.utils.hexZeroPad(
+        asset.walletAddress.toLowerCase(),
+        32,
+      );
+      const spenderTopic = ethers.utils.hexZeroPad(
+        network.delegationContract.toLowerCase(),
+        32,
+      );
+
+      const SPENDERS_DEPLOYED_BLOCK = 2715910;
+
+      const logs = await provider.getLogs({
+        address: tokenAddress,
+        fromBlock: SPENDERS_DEPLOYED_BLOCK,
+        toBlock: 'latest',
+        topics: [approvalTopic, ownerTopic, spenderTopic],
+      });
+
+      if (logs.length === 0) return null;
+
+      logs.sort((a, b) =>
+        b.blockNumber === a.blockNumber
+          ? b.logIndex - a.logIndex
+          : b.blockNumber - a.blockNumber,
+      );
+
+      const latestLog = logs[0];
+      const { args } = iface.parseLog(latestLog);
+      const value = args.value as ethers.BigNumber;
+
+      return ethers.utils.formatUnits(value, asset.decimals);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        getErrorContext('fetchOriginalSpendingCap', {
+          chainId: asset.chainId,
+          symbol: asset.symbol,
+        }),
+      );
+      return null;
+    }
   }
 
   // ---- Private helpers ----
@@ -1099,7 +1335,10 @@ export class BaanxProvider implements ICardProvider {
           .get<
             CardWalletExternalPriorityResponse[]
           >('/v1/wallet/external/priority', tokens)
-          .catch(() => [] as CardWalletExternalPriorityResponse[]),
+          .catch((err) => {
+            if (isCardAuthTokenError(err)) throw err;
+            return [] as CardWalletExternalPriorityResponse[];
+          }),
       ]);
 
       if (!rawWallets?.length) return [];
@@ -1151,6 +1390,9 @@ export class BaanxProvider implements ICardProvider {
 
       return enriched.sort((a, b) => a.priority - b.priority);
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw mapApiError(error, 'fetchWalletDetails');
+      }
       Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
       return [];
     }
@@ -1173,8 +1415,8 @@ export class BaanxProvider implements ICardProvider {
           walletAddress: detail.walletAddress ?? '',
           decimals: detail.tokenDetails?.decimals ?? 0,
           chainId: detail.caipChainId,
-          balance: availableBalance.toString(),
-          allowance: detail.allowance ?? '0',
+          spendableBalance: availableBalance.toString(),
+          spendingCap: detail.allowance ?? '0',
           priority: detail.priority ?? 0,
           status: mapAllowanceToFundingStatus(allowanceFloat),
           stagingTokenAddress: detail.stagingTokenAddress ?? undefined,
@@ -1191,13 +1433,13 @@ export class BaanxProvider implements ICardProvider {
     if (assets.length === 1) return assets[0];
 
     const userPriority = assets[0];
-    const userPriorityBalance = parseFloat(userPriority.balance);
+    const userPriorityBalance = parseFloat(userPriority.spendableBalance);
     if (!isNaN(userPriorityBalance) && userPriorityBalance > 0) {
       return userPriority;
     }
 
     const fallback = assets.find((a) => {
-      const balance = parseFloat(a.balance);
+      const balance = parseFloat(a.spendableBalance);
       return !isNaN(balance) && balance > 0;
     });
 
@@ -1263,12 +1505,28 @@ export class BaanxProvider implements ICardProvider {
       return alerts;
     }
 
-    if (asset?.status === FundingAssetStatus.Limited) {
-      alerts.push({
-        type: 'close_to_spending_limit',
-        dismissable: true,
-        action: { type: 'navigate', route: 'SpendingLimit' },
-      });
+    const isSpendingLimitSupported =
+      asset?.symbol &&
+      !SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(asset.symbol.toUpperCase());
+
+    if (
+      asset?.status === FundingAssetStatus.Limited &&
+      asset.chainId.startsWith('eip155:') &&
+      asset.originalSpendingCap &&
+      isSpendingLimitSupported
+    ) {
+      const originalCap = parseFloat(asset.originalSpendingCap);
+      const remaining = parseFloat(asset.spendingCap);
+      const consumed = originalCap - remaining;
+      const consumedRatio = originalCap > 0 ? consumed / originalCap : 0;
+
+      if (consumedRatio >= 0.8) {
+        alerts.push({
+          type: 'close_to_spending_limit',
+          dismissable: true,
+          action: { type: 'navigate', route: 'SpendingLimit' },
+        });
+      }
     }
 
     return alerts;
@@ -1293,23 +1551,23 @@ export class BaanxProvider implements ICardProvider {
       return [{ type: 'enable_card' }];
     }
 
-    if (card.status === CardStatus.ACTIVE && asset) {
-      return [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }];
+    if (card.status !== CardStatus.BLOCKED && asset) {
+      return [{ type: 'add_funds', enabled: true }];
     }
 
     return [];
   }
 
   /**
-   * Merges user's delegated assets with all tokens from delegation settings.
-   * Tokens already in `assets` (matched by token contract address + chainId) are kept.
-   * Additional tokens from settings are added as inactive with zero balance.
+   * Enriches funding assets with `delegationContract` from matching networks.
+   * Inactive placeholders are synthesized by `selectCardAvailableTokens` so
+   * they reflect the current wallet without requiring a refetch.
    */
   private buildSupportedTokens(
-    assets: CardFundingAsset[],
+    fundingAssets: CardFundingAsset[],
     delegationSettings: DelegationSettingsResponse | null,
   ): CardFundingAsset[] {
-    const result = [...assets];
+    const result = [...fundingAssets];
 
     if (!delegationSettings?.networks) return result;
 
@@ -1325,50 +1583,11 @@ export class BaanxProvider implements ICardProvider {
       const info =
         cardNetworkInfos[networkName as keyof typeof cardNetworkInfos];
       const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
-      const isNonProduction = network.environment !== 'production';
 
-      // Enrich existing assets with delegationContract from their matching network
       for (const existing of result) {
         if (existing.chainId === chainId && !existing.delegationContract) {
           existing.delegationContract = network.delegationContract;
         }
-      }
-
-      for (const tokenConfig of Object.values(network.tokens ?? {})) {
-        if (!tokenConfig.address) continue;
-
-        const alreadyExists = result.some(
-          (a) =>
-            a.address?.toLowerCase() === tokenConfig.address.toLowerCase() &&
-            a.chainId === chainId,
-        );
-        if (alreadyExists) continue;
-
-        const chainTokens =
-          this.cardFeatureFlag?.chains?.[chainId]?.tokens ?? [];
-        const sdkToken = chainTokens.find(
-          (t) => t?.symbol?.toLowerCase() === tokenConfig.symbol?.toLowerCase(),
-        );
-
-        result.push({
-          symbol: sdkToken?.symbol ?? tokenConfig.symbol,
-          name: sdkToken?.name ?? tokenConfig.symbol,
-          address:
-            isNonProduction && sdkToken?.address
-              ? sdkToken.address
-              : tokenConfig.address,
-          walletAddress: '',
-          decimals: tokenConfig.decimals,
-          chainId,
-          balance: '0',
-          allowance: '0',
-          priority: Number.MAX_SAFE_INTEGER,
-          status: FundingAssetStatus.Inactive,
-          stagingTokenAddress: isNonProduction
-            ? tokenConfig.address
-            : undefined,
-          delegationContract: network.delegationContract,
-        });
       }
     }
 
@@ -1425,8 +1644,8 @@ export class BaanxProvider implements ICardProvider {
             walletAddress: '',
             decimals: tokenConfig.decimals,
             chainId,
-            balance: '0',
-            allowance: '0',
+            spendableBalance: '0',
+            spendingCap: '0',
             priority: 0,
             status: FundingAssetStatus.Inactive,
             stagingTokenAddress: isNonProduction

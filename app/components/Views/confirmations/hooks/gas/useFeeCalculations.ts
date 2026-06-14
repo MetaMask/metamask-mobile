@@ -11,6 +11,7 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { calculateGasEstimate, getFeesFromHex } from '../../utils/gas';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import {
   addHexes,
   decimalToHex,
@@ -19,6 +20,7 @@ import {
 import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
+import { useIsGaslessSupported } from './useIsGaslessSupported';
 
 const HEX_ZERO = '0x0';
 
@@ -99,6 +101,11 @@ export const useFeeCalculations = (
   const estimatedBaseFee = (gasFeeEstimates as GasFeeEstimates)
     ?.estimatedBaseFee;
 
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+    transactionMeta,
+    isGaslessSupported,
+  });
   const txParamsGasPrice = transactionMeta.txParams?.gasPrice ?? HEX_ZERO;
   const receiptGasPriceHex = txReceipt?.effectiveGasPrice;
 
@@ -146,7 +153,7 @@ export const useFeeCalculations = (
 
   // Estimated fee
   const estimatedFees = useMemo(() => {
-    if (transactionMeta.isGasFeeSponsored) {
+    if (isGasFeeSponsored) {
       return {
         currentCurrencyFee: fiatFormatter(new BigNumber('0')),
         preciseCurrentCurrencyFee: '0',
@@ -170,13 +177,13 @@ export const useFeeCalculations = (
     supportsEIP1559,
     txParamsGasPrice,
     receiptGasPriceHex,
-    transactionMeta.isGasFeeSponsored,
+    isGasFeeSponsored,
     fiatFormatter,
   ]);
 
   // Max fee
   const maxFee = useMemo(() => {
-    if (transactionMeta.isGasFeeSponsored) {
+    if (isGasFeeSponsored) {
       return HEX_ZERO;
     }
     return addHexes(
@@ -194,7 +201,7 @@ export const useFeeCalculations = (
     txParamsGasPrice,
     transactionMeta.txParams.gas,
     transactionMeta.layer1GasFee,
-    transactionMeta.isGasFeeSponsored,
+    isGasFeeSponsored,
   ]);
 
   const {

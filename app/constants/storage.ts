@@ -85,6 +85,8 @@ export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
 
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
+export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBannerDismissed`;
+
 export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
@@ -92,5 +94,7 @@ export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 
 export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS`;
+
+export const PUSH_PRE_PROMPT_SHOWN = `${prefix}PUSH_PRE_PROMPT_SHOWN`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;

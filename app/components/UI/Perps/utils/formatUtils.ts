@@ -335,6 +335,27 @@ export const parseCurrencyString = (formattedValue: string): number => {
 };
 
 /**
+ * Formats a perps balance (availableBalance, totalBalance, etc.) as fiat,
+ * truncating down to 2 decimals first so the displayed value never exceeds
+ * the actual withdrawable amount. Use this for any balance that a user might
+ * try to act on (withdraw Max, insufficient-balance comparisons), so the
+ * display matches what the underlying flow can actually transact.
+ *
+ * Accepts raw numeric strings (e.g. "50.389"), formatted strings
+ * (e.g. "$1,232.39"), or numbers. See `parseCurrencyString`.
+ */
+export const formatPerpsBalance = (
+  balance: string | number | null | undefined,
+): string => {
+  if (balance === null || balance === undefined || balance === '') {
+    return formatPerpsFiat(0);
+  }
+  const numeric =
+    typeof balance === 'string' ? parseCurrencyString(balance) : balance;
+  return formatPerpsFiat(truncateToTwoDecimals(numeric));
+};
+
+/**
  * Parses formatted percentage strings back to numeric values
  * @param formattedValue - Formatted percentage string (handles %, +/- signs)
  * @returns Raw numeric percentage value

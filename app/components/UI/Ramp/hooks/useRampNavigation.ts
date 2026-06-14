@@ -10,16 +10,17 @@ import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
-import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
+import { useRampsUserRegion } from './useRampsUserRegion';
+import { useRampsCountries } from './useRampsCountries';
+import { isRampRegionDefinitivelyUnsupported } from '../utils/rampRegionEligibility';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
+import Engine from '../../../../core/Engine';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -30,20 +31,21 @@ enum RampMode {
  * Hook that returns functions to navigate to ramp flows.
  *
  * @returns An object containing navigation functions:
- * - goToBuy: Smart routing based on unified V1 settings and routing decision
+ * - goToBuy: Unified V2 routing gated by RampsController region/eligibility
  * - goToAggregator: deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
  * - goToSell: Always navigates to aggregator SELL flow
  * - goToDeposit: deprecated Always navigates to deposit flow (bypasses smart routing)
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
-  const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const geolocationLocation = useSelector(selectGeolocationLocation);
+  const { userRegion } = useRampsUserRegion();
+  const { countries } = useRampsCountries();
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
 
   const goToBuy = useCallback(
-    (
+    async (
       intent?: RampIntent,
       options?: {
         mode?: RampMode;
@@ -55,26 +57,40 @@ export const useRampNavigation = () => {
         options || {};
 
       const isUnifiedRoutingEnabled =
-        (isRampsUnifiedV1Enabled || isRampsUnifiedV2Enabled) &&
-        !overrideUnifiedRouting;
+        isRampsUnifiedV2Enabled && !overrideUnifiedRouting;
 
-      // Check error states first (applies to both V1 and V2)
+      // Eligibility gate: region + support now come from RampsController
+      // (selectUserRegion / selectCountries) plus GeolocationController,
+      // replacing the legacy smart-routing decision.
       if (isUnifiedRoutingEnabled) {
-        if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
+        // Prefer the location already in state, only refreshing when unknown.
+        let location: string | undefined = geolocationLocation;
+
+        if (!location || location === UNKNOWN_LOCATION) {
+          location = await Promise.resolve(
+            Engine.context.GeolocationController?.refreshGeolocation?.(),
+          ).catch(() => undefined);
+        }
+
+        // Unknown region: cannot determine eligibility → eligibility-failed.
+        if (!location || location === UNKNOWN_LOCATION) {
           navigation.navigate(
             ...createEligibilityFailedModalNavigationDetails(),
           );
           return;
         }
 
-        if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
+        // Region known but definitively unsupported for buy → unsupported
+        // modal. Non-blocking: we only divert on a definitive negative signal;
+        // if region/countries data is still loading or support is
+        // indeterminate, proceed to TokenSelection/BuildQuote.
+        if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
           navigation.navigate(...createRampUnsupportedModalNavigationDetails());
           return;
         }
       }
 
       // V2: If assetId is provided and V2 is enabled, route to BuildQuote
-      // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
       if (
         isRampsUnifiedV2Enabled &&
         intent?.assetId &&
@@ -85,6 +101,22 @@ export const useRampNavigation = () => {
           intent.assetId,
           rampsTokens?.allTokens ?? [],
         );
+
+        // When tokens have loaded, divert unsupported tokens to the
+        // dedicated modal so users see a clear message instead of landing
+        // on BuildQuote with a missing token name.
+        if (rampsTokens) {
+          const matchedToken = rampsTokens.allTokens.find(
+            (tok) => tok.assetId === controllerAssetId,
+          );
+          if (!matchedToken || !matchedToken.tokenSupported) {
+            navigation.navigate(
+              ...createRampUnsupportedModalNavigationDetails(),
+            );
+            return;
+          }
+        }
+
         try {
           setSelectedToken(controllerAssetId);
         } catch {
@@ -110,32 +142,7 @@ export const useRampNavigation = () => {
         return;
       }
 
-      // V1 routing logic
-      if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
-        // If no assetId is provided, route to TokenSelection
-        if (!intent?.assetId) {
-          navigation.navigate(...createTokenSelectionNavDetails());
-          return;
-        }
-
-        // If routing decision hasn't been determined yet, route to TokenSelection
-        if (rampRoutingDecision === null) {
-          navigation.navigate(...createTokenSelectionNavDetails());
-          return;
-        }
-
-        // If assetId is provided, route based on rampRoutingDecision
-        if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
-          navigation.navigate(...createDepositNavigationDetails(intent));
-        } else if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
-          navigation.navigate(
-            ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
-          );
-        }
-        return;
-      }
-
-      // When overriding unified routing or when v1 is disabled
+      // When overriding unified routing or when unified V2 is disabled
       if (mode === RampMode.DEPOSIT) {
         navigation.navigate(...createDepositNavigationDetails(intent));
       } else {
@@ -147,10 +154,11 @@ export const useRampNavigation = () => {
     [
       setSelectedToken,
       navigation,
-      isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,
-      rampRoutingDecision,
-      rampsTokens?.allTokens,
+      userRegion,
+      countries,
+      rampsTokens,
+      geolocationLocation,
     ],
   );
 

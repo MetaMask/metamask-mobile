@@ -27,6 +27,7 @@ export function* backfillSocialLoginMarketingConsentSaga() {
     yield select(
       (state: RootState) => state.security?.dataCollectionForMarketing,
     );
+  let fetchedMarketingConsent = false;
 
   try {
     if (marketingConsent !== true) {
@@ -34,17 +35,20 @@ export function* backfillSocialLoginMarketingConsentSaga() {
         ReturnType<typeof OAuthService.getMarketingOptInStatus>
       > = yield call([OAuthService, OAuthService.getMarketingOptInStatus]);
       marketingConsent = marketingOptIn.is_opt_in;
+      fetchedMarketingConsent = true;
     }
 
+    const resolvedMarketingConsent = Boolean(marketingConsent);
+
     yield call([analytics, analytics.identify], {
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(marketingConsent),
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: resolvedMarketingConsent,
     });
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
     )
       .setSaveDataRecording(true)
       .addProperties({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(marketingConsent),
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: resolvedMarketingConsent,
         is_metrics_opted_in: true,
         location: 'saga_backfill_marketing_consent',
         updated_after_onboarding: true,
@@ -55,12 +59,16 @@ export function* backfillSocialLoginMarketingConsentSaga() {
     yield call([analytics, analytics.trackEvent], event);
 
     yield call(updateDataRecordingFlag, true);
+    yield put(setDataCollectionForMarketing(resolvedMarketingConsent));
     yield put(setPendingSocialLoginMarketingConsentBackfill(null));
-    yield put(setDataCollectionForMarketing(marketingConsent));
   } catch (error) {
     Logger.error(
       error as Error,
       'Failed to backfill social login marketing consent analytics',
     );
+    if (fetchedMarketingConsent) {
+      yield put(setDataCollectionForMarketing(Boolean(marketingConsent)));
+    }
+    yield put(setPendingSocialLoginMarketingConsentBackfill(null));
   }
 }

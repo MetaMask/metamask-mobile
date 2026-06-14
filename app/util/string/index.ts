@@ -27,6 +27,16 @@ export const stripMultipleNewlines = (
   return str.replace(/\n+/g, '\n');
 };
 
+export const equalsIgnoreCase = (
+  a: string | undefined | null,
+  b: string | undefined | null,
+) => {
+  if (!a || !b) {
+    return false;
+  }
+  return a.toLowerCase() === b.toLowerCase();
+};
+
 const solidityTypes = () => {
   const types = [
     'bool',

@@ -1,21 +1,23 @@
 import React, { useCallback } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
-
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
+  AvatarBaseShape,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-import styleSheet from './TokenNetworkFilterBar.styles';
+import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
+import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 
-import { useStyles } from '../../../../hooks/useStyles';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -30,7 +32,7 @@ function TokenNetworkFilterBar({
   networkFilter,
   setNetworkFilter,
 }: Readonly<TokenNetworkFilterBarProps>) {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
   const isAllSelected =
@@ -44,34 +46,30 @@ function TokenNetworkFilterBar({
 
   const handleNetworkPress = useCallback(
     (chainId: CaipChainId) => {
-      // Radio button behavior: always set to single selection
       setNetworkFilter([chainId]);
     },
     [setNetworkFilter],
+  );
+
+  const allNetworksLabel = strings(
+    'unified_ramp.networks_filter_bar.all_networks',
   );
 
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.networksContainer}
+      contentContainerStyle={tw.style('flex-row items-center gap-2')}
+      style={tw.style('flex-grow-0')}
     >
-      <Button
-        variant={
-          isAllSelected ? ButtonVariant.Primary : ButtonVariant.Secondary
-        }
-        size={ButtonSize.Sm}
+      <ButtonToggle
+        label={allNetworksLabel}
+        isActive={isAllSelected}
         onPress={handleAllPress}
-      >
-        <Text
-          color={
-            isAllSelected ? TextColor.PrimaryInverse : TextColor.TextDefault
-          }
-          variant={TextVariant.BodyMd}
-        >
-          {strings('unified_ramp.networks_filter_bar.all_networks')}
-        </Text>
-      </Button>
+        size={ButtonSize.Md}
+        style={tw.style('rounded-xl py-2 px-3')}
+        accessibilityLabel={allNetworksLabel}
+      />
       {networks.map((chainId) => {
         const isSelected =
           !isAllSelected && (networkFilter?.includes(chainId) ?? false);
@@ -79,30 +77,44 @@ function TokenNetworkFilterBar({
           getTokenNetworkInfo(chainId);
         const displayName = depositNetworkName ?? networkName;
         return (
-          <Button
+          <ButtonToggle
             key={chainId}
-            variant={
-              isSelected ? ButtonVariant.Primary : ButtonVariant.Secondary
+            label={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <AvatarNetwork
+                  src={
+                    networkImageSource as React.ComponentProps<
+                      typeof AvatarNetwork
+                    >['src']
+                  }
+                  size={AvatarNetworkSize.Xs}
+                  name={displayName}
+                  shape={AvatarBaseShape.Square}
+                  twClassName="rounded translate-y-px"
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={
+                    isSelected
+                      ? TextColor.PrimaryInverse
+                      : TextColor.TextDefault
+                  }
+                >
+                  {displayName}
+                </Text>
+              </Box>
             }
-            size={ButtonSize.Sm}
-            startAccessory={
-              <AvatarNetwork
-                imageSource={networkImageSource}
-                name={displayName}
-                size={AvatarSize.Xs}
-              />
-            }
+            isActive={isSelected}
             onPress={() => handleNetworkPress(chainId)}
-          >
-            <Text
-              color={
-                isSelected ? TextColor.PrimaryInverse : TextColor.TextDefault
-              }
-              variant={TextVariant.BodyMd}
-            >
-              {displayName}
-            </Text>
-          </Button>
+            size={ButtonSize.Md}
+            style={tw.style('rounded-xl py-2 px-3')}
+            accessibilityLabel={displayName}
+          />
         );
       })}
     </ScrollView>

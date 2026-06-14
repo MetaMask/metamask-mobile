@@ -16,6 +16,7 @@ The Perps feature enables perpetual futures trading in MetaMask Mobile. This doc
 - **[Sentry Integration](./perps-sentry-reference.md)** - Error tracking and monitoring
 - **[MetaMetrics Events](./perps-metametrics-reference.md)** - Analytics events
 - **[Protocol Documentation](./hyperliquid/)** - HyperLiquid protocol specifics
+- **[Account Modes & Portfolio Margin (ELI5)](./hyperliquid/account-modes-and-portfolio-margin.md)** - HL's three collateral modes and how they map to our USDC-only mobile flows
 
 ## Layer Architecture
 
@@ -501,6 +502,13 @@ const prices = useLivePrices({ symbols: allSymbols, throttleMs: 2000 });
 
 // Charts: near real-time (100ms throttle)
 const prices = useLivePrices({ symbols: ['BTC'], throttleMs: 100 });
+
+// Slippage estimator: sub-second so the row reflects the size the user is
+// typing. Downstream useMemo keeps per-tick work cheap.
+const { orderBook } = usePerpsLiveOrderBook({
+  symbol,
+  throttleMs: PERFORMANCE_CONFIG.SlippageEstimateThrottleMs,
+});
 ```
 
 4. **Shared cache** ensures instant data availability for all subscribers

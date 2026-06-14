@@ -33,6 +33,7 @@ import {
   PermissionSpecificationConstraint,
   SubjectPermissions,
   ValidPermission,
+  createPermissionMiddleware,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -427,7 +428,8 @@ describe('getRpcMethodMiddleware', () => {
         ...baseEoaAccount,
       },
     ]);
-    const permissionController = new PermissionController({
+
+    const _permissionController = new PermissionController({
       messenger: new Messenger<
         'PermissionController',
         never,
@@ -448,11 +450,13 @@ describe('getRpcMethodMiddleware', () => {
       },
       unrestrictedMethods,
     });
-    const permissionMiddleware =
-      permissionController.createPermissionMiddleware({
+
+    engine.push(
+      createPermissionMiddleware({
         origin: hostMock,
-      });
-    engine.push(permissionMiddleware);
+        messenger: rootMessenger,
+      }),
+    );
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
 

@@ -463,6 +463,24 @@ export async function setupAccountsV2SupportedNetworksMock(
   });
 }
 
+/**
+ * Registers a default empty history response for Accounts API v4 transactions.
+ */
+export async function setupAccountsV4TransactionsMock(server: Mockttp) {
+  await setupMockRequest(server, {
+    requestMethod: 'GET',
+    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/transactions(\?.*)?$/,
+    response: {
+      data: [],
+      pageInfo: {
+        count: 0,
+        hasNextPage: false,
+      },
+    },
+    responseCode: 200,
+  });
+}
+
 export interface SeenProxiedRequest {
   method: string;
   proxiedUrl: string;

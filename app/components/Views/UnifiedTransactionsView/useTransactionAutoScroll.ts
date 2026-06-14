@@ -27,7 +27,7 @@ interface UseTransactionAutoScrollOptions<T> {
  */
 export function useTransactionAutoScroll<T>(
   data: T[],
-  listRef: RefObject<FlashListRef<T>>,
+  listRef: RefObject<FlashListRef<T> | null>,
   options: UseTransactionAutoScrollOptions<T>,
 ) {
   const { enabled = true, delay = 150, keyExtractor } = options;

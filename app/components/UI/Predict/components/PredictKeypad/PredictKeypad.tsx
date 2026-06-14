@@ -8,12 +8,13 @@ import Button, {
 import Keypad from '../../../../Base/Keypad';
 
 interface PredictKeypadProps {
-  isInputFocused: boolean;
+  isKeypadOpen: boolean;
   currentValue: number;
   currentValueUSDString: string;
   setCurrentValue: (value: number) => void;
   setCurrentValueUSDString: (value: string) => void;
-  setIsInputFocused: (focused: boolean) => void;
+  setIsKeypadOpen: (open: boolean) => void;
+  hideHeader?: boolean;
 }
 
 export interface PredictKeypadHandles {
@@ -25,20 +26,21 @@ export interface PredictKeypadHandles {
 const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
   (
     {
-      isInputFocused,
+      isKeypadOpen,
       currentValue,
       currentValueUSDString,
       setCurrentValue,
       setCurrentValueUSDString,
-      setIsInputFocused,
+      setIsKeypadOpen,
+      hideHeader = false,
     },
     ref,
   ) => {
     const tw = useTailwind();
 
     const handleAmountPress = useCallback(() => {
-      setIsInputFocused(true);
-    }, [setIsInputFocused]);
+      setIsKeypadOpen(true);
+    }, [setIsKeypadOpen]);
 
     const handleKeypadAmountPress = useCallback(
       (amount: number) => {
@@ -56,9 +58,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
         setCurrentValueUSDString(cleanedValue);
         setCurrentValue(parseFloat(cleanedValue) || 0);
       }
-      setIsInputFocused(false);
+      setIsKeypadOpen(false);
     }, [
-      setIsInputFocused,
+      setIsKeypadOpen,
       currentValueUSDString,
       setCurrentValueUSDString,
       setCurrentValue,
@@ -91,9 +93,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
           adjustedValue = value.replace('.', '');
         }
 
-        // Set focus flag immediately
-        if (!isInputFocused) {
-          setIsInputFocused(true);
+        // Open the keypad immediately on any keystroke
+        if (!isKeypadOpen) {
+          setIsKeypadOpen(true);
         }
 
         // Enforce 9-digit limit (ignoring non-digits). Block the change if exceeded.
@@ -127,49 +129,54 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
       },
       [
         currentValue,
-        isInputFocused,
+        isKeypadOpen,
         setCurrentValue,
         setCurrentValueUSDString,
-        setIsInputFocused,
+        setIsKeypadOpen,
       ],
     );
 
-    if (!isInputFocused) return null;
+    if (!isKeypadOpen) return null;
 
     return (
       <View style={tw.style('py-4')}>
-        <View style={tw.style('px-4 mb-3')}>
-          <View style={tw.style('flex-row space-between gap-2')}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="$20"
-              onPress={() => handleKeypadAmountPress(20)}
-              style={tw.style('flex-1 h-12')}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="$50"
-              onPress={() => handleKeypadAmountPress(50)}
-              style={tw.style('flex-1 h-12')}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="$100"
-              onPress={() => handleKeypadAmountPress(100)}
-              style={tw.style('flex-1 h-12')}
-            />
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Md}
-              label="Done"
-              onPress={handleDonePress}
-              style={tw.style('flex-1 h-12')}
-            />
+        {/* TODO: Consolidate these hardcoded quick-amount buttons with
+           PredictQuickAmounts once the legacy full-screen flow is removed.
+           See: app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictQuickAmounts/ */}
+        {!hideHeader && (
+          <View style={tw.style('px-4 mb-3')}>
+            <View style={tw.style('flex-row space-between gap-2')}>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                label="$20"
+                onPress={() => handleKeypadAmountPress(20)}
+                style={tw.style('flex-1 h-12')}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                label="$50"
+                onPress={() => handleKeypadAmountPress(50)}
+                style={tw.style('flex-1 h-12')}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                label="$100"
+                onPress={() => handleKeypadAmountPress(100)}
+                style={tw.style('flex-1 h-12')}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Md}
+                label="Done"
+                onPress={handleDonePress}
+                style={tw.style('flex-1 h-12')}
+              />
+            </View>
           </View>
-        </View>
+        )}
         <Keypad
           value={currentValueUSDString}
           onChange={handleKeypadChange}

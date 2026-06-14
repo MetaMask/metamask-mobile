@@ -5,6 +5,8 @@ import OndoCampaignPortfolioView, {
 } from './OndoCampaignPortfolioView';
 import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -19,31 +21,11 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
 });
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ title }: { title: string }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-        ),
-    };
-  },
-);
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -122,6 +104,8 @@ jest.mock('../components/RewardsInfoBanner', () => {
 jest.mock('../hooks/useGetOndoCampaignActivity');
 const mockUseGetOndoCampaignActivity = jest.mocked(useGetOndoCampaignActivity);
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -164,6 +148,7 @@ const activityDefaults = {
 describe('OndoCampaignPortfolioView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseGetOndoCampaignActivity.mockReturnValue(activityDefaults);
   });
 

@@ -4,15 +4,18 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import {
   asDetoxElement,
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { PlaywrightGestures } from '../../framework';
 
 class MetaMetricsOptIn {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
     );
@@ -34,7 +37,7 @@ class MetaMetricsOptIn {
     });
   }
 
-  get optInMetricsContent(): DetoxElement {
+  get optInMetricsContent(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
     );
@@ -56,7 +59,7 @@ class MetaMetricsOptIn {
     });
   }
 
-  get metricsCheckbox(): DetoxElement {
+  get metricsCheckbox(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX,
     );
@@ -88,9 +91,17 @@ class MetaMetricsOptIn {
         });
       },
       appium: async () => {
-        await UnifiedGestures.tap(this.iAgreeButton, {
-          description: 'Opt-in Metrics Continue Button',
-        });
+        if (await PlatformDetector.isAndroid()) {
+          await PlaywrightGestures.hideKeyboard();
+        }
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.iAgreeButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            timeout: 15_000,
+          },
+        );
       },
     });
   }

@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -11,16 +11,21 @@ import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import {
+  Box,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
+import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
+import ChartNavigationButton from '../ChartNavigationButton';
 
 export interface PriceLegacyProps {
   prices: TokenPrice[];
@@ -30,6 +35,10 @@ export interface PriceLegacyProps {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
+  chartNavigationButtons?: TimePeriod[];
+  onTimePeriodChange?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
 }
 
 const PriceLegacy = ({
@@ -40,6 +49,10 @@ const PriceLegacy = ({
   comparePrice,
   isLoading,
   timePeriod,
+  chartNavigationButtons = [],
+  onTimePeriodChange,
+  onPriceDirectionChange,
+  useAmbientColor = false,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
@@ -86,7 +99,41 @@ const PriceLegacy = ({
   const displayDiff = diff ?? priceDiff;
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
 
+  useLayoutEffect(() => {
+    if (!isLoading) {
+      onPriceDirectionChange?.(priceDiff >= 0);
+    }
+  }, [priceDiff, isLoading, onPriceDirectionChange]);
+
   const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const ambientSuccessGreen = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : theme.colors.success.default;
+
+  // Initial ambient color for chart/buttons - based on non-hover price diff
+  const initialAmbientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    return priceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, priceDiff, ambientSuccessGreen]);
+
+  // Dynamic ambient color for price diff text only - changes during chart hover
+  const ambientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+
+  const getPriceDiffStyle = () => {
+    if (ambientColor) {
+      return { color: ambientColor };
+    }
+    if (isLightMode && displayDiff > 0) {
+      return { color: LIGHT_MODE_SUCCESS_GREEN };
+    }
+    return undefined;
+  };
 
   return (
     <>
@@ -104,7 +151,7 @@ const PriceLegacy = ({
                 >
                   <SkeletonPlaceholder.Item
                     width={100}
-                    height={32}
+                    height={40}
                     borderRadius={6}
                   />
                 </SkeletonPlaceholder>
@@ -123,13 +170,14 @@ const PriceLegacy = ({
               >
                 <SkeletonPlaceholder.Item
                   width={150}
-                  height={18}
+                  height={24}
                   borderRadius={6}
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : distributedPriceData.length > 0 ? (
+          ) : (
             <Text
+              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
@@ -139,6 +187,7 @@ const PriceLegacy = ({
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
+              style={getPriceDiffStyle()}
               allowFontScaling={false}
             >
               {diffSign}
@@ -164,15 +213,37 @@ const PriceLegacy = ({
                 {date}
               </Text>
             </Text>
-          ) : null}
+          )}
         </Text>
       </View>
-      <PriceChart
-        prices={distributedPriceData}
-        priceDiff={priceDiff}
-        isLoading={isLoading}
-        onChartIndexChange={handleChartInteraction}
-      />
+      <Box twClassName="mt-3 w-full overflow-hidden">
+        <PriceChart
+          prices={distributedPriceData}
+          priceDiff={priceDiff}
+          isLoading={isLoading}
+          onChartIndexChange={handleChartInteraction}
+          chartColorOverride={initialAmbientColor}
+        />
+      </Box>
+      {chartNavigationButtons.length > 0 && onTimePeriodChange && (
+        <View style={styles.timeRangeContainer}>
+          <Box twClassName="w-full px-4">
+            <View style={styles.chartNavigationWrapper}>
+              {chartNavigationButtons.map((label) => (
+                <ChartNavigationButton
+                  key={label}
+                  label={strings(
+                    `asset_overview.chart_time_period_navigation.${label}`,
+                  )}
+                  onPress={() => onTimePeriodChange(label)}
+                  selected={timePeriod === label}
+                  selectedColor={initialAmbientColor}
+                />
+              ))}
+            </View>
+          </Box>
+        </View>
+      )}
     </>
   );
 };

@@ -28,12 +28,12 @@ describe('DepositReceiveSection', () => {
     receiptTokenAmount: '10 AETHUSDC',
   };
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders received token name', () => {
+    const { getByText } = renderWithProvider(
       <DepositReceiveSection {...defaultProps} />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Aave v3 USDC Coin')).toBeOnTheScreen();
   });
 });

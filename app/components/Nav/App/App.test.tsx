@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
@@ -37,6 +38,7 @@ const initialState: DeepPartial<RootState> = {
   settings: {
     basicFunctionalityEnabled: true,
   },
+  security: initialSecurityState,
   engine: {
     backgroundState,
   },
@@ -65,6 +67,13 @@ jest.mock('../../hooks/useOTAUpdates', () => ({
 jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
   usePredictToastRegistrations: jest.fn().mockReturnValue([]),
 }));
+
+jest.mock(
+  '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations',
+  () => ({
+    useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
+  }),
+);
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
 
@@ -123,6 +132,15 @@ jest.mock('../../Views/QRTabSwitcher', () => () => (
 jest.mock('../../UI/OptinMetrics', () => () => (
   <MockView testID="mock-optin" />
 ));
+jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
+  <MockView testID="mock-onboarding-interest-questionnaire" />
+));
+jest.mock(
+  '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire',
+  () => () => (
+    <MockView testID="mock-onboarding-crypto-experience-questionnaire" />
+  ),
+);
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
@@ -152,12 +170,6 @@ jest.mock('../../Views/LedgerSelectAccount', () => () => (
 ));
 jest.mock('../../Views/ConnectHardware/SelectHardware', () => () => (
   <MockView testID="mock-select-hw" />
-));
-jest.mock('../../Views/DetectedTokens', () => () => (
-  <MockView testID="mock-detected-tokens" />
-));
-jest.mock('../../Views/DetectedTokensConfirmation', () => () => (
-  <MockView testID="mock-detected-confirm" />
 ));
 jest.mock('../../Views/WalletActions', () => () => (
   <MockView testID="mock-wallet-actions" />
@@ -352,6 +364,7 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: () => mockAccount,
+  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
 jest.mock('../../../components/hooks/useAsyncResult', () => ({
@@ -511,7 +524,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -534,12 +547,14 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Account Group')).toBeTruthy();
-        expect(getByText('Account name')).toBeTruthy();
+        expect(getByText('Account Group')).toBeOnTheScreen();
+        expect(getByText('Account name')).toBeOnTheScreen();
       });
     });
 
     it('renders the multichain account share address screen when navigated to', async () => {
+      jest.useRealTimers();
+
       const routeState = {
         index: 0,
         routes: [
@@ -558,8 +573,10 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share address')).toBeTruthy();
+        expect(getByText('Share address')).toBeOnTheScreen();
       });
+
+      jest.useFakeTimers();
     });
   });
 
@@ -1724,7 +1741,79 @@ describe('App', () => {
       const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('mock-onboarding')).toBeTruthy();
+        expect(getByTestId('mock-onboarding')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingInterestQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-interest-questionnaire'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingCryptoExperienceQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-crypto-experience-questionnaire'),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -2230,14 +2319,6 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-trade-actions')).toBeTruthy();
-      });
-    });
-
-    it('renders DetectedTokens flow', async () => {
-      const { getByTestId } = renderAppWithModal('DetectedTokens');
-
-      await waitFor(() => {
-        expect(getByTestId('mock-detected-tokens')).toBeTruthy();
       });
     });
   });

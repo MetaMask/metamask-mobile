@@ -13,10 +13,11 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 
 class CreatePasswordView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
@@ -53,12 +54,24 @@ class CreatePasswordView {
           PlaywrightMatchers.getElementById(
             ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
           ),
-
         ios: () =>
           PlaywrightMatchers.getElementByCatchAll(
             ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
           ),
       },
+    });
+  }
+
+  get confirmPasswordVisibilityIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ),
     });
   }
 
@@ -127,7 +140,7 @@ class CreatePasswordView {
     });
   }
 
-  get iUnderstandCheckboxNewWallet(): DetoxElement {
+  get iUnderstandCheckboxNewWallet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
@@ -137,17 +150,23 @@ class CreatePasswordView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-          {
-            exact: true,
-          },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+            {
+              exact: true,
+            },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+          ),
+      },
     });
   }
 
-  get passwordError(): DetoxElement {
+  get passwordError(): EncapsulatedElementType {
     return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
 
@@ -179,11 +198,15 @@ class CreatePasswordView {
         );
       },
       appium: async () => {
-        await UnifiedGestures.typeText(this.newPasswordInput, password, {
-          // once merged, remove me and create a typeText in Playwright Gestures
-
-          description: 'Create Password New Password Input',
-        });
+        const isIOS = await PlatformDetector.isIOS();
+        await UnifiedGestures.typeText(
+          this.newPasswordInput,
+          isIOS ? `${password}\n` : password,
+          {
+            // once merged, remove me and create a typeText in Playwright Gestures
+            description: 'Create Password New Password Input',
+          },
+        );
       },
     });
   }
@@ -203,9 +226,14 @@ class CreatePasswordView {
         );
       },
       appium: async () => {
-        await UnifiedGestures.typeText(this.confirmPasswordInput, password, {
-          description: 'Create Password Confirm Password Input',
-        });
+        const isIOS = await PlatformDetector.isIOS();
+        await UnifiedGestures.typeText(
+          this.confirmPasswordInput,
+          isIOS ? `${password}\n` : password,
+          {
+            description: 'Create Password Confirm Password Input',
+          },
+        );
       },
     });
   }
@@ -251,6 +279,21 @@ class CreatePasswordView {
       appium: async () => {
         await UnifiedGestures.waitAndTap(this.passwordVisibilityIcon, {
           description: 'Create Password Password Visibility Icon',
+        });
+      },
+    });
+  }
+
+  async tapConfirmPasswordVisibilityIcon(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.tap(asDetoxElement(this.confirmPasswordVisibilityIcon), {
+          elemDescription: 'Create Password Confirm Password Visibility Icon',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.confirmPasswordVisibilityIcon, {
+          description: 'Create Password Confirm Password Visibility Icon',
         });
       },
     });

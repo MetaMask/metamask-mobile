@@ -14,8 +14,8 @@ function makeAsset(
     walletAddress: '0xwallet',
     decimals: 6,
     chainId: LINEA,
-    balance: '10',
-    allowance: '100',
+    spendableBalance: '10',
+    spendingCap: '100',
     priority: 99,
     status: FundingAssetStatus.Active,
     ...overrides,
@@ -24,9 +24,9 @@ function makeAsset(
 
 describe('reorderAssets', () => {
   it('sets selected asset to priority 1 and renumbers others in list order', () => {
-    const a = makeAsset({ symbol: 'A', priority: 1, balance: '1' });
-    const b = makeAsset({ symbol: 'B', priority: 2, balance: '2' });
-    const c = makeAsset({ symbol: 'C', priority: 3, balance: '3' });
+    const a = makeAsset({ symbol: 'A', priority: 1, spendableBalance: '1' });
+    const b = makeAsset({ symbol: 'B', priority: 2, spendableBalance: '2' });
+    const c = makeAsset({ symbol: 'C', priority: 3, spendableBalance: '3' });
 
     const result = reorderAssets(b, [a, b, c]);
 
@@ -37,9 +37,9 @@ describe('reorderAssets', () => {
   });
 
   it('matches symbol case-insensitively against the selected asset', () => {
-    const dai = makeAsset({ symbol: 'DAI', balance: '5' });
+    const dai = makeAsset({ symbol: 'DAI', spendableBalance: '5' });
     const selected = makeAsset({ symbol: 'usdc' });
-    const upperSameToken = makeAsset({ symbol: 'USDC', balance: '1' });
+    const upperSameToken = makeAsset({ symbol: 'USDC', spendableBalance: '1' });
 
     const result = reorderAssets(selected, [dai, upperSameToken, selected]);
 
@@ -87,29 +87,29 @@ describe('pickPrimaryFromReordered', () => {
   });
 
   it('returns the first asset when its balance is positive', () => {
-    const first = makeAsset({ symbol: 'FIRST', balance: '1' });
-    const second = makeAsset({ symbol: 'SECOND', balance: '99' });
+    const first = makeAsset({ symbol: 'FIRST', spendableBalance: '1' });
+    const second = makeAsset({ symbol: 'SECOND', spendableBalance: '99' });
 
     expect(pickPrimaryFromReordered([first, second])).toBe(first);
   });
 
   it('skips a zero first balance and returns the first asset with a positive balance', () => {
-    const empty = makeAsset({ symbol: 'EMPTY', balance: '0' });
-    const funded = makeAsset({ symbol: 'FUNDED', balance: '0.25' });
+    const empty = makeAsset({ symbol: 'EMPTY', spendableBalance: '0' });
+    const funded = makeAsset({ symbol: 'FUNDED', spendableBalance: '0.25' });
 
     expect(pickPrimaryFromReordered([empty, funded])).toBe(funded);
   });
 
   it('treats "0.0" as zero when searching for a positive balance', () => {
-    const zeroish = makeAsset({ symbol: 'Z', balance: '0.0' });
-    const funded = makeAsset({ symbol: 'F', balance: '1' });
+    const zeroish = makeAsset({ symbol: 'Z', spendableBalance: '0.0' });
+    const funded = makeAsset({ symbol: 'F', spendableBalance: '1' });
 
     expect(pickPrimaryFromReordered([zeroish, funded])).toBe(funded);
   });
 
   it('falls back to the first asset when all balances are zero', () => {
-    const a = makeAsset({ symbol: 'A', balance: '0' });
-    const b = makeAsset({ symbol: 'B', balance: '0.0' });
+    const a = makeAsset({ symbol: 'A', spendableBalance: '0' });
+    const b = makeAsset({ symbol: 'B', spendableBalance: '0.0' });
 
     expect(pickPrimaryFromReordered([a, b])).toBe(a);
   });

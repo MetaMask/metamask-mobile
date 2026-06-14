@@ -9,6 +9,7 @@ interface ArrangeMocksMetamaskStateOverrides {
   useExternalServices: boolean;
   isSignedIn: boolean;
   completedOnboarding: boolean;
+  needsProfilePairing: boolean;
 }
 
 const arrangeMockState = (
@@ -22,6 +23,7 @@ const arrangeMockState = (
       },
       AuthenticationController: {
         isSignedIn: stateOverrides.isSignedIn,
+        needsProfilePairing: stateOverrides.needsProfilePairing,
       },
     },
   },
@@ -38,9 +40,14 @@ const arrangeMocks = (stateOverrides: ArrangeMocksMetamaskStateOverrides) => {
   const state = arrangeMockState(stateOverrides);
 
   const mockPerformSignInAction = jest.spyOn(actions, 'performSignIn');
+  const mockRequestProfilePairingAction = jest.spyOn(
+    actions,
+    'requestProfilePairing',
+  );
   return {
     state,
     mockPerformSignInAction,
+    mockRequestProfilePairingAction,
   };
 };
 
@@ -49,6 +56,7 @@ const prerequisitesStateKeys = [
   'useExternalServices',
   'isSignedIn',
   'completedOnboarding',
+  'needsProfilePairing',
 ];
 
 const shouldAutoSignInTestCases: ArrangeMocksMetamaskStateOverrides[] = [];
@@ -73,11 +81,14 @@ const generateCombinations = (keys: string[]) => {
 const prerequisiteCombinations = generateCombinations(prerequisitesStateKeys);
 
 prerequisiteCombinations.forEach((combinedState) => {
+  // Mirror the gate in the hook:
+  //   (!isSignedIn || needsProfilePairing) &&
+  //   isUnlocked && useExternalServices && completedOnboarding
   if (
     combinedState.isUnlocked &&
     combinedState.useExternalServices &&
     combinedState.completedOnboarding &&
-    !combinedState.isSignedIn
+    (!combinedState.isSignedIn || combinedState.needsProfilePairing)
   ) {
     shouldAutoSignInTestCases.push(combinedState);
   } else {
@@ -92,6 +103,7 @@ describe('useAutoSignIn', () => {
       isSignedIn: false,
       completedOnboarding: false,
       useExternalServices: false,
+      needsProfilePairing: false,
     });
     const hook = renderHookWithProvider(() => useAutoSignIn(), {
       state,
@@ -127,12 +139,32 @@ describe('useAutoSignIn', () => {
     });
   });
 
+  it('forces sign-in when needsProfilePairing flips, even if already signed in', async () => {
+    const { state, mockPerformSignInAction } = arrangeMocks({
+      isUnlocked: true,
+      useExternalServices: true,
+      isSignedIn: true,
+      completedOnboarding: true,
+      needsProfilePairing: true,
+    });
+    const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
+
+    await act(async () => {
+      await hook.result.current.autoSignIn();
+    });
+
+    // `signIn(true)` is called: the hook passes `true` to force a fresh
+    // `performSignIn` so the controller re-runs pairing.
+    expect(mockPerformSignInAction).toHaveBeenCalled();
+  });
+
   it('calls performSignIn if new keyrings are detected', async () => {
     const stateOverrides = {
       isUnlocked: true,
       useExternalServices: true,
       isSignedIn: true,
       completedOnboarding: true,
+      needsProfilePairing: false,
     };
     const { state, mockPerformSignInAction } = arrangeMocks(stateOverrides);
     const hook = renderHookWithProvider(() => useAutoSignIn(), { state });

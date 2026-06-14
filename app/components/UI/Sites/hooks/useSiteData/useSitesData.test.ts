@@ -1,5 +1,11 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { useSitesData, clearSitesCache } from './useSitesData';
+import {
+  useSitesData,
+  clearSitesCache,
+  matchesSiteQuery,
+  extractFullDisplayUrl,
+} from './useSitesData';
+import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 import Logger from '../../../../../util/Logger';
 
 // Mock dependencies
@@ -328,5 +334,52 @@ describe('useSitesData', () => {
 
       jest.restoreAllMocks();
     });
+  });
+});
+
+describe('extractFullDisplayUrl', () => {
+  it('strips the protocol and keeps path + query', () => {
+    expect(extractFullDisplayUrl('https://app.uniswap.org/swap?chain=1')).toBe(
+      'app.uniswap.org/swap?chain=1',
+    );
+  });
+
+  it('strips www prefix', () => {
+    expect(extractFullDisplayUrl('https://www.example.com/path')).toBe(
+      'example.com/path',
+    );
+  });
+
+  it('returns just the hostname when there is no path', () => {
+    expect(extractFullDisplayUrl('https://uniswap.org')).toBe('uniswap.org');
+  });
+
+  it('returns the raw string for invalid URLs', () => {
+    expect(extractFullDisplayUrl('not a url')).toBe('not a url');
+  });
+});
+
+describe('matchesSiteQuery', () => {
+  const site: SiteData = {
+    id: '1',
+    name: 'Uniswap',
+    url: 'https://uniswap.org/swap',
+    displayUrl: 'uniswap.org',
+  };
+
+  it('matches case-insensitively against the name', () => {
+    expect(matchesSiteQuery(site, 'UNI')).toBe(true);
+  });
+
+  it('matches against the displayUrl', () => {
+    expect(matchesSiteQuery(site, 'uniswap.org')).toBe(true);
+  });
+
+  it('matches a path fragment present only in the full url', () => {
+    expect(matchesSiteQuery(site, '/swap')).toBe(true);
+  });
+
+  it('returns false when no field contains the query', () => {
+    expect(matchesSiteQuery(site, 'opensea')).toBe(false);
   });
 });

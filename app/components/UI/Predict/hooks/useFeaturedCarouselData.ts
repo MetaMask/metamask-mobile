@@ -1,9 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { predictQueries } from '../queries';
+import { selectPredictUpDownEnabledFlag } from '../selectors/featureFlags';
 import type { PredictMarket } from '../types';
+import { isCryptoUpDown } from '../utils/cryptoUpDown';
+import { filterStandaloneMarkets } from '../utils/feed';
+import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UseFeaturedCarouselDataResult {
@@ -15,6 +20,7 @@ export interface UseFeaturedCarouselDataResult {
 
 export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
   const query = useQuery(predictQueries.featuredCarousel.options());
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
 
   useEffect(() => {
     if (!query.error) return;
@@ -35,8 +41,18 @@ export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
     });
   }, [query.error]);
 
+  const markets = useMemo(() => {
+    const data = getVisiblePredictMarkets(
+      filterStandaloneMarkets(query.data ?? []),
+    );
+    if (upDownEnabled) {
+      return data;
+    }
+    return data.filter((market) => !isCryptoUpDown(market));
+  }, [query.data, upDownEnabled]);
+
   return {
-    markets: query.data ?? [],
+    markets,
     isLoading: query.isLoading,
     error: query.error?.message ?? null,
     refetch: query.refetch,

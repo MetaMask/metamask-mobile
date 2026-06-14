@@ -374,12 +374,13 @@ export const useTokenTransactions = (
   );
 
   // Determine which filter to use
+  const isNativeToken = asset.isNative || asset.isETH;
   const filter = useMemo(() => {
-    if (navSymbol.toUpperCase() !== 'ETH' && navAddress !== '') {
-      return noEthFilter;
+    if (isNativeToken) {
+      return ethFilter;
     }
-    return ethFilter;
-  }, [navSymbol, navAddress, ethFilter, noEthFilter]);
+    return noEthFilter;
+  }, [isNativeToken, ethFilter, noEthFilter]);
 
   // Check if pending tx statuses changed
   const didTxStatusesChange = useCallback(

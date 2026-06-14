@@ -14,6 +14,13 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
+  () => ({
+    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  }),
+);
+
 describe('useBridgeQuoteEvents', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -24,7 +31,7 @@ describe('useBridgeQuoteEvents', () => {
     [{ quotesRefreshCount: 0 }],
     [{ quoteFetchError: 'Error fetching quotes' }],
   ])(
-    'should not publish QuotesReceived event when bridge-controller state has %s',
+    'does not publish QuotesReceived event when bridge-controller state has %s',
     async (stateOverrides) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -42,9 +49,11 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
           }),
         { state: testState },
       );
@@ -57,6 +66,11 @@ describe('useBridgeQuoteEvents', () => {
   it.each([
     [{ hasNoQuotesAvailable: true }, ['no_quotes']],
     [{ hasInsufficientGas: true }, ['insufficient_gas_for_selected_quote']],
+    [{ isNetworkFeeUnavailable: true }, ['network_fee_unavailable']],
+    [
+      { hasInsufficientGas: true, isNetworkFeeUnavailable: true },
+      ['network_fee_unavailable'],
+    ],
     [{ hasInsufficientBalance: true }, ['insufficient_balance']],
     [{ hasTxAlert: true }, ['tx_alert']],
     [{ isPriceImpactWarningVisible: true }, ['price_impact']],
@@ -66,7 +80,7 @@ describe('useBridgeQuoteEvents', () => {
     ],
     [{}, []],
   ])(
-    'should publish QuotesReceived event with warnings: %s',
+    'publishes QuotesReceived event with warnings: %s',
     async (hookArgs, warnings) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -83,9 +97,11 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
             ...hookArgs,
           }),
         { state: testState },
@@ -99,8 +115,10 @@ describe('useBridgeQuoteEvents', () => {
       ).toHaveBeenCalledWith('Unified SwapBridge Quotes Received', {
         best_quote_provider: 'lifi_jupiter',
         can_submit: true,
+        feature_id: 'unified_swap_bridge',
         gas_included: false,
         gas_included_7702: false,
+        has_sufficient_gas_for_quote: null,
         price_impact: -0.001991570073761955,
         provider: 'lifi_jupiter',
         quoted_time_minutes: 0.08333333333333333,

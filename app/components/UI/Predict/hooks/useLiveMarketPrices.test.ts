@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { useLiveMarketPrices } from './useLiveMarketPrices';
+import {
+  __resetLiveMarketPricesCacheForTest,
+  useLiveMarketPrices,
+} from './useLiveMarketPrices';
 import Engine from '../../../../core/Engine';
 import { PriceUpdate } from '../types';
 
@@ -22,6 +25,7 @@ describe('useLiveMarketPrices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    __resetLiveMarketPricesCacheForTest();
 
     mockSubscribeToMarketPrices.mockReturnValue(mockUnsubscribe);
     mockGetConnectionStatus.mockReturnValue({
@@ -280,7 +284,7 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.lastUpdateTime).toBeNull();
     });
 
-    it('resets state when disabled', () => {
+    it('keeps cached prices when disabled so same-token resubscribe does not flicker', () => {
       let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
       mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
@@ -302,11 +306,12 @@ describe('useLiveMarketPrices', () => {
 
       rerender({ enabled: false });
 
-      expect(result.current.prices.size).toBe(0);
+      expect(result.current.prices.size).toBe(1);
+      expect(result.current.getPrice('token1')?.price).toBe(0.75);
       expect(result.current.isConnected).toBe(false);
     });
 
-    it('resets lastUpdateTime when tokenIds change to different valid value', () => {
+    it('removes prices for tokens that are no longer selected', () => {
       let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
       mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
@@ -331,8 +336,35 @@ describe('useLiveMarketPrices', () => {
 
       rerender({ tokenIds: ['token2'] });
 
-      expect(result.current.lastUpdateTime).toBeNull();
       expect(result.current.prices.size).toBe(0);
+      expect(result.current.getPrice('token1')).toBeUndefined();
+    });
+
+    it('seeds a new hook instance from the last live update cache', () => {
+      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
+      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const first = renderHook(() => useLiveMarketPrices(['token1']));
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.75, bestBid: 0.74, bestAsk: 0.76 },
+        ]);
+      });
+
+      first.unmount();
+
+      const second = renderHook(() => useLiveMarketPrices(['token1']));
+
+      expect(second.result.current.getPrice('token1')).toEqual({
+        tokenId: 'token1',
+        price: 0.75,
+        bestBid: 0.74,
+        bestAsk: 0.76,
+      });
     });
 
     it('differentiates tokenIds with commas that could otherwise collide', () => {

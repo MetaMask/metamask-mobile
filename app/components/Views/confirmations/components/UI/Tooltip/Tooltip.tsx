@@ -1,4 +1,5 @@
 import React, { ReactNode, useState } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, ViewStyle } from 'react-native';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -9,12 +10,12 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: string | ReactNode;
+  disabled?: boolean;
   iconColor?: IconColor;
   iconName?: IconName;
   iconSize?: ButtonIconSizes;
@@ -44,7 +45,7 @@ export const TooltipModal = ({
   return (
     <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
       <View style={styles.modalView}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={title}
           onClose={() => setOpen(false)}
           closeButtonProps={{
@@ -65,6 +66,7 @@ export const TooltipModal = ({
 
 const Tooltip = ({
   content,
+  disabled,
   title,
   tooltipTestId = 'info-row-tooltip',
   onPress,
@@ -76,6 +78,7 @@ const Tooltip = ({
   const [open, setOpen] = useState(false);
 
   const handlePress = () => {
+    if (disabled) return;
     setOpen(true);
     onPress?.();
   };
@@ -86,6 +89,7 @@ const Tooltip = ({
         iconColor={iconColor}
         iconName={iconName}
         onPress={handlePress}
+        disabled={disabled}
         size={iconSize}
         testID={`${tooltipTestId}-open-btn`}
         style={iconStyle}

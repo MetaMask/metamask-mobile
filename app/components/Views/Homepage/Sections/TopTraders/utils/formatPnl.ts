@@ -1,3 +1,6 @@
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { addThousandsSeparator } from '../../../../SocialLeaderboard/utils/numberFormatting';
+
 /**
  * Format a raw PnL number into a compact display string.
  *
@@ -12,19 +15,7 @@ export function formatPnl(value: number): string {
   const sign = value >= 0 ? '+' : '-';
 
   if (rounded >= 1_000) {
-    return `${sign}$${addCommas(Math.round(rounded / 1_000))}K`;
+    return `${sign}$${addThousandsSeparator(String(Math.round(rounded / 1_000)))}K`;
   }
-  return `${sign}$${addCommas(rounded)}`;
-}
-
-function addCommas(n: number): string {
-  const str = n.toString();
-  let result = '';
-  for (let i = 0; i < str.length; i++) {
-    if (i > 0 && (str.length - i) % 3 === 0) {
-      result += ',';
-    }
-    result += str[i];
-  }
-  return result;
+  return `${sign}$${addThousandsSeparator(String(rounded))}`;
 }

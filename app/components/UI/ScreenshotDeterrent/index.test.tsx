@@ -16,13 +16,16 @@ jest.mock('../../../core/PreventScreenshot', () => ({
   allow: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
-  runAfterInteractions: (callback: () => void) => callback(),
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
+  const interactionManager = {
+    runAfterInteractions: (callback: () => void) => callback(),
+  };
+  return {
+    __esModule: true,
+    default: interactionManager,
+    ...interactionManager,
+  };
+});
 
 let mockCalled = false;
 jest.mock('../../hooks/useScreenshotDeterrent', () => {
@@ -82,7 +85,7 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
         <ScreenshotDeterrent enabled={false} isSRP hasNavigation />,
       );
       // expect to be snapshot
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
       expect(PreventScreenshot.forbid).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -91,7 +94,7 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
       const { toJSON } = render(
         <ScreenshotDeterrent enabled isSRP hasNavigation />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
       expect(PreventScreenshot.forbid).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalled();
     });

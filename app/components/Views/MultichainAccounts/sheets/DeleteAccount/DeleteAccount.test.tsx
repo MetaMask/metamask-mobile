@@ -11,15 +11,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 
-// Mock Linking module
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseRoute = jest.fn();

@@ -58,6 +58,64 @@ describe('gameParser', () => {
       expect(result).toBe('nfl');
     });
 
+    it.each([
+      ['wnba', 'wnba-tor-min-2026-05-21'],
+      ['mlb', 'mlb-cle-det-2026-05-21'],
+      ['nhl', 'nhl-mon-car-2026-05-21'],
+      ['atp', 'atp-darderi-minaur-2026-05-21'],
+      ['wta', 'wta-tan-fruhvir-2026-05-22'],
+      ['itf', 'itf-par-saigo-2026-05-21'],
+    ] as const)(
+      'returns "%s" for supported league slug and tag',
+      (league, slug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: league.toUpperCase(), slug: league },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        });
+
+        const result = getEventLeague(event);
+
+        expect(result).toBe(league);
+      },
+    );
+
+    it('returns tennis league from provider metadata when league tag is missing', () => {
+      const event = createMockEvent({
+        slug: 'wta-sasnovi-ribera-2026-05-22',
+        tags: [
+          { id: '1', label: 'Tennis', slug: 'tennis' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        series: [
+          {
+            id: 'series-1',
+            slug: 'wta',
+            title: 'WTA',
+            recurrence: 'daily',
+          },
+        ],
+        teams: [
+          createMockApiTeam({
+            id: 'team-1',
+            abbreviation: 'sasnovi',
+            league: 'wta',
+          }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'ribera',
+            league: 'wta',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event);
+
+      expect(result).toBe('wta');
+    });
+
     it('returns null when missing nfl tag', () => {
       const event = createMockEvent({
         tags: [{ id: '2', label: 'Games', slug: 'games' }],
@@ -81,6 +139,52 @@ describe('gameParser', () => {
     it('returns null for invalid slug format', () => {
       const event = createMockEvent({
         slug: 'some-other-market',
+      });
+
+      const result = getEventLeague(event);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns league for suffixed child events when extended markets are enabled and teams match the league', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event, ['epl']);
+
+      expect(result).toBe('epl');
+    });
+
+    it('returns null for suffixed child events when extended markets are disabled', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
       });
 
       const result = getEventLeague(event);
@@ -126,6 +230,29 @@ describe('gameParser', () => {
 
       expect(result).toBe(false);
     });
+
+    it('returns true for suffixed child events when the league is enabled for extended markets', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = isLiveSportsEvent(event, ['epl'], ['epl']);
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('parseGameSlugTeams', () => {
@@ -138,6 +265,26 @@ describe('gameParser', () => {
         dateString: '2025-01-12',
       });
     });
+
+    it.each([
+      ['wnba', 'wnba-tor-min-2026-05-21', 'tor', 'min'],
+      ['mlb', 'mlb-cle-det-2026-05-21', 'cle', 'det'],
+      ['nhl', 'nhl-mon-car-2026-05-21', 'mon', 'car'],
+      ['atp', 'atp-darderi-minaur-2026-05-21', 'minaur', 'darderi'],
+      ['wta', 'wta-tan-fruhvir-2026-05-22', 'fruhvir', 'tan'],
+      ['itf', 'itf-par-saigo-2026-05-21', 'saigo', 'par'],
+    ] as const)(
+      'extracts participants from valid %s slug',
+      (league, slug, awayAbbreviation, homeAbbreviation) => {
+        const result = parseGameSlugTeams(slug, league);
+
+        expect(result).toEqual({
+          awayAbbreviation,
+          homeAbbreviation,
+          dateString: slug.slice(-10),
+        });
+      },
+    );
 
     it('returns null for non-NFL slug', () => {
       const result = parseGameSlugTeams('some-other-event', 'nfl');
@@ -369,6 +516,57 @@ describe('gameParser', () => {
       });
     });
 
+    it('normalizes score order for home-first leagues', () => {
+      const homeTeam: PredictSportTeam = {
+        id: 'team-home',
+        name: 'Real Madrid',
+        logo: 'https://example.com/rma.png',
+        abbreviation: 'RMA',
+        color: TEST_HEX_COLORS.WHITE_FULL,
+        alias: 'Madrid',
+      };
+
+      const awayTeam: PredictSportTeam = {
+        id: 'team-away',
+        name: 'Barcelona',
+        logo: 'https://example.com/bar.png',
+        abbreviation: 'BAR',
+        color: TEST_HEX_COLORS.PURE_BLACK,
+        alias: 'Barça',
+      };
+
+      const homeFirstTeamLookup = (
+        league: PredictSportsLeague,
+        abbr: string,
+      ): PredictSportTeam | undefined => {
+        if (league !== 'ucl') return undefined;
+        const teams: Record<string, PredictSportTeam> = {
+          rma: homeTeam,
+          bar: awayTeam,
+        };
+        return teams[abbr.toLowerCase()];
+      };
+
+      const event = createMockEvent({
+        gameId: 'game-456',
+        slug: 'ucl-rma-bar-2025-01-12',
+        title: 'Real Madrid vs Barcelona',
+        tags: [
+          { id: '1', label: 'UCL', slug: 'ucl' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        score: '2-1',
+        period: 'FT',
+        ended: true,
+      });
+
+      const result = buildGameData(event, 'ucl', homeFirstTeamLookup);
+
+      expect(result?.score).toEqual({ away: 1, home: 2, raw: '2-1' });
+      expect(result?.homeTeam).toEqual(homeTeam);
+      expect(result?.awayTeam).toEqual(awayTeam);
+    });
+
     it('returns null when gameId is missing', () => {
       const event = createMockEvent({ gameId: undefined });
 
@@ -457,6 +655,12 @@ describe('gameParser', () => {
       expect(result).toEqual({ away: 14, home: 7, raw: '14-7' });
     });
 
+    it('normalizes home-first league scores into away and home values', () => {
+      const result = parseScore('2-1', 'ucl');
+
+      expect(result).toEqual({ away: 1, home: 2, raw: '2-1' });
+    });
+
     it('returns null for undefined score', () => {
       const result = parseScore(undefined);
 
@@ -528,6 +732,68 @@ describe('gameParser', () => {
 
       expect(result.get('nfl')).toEqual(['sea', 'den']);
       expect(result.get('nba')).toEqual(['lal', 'bos']);
+    });
+
+    it('extracts teams from newly supported league events', () => {
+      const events = [
+        ['wnba', 'wnba-tor-min-2026-05-21'],
+        ['mlb', 'mlb-cle-det-2026-05-21'],
+        ['nhl', 'nhl-mon-car-2026-05-21'],
+        ['atp', 'atp-darderi-minaur-2026-05-21'],
+        ['wta', 'wta-tan-fruhvir-2026-05-22'],
+        ['itf', 'itf-par-saigo-2026-05-21'],
+      ].map(([league, slug], index) =>
+        createMockEvent({
+          id: `event-${index}`,
+          slug,
+          tags: [
+            {
+              id: `${index}-league`,
+              label: league.toUpperCase(),
+              slug: league,
+            },
+            { id: `${index}-games`, label: 'Games', slug: 'games' },
+          ],
+        }),
+      );
+
+      const result = extractNeededTeamsFromEvents(events, [
+        'wnba',
+        'mlb',
+        'nhl',
+        'atp',
+        'wta',
+        'itf',
+      ]);
+
+      expect(result.get('wnba')).toEqual(['tor', 'min']);
+      expect(result.get('mlb')).toEqual(['cle', 'det']);
+      expect(result.get('nhl')).toEqual(['mon', 'car']);
+      expect(result.get('atp')).toEqual(['minaur', 'darderi']);
+      expect(result.get('wta')).toEqual(['fruhvir', 'tan']);
+      expect(result.get('itf')).toEqual(['saigo', 'par']);
+    });
+
+    it('extracts tennis teams when provider metadata supplies the league without a league tag', () => {
+      const event = createMockEvent({
+        slug: 'wta-sasnovi-ribera-2026-05-22',
+        tags: [
+          { id: '1', label: 'Tennis', slug: 'tennis' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        series: [
+          {
+            id: 'series-1',
+            slug: 'wta',
+            title: 'WTA',
+            recurrence: 'daily',
+          },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents([event], ['wta']);
+
+      expect(result.get('wta')).toEqual(['ribera', 'sasnovi']);
     });
 
     it('deduplicates team abbreviations across events', () => {

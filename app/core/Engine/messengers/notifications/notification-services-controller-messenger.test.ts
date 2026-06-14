@@ -28,9 +28,14 @@ describe('getNotificationServicesControllerMessenger', () => {
         'AuthenticationController:isSignedIn',
         'AuthenticationController:performSignIn',
         // Push Actions
+        'NotificationServicesPushController:addPushNotificationLinks',
         'NotificationServicesPushController:enablePushNotifications',
         'NotificationServicesPushController:disablePushNotifications',
+        'NotificationServicesPushController:deletePushNotificationLinks',
         'NotificationServicesPushController:subscribeToPushNotifications',
+        // Authenticated user storage (notification preferences, etc.)
+        'AuthenticatedUserStorageService:getNotificationPreferences',
+        'AuthenticatedUserStorageService:putNotificationPreferences',
       ],
       events: [
         // Keyring Events

@@ -136,10 +136,7 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
+      screen: Routes.WALLET_VIEW,
     });
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Browser}`));

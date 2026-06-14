@@ -20,10 +20,7 @@ jobs:
 
 
       - name: Setup GitHub CLI
-        run: |
-          sudo apt update
-          sudo apt install gh
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       - name: Create Draft Release
         run: ./scripts/create-release-draft.sh ${{ github.ref_name }} ${{ github.workspace }}

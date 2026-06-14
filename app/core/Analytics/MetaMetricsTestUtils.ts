@@ -25,7 +25,7 @@ export default class MetaMetricsTestUtils {
      * This class is used to send test events to the E2E test mock server.
      * It is initialized with the `sendMetaMetricsinE2E` flag from the launch arguments.
      * To enable sending events, ensure you launch the app with the appropriate
-     * You should also ensure you have the IS_TEST test env variable set to `true`
+     * You should also ensure you have the HAS_TEST_OVERRIDES test env variable set to `true`
      * as this is the main safeguard to prevent sending events to the real server.
      */
     this.sendMetaMetricsinE2E = true;

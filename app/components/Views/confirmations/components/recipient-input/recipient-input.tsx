@@ -49,10 +49,11 @@ export const RecipientInput = ({
 
   const handleClearInput = useCallback(() => {
     updateTo('');
+    setPastedRecipient(undefined);
     setTimeout(() => {
       inputRef.current?.blur();
     }, 100);
-  }, [updateTo, inputRef]);
+  }, [updateTo, inputRef, setPastedRecipient]);
 
   const handleTextChange = useCallback(
     async (toAddress: string) => {

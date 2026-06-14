@@ -6,6 +6,8 @@ export function parseAnalyticsProperties(
   market: PredictMarket | undefined,
   outcomeToken: PredictOutcomeToken | undefined,
   entryPoint: PredictEntryPoint | undefined,
+  predictFeedTab?: string,
+  predictScreen?: string,
 ) {
   return {
     marketId: market?.id,
@@ -13,6 +15,8 @@ export function parseAnalyticsProperties(
     marketCategory: market?.category,
     marketTags: market?.tags,
     entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    ...(predictFeedTab ? { predictFeedTab } : {}),
+    ...(predictScreen ? { predictScreen } : {}),
     transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
     liquidity: market?.liquidity,
     volume: market?.volume,

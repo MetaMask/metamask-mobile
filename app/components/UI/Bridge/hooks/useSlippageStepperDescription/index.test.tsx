@@ -86,7 +86,6 @@ describe('useSlippageStepperDescription', () => {
 
       expect(result.current?.color).toBe(TextColor.ErrorDefault);
       expect(result.current?.message).toBe('bridge.lower_allowed_error [0.1]');
-      expect(result.current).toMatchSnapshot();
     });
 
     it('returns error when value is below inclusive lower allowed threshold', () => {
@@ -98,7 +97,8 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.message).toContain('bridge.lower_allowed_error');
     });
 
     it('handles exclusive lower allowed threshold', () => {
@@ -137,7 +137,6 @@ describe('useSlippageStepperDescription', () => {
       expect(result.current?.message).toBe(
         'bridge.lower_suggested_warning [0.5]',
       );
-      expect(result.current).toMatchSnapshot();
     });
 
     it('does not trigger at threshold value with exclusive', () => {
@@ -168,7 +167,6 @@ describe('useSlippageStepperDescription', () => {
       expect(result.current?.message).toBe(
         'bridge.upper_suggested_warning [5]',
       );
-      expect(result.current).toMatchSnapshot();
     });
 
     it('does not trigger at threshold value with exclusive', () => {
@@ -197,7 +195,6 @@ describe('useSlippageStepperDescription', () => {
 
       expect(result.current?.color).toBe(TextColor.ErrorDefault);
       expect(result.current?.message).toBe('bridge.upper_allowed_error [50]');
-      expect(result.current).toMatchSnapshot();
     });
 
     it('returns error when value exceeds inclusive upper allowed threshold', () => {
@@ -209,7 +206,8 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.message).toContain('bridge.upper_allowed_error');
     });
 
     it('triggers error with hasAttemptedToExceedMax flag', () => {
@@ -222,7 +220,8 @@ describe('useSlippageStepperDescription', () => {
       );
 
       // Even though value is valid, hasAttemptedToExceedMax should trigger error
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current).not.toBeUndefined();
     });
   });
 
@@ -559,7 +558,7 @@ describe('useSlippageStepperDescription', () => {
   });
 
   describe('complete snapshots for all states', () => {
-    it('snapshot for lower allowed error', () => {
+    it('returns lower allowed error description', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '0.05',
@@ -568,10 +567,11 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.message).toContain('bridge.lower_allowed_error');
     });
 
-    it('snapshot for lower suggested warning', () => {
+    it('returns lower suggested warning description', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '0.3',
@@ -580,10 +580,13 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.WarningDefault);
+      expect(result.current?.message).toContain(
+        'bridge.lower_suggested_warning',
+      );
     });
 
-    it('snapshot for upper suggested warning', () => {
+    it('returns upper suggested warning description', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '10',
@@ -592,10 +595,13 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.WarningDefault);
+      expect(result.current?.message).toContain(
+        'bridge.upper_suggested_warning',
+      );
     });
 
-    it('snapshot for upper allowed error', () => {
+    it('returns upper allowed error description', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '60',
@@ -604,10 +610,11 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.message).toContain('bridge.upper_allowed_error');
     });
 
-    it('snapshot for no violation', () => {
+    it('returns undefined for no violation', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '2',
@@ -616,10 +623,10 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current).toBeUndefined();
     });
 
-    it('snapshot with hasAttemptedToExceedMax', () => {
+    it('returns error with hasAttemptedToExceedMax', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '5',
@@ -628,7 +635,8 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current).not.toBeUndefined();
     });
   });
 });

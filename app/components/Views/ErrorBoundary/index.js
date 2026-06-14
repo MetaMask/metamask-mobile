@@ -17,6 +17,7 @@ import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
@@ -37,8 +38,9 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../core/AppConstants';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { useSelector } from 'react-redux';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -243,7 +245,7 @@ export const Fallback = (props) => {
         />
       )}
 
-      {isTest && !isOnboardingError && (
+      {isTestEnvironment && !isOnboardingError && (
         <Text
           onPress={props.showExportSeedphrase}
           variant={TextVariant.BodyMD}
@@ -472,7 +474,7 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     Linking.openURL(url);
   };
 

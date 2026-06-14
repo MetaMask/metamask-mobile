@@ -61,9 +61,13 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-// Mock PredictEntryPointContext
+const mockOpenBuySheet = jest.fn();
 jest.mock('../../contexts', () => ({
   usePredictEntryPoint: () => undefined,
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: jest.fn(),
+  }),
 }));
 
 // Mock hooks
@@ -136,6 +140,7 @@ describe('PredictMarketSingle', () => {
     mockAlert.mockClear();
     mockPlaceBuyOrder.mockClear();
     mockNavigate.mockClear();
+    mockOpenBuySheet.mockClear();
   });
 
   it('render market information correctly', () => {
@@ -152,7 +157,7 @@ describe('PredictMarketSingle', () => {
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('navigate to place bet modal when buttons are pressed', () => {
+  it('opens buy sheet when buttons are pressed', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle market={mockMarket} />,
       { state: initialState },
@@ -162,25 +167,19 @@ describe('PredictMarketSingle', () => {
     const noButton = getByText('No');
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market: mockMarket,
-        outcome: mockOutcome,
-        outcomeToken: mockOutcome.tokens[0],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      },
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[0],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market: mockMarket,
-        outcome: mockOutcome,
-        outcomeToken: mockOutcome.tokens[1],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      },
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[1],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
   });
 
@@ -344,6 +343,48 @@ describe('PredictMarketSingle', () => {
     });
   });
 
+  it('forwards predictFeedTab and predictScreen to market details navigation', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle
+        market={mockMarket}
+        predictFeedTab="world-cup"
+        predictScreen="world_cup"
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('Will Bitcoin reach $150,000 by end of year?'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        predictFeedTab: 'world-cup',
+        predictScreen: 'world_cup',
+        title: mockMarket.title,
+        image: mockMarket.image,
+      },
+    });
+  });
+
+  it('forwards predictFeedTab and predictScreen to the buy sheet', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} predictFeedTab="trending" />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('Yes'));
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[0],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      predictFeedTab: 'trending',
+    });
+  });
+
   it('display correct button text using i18n strings', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle market={mockMarket} />,
@@ -466,7 +507,7 @@ describe('PredictMarketSingle', () => {
       expect(getByText('65%')).toBeOnTheScreen();
     });
 
-    it('navigate to place bet modal when buttons are pressed in carousel mode', () => {
+    it('opens buy sheet when buttons are pressed in carousel mode', () => {
       const { getByText } = renderWithProvider(
         <PredictMarketSingle market={mockMarket} isCarousel />,
         { state: initialState },
@@ -476,25 +517,19 @@ describe('PredictMarketSingle', () => {
       const noButton = getByText('No');
 
       fireEvent.press(yesButton);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params: {
-          market: mockMarket,
-          outcome: mockOutcome,
-          outcomeToken: mockOutcome.tokens[0],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        },
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
+        market: mockMarket,
+        outcome: mockOutcome,
+        outcomeToken: mockOutcome.tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       });
 
       fireEvent.press(noButton);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params: {
-          market: mockMarket,
-          outcome: mockOutcome,
-          outcomeToken: mockOutcome.tokens[1],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        },
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
+        market: mockMarket,
+        outcome: mockOutcome,
+        outcomeToken: mockOutcome.tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       });
     });
   });

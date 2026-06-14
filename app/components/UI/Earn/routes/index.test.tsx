@@ -46,19 +46,6 @@ jest.mock('../Views/EarnMusdConversionEducationView', () => {
   return MockView;
 });
 
-jest.mock('../Views/MusdQuickConvertView', () => {
-  const MockView = () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="musd-quick-convert">
-        <Text>MUSD Quick Convert</Text>
-      </View>
-    );
-  };
-  MockView.displayName = 'MockMusdQuickConvertView';
-  return MockView;
-});
-
 jest.mock('../modals/LendingMaxWithdrawalModal', () => {
   const MockModal = () => {
     const { View, Text } = jest.requireActual('react-native');
@@ -122,7 +109,7 @@ const renderWithProviders = (component: React.ReactElement) => {
 };
 
 describe('EarnScreenStack', () => {
-  it('renders correctly', () => {
+  it('renders without crashing', () => {
     const { toJSON } = renderWithProviders(<EarnScreenStack />);
     expect(toJSON()).toBeTruthy();
   });
@@ -139,10 +126,6 @@ describe('EarnScreenStack', () => {
     expect(Routes.EARN.MUSD.CONVERSION_EDUCATION).toBeDefined();
   });
 
-  it('defines MUSD quick convert route', () => {
-    expect(Routes.EARN.MUSD.QUICK_CONVERT).toBeDefined();
-  });
-
   it('defines full screen confirmations route', () => {
     expect(
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -151,7 +134,7 @@ describe('EarnScreenStack', () => {
 });
 
 describe('EarnModalStack', () => {
-  it('renders correctly', () => {
+  it('renders without crashing', () => {
     const { toJSON } = renderWithProviders(<EarnModalStack />);
     expect(toJSON()).toBeTruthy();
   });

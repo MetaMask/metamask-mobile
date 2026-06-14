@@ -30,9 +30,6 @@ const styleSheet = (params: StyleSheetParams) => {
       flex: 1,
     },
     compactIcon: {
-      width: iconSize,
-      height: iconSize,
-      borderRadius: iconSize / 2,
       marginRight: 12,
     },
     compactInfo: {
@@ -131,6 +128,7 @@ const styleSheet = (params: StyleSheetParams) => {
       gap: 4,
     },
     autoCloseButton: {
+      alignSelf: 'center',
       borderRadius: 8,
     },
     iconButton: {

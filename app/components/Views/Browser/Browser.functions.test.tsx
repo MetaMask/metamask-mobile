@@ -17,6 +17,7 @@ import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 import Tabs from '../../UI/Tabs';
 
@@ -95,14 +96,6 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
 
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),

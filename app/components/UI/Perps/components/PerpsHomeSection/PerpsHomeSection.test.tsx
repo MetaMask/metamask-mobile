@@ -177,7 +177,7 @@ describe('PerpsHomeSection', () => {
     });
 
     it('header is not pressable when onActionPress not provided', () => {
-      const { getByText } = render(
+      const { queryByTestId, getByText } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading={false}
@@ -188,8 +188,9 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      // Header should render but not be pressable
-      expect(getByText('Test Section')).toBeTruthy();
+      getByText('Test Section');
+      // Action button must be absent when no onActionPress is provided
+      expect(queryByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON)).toBeNull();
     });
 
     it('hides action icon when loading', () => {
@@ -303,18 +304,19 @@ describe('PerpsHomeSection', () => {
 
   describe('edge cases', () => {
     it('handles empty string title', () => {
-      const { queryByText } = render(
+      const { getByTestId } = render(
         <PerpsHomeSection
           title=""
           isLoading={false}
           isEmpty={false}
           renderSkeleton={mockSkeleton}
+          testID="empty-title-section"
         >
           {mockChildren}
         </PerpsHomeSection>,
       );
 
-      expect(queryByText('')).toBeTruthy();
+      expect(getByTestId('empty-title-section')).toBeTruthy();
     });
 
     it('handles complex children', () => {

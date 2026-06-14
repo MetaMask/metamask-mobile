@@ -1,6 +1,7 @@
 import { useSearchRequest } from './useSearchRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
+import { useState } from 'react';
 import { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import-x/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
@@ -218,6 +219,126 @@ describe('useSearchRequest', () => {
     await waitFor(() => {
       expect(spySearchTokens).toHaveBeenCalledTimes(1);
     });
+
+    unmount();
+  });
+
+  it('appends results and updates cursor when loadMore is called with a next page available', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+    const page2Results = [createMockSearchResult({ symbol: 'BTC' })];
+
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockResolvedValueOnce({
+        data: page2Results,
+        pageInfo: { hasNextPage: false, endCursor: undefined },
+      } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.results).toEqual(page1Results);
+    expect(result.current.hasNextPage).toBe(true);
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(result.current.results).toEqual([...page1Results, ...page2Results]);
+    expect(result.current.hasNextPage).toBe(false);
+    expect(result.current.isLoadingMore).toBe(false);
+    expect(spySearchTokens).toHaveBeenCalledTimes(2);
+    expect(spySearchTokens).toHaveBeenNthCalledWith(
+      2,
+      expect.anything(),
+      'ETH',
+      expect.objectContaining({ after: 'cursor-page-2' }),
+    );
+
+    unmount();
+  });
+
+  it('loadMore is a no-op when hasNextPage is false', async () => {
+    const mockResults = [createMockSearchResult()];
+    spySearchTokens.mockResolvedValue({
+      data: mockResults,
+      pageInfo: { hasNextPage: false },
+    } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.hasNextPage).toBe(false);
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    // searchTokens should only have been called once (for the initial search)
+    expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    expect(result.current.results).toEqual(mockResults);
+
+    unmount();
+  });
+
+  it('resets cursor and results when query changes after a paginated search', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+    const newQueryResults = [createMockSearchResult({ symbol: 'DAI' })];
+
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockResolvedValueOnce({ data: newQueryResults } as never);
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [query, setQuery] = useState('ETH');
+      const searchRequest = useSearchRequest({
+        chainIds: ['eip155:1'],
+        query,
+        limit: 10,
+      });
+      return { ...searchRequest, setQuery };
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.hasNextPage).toBe(true);
+
+    act(() => {
+      result.current.setQuery('DAI');
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.results).toEqual(newQueryResults);
+    expect(result.current.hasNextPage).toBe(false);
 
     unmount();
   });

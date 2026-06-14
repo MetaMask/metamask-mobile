@@ -3,6 +3,7 @@ import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
@@ -31,6 +32,10 @@ describe('resolvePredictFeatureFlags', () => {
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
+      predictPortfolioEnabled: false,
+      predictHomeRedesignEnabled: false,
+      predictHomepageDiscoveryNbaChampionEnabled: true,
+      predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
 
@@ -89,6 +94,31 @@ describe('resolvePredictFeatureFlags', () => {
       enabled: true,
       minimumVersion: '1.0.0',
       highlights: [{ category: 'sports', markets: ['1', '2'] }],
+    };
+
+    const result = resolvePredictFeatureFlags({
+      remoteFeatureFlags: {
+        predictMarketHighlights: marketHighlights,
+      },
+    });
+
+    expect(result.marketHighlightsFlag).toEqual(marketHighlights);
+  });
+
+  it('passes through series ids on market highlights entries unchanged', () => {
+    mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+    const marketHighlights = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      highlights: [
+        {
+          category: 'crypto',
+          markets: ['direct-1'],
+          series: ['series-1', 'series-2'],
+        },
+        { category: 'sports', series: ['series-3'] },
+      ],
     };
 
     const result = resolvePredictFeatureFlags({
@@ -167,6 +197,7 @@ describe('resolvePredictFeatureFlags', () => {
     mockValidatedVersionGatedFeatureFlag
       .mockImplementationOnce(() => false)
       .mockImplementationOnce(() => true)
+      .mockImplementationOnce(() => false)
       .mockImplementationOnce(() => false);
 
     const result = resolvePredictFeatureFlags({
@@ -184,6 +215,395 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
+  });
+
+  describe('predictHomepageDiscoveryNbaChampionEnabled', () => {
+    it('defaults to true to preserve the NBA champion discovery row', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomepageDiscoveryNbaChampionEnabled: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(false);
+    });
+  });
+
+  describe('predictWorldCup', () => {
+    it('returns default disabled config when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+
+    it('falls back to default disabled config when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWorldCup: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            showMainFeedBanner: true,
+            showMainFeedTab: true,
+            showWorldCupScreen: true,
+            stages: [{ key: 'final', eventIds: ['1'] }],
+          },
+        },
+      });
+
+      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+
+    it('parses config with defaults when version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWorldCup: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            showMainFeedBanner: true,
+            showMainFeedTab: true,
+            showWorldCupScreen: true,
+            bannerImage: {
+              url: 'https://example.com/banner.png',
+              width: 400,
+              height: 200,
+            },
+            stages: [
+              {
+                key: 'group_stage',
+                labelKey: 'predict.world_cup.stages.group_stage',
+                eventIds: ['100', '101'],
+              },
+            ],
+          },
+        },
+      });
+
+      expect(result.predictWorldCup).toEqual({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showMainFeedBanner: true,
+        showMainFeedTab: true,
+        showWorldCupScreen: true,
+        bannerImage: {
+          url: 'https://example.com/banner.png',
+          width: 400,
+          height: 200,
+        },
+        stages: [
+          {
+            key: 'group_stage',
+            labelKey: 'predict.world_cup.stages.group_stage',
+            eventIds: ['100', '101'],
+          },
+        ],
+      });
+    });
+
+    it('falls back to default when schema parsing fails', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWorldCup: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            showMainFeedBanner: 'yes',
+          },
+        },
+      });
+
+      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+  });
+
+  describe('predictPortfolioEnabled', () => {
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(true);
+    });
+  });
+
+  describe('predictHomeRedesignEnabled', () => {
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(true);
+    });
   });
 
   describe('extendedSportsMarketsLeagues', () => {

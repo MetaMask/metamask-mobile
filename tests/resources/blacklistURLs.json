@@ -6,7 +6,6 @@
     ".*api.etherscan.io/.*",
     ".*static.metafi.codefi.network/.*",
     ".*static.cx.metamask.io/.*",
-    ".*rpc.tenderly.co/.*",
     ".*api-goerli.etherscan.io/.*",
     ".*gateway.pinata.cloud/.*",
     ".*stale.*",
@@ -22,8 +21,6 @@
     ".*exp.host/--/api/v2/development-sessions/.*",
     ".*mainnet.infura.io/v3/.*",
     ".*staking.api.cx.metamask.io/v1/pooled-staking/eligibility.*",
-    ".*token.api.cx.metamask.io/tokens/1\\?.*",
-    ".*mainnet.era.zksync.io/.*",
-    ".*api.avax.network/ext/bc/C/rpc.*"
+    ".*token.api.cx.metamask.io/tokens/1\\?.*"
   ]
 }

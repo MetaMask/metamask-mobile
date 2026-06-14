@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
-  selectRewardsSubscriptionId,
   selectCampaignParticipantOptedIn,
-} from '../../../../selectors/rewards';
-import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
+  selectOndoCampaignLeaderboardPositionById,
+} from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignLeaderboardPosition } from '../../../../reducers/rewards';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';

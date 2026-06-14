@@ -1,22 +1,22 @@
 import React, { useCallback, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
-  Text,
-  TextVariant,
-  TextColor,
   Button,
   ButtonSize,
   ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { RAMP_UNSUPPORTED_MODAL_TEST_IDS } from './RampUnsupportedModal.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export const createRampUnsupportedModalNavigationDetails =
   createNavigationDetails(
@@ -26,6 +26,8 @@ export const createRampUnsupportedModalNavigationDetails =
 
 function RampUnsupportedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -34,9 +36,10 @@ function RampUnsupportedModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isInteractable={false}
       testID={RAMP_UNSUPPORTED_MODAL_TEST_IDS.MODAL}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

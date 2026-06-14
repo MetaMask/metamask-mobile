@@ -21,6 +21,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import PredictChipList from '../PredictChipList';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
@@ -33,6 +34,8 @@ import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.type
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+
+const CHIPS_STICKY_INDEX = 2;
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -63,11 +66,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
+    childMarketIds: market.childMarketIds,
     claimable: false,
-    refetchInterval: 10000,
+    livePriceUpdates: true,
   });
   const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
+    childMarketIds: market.childMarketIds,
     claimable: true,
   });
 
@@ -77,18 +82,25 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     tabs,
     activeTab,
     handleTabPress,
+    chips,
+    groupMap,
+    activeChipKey,
+    handleChipSelect,
+    showChips,
   } = useGameDetailsTabs({
     activePositions,
     claimablePositions,
     league: game?.league,
+    outcomeGroups: market.outcomeGroups ?? [],
   });
 
-  // Index of the tab bar in the ScrollView children:
-  // [0] Scoreboard, [1] Chart, [2] TabBar (when visible)
-  const TAB_BAR_CHILD_INDEX = 2;
+  const showStickyHeader = showTabBar || showChips;
+  const hasExtendedOutcomes = tabsEnabled && groupMap.size > 0;
+  const showFooter =
+    !hasExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
   const stickyHeaderIndices = useMemo(
-    () => (showTabBar ? [TAB_BAR_CHILD_INDEX] : undefined),
-    [showTabBar],
+    () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
+    [showStickyHeader],
   );
 
   if (!outcome || !game) {
@@ -162,13 +174,23 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           />
         </Box>
 
-        {showTabBar && (
-          <PredictMarketDetailsTabBar
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabPress={handleTabPress}
-            tabTwStyle="flex-1"
-          />
+        {showStickyHeader && (
+          <Box twClassName="bg-default">
+            {showTabBar && (
+              <PredictMarketDetailsTabBar
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabPress={handleTabPress}
+              />
+            )}
+            {showChips && (
+              <PredictChipList
+                chips={chips}
+                activeChipKey={activeChipKey}
+                onChipSelect={handleChipSelect}
+              />
+            )}
+          </Box>
         )}
 
         <PredictGameDetailsTabsContent
@@ -179,19 +201,24 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           showTabBar={showTabBar}
           activePositions={activePositions}
           claimablePositions={claimablePositions}
+          groupMap={groupMap}
+          activeChipKey={activeChipKey}
+          onBetPress={onBetPress}
         />
       </ScrollView>
 
-      <PredictGameDetailsFooter
-        market={market}
-        outcome={outcome}
-        onBetPress={onBetPress}
-        onClaimPress={onClaimPress}
-        onInfoPress={handleInfoPress}
-        claimableAmount={claimableAmount}
-        isLoading={isLoading}
-        isClaimPending={isClaimPending}
-      />
+      {showFooter && (
+        <PredictGameDetailsFooter
+          market={market}
+          outcome={outcome}
+          onBetPress={onBetPress}
+          onClaimPress={onClaimPress}
+          onInfoPress={handleInfoPress}
+          claimableAmount={claimableAmount}
+          isLoading={isLoading}
+          isClaimPending={isClaimPending}
+        />
+      )}
 
       {isVisible && (
         <PredictGameAboutSheet

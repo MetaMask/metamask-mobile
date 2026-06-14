@@ -48,6 +48,7 @@ describe('TokenDetectionControllerInit', () => {
       messenger: expect.any(Object),
       disabled: false,
       getBalancesInSingleCall: expect.any(Function),
+      tokenListService: expect.any(Object),
       useTokenDetection: expect.any(Function),
       useExternalServices: expect.any(Function),
       trackMetaMetricsEvent: expect.any(Function),

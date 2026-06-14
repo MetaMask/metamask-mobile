@@ -1,10 +1,14 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, Switch, InteractionManager } from 'react-native';
 
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+  Icon,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import styles from './BackupAndSyncFeaturesToggles.styles';
 import { useBackupAndSync } from '../../../../util/identity/hooks/useBackupAndSync';
@@ -16,9 +20,6 @@ import {
   selectIsBackupAndSyncUpdateLoading,
 } from '../../../../selectors/identity';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import Icon, {
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -94,7 +95,13 @@ const FeatureToggle = ({
     <View style={styles.featureView}>
       <View style={styles.featureNameAndIcon}>
         <Icon name={section.iconName} />
-        <Text>{section.titleI18NKey}</Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+        >
+          {section.titleI18NKey}
+        </Text>
       </View>
       <Switch
         testID={section.testID}
@@ -126,10 +133,14 @@ const BackupAndSyncFeaturesToggles = () => {
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('backupAndSync.manageWhatYouSync.title')}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {strings('backupAndSync.manageWhatYouSync.description')}
         </Text>
       </View>

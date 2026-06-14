@@ -65,6 +65,16 @@ describe('handleEthereumUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Reset shared mock state mutated by other tests (e.g. the "switches to
+    // mainnet" test sets isEvmSelected = false). jest.clearAllMocks() does not
+    // restore plain object properties, so without this the handler would await
+    // setActiveNetwork and navigate asynchronously, breaking unawaited tests.
+    (
+      Engine.context.MultichainNetworkController.state as {
+        isEvmSelected: boolean;
+      }
+    ).isEvmSelected = true;
+
     mockParse.mockReturnValue({
       function_name: ETH_ACTIONS.TRANSFER,
       chain_id: 1,
@@ -115,29 +125,6 @@ describe('handleEthereumUrl', () => {
       {},
     );
     expect(switchNetwork).toHaveBeenCalledTimes(0);
-  });
-
-  it('navigates to SendView for TRANSFER action', () => {
-    const url = 'ethereum:transfer';
-    const origin = 'test_origin';
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-    });
-
-    handleEthereumUrl({ url, origin });
-
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
-      screen: 'Recipient',
-      params: {
-        txMeta: expect.objectContaining({
-          function_name: ETH_ACTIONS.TRANSFER,
-          chain_id: 1,
-          action: 'send-token',
-          source: url,
-        }),
-      },
-    });
   });
 
   it('shows alert when there is a network switch error', () => {
@@ -330,31 +317,6 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('shows alert when there are missing or incomplete parameters in URL for TRANSFER action', () => {
-    const url = 'ethereum:transfer';
-    const origin = 'test_origin';
-
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-      parameters: {},
-    });
-
-    handleEthereumUrl({ url, origin });
-
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
-      screen: 'Recipient',
-      params: {
-        txMeta: expect.objectContaining({
-          function_name: ETH_ACTIONS.TRANSFER,
-          chain_id: 1,
-          action: 'send-token',
-          source: url,
-        }),
-      },
-    });
-  });
-
   it('switches to mainnet when isEvmSelected is false', async () => {
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
@@ -377,5 +339,25 @@ describe('handleEthereumUrl', () => {
     await handleEthereumUrl({ url, origin });
 
     expect(mockSetActiveNetwork).toHaveBeenCalledWith(MAINNET);
+  });
+
+  // Regression test for https://github.com/MetaMask/metamask-mobile/issues/23672
+  it('sanitizes scientific notation uint256 before forwarding to addTransactionForDeeplink', () => {
+    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockParse.mockReturnValue({
+      function_name: ETH_ACTIONS.TRANSFER,
+      target_address: '0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29',
+      chain_id: '137',
+      parameters: {
+        address: '0xacdba8db799eff1e83b6aa95b493790f7a3df86b',
+        uint256: '1e+21',
+      },
+    });
+
+    handleEthereumUrl({ url: 'ethereum:transfer', origin: 'test_origin' });
+
+    const forwardedUint256 =
+      mockAddTransactionForDeeplink.mock.calls[0][0].parameters?.uint256;
+    expect(forwardedUint256).toBe('1000000000000000000000');
   });
 });

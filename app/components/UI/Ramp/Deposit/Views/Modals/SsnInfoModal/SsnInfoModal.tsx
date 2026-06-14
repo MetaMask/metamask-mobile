@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 
 import styleSheet from './SsnInfoModal.styles';
@@ -10,8 +11,6 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
-
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -29,7 +28,7 @@ function SsnInfoModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('deposit.ssn_info_modal.title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

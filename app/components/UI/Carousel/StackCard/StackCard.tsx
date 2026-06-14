@@ -77,7 +77,7 @@ export const StackCard: React.FC<StackCardProps> = ({
               pressed && 'bg-default-pressed',
             )
           }
-          onPress={() => onSlideClick(slide.id, slide.navigation)}
+          onPress={() => onSlideClick(slide)}
         >
           {/* Animated pressed background overlay for next card */}
           {!isCurrentCard && (

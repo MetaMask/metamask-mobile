@@ -6,7 +6,13 @@ Margin computations follow similar formulas to major centralized derivatives exc
 
 When opening a position, a margin mode is selected. _Cross margin_ is the default, which allows for maximal capital efficiency by sharing collateral between all other cross margin positions. _Isolated margin_ is also supported, which allows an asset's collateral to be constrained to that asset. Liquidations in that asset do not affect other isolated positions or cross positions. Similarly, cross liquidations or other isolated liquidations do not affect the original isolated position.&#x20;
 
-Some assets are _isolated-only_, which functions the same as isolated margin with the additional constraint that margin cannot be removed. Margin is proportionally removed as the position is closed.&#x20;
+Some assets are _strict isolated_, which functions the same as isolated margin with the additional constraint that margin cannot be removed. Margin is proportionally removed as the position is closed.&#x20;
+
+### HIP-3 Margin Modes
+
+When users have perp positions across multiple DEXs, cross margin behaves different depending on the user's account abstraction. For unified account and portfolio margin, the user's cross margin positions in DEXs with the same collateral all share margin. For standard abstraction, cross margin only applies to the assets within the same DEX. See [here](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/account-abstraction-modes) for more details.
+
+HIP-3 DEXs also support "no cross" margin mode, which allows isolated margin with margin removal enabled, but does not allow cross margin.&#x20;
 
 ### Initial Margin and Leverage
 

@@ -12,7 +12,7 @@ import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAc
 import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
 import NetworkEducationModal from '../../../../page-objects/Network/NetworkEducationModal';
 
-import Accounts from '../../../../../wdio/helpers/Accounts';
+import Accounts from '../../../../utils/Accounts';
 import { importWalletWithRecoveryPhrase } from '../../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import AddAccountBottomSheet from '../../../../page-objects/wallet/AddAccountBottomSheet';

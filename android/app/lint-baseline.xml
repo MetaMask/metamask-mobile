@@ -1,0 +1,693 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.6.0" type="baseline" client="gradle" dependencies="false" name="AGP (8.6.0)" variant="all" version="8.6.0">
+
+    <issue
+        id="MissingClass"
+        message="Class referenced in the manifest, `app.notifee.core.BlockStateBroadcastReceiver`, was not found in the project or the libraries"
+        errorLine1="   android:name=&quot;app.notifee.core.BlockStateBroadcastReceiver&quot;"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="214"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val field = CursorWindow::class.java.getDeclaredField(&quot;sCursorWindowSize&quot;)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/io/metamask/MainApplication.kt"
+            line="80"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `usesPermissionFlags` is only used in API level 31 and higher (current min is 24)"
+        errorLine1="  &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_SCAN&quot; android:usesPermissionFlags=&quot;neverForLocation&quot;/>"
+        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="27"
+            column="69"/>
+    </issue>
+
+    <issue
+        id="AppLinkUrlError"
+        message="Missing required elements/attributes for Android App Links"
+        errorLine1="   &lt;intent-filter android:autoVerify=&quot;true&quot;>"
+        errorLine2="   ^">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="123"
+            column="4"/>
+    </issue>
+
+    <issue
+        id="AppLinkUrlError"
+        message="Missing required elements/attributes for Android App Links"
+        errorLine1="        &lt;intent-filter android:autoVerify=&quot;true&quot;>"
+        errorLine2="        ^">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="166"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="CoarseFineLocation"
+        message="If you need access to FINE location, you must request both `ACCESS_FINE_LOCATION` and `ACCESS_COARSE_LOCATION`"
+        errorLine1="  &lt;uses-permission"
+        errorLine2="   ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="16"
+            column="4"/>
+    </issue>
+
+    <issue
+        id="RedundantLabel"
+        message="Redundant label can be removed"
+        errorLine1="   android:label=&quot;@string/app_name&quot;"
+        errorLine2="   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="68"
+            column="4"/>
+    </issue>
+
+    <issue
+        id="UnspecifiedRegisterReceiverFlag"
+        message="`receiver` is missing `RECEIVER_EXPORTED` or `RECEIVER_NOT_EXPORTED` flag for unprotected broadcasts registered for an IntentFilter that cannot be inspected by lint"
+        errorLine1="            super.registerReceiver(receiver, filter)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/io/metamask/MainApplication.kt"
+            line="68"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LockedOrientationActivity"
+        message="Expecting `android:screenOrientation=&quot;unspecified&quot;` or `&quot;fullSensor&quot;` for this activity so the user can use the application in any orientation and provide a great experience on Chrome OS devices"
+        errorLine1="   android:screenOrientation=&quot;portrait&quot;"
+        errorLine2="   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="71"
+            column="4"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
+        errorLine1="   android:screenOrientation=&quot;portrait&quot;"
+        errorLine2="   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="71"
+            column="4"/>
+    </issue>
+
+    <issue
+        id="PermissionImpliesUnsupportedChromeOsHardware"
+        message="Permission exists without corresponding hardware `&lt;uses-feature android:name=&quot;android.hardware.camera&quot; required=&quot;false&quot;>` tag"
+        errorLine1=" &lt;uses-permission android:name=&quot;android.permission.CAMERA&quot; />"
+        errorLine2="  ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="8"
+            column="3"/>
+    </issue>
+
+    <issue
+        id="TrustAllX509TrustManager"
+        message="`checkServerTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.bouncycastle/bcpkix-jdk15to18/1.78.1/5884ee847542641d04abfbfdeca3446d0300670b/bcpkix-jdk15to18-1.78.1.jar"/>
+    </issue>
+
+    <issue
+        id="TrustAllX509TrustManager"
+        message="`checkClientTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
+        <location
+            file="$GRADLE_USER_HOME/caches/8.10.2/transforms/4ba3ccc923652cd2d42df2dd70710f9e/transformed/out/jars/classes.jar"/>
+    </issue>
+
+    <issue
+        id="TrustAllX509TrustManager"
+        message="`checkServerTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
+        <location
+            file="$GRADLE_USER_HOME/caches/8.10.2/transforms/4ba3ccc923652cd2d42df2dd70710f9e/transformed/out/jars/classes.jar"/>
+    </issue>
+
+    <issue
+        id="DataExtractionRules"
+        message="The attribute `android:allowBackup` is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute `android:dataExtractionRules` specifying an `@xml` resource which configures cloud backups and device transfers on Android 12 and higher."
+        errorLine1="  android:allowBackup=&quot;false&quot;"
+        errorLine2="                       ~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="55"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_astronaut` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_astronaut.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_bg` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_bg.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_ethlogo` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_ethlogo.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_fox` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_fox.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_foxbadge` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_foxbadge.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_frame` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_frame.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_lock` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_lock.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_metamaskname` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_metamaskname.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_mminstapay` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_mminstapay.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_mminstapayselected` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_mminstapayselected.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_opensealogoflatcoloredblue` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_opensealogoflatcoloredblue.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_paymentchannelwatermark` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_paymentchannelwatermark.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_paymentchannelwelcome` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_paymentchannelwelcome.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_selectedwalleticon` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_selectedwalleticon.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_syncicon` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_syncicon.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.app_images_walleticon` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/app_images_walleticon.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.bool.com_braze_firebase_cloud_messaging_registration_enabled` appears to be unused"
+        errorLine1="  &lt;bool translatable=&quot;false&quot; name=&quot;com_braze_firebase_cloud_messaging_registration_enabled&quot;>true&lt;/bool>"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/braze.xml"
+            line="12"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.com_braze_firebase_cloud_messaging_sender_id` appears to be unused"
+        errorLine1="  &lt;string translatable=&quot;false&quot; name=&quot;com_braze_firebase_cloud_messaging_sender_id&quot;>@string/gcm_defaultSenderId&lt;/string>"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/braze.xml"
+            line="14"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.bool.com_braze_fallback_firebase_cloud_messaging_service_enabled` appears to be unused"
+        errorLine1="  &lt;bool name=&quot;com_braze_fallback_firebase_cloud_messaging_service_enabled&quot;>true&lt;/bool>"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/braze.xml"
+            line="17"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.com_braze_fallback_firebase_cloud_messaging_service_classpath` appears to be unused"
+        errorLine1="  &lt;string name=&quot;com_braze_fallback_firebase_cloud_messaging_service_classpath&quot;>io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService&lt;/string>"
+        errorLine2="          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/braze.xml"
+            line="18"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.bool.com_braze_handle_push_deep_links_automatically` appears to be unused"
+        errorLine1="  &lt;bool name=&quot;com_braze_handle_push_deep_links_automatically&quot;>true&lt;/bool>"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/braze.xml"
+            line="21"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.com_braze_push_small_notification_icon` appears to be unused"
+        errorLine1="  &lt;drawable name=&quot;com_braze_push_small_notification_icon&quot;>@mipmap/ic_notification_small&lt;/drawable>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/braze.xml"
+            line="24"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.integer.react_native_dev_server_port` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.integer.react_native_dev_server_port` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.com_braze_api_key` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.com_braze_api_key` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.com_braze_custom_endpoint` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.com_braze_custom_endpoint` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.lightgray` appears to be unused"
+        errorLine1=" &lt;color name=&quot;lightgray&quot;>#EBEBED&lt;/color>"
+        errorLine2="        ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="6"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.alertTextColor` appears to be unused"
+        errorLine1=" &lt;color name=&quot;alertTextColor&quot;>#000000&lt;/color>"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="7"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.alertBackground` appears to be unused"
+        errorLine1=" &lt;color name=&quot;alertBackground&quot;>#FFFFFF&lt;/color>"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="8"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.fox` appears to be unused">
+        <location
+            file="src/main/res/drawable/fox.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.mipmap.ic_notification` appears to be unused">
+        <location
+            file="src/main/res/mipmap-hdpi/ic_notification.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.layout.launch_screen` appears to be unused"
+        errorLine1="&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/layout/launch_screen.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.node_modules_reactnativeflashmessage_src_icons_fm_icon_danger` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/node_modules_reactnativeflashmessage_src_icons_fm_icon_danger.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.node_modules_reactnativeflashmessage_src_icons_fm_icon_info` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/node_modules_reactnativeflashmessage_src_icons_fm_icon_info.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.node_modules_reactnativeflashmessage_src_icons_fm_icon_success` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/node_modules_reactnativeflashmessage_src_icons_fm_icon_success.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.node_modules_reactnativeflashmessage_src_icons_fm_icon_warning` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/node_modules_reactnativeflashmessage_src_icons_fm_icon_warning.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.node_modules_reactnavigationstack_src_views_assets_backicon` appears to be unused">
+        <location
+            file="src/main/res/drawable-hdpi/node_modules_reactnavigationstack_src_views_assets_backicon.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.node_modules_reactnavigationstack_src_views_assets_backiconmask` appears to be unused">
+        <location
+            file="src/main/res/drawable-mdpi/node_modules_reactnavigationstack_src_views_assets_backiconmask.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.AlertDialogTheme` appears to be unused"
+        errorLine1=" &lt;style name=&quot;AlertDialogTheme&quot; parent=&quot;Theme.AppCompat.Light.Dialog.Alert&quot;>"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/styles.xml"
+            line="16"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.AlertButtonStyle` appears to be unused"
+        errorLine1="    &lt;style name=&quot;AlertButtonStyle&quot; parent=&quot;Widget.AppCompat.Button.ButtonBar.AlertDialog&quot;>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/styles.xml"
+            line="23"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="IconLauncherShape"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="src/main/res/mipmap-hdpi/ic_launcher.png"/>
+    </issue>
+
+    <issue
+        id="IconLauncherShape"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="src/main/res/mipmap-mdpi/ic_launcher.png"/>
+    </issue>
+
+    <issue
+        id="IconLauncherShape"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="src/main/res/mipmap-xhdpi/ic_launcher.png"/>
+    </issue>
+
+    <issue
+        id="IconLauncherShape"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="src/main/res/mipmap-xxhdpi/ic_launcher.png"/>
+    </issue>
+
+    <issue
+        id="IconLauncherShape"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="src/main/res/mipmap-xxxhdpi/ic_launcher.png"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive icon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive roundIcon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="IconDipSize"
+        message="The image `splash.png` varies significantly in its density-independent (dip) size across the various density versions: mipmap-hdpi/splash.png: 107x107 dp (160x160 px), mipmap-mdpi/splash.png: 160x160 dp (160x160 px), mipmap-xhdpi/splash.png: 160x160 dp (320x320 px), mipmap-xxhdpi/splash.png: 160x160 dp (480x480 px), mipmap-xxxhdpi/splash.png: 160x160 dp (640x640 px)">
+        <location
+            file="src/main/res/mipmap-hdpi/splash.png"/>
+        <location
+            file="src/main/res/mipmap-xxxhdpi/splash.png"/>
+        <location
+            file="src/main/res/mipmap-xxhdpi/splash.png"/>
+        <location
+            file="src/main/res/mipmap-xhdpi/splash.png"/>
+        <location
+            file="src/main/res/mipmap-mdpi/splash.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `fox.png` icon has identical contents in the following configuration folders: drawable-hdpi, drawable-night-hdpi">
+        <location
+            file="src/main/res/drawable-night-hdpi/fox.png"/>
+        <location
+            file="src/main/res/drawable-hdpi/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `fox.png` icon has identical contents in the following configuration folders: drawable-ldpi, drawable-night-ldpi">
+        <location
+            file="src/main/res/drawable-night-ldpi/fox.png"/>
+        <location
+            file="src/main/res/drawable-ldpi/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `fox.png` icon has identical contents in the following configuration folders: drawable-mdpi, drawable-night-mdpi">
+        <location
+            file="src/main/res/drawable-night-mdpi/fox.png"/>
+        <location
+            file="src/main/res/drawable-mdpi/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `fox.png` icon has identical contents in the following configuration folders: drawable-night, drawable">
+        <location
+            file="src/main/res/drawable/fox.png"/>
+        <location
+            file="src/main/res/drawable-night/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `fox.png` icon has identical contents in the following configuration folders: drawable-night-xhdpi, drawable-xhdpi">
+        <location
+            file="src/main/res/drawable-xhdpi/fox.png"/>
+        <location
+            file="src/main/res/drawable-night-xhdpi/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `fox.png` icon has identical contents in the following configuration folders: drawable-night-xxhdpi, drawable-xxhdpi">
+        <location
+            file="src/main/res/drawable-xxhdpi/fox.png"/>
+        <location
+            file="src/main/res/drawable-night-xxhdpi/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `fox.png` icon has identical contents in the following configuration folders: drawable-night-xxxhdpi, drawable-xxxhdpi">
+        <location
+            file="src/main/res/drawable-xxxhdpi/fox.png"/>
+        <location
+            file="src/main/res/drawable-night-xxxhdpi/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicatesConfig"
+        message="The `splash.png` icon has identical contents in the following configuration folders: mipmap-hdpi, mipmap-mdpi">
+        <location
+            file="src/main/res/mipmap-mdpi/splash.png"/>
+        <location
+            file="src/main/res/mipmap-hdpi/splash.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/fox.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/fox.png"/>
+    </issue>
+
+    <issue
+        id="IconDensities"
+        message="Missing the following drawables in `drawable-hdpi`: app_images_astronaut.png, app_images_bg.png, app_images_ethlogo.png, app_images_fox.png, app_images_foxbadge.png... (16 more)">
+        <location
+            file="src/main/res/drawable-hdpi"/>
+    </issue>
+
+    <issue
+        id="IconDensities"
+        message="Missing the following drawables in `drawable-xhdpi`: app_images_astronaut.png, app_images_bg.png, app_images_ethlogo.png, app_images_fox.png, app_images_foxbadge.png... (12 more)">
+        <location
+            file="src/main/res/drawable-xhdpi"/>
+    </issue>
+
+    <issue
+        id="IconDensities"
+        message="Missing the following drawables in `drawable-xxhdpi`: app_images_astronaut.png, app_images_bg.png, app_images_ethlogo.png, app_images_fox.png, app_images_foxbadge.png... (12 more)">
+        <location
+            file="src/main/res/drawable-xxhdpi"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="    &lt;ImageView android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;match_parent&quot; android:src=&quot;@drawable/fox&quot; android:scaleType=&quot;center&quot; />"
+        errorLine2="     ~~~~~~~~~">
+        <location
+            file="src/main/res/layout-night/launch_screen.xml"
+            line="5"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="    &lt;ImageView android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;match_parent&quot; android:src=&quot;@drawable/fox&quot; android:scaleType=&quot;center&quot; />"
+        errorLine2="     ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/launch_screen.xml"
+            line="5"
+            column="6"/>
+    </issue>
+
+</issues>

@@ -4,3 +4,6 @@ export {
   PredictPositionRow,
   PredictPositionRowSkeleton,
 } from './PredictPositionRow';
+export { default as HomepagePredictTrendingCarousel } from './HomepagePredictTrendingCarousel';
+export { default as HomepagePredictTrendingMarkets } from './HomepagePredictTrendingMarkets';
+export { default as HomepagePredictPositions } from './HomepagePredictPositions';

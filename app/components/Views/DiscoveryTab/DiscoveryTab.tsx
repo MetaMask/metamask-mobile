@@ -8,6 +8,7 @@ import {
 import { useSelector } from 'react-redux';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
@@ -22,10 +23,12 @@ import UrlAutocomplete, {
   AutocompleteSearchResult,
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TokenDiscovery } from '../TokenDiscovery';
 import { noop } from 'lodash';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SessionENSNames } from '../BrowserTab/types';
 
 // Stable empty references to prevent unnecessary re-renders

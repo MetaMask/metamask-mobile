@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - 'release/*'
   workflow_dispatch:
     inputs:
       description:
@@ -40,6 +39,11 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
+      performance_tags:
+        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank = run all. "[]" = skip all (PR with no relevant changes).'
+        required: false
+        type: string
+        default: ''
   workflow_call:
     inputs:
       description:
@@ -73,21 +77,37 @@ on:
         required: false
         type: string
       build_variant:
-        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        description: 'BrowserStack build profile (e2e = build-e2e, works on feature branches; rc = build-rc, release branches only; exp = experimental)'
         required: false
         type: string
-        default: 'rc'
+        default: 'e2e'
+      performance_tags:
+        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank = run all. "[]" = skip all (PR with no relevant changes).'
+        required: false
+        type: string
+        default: ''
+      performance_tags_reasoning:
+        description: 'Human-readable explanation of why performance tags were selected'
+        required: false
+        type: string
+        default: ''
+      pr_number:
+        description: 'Pull request number for posting results as a PR comment (workflow_call only)'
+        required: false
+        type: string
+        default: ''
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
   actions: write
+  pull-requests: write
 
 concurrency:
-  # Include build_variant so experimental (exp) and release/direct (rc) don't share the same
-  # queue — avoids "Build Apps" (direct/release) and experimental runs canceling each other.
+  # Include build_variant so e2e, experimental (exp), and release/direct (rc) don't share the same
+  # queue — avoids "Build Apps" (direct/release) and e2e/experimental runs canceling each other.
   # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'rc' }}
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'e2e' }}
   # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
   cancel-in-progress: false
 
@@ -98,12 +118,13 @@ env:
   TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
   TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
   TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+  TEST_SRP_4: ${{ secrets.TEST_SRP_4 }}
   E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
   determine-branch-name:
-    name: Determine Branch Name for Bitrise
+    name: Determine Branch Name
     runs-on: ubuntu-latest
     outputs:
       branch_name: ${{ steps.get-branch.outputs.branch_name }}
@@ -134,7 +155,7 @@ jobs:
           fi
 
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "Branch for Bitrise: $BRANCH_NAME"
+          echo "Branch: $BRANCH_NAME"
 
   read-device-matrix:
     name: Read Device Matrix
@@ -142,6 +163,7 @@ jobs:
     needs: [determine-branch-name]
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
+      android_mm_connect_matrix: ${{ steps.read-matrix.outputs.android_mm_connect_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
     steps:
       - name: Checkout code
@@ -151,25 +173,36 @@ jobs:
         id: read-matrix
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           FILE="tests/performance/device-matrix.json"
 
-          # Push to main or release branches: Use only "low" category devices
-          # Schedule and workflow_dispatch: Use all devices
-          if [ "${{ github.event_name }}" = "push" ]; then
-            FILTER='[.[] | select(.category == "low")]'
-            echo "Limited mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
+          # PRs: run the AI-selected performance tests on Android low profile only.
+          # Pushes keep the previous low-device behavior to control cost and flakes.
+          # Schedule and workflow_dispatch use the full device matrix.
+          if [ -n "$PR_NUMBER" ]; then
+            ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
+            ANDROID_MM_CONNECT_MATRIX="$ANDROID_MATRIX"
+            IOS_MATRIX='[]'
+            echo "PR mode: Android low category devices only (PR: $PR_NUMBER, branch: $BRANCH_NAME)"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
+            ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
+            IOS_MATRIX=$(jq '[.ios_devices[] | select(.category == "low")]' "$FILE")
+            echo "Push mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           else
-            FILTER='.'
+            ANDROID_MATRIX=$(jq ".android_devices" "$FILE")
+            ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
+            IOS_MATRIX=$(jq ".ios_devices" "$FILE")
             echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           fi
-
-          ANDROID_MATRIX=$(jq ".android_devices | $FILTER" "$FILE")
-          IOS_MATRIX=$(jq ".ios_devices | $FILTER" "$FILE")
 
           {
             echo "android_matrix<<EOF"
             echo "$ANDROID_MATRIX"
+            echo "EOF"
+            echo "android_mm_connect_matrix<<EOF"
+            echo "$ANDROID_MM_CONNECT_MATRIX"
             echo "EOF"
             echo "ios_matrix<<EOF"
             echo "$IOS_MATRIX"
@@ -177,6 +210,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
+          echo "Selected for Android MM-Connect: $(echo "$ANDROID_MM_CONNECT_MATRIX" | jq length)"
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
@@ -196,6 +230,55 @@ jobs:
           echo "  Android: Android-Performance-$BRANCH_NAME-Branch"
           echo "  iOS: iOS-Performance-$BRANCH_NAME-Branch"
 
+  compute-test-selection:
+    name: Compute Performance Test Selection
+    runs-on: ubuntu-latest
+    outputs:
+      run_tests: ${{ steps.map.outputs.run_tests }}
+      grep_pattern: ${{ steps.map.outputs.grep_pattern }}
+    steps:
+      - name: Map performance tags to grep pattern
+        id: map
+        env:
+          PERF_REASONING: ${{ inputs.performance_tags_reasoning }}
+        run: |
+          TAGS='${{ inputs.performance_tags }}'
+          REASONING="$PERF_REASONING"
+
+          # No input (blank) → schedule/dispatch: run all tests with no grep filter
+          if [[ -z "$TAGS" ]]; then
+            echo "run_tests=true" >> "$GITHUB_OUTPUT"
+            echo "grep_pattern="  >> "$GITHUB_OUTPUT"
+            echo "▶️  Running all performance tests (schedule/dispatch mode — no tag filter)"
+            exit 0
+          fi
+
+          # '[]' → PR with no performance-relevant changes: skip all tests
+          if [[ "$TAGS" == "[]" ]]; then
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
+            echo "grep_pattern="   >> "$GITHUB_OUTPUT"
+            echo "⏭️  Skipping performance tests — no performance-relevant changes detected in this PR"
+            if [[ -n "$REASONING" ]]; then
+              echo "   Reasoning: $REASONING"
+            fi
+            exit 0
+          fi
+
+          # Build OR-pattern for playwright --grep (e.g. "@PerformanceSwaps|@PerformanceLogin")
+          # Playwright matches against the full test name (describe + test title), so each tag
+          # selects only the individual tests that use it in their describe block.
+          GREP=$(echo "$TAGS" | jq -r 'join("|")')
+
+          echo "run_tests=true"      >> "$GITHUB_OUTPUT"
+          echo "grep_pattern=$GREP"  >> "$GITHUB_OUTPUT"
+
+          echo "⚡ Performance test selection:"
+          echo "   Tags: $TAGS"
+          echo "   Grep pattern: $GREP"
+          if [[ -n "$REASONING" ]]; then
+            echo "   Reasoning: $REASONING"
+          fi
+
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
@@ -203,17 +286,18 @@ jobs:
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     needs: [determine-branch-name]
-    if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
+    if: false # temporarily disabled — iOS tests not yet active
+    # if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
     secrets: inherit
 
   # =============================================================================
@@ -229,18 +313,20 @@ jobs:
         trigger-android-dual-versions,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: always() && !failure() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   run-ios-onboarding-tests:
@@ -252,18 +338,20 @@ jobs:
         trigger-ios-dual-versions,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: always() && !failure() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   # =============================================================================
@@ -291,18 +379,20 @@ jobs:
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   run-ios-imported-wallet-tests:
@@ -315,18 +405,20 @@ jobs:
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   fetch-rn-playground-apk-upload-to-browserstack:
@@ -344,7 +436,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
-        run: ./scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
+        run: ./tests/scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
 
       - name: Upload playground APK to BrowserStack
         id: upload-playground
@@ -375,19 +467,21 @@ jobs:
         fetch-rn-playground-apk-upload-to-browserstack,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '') && needs.fetch-rn-playground-apk-upload-to-browserstack.result == 'success'
+    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       browserstack_playground_url: ${{ needs.fetch-rn-playground-apk-upload-to-browserstack.outputs.browserstack-playground-url }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   aggregate-results:
@@ -418,11 +512,11 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
-          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'e2e' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
-          node scripts/aggregate-performance-reports.mjs
+          node tests/scripts/aggregate-performance-reports.mjs
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
@@ -433,6 +527,59 @@ jobs:
             tests/aggregated-reports/
           if-no-files-found: ignore
           retention-days: 30
+
+  post-pr-comment:
+    name: Post Performance Results to PR
+    runs-on: ubuntu-latest
+    needs: [aggregate-results, determine-branch-name]
+    # Only runs when triggered from a PR via workflow_call with a pr_number
+    if: always() && !cancelled() && inputs.pr_number != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Aggregated Results
+        uses: actions/download-artifact@v4
+        with:
+          name: aggregated-reports
+          path: ./aggregated-reports
+        continue-on-error: true
+
+      - name: Generate PR comment markdown
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node tests/scripts/generate-performance-pr-comment.mjs \
+            aggregated-reports/summary.json \
+            performance-pr-comment.md
+
+      - name: Delete previous performance results comments
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments" \
+            --jq '.[] | select(.body | contains("<!-- perf-test-results -->")) | .id')
+
+          if [ -n "$ALL_COMMENT_IDS" ]; then
+            echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
+              if [ -n "$COMMENT_ID" ]; then
+                gh api "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
+                  --method DELETE > /dev/null 2>&1 || true
+              fi
+            done
+            echo "Deleted previous performance results comments"
+          fi
+
+      - name: Post PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MARKER="<!-- perf-test-results -->"
+          COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
+          FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
+          gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
+          echo "Performance results posted to PR #${{ inputs.pr_number }}"
 
   slack-notification:
     name: Send Slack Notification
@@ -466,7 +613,7 @@ jobs:
         run: |
           {
             echo "summary<<EOF"
-            ./scripts/generate-slack-summary.sh aggregated-reports/summary.json
+            ./tests/scripts/generate-slack-summary.sh aggregated-reports/summary.json
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 

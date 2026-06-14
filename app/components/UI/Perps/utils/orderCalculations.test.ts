@@ -260,7 +260,7 @@ describe('orderCalculations', () => {
     it('should return 0 when available balance is 0', () => {
       // Arrange
       const params = {
-        availableBalance: 0,
+        spendableBalance: 0,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 10,
@@ -276,7 +276,7 @@ describe('orderCalculations', () => {
     it('should return 0 when asset price is invalid', () => {
       // Arrange
       const params = {
-        availableBalance: 1000,
+        spendableBalance: 1000,
         assetPrice: 0,
         assetSzDecimals: 6,
         leverage: 10,
@@ -292,7 +292,7 @@ describe('orderCalculations', () => {
     it('should return 0 when szDecimals is undefined', () => {
       // Arrange
       const params = {
-        availableBalance: 1000,
+        spendableBalance: 1000,
         assetPrice: 50000,
         assetSzDecimals: undefined as unknown as number,
         leverage: 10,
@@ -308,7 +308,7 @@ describe('orderCalculations', () => {
     it('should calculate max allowed amount with leverage', () => {
       // Arrange
       const params = {
-        availableBalance: 100,
+        spendableBalance: 100,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 10,
@@ -325,7 +325,7 @@ describe('orderCalculations', () => {
     it('should handle high leverage scenarios', () => {
       // Arrange
       const params = {
-        availableBalance: 50,
+        spendableBalance: 50,
         assetPrice: 30000,
         assetSzDecimals: 4,
         leverage: 100,
@@ -342,7 +342,7 @@ describe('orderCalculations', () => {
     it('should account for position size rounding', () => {
       // Arrange
       const params = {
-        availableBalance: 10,
+        spendableBalance: 10,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 5,
@@ -359,7 +359,7 @@ describe('orderCalculations', () => {
     it('should apply margin buffer so result is below theoretical max', () => {
       // Arrange - case where theoretical max is 1000 (100 * 10)
       const params = {
-        availableBalance: 100,
+        spendableBalance: 100,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 10,
@@ -367,7 +367,7 @@ describe('orderCalculations', () => {
 
       // Act
       const result = getMaxAllowedAmount(params);
-      const theoreticalMax = params.availableBalance * params.leverage;
+      const theoreticalMax = params.spendableBalance * params.leverage;
 
       // Assert - buffer (0.5%) reduces max to avoid "Insufficient margin" rejections
       expect(result).toBeGreaterThan(0);

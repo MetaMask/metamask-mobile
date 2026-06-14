@@ -1,8 +1,5 @@
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import {
-  selectBitcoinRewardsEnabledFlag,
-  selectTronRewardsEnabledFlag,
-} from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import type { MessengerClientInitFunction } from '../../types';
 import {
   RewardsController,
@@ -31,8 +28,10 @@ export const rewardsControllerInit: MessengerClientInitFunction<
       const isEnabled = selectBasicFunctionalityEnabled(getState());
       return !isEnabled;
     },
-    isBitcoinOptinEnabled: () => selectBitcoinRewardsEnabledFlag(getState()),
-    isTronOptinEnabled: () => selectTronRewardsEnabledFlag(getState()),
+    isVipDisabled: () => {
+      const isVipEnabled = selectVipProgramEnabled(getState());
+      return !isVipEnabled;
+    },
   });
 
   return { controller };
@@ -86,6 +85,7 @@ export type {
   RewardsControllerInvalidateSubscriptionCacheAction,
   RewardsControllerIsOptInSupportedAction,
   RewardsControllerIsRewardsFeatureEnabledAction,
+  RewardsControllerIsVipFeatureEnabledAction,
   RewardsControllerLinkAccountsToSubscriptionCandidateAction,
   RewardsControllerLinkAccountToSubscriptionCandidateAction,
   RewardsControllerLogoutAction,

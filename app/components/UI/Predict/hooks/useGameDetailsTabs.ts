@@ -2,19 +2,30 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectExtendedSportsMarketsLeagues } from '../selectors/featureFlags';
-import type { PredictPosition, PredictSportsLeague } from '../types';
+import type {
+  PredictOutcomeGroup,
+  PredictPosition,
+  PredictSportsLeague,
+} from '../types';
 import type { PredictMarketDetailsTabKey } from '../Predict.testIds';
+import type { PredictChipItem } from '../components/PredictChipList';
+import { getOutcomeGroupLabel } from '../utils/outcomeGroupLabel';
 
 interface UseGameDetailsTabsParams {
   activePositions: PredictPosition[];
   claimablePositions: PredictPosition[];
   league: PredictSportsLeague | undefined;
+  outcomeGroups: PredictOutcomeGroup[];
 }
+
+const toChips = (groups: PredictOutcomeGroup[]): PredictChipItem[] =>
+  groups.map((g) => ({ key: g.key, label: getOutcomeGroupLabel(g.key) }));
 
 export function useGameDetailsTabs({
   activePositions,
   claimablePositions,
   league,
+  outcomeGroups,
 }: UseGameDetailsTabsParams) {
   const extendedLeagues = useSelector(selectExtendedSportsMarketsLeagues);
   const enabled = league ? extendedLeagues.includes(league) : false;
@@ -32,31 +43,64 @@ export function useGameDetailsTabs({
         key: 'positions',
       });
     }
-    result.push({
-      label: strings('predict.tabs.outcomes'),
-      key: 'outcomes',
-    });
-    return result;
-  }, [hasPositions]);
-
-  useEffect(() => {
-    if (!enabled) return;
-    if (activeTab >= tabs.length) {
-      setActiveTab(0);
+    if (enabled) {
+      result.push({
+        label: strings('predict.tabs.outcomes'),
+        key: 'outcomes',
+      });
     }
-  }, [tabs, activeTab, enabled]);
+    return result;
+  }, [enabled, hasPositions]);
 
   const handleTabPress = useCallback((tabIndex: number) => {
     setActiveTab(tabIndex);
   }, []);
 
   const showTabBar = enabled && hasPositions;
+  const resolvedActiveTab = activeTab >= tabs.length ? 0 : activeTab;
+
+  useEffect(() => {
+    if (activeTab >= tabs.length) {
+      setActiveTab(0);
+    }
+  }, [activeTab, tabs.length]);
+
+  const chips = useMemo(() => toChips(outcomeGroups), [outcomeGroups]);
+
+  const groupMap = useMemo(
+    () => new Map(outcomeGroups.map((g) => [g.key, g])),
+    [outcomeGroups],
+  );
+
+  const [activeChipKey, setActiveChipKey] = useState(
+    outcomeGroups[0]?.key ?? '',
+  );
+
+  useEffect(() => {
+    if (!groupMap.has(activeChipKey)) {
+      setActiveChipKey(outcomeGroups[0]?.key ?? '');
+    }
+  }, [outcomeGroups, activeChipKey, groupMap]);
+
+  const handleChipSelect = useCallback((key: string) => {
+    setActiveChipKey(key);
+  }, []);
+
+  const isOutcomesVisible =
+    enabled && (!showTabBar || tabs[resolvedActiveTab]?.key === 'outcomes');
+
+  const showChips = isOutcomesVisible && chips.length > 0;
 
   return {
     enabled,
     showTabBar,
     tabs,
-    activeTab,
+    activeTab: resolvedActiveTab,
     handleTabPress,
+    chips,
+    groupMap,
+    activeChipKey,
+    handleChipSelect,
+    showChips,
   };
 }

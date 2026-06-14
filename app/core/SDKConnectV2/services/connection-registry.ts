@@ -1,4 +1,8 @@
-import { AppState, AppStateStatus } from 'react-native';
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
 import {
   IKeyManager,
   DEFAULT_SESSION_TTL,
@@ -13,11 +17,20 @@ import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
 import logger, { redactUrl } from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
-import { decompressPayloadB64 } from '../utils/compression-utils';
+import { parseMwpConnectPayload } from '../utils/parseMwpConnectDeeplink';
+import {
+  handleAgenticCliConnectDeeplink,
+  tryParseAgenticCliConnectionRequest,
+} from '../../AgenticCli/AgenticCliMwpConnectionService';
+import type { AgenticCliConnectionRequest } from '../../AgenticCli/agenticCliConnectionRequest';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
+import { trackMwpEvent } from '../utils/trackMwpEvent';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import Logger from '../../../util/Logger';
 
 /**
  * Hard cap on the number of simultaneous active connections.
@@ -47,6 +60,7 @@ export class ConnectionRegistry {
   private readonly ready: Promise<void>;
   private connections = new Map<string, Connection>();
   private deeplinks = new Set<string>();
+  private appStateSubscription: NativeEventSubscription | null = null;
 
   constructor(
     relayURL: string,
@@ -64,13 +78,18 @@ export class ConnectionRegistry {
 
   /**
    * One-time initialization to resume all persisted connections on app cold start.
+   *
+   * Connections are resumed sequentially so a user with N persisted sessions
+   * does not trigger N concurrent relay handshakes at cold start. A single
+   * failure is logged and does not stop subsequent connections from being
+   * processed.
    */
   private async initialize(): Promise<void> {
     await whenStoreReady();
 
     const persisted = await this.store.list().catch(() => []);
 
-    const promises = persisted.map(async (connInfo) => {
+    for (const connInfo of persisted) {
       try {
         const conn = await Connection.create(
           connInfo,
@@ -84,9 +103,7 @@ export class ConnectionRegistry {
       } catch (error) {
         logger.error('Failed to resume connection', connInfo.id, error);
       }
-    });
-
-    await Promise.allSettled(promises);
+    }
 
     await this.trimToCapacity();
 
@@ -138,9 +155,36 @@ export class ConnectionRegistry {
       if (id) {
         await this.handleSimpleDeeplink(id);
       } else {
-        await this.handleConnectDeeplink(url);
+        const agenticCliReq = tryParseAgenticCliConnectionRequest(url);
+        if (agenticCliReq) {
+          await this.handleAgenticCliDeeplink(url, agenticCliReq);
+        } else {
+          await this.handleConnectDeeplink(url);
+        }
       }
     } catch (error) {
+      // Report to Sentry so we have visibility into deeplink dispatch failures.
+      // The local logger.error below is dev-only console output and never
+      // reaches Sentry on its own.
+      //
+      // NOTE: the `feature` tag is intentionally `mm-connect` even though
+      // this file lives under `SDKConnectV2/`. The product name has
+      // converged on "MetaMask Connect" (MMC); the internal directory,
+      // class, and logger names (`SDKConnectV2`, `ConnectionRegistry`,
+      // `[SDKConnectV2]` log prefix) still use the older nomenclature
+      // and need to migrate. Tagging Sentry with the public-facing
+      // feature name now avoids having to rename Sentry dashboards/
+      // alerts later when the code catches up.
+      Logger.error(error as Error, {
+        tags: {
+          feature: 'mm-connect',
+          operation: 'handle_mwp_deeplink',
+        },
+        context: {
+          name: 'mwp_deeplink',
+          data: { url: redactUrl(url) },
+        },
+      });
       logger.error('Failed to handle MWP deeplink:', error);
     }
   }
@@ -151,8 +195,21 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id: conn.metadata?.analytics?.remote_session_id ?? id,
+        transport_type: TransportType.MWP,
+        sdk_version: conn.metadata?.sdk?.version,
+        sdk_platform: conn.metadata?.sdk?.platform,
+        found_in_store: true,
+      });
       return;
     }
+
+    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+      remote_session_id: id,
+      transport_type: TransportType.MWP,
+      found_in_store: false,
+    });
 
     logger.error(
       'Failed to find connection in store for simple deeplink with id:',
@@ -206,9 +263,22 @@ export class ConnectionRegistry {
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
+    let connReq: ConnectionRequest | undefined;
+    let didConnectionFail = false;
 
     try {
-      const connReq = this.parseConnectionRequest(url);
+      connReq = this.parseConnectionRequest(url);
+
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+        remote_session_id:
+          connReq.metadata.analytics?.remote_session_id ??
+          connReq.sessionRequest.id,
+        transport_type: TransportType.MWP,
+        sdk_version: connReq.metadata.sdk.version,
+        sdk_platform: connReq.metadata.sdk.platform,
+        dapp_name: connReq.metadata.dapp.name,
+        dapp_url: connReq.metadata.dapp.url,
+      });
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -225,9 +295,18 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
+      if (this.connections.has(connInfo.id)) {
+        logger.debug(
+          'Already have a connection with this id, skipping',
+          redactUrl(url),
+        );
+        return;
+      }
+
+      await this.evictIfAtCapacity();
+
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -239,13 +318,73 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
+      // Report to Sentry so we have visibility into connect-deeplink
+      // failures. The local logger.error below is dev-only console output
+      // and never reaches Sentry on its own.
+      //
+      // NOTE: `feature: 'mm-connect'` is intentional — see the matching
+      // comment in handleMwpDeeplink above for why the tag uses the
+      // public-facing product name even though this directory is named
+      // `SDKConnectV2/`.
+      Logger.error(error as Error, {
+        tags: {
+          feature: 'mm-connect',
+          operation: 'handle_connect_deeplink',
+        },
+        context: {
+          name: 'mwp_deeplink',
+          data: {
+            url: redactUrl(url),
+            dapp_url: connReq?.metadata?.dapp?.url,
+            dapp_name: connReq?.metadata?.dapp?.name,
+            sdk_version: connReq?.metadata?.sdk?.version,
+            sdk_platform: connReq?.metadata?.sdk?.platform,
+          },
+        },
+      });
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
-      if (conn) await this.disconnect(conn.id);
+      didConnectionFail = true;
+
+      // Track the failure before cleanup so the event fires even if
+      // disconnect() throws.
+      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
+        remote_session_id:
+          connReq?.metadata?.analytics?.remote_session_id ??
+          connReq?.sessionRequest?.id ??
+          'unknown',
+        transport_type: TransportType.MWP,
+        sdk_version: connReq?.metadata?.sdk?.version,
+        sdk_platform: connReq?.metadata?.sdk?.platform,
+        dapp_name: connReq?.metadata?.dapp?.name,
+        dapp_url: connReq?.metadata?.dapp?.url,
+        failure_reason: error instanceof Error ? error.message : String(error),
+      });
+
+      if (conn) await this.cleanupConnection(conn);
     } finally {
-      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+      this.deeplinks.delete(url);
+      // Loading-toast dismissal rules:
+      // - On failure, always dismiss the loading toast. Otherwise the user
+      //   would briefly see both a "loading" toast and the error toast at
+      //   the same time, and the loading toast would linger after the error
+      //   toast auto-dismisses.
+      // - On success for direct deeplink flows (initialMessage present), the
+      //   connection request includes the initial RPC, so an approval will
+      //   surface immediately after the MWP handshake — it's safe to dismiss
+      //   the loading toast right away.
+      // - On success for QR flows (no initialMessage), the dapp sends
+      //   wallet_createSession separately after the handshake. There may be
+      //   a noticeable delay before the approval appears, so we keep the
+      //   loading toast visible and let it autodismiss naturally.
+      const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
+      const shouldHideLoadingToast = didConnectionFail || !isQrFlow;
+      if (connInfo && shouldHideLoadingToast) {
+        this.hostapp.hideConnectionLoading(connInfo);
+      }
     }
   }
 
@@ -289,6 +428,39 @@ export class ConnectionRegistry {
     logger.debug('Connection disconnected:', id);
   }
 
+  private async handleAgenticCliDeeplink(
+    url: string,
+    connReq: AgenticCliConnectionRequest,
+  ): Promise<void> {
+    if (this.deeplinks.has(url)) return;
+    this.deeplinks.add(url);
+
+    try {
+      await handleAgenticCliConnectDeeplink(
+        url,
+        {
+          relayURL: this.RELAY_URL,
+          keymanager: this.keymanager,
+          hostapp: this.hostapp,
+          hasConnection: (id) => this.connections.has(id),
+          cleanupConnection: (connection) => this.cleanupConnection(connection),
+        },
+        connReq,
+      );
+    } finally {
+      this.deeplinks.delete(url);
+    }
+  }
+
+  private async cleanupConnection(conn: Connection): Promise<void> {
+    if (this.connections.has(conn.id)) {
+      await this.disconnect(conn.id);
+      return;
+    }
+
+    await conn.disconnect();
+  }
+
   /**
    * Parse the connection request from the deeplink URL.
    * @param url The full deeplink URL that triggered the connection.
@@ -297,26 +469,7 @@ export class ConnectionRegistry {
    * Format: metamask://connect/mwp?p=<encoded_connection_request>&c=1
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
-    const parsed = new URL(url);
-
-    const payload = parsed.searchParams.get('p');
-    if (!payload) {
-      throw new Error('No payload found in URL.');
-    }
-
-    if (payload.length > 1024 * 1024) {
-      throw new Error('Payload too large (max 1MB).');
-    }
-
-    const compressionFlag = parsed.searchParams.get('c');
-    const jsonString =
-      compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
-
-    if (jsonString.length > 1024 * 1024) {
-      throw new Error('Decompressed payload too large (max 1MB).');
-    }
-
-    const connReq: unknown = JSON.parse(jsonString);
+    const connReq: unknown = parseMwpConnectPayload(url);
 
     if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');
@@ -339,7 +492,7 @@ export class ConnectionRegistry {
   private setupAppStateListener(): void {
     let isColdStart = true;
 
-    AppState.addEventListener(
+    this.appStateSubscription = AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus): void => {
         if (nextAppState !== 'active') {
@@ -360,21 +513,43 @@ export class ConnectionRegistry {
   }
 
   /**
+   * Tears down the registry's process-level resources.
+   *
+   * Currently this removes the AppState listener registered in
+   * {@link setupAppStateListener}. Without this, the discarded subscription
+   * would retain the registry (and its `this`-capturing closure) for the
+   * lifetime of the process and keep firing `reconnectAll()` on every
+   * foreground event.
+   *
+   * NOTE: the registry is instantiated as a process-lifetime singleton in
+   * `app/core/SDKConnectV2/index.ts`, so there is no teardown caller today.
+   * If a real re-init/logout lifecycle is introduced, this is where active
+   * connection disposal should also be wired in.
+   */
+  public destroy(): void {
+    this.appStateSubscription?.remove();
+    this.appStateSubscription = null;
+  }
+
+  /**
    * Proactively refreshes all active connections. This is the primary mechanism
    * for preventing stale/zombie connections after the app was put in the background.
+   *
+   * Reconnections are processed sequentially so a user with N active sessions
+   * does not trigger N concurrent relay handshakes on every foreground event.
+   * A single failure is logged and does not stop subsequent connections from
+   * being processed.
    */
   private async reconnectAll(): Promise<void> {
     const connections = Array.from(this.connections.values());
 
-    const promises = connections.map((conn) =>
-      conn.client
-        .reconnect()
-        .then(() => logger.debug('Connection reconnected:', conn.id))
-        .catch((err: Error) =>
-          logger.error('Failed to reconnect connection:', err, conn.id),
-        ),
-    );
-
-    await Promise.allSettled(promises);
+    for (const conn of connections) {
+      try {
+        await conn.client.reconnect();
+        logger.debug('Connection reconnected:', conn.id);
+      } catch (err) {
+        logger.error('Failed to reconnect connection:', err, conn.id);
+      }
+    }
   }
 }

@@ -193,6 +193,30 @@ describe('OrderContent', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render status description for processing statuses', () => {
+    renderOrder({
+      ...mockOrder,
+      status: RampsOrderStatus.Pending,
+      statusDescription: 'Payment block on user card.',
+    });
+
+    expect(
+      screen.queryByText('Payment block on user card.'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders status description for terminal statuses', () => {
+    renderOrder({
+      ...mockOrder,
+      status: RampsOrderStatus.Failed,
+      statusDescription: 'Payment failed. Please place another order.',
+    });
+
+    expect(
+      screen.getByText('Payment failed. Please place another order.'),
+    ).toBeOnTheScreen();
+  });
+
   it('does not render bank details section when paymentDetails is absent', () => {
     renderOrder(mockOrder);
 
@@ -339,6 +363,6 @@ describe('OrderContent', () => {
     renderOrder(orderWithoutDescription);
     expect(
       screen.queryByText('Card purchases typically take a few minutes'),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 });

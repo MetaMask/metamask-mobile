@@ -10,7 +10,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
-import Icon from '../../../../../../component-library/components/Icons/Icon';
+import { Icon } from '@metamask/design-system-react-native';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({

@@ -23,6 +23,18 @@ describe('ListItemSelect', () => {
     expect(getByTestId('test-content')).toBeOnTheScreen();
   });
 
+  it('exposes accessibilityRole="button" on the row', () => {
+    const { getByTestId } = render(
+      <ListItemSelect onPress={() => null} testID="list-item-select">
+        <View />
+      </ListItemSelect>,
+    );
+
+    expect(getByTestId('list-item-select').props.accessibilityRole).toBe(
+      'button',
+    );
+  });
+
   it('renders when disabled', () => {
     const { getByTestId } = render(
       <ListItemSelect onPress={() => null} isDisabled testID="list-item-select">
@@ -32,7 +44,7 @@ describe('ListItemSelect', () => {
 
     const component = getByTestId('list-item-select');
     expect(component).toBeOnTheScreen();
-    expect(component.props.disabled).toBe(true);
+    expect(component).toBeDisabled();
   });
 
   it('calls onPress when pressed', () => {
@@ -63,7 +75,7 @@ describe('ListItemSelect', () => {
 
     const component = getByTestId('list-item-select');
     expect(component).toBeOnTheScreen();
-    expect(component.props.disabled).toBe(true);
+    expect(component).toBeDisabled();
   });
 
   it('calls onLongPress when long pressed', () => {

@@ -16,13 +16,13 @@ const createStyles = () =>
       alignSelf: 'flex-start',
     },
     halfSetting: {
-      marginTop: 16,
+      marginTop: 24,
     },
     desc: {
       marginTop: 8,
     },
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
   });
 

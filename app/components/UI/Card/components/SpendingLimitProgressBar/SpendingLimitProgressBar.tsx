@@ -3,14 +3,16 @@ import { View } from 'react-native';
 import {
   FontWeight,
   Text,
-  TextColor,
   TextVariant,
+  SensitiveText,
+  SensitiveTextLength,
 } from '@metamask/design-system-react-native';
 import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 interface SpendingLimitProgressBarProps {
   decimals: number;
@@ -18,6 +20,8 @@ interface SpendingLimitProgressBarProps {
   remainingAllowance: string;
   symbol: string;
   isLoading: boolean;
+  privacyMode?: boolean;
+  hasOriginalAllowance?: boolean;
 }
 
 const SpendingLimitProgressBar = ({
@@ -26,18 +30,17 @@ const SpendingLimitProgressBar = ({
   remainingAllowance,
   symbol,
   isLoading,
+  privacyMode = false,
+  hasOriginalAllowance = true,
 }: SpendingLimitProgressBarProps) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  // Parse values as floats
   const totalAllowanceFloat = parseFloat(totalAllowance) || 0;
   const remainingAllowanceFloat = parseFloat(remainingAllowance) || 0;
 
-  // Calculate consumed amount
   const consumedAmount = totalAllowanceFloat - remainingAllowanceFloat;
 
-  // Calculate progress (0 to 1)
   const calculateProgress = () => {
     if (totalAllowanceFloat === 0) {
       return 0;
@@ -48,7 +51,7 @@ const SpendingLimitProgressBar = ({
     }
 
     const progress = consumedAmount / totalAllowanceFloat;
-    return Math.min(1, Math.max(0, progress)); // Clamp between 0 and 1
+    return Math.min(1, Math.max(0, progress));
   };
 
   const progress = calculateProgress();
@@ -61,7 +64,6 @@ const SpendingLimitProgressBar = ({
     [progress, theme],
   );
 
-  // Format display values with appropriate precision
   const formatDisplayValue = (value: number) => {
     const precision = value < 1 ? 6 : 2;
     const formatted = value.toFixed(precision);
@@ -70,16 +72,39 @@ const SpendingLimitProgressBar = ({
 
   const totalAllowanceDisplay = formatDisplayValue(totalAllowanceFloat);
   const consumedAmountDisplay = formatDisplayValue(consumedAmount);
+  const remainingAllowanceDisplay = formatDisplayValue(remainingAllowanceFloat);
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, styles.skeletonContainer]}>
         <Skeleton
           height={20}
           width={'100%'}
           style={styles.skeletonRounded}
           testID={CardHomeSelectors.SPENDING_LIMIT_PROGRESS_BAR_SKELETON}
         />
+      </View>
+    );
+  }
+
+  if (!hasOriginalAllowance) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.divider} />
+        <View style={styles.textContainer}>
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+            Spending Limit
+          </Text>
+          <SensitiveText
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            variant={TextVariant.BodySm}
+          >
+            {`${remainingAllowanceDisplay} ${symbol} ${strings(
+              'card.card_home.spending_limit_available',
+            )}`}
+          </SensitiveText>
+        </View>
       </View>
     );
   }
@@ -91,13 +116,13 @@ const SpendingLimitProgressBar = ({
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
           Spending Limit
         </Text>
-        <Text
+        <SensitiveText
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
           variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
         >
-          {consumedAmountDisplay}/{totalAllowanceDisplay} {symbol}
-        </Text>
+          {`${consumedAmountDisplay}/${totalAllowanceDisplay} ${symbol}`}
+        </SensitiveText>
       </View>
       <ProgressBar
         progress={progress}

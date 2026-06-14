@@ -8,7 +8,7 @@ on:
 jobs:
   download-translations:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
 
     steps:
       - name: Checkout
@@ -24,6 +24,7 @@ jobs:
           upload_translations: false # disabled to prevent translations overwriting Blends translations
           download_translations: true # created separate action to pull down completed translations
           export_only_approved: true
+          localization_branch_name: l10n_crowdin_action
           pull_request_title: 'chore: New Crowdin Translations by GitHub Action'
           github_user_name: metamaskbot
           github_user_email: metamaskbot@users.noreply.github.com
@@ -32,3 +33,36 @@ jobs:
           GITHUB_ACTOR: metamaskbot
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Fix Turkish percentage placeholders on Crowdin branch
+        env:
+          BRANCH_NAME: l10n_crowdin_action
+          FIX_SCRIPT_PATH: scripts/fix-turkish-percentage-placeholders.js
+        run: |
+          if ! git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null; then
+            echo "Crowdin localization branch was not created or updated; nothing to fix."
+            exit 0
+          fi
+
+          git fetch origin "$BRANCH_NAME"
+          git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME"
+
+          FIX_SCRIPT="$FIX_SCRIPT_PATH"
+          if [ ! -f "$FIX_SCRIPT" ]; then
+            FIX_SCRIPT="/tmp/fix-turkish-percentage-placeholders.js"
+            git show "${GITHUB_SHA}:${FIX_SCRIPT_PATH}" > "$FIX_SCRIPT"
+          fi
+
+          node "$FIX_SCRIPT"
+          node "$FIX_SCRIPT" --check
+
+          if git diff --quiet -- locales/languages/tr.json; then
+            echo "No Turkish placeholder fixes needed."
+            exit 0
+          fi
+
+          git config user.name "metamaskbot"
+          git config user.email "metamaskbot@users.noreply.github.com"
+          git add locales/languages/tr.json
+          git commit -m "fix: normalize Turkish percentage placeholders"
+          git push origin "$BRANCH_NAME"

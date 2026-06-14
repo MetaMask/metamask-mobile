@@ -2,8 +2,12 @@
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 import {
   selectMoneyActivityMockDataEnabledFlag,
-  selectMoneyHomeScreenEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyHubEnabledFlag,
+  selectMoneyDepositTokensBlocklist,
+  selectMoneyNoFeeTokens,
+  selectMoneyDepositMinBalance,
+  selectMoneyTokensSortMode,
 } from './featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -36,65 +40,6 @@ const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
       },
     },
   },
-});
-
-describe('selectMoneyHomeScreenEnabledFlag', () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it('returns true when remote flag is enabled and version requirement is met', () => {
-    mockedValidate.mockReturnValue(true);
-
-    const state = createState({
-      moneyHomeScreenEnabled: { enabled: true, minimumVersion: '1.0.0' },
-    });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when remote flag is disabled', () => {
-    mockedValidate.mockReturnValue(false);
-
-    const state = createState({
-      moneyHomeScreenEnabled: { enabled: false, minimumVersion: '1.0.0' },
-    });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(false);
-  });
-
-  it('falls back to local env var when remote flag returns undefined', () => {
-    mockedValidate.mockReturnValue(undefined);
-    process.env.MM_MONEY_HOME_SCREEN_ENABLED = 'true';
-
-    const state = createState({ _unique: 'fallback-true' });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when both remote and local flags are unavailable', () => {
-    mockedValidate.mockReturnValue(undefined);
-    delete process.env.MM_MONEY_HOME_SCREEN_ENABLED;
-
-    const state = createState({ _unique: 'fallback-false' });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(false);
-  });
 });
 
 describe('selectMoneyActivityMockDataEnabledFlag', () => {
@@ -163,5 +108,308 @@ describe('selectMoneyEnableMoneyAccountFlag', () => {
 
     expect(mockedIsMoneyAccountEnabled).toHaveBeenCalledWith({});
     expect(result).toBe(true);
+  });
+});
+
+describe('selectMoneyHubEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyHubEnabled: { enabled: true, minimumVersion: '1.0.0' },
+    });
+
+    const result = selectMoneyHubEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyHubEnabled: { enabled: false, minimumVersion: '1.0.0' },
+    });
+
+    const result = selectMoneyHubEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls back to local env var when remote flag returns undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_HUB_ENABLED = 'true';
+
+    const state = createState({ _unique: 'hub-fallback-true' });
+
+    const result = selectMoneyHubEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when both remote and local flags are unavailable', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_HUB_ENABLED;
+
+    const state = createState({ _unique: 'hub-fallback-false' });
+
+    const result = selectMoneyHubEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyDepositTokensBlocklist', () => {
+  const originalEnv = process.env;
+  let consoleWarnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+    consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('returns remote wildcard map object when valid', () => {
+    const state = createState({
+      earnMoneyPaymentTokensBlocklist: { '*': ['SCAM'], '0x1': ['USDT'] },
+    });
+
+    const result = selectMoneyDepositTokensBlocklist(state as never);
+
+    expect(result).toEqual({ '*': ['SCAM'], '0x1': ['USDT'] });
+  });
+
+  it('parses remote value from JSON string', () => {
+    const state = createState({
+      earnMoneyPaymentTokensBlocklist: '{"*":["SCAM"],"0x1":["*"]}',
+    });
+
+    const result = selectMoneyDepositTokensBlocklist(state as never);
+
+    expect(result).toEqual({ '*': ['SCAM'], '0x1': ['*'] });
+  });
+
+  it('logs console.warn and falls back to env when remote value is structurally invalid', () => {
+    process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST = JSON.stringify({
+      '0x1': ['DAI'],
+    });
+    const state = createState({
+      earnMoneyPaymentTokensBlocklist: { '0x1': 'not-an-array' },
+    });
+
+    const result = selectMoneyDepositTokensBlocklist(state as never);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
+    expect(result).toEqual({ '0x1': ['DAI'] });
+  });
+
+  it('parses env var JSON as fallback when remote is absent', () => {
+    process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST = JSON.stringify({
+      '0xa4b1': ['USDT', 'DAI'],
+    });
+    const state = createState({});
+
+    const result = selectMoneyDepositTokensBlocklist(state as never);
+
+    expect(result).toEqual({ '0xa4b1': ['USDT', 'DAI'] });
+  });
+
+  it('returns empty object when both remote and env are absent', () => {
+    delete process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST;
+    const state = createState({});
+
+    const result = selectMoneyDepositTokensBlocklist(state as never);
+
+    expect(result).toEqual({});
+  });
+});
+
+describe('selectMoneyNoFeeTokens', () => {
+  const originalEnv = process.env;
+  let consoleWarnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+    consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('returns remote wildcard map object when valid', () => {
+    const state = createState({
+      earnMoneyDepositNoFeeTokens: { '*': ['USDC', 'USDT'] },
+    });
+
+    const result = selectMoneyNoFeeTokens(state as never);
+
+    expect(result).toEqual({ '*': ['USDC', 'USDT'] });
+  });
+
+  it('parses remote value from JSON string', () => {
+    const state = createState({
+      earnMoneyDepositNoFeeTokens: '{"0x1":["USDC"]}',
+    });
+
+    const result = selectMoneyNoFeeTokens(state as never);
+
+    expect(result).toEqual({ '0x1': ['USDC'] });
+  });
+
+  it('logs console.warn and falls back to env when remote value is structurally invalid', () => {
+    process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS = JSON.stringify({
+      '0x1': ['USDC'],
+    });
+    const state = createState({
+      earnMoneyDepositNoFeeTokens: { '0x1': 'not-an-array' },
+    });
+
+    const result = selectMoneyNoFeeTokens(state as never);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
+    expect(result).toEqual({ '0x1': ['USDC'] });
+  });
+
+  it('parses env var JSON as fallback when remote is absent', () => {
+    process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS = JSON.stringify({
+      '*': ['USDC'],
+    });
+    const state = createState({});
+
+    const result = selectMoneyNoFeeTokens(state as never);
+
+    expect(result).toEqual({ '*': ['USDC'] });
+  });
+
+  it('returns empty object when both remote and env are absent', () => {
+    delete process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS;
+    const state = createState({});
+
+    const result = selectMoneyNoFeeTokens(state as never);
+
+    expect(result).toEqual({});
+  });
+});
+
+describe('selectMoneyDepositMinBalance', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns remote number value directly', () => {
+    const state = createState({ earnMoneyDepositMinAssetBalance: 0.5 });
+
+    const result = selectMoneyDepositMinBalance(state as never);
+
+    expect(result).toBe(0.5);
+  });
+
+  it('parses remote numeric string to number', () => {
+    const state = createState({ earnMoneyDepositMinAssetBalance: '1.25' });
+
+    const result = selectMoneyDepositMinBalance(state as never);
+
+    expect(result).toBe(1.25);
+  });
+
+  it('falls back to env var when remote is non-finite', () => {
+    process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE = '0.05';
+    const state = createState({
+      earnMoneyDepositMinAssetBalance: 'not-a-number',
+    });
+
+    const result = selectMoneyDepositMinBalance(state as never);
+
+    expect(result).toBe(0.05);
+  });
+
+  it('parses env var string as fallback when remote is absent', () => {
+    process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE = '0.1';
+    const state = createState({});
+
+    const result = selectMoneyDepositMinBalance(state as never);
+
+    expect(result).toBe(0.1);
+  });
+
+  it('falls back to 0.01 when both remote and env are absent', () => {
+    delete process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE;
+    const state = createState({});
+
+    const result = selectMoneyDepositMinBalance(state as never);
+
+    expect(result).toBe(0.01);
+  });
+});
+
+describe('selectMoneyTokensSortMode', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns noFeePriority for valid remote string', () => {
+    const state = createState({ earnMoneyTokensSortMode: 'noFeePriority' });
+
+    const result = selectMoneyTokensSortMode(state as never);
+
+    expect(result).toBe('noFeePriority');
+  });
+
+  it('returns fiatBalanceDesc for valid remote string', () => {
+    const state = createState({ earnMoneyTokensSortMode: 'fiatBalanceDesc' });
+
+    const result = selectMoneyTokensSortMode(state as never);
+
+    expect(result).toBe('fiatBalanceDesc');
+  });
+
+  it('falls back to fiatBalanceDesc for unknown remote string', () => {
+    const state = createState({ earnMoneyTokensSortMode: 'unknownMode' });
+
+    const result = selectMoneyTokensSortMode(state as never);
+
+    expect(result).toBe('fiatBalanceDesc');
+  });
+
+  it('falls back to fiatBalanceDesc when remote flag is absent', () => {
+    const state = createState({});
+
+    const result = selectMoneyTokensSortMode(state as never);
+
+    expect(result).toBe('fiatBalanceDesc');
   });
 });

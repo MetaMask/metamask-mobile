@@ -11,7 +11,8 @@ import { DappVariants } from '../../../framework/Constants';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778748720677019
+describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),
   () => {
     beforeAll(async () => {

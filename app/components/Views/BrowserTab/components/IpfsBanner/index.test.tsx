@@ -18,13 +18,6 @@ describe('IpfsBanner', () => {
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
   });
 
-  it('should render banner correctly', () => {
-    const { toJSON } = render(
-      <IpfsBanner setIpfsBannerVisible={mockSetIpfsBannerVisible} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('should call setIpfsBannerVisible with false when banner is closed', () => {
     const { getByTestId } = render(
       <IpfsBanner setIpfsBannerVisible={mockSetIpfsBannerVisible} />,

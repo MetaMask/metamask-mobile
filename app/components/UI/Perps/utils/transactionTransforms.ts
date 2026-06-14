@@ -308,10 +308,13 @@ export function transformFillsToTransactions(
       action = 'Flipped';
       // Will be set based on calculation below
     } else if (!direction) {
-      console.error('Unknown fill direction', fill);
+      console.warn('Unknown fill direction', fill);
+      return acc;
+    } else if (direction === 'Spot Dust Conversion') {
+      // HL housekeeping — auto-conversion of spot dust to USDC, not a perps trade
       return acc;
     } else {
-      console.error('Unknown action', fill);
+      console.warn('Unhandled fill direction', direction);
       return acc;
     }
 
@@ -558,10 +561,7 @@ export function transformOrdersToTransactions(
 export function transformFundingToTransactions(
   funding: Funding[],
 ): PerpsTransaction[] {
-  // Sort funding by timestamp in descending order (newest first) to match Orders and Trades
-  const sortedFunding = [...funding].sort((a, b) => b.timestamp - a.timestamp);
-
-  return sortedFunding.map((fundingItem) => {
+  return funding.map((fundingItem) => {
     const { symbol, amountUsd, rate, timestamp } = fundingItem;
 
     // Create safe amount strings

@@ -2,66 +2,51 @@ import React, { useCallback, useMemo } from 'react';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
 import { styleSheet } from './PerpsMarketCategoryBadges.styles';
-import type {
-  PerpsMarketCategoryBadgesProps,
-  CategoryBadgeConfig,
-} from './PerpsMarketCategoryBadges.types';
+import type { PerpsMarketCategoryBadgesProps } from './PerpsMarketCategoryBadges.types';
 import { type MarketTypeFilter } from '@metamask/perps-controller';
+import {
+  usePerpsCategories,
+  type PerpsCategory,
+} from '../../hooks/usePerpsCategories';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 
-// Animation configuration
 const ANIMATION_DURATION = 250;
 
-/**
- * Default category badge configurations
- * Order determines display order in the UI
- */
-const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
-  { category: 'crypto', labelKey: 'perps.home.tabs.crypto' },
-  { category: 'stocks', labelKey: 'perps.home.tabs.stocks' },
-  { category: 'commodities', labelKey: 'perps.home.tabs.commodities' },
-  { category: 'forex', labelKey: 'perps.home.tabs.forex' },
-  { category: 'new', labelKey: 'perps.home.tabs.new' },
-];
+const NEW_CATEGORY: PerpsCategory = {
+  id: 'new',
+  label: strings('perps.home.tabs.new'),
+};
 
 /**
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
- * Always displays all category badges in a horizontal scroll.
- * The selected category is visually highlighted.
- * Tapping a selected badge deselects it (toggles back to 'all').
+ * Categories are derived from live market data via `usePerpsCategories`.
+ * The `'new'` badge is automatically appended when any market has
+ * `isNewMarket` set.
  *
- * @example
- * ```tsx
- * <PerpsMarketCategoryBadges
- *   selectedCategory={selectedCategory}
- *   onCategorySelect={handleCategorySelect}
- *   availableCategories={['crypto', 'stocks']}
- * />
- * ```
+ * The selected category is visually highlighted.
+ * Tapping a selected badge again deselects it (toggles back to 'all').
  */
 const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   selectedCategory,
   onCategorySelect,
-  availableCategories,
+  showWatchlistBadge = false,
+  isWatchlistSelected = false,
+  onWatchlistToggle,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const categories = usePerpsCategories();
+  const hasNewMarkets = useHasNewMarkets();
 
-  // Filter categories based on availableCategories prop
-  // Show all default categories if availableCategories is undefined/null/empty
-  const displayCategories = useMemo(() => {
-    if (!availableCategories || availableCategories.length === 0) {
-      return DEFAULT_CATEGORIES;
-    }
-    return DEFAULT_CATEGORIES.filter((config) =>
-      availableCategories.includes(config.category),
-    );
-  }, [availableCategories]);
+  const displayCategories = useMemo(
+    () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
+    [categories, hasNewMarkets],
+  );
 
-  // Handle selecting/toggling a category
-  // Tapping an already-selected pill deselects it (back to 'all')
   const handleCategoryPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>) => {
       if (selectedCategory === category) {
@@ -73,7 +58,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     [onCategorySelect, selectedCategory],
   );
 
-  // Always show all category badges; highlight the selected one
   return (
     <Animated.ScrollView
       horizontal
@@ -82,21 +66,35 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
-      {displayCategories.map((config, index) => {
-        const isCategorySelected = selectedCategory === config.category;
+      {/* Watchlist star badge — shown first */}
+      {showWatchlistBadge && (
+        <Animated.View
+          entering={FadeIn.duration(ANIMATION_DURATION)}
+          layout={LinearTransition.duration(ANIMATION_DURATION)}
+        >
+          <PerpsMarketCategoryBadge
+            icon={IconName.StarFilled}
+            accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+            isSelected={isWatchlistSelected}
+            onPress={onWatchlistToggle ?? (() => undefined)}
+            testID={testID ? `${testID}-watchlist` : undefined}
+          />
+        </Animated.View>
+      )}
+      {displayCategories.map((category, index) => {
+        const isCategorySelected = selectedCategory === category.id;
         return (
           <Animated.View
-            key={config.category}
+            key={category.id}
             entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
             layout={LinearTransition.duration(ANIMATION_DURATION)}
           >
             <PerpsMarketCategoryBadge
-              label={strings(config.labelKey)}
+              label={category.label}
+              accessibilityLabel={category.label}
               isSelected={isCategorySelected}
-              showDismiss={isCategorySelected}
-              onPress={() => handleCategoryPress(config.category)}
-              onDismiss={() => onCategorySelect('all')}
-              testID={testID ? `${testID}-${config.category}` : undefined}
+              onPress={() => handleCategoryPress(category.id)}
+              testID={testID ? `${testID}-${category.id}` : undefined}
             />
           </Animated.View>
         );

@@ -4,6 +4,7 @@ import MoreTokenActionsMenu, {
   MoreTokenActionsMenuParams,
 } from './MoreTokenActionsMenu';
 import { TokenI } from '../../Tokens/types';
+import { TokenDetailsAction } from '../constants/constants';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
@@ -99,14 +100,8 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => false,
-}));
-
 jest.mock('../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => ({
-    ramp_routing: 'test',
     is_authenticated: true,
     preferred_provider: 'test',
     order_count: 0,
@@ -171,6 +166,19 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
+
+jest.mock('./useAssetVisibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    handleHideToken: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 
 const mockLoggerLog = jest.fn();
 jest.mock('../../../../util/Logger', () => ({
@@ -461,6 +469,14 @@ describe('MoreTokenActionsMenu', () => {
           title: 'Etherscan',
         },
       });
+      expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.any(Function),
+        expect.objectContaining({
+          location: 'token_details_menu',
+          url: 'https://etherscan.io/token/0x123',
+        }),
+      );
     });
 
     it('opens InAppBrowser when View on block explorer is pressed and InAppBrowser is available', async () => {
@@ -526,7 +542,7 @@ describe('MoreTokenActionsMenu', () => {
       });
     });
 
-    it('hides token, shows notification and tracks event when onConfirm is called', async () => {
+    it('hides token and shows notification when onConfirm is called', async () => {
       updateRouteParams({
         hasPerpsMarket: false,
         hasBalance: true,
@@ -581,7 +597,46 @@ describe('MoreTokenActionsMenu', () => {
           description: expect.any(String),
         }),
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('fires onActionTapped with view_on_explorer when View on block explorer is pressed', async () => {
+      const mockOnActionTapped = jest.fn();
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+        onActionTapped: mockOnActionTapped,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-view-explorer'));
+      expect(mockOnActionTapped).toHaveBeenCalledWith(
+        TokenDetailsAction.ViewOnExplorer,
+      );
+    });
+
+    it('fires onActionTapped with remove_token when Remove token is pressed', async () => {
+      const mockOnActionTapped = jest.fn();
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+        onActionTapped: mockOnActionTapped,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-remove-token'));
+      expect(mockOnActionTapped).toHaveBeenCalledWith(
+        TokenDetailsAction.RemoveToken,
+      );
     });
 
     it('logs error when hide token fails', async () => {

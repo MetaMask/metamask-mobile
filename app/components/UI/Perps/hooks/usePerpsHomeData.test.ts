@@ -56,6 +56,7 @@ jest.mock('../../../../core/Engine', () => ({
     PerpsController: {
       getActiveProvider: jest.fn(),
       getActiveProviderOrNull: jest.fn(),
+      getOrderFills: jest.fn().mockResolvedValue([]),
     },
   },
 }));
@@ -302,6 +303,9 @@ describe('usePerpsHomeData', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn().mockResolvedValue(undefined),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     // Mock sortMarkets to return markets as-is by default
@@ -344,8 +348,7 @@ describe('usePerpsHomeData', () => {
       ]);
     });
 
-    it('applies default limits to data', () => {
-      // Create more data than default limits
+    it('leaves positions and orders uncapped while limiting recent activity', () => {
       const manyPositions = Array.from({ length: 10 }, (_, i) =>
         createMockPosition({ symbol: `COIN${i}` }),
       );
@@ -371,10 +374,41 @@ describe('usePerpsHomeData', () => {
 
       const { result } = renderHook(() => usePerpsHomeData());
 
-      // Default limits from HOME_SCREEN_CONFIG
-      expect(result.current.positions.length).toBeLessThanOrEqual(10);
-      expect(result.current.orders.length).toBeLessThanOrEqual(10);
+      // Positions and orders are intentionally uncapped on the home screen.
+      expect(result.current.positions).toHaveLength(10);
+      expect(result.current.orders).toHaveLength(10);
+      // Recent activity keeps its dedicated limit from HOME_SCREEN_CONFIG.
       expect(result.current.recentActivity.length).toBeLessThanOrEqual(3);
+    });
+
+    it('displays every open position when more than ten are open', () => {
+      const twelvePositions = Array.from({ length: 12 }, (_, i) =>
+        createMockPosition({ symbol: `COIN${i}` }),
+      );
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: twelvePositions,
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsHomeData());
+
+      expect(result.current.positions).toHaveLength(12);
+    });
+
+    it('displays every open order when more than ten are open', () => {
+      const twelveOrders = Array.from({ length: 12 }, (_, i) =>
+        createMockOrder({ symbol: `COIN${i}`, orderId: `order-${i}` }),
+      );
+
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: twelveOrders,
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsHomeData());
+
+      expect(result.current.orders).toHaveLength(12);
     });
 
     it('respects custom limits from parameters', () => {
@@ -897,6 +931,9 @@ describe('usePerpsHomeData', () => {
         isLoading: false,
         error: null,
         refetch: jest.fn().mockResolvedValue(undefined),
+        loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+        hasFundingMore: true,
+        isFetchingMoreFunding: false,
       });
 
       const { result } = renderHook(() => usePerpsHomeData());
@@ -974,6 +1011,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
@@ -1009,6 +1049,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
         isInitialLoading: false,
@@ -1077,6 +1120,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
@@ -1126,6 +1172,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
 
       // WS fill with same key but no detailedOrderType
       const wsFill = createMockOrderFill({

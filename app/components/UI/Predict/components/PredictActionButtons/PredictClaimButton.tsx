@@ -1,19 +1,19 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import {
-  ButtonSize,
+  ButtonHero,
+  ButtonHeroSize,
   Text,
   TextVariant,
   TextColor,
   Box,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { PredictClaimButtonProps } from './PredictActionButtons.types';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from './PredictClaimButton.testIds';
 
@@ -61,16 +61,14 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
   isHidden = false,
   testID = PREDICT_CLAIM_BUTTON_TEST_IDS.PREDICT_CLAIM_BUTTON,
 }) => {
-  const tw = useTailwind();
-
   if (amount === undefined) {
     return (
       <ButtonHero
-        size={ButtonSize.Lg}
+        size={ButtonHeroSize.Lg}
         onPress={onPress}
         isDisabled={disabled || isLoading}
         testID={testID}
-        style={tw.style('w-full')}
+        isFullWidth
       >
         {isLoading ? (
           <LoadingContent />
@@ -87,11 +85,11 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
 
   return (
     <ButtonHero
-      size={ButtonSize.Lg}
+      size={ButtonHeroSize.Lg}
       onPress={onPress}
       isDisabled={disabled || isLoading}
       testID={testID}
-      style={tw.style('w-full')}
+      isFullWidth
     >
       {isLoading ? (
         <LoadingContent />

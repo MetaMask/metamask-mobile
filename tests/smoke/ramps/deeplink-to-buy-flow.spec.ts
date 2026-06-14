@@ -1,7 +1,7 @@
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeRamps } from '../../tags';
+import { SmokeMoney } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
@@ -17,7 +17,7 @@ const BASE_USDC_BUY_DEEPLINK =
   'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=25';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
+describe(SmokeMoney('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -33,7 +33,6 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
       {
         fixture: new FixtureBuilder()
           .withRampsUnifiedBuyRemoteFlagsSeededForE2E({
-            rampsUnifiedBuyV1: true,
             rampsUnifiedBuyV2: false,
           })
           .withRampsSelectedPaymentMethod()
@@ -42,7 +41,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            remoteFeatureFlagRampsUnifiedMatrixForE2E(true, false),
+            remoteFeatureFlagRampsUnifiedMatrixForE2E(false),
           );
           await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
         },
@@ -70,7 +69,6 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
       {
         fixture: new FixtureBuilder()
           .withRampsUnifiedBuyRemoteFlagsSeededForE2E({
-            rampsUnifiedBuyV1: true,
             rampsUnifiedBuyV2: false,
           })
           .withPopularNetworks()
@@ -80,7 +78,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            remoteFeatureFlagRampsUnifiedMatrixForE2E(true, false),
+            remoteFeatureFlagRampsUnifiedMatrixForE2E(false),
           );
           await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
         },
@@ -98,45 +96,14 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
   });
 
   // TODO: Uncomment once we have the tests passing according to the UI/UX
-  describe.skip('Buy deeplink ramps unified V1/V2 flag matrix (Base USDC)', () => {
+  describe.skip('Buy deeplink ramps unified V2 flag matrix (Base USDC)', () => {
     const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
-    it('Deep links when unified V1 on and V2 off', async () => {
+    it('Deep links when unified V2 is on', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
             .withRampsUnifiedBuyRemoteFlagsSeededForE2E({
-              rampsUnifiedBuyV1: true,
-              rampsUnifiedBuyV2: false,
-            })
-            .withPopularNetworks()
-            .withRampsSelectedRegion(selectedRegion)
-            .withRampsSelectedPaymentMethod()
-            .build(),
-          testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureFlagRampsUnifiedMatrixForE2E(true, false),
-            );
-            await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
-          },
-          restartDevice: true,
-        },
-        async () => {
-          await loginToApp();
-          await device.sendToHome();
-          await device.launchApp({ url: BASE_USDC_BUY_DEEPLINK });
-          await Assertions.expectTextDisplayed('USD Coin');
-        },
-      );
-    });
-
-    it('Deep links when unified V1 off and V2 on', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withRampsUnifiedBuyRemoteFlagsSeededForE2E({
-              rampsUnifiedBuyV1: false,
               rampsUnifiedBuyV2: true,
             })
             .withPopularNetworks()
@@ -146,7 +113,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
           testSpecificMock: async (mockServer: Mockttp) => {
             await setupRemoteFeatureFlagsMock(
               mockServer,
-              remoteFeatureFlagRampsUnifiedMatrixForE2E(false, true),
+              remoteFeatureFlagRampsUnifiedMatrixForE2E(true),
             );
             await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
           },
@@ -161,12 +128,11 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
       );
     });
 
-    it('Deep links when unified V1 off and V2 off', async () => {
+    it('Deep links when unified V2 is off', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
             .withRampsUnifiedBuyRemoteFlagsSeededForE2E({
-              rampsUnifiedBuyV1: false,
               rampsUnifiedBuyV2: false,
             })
             .withPopularNetworks()
@@ -176,7 +142,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
           testSpecificMock: async (mockServer: Mockttp) => {
             await setupRemoteFeatureFlagsMock(
               mockServer,
-              remoteFeatureFlagRampsUnifiedMatrixForE2E(false, false),
+              remoteFeatureFlagRampsUnifiedMatrixForE2E(false),
             );
             await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
           },

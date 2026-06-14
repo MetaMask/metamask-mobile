@@ -25,7 +25,7 @@ describe('useGetSlippageOptions', () => {
       (option) => option.id === 'custom-slippage',
     );
     expect(hasCustomOption).toBe(false);
-    expect(result.current).toMatchSnapshot();
+    expect(result.current).toHaveLength(4); // auto, 1, 2, 3
   });
 
   it('includes custom option if allowCustomSlippage is true', () => {
@@ -41,7 +41,6 @@ describe('useGetSlippageOptions', () => {
     );
     expect(customOption).toBeDefined();
     expect(customOption?.label).toBe('Custom');
-    expect(result.current).toMatchSnapshot();
   });
 
   it('capitalizes the label if slippage option is not a number', () => {
@@ -55,7 +54,6 @@ describe('useGetSlippageOptions', () => {
 
     expect(result.current[0].label).toBe('Auto');
     expect(result.current[1].label).toBe('Custom');
-    expect(result.current).toMatchSnapshot();
   });
 
   it('sets slippage option value as label if it is a number', () => {
@@ -71,7 +69,6 @@ describe('useGetSlippageOptions', () => {
     expect(result.current[1].label).toBe('2%');
     expect(result.current[2].label).toBe('5%');
     expect(result.current[3].label).toBe('10%');
-    expect(result.current).toMatchSnapshot();
   });
 
   it('calls onDefaultOptionPress with correct numeric value', () => {
@@ -117,7 +114,6 @@ describe('useGetSlippageOptions', () => {
     expect(result.current[1].selected).toBe(false); // 1
     expect(result.current[2].selected).toBe(true); // 2 - selected
     expect(result.current[3].selected).toBe(false); // 3
-    expect(result.current).toMatchSnapshot();
   });
 
   it('set custom slippage option if slippage value does not exist on slippageOptions array', () => {
@@ -142,8 +138,6 @@ describe('useGetSlippageOptions', () => {
     defaultOptions.forEach((option) => {
       expect(option.selected).toBe(false);
     });
-
-    expect(result.current).toMatchSnapshot();
   });
 
   it('provides custom option press callback to custom option array element', () => {
@@ -177,7 +171,6 @@ describe('useGetSlippageOptions', () => {
       (option) => option.id === 'custom-slippage',
     );
     expect(customOption).toBeUndefined();
-    expect(result.current).toMatchSnapshot();
   });
 
   it('does not render custom option if allowCustomSlippage is not provided', () => {
@@ -192,7 +185,6 @@ describe('useGetSlippageOptions', () => {
       (option) => option.id === 'custom-slippage',
     );
     expect(customOption).toBeUndefined();
-    expect(result.current).toMatchSnapshot();
   });
 
   it('should handle "auto" as slippage option', () => {
@@ -207,7 +199,6 @@ describe('useGetSlippageOptions', () => {
     expect(result.current[0].id).toBe('auto');
     expect(result.current[0].label).toBe('Auto');
     expect(result.current[0].selected).toBe(true);
-    expect(result.current).toMatchSnapshot();
   });
 
   describe('edge cases', () => {
@@ -221,7 +212,6 @@ describe('useGetSlippageOptions', () => {
       );
 
       expect(result.current).toHaveLength(0);
-      expect(result.current).toMatchSnapshot();
     });
 
     it('handles decimal values', () => {
@@ -236,7 +226,6 @@ describe('useGetSlippageOptions', () => {
       expect(result.current[0].label).toBe('0.5%');
       expect(result.current[1].label).toBe('1.5%');
       expect(result.current[1].selected).toBe(true);
-      expect(result.current).toMatchSnapshot();
     });
 
     it('handles large numbers', () => {
@@ -251,7 +240,6 @@ describe('useGetSlippageOptions', () => {
       expect(result.current[0].label).toBe('10%');
       expect(result.current[1].label).toBe('50%');
       expect(result.current[2].label).toBe('100%');
-      expect(result.current).toMatchSnapshot();
     });
 
     it('handles zero value', () => {
@@ -265,7 +253,6 @@ describe('useGetSlippageOptions', () => {
 
       expect(result.current[0].label).toBe('0%');
       expect(result.current[0].selected).toBe(true);
-      expect(result.current).toMatchSnapshot();
     });
 
     it('handles string coercion for selection', () => {
@@ -279,7 +266,6 @@ describe('useGetSlippageOptions', () => {
 
       // Should match even if types differ
       expect(result.current[1].selected).toBe(true);
-      expect(result.current).toMatchSnapshot();
     });
 
     it('handles mixed case string options', () => {
@@ -294,7 +280,6 @@ describe('useGetSlippageOptions', () => {
       expect(result.current[0].label).toBe('Auto');
       expect(result.current[1].label).toBe('Custom');
       expect(result.current[2].label).toBe('Default');
-      expect(result.current).toMatchSnapshot();
     });
   });
 
@@ -309,7 +294,11 @@ describe('useGetSlippageOptions', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current).toHaveLength(3);
+      expect(result.current[1].selected).toBe(true); // '1' is selected
+      expect(result.current.some((o) => o.id === 'custom-slippage')).toBe(
+        false,
+      );
     });
 
     it('returns correct structure for all options with custom', () => {
@@ -322,7 +311,9 @@ describe('useGetSlippageOptions', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      expect(result.current).toHaveLength(5); // auto, 1, 2, 3, custom
+      expect(result.current.some((o) => o.id === 'custom-slippage')).toBe(true);
+      expect(result.current.find((o) => o.label === '2%')?.selected).toBe(true);
     });
 
     it('returns correct structure when custom is selected', () => {
@@ -335,7 +326,15 @@ describe('useGetSlippageOptions', () => {
         }),
       );
 
-      expect(result.current).toMatchSnapshot();
+      const customOption = result.current.find(
+        (o) => o.id === 'custom-slippage',
+      );
+      expect(customOption?.selected).toBe(true);
+      result.current
+        .filter((o) => o.id !== 'custom-slippage')
+        .forEach((o) => {
+          expect(o.selected).toBe(false);
+        });
     });
   });
 });

@@ -6,6 +6,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Box from './Box';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
+import { UNSUPPORTED_BUY_REGION_SUPPORT_URL } from '../../../../../constants/urls';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -42,8 +43,7 @@ interface Props {
   dismiss?: () => any;
 }
 
-const SUPPORT_URL =
-  'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/';
+const SUPPORT_URL = UNSUPPORTED_BUY_REGION_SUPPORT_URL;
 
 const RegionAlert: React.FC<Props> = ({
   isVisible,

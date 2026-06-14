@@ -38,6 +38,109 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+}));
+
+// Mock BottomSheet components to avoid reanimated issues
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ReactMock.forwardRef(
+        (
+          {
+            children,
+            onClose,
+          }: { children: React.ReactNode; onClose?: () => void },
+          ref: React.Ref<unknown>,
+        ) => {
+          ReactMock.useImperativeHandle(ref, () => ({
+            onOpenBottomSheet: jest.fn(),
+            onCloseBottomSheet: (callback?: () => void) => {
+              onClose?.();
+              callback?.();
+            },
+          }));
+          return ReactMock.createElement(
+            View,
+            { testID: 'mock-bottom-sheet' },
+            children,
+          );
+        },
+      ),
+    };
+  },
+);
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        children,
+        onClose,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        onClose?: () => void;
+        [key: string]: unknown;
+      }) =>
+        ReactMock.createElement(
+          View,
+          { testID: 'header', ...props },
+          children,
+          ReactMock.createElement(View, {
+            testID: 'header-close',
+            onPress: onClose,
+          }),
+        ),
+    };
+  },
+);
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        onPress,
+        buttonLabel,
+        buttonPropsArray,
+        ...props
+      }: {
+        onPress?: () => void;
+        buttonLabel?: string;
+        buttonPropsArray?: { onPress?: () => void; label?: string }[];
+        [key: string]: unknown;
+      }) => {
+        const handlePress = onPress || buttonPropsArray?.[0]?.onPress;
+        const label = buttonLabel || buttonPropsArray?.[0]?.label || 'Got it';
+        return ReactMock.createElement(
+          View,
+          { testID: 'bottomsheetfooter', ...props },
+          ReactMock.createElement(
+            TouchableOpacity,
+            { testID: 'bottomsheetfooter-button', onPress: handlePress },
+            ReactMock.createElement(Text, null, label),
+          ),
+        );
+      },
+    };
+  },
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,

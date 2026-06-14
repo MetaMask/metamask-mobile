@@ -65,6 +65,8 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'go_to_date',
   'show_zoom_and_move_buttons_on_touch',
   'shift_visible_range_on_new_bar',
+  // Disable vertical touch drag in chart so webpage can scroll vertically
+  'vert_touch_drag_scroll',
 ];
 
 /**
@@ -204,6 +206,12 @@ export interface SetOHLCVDataPayload {
    * the user can still scroll left to reveal older data fetched via pagination.
    */
   visibleFromMs?: number;
+  /**
+   * Expected visible-range end as a Unix timestamp in **milliseconds** (typically `lastBar.time`).
+   * Used with `visibleFromMs` so the TradingView `timeframe` constructor option spans exactly
+   * the intended window instead of defaulting to `Date.now()`.
+   */
+  visibleToMs?: number;
 }
 
 export interface AddIndicatorPayload {
@@ -444,6 +452,11 @@ export interface AdvancedChartProps {
 
   /** Callback when chart is ready */
   onChartReady?: () => void;
+  /**
+   * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
+   * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
+   */
+  onSkeletonHidden?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
@@ -471,6 +484,21 @@ export interface AdvancedChartProps {
    * The user can still scroll left to reveal older/paginated data.
    */
   visibleFromMs?: number;
+
+  /**
+   * Expected visible-range end (Unix ms), typically `lastBar.time`.
+   * Used with `visibleFromMs` so the TradingView `timeframe` constructor option
+   * spans exactly the intended window (e.g. 24 h) rather than `Date.now()`,
+   * which can be ahead of the last candle and push the left edge off-screen.
+   */
+  visibleToMs?: number;
+
+  /** Override the chart line color baked into the HTML template (A/B test). */
+  lineColorOverride?: string;
+  /** Override the candlestick up/success color baked into the HTML template (A/B test). */
+  successColorOverride?: string;
+  /** Override the candlestick down/error color baked into the HTML template (A/B test). */
+  errorColorOverride?: string;
 }
 
 /**

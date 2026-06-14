@@ -14,14 +14,17 @@ import {
 } from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
 import { getBrand, getDeviceId } from 'react-native-device-info';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
+import { TextVariant as LibraryTextVariant } from '../../../../../component-library/components/Texts/Text';
 import useDataDeletion from './useDataDeletion';
 
 interface DeleteMetaMetricsDataProps {
@@ -179,26 +182,40 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
       descriptionText={
         dataDeletionAvailable ? (
           <>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {strings('app_settings.delete_metrics_description_part_one')}
             </Text>{' '}
             <Button
               variant={ButtonVariants.Link}
               size={ButtonSize.Auto}
+              labelTextVariant={LibraryTextVariant.BodySMMedium}
               onPress={openMetametricsHowto}
               label={strings(
                 'app_settings.delete_metrics_description_part_two',
               )}
             />{' '}
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {strings('app_settings.delete_metrics_description_part_three')}
             </Text>{' '}
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {strings('app_settings.delete_metrics_description_before_delete')}
             </Text>{' '}
             <Button
               variant={ButtonVariants.Link}
               size={ButtonSize.Auto}
+              labelTextVariant={LibraryTextVariant.BodySMMedium}
               onPress={openPrivacyPolicy}
               label={strings(
                 'app_settings.delete_metrics_description_privacy_policy',
@@ -207,15 +224,27 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
           </>
         ) : (
           <>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {strings(
                 'app_settings.delete_metrics_description_after_delete_part_one',
               )}
             </Text>{' '}
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {deletionTaskDate}
             </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {strings(
                 'app_settings.delete_metrics_description_after_delete_part_two',
               )}
@@ -223,6 +252,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
             <Button
               variant={ButtonVariants.Link}
               size={ButtonSize.Auto}
+              labelTextVariant={LibraryTextVariant.BodySMMedium}
               onPress={openPrivacyPolicy}
               label={strings(
                 'app_settings.delete_metrics_description_privacy_policy',

@@ -5,6 +5,7 @@ import {
   selectRewardsActiveAccountAddress,
   selectRewardsActiveAccountSubscriptionId,
   selectCurrentSubscriptionAccounts,
+  selectIsCurrentSubscriptionVipEnabled,
 } from './index';
 // Mock rewards controller state
 const createMockRewardsControllerState = (overrides = {}) => ({
@@ -65,7 +66,13 @@ describe('Rewards Selectors', () => {
       const result = selectRewardsControllerState(state);
 
       // Assert
-      expect(result).toBeUndefined();
+      expect(result).toEqual(
+        expect.objectContaining({
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+        }),
+      );
     });
   });
 
@@ -177,6 +184,24 @@ describe('Rewards Selectors', () => {
       // Assert
       expect(result).toBeNull();
     });
+
+    it('returns null when RewardsController is undefined', () => {
+      // Arrange
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: undefined,
+          },
+        },
+        rewards: { candidateSubscriptionId: null },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectRewardsSubscriptionId(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
   });
 
   describe('selectRewardsActiveAccountAddress', () => {
@@ -241,6 +266,23 @@ describe('Rewards Selectors', () => {
     it('returns null when no active account exists', () => {
       // Arrange
       const state = createMockRootState({ activeAccount: null });
+
+      // Act
+      const result = selectRewardsActiveAccountAddress(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('returns null when RewardsController is undefined', () => {
+      // Arrange
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: undefined,
+          },
+        },
+      } as unknown as RootState;
 
       // Act
       const result = selectRewardsActiveAccountAddress(state);
@@ -338,6 +380,74 @@ describe('Rewards Selectors', () => {
     });
   });
 
+  describe('VIP subscription selectors', () => {
+    it('returns true when VIP is enabled', () => {
+      const state = createMockRootState({
+        activeAccount: { subscriptionId: 'sub-1' },
+        subscriptions: {
+          'sub-1': {
+            id: 'sub-1',
+            referralCode: 'ABC123',
+            accounts: [],
+            features: { vip: { enabled: true } },
+          },
+        },
+      });
+
+      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(true);
+    });
+
+    it('returns false when VIP is disabled', () => {
+      const state = createMockRootState({
+        activeAccount: { subscriptionId: 'sub-1' },
+        subscriptions: {
+          'sub-1': {
+            id: 'sub-1',
+            referralCode: 'ABC123',
+            accounts: [],
+            features: { vip: { enabled: false } },
+          },
+        },
+      });
+
+      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(false);
+    });
+
+    it('returns false when persisted subscription features are missing', () => {
+      const state = createMockRootState({
+        activeAccount: { subscriptionId: 'sub-1' },
+        subscriptions: {
+          'sub-1': {
+            id: 'sub-1',
+            referralCode: 'ABC123',
+            accounts: [],
+          },
+        },
+      });
+
+      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(false);
+    });
+
+    it('uses candidate subscription fallback for VIP state', () => {
+      const state = createMockRootState(
+        {
+          activeAccount: null,
+          subscriptions: {
+            'candidate-subscription-id': {
+              id: 'candidate-subscription-id',
+              referralCode: 'ABC123',
+              accounts: [],
+              features: { vip: { enabled: true } },
+            },
+          },
+        },
+        { candidateSubscriptionId: 'candidate-subscription-id' },
+      );
+
+      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(true);
+    });
+  });
+
   describe('selectCurrentSubscriptionAccounts', () => {
     it('returns accounts belonging to the current subscription', () => {
       const state = {
@@ -393,6 +503,49 @@ describe('Rewards Selectors', () => {
 
       const result = selectCurrentSubscriptionAccounts(state);
       expect(result).toHaveLength(0);
+    });
+
+    it('returns empty array when controller accounts are missing', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: {
+              activeAccount: { subscriptionId: 'sub-1' },
+              accounts: undefined,
+              subscriptions: {
+                'sub-1': { id: 'sub-1' },
+              },
+            },
+          },
+        },
+        rewards: { candidateSubscriptionId: null },
+      } as unknown as RootState;
+
+      const result = selectCurrentSubscriptionAccounts(state);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when controller subscriptions are missing', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: {
+              activeAccount: { subscriptionId: 'sub-1' },
+              accounts: {
+                'acct-1': {
+                  subscriptionId: 'sub-1',
+                  account: 'eip155:1:0x123',
+                },
+              },
+              subscriptions: undefined,
+            },
+          },
+        },
+        rewards: { candidateSubscriptionId: null },
+      } as unknown as RootState;
+
+      const result = selectCurrentSubscriptionAccounts(state);
+      expect(result).toEqual([]);
     });
 
     it('returns empty array when no accounts match subscription', () => {

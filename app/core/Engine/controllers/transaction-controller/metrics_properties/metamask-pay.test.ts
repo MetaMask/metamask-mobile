@@ -83,6 +83,75 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ])('returns nothing if %s without controller state', (type) => {
+    request.transactionMeta.type = type;
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {},
+      sensitiveProperties: {},
+    });
+  });
+
+  it.each([
+    [TransactionType.moneyAccountDeposit, 'money_account_deposit'],
+    [TransactionType.moneyAccountWithdraw, 'money_account_withdraw'],
+  ])(
+    'derives mm_pay_use_case=%s for %s parent',
+    (parentType, expectedUseCase) => {
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'parent-1': {
+                  paymentToken: { symbol: 'USDC', chainId: '0x1' },
+                  quotes: [{ strategy: TransactionPayStrategy.Relay }],
+                  tokens: [{ skipIfBalance: false, amountUsd: '50' }],
+                  totals: {
+                    targetAmount: { usd: '49.5', fiat: '49.5' },
+                    fees: {
+                      metaMask: { usd: '0', fiat: '0' },
+                      provider: { usd: '0.2', fiat: '0.2' },
+                      sourceNetwork: { estimate: { usd: '0.1', fiat: '0.1' } },
+                      targetNetwork: { usd: '0', fiat: '0' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as never);
+
+      request.allTransactions = [
+        {
+          id: 'parent-1',
+          type: parentType,
+          metamaskPay: { chainId: '0x1', tokenAddress: '0xA0b8' },
+          requiredTransactionIds: ['child-1'],
+        } as unknown as TransactionMeta,
+      ];
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay: true,
+          mm_pay_use_case: expectedUseCase,
+          mm_pay_token_selected: 'USDC',
+          mm_pay_chain_selected: '0x1',
+        }),
+        sensitiveProperties: {},
+      });
+    },
+  );
+
   it('derives parent mm_pay_* properties for child transaction from controller state', () => {
     getStateMock.mockReturnValue({
       engine: {
