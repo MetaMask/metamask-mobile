@@ -235,6 +235,13 @@ function parseErrorByMessage(
     condition?: (msg: string) => boolean;
   }[] = [
     {
+      // Ledger devices can only sign EIP-712 typed data with version V4.
+      // The keyring throws "Ledger: Only version 4 of typed data signing is
+      // supported" for V1/V3 requests.
+      patterns: ['version 4 of typed data', 'only version 4'],
+      code: ErrorCode.DeviceStateOnlyV4Supported,
+    },
+    {
       patterns: ['disconnected', 'disconnect', 'connection lost'],
       code: ErrorCode.DeviceDisconnected,
     },
