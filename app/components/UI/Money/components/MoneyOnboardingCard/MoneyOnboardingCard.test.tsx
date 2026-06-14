@@ -102,7 +102,7 @@ interface SetupOptions {
   isCardholder?: boolean;
   isCardAuthenticated?: boolean;
   isCardLinkedToMoneyAccount?: boolean;
-  isAggregatedBalanceLoading?: boolean;
+  isBalanceLoading?: boolean;
   tokenTotal?: BigNumber;
 }
 
@@ -111,7 +111,7 @@ const setupDefaultMocks = ({
   isCardholder = false,
   isCardAuthenticated = false,
   isCardLinkedToMoneyAccount = false,
-  isAggregatedBalanceLoading = false,
+  isBalanceLoading = false,
   tokenTotal = new BigNumber(0),
 }: SetupOptions = {}) => {
   mockUseOnboardingStep.mockReturnValue({
@@ -124,7 +124,7 @@ const setupDefaultMocks = ({
   });
   mockUseMoneyAccountBalance.mockReturnValue({
     tokenTotal,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
   } as ReturnType<typeof useMoneyAccountBalance>);
   (mockUseMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
     startLinkFlow: mockStartLinkFlow,
@@ -153,7 +153,7 @@ describe('MoneyOnboardingCard', () => {
     });
 
     it('returns null when balance is loading', () => {
-      setupDefaultMocks({ isAggregatedBalanceLoading: true });
+      setupDefaultMocks({ isBalanceLoading: true });
 
       const { toJSON } = render(<MoneyOnboardingCard />);
 
@@ -184,7 +184,7 @@ describe('MoneyOnboardingCard', () => {
     it('does not call incrementStep while balance is loading', () => {
       setupDefaultMocks({
         currentStep: 0,
-        isAggregatedBalanceLoading: true,
+        isBalanceLoading: true,
         tokenTotal: new BigNumber(1),
       });
 
