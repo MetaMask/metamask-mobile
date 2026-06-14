@@ -456,11 +456,14 @@ describe('CardAuthentication Component', () => {
       });
     });
 
-    it('pops Card.ROOT off the root navigator on successful login when postAuthRedirect is set (no inner Card-stack reset, no cross-stack navigate)', async () => {
+    it('navigates root to HOME_TABS on successful login when postAuthRedirect targets a tab', async () => {
       mockRouteParams = {
         postAuthRedirect: {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
+          screen: Routes.HOME_TABS,
+          params: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
         },
       };
       mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -476,12 +479,85 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
-        expect(mockNavigationServiceGoBack).toHaveBeenCalledTimes(1);
+        expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        );
       });
-      // The origin (e.g. the Money tab) lives below Card.ROOT in the outer
-      // navigator — popping reveals it without touching its own state or
-      // doing a cross-stack navigate.
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('returns to Money tab when login completed from sign-up entry path (CARD-416)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.HOME_TABS,
+          params: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        },
+      };
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render();
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        );
+      });
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dispatches CommonActions.navigate locally for in-flow postAuthRedirect target (e.g. CardHome)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.CARD.HOME,
+        },
+      };
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render();
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'NAVIGATE',
+            payload: expect.objectContaining({
+              name: Routes.CARD.HOME,
+              params: undefined,
+            }),
+          }),
+        );
+      });
       expect(mockNavigationServiceNavigate).not.toHaveBeenCalled();
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
       expect(mockReset).not.toHaveBeenCalled();
     });
 

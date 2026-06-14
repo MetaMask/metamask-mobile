@@ -11,35 +11,36 @@ describe('useHasNativeFiatProvider', () => {
     jest.resetAllMocks();
   });
 
-  function mockProviders(providers: unknown[]) {
+  function mockSelection(selectedProvider: unknown, providers: unknown[] = []) {
     useRampsProvidersMock.mockReturnValue({
       providers,
+      selectedProvider,
     } as unknown as ReturnType<typeof useRampsProviders>);
   }
 
-  it('returns true when a native provider exists', () => {
-    mockProviders([
-      { id: '/providers/transak', type: 'aggregator' },
-      { id: '/providers/transak-native', type: 'native' },
-    ]);
+  it('returns true when the selected (preferred) provider is native', () => {
+    mockSelection({ id: '/providers/transak-native', type: 'native' });
     const { result } = renderHook(() => useHasNativeFiatProvider());
     expect(result.current).toBe(true);
   });
 
-  it('returns false when only aggregator providers exist', () => {
-    mockProviders([{ id: '/providers/transak', type: 'aggregator' }]);
+  it('returns false when the selected provider is an aggregator, even if a native provider exists in the region', () => {
+    mockSelection({ id: '/providers/transak', type: 'aggregator' }, [
+      { id: '/providers/transak', type: 'aggregator' },
+      { id: '/providers/transak-native', type: 'native' },
+    ]);
     const { result } = renderHook(() => useHasNativeFiatProvider());
     expect(result.current).toBe(false);
   });
 
-  it('returns false when the provider list is empty', () => {
-    mockProviders([]);
+  it('returns false when no provider is selected', () => {
+    mockSelection(null, [{ id: '/providers/transak-native', type: 'native' }]);
     const { result } = renderHook(() => useHasNativeFiatProvider());
     expect(result.current).toBe(false);
   });
 
-  it('returns false when provider type is absent (pre-v2 catalog)', () => {
-    mockProviders([{ id: '/providers/transak' }]);
+  it('returns false when the selected provider has no type (pre-v2 catalog)', () => {
+    mockSelection({ id: '/providers/transak' });
     const { result } = renderHook(() => useHasNativeFiatProvider());
     expect(result.current).toBe(false);
   });

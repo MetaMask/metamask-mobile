@@ -39,6 +39,8 @@ import {
 } from '../../../core/Multichain/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 export interface MultichainTransactionDetailsSheetParams {
   displayData: MultichainTransactionDisplayData;
@@ -70,6 +72,7 @@ const styles = StyleSheet.create({
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<MultichainTransactionDetailsSheetRouteProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { typography } = useTheme();
@@ -83,9 +86,9 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
   }, []);
 
   const viewOnBlockExplorer = useCallback(
-    (label: string) => {
+    (rowKey: string, analyticsText?: string) => {
       let url = '';
-      switch (label) {
+      switch (rowKey) {
         case TransactionDetailRow.TransactionID:
           url = getTransactionUrl(id, chain);
           break;
@@ -101,6 +104,12 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
 
       if (!url) return;
 
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'transaction_details_modal',
+        text: analyticsText ?? rowKey,
+        url,
+      });
+
       // Close the bottom sheet and navigate to webview
       sheetRef.current?.onCloseBottomSheet(() => {
         navigation.navigate(Routes.WEBVIEW.MAIN, {
@@ -109,7 +118,15 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         });
       });
     },
-    [id, chain, from?.address, to?.address, navigation],
+    [
+      id,
+      chain,
+      createEventBuilder,
+      from?.address,
+      navigation,
+      to?.address,
+      trackEvent,
+    ],
   );
 
   const renderDetailRow = (
@@ -133,7 +150,9 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
       >
         {isLink ? (
           <TouchableOpacity
-            onPress={() => viewOnBlockExplorer(label)}
+            onPress={() =>
+              viewOnBlockExplorer(label, formatAddress(value, 'short'))
+            }
             style={styles.blockExplorerLink}
           >
             <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
@@ -199,7 +218,10 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
           size={ButtonSize.Lg}
           label={strings('networks.view_details')}
           onPress={() =>
-            viewOnBlockExplorer(TransactionDetailRow.TransactionID)
+            viewOnBlockExplorer(
+              TransactionDetailRow.TransactionID,
+              strings('networks.view_details'),
+            )
           }
           endIconName={IconName.Export}
         />

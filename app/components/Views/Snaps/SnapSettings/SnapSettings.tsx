@@ -41,6 +41,8 @@ import { selectInternalAccounts } from '../../../../selectors/accountsController
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../../util/Logger';
 import { areAddressesEqual } from '../../../../util/address';
+import { RouteMessengerInstance } from './messenger';
+import { useMessenger } from '../../../../hooks/useMessenger';
 interface SnapSettingsProps {
   snap: Snap;
 }
@@ -52,6 +54,7 @@ const SnapSettings = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
+  const messenger = useMessenger<RouteMessengerInstance>();
 
   const { snap } = useParams<SnapSettingsProps>();
   const permissionsState = useSelector(selectPermissionControllerState);
@@ -104,8 +107,7 @@ const SnapSettings = () => {
   }, []);
 
   const removeSnap = useCallback(async () => {
-    const { SnapController } = Engine.context;
-    await SnapController.removeSnap(snap.id);
+    await messenger.call('SnapController:removeSnap', snap.id);
 
     if (isKeyringSnap && keyringAccounts.length > 0) {
       try {
@@ -120,7 +122,7 @@ const SnapSettings = () => {
       }
     }
     navigation.goBack();
-  }, [isKeyringSnap, keyringAccounts, navigation, snap.id]);
+  }, [isKeyringSnap, keyringAccounts, navigation, messenger, snap.id]);
 
   const handleRemoveSnap = useCallback(() => {
     if (isKeyringSnap && keyringAccounts.length > 0) {

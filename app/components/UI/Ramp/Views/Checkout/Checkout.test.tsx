@@ -47,10 +47,6 @@ jest.mock('../../../../../actions/user', () => ({
   })),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getRampRoutingDecision: () => null,
-}));
-
 jest.mock('../../utils/v2OrderToast', () => ({
   showV2OrderToast: jest.fn(),
 }));

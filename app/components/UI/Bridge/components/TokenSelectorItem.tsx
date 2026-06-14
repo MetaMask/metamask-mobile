@@ -49,6 +49,7 @@ import { useABTest } from '../../../../hooks';
 import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutConfig,
   TokenSelectorBalanceLayoutVariant,
 } from './TokenSelectorItem.abTestConfig';
 import {
@@ -174,6 +175,7 @@ interface TokenSelectorItemProps {
   isNoFeeAsset?: boolean;
   secondaryRowContent?: React.ReactNode;
   tokenBalanceTextProps?: Partial<BalanceTextProps>;
+  balanceLayoutConfigOverride?: TokenSelectorBalanceLayoutConfig;
   shouldChangeSelectedStyle?: boolean;
   shouldShowNetworkIcon?: boolean;
 }
@@ -278,6 +280,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   isNoFeeAsset = false,
   secondaryRowContent,
   tokenBalanceTextProps,
+  balanceLayoutConfigOverride,
   shouldChangeSelectedStyle = true,
   shouldShowNetworkIcon = true,
 }) => {
@@ -298,6 +301,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   const fiatValue = token.balanceFiat;
 
   const selectedVariant =
+    balanceLayoutConfigOverride ??
     variant ??
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
       TokenSelectorBalanceLayoutVariant.Control

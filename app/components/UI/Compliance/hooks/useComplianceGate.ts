@@ -16,7 +16,10 @@ type AddressInput = string | string[];
  * 1. Skips the check entirely when compliance is disabled via feature flag.
  * 2. Awaits the prefetch if it is still in-flight (race-condition guard for
  * users who tap very quickly after the screen loads).
- * 3. Shows `AccessRestrictedModal` and returns `undefined` if any address is
+ * 3. Abandons silently (returns `undefined`, shows nothing) if the selected
+ * wallet changed while the check was in flight — the action belonged to the
+ * previous wallet, so the user retries under the new one.
+ * 4. Shows `AccessRestrictedModal` and returns `undefined` if any address is
  * blocked; otherwise runs the action and returns its result.
  *
  * @param address - A single wallet address or array of addresses to check.
@@ -43,7 +46,7 @@ export function useComplianceGate(address?: AddressInput) {
   // Derive addresses from the scalar key so the memo depends only on what it
   // uses — no eslint-disable needed.
   const addresses = useMemo(
-    () => (addressKey ? addressKey.split(',') : []),
+    () => (addressKey ? addressKey.split(',').filter(Boolean) : []),
     [addressKey],
   );
 
@@ -60,34 +63,65 @@ export function useComplianceGate(address?: AddressInput) {
     );
   }, [addresses, addressKey]);
 
-  // Holds the in-flight prefetch promise so gate() can await it if the user
-  // taps a button before the prefetch has resolved.
-  const prefetchRef = useRef<Promise<unknown> | null>(null);
+  // Holds the in-flight prefetch tagged with the address set it belongs to, so
+  // gate() can verify the cached prefetch belongs to the current wallet before
+  // trusting it.
+  const prefetchRef = useRef<{
+    addressKey: string;
+    promise: Promise<unknown>;
+  } | null>(null);
 
-  // Stores the resolved blocked status from the most recent API call.
+  // Stores the resolved blocked status from the most recent prefetch.
   // Default false = fail-open: assume not blocked until the API says otherwise.
   // Reset to false at the start of each prefetch (while in-flight) so gate()
   // never reads a stale result from a previous address.
   const prefetchBlockedRef = useRef<boolean>(false);
 
+  // Guards against a slow in-flight prefetch for a previous address resolving
+  // late and overwriting prefetchBlockedRef for the current address.
+  const requestIdRef = useRef(0);
+
+  // Latest-value ref assigned during render so it reflects the current wallet
+  // the instant a switch causes a re-render — before the prefetch effect fires.
+  // gate() reads this to detect a wallet switch that happens while a compliance
+  // check is in flight.
+  const currentAddressKeyRef = useRef(addressKey);
+  currentAddressKeyRef.current = addressKey;
+
+  // Keep gate stable for consumers while allowing its fallback path to call the
+  // latest address-bound compliance check after a render-before-effect wallet switch.
+  const checkComplianceRef = useRef(checkCompliance);
+  checkComplianceRef.current = checkCompliance;
+
   // Prefetch compliance status on mount and whenever the address changes.
+  // `checkCompliance` is memoized on `addresses`, so its identity changes
+  // exactly when the address set changes — that (not `addresses.length`, which
+  // stays constant across an account switch) is the correct re-fetch signal.
   useEffect(() => {
     if (!isComplianceEnabled) {
       prefetchBlockedRef.current = false;
+      prefetchRef.current = null;
       return;
     }
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     prefetchBlockedRef.current = false; // reset while in-flight
-    prefetchRef.current = checkCompliance()
+    const promise = checkCompliance()
       .then((results) => {
-        prefetchBlockedRef.current = results
-          ? results.some((r) => r.blocked)
-          : false;
+        if (requestIdRef.current === requestId) {
+          prefetchBlockedRef.current = results
+            ? results.some((r) => r.blocked)
+            : false;
+        }
       })
       .catch(() => {
-        prefetchBlockedRef.current = false; // fail-open on error
-        DevLogger.log('[useComplianceGate] Prefetch compliance check failed');
+        if (requestIdRef.current === requestId) {
+          prefetchBlockedRef.current = false; // fail-open on error
+          DevLogger.log('[useComplianceGate] Prefetch compliance check failed');
+        }
       });
-  }, [isComplianceEnabled, checkCompliance]);
+    prefetchRef.current = { addressKey, promise };
+  }, [addressKey, checkCompliance, isComplianceEnabled]);
 
   const gate = useCallback(
     async <T>(action: () => Promise<T>): Promise<T | void> => {
@@ -98,16 +132,41 @@ export function useComplianceGate(address?: AddressInput) {
         return action();
       }
 
-      // If the prefetch is still in-flight (user tapped very quickly), wait for
-      // it to settle so prefetchBlockedRef reflects the fresh API result.
-      // If it has already resolved this is effectively instant (~0ms).
-      await prefetchRef.current;
+      // Capture the address at gate() entry — used after the await to detect
+      // a wallet switch that happened while the check was in flight.
+      const gateAddressKey = currentAddressKeyRef.current;
+      const prefetch = prefetchRef.current;
 
-      // Read the fresh result from the ref — it was written by the prefetch
-      // .then() handler, so no closure staleness or store access needed.
-      const freshIsBlocked = isComplianceEnabled && prefetchBlockedRef.current;
+      let blocked: boolean;
+      if (prefetch && prefetch.addressKey === gateAddressKey) {
+        // Common path: trust the prefetch for the current wallet. Await it in
+        // case the user tapped before it settled (instant if already resolved).
+        await prefetch.promise;
+        blocked = prefetchBlockedRef.current;
+      } else {
+        // Transient window after a wallet switch, before the effect fires —
+        // no prefetch exists yet for the current address. Do a one-off check,
+        // failing open on error.
+        let results: { blocked: boolean }[] | undefined;
+        try {
+          results = await checkComplianceRef.current();
+        } catch {
+          results = undefined;
+        }
+        blocked = results?.some((r) => r.blocked) ?? false;
+      }
 
-      if (freshIsBlocked) {
+      // If the selected wallet changed while the check was in flight, abandon
+      // silently. The action belonged to the previous wallet; the user retries
+      // under the new one, which will have its own prefetch.
+      if (currentAddressKeyRef.current !== gateAddressKey) {
+        DevLogger.log(
+          '[useComplianceGate] Wallet switched mid-check, abandoning',
+        );
+        return;
+      }
+
+      if (blocked) {
         DevLogger.log('[useComplianceGate] Wallet blocked, showing modal');
         showAccessRestrictedModal();
         return;

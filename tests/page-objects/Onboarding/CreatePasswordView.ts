@@ -17,7 +17,7 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 
 class CreatePasswordView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
@@ -140,7 +140,7 @@ class CreatePasswordView {
     });
   }
 
-  get iUnderstandCheckboxNewWallet(): DetoxElement {
+  get iUnderstandCheckboxNewWallet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
@@ -166,7 +166,7 @@ class CreatePasswordView {
     });
   }
 
-  get passwordError(): DetoxElement {
+  get passwordError(): EncapsulatedElementType {
     return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
 

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import BigNumber from 'bignumber.js';
 import {
+  FeatureId,
   formatAddressToAssetId,
   formatAddressToCaipReference,
 } from '@metamask/bridge-controller';
@@ -165,6 +166,7 @@ export function buildBatchSellQuoteRequestData({
             sourceToken,
             sourceAmount,
           ),
+          feature_id: FeatureId.BATCH_SELL,
         },
       });
 
