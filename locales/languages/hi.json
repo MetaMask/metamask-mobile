@@ -118,7 +118,11 @@
       "title": "कोई कोटेशन मौजूद नहीं है"
     },
     "account_no_funds": {
-      "message": "कोई फंड उपलब्ध नहीं है। कृपया किसी अन्य अकाउंट का इस्तेमाल करें।"
+      "message": "कोई फंड उपलब्ध नहीं है। कृपया किसी अन्य अकाउंट का इस्तेमाल करें।",
+      "title": "Insufficient funds"
+    },
+    "fiat_buy_amount_limit": {
+      "title": "Amount out of range"
     },
     "headless_buy_error": {
       "title": "फिएट की खरीद नहीं हो पाई",
@@ -1037,7 +1041,7 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "टॉप ट्रेडर्स",
+      "title": "Weekly Top Traders",
       "chain_filter": {
         "all": "सभी"
       }
@@ -1071,7 +1075,7 @@
       "followers_count": "{{count}} फ़ॉलोअर",
       "followers_count_plural": "{{count}} फ़ॉलोअर्स",
       "win_rate": "विन रेट",
-      "pnl_30d": "30डी पीएंडएल",
+      "pnl_30d": "30D Return",
       "hold_time": "होल्ड टाइम",
       "hold_time_minutes": "{{count}}मिनट",
       "hold_time_hours": "{{count}} घंटे",
@@ -1094,7 +1098,7 @@
       "buy": "खरीदें",
       "bought": "{{name}} ने खरीदा",
       "sold": "{{name}} ने बेचा",
-      "no_trades": "इस समय के लिए कोई ट्रेड नहीं",
+      "no_trades": "No trades yet",
       "closed_position": "बंद पोज़िशन",
       "fallback_title": "पोज़िशन उपलब्ध नहीं है",
       "fallback_subtitle": "हम इस पोज़िशन को अभी लोड नहीं कर पाए।",
@@ -1848,6 +1852,7 @@
       "position": "पोजीशन",
       "orders": "ऑर्डर",
       "go_to_activity": "अपनी गतिविधि पर जाएं",
+      "related_markets": "Related markets",
       "recent_trades": "हालिया गतिविधि",
       "no_trades": "हाल ही में कोई गतिविधि नहीं",
       "trading_24_7": "यह एसेट 24/7 ट्रेड की जा सकती है",
@@ -2142,6 +2147,16 @@
     "search_by_token_symbol": "टोकन सिंबल से ढूंढें",
     "no_favorites_found": "वॉचलिस्ट में कोई मार्केट नहीं है",
     "no_favorites_description": "किसी भी मार्केट को वॉचलिस्ट में जोड़ने के लिए स्टार आइकन पर टैप करें",
+    "watchlist": {
+      "empty_title": "Start with the most-traded markets",
+      "empty_subtitle": "Tap + to add a market to your watchlist.",
+      "show_more": "Show {{count}} more",
+      "show_less": "Show less",
+      "add_error": "Failed to add market to watchlist",
+      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
+      "filter_badge_label": "Watchlist",
+      "suggested": "Suggested"
+    },
     "no_tokens_found": "टोकन नहीं मिले",
     "no_tokens_found_description": "हमें \"{{searchQuery}}\" नाम से कोई टोकन नहीं मिला। कृपया एक अलग सर्च से प्रयास करें।",
     "testnet": "टैस्टनेट (testnet)",
@@ -2274,6 +2289,9 @@
       "share_failed": "इमेज एक्सपोर्ट नहीं हो पाया",
       "export_success": "एक्सपोर्ट किया गया इमेज",
       "referral_code_text": "एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड का उपयोग करें।"
+    },
+    "market_details": {
+      "category_search": "Browse related markets"
     }
   },
   "market_insights": {
@@ -2325,7 +2343,7 @@
       "nba_2026_champion_title": "एनबीए 2026 चैंपियन",
       "fifa_world_cup_2026_title": "फीफा विश्व कप 2026",
       "events_in_total": "कुल {{count}} इवेंट्स",
-      "events_in_total_overflow": "कुल {{count}}+ इवेंट्स",
+      "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "प्रॉप्स",
       "championship_unavailable": "अभी दिखाने के लिए कोई चैंपियनशिप मार्केट नहीं है।",
       "mens_world_cup_title": "पुरुष विश्व कप",
@@ -6868,8 +6886,6 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "एपीवाय की जानकारी",
-    "deposit_tooltip_title": "{{percentage}}% तक कमाएं",
-    "deposit_tooltip_description": "अपने Money अकाउंट में फंड्स जोड़ें और स्वचालित रूप से {{percentage}}% तक APY कमाएं। आप अपने मौजूदा स्टेबलकॉइन बैलेंस को कन्वर्ट करके या सीधे अपने बैंक या कार्ड से डिपॉज़िट करके फंड्स जोड़ सकते हैं।",
     "balance_unavailable": "बैलेंस अनुपलब्ध है",
     "balance_retry": "फिर से प्रयास करें",
     "balance_no_account": "Money अकाउंट नहीं मिला",
@@ -6911,7 +6927,7 @@
     },
     "action": {
       "add": "जोड़ें",
-      "transfer": "स्थानांतरण",
+      "transfer": "Send",
       "card": "कार्ड"
     },
     "earnings": {
@@ -6992,13 +7008,10 @@
     "add_money_sheet": {
       "title": "फंड जोड़ें",
       "convert_crypto": "क्रिप्टो को कन्वर्ट करें",
-      "convert_crypto_description": "किसी भी अकाउंट से",
-      "deposit_funds": "फंड्स डिपॉज़िट करें",
-      "deposit_funds_description": "डेबिट कार्ड या बैंक से",
-      "move_musd": "अपना {{amount}} mUSD जोड़ें",
+      "deposit_funds": "Debit card or bank account",
+      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "move_musd_description": "आपके बैलेंस से",
-      "receive_external": "बाहरी वॉलेट से प्राप्त करें",
+      "receive_external": "External address",
       "coming_soon": "जल्द आ रहा है"
     },
     "more_sheet": {
@@ -7008,12 +7021,12 @@
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
     },
     "transfer_sheet": {
-      "title": "Transfer funds to",
+      "title": "Send funds to",
       "between_accounts": "Another account",
       "perps_account": "पर्प्स अकाउंट",
       "predictions_account": "प्रेडिक्शंस अकाउंट",
-      "send_external": "बाहरी एड्रेस पर भेजें",
-      "withdraw_to_bank": "बैंक में निकालें"
+      "send_external": "External address",
+      "withdraw_to_bank": "Bank account"
     },
     "toasts": {
       "in_progress_title": "ट्रांसेक्शन प्रोग्रेस में है",
@@ -7041,7 +7054,8 @@
       "title": "वार्षिक प्रतिशत उपज (APY)",
       "paragraph_1": "आपका Money अकाउंट अपने आप {{percentage}}% तक कमाता है।",
       "paragraph_2": "दिखाई गई दर वर्तमान बाजार स्थितियों के आधार पर एक अनुमानित वार्षिक प्रतिशत उपज (APY) है। APY परिवर्तनशील है और विभिन्न कारकों के कारण बदल सकती है। यह दर थर्ड-पार्टी DeFi प्लेटफॉर्म द्वारा उत्पन्न की जाती है, जो फंड्स को ब्लॉकचेन प्रोटोकॉल में लगाते हैं।",
-      "paragraph_3": "जब आप अपना MetaMask कार्ड लिंक करते हैं, तो खरीदारी इसी बैलेंस से कटेगी।"
+      "paragraph_3": "जब आप अपना MetaMask कार्ड लिंक करते हैं, तो खरीदारी इसी बैलेंस से कटेगी।",
+      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
       "title": "अनुमानित कमाई",
@@ -7049,15 +7063,17 @@
     },
     "earn_crypto_info_sheet": {
       "title": "अपने क्रिप्टो पर कमाएं",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
+      "deposit_title": "Projected 1-year balance",
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
     },
     "activity": {
       "title": "गतिविधि",
       "view_all": "सभी देखें",
       "empty": "अभी तक कोई गतिविधि नहीं हुई",
+      "pending": "Pending",
       "filter_all": "सभी",
       "filter_deposits": "डिपॉज़िट",
-      "filter_transfers": "ट्रांसफर"
+      "filter_sends": "Sends"
     },
     "condensed_cards": {
       "how_it_works_title": "ये कैसे काम करता है",
@@ -7068,13 +7084,19 @@
       "what_you_get_subtitle": "अपने फ़ायदे जानें"
     },
     "transaction": {
-      "added": "जोड़ा गया",
       "deposited": "डिपॉज़िट किया गया",
       "received": "प्राप्त किया गया",
       "sent": "भेजा गया",
-      "transferred": "ट्रांसफर किया गया",
       "card_transaction": "कार्ड ट्रांसेक्शन",
       "converted": "कन्वर्ट किया गया",
+      "depositing": "Depositing",
+      "converting": "Converting",
+      "sending": "Sending",
+      "receiving": "Receiving",
+      "deposit_failed": "Deposit failed",
+      "conversion_failed": "Conversion failed",
+      "send_failed": "Send failed",
+      "received_from": "From: {{address}}",
       "failed": "नहीं हो पाया"
     },
     "card_details": {
@@ -7397,7 +7419,7 @@
       "other_assets": "अन्य एसेट्स",
       "other_assets_description": "अपने टोकन में से चुनें",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_balance": "Money बैलेंस"
+      "money_account": "Money account"
     },
     "staking_footer": {
       "part1": "जारी रखकर, आप हमारी ",
@@ -7423,6 +7445,7 @@
       "pay_with": "के साथ भुगतान करें",
       "payment_method": "पेमेंट का तरीका",
       "receive_as": "प्राप्त करें",
+      "select_token": "Select token",
       "from": "से",
       "to": "प्रति",
       "total": "कुल",
@@ -7575,7 +7598,7 @@
       "buy_predict": "प्रेडिक्शंस का उपयोग करने के लिए अपने वॉलेट में फंड्स जोड़ें।",
       "buy_perps": "पर्प्स का उपयोग करने के लिए अपने वॉलेट में फंड्स जोड़ें।",
       "projected_balance": "अनुमानित {{projectedYears}}-वर्षीय बैलेंस:",
-      "earn_up_to_apy": "{{percentage}}% APY तक कमाएं"
+      "earn_up_to_apy": "Earn {{percentage}}% APY"
     },
     "unlimited": "असीमित",
     "all": "सभी",
@@ -7714,14 +7737,27 @@
     "hardware_wallet_not_supported": "हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "hardware_wallet_not_supported_solana": "Solana के लिए हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "hardware_wallet_progress": {
-      "approved_token": "Approved {{amount}} {{symbol}}",
+      "confirm_title": "Confirm on your hardware wallet ({{current}}/{{total}})",
+      "submitted_title": "Transaction submitted",
+      "rejected_title": "You rejected this transaction on your device",
+      "failed_title": "Transaction failed",
+      "disconnected_title": "Device disconnected",
+      "approve_token": "Approve {{amount}} {{symbol}}",
       "approving_token": "Approving {{amount}} {{symbol}}",
+      "approved_token": "Approved {{amount}} {{symbol}}",
       "send_token": "Send {{amount}} {{symbol}}",
       "sending_token": "Sending {{amount}} {{symbol}}",
       "sent_token": "Sent {{amount}} {{symbol}}",
+      "spender": "Spender",
       "spender_address": "Spender {{address}}",
+      "recipient": "Recipient",
       "recipient_address": "Recipient {{address}}",
-      "rejected": "रिजेक्ट किया गया"
+      "rejected": "रिजेक्ट किया गया",
+      "reconnect": "Reconnect",
+      "done": "Done",
+      "scan_next_qr_code": "Scan next QR code",
+      "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
+      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet"
     },
     "price_impact_info_title": "कीमत का प्रभाव",
     "price_impact_info_description": "इस तरह आपका ट्रेड किसी टोकन की मार्केट प्राइस बदलता है। यह ट्रेड साइज़, उपलब्ध लिक्विडिटी और प्रोवाइडर फीस पर निर्भर करता है। MetaMask प्राइस इम्पैक्ट को कंट्रोल नहीं करता है।",
@@ -7766,6 +7802,7 @@
       "bridge_success": "Bridge complete",
       "bridge_failed": "Bridge failed",
       "trade_subtitle": "{{sourceAmount}} {{sourceSymbol}} → {{destAmount}} {{destSymbol}}",
+      "what_to_swap_next": "What to swap next",
       "view_activity": "एक्टिविटी देखें",
       "try_again": "फिर से प्रयास करें"
     },
@@ -8758,6 +8795,7 @@
       "progress_to_next_tier": "अगले टियर तक {{pointsRemaining}} पॉइंट्स शेष हैं",
       "bps_unit": "बीपीएस",
       "badge_label": "VIP {{tier}}",
+      "referral_tag_label": "VIP",
       "swaps_label": "स्वैप्स",
       "perps_label": "पर्प्स",
       "points_label": "पॉइंट्स",
@@ -8782,7 +8820,21 @@
       "retry_button": "फिर से प्रयास करें",
       "tiers_title": "टियर्स",
       "tier_thresholds": "{{points}} पॉइंट्स",
-      "bps_value": "{{bps}} बीपीएस"
+      "bps_value": "{{bps}} बीपीएस",
+      "referee_splash_title": "WELCOME\nTO GOLD\nFOX VIP",
+      "referee_splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
+      "referee_splash_continue": "Continue",
+      "referee_splash_not_now": "Not now",
+      "referee_referred_by": "Referred by {{code}}",
+      "referee_page_title": "VIP Pilot",
+      "referee_stats_title": "Stats",
+      "referee_period_last_30d": "Last 30d",
+      "referee_points_label": "Points",
+      "referee_swaps_volume_label": "Swaps volume",
+      "referee_perps_volume_label": "Perps volume",
+      "referee_error_title": "We couldn’t load your VIP referee details",
+      "referee_error_description": "Check your connection and try again.",
+      "last_updated": "Last updated: {{time}}"
     },
     "referral_title": "रेफरल",
     "referral_stats_earned_from_referrals": "रेफरल से अर्जित",
@@ -9086,6 +9138,7 @@
       "total_participants": "कुल प्रतिभागी",
       "total_volume": "कुल वॉल्यूम",
       "top_return": "शीर्ष रिटर्न",
+      "top_pnl": "Top PnL",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {
@@ -9671,7 +9724,7 @@
       "related_assets": "संबंधित एसेट्स",
       "perpetuals": "परपेचुअल्स",
       "predictions": "प्रेडिक्शंस",
-      "top_traders": "टॉप ट्रेडर्स",
+      "top_traders": "Weekly Top Traders",
       "defi": "DeFi",
       "nfts": "NFTs",
       "trending_tokens": "ट्रेंडिंग",

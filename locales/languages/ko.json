@@ -118,7 +118,11 @@
       "title": "견적 없음"
     },
     "account_no_funds": {
-      "message": "사용 가능한 자금이 없습니다. 다른 계정을 사용하세요."
+      "message": "사용 가능한 자금이 없습니다. 다른 계정을 사용하세요.",
+      "title": "Insufficient funds"
+    },
+    "fiat_buy_amount_limit": {
+      "title": "Amount out of range"
     },
     "headless_buy_error": {
       "title": "법정화폐 구매 실패",
@@ -1037,7 +1041,7 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "상위 트레이더",
+      "title": "Weekly Top Traders",
       "chain_filter": {
         "all": "모두"
       }
@@ -1071,7 +1075,7 @@
       "followers_count": "{{count}}명의 팔로워",
       "followers_count_plural": "{{count}}명의 팔로워",
       "win_rate": "승률",
-      "pnl_30d": "30일 손익",
+      "pnl_30d": "30D Return",
       "hold_time": "보유 시간",
       "hold_time_minutes": "{{count}}분",
       "hold_time_hours": "{{count}}시간",
@@ -1094,7 +1098,7 @@
       "buy": "매수",
       "bought": "{{name}} 매수함",
       "sold": "{{name}} 매도함",
-      "no_trades": "이 기간에는 거래가 없습니다",
+      "no_trades": "No trades yet",
       "closed_position": "포지션 청산",
       "fallback_title": "포지션 확인할 수 없음",
       "fallback_subtitle": "현재 이 포지션을 불러올 수 없습니다.",
@@ -1848,6 +1852,7 @@
       "position": "포지션",
       "orders": "주문",
       "go_to_activity": "활동 내역 보기",
+      "related_markets": "Related markets",
       "recent_trades": "최근 활동",
       "no_trades": "최근 활동이 없습니다",
       "trading_24_7": "이 자산은 연중무휴 24시간 거래할 수 있습니다",
@@ -2142,6 +2147,16 @@
     "search_by_token_symbol": "토큰 심볼별 검색",
     "no_favorites_found": "관심 목록에 시장이 없습니다",
     "no_favorites_description": "시장의 별 아이콘을 탭하면 관심 목록에 추가됩니다",
+    "watchlist": {
+      "empty_title": "Start with the most-traded markets",
+      "empty_subtitle": "Tap + to add a market to your watchlist.",
+      "show_more": "Show {{count}} more",
+      "show_less": "Show less",
+      "add_error": "Failed to add market to watchlist",
+      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
+      "filter_badge_label": "Watchlist",
+      "suggested": "Suggested"
+    },
     "no_tokens_found": "확인된 토큰이 없습니다",
     "no_tokens_found_description": "\"{{searchQuery}}\"라는 이름의 토큰을 찾을 수 없습니다. 다른 검색어를 입력해 보세요.",
     "testnet": "테스트넷",
@@ -2274,6 +2289,9 @@
       "share_failed": "이미지 내보내기 실패",
       "export_success": "이미지 내보내기 완료",
       "referral_code_text": "추천 코드를 사용하여 추가 리워드를 받으세요."
+    },
+    "market_details": {
+      "category_search": "Browse related markets"
     }
   },
   "market_insights": {
@@ -2325,7 +2343,7 @@
       "nba_2026_champion_title": "NBA 2026 챔피언",
       "fifa_world_cup_2026_title": "FIFA 월드컵 2026",
       "events_in_total": "총 {{count}}개 이벤트",
-      "events_in_total_overflow": "총 {{count}}개 이상의 이벤트",
+      "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "프롭",
       "championship_unavailable": "표시할 챔피언십 마켓이 아직 없습니다.",
       "mens_world_cup_title": "남자 월드컵",
@@ -6868,8 +6886,6 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY 정보",
-    "deposit_tooltip_title": "최대 {{percentage}}%의 수익 얻기",
-    "deposit_tooltip_description": "머니 계정에 자금을 예치하면 최대 {{percentage}}% APY의 수익을 자동으로 얻을 수 있습니다. 기존 스테이블코인 잔액을 전환하거나 은행 계좌 또는 카드에서 직접 입금하여 자금을 추가할 수 있습니다.",
     "balance_unavailable": "잔액을 확인할 수 없음",
     "balance_retry": "다시 시도",
     "balance_no_account": "머니 계정을 찾을 수 없음",
@@ -6911,7 +6927,7 @@
     },
     "action": {
       "add": "추가",
-      "transfer": "송금",
+      "transfer": "Send",
       "card": "카드"
     },
     "earnings": {
@@ -6992,13 +7008,10 @@
     "add_money_sheet": {
       "title": "자금 추가",
       "convert_crypto": "암호자산 전환",
-      "convert_crypto_description": "모든 계정에서",
-      "deposit_funds": "자금 예치",
-      "deposit_funds_description": "직불카드 또는 은행에서",
-      "move_musd": "{{amount}} mUSD 추가",
+      "deposit_funds": "Debit card or bank account",
+      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "move_musd_description": "잔액에서",
-      "receive_external": "외부 지갑에서 받기",
+      "receive_external": "External address",
       "coming_soon": "곧 추가 예정"
     },
     "more_sheet": {
@@ -7008,12 +7021,12 @@
       "contact_support": "지원팀에 문의"
     },
     "transfer_sheet": {
-      "title": "Transfer funds to",
+      "title": "Send funds to",
       "between_accounts": "Another account",
       "perps_account": "무기한 선물 계정",
       "predictions_account": "예측 계정",
-      "send_external": "외부 주소에 전송",
-      "withdraw_to_bank": "은행으로 출금"
+      "send_external": "External address",
+      "withdraw_to_bank": "Bank account"
     },
     "toasts": {
       "in_progress_title": "트랜잭션 진행 중",
@@ -7041,7 +7054,8 @@
       "title": "연간수익률(APY)",
       "paragraph_1": "회원님의 머니 계정은 자동으로 최대 {{percentage}}%의 수익을 올릴 수 있습니다.",
       "paragraph_2": "표시된 수익률은 현재 시장 상황에 기반한 예상 연간수익률(APY)입니다. 연간수익률은 변동형이며 다양한 요인에 따라 달라질 수 있습니다. 수익률은 블록체인 프로토콜에서 자금을 운용하는 제3자 디파이 플랫폼에 의해 산정됩니다.",
-      "paragraph_3": "MetaMask 카드를 연결하면 결제액이 이 잔액에서 차감됩니다."
+      "paragraph_3": "MetaMask 카드를 연결하면 결제액이 이 잔액에서 차감됩니다.",
+      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
       "title": "예상 수익",
@@ -7049,15 +7063,17 @@
     },
     "earn_crypto_info_sheet": {
       "title": "암호화폐로 수익 얻기",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
+      "deposit_title": "Projected 1-year balance",
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
     },
     "activity": {
       "title": "활동",
       "view_all": "모두 보기",
       "empty": "아직 활동이 없습니다",
+      "pending": "Pending",
       "filter_all": "모두",
       "filter_deposits": "예치",
-      "filter_transfers": "송금"
+      "filter_sends": "Sends"
     },
     "condensed_cards": {
       "how_it_works_title": "작동 방식",
@@ -7068,13 +7084,19 @@
       "what_you_get_subtitle": "혜택 살펴보기"
     },
     "transaction": {
-      "added": "추가함",
       "deposited": "입금됨",
       "received": "받음",
       "sent": "보낸",
-      "transferred": "송금됨",
       "card_transaction": "카드 거래",
       "converted": "전환됨",
+      "depositing": "Depositing",
+      "converting": "Converting",
+      "sending": "Sending",
+      "receiving": "Receiving",
+      "deposit_failed": "Deposit failed",
+      "conversion_failed": "Conversion failed",
+      "send_failed": "Send failed",
+      "received_from": "From: {{address}}",
       "failed": "실패"
     },
     "card_details": {
@@ -7397,7 +7419,7 @@
       "other_assets": "기타 자산",
       "other_assets_description": "보유한 토큰 중에서 선택",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_balance": "머니 잔액"
+      "money_account": "Money account"
     },
     "staking_footer": {
       "part1": "계속 진행하면 당사의 ",
@@ -7423,6 +7445,7 @@
       "pay_with": "결제 수단:",
       "payment_method": "결제 방법",
       "receive_as": "받기",
+      "select_token": "Select token",
       "from": "발신:",
       "to": "수신:",
       "total": "총액",
@@ -7575,7 +7598,7 @@
       "buy_predict": "예측 기능을 사용하려면 지갑에 자금을 추가하세요.",
       "buy_perps": "무기한 선물을 사용하려면 지갑에 자금을 추가하세요.",
       "projected_balance": "{{projectedYears}}년 후 예상 잔액:",
-      "earn_up_to_apy": "최대 {{percentage}}% APY 수익 적립"
+      "earn_up_to_apy": "Earn {{percentage}}% APY"
     },
     "unlimited": "무제한",
     "all": "모두",
@@ -7714,14 +7737,27 @@
     "hardware_wallet_not_supported": "하드웨어 지갑은 아직 지원되지 않습니다. 핫월렛을 사용하여 계속하세요.",
     "hardware_wallet_not_supported_solana": "솔라나는 아직 하드웨어 지갑이 지원하지 않습니다. 계속하려면 핫월렛을 사용하세요.",
     "hardware_wallet_progress": {
-      "approved_token": "Approved {{amount}} {{symbol}}",
+      "confirm_title": "Confirm on your hardware wallet ({{current}}/{{total}})",
+      "submitted_title": "Transaction submitted",
+      "rejected_title": "You rejected this transaction on your device",
+      "failed_title": "Transaction failed",
+      "disconnected_title": "Device disconnected",
+      "approve_token": "Approve {{amount}} {{symbol}}",
       "approving_token": "Approving {{amount}} {{symbol}}",
+      "approved_token": "Approved {{amount}} {{symbol}}",
       "send_token": "Send {{amount}} {{symbol}}",
       "sending_token": "Sending {{amount}} {{symbol}}",
       "sent_token": "Sent {{amount}} {{symbol}}",
+      "spender": "Spender",
       "spender_address": "Spender {{address}}",
+      "recipient": "Recipient",
       "recipient_address": "Recipient {{address}}",
-      "rejected": "거부됨"
+      "rejected": "거부됨",
+      "reconnect": "Reconnect",
+      "done": "Done",
+      "scan_next_qr_code": "Scan next QR code",
+      "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
+      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet"
     },
     "price_impact_info_title": "가격 영향",
     "price_impact_info_description": "이는 거래가 토큰의 시장 가격에 어떤 영향을 미치는지 보여줍니다. 거래 규모, 이용 가능한 유동성, 공급자 수수료에 따라 달라집니다. MetaMask는 가격 영향에 관여하지 않습니다.",
@@ -7766,6 +7802,7 @@
       "bridge_success": "Bridge complete",
       "bridge_failed": "Bridge failed",
       "trade_subtitle": "{{sourceAmount}} {{sourceSymbol}} → {{destAmount}} {{destSymbol}}",
+      "what_to_swap_next": "What to swap next",
       "view_activity": "활동 보기",
       "try_again": "다시 시도"
     },
@@ -8758,6 +8795,7 @@
       "progress_to_next_tier": "다음 티어까지 {{pointsRemaining}}포인트 남음",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
+      "referral_tag_label": "VIP",
       "swaps_label": "스왑",
       "perps_label": "무기한 선물",
       "points_label": "포인트",
@@ -8782,7 +8820,21 @@
       "retry_button": "다시 시도",
       "tiers_title": "티어",
       "tier_thresholds": "{{points}}포인트",
-      "bps_value": "{{bps}} bps"
+      "bps_value": "{{bps}} bps",
+      "referee_splash_title": "WELCOME\nTO GOLD\nFOX VIP",
+      "referee_splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
+      "referee_splash_continue": "Continue",
+      "referee_splash_not_now": "Not now",
+      "referee_referred_by": "Referred by {{code}}",
+      "referee_page_title": "VIP Pilot",
+      "referee_stats_title": "Stats",
+      "referee_period_last_30d": "Last 30d",
+      "referee_points_label": "Points",
+      "referee_swaps_volume_label": "Swaps volume",
+      "referee_perps_volume_label": "Perps volume",
+      "referee_error_title": "We couldn’t load your VIP referee details",
+      "referee_error_description": "Check your connection and try again.",
+      "last_updated": "Last updated: {{time}}"
     },
     "referral_title": "추천",
     "referral_stats_earned_from_referrals": "추천을 통해 적립",
@@ -9086,6 +9138,7 @@
       "total_participants": "총 참가자 수",
       "total_volume": "총 거래량",
       "top_return": "최고 수익률",
+      "top_pnl": "Top PnL",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {
@@ -9671,7 +9724,7 @@
       "related_assets": "관련 자산",
       "perpetuals": "영구계약",
       "predictions": "예측",
-      "top_traders": "상위 트레이더",
+      "top_traders": "Weekly Top Traders",
       "defi": "디파이",
       "nfts": "NFT",
       "trending_tokens": "인기",
