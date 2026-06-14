@@ -4,6 +4,7 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
+import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockGoBack = jest.fn();
@@ -749,6 +750,84 @@ describe('PredictGameDetailsContent', () => {
   });
 
   describe('tab bar rendering', () => {
+    it('renders sticky controls and outcomes content from the details content', () => {
+      (useGameDetailsTabs as jest.Mock).mockReturnValue({
+        enabled: true,
+        showTabBar: true,
+        tabs: [{ label: 'Outcomes', key: 'outcomes' }],
+        activeTab: 0,
+        handleTabPress: jest.fn(),
+        chips: [{ key: 'game_lines', label: 'Game Lines' }],
+        groupMap: new Map([
+          ['game_lines', { key: 'game_lines', outcomes: [] }],
+        ]),
+        activeChipKey: 'game_lines',
+        handleChipSelect: jest.fn(),
+        showChips: true,
+      });
+
+      const market = createMockMarket();
+
+      const { UNSAFE_getByType, getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      const { ScrollView } = jest.requireActual('react-native');
+      const scrollView = UNSAFE_getByType(ScrollView);
+
+      expect(scrollView.props.stickyHeaderIndices).toEqual([2]);
+      expect(getByTestId('game-scoreboard')).toBeOnTheScreen();
+      expect(getByTestId('game-chart')).toBeOnTheScreen();
+      expect(getByTestId('mock-tab-bar')).toBeOnTheScreen();
+      expect(getByTestId('predict-chip-game_lines')).toBeOnTheScreen();
+      expect(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders positions content from the details content', () => {
+      (useGameDetailsTabs as jest.Mock).mockReturnValue({
+        enabled: true,
+        showTabBar: true,
+        tabs: [
+          { label: 'Outcomes', key: 'outcomes' },
+          { label: 'Positions', key: 'positions' },
+        ],
+        activeTab: 1,
+        handleTabPress: jest.fn(),
+        chips: [],
+        groupMap: new Map(),
+        activeChipKey: '',
+        handleChipSelect: jest.fn(),
+        showChips: false,
+      });
+
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.TAB_CONTENT),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK),
+      ).toBeOnTheScreen();
+    });
+
     it('renders PredictMarketDetailsTabBar when showTabBar is true', () => {
       (useGameDetailsTabs as jest.Mock).mockReturnValue({
         enabled: true,
