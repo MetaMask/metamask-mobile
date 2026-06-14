@@ -26,6 +26,7 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       ErrorCode.DeviceNotReady,
       ErrorCode.DeviceMissingCapability,
       ErrorCode.DeviceStateBlindSignNotSupported,
+      ErrorCode.DeviceStateOnlyV4Supported,
       ErrorCode.DeviceUnresponsive,
       ErrorCode.ConnectionClosed,
       ErrorCode.ConnectionTimeout,
@@ -136,6 +137,12 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
         MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateBlindSignNotSupported];
       const title = ext?.getLocalizedTitle();
       expect(title).toBe('hardware_wallet.error.blind_signing_disabled');
+    });
+
+    it('returns localized title for DeviceStateOnlyV4Supported', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateOnlyV4Supported];
+      const title = ext?.getLocalizedTitle();
+      expect(title).toBe('hardware_wallet.error.unsupported_signature');
     });
 
     it('returns localized title for DeviceUnresponsive', () => {
@@ -284,6 +291,13 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       expect(message).toBe('hardware_wallet.errors.blind_signing');
     });
 
+    it('returns localized message for DeviceStateOnlyV4Supported', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateOnlyV4Supported];
+      const message = ext?.getLocalizedMessage(HardwareWalletType.Ledger);
+      expect(message).toContain('hardware_wallet.errors.only_v4_supported');
+      expect(message).toContain('device:');
+    });
+
     it('returns localized message for DeviceUnresponsive', () => {
       const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceUnresponsive];
       const message = ext?.getLocalizedMessage();
@@ -396,6 +410,10 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       ).toBe(RecoveryAction.ACKNOWLEDGE);
       expect(
         MOBILE_ERROR_EXTENSIONS[ErrorCode.MobileNotSupported]?.recoveryAction,
+      ).toBe(RecoveryAction.ACKNOWLEDGE);
+      expect(
+        MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateOnlyV4Supported]
+          ?.recoveryAction,
       ).toBe(RecoveryAction.ACKNOWLEDGE);
     });
 
