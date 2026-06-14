@@ -159,7 +159,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             colors={[colors.primary.default]}
           />
         }
-        showsVerticalScrollIndicator={false}
       >
         <Box twClassName="px-4 py-2">
           <PredictSportScoreboard
