@@ -58,14 +58,30 @@ export interface HardwareWalletsSwapsStep {
   address?: string;
 }
 
+/**
+ * Shape of the hardware wallet swap signing state machine.
+ *
+ * The reducer tracks the overall flow status, the current and total step
+ * indices, the ordered list of steps, and — when the device disconnects —
+ * the step index at which the disconnect occurred so the UI can resume there.
+ */
 export interface HardwareWalletsSwapsState {
+  /** Overall lifecycle status of the signing flow (idle, waiting, submitted, etc.). */
   status: HardwareWalletsSwapsStatus;
+  /** Zero-based index of the step currently awaiting or undergoing signing. */
   currentStep: number;
+  /** Total number of steps in the flow (1 = trade only; 2 = approval + trade). */
   totalSteps: number;
+  /** Ordered steps, each tracking its kind, per-step status, and target address. */
   steps: HardwareWalletsSwapsStep[];
+  /** Index of the step in progress when the device disconnected, or null if it hasn't. */
   disconnectedStep: number | null;
 }
 
+/**
+ * Discriminated union of all events accepted by {@link hardwareWalletsSwapsReducer}.
+ * Each variant carries only the payload relevant to its transition.
+ */
 export type HardwareWalletsSwapsEvent =
   | {
       type: HardwareWalletsSwapsEventType.Start;
@@ -92,6 +108,20 @@ export type HardwareWalletsSwapsEvent =
 
 type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'>;
 
+/**
+ * Builds the `Start` event that initializes the swap signing flow from an
+ * active bridge/swap quote.
+ *
+ * Determines the step count from whether an approval is required: two steps
+ * (approval + trade) when `approval` is present, otherwise one (trade only).
+ * Extracts the spender (`approval.to`) and recipient (`trade.to`) addresses,
+ * guarded by the bridge controller's `isEvmTxData` so non-EVM quote shapes are
+ * safely skipped.
+ *
+ * @param activeQuote - The selected quote, containing optional `approval` and
+ * `trade` transaction data.
+ * @returns A `Start` event for {@link hardwareWalletsSwapsReducer}.
+ */
 export function buildStartPayload(
   activeQuote: QuoteWithTxData,
 ): HardwareWalletsSwapsEvent {
@@ -107,6 +137,10 @@ export function buildStartPayload(
   };
 }
 
+/**
+ * Initial idle state for {@link hardwareWalletsSwapsReducer} — no steps and
+ * nothing in flight, ready to receive a `Start` event.
+ */
 export const initialHardwareWalletsSwapsState: HardwareWalletsSwapsState = {
   status: HardwareWalletsSwapsStatus.Idle,
   currentStep: 0,
@@ -148,9 +182,12 @@ function isCurrentStepKind(
 }
 
 /**
- * Returns a new steps array with the matching step's status updated.
- * Finds the step at the current position matching the given kind,
- * or falls back to the step at the current index.
+ * Finds the index of the first actionable step matching the given kind.
+ *
+ * "Actionable" means the step is not yet in a terminal per-step state
+ * (`Signed` or `Rejected`), so it can still transition to `Signing`/`Signed`.
+ *
+ * @returns The matching step index, or `-1` if none is found.
  */
 function findStepIndexByKind(
   steps: HardwareWalletsSwapsStep[],
@@ -164,6 +201,11 @@ function findStepIndexByKind(
   );
 }
 
+/**
+ * Returns a new steps array with the first actionable step of the given kind
+ * updated to `status`. If no actionable matching step exists, the original
+ * array is returned unchanged.
+ */
 function updateStepStatusByKind(
   steps: HardwareWalletsSwapsStep[],
   stepKind: HardwareWalletsSwapsStepKind,
@@ -304,6 +346,14 @@ export function hardwareWalletsSwapsReducer(
         disconnectedStep: state.currentStep,
       };
     case HardwareWalletsSwapsEventType.TransactionFailed:
+      // A swap has two phases: SIGNING (status = Waiting, while the user
+      // confirms each step on the hardware device) and BROADCAST (status =
+      // Submitted, once everything is signed and the Smart Transactions / STX
+      // backend publishes it on-chain). Both phases can fail: a step can fail
+      // during signing, and the STX backend can fail to publish even after
+      // signing succeeded. Both are accepted here; excluding Submitted would
+      // drop those post-signing failures and leave the UI stuck on
+      // "Submitted" indefinitely.
       if (
         state.status !== HardwareWalletsSwapsStatus.Waiting &&
         state.status !== HardwareWalletsSwapsStatus.Submitted
