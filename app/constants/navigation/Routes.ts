@@ -567,6 +567,8 @@ const Routes = {
     CONFIRM: 'AgenticCliDashboardConfirmation',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  CREATE_PRICE_ALERT: 'CreatePriceAlert',
+  MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
