@@ -712,6 +712,53 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a WETH9 deposit tagged as a swap to a Wrap activity', () => {
+    const transaction = {
+      chainId: mainnet,
+      id: 'swap-wrap-id',
+      hash: '0xswapwrap',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.swap,
+      swapMetaData: {
+        token_from: 'ETH',
+        token_to: 'WETH',
+      },
+      txParams: {
+        from,
+        to: wethContractAddress,
+        value: '0x3782dace9d900000',
+        data: '0xd0e30db0',
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'wrap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      data: {
+        hash: '0xswapwrap',
+        sourceToken: {
+          amount: '0x3782dace9d900000',
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'ETH',
+        },
+        destinationToken: {
+          amount: '0x3782dace9d900000',
+          assetId: toAssetId(wethContractAddress, 'eip155:1'),
+          decimals: 18,
+          direction: 'in',
+          symbol: 'WETH',
+        },
+      },
+    });
+  });
+
   it('maps a WETH9 withdraw contract interaction to an Unwrap activity', () => {
     const unwrapAmount = '1000000000000000000';
     const unwrapAmountHex = BigInt(unwrapAmount).toString(16).padStart(64, '0');
@@ -739,6 +786,55 @@ describe('mapLocalTransaction', () => {
       timestamp: 1716367781000,
       data: {
         hash: '0xunwrap',
+        sourceToken: {
+          amount: unwrapAmount,
+          assetId: toAssetId(wethContractAddress, 'eip155:1'),
+          decimals: 18,
+          direction: 'out',
+          symbol: 'WETH',
+        },
+        destinationToken: {
+          amount: unwrapAmount,
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          direction: 'in',
+          symbol: 'ETH',
+        },
+      },
+    });
+  });
+
+  it('maps a WETH9 withdraw tagged as a swap to an Unwrap activity', () => {
+    const unwrapAmount = '1000000000000000000';
+    const unwrapAmountHex = BigInt(unwrapAmount).toString(16).padStart(64, '0');
+    const transaction = {
+      chainId: mainnet,
+      id: 'swap-unwrap-id',
+      hash: '0xswapunwrap',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.swap,
+      swapMetaData: {
+        token_from: 'WETH',
+        token_to: 'ETH',
+      },
+      txParams: {
+        from,
+        to: wethContractAddress,
+        value: '0x0',
+        data: `0x2e1a7d4d${unwrapAmountHex}`,
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'unwrap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      data: {
+        hash: '0xswapunwrap',
         sourceToken: {
           amount: unwrapAmount,
           assetId: toAssetId(wethContractAddress, 'eip155:1'),
