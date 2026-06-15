@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   MoneyAccountDepositInfo,
   MONEY_ACCOUNT_CURRENCY,
@@ -8,6 +9,25 @@ import {
 const mockUseParams = jest.fn();
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
+}));
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn((_properties: Record<string, unknown>) => ({
+  build: () => 'built-event',
+}));
+const mockCreateEventBuilder = jest.fn((_event: unknown) => ({
+  addProperties: mockAddProperties,
+}));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+const mockUseRampsUserRegion = jest.fn();
+jest.mock('../../../../../UI/Ramp/hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => mockUseRampsUserRegion(),
 }));
 
 const mockUseNavbar = jest.fn();
@@ -42,6 +62,10 @@ describe('MoneyAccountDepositInfo', () => {
     mockCustomAmountInfo.mockClear();
     mockUseNavbar.mockReturnValue(undefined);
     mockUseParams.mockReturnValue({});
+    mockUseRampsUserRegion.mockReturnValue({
+      userRegion: { regionCode: 'us-ca' },
+      setUserRegion: jest.fn(),
+    });
   });
 
   it('renders CustomAmountInfo with usd currency', () => {
@@ -114,5 +138,44 @@ describe('MoneyAccountDepositInfo', () => {
       ][0];
     expect(lastCall.autoSelectFiatPayment).toBeUndefined();
     expect(lastCall.hideAccountSelector).toBeUndefined();
+  });
+
+  // TRAM-3623 headless ramps funnel: amount screen viewed.
+  it('emits RAMPS_SCREEN_VIEWED with HEADLESS / money_account / region on mount', () => {
+    render(<MoneyAccountDepositInfo />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      location: 'Amount Input',
+      ramp_type: 'HEADLESS',
+      ramp_surface: 'money_account',
+      region: 'us-ca',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith('built-event');
+  });
+
+  it('emits the screen-viewed event only once across re-renders', () => {
+    const { rerender } = render(<MoneyAccountDepositInfo />);
+    rerender(<MoneyAccountDepositInfo />);
+
+    const screenViewedCalls = mockCreateEventBuilder.mock.calls.filter(
+      ([event]) => event === MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
+    );
+    expect(screenViewedCalls).toHaveLength(1);
+  });
+
+  it('falls back to an empty region when the user region is unavailable', () => {
+    mockUseRampsUserRegion.mockReturnValue({
+      userRegion: null,
+      setUserRegion: jest.fn(),
+    });
+
+    render(<MoneyAccountDepositInfo />);
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ region: '' }),
+    );
   });
 });
