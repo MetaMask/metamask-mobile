@@ -327,4 +327,70 @@ describe('enrichTokenBalance', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('fiatCurrency', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    const solanaScope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const solanaAccount = { id: 'solana-account-id' };
+
+    it('formats the fiat string with the provided currency symbol (numeric value stays USD)', () => {
+      const deps = baseDeps({
+        fiatCurrency: 'eur',
+        solanaAccount,
+        multichainBalances: {
+          [solanaAccount.id]: { [solAssetId]: { amount: '12.5' } },
+        },
+        multichainRates: { [solAssetId]: { rate: '200' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({
+          address: solAssetId,
+          chainId: solanaScope,
+          symbol: 'SOL',
+          decimals: 9,
+        }),
+        deps,
+      );
+
+      expect(result).toEqual({
+        balance: '12.5',
+        balanceFiat: '€2500',
+        tokenFiatAmount: 2500,
+        currencyExchangeRate: 200,
+      });
+    });
+
+    it('defaults to USD when no fiatCurrency is provided', () => {
+      const deps = baseDeps({
+        solanaAccount,
+        multichainBalances: {
+          [solanaAccount.id]: { [solAssetId]: { amount: '12.5' } },
+        },
+        multichainRates: { [solAssetId]: { rate: '200' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: solAssetId, chainId: solanaScope, symbol: 'SOL' }),
+        deps,
+      );
+
+      expect(result?.balanceFiat).toBe('$2500.00');
+    });
+
+    it('uses the provided currency symbol for a lenient zero enrichment', () => {
+      const result = enrichTokenBalance(
+        token({ address: solAssetId, chainId: solanaScope, symbol: 'SOL' }),
+        baseDeps({ fiatCurrency: 'eur' }),
+        { includeZeroBalance: true },
+      );
+
+      expect(result).toEqual({
+        balance: '0',
+        balanceFiat: '€0',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
+    });
+  });
 });

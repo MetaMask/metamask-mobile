@@ -2,12 +2,11 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { formatUnits } from 'ethers/lib/utils';
 import {
-  isSolanaChainId,
   isNonEvmChainId,
   isNativeAddress,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope, BtcScope } from '@metamask/keyring-api';
 import type { Hex, CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
@@ -26,6 +25,7 @@ import {
 import { addCurrencySymbol } from '../../../../../../../util/number/bigint';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import type { QuickBuyTarget } from '../types';
+import { enrichTokenBalance } from './enrichTokenBalance';
 import {
   hasNonZeroHexBalance,
   getCachedNativeBalance,
@@ -64,6 +64,12 @@ export const usePositionTokenBalance = (
   const solanaAccount = useSelector((state: RootState) =>
     selectSelectedInternalAccountByScope(state)(SolScope.Mainnet),
   );
+  const tronAccount = useSelector((state: RootState) =>
+    selectSelectedInternalAccountByScope(state)(TrxScope.Mainnet),
+  );
+  const bitcoinAccount = useSelector((state: RootState) =>
+    selectSelectedInternalAccountByScope(state)(BtcScope.Mainnet),
+  );
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
 
@@ -87,41 +93,32 @@ export const usePositionTokenBalance = (
     >[1];
     const zeroFiat = addCurrencySymbol('0.00', fiatCurrency);
 
-    // ─── Non-EVM, non-Solana (BTC, Tron) ──────────────────────────
-    // The multichain selectors above (`selectMultichainBalances`,
-    // `selectMultichainAssetsRates`) are chain-agnostic. We early-return here
-    // so the EVM branch's `formatChainIdToHex` doesn't throw "Invalid
-    // cross-chain swaps chainId" and crash the QuickBuy sheet.
-    if (isNonEvmChainId(caipChainId) && !isSolanaChainId(caipChainId)) {
-      return undefined;
-    }
-
-    // ─── Solana branch ─────────────────────────────────────────────────
-    if (isNonEvmChainId(caipChainId) && isSolanaChainId(caipChainId)) {
-      if (!solanaAccount) return undefined;
-      const balanceEntry =
-        multichainBalances?.[solanaAccount.id]?.[destToken.address];
-      const amountStr = balanceEntry?.amount;
-      if (!amountStr) return undefined;
-      const balanceNum = parseFloat(amountStr);
-      if (isNaN(balanceNum) || balanceNum <= 0) return undefined;
-
-      const rateStr = (
-        multichainRates as Record<string, { rate?: string } | undefined>
-      )?.[destToken.address]?.rate;
-      const rateNum = rateStr ? parseFloat(rateStr) : NaN;
-      const hasRate = !isNaN(rateNum) && rateNum > 0;
-
-      const fiatValue = hasRate ? balanceNum * rateNum : 0;
-      return {
-        ...destToken,
-        balance: amountStr,
-        balanceFiat: hasRate
-          ? addCurrencySymbol(fiatValue.toFixed(2), fiatCurrency)
-          : zeroFiat,
-        tokenFiatAmount: fiatValue,
-        currencyExchangeRate: hasRate ? rateNum : undefined,
-      };
+    // ─── Non-EVM branch (Solana, Tron, Bitcoin) ───────────────────────
+    // `enrichTokenBalance` prices all non-EVM assets generically from the
+    // chain-agnostic multichain balance/rate controllers, so it replaces the
+    // bespoke per-chain handling here and keeps the EVM branch's
+    // `formatChainIdToHex` (which throws for non-EVM CAIP ids) out of reach.
+    // Strict mode (no `includeZeroBalance`): a token the user doesn't hold
+    // returns `null`, so the hook reports "no sellable balance".
+    if (isNonEvmChainId(caipChainId)) {
+      const enrichment = enrichTokenBalance(destToken, {
+        accountAddress,
+        accountsByChainId,
+        tokenBalances,
+        tokenMarketData,
+        currencyRates,
+        allNetworkConfigs,
+        fiatCurrency,
+        solanaAccount: solanaAccount ?? undefined,
+        tronAccount: tronAccount ?? undefined,
+        bitcoinAccount: bitcoinAccount ?? undefined,
+        multichainBalances,
+        multichainRates: multichainRates as Record<
+          string,
+          { rate?: string } | undefined
+        >,
+      });
+      return enrichment ? { ...destToken, ...enrichment } : undefined;
     }
 
     // ─── EVM branch ────────────────────────────────────────────────────
@@ -202,6 +199,8 @@ export const usePositionTokenBalance = (
     destToken,
     accountAddress,
     solanaAccount,
+    tronAccount,
+    bitcoinAccount,
     multichainBalances,
     multichainRates,
     accountsByChainId,
