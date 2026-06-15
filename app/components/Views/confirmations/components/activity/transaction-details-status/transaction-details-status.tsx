@@ -22,13 +22,11 @@ import { getErrorMessage, getSeverity } from '../../../utils/transaction';
 
 export function TransactionDetailsStatus({
   gap,
-  showIcon = true,
   testId,
   text,
   transactionMeta,
 }: {
   gap?: number;
-  showIcon?: boolean;
   testId?: string;
   text?: string;
   transactionMeta: TransactionMeta;
@@ -59,9 +57,7 @@ export function TransactionDetailsStatus({
         gap={gap ?? 6}
         alignItems={AlignItems.center}
       >
-        {showIcon && (
-          <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
-        )}
+        <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
         <Text
           color={textColour}
           variant={TextVariant.BodyMDMedium}

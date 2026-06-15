@@ -97,6 +97,19 @@ describe('TransactionDetailsAccountRow', () => {
     expect(getByText(ACCOUNT_NAME_MOCK)).toBeDefined();
   });
 
+  it.each([
+    TransactionType.perpsWithdraw,
+    TransactionType.predictClaim,
+    TransactionType.predictWithdraw,
+  ])('renders badge and avatar for account row %s', (type) => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: { ...TRANSACTION_META_MOCK, type },
+    });
+
+    const { UNSAFE_getByProps } = render();
+    expect(UNSAFE_getByProps({ accountAddress: ADDRESS_MOCK })).toBeDefined();
+  });
+
   it('renders "From" row with money account label for moneyAccountWithdraw', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {

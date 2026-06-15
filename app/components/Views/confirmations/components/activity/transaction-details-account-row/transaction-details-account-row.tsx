@@ -57,39 +57,45 @@ export function TransactionDetailsAccountRow() {
   const isWithdraw =
     hasTransactionType(transactionMeta, WITHDRAW_TYPES) && moneyAddress;
 
-  if (isWithdraw) {
-    return (
-      <TransactionDetailsRow label={strings('transaction_details.label.from')}>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={6}
-        >
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkImage}
-                name={networkName}
-              />
-            }
-          >
-            <AvatarAccount accountAddress={moneyAddress} size={AvatarSize.Sm} />
-          </BadgeWrapper>
-          <Text>{strings('transaction_details.label.money_account')}</Text>
-        </Box>
-      </TransactionDetailsRow>
-    );
-  }
+  const isAccountType = hasTransactionType(transactionMeta, ACCOUNT_TYPES);
 
-  if (!hasTransactionType(transactionMeta, ACCOUNT_TYPES)) {
+  if (!isWithdraw && !isAccountType) {
     return null;
   }
 
+  const label = isWithdraw
+    ? strings('transaction_details.label.from')
+    : strings('transaction_details.label.account');
+
+  const avatarAddress = isWithdraw ? (moneyAddress as string) : from;
+
+  const displayText = isWithdraw
+    ? strings('transaction_details.label.money_account')
+    : (accountName ?? from);
+
+  const textColor = isWithdraw ? undefined : TextColor.Alternative;
+
   return (
-    <TransactionDetailsRow label={strings('transaction_details.label.account')}>
-      <Text color={TextColor.Alternative}>{accountName ?? from}</Text>
+    <TransactionDetailsRow label={label}>
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={6}
+      >
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImage}
+              name={networkName}
+            />
+          }
+        >
+          <AvatarAccount accountAddress={avatarAddress} size={AvatarSize.Sm} />
+        </BadgeWrapper>
+        <Text color={textColor}>{displayText}</Text>
+      </Box>
     </TransactionDetailsRow>
   );
 }

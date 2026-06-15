@@ -24,7 +24,7 @@ const ERROR_MESSAGE_MOCK = 'Test Error';
 
 function render(
   transactionMeta: Partial<TransactionMeta> = {},
-  props: { showIcon?: boolean } = {},
+  props: Record<string, unknown> = {},
 ) {
   return renderWithProvider(
     <TransactionDetailsStatus
@@ -114,13 +114,12 @@ describe('TransactionDetailsStatus', () => {
     expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();
   });
 
-  it('hides icon when showIcon is false', () => {
-    const { queryByTestId, getByText } = render(
-      { status: TransactionStatus.confirmed },
-      { showIcon: false },
-    );
+  it('renders icon alongside status text', () => {
+    const { getByTestId, getByText } = render({
+      status: TransactionStatus.confirmed,
+    });
 
-    expect(queryByTestId('status-icon-success')).toBeNull();
+    expect(getByTestId('status-icon-success')).toBeDefined();
     expect(getByText(strings('transaction.confirmed'))).toBeDefined();
   });
 
