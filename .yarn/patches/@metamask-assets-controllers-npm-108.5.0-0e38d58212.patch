@@ -1,3 +1,15 @@
+diff --git a/dist/assetsUtil.cjs b/dist/assetsUtil.cjs
+index ed31a3ff483b0e8a2b6e699dd92aefc7b34a5462..8f723b5713b8b31f6be37b0fca691fe79735e40b 100644
+--- a/dist/assetsUtil.cjs
++++ b/dist/assetsUtil.cjs
+@@ -136,6 +136,7 @@ var SupportedTokenDetectionNetworks;
+     SupportedTokenDetectionNetworks["Sei"] = "0x531";
+     SupportedTokenDetectionNetworks["MonadMainnet"] = "0x8f";
+     SupportedTokenDetectionNetworks["Hyperevm"] = "0x3e7";
++    SupportedTokenDetectionNetworks["Arc"] = "0x13b2";
+ })(SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = SupportedTokenDetectionNetworks = {}));
+ /**
+  * Networks where staked balance is supported - Values are in hex format
 diff --git a/dist/constants.cjs b/dist/constants.cjs
 index ccae2e09de68bb574c8c5729c94b12927a9814ee..22d39c1fc6a9c921910841ec3bb90ce853f6c82b 100644
 --- a/dist/constants.cjs
