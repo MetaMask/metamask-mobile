@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Fondos insuficientes",
-      "message": "No tiene suficiente %{nativeCurrency} en su cuenta para pagar las tarifas de red.",
-      "buy_action": "Comprar %{nativeCurrency}"
+      "message": "No tiene suficiente {{nativeCurrency}} en su cuenta para pagar las tarifas de red.",
+      "buy_action": "Comprar {{nativeCurrency}}"
     },
     "signed_or_submitted": {
       "title": "Transacción en curso",
@@ -142,7 +142,7 @@
       "message": "Es posible que la dirección del destinatario no admita transferencias directas de tokens, lo que podría provocar la pérdida de fondos. Continúa solo si estás seguro de que este contrato puede recibir tu transferencia."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Esta red en concreto requiere mantener una reserva de %{minBalance} %{nativeTokenSymbol} en tu cuenta.",
+      "message": "Esta red en concreto requiere mantener una reserva de {{minBalance}} {{nativeTokenSymbol}} en tu cuenta.",
       "title": "Se requiere un saldo de reserva"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "¿Olvidaste tu contraseña?",
     "cant_proceed": "No puede seguir hasta que escriba la palabra “Eliminar”. Con esta acción, opta por borrar el monedero actual.",
     "invalid_password": "La contraseña es incorrecta, inténtalo de nuevo.",
-    "type_delete": "Escribe ‘%{erase}’ para confirmar",
+    "type_delete": "Escribe ‘{{erase}}’ para confirmar",
     "erase_my": "Sí, restablecer la billetera",
     "cancel": "Cancelar",
     "are_you_sure": "¿Estás seguro?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "No pudimos cancelar tu orden. Inténtalo de nuevo."
     },
     "webview_modal": {
-      "error": "Webview recibió un error: %{code}"
+      "error": "Webview recibió un error: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "¡Error al depositar {{currency}}! Inténtalo de nuevo, ¡disculpa las molestias!",
@@ -3566,13 +3566,13 @@
     "general_heading": "General",
     "privacy_heading": "Privacidad",
     "failed_to_fetch_chain_id": "No se pudo capturar el id. de cadena. ¿La dirección URL de RPC es correcta?",
-    "endpoint_returned_different_chain_id": "El punto de conexión devolvió un id. de cadena diferente: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "El punto de conexión devolvió un id. de cadena diferente: {{chainIdReturned}}",
     "chain_id_required": "El id. de cadena es necesario. Debe coincidir con el id. de la cadena que devuelve la red. Puede ingresar un número decimal o uno hexadecimal con el prefijo “0x”.",
     "invalid_hex_number": "Número hexadecimal no válido.",
     "invalid_hex_number_leading_zeros": "Número hexadecimal no válido. Quite todos los ceros iniciales.",
     "invalid_number": "Número no válido. Escriba un número decimal o un número hexadecimal con el prefijo “0x”.",
     "invalid_number_leading_zeros": "Número no válido. Quite todos los ceros iniciales.",
-    "invalid_number_range": "Número no válido. Escriba un número entre 1 y %{maxSafeChainId}.",
+    "invalid_number_range": "Número no válido. Escriba un número entre 1 y {{maxSafeChainId}}.",
     "hide_zero_balance_tokens_title": "Ocultar tokens sin saldo",
     "hide_zero_balance_tokens_desc": "Al ocultar los tokens sin saldo, estos no aparecerán en su lista de tokens.",
     "haptic_feedback_title": "Respuesta háptica",
@@ -4446,8 +4446,8 @@
     "confusable_msg": "Se detectó un carácter que puede confundirse con otro similar en el nombre de ENS. Verifique el nombre de ENS para evitar una posible estafa.",
     "similar_to": "es parecido a",
     "contains_zero_width": "contiene un carácter de ancho cero",
-    "dapp_suggested_gas": "Esta tarifa de gas ha sido sugerida por %{origin}. Está utilizando una estimación de datos de gas anteriores que puede llegar a ser inexacta. Sin embargo, editar esta tarifa de gas puede causar problemas con su transacción. Comuníquese con %{origin} si tiene preguntas.",
-    "dapp_suggested_eip1559_gas": "Esta tarifa de gas ha sido sugerida por %{origin}. Anularla puede causar problemas con su transacción. Comuníquese con %{origin} si tiene preguntas.",
+    "dapp_suggested_gas": "Esta tarifa de gas ha sido sugerida por {{origin}}. Está utilizando una estimación de datos de gas anteriores que puede llegar a ser inexacta. Sin embargo, editar esta tarifa de gas puede causar problemas con su transacción. Comuníquese con {{origin}} si tiene preguntas.",
+    "dapp_suggested_eip1559_gas": "Esta tarifa de gas ha sido sugerida por {{origin}}. Anularla puede causar problemas con su transacción. Comuníquese con {{origin}} si tiene preguntas.",
     "address_invalid": "La dirección del destinatario no es válida.",
     "ens_not_found": "No se estableció ninguna dirección para este nombre.",
     "unknown_qr_code": "Código QR no válido. Por favor, intente de nuevo.",
@@ -6218,7 +6218,7 @@
     }
   },
   "invalid_network": {
-    "title": "Es necesario volver a especificar el id. de la cadena para la red virtual personalizada \n %{network} \n.",
+    "title": "Es necesario volver a especificar el id. de la cadena para la red virtual personalizada \n {{network}} \n.",
     "message": "Para protegerlo de proveedores de red malintencionados o defectuosos, ahora se requieren id. de cadena para todas las redes personalizadas.",
     "hint": "Puede encontrar los id. de cadena de las redes más populares en ",
     "edit_network_button": "Editar red",
@@ -6250,7 +6250,7 @@
     "cancel": "Cancelar",
     "approve": "Aprobar",
     "unrecognized_chain": "No se reconoce esta red personalizada",
-    "invalid_chain": "La %{rpcUrl} de este id. de cadena no coincide con la lista chainid.network",
+    "invalid_chain": "La {{rpcUrl}} de este id. de cadena no coincide con la lista chainid.network",
     "alert_recommend": "Le recomendamos",
     "alert_verify": "verificar el id. de cadena",
     "warning_subtext_new": {
