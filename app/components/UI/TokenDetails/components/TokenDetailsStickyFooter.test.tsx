@@ -82,8 +82,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('./assets/flash-filled.svg', () => 'FlashFilledIcon');
-
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
 let mockHasEligibleSwapTokens = true;

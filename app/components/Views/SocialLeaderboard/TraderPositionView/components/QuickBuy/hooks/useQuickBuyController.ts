@@ -16,7 +16,6 @@ import {
   playErrorNotification,
   playImpact,
 } from '../../../../../../../util/haptics';
-import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 import {
   dotAndCommaDecimalFormatter,
   isNumberValue,
@@ -41,6 +40,7 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
 import { usePayWithTokens } from './usePayWithTokens';
@@ -702,12 +702,13 @@ export function useQuickBuyController(
     if (!sourceAmt || !destAmt || isNaN(sourceAmt) || isNaN(destAmt))
       return undefined;
     const rate = destAmt / sourceAmt;
-    const formatter = getIntlNumberFormatter(I18n.locale, {
-      ...(rate > 1
+    const formattedRateValue = formatQuickBuyRateValue(
+      rate,
+      rate > 1
         ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
-        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
-    });
-    return `1 ${sourceToken.symbol} = ${formatter.format(rate)} ${destToken.symbol}`;
+        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 },
+    );
+    return `1 ${sourceToken.symbol} = ${formattedRateValue} ${destToken.symbol}`;
   }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {

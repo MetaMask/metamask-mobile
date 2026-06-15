@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActivityIndicator, FlatList, Switch, View } from 'react-native';
 import {
   useNavigation,
@@ -25,6 +25,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
@@ -33,11 +37,15 @@ import {
   PriceAlert,
   PriceAlertRouteParams,
 } from '../../constants';
-import { fetchAlerts } from '../../api';
+import { fetchAlerts, deleteAlert, updateAlert } from '../../api';
+
+const priceAlertsQueryKey = (assetId: string) => ['priceAlerts', assetId];
 
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const queryClient = useQueryClient();
+  const { toastRef } = useContext(ToastContext);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const route =
@@ -50,12 +58,14 @@ const ManagePriceAlertsView: React.FC = () => {
   const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
 
+  const hasResolvedInitialFetch = useRef(false);
+
   const {
     data: alerts = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['priceAlerts', assetId],
+    queryKey: priceAlertsQueryKey(assetId),
     queryFn: async (): Promise<PriceAlert[]> => {
       const response = await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -67,7 +77,11 @@ const ManagePriceAlertsView: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!isLoading && (isError || alerts.length === 0)) {
+    if (isLoading || hasResolvedInitialFetch.current) {
+      return;
+    }
+    hasResolvedInitialFetch.current = true;
+    if (isError || alerts.length === 0) {
       navigation.replace(Routes.CREATE_PRICE_ALERT, {
         symbol,
         ticker,
@@ -100,8 +114,73 @@ const ManagePriceAlertsView: React.FC = () => {
       currentCurrency,
       assetId,
       fromManage: true,
+      existingThresholds: alerts.map((a) => a.threshold),
     });
-  }, [navigation, symbol, ticker, currentPrice, currentCurrency, assetId]);
+  }, [
+    navigation,
+    symbol,
+    ticker,
+    currentPrice,
+    currentCurrency,
+    assetId,
+    alerts,
+  ]);
+
+  const handleDeleteAlert = useCallback(
+    async (id: string) => {
+      const queryKey = priceAlertsQueryKey(assetId);
+      const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      const next = previous.filter((a) => a.id !== id);
+      const isEmpty = next.length === 0;
+      queryClient.setQueryData(queryKey, next);
+
+      try {
+        const response = await deleteAlert(id);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Trash,
+          iconColor: colors.text.default,
+          labelOptions: [{ label: strings('price_alerts.delete_success') }],
+          hasNoTimeout: false,
+        });
+        if (isEmpty) {
+          navigation.goBack();
+        }
+      } catch {
+        const response = await fetchAlerts(assetId).catch(() => null);
+        if (response?.ok) {
+          const data: PriceAlert[] = await response.json().catch(() => []);
+          queryClient.setQueryData(queryKey, data);
+        } else {
+          queryClient.setQueryData(queryKey, previous);
+        }
+      }
+    },
+    [navigation, assetId, queryClient, toastRef, colors],
+  );
+
+  const handleToggleAlert = useCallback(
+    async (id: string, newValue: boolean) => {
+      const queryKey = priceAlertsQueryKey(assetId);
+      const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      queryClient.setQueryData(
+        queryKey,
+        previous.map((a) => (a.id === id ? { ...a, active: newValue } : a)),
+      );
+
+      try {
+        const response = await updateAlert(id, { active: newValue });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      } catch {
+        queryClient.setQueryData(
+          queryKey,
+          previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
+        );
+      }
+    },
+    [assetId, queryClient],
+  );
 
   const renderItem = ({ item }: { item: PriceAlert }) => (
     <Box
@@ -128,9 +207,7 @@ const ManagePriceAlertsView: React.FC = () => {
       </Box>
 
       <ButtonIcon
-        onPress={() => {
-          // TODO: delete alert
-        }}
+        onPress={() => handleDeleteAlert(item.id)}
         size={ButtonIconSize.Md}
         iconName={IconName.Trash}
         testID={`${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${item.id}`}
@@ -140,9 +217,7 @@ const ManagePriceAlertsView: React.FC = () => {
 
       <Switch
         value={item.active}
-        onValueChange={() => {
-          // TODO: toggle alert active state
-        }}
+        onValueChange={(v) => handleToggleAlert(item.id, v)}
         trackColor={{
           true: colors.primary.default,
           false: colors.border.muted,

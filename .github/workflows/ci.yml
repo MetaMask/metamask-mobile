@@ -1496,6 +1496,7 @@ jobs:
       - build-ios-apps
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
+      - appium-smoke-tests-android
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1516,7 +1517,7 @@ jobs:
         with:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
-          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios)$'
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 
