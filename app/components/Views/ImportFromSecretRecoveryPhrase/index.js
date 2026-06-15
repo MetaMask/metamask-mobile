@@ -71,6 +71,7 @@ import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.tes
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { getOnboardingCompletedAnalyticsProps } from '../../../util/analytics/onboardingCompletedAnalytics';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -472,6 +473,10 @@ const ImportFromSecretRecoveryPhrase = ({
           account_type: AccountType.Imported,
           ...walletSetupCompletedAttributionProps,
         });
+        track(
+          MetaMetricsEvents.ONBOARDING_COMPLETED,
+          getOnboardingCompletedAnalyticsProps(false),
+        );
 
         fetchAccountsWithActivity();
         const resetAction = CommonActions.reset({

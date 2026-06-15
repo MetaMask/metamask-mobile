@@ -94,6 +94,7 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { selectAttributionRecord } from '../../../selectors/attribution';
 import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { getOnboardingCompletedAnalyticsProps } from '../../../util/analytics/onboardingCompletedAnalytics';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -516,6 +517,10 @@ const ChoosePassword = () => {
           isSelected,
         ),
       });
+      track(
+        MetaMetricsEvents.ONBOARDING_COMPLETED,
+        getOnboardingCompletedAnalyticsProps(isSocialLogin),
+      );
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();

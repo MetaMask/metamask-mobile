@@ -139,6 +139,7 @@ export const onboardingEvents = {
   WALLET_CREATION_ATTEMPTED: 'Wallet Creation Attempted',
   WALLET_CREATED: 'Wallet Created',
   WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
+  ONBOARDING_COMPLETED: 'Onboarding Completed',
   WALLET_SECURITY_STARTED: 'Wallet Security Started',
   MANUAL_BACKUP_INITIATED: 'Manual Backup Initiated',
   WALLET_SECURITY_SKIP_INITIATED: 'Wallet Security Skip Initiated',
