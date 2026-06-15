@@ -33,13 +33,44 @@ export function useScrollToSelected({
   );
   const scrollOffsetRef = useRef(0);
   const viewportWidthRef = useRef(0);
+  const pendingScrollKeyRef = useRef<string | undefined>(undefined);
+  const delayElapsedRef = useRef(false);
+
+  const attemptScroll = useCallback(() => {
+    const key = pendingScrollKeyRef.current;
+    if (!key || !delayElapsedRef.current) {
+      return;
+    }
+
+    const layout = itemLayoutsRef.current[key];
+    if (!layout || !scrollViewRef.current || !viewportWidthRef.current) {
+      return;
+    }
+
+    const itemLeft = layout.x;
+    const itemRight = layout.x + layout.width;
+    const visibleLeft = scrollOffsetRef.current;
+    const visibleRight = visibleLeft + viewportWidthRef.current;
+
+    const isFullyVisible = itemLeft >= visibleLeft && itemRight <= visibleRight;
+    if (!isFullyVisible) {
+      scrollViewRef.current.scrollTo({
+        x: Math.max(0, layout.x - padding),
+        animated: true,
+      });
+    }
+    pendingScrollKeyRef.current = undefined;
+  }, [padding]);
 
   const handleItemLayout = useCallback(
     (key: string, event: LayoutChangeEvent) => {
       const { x, width } = event.nativeEvent.layout;
       itemLayoutsRef.current[key] = { x, width };
+      if (key === pendingScrollKeyRef.current) {
+        attemptScroll();
+      }
     },
-    [],
+    [attemptScroll],
   );
 
   const handleScroll = useCallback(
@@ -49,36 +80,33 @@ export function useScrollToSelected({
     [],
   );
 
-  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
-    viewportWidthRef.current = event.nativeEvent.layout.width;
-  }, []);
+  const handleScrollViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      viewportWidthRef.current = event.nativeEvent.layout.width;
+      attemptScroll();
+    },
+    [attemptScroll],
+  );
 
   useEffect(() => {
     if (!selectedKey) {
+      pendingScrollKeyRef.current = undefined;
+      delayElapsedRef.current = false;
       return;
     }
+    pendingScrollKeyRef.current = selectedKey;
+    delayElapsedRef.current = false;
+
     const timer = setTimeout(() => {
-      const layout = itemLayoutsRef.current[selectedKey];
-      if (!layout || !scrollViewRef.current) {
-        return;
-      }
-
-      const itemLeft = layout.x;
-      const itemRight = layout.x + layout.width;
-      const visibleLeft = scrollOffsetRef.current;
-      const visibleRight = visibleLeft + viewportWidthRef.current;
-
-      const isFullyVisible =
-        itemLeft >= visibleLeft && itemRight <= visibleRight;
-      if (!isFullyVisible) {
-        scrollViewRef.current.scrollTo({
-          x: Math.max(0, layout.x - padding),
-          animated: true,
-        });
-      }
+      delayElapsedRef.current = true;
+      attemptScroll();
     }, delay);
-    return () => clearTimeout(timer);
-  }, [selectedKey, delay, padding]);
+    return () => {
+      clearTimeout(timer);
+      pendingScrollKeyRef.current = undefined;
+      delayElapsedRef.current = false;
+    };
+  }, [selectedKey, delay, attemptScroll]);
 
   return {
     scrollViewRef,

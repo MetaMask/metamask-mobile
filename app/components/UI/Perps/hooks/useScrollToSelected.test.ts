@@ -148,4 +148,80 @@ describe('useScrollToSelected', () => {
       animated: true,
     });
   });
+
+  it('scrolls when layout arrives after the timeout has already fired', () => {
+    const scrollTo = jest.fn();
+
+    const { result } = renderHook(() =>
+      useScrollToSelected({ selectedKey: 'forex', delay: 350 }),
+    );
+
+    (result.current.scrollViewRef as { current: unknown }).current = {
+      scrollTo,
+    };
+
+    // Timer fires but layout hasn't arrived yet
+    act(() => {
+      jest.advanceTimersByTime(400);
+    });
+
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    // Viewport layout arrives
+    act(() => {
+      result.current.handleScrollViewLayout({
+        nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 40 } },
+      } as never);
+    });
+
+    // Item layout arrives after the timeout — should still trigger scroll
+    act(() => {
+      result.current.handleItemLayout('forex', {
+        nativeEvent: { layout: { x: 400, width: 60, y: 0, height: 32 } },
+      } as never);
+    });
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      x: 400 - 16,
+      animated: true,
+    });
+  });
+
+  it('scrolls when viewport layout arrives after item layout and timeout', () => {
+    const scrollTo = jest.fn();
+
+    const { result } = renderHook(() =>
+      useScrollToSelected({ selectedKey: 'forex', delay: 350 }),
+    );
+
+    (result.current.scrollViewRef as { current: unknown }).current = {
+      scrollTo,
+    };
+
+    // Item layout arrives before timeout
+    act(() => {
+      result.current.handleItemLayout('forex', {
+        nativeEvent: { layout: { x: 400, width: 60, y: 0, height: 32 } },
+      } as never);
+    });
+
+    // Timer fires but viewport width is still 0
+    act(() => {
+      jest.advanceTimersByTime(400);
+    });
+
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    // Viewport layout arrives late — should trigger the pending scroll
+    act(() => {
+      result.current.handleScrollViewLayout({
+        nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 40 } },
+      } as never);
+    });
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      x: 400 - 16,
+      animated: true,
+    });
+  });
 });
