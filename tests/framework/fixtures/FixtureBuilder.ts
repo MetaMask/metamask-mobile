@@ -46,6 +46,7 @@ import {
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet.ts';
+import { buildE2EOnboardingInstallDeeplinkUrl } from '../../helpers/analytics/walletSetupAttributionE2eConstants';
 import type {
   Fixture,
   ProviderConfig,
@@ -2174,6 +2175,11 @@ class FixtureBuilder {
         _persist: { version: -1, rehydrated: true },
       },
     });
+    this.fixture.launchArgs = {
+      ...(this.fixture.launchArgs ?? {}),
+      e2ePendingInstallDeeplink:
+        buildE2EOnboardingInstallDeeplinkUrl(restFields),
+    };
     return this;
   }
 

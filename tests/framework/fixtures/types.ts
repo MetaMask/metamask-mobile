@@ -220,6 +220,8 @@ export interface FixtureState {
 export interface Fixture {
   state: FixtureState;
   asyncState: Record<string, string>;
+  /** Optional Detox launch args merged by FixtureHelper (e.g. E2E install deeplink). */
+  launchArgs?: Record<string, string>;
 }
 
 // ─── Method parameter types ───────────────────────────────────────────────────

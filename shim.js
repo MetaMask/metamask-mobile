@@ -114,6 +114,9 @@ if (isTestEnvironment) {
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+  if (raw?.e2ePendingInstallDeeplink) {
+    testConfig.e2ePendingInstallDeeplink = raw.e2ePendingInstallDeeplink;
+  }
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667

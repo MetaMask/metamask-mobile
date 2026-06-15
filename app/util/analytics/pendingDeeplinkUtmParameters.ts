@@ -7,6 +7,9 @@ import { EVENT_NAME } from '../../core/Analytics/MetaMetrics.events';
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from './walletSetupCompletedAttribution';
 import { removeUtmPropertiesWithoutMarketingConsent } from './removeUtmPropertiesWithoutMarketingConsent';
 import { UTM_PARAMETERS, type UtmParameter } from './utmParameters';
+import { hasTestOverrides, testConfig } from '../test/utils';
+import ReduxService from '../../core/redux';
+import type { AttributionRecord } from '../../core/redux/slices/attribution';
 
 export { UTM_PARAMETERS, type UtmParameter };
 
@@ -15,6 +18,70 @@ function getDeeplinkForAttribution(): string | null {
     AppStateEventProcessor.pendingDeeplink ??
     AppStateEventProcessor.currentDeeplink
   );
+}
+
+function ensureE2eInstallDeeplinkFromTestConfig(): void {
+  if (!hasTestOverrides) {
+    return;
+  }
+
+  const deeplink =
+    typeof testConfig.e2ePendingInstallDeeplink === 'string'
+      ? testConfig.e2ePendingInstallDeeplink
+      : undefined;
+
+  if (deeplink && !getDeeplinkForAttribution()) {
+    AppStateEventProcessor.setCurrentDeeplink(deeplink);
+  }
+}
+
+function attributionRecordToPayload(
+  record: AttributionRecord,
+): WalletSetupCompletedAttributionAnalyticsPayload | null {
+  const payload: WalletSetupCompletedAttributionAnalyticsPayload = {};
+
+  if (record.utm_source?.trim()) {
+    payload.utm_source = record.utm_source.trim();
+  }
+  if (record.utm_medium?.trim()) {
+    payload.utm_medium = record.utm_medium.trim();
+  }
+  if (record.utm_campaign?.trim()) {
+    payload.utm_campaign = record.utm_campaign.trim();
+  }
+  if (record.utm_term?.trim()) {
+    payload.utm_term = record.utm_term.trim();
+  }
+  if (record.utm_content?.trim()) {
+    payload.utm_content = record.utm_content.trim();
+  }
+  if (record.attribution_id?.trim()) {
+    payload.attribution_id = record.attribution_id.trim();
+  }
+
+  return Object.keys(payload).length > 0 ? payload : null;
+}
+
+/**
+ * E2E fixtures preload Redux attribution; Android CI cannot read Detox launch args.
+ * Fall back to the persisted record when no install deeplink is available.
+ */
+function getE2eAttributionUtmFallback(): WalletSetupCompletedAttributionAnalyticsPayload | null {
+  if (!hasTestOverrides) {
+    return null;
+  }
+
+  try {
+    const record =
+      ReduxService.store.getState().attribution?.attribution ?? null;
+    if (!record) {
+      return null;
+    }
+
+    return attributionRecordToPayload(record);
+  } catch {
+    return null;
+  }
 }
 
 function getDeeplinkPathname(deeplink: string): string {
@@ -62,12 +129,14 @@ export function parseDeeplinkUtmParameters(
  * Reads acquisition params from the pending install deeplink at track time.
  */
 export function getPendingDeeplinkUtmParameters(): WalletSetupCompletedAttributionAnalyticsPayload | null {
+  ensureE2eInstallDeeplinkFromTestConfig();
+
   const deeplink = getDeeplinkForAttribution();
-  if (!deeplink) {
-    return null;
+  if (deeplink) {
+    return parseDeeplinkUtmParameters(deeplink);
   }
 
-  return parseDeeplinkUtmParameters(deeplink);
+  return getE2eAttributionUtmFallback();
 }
 
 /**

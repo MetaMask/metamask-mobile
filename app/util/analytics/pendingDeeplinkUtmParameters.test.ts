@@ -5,10 +5,40 @@ jest.mock('../../core/AppStateEventListener', () => {
     clearPendingDeeplink: jest.fn(() => {
       appStateEventProcessor.pendingDeeplink = null;
     }),
+    setCurrentDeeplink: jest.fn((deeplink: string | null) => {
+      appStateEventProcessor.pendingDeeplink = deeplink;
+      appStateEventProcessor.currentDeeplink = deeplink;
+    }),
   };
 
   return { AppStateEventProcessor: appStateEventProcessor };
 });
+
+jest.mock('../test/utils', () => {
+  const testUtils = {
+    hasTestOverrides: false,
+    testConfig: {} as Record<string, unknown>,
+  };
+
+  return {
+    get hasTestOverrides() {
+      return testUtils.hasTestOverrides;
+    },
+    get testConfig() {
+      return testUtils.testConfig;
+    },
+    __testUtils: testUtils,
+  };
+});
+
+jest.mock('../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({ attribution: { attribution: null } })),
+    },
+  },
+}));
 
 const mockAppStateEventProcessor = jest.requireMock(
   '../../core/AppStateEventListener',
@@ -16,6 +46,15 @@ const mockAppStateEventProcessor = jest.requireMock(
   pendingDeeplink: string | null;
   currentDeeplink: string | null;
   clearPendingDeeplink: jest.Mock;
+  setCurrentDeeplink: jest.Mock;
+};
+
+const mockReduxGetState = jest.requireMock('../../core/redux').default.store
+  .getState as jest.Mock;
+
+const mockTestUtils = jest.requireMock('../test/utils').__testUtils as {
+  hasTestOverrides: boolean;
+  testConfig: Record<string, unknown>;
 };
 
 import { EVENT_NAME } from '../../core/Analytics/MetaMetrics.events';
@@ -32,6 +71,10 @@ describe('getPendingDeeplinkUtmParameters', () => {
     mockAppStateEventProcessor.pendingDeeplink = null;
     mockAppStateEventProcessor.currentDeeplink = null;
     mockAppStateEventProcessor.clearPendingDeeplink.mockClear();
+    mockAppStateEventProcessor.setCurrentDeeplink.mockClear();
+    mockReduxGetState.mockReturnValue({ attribution: { attribution: null } });
+    mockTestUtils.hasTestOverrides = false;
+    mockTestUtils.testConfig = {};
   });
 
   it('returns utm params from pending deeplink', () => {
@@ -54,6 +97,39 @@ describe('getPendingDeeplinkUtmParameters', () => {
 
   it('returns null when no deeplink is available', () => {
     expect(getPendingDeeplinkUtmParameters()).toBeNull();
+  });
+
+  it('hydrates pending deeplink from E2E launch arg when missing', () => {
+    mockTestUtils.hasTestOverrides = true;
+    mockTestUtils.testConfig.e2ePendingInstallDeeplink =
+      'metamask://onboarding?utm_source=e2e';
+
+    expect(getPendingDeeplinkUtmParameters()).toEqual({
+      utm_source: 'e2e',
+    });
+    expect(mockAppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
+      'metamask://onboarding?utm_source=e2e',
+    );
+  });
+
+  it('falls back to preloaded Redux attribution in E2E when deeplink is absent', () => {
+    mockTestUtils.hasTestOverrides = true;
+    mockReduxGetState.mockReturnValue({
+      attribution: {
+        attribution: {
+          utm_source: 'e2e_wsc_utm_source',
+          utm_campaign: 'e2e_wsc_campaign',
+          attribution_id: 'e2e_wsc_attr_id',
+          capturedAt: Date.now(),
+        },
+      },
+    });
+
+    expect(getPendingDeeplinkUtmParameters()).toEqual({
+      utm_source: 'e2e_wsc_utm_source',
+      utm_campaign: 'e2e_wsc_campaign',
+      attribution_id: 'e2e_wsc_attr_id',
+    });
   });
 });
 

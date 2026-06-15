@@ -616,9 +616,14 @@ export async function withFixtures(
       resolvedFixture = fixtureOption;
     }
 
+    const builtFixture: Fixture =
+      resolvedFixture instanceof FixtureBuilder
+        ? resolvedFixture.build()
+        : resolvedFixture;
+
     // Start fixture server
     await startResourceWithRetry(ResourceType.FIXTURE_SERVER, fixtureServer);
-    await loadFixture(fixtureServer, { fixture: resolvedFixture });
+    await loadFixture(fixtureServer, { fixture: builtFixture });
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
@@ -640,9 +645,11 @@ export async function withFixtures(
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
+        const fixtureLaunchArgs = builtFixture.launchArgs ?? {};
         await TestHelpers.launchApp({
           delete: true,
           launchArgs: {
+            ...fixtureLaunchArgs,
             fixtureServerPort: isAndroid
               ? `${FALLBACK_FIXTURE_SERVER_PORT}`
               : `${getFixturesServerPort()}`,
