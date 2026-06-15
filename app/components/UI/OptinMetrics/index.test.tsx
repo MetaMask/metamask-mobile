@@ -919,13 +919,14 @@ describe('OptinMetrics', () => {
       jest.useFakeTimers();
       const mockEvents = [
         [
-          AnalyticsEventBuilder.createEventBuilder({
-            name: EVENT_NAME.WALLET_SETUP_COMPLETED,
-            properties: {
+          AnalyticsEventBuilder.createEventBuilder(
+            EVENT_NAME.WALLET_SETUP_COMPLETED,
+          )
+            .addProperties({
               wallet_setup_type: 'new',
               utm_source: 'install',
-            },
-          }).build(),
+            })
+            .build(),
         ],
       ];
 
@@ -977,13 +978,14 @@ describe('OptinMetrics', () => {
       jest.useFakeTimers();
       const mockEvents = [
         [
-          AnalyticsEventBuilder.createEventBuilder({
-            name: EVENT_NAME.WALLET_SETUP_COMPLETED,
-            properties: {
+          AnalyticsEventBuilder.createEventBuilder(
+            EVENT_NAME.WALLET_SETUP_COMPLETED,
+          )
+            .addProperties({
               wallet_setup_type: 'new',
               utm_source: 'install',
-            },
-          }).build(),
+            })
+            .build(),
         ],
       ];
 

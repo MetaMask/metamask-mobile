@@ -35,10 +35,11 @@ describe('trackOnboarding', () => {
   it('does not defer Wallet Setup Completed via InteractionManager', () => {
     mockIsEnabled.mockReturnValue(false);
 
-    const mockEvent = AnalyticsEventBuilder.createEventBuilder({
-      name: EVENT_NAME.WALLET_SETUP_COMPLETED,
-      properties: { wallet_setup_type: 'new' },
-    }).build();
+    const mockEvent = AnalyticsEventBuilder.createEventBuilder(
+      EVENT_NAME.WALLET_SETUP_COMPLETED,
+    )
+      .addProperties({ wallet_setup_type: 'new' })
+      .build();
 
     trackOnboarding(mockEvent, mockSaveOnboardingEvent);
 
