@@ -158,6 +158,7 @@ const MoneyHomeView = () => {
   const {
     startLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
     isLinking,
     hasMoneyAccountRequirements,
@@ -573,8 +574,10 @@ const MoneyHomeView = () => {
   let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardAuthenticated || isCardholder) {
+  } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
     metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
+  } else if (isCardAuthenticated) {
+    metamaskCardMode = null;
   } else {
     metamaskCardMode = 'upsell';
   }
