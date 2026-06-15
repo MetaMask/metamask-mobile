@@ -8011,7 +8011,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^109.1.0":
+"@metamask/assets-controllers@npm:^109.0.0, @metamask/assets-controllers@npm:^109.1.0":
   version: 109.1.0
   resolution: "@metamask/assets-controllers@npm:109.1.0"
   dependencies:
