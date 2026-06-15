@@ -116,19 +116,29 @@ sqlite3 ~/.tool-usage-collection/events.db \
 
 ## Demo: pushing a metric to Prometheus
 
-`push-metrics-demo.ts` is a standalone, minimal example of how to remote-write a
-metric to a Prometheus Pushgateway (e.g. for exploring the local usage data in
-Grafana). It is **not wired into the build** — it's a reference you can run by hand.
+`push-metrics-demo.ts` is a standalone example of how to remote-write the local
+usage data to a Prometheus Pushgateway, so you can explore it in Grafana. It is
+**not wired into the build** — it's a reference you can run by hand.
 
 ```bash
 cp scripts/tooling/.env.example scripts/tooling/.env   # then fill in URL + creds
 yarn tsx scripts/tooling/push-metrics-demo.ts
 ```
 
-It loads credentials from `scripts/tooling/.env` (gitignored), builds one gauge in
-Prometheus text exposition format, and `POST`s it with basic auth to
-`<PUSHGATEWAY_URL>/metrics/job/<job>/instance/<hostname>`. Swap the hard-coded
-sample metric for values derived from the CSV log to push real usage data.
+It loads credentials from `scripts/tooling/.env` (gitignored), reads the CSV log,
+aggregates it per `(tool, tool_type, agent_vendor)`, and `POST`s the result in
+Prometheus text exposition format with basic auth to
+`<PUSHGATEWAY_URL>/metrics/job/<job>/instance/<hostname>`.
+
+Metrics emitted:
+
+| Metric | Type | Source |
+|---|---|---|
+| `metamask_devtools_invocations_total` | counter | count of `start` events |
+| `metamask_devtools_success_total` | counter | `end` events with `success=true` |
+| `metamask_devtools_failure_total` | counter | `end` events with `success=false` |
+| `metamask_devtools_duration_seconds_sum` | gauge | sum of `duration_ms / 1000` |
+| `metamask_devtools_duration_seconds_count` | gauge | count of timed events |
 
 ## Using dev-tooling-explorer
 
