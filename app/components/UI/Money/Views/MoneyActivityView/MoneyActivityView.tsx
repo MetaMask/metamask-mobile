@@ -194,9 +194,8 @@ const MoneyActivityView = () => {
         component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });
 
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId: transaction.id },
+      navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
       });
     },
     [navigation, trackActivitySurfaceClicked],

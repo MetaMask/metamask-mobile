@@ -48,7 +48,7 @@ describe('actionButtonTracking', () => {
       isEnabled: true,
       isAnonymous: false,
       hasProperties: true,
-    } as ITrackingEvent);
+    });
   });
 
   describe('ActionButtonType enum', () => {

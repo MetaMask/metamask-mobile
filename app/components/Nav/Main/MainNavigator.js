@@ -1213,6 +1213,11 @@ const MainNavigator = () => {
             }}
           />
           <NativeStack.Screen
+            name={Routes.MONEY.TRANSACTION_DETAILS}
+            component={TransactionDetails}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
             component={TransactionsHome}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}

@@ -12,6 +12,7 @@ import {
   useHandleOnSend,
   useHandleOnSwap,
 } from './useTokenAtomicActions';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { TokenI } from '../../Tokens/types';
 import { SecurityDataType } from '../../Bridge/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -161,6 +162,8 @@ jest.mock('../../../hooks/useSendNonEvmAsset', () => ({
   }),
 }));
 
+const mockGetSwapDestToken = jest.mocked(getSwapDestToken);
+
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn(() => ({
   goToSwaps: mockGoToSwaps,
@@ -182,6 +185,10 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 jest.mock('../../Bridge/utils/tokenUtils', () => ({
   getDefaultDestToken: jest.fn(),
   getNativeSourceToken: jest.fn(),
+}));
+
+jest.mock('../../Bridge/utils/getSwapDestToken', () => ({
+  getSwapDestToken: jest.fn(() => undefined),
 }));
 
 jest.mock('@metamask/utils', () => ({
@@ -870,6 +877,71 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
     const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
     assertSwapCall(sourceToken, destToken);
+  });
+
+  // Regression tests: verify that the per-source destToken override is forwarded
+  // correctly to goToSwaps, and that a chain-wide default is NOT used as an
+  // override when the source token has no explicit entry (the original bug).
+  describe('destTokenOverride regression', () => {
+    const MOCK_OVERRIDE_TOKEN = {
+      address: '0x3600000000000000000000000000000000000000',
+      chainId: '0x13b2',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+    };
+
+    it('passes the per-source override as destToken when goToSwaps fires (has balance → swap-out path)', () => {
+      mockGetSwapDestToken.mockReturnValueOnce(MOCK_OVERRIDE_TOKEN as never);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('1') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toStrictEqual(
+        expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
+      );
+    });
+
+    it('passes the per-source override as destToken on the swap-into path (zero balance, buy source available)', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0x1': [
+          userAsset({
+            assetId: WETH_ADDRESS,
+            symbol: 'WETH',
+            fiatBalance: 500,
+          }),
+        ],
+      } as AccountGroupAssets);
+      mockGetSwapDestToken.mockReturnValueOnce(MOCK_OVERRIDE_TOKEN as never);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('0') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toStrictEqual(
+        expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
+      );
+    });
+
+    it('passes undefined as destToken when getSwapDestToken returns undefined (no override configured)', () => {
+      mockGetSwapDestToken.mockReturnValueOnce(undefined);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('1') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toBeUndefined();
+    });
   });
 });
 

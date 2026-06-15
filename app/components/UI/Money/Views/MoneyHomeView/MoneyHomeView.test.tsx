@@ -173,6 +173,7 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   useMoneyAccountCardLinkage: jest.fn(() => ({
     hasMoneyAccountRequirements: false,
     isCardAuthenticated: false,
+    isCardVerified: false,
     isCardLinkedToMoneyAccount: false,
     primaryMoneyAccount: undefined,
     moneyAccountCardToken: null,
@@ -343,6 +344,7 @@ describe('MoneyHomeView', () => {
     mockUseMoneyAccountCardLinkage.mockReturnValue({
       hasMoneyAccountRequirements: false,
       isCardAuthenticated: false,
+      isCardVerified: false,
       isCardLinkedToMoneyAccount: false,
       primaryMoneyAccount: undefined,
       moneyAccountCardToken: null,
@@ -372,6 +374,8 @@ describe('MoneyHomeView', () => {
       isAggregatedBalanceLoading: false,
       isBalanceFetchError: false,
       isBalanceFetching: false,
+      isBalanceUnavailable: false,
+      lastKnownTotalFiatFormatted: undefined,
       refetchBalance: mockRefetchBalance,
       apyDecimal: 0.05,
       apyPercent: 5,
@@ -508,6 +512,8 @@ describe('MoneyHomeView', () => {
         isAggregatedBalanceLoading: false,
         isBalanceFetchError: true,
         isBalanceFetching: false,
+        isBalanceUnavailable: true,
+        lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -555,13 +561,14 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('error takes precedence over loading and balance', () => {
+    it('renders the unavailable slot whenever there is no fresh balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
         isAggregatedBalanceLoading: true,
         isBalanceFetchError: true,
         isBalanceFetching: false,
+        lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -574,7 +581,7 @@ describe('MoneyHomeView', () => {
       );
 
       expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_ERROR),
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
@@ -693,6 +700,8 @@ describe('MoneyHomeView', () => {
           isAggregatedBalanceLoading: false,
           isBalanceFetchError: false,
           isBalanceFetching: false,
+          isBalanceUnavailable: true,
+          lastKnownTotalFiatFormatted: undefined,
           refetchBalance: jest.fn(),
           apyPercent: 5,
           vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -782,6 +791,58 @@ describe('MoneyHomeView', () => {
       // hasBalanceValue is false in noAccount state, so unfunded sections are hidden.
       expect(
         queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('balance unavailable banner', () => {
+    const unavailableMock = (lastKnownTotalFiatFormatted?: string) =>
+      ({
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        isAggregatedBalanceLoading: false,
+        isBalanceFetchError: true,
+        isBalanceFetching: false,
+        isBalanceUnavailable: true,
+        lastKnownTotalFiatFormatted,
+        refetchBalance: jest.fn(),
+        apyPercent: 5,
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      }) as unknown as ReturnType<typeof useMoneyAccountBalance>;
+
+    it('shows the banner with a dash when no last known balance exists', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock());
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent(strings('money.balance_unavailable_value'));
+    });
+
+    it('shows the banner alongside the last known balance when cached', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock('$2,384.34'));
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent('$2,384.34');
+    });
+
+    it('hides the banner when the balance loads successfully', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
       ).not.toBeOnTheScreen();
     });
   });
@@ -876,10 +937,13 @@ describe('MoneyHomeView', () => {
     it('disables Transfer button when initial balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
         tokenTotal: undefined,
         isAggregatedBalanceLoading: true,
         isBalanceFetchError: false,
         isBalanceFetching: true,
+        isBalanceUnavailable: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1434,6 +1498,7 @@ describe('MoneyHomeView', () => {
         mockUseMoneyAccountCardLinkage.mockReturnValue({
           hasMoneyAccountRequirements: true,
           isCardAuthenticated: true,
+          isCardVerified: true,
           isCardLinkedToMoneyAccount: false,
           primaryMoneyAccount: { address: '0xabc' },
           moneyAccountCardToken: { symbol: 'USDC' },
@@ -1947,11 +2012,12 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('selects mode="link" when card-authenticated even if selected wallet is not a cardholder account', () => {
+    it('selects mode="link" when card-authenticated and VERIFIED even if selected wallet is not a cardholder account', () => {
       mockSelectIsCardholder.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
         isCardAuthenticated: true,
+        isCardVerified: true,
         isCardLinkedToMoneyAccount: false,
         primaryMoneyAccount: { address: '0xabc' },
         moneyAccountCardToken: { symbol: 'USDC' },
@@ -1969,6 +2035,31 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('hides the MetaMask Card section when authenticated but not VERIFIED', () => {
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'USDC' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('disables the link button when linkage is in progress', () => {
