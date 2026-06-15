@@ -29,7 +29,8 @@ interface RampsDepositCashButtonClicked {
 
 interface RampsPaymentMethodSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2';
+  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   region: string;
   payment_method_id: string;
@@ -61,7 +62,8 @@ interface RampsRegionSelected {
 
 interface RampsOrderProposed {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
   amount_destination: number;
@@ -78,7 +80,8 @@ interface RampsOrderProposed {
 
 interface RampsOrderSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
   amount_destination: number;
@@ -115,14 +118,16 @@ interface RampsOrderFailed {
 
 interface RampsEmailSubmitted {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
 }
 
 interface RampsOtpConfirmed {
   quote_session_id?: string;
   region: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
 }
 
@@ -138,14 +143,16 @@ interface RampsOtpFailed {
 interface RampsOtpResent {
   quote_session_id?: string;
   region: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
 }
 
 interface RampsKycStarted {
   quote_session_id?: string;
   region: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   kyc_type: string;
 }
@@ -287,7 +294,8 @@ interface RampsScreenViewed {
 
 interface RampsBackButtonClicked {
   location: string;
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
 }
 
 interface RampsNetworkFilterClicked {
@@ -317,7 +325,8 @@ interface RampsSettingOptionClicked {
 interface RampsPaymentMethodSelectorClicked {
   current_payment_method?: string;
   location: string;
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
 }
 
 interface RampsQuickAmountClicked {
@@ -341,7 +350,8 @@ interface RampsProviderSelected {
 }
 
 interface RampsContinueButtonClicked {
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   amount_source: number;
   amount_destination?: number;
   payment_method_id: string;
@@ -362,14 +372,16 @@ interface RampsContinueButtonClicked {
 
 interface RampsTermsConsentClicked {
   location: string;
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
 }
 
 interface RampsExternalLinkClicked {
   location: string;
   external_link_description: string;
   url_domain?: string;
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
 }
 
 interface RampsCloseButtonClicked {
@@ -384,7 +396,8 @@ interface RampsQuoteError {
   currency_destination?: string;
   payment_method_id?: string;
   chain_id?: string;
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
 }
 
 interface RampsQuoteErrorTooltipClicked {

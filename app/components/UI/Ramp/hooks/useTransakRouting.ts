@@ -793,15 +793,22 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             }
           }
 
-          case 'NOT_SUBMITTED':
+          case 'NOT_SUBMITTED': {
+            // Snapshot the headless session BEFORE navigating so the KYC_STARTED
+            // event carries `ramp_type: 'HEADLESS'` + the seeded `ramp_surface`
+            // on the headless path (TRAM-3623), matching the terminal events in
+            // this file. No-op for the regular flow, which keeps `'DEPOSIT'`.
+            const kycStartedSession = getSession(headlessSessionId);
             trackEvent('RAMPS_KYC_STARTED', {
-              ramp_type: 'DEPOSIT',
+              ramp_type: kycStartedSession ? 'HEADLESS' : 'DEPOSIT',
+              ramp_surface: kycStartedSession?.params?.ramp_surface,
               kyc_type: requirements.kycType || '',
               region: regionIsoCode,
             });
 
             navigateToBasicInfoCallback({ quote, previousFormData, amount });
             return;
+          }
 
           case 'ADDITIONAL_FORMS_REQUIRED': {
             const additionalRequirements = await getAdditionalRequirements(
@@ -835,8 +842,13 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 throw new Error('Missing ID proof metadata');
               }
 
+              // Same headless snapshot as the NOT_SUBMITTED branch above
+              // (TRAM-3623): flip to HEADLESS + ramp_surface on the headless
+              // path, otherwise stay DEPOSIT.
+              const idProofKycSession = getSession(headlessSessionId);
               trackEvent('RAMPS_KYC_STARTED', {
-                ramp_type: 'DEPOSIT',
+                ramp_type: idProofKycSession ? 'HEADLESS' : 'DEPOSIT',
+                ramp_surface: idProofKycSession?.params?.ramp_surface,
                 kyc_type: 'STANDARD',
                 region: regionIsoCode,
               });

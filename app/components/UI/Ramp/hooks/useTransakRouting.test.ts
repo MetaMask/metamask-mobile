@@ -242,6 +242,12 @@ describe('useTransakRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedHandleNavigationStateChange = null;
+    // clearAllMocks resets call records but not return values set via
+    // mockReturnValue, so explicitly default getSession back to "no session"
+    // (matching the bare jest.fn() default) to stop per-test sessions leaking.
+    (
+      jest.requireMock('../headless/sessionRegistry').getSession as jest.Mock
+    ).mockReturnValue(undefined);
     mockUserRegion = {
       country: { currency: 'USD', isoCode: 'US' },
       regionCode: 'us-ca',
@@ -301,6 +307,64 @@ describe('useTransakRouting', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_KYC_STARTED',
         expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+      );
+      // Non-headless stays DEPOSIT and carries no surface (TRAM-3623).
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.objectContaining({ ramp_type: 'HEADLESS' }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.objectContaining({ ramp_surface: undefined }),
+      );
+    });
+
+    it('emits HEADLESS RAMPS_KYC_STARTED with ramp_surface when the session is headless (NOT_SUBMITTED)', async () => {
+      const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+        .getSession as jest.Mock;
+      mockGetSession.mockReturnValue({
+        id: 'hs-kyc',
+        params: { ramp_surface: 'perps' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onClose: jest.fn(),
+          onError: jest.fn(),
+        },
+      });
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1234567890',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'hs-kyc' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'perps',
+          kyc_type: 'SIMPLE',
+          region: 'us-ca',
+        }),
       );
     });
 
@@ -701,6 +765,69 @@ describe('useTransakRouting', () => {
               }),
             }),
           ],
+        }),
+      );
+      // Non-headless IDPROOF KYC_STARTED stays DEPOSIT (TRAM-3623).
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.objectContaining({ ramp_type: 'DEPOSIT', kyc_type: 'STANDARD' }),
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.objectContaining({ ramp_type: 'HEADLESS' }),
+      );
+    });
+
+    it('emits HEADLESS RAMPS_KYC_STARTED with ramp_surface for the IDPROOF path when headless', async () => {
+      const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+        .getSession as jest.Mock;
+      mockGetSession.mockReturnValue({
+        id: 'hs-idproof',
+        params: { ramp_surface: 'prediction' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onClose: jest.fn(),
+          onError: jest.fn(),
+        },
+      });
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+        kycType: 'STANDARD',
+      });
+      mockGetAdditionalRequirements.mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'https://kyc.example.com',
+              workFlowRunId: 'wf-123',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'hs-idproof' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never, 25);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'prediction',
+          kyc_type: 'STANDARD',
+          region: 'us-ca',
         }),
       );
     });
