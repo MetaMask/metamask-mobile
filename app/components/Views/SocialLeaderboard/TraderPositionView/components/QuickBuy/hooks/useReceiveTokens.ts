@@ -14,7 +14,7 @@ import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
 } from '../../../../../../../selectors/multichain/multichain';
-import { DefaultSwapDestTokens } from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
+import { getAllChainDefaultDestTokens } from '../../../../../../UI/Bridge/utils/getAllChainDefaultDestTokens';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUtils';
 import { getTokenKey } from '../tokenKey';
@@ -45,7 +45,7 @@ import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
  * Bitcoin) are offered as native-only via `NATIVE_ONLY_NON_EVM_CHAINS` instead.
  */
 const STABLECOIN_CANDIDATES: BridgeToken[] = (() => {
-  const primaries = Object.values(DefaultSwapDestTokens).filter(
+  const primaries = getAllChainDefaultDestTokens().filter(
     (token) =>
       isStablecoinSymbol(token.symbol) &&
       typeof token.chainId === 'string' &&
