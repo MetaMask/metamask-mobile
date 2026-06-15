@@ -14,14 +14,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { ChartType } from './AdvancedChart.types';
 
-const QUICK_INTERVALS = ['1m', '5m', '15m', '1h', '4h'] as const;
+const QUICK_INTERVALS = ['1m', '5m', '15m', '1h', '1d'] as const;
 
 const PILL_BASE = 'flex-row items-center justify-center rounded-xl px-2 py-1';
 
 interface IntervalBarProps {
   selectedInterval: string;
   onIntervalSelect?: (interval: string) => void;
-  onMorePress?: () => void;
   chartType?: ChartType;
   onChartTypeSelect?: (type: ChartType) => void;
 }
@@ -29,7 +28,6 @@ interface IntervalBarProps {
 const IntervalBar: React.FC<IntervalBarProps> = ({
   selectedInterval,
   onIntervalSelect,
-  onMorePress,
   chartType,
   onChartTypeSelect,
 }) => {
@@ -77,31 +75,6 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
             </Pressable>
           );
         })}
-
-        <Pressable
-          style={({ pressed }) =>
-            tw.style(
-              'flex-row items-center gap-0.5 rounded-xl px-2 py-1',
-              pressed && 'opacity-70',
-            )
-          }
-          onPress={onMorePress}
-          accessibilityRole="button"
-          accessibilityLabel="More intervals"
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
-          >
-            More
-          </Text>
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Xs}
-            twClassName="text-icon-alternative"
-          />
-        </Pressable>
       </Box>
 
       {onChartTypeSelect ? (

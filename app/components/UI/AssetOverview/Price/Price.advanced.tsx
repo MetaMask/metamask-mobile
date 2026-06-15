@@ -42,7 +42,7 @@ import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
-import { createIntervalPickerNavDetails } from '../../Charts/AdvancedChart/IntervalPickerSheet';
+
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { TOKEN_DETAILS_LEGEND_OVERLAY } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
@@ -325,17 +325,6 @@ const PriceAdvanced = ({
   useEffect(() => {
     setDisplayInterval(wsInterval.toUpperCase());
   }, [wsInterval]);
-
-  const handleIntervalPress = useCallback(() => {
-    navigation.navigate(
-      ...createIntervalPickerNavDetails({
-        selectedInterval: displayInterval,
-        onSelect: (interval: string) => {
-          setDisplayInterval(interval);
-        },
-      }),
-    );
-  }, [navigation, displayInterval]);
 
   const handleInlineIntervalSelect = useCallback((interval: string) => {
     setDisplayInterval(interval);
@@ -737,7 +726,6 @@ const PriceAdvanced = ({
             <IntervalBar
               selectedInterval={displayInterval}
               onIntervalSelect={handleInlineIntervalSelect}
-              onMorePress={handleIntervalPress}
               chartType={chartType}
               onChartTypeSelect={handleChartTypeSelect}
             />

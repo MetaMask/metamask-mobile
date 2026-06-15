@@ -4113,10 +4113,6 @@
       "3y": "3Y",
       "all": "All"
     },
-    "interval_picker_title": "Candle intervals",
-    "interval_section_minutes": "Minutes",
-    "interval_section_hours": "Hours",
-    "interval_section_days": "Days",
     "ma_picker_title": "Moving average",
     "done": "Done",
     "no_chart_data": {
