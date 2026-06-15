@@ -19,6 +19,7 @@ export class AppStateEventListener {
   public currentDeeplink: string | null = null;
   public pendingDeeplink: string | null = null;
   public pendingDeeplinkSource: string | null = null;
+  public onboardingInstallDeeplinkHandled = false;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -49,6 +50,10 @@ export class AppStateEventListener {
   public clearPendingDeeplink() {
     this.pendingDeeplink = null;
     this.pendingDeeplinkSource = null;
+  }
+
+  public markOnboardingInstallDeeplinkHandled() {
+    this.onboardingInstallDeeplinkHandled = true;
   }
 
   private handleAppStateChange = (nextAppState: AppStateStatus) => {

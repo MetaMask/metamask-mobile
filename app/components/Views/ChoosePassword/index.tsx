@@ -32,7 +32,7 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
@@ -92,8 +92,10 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { selectAttributionRecord } from '../../../selectors/attribution';
-import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
+import {
+  clearOnboardingPendingDeeplinkIfNeeded,
+  getPendingDeeplinkUtmParameters,
+} from '../../../util/analytics/pendingDeeplinkUtmParameters';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -130,7 +132,6 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -165,6 +166,19 @@ const ChoosePassword = () => {
       );
     },
     [dispatch],
+  );
+
+  const emitNewWalletSetupCompleted = useCallback(
+    (accountType: AccountType) => {
+      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        wallet_setup_type: 'new',
+        new_wallet: true,
+        account_type: accountType,
+        ...(getPendingDeeplinkUtmParameters() ?? {}),
+      });
+      clearOnboardingPendingDeeplinkIfNeeded();
+    },
+    [track],
   );
 
   const setSelection = useCallback(() => {
@@ -500,21 +514,14 @@ const ChoosePassword = () => {
 
       await handleWalletCreation(authType, previous_screen);
 
+      emitNewWalletSetupCompleted(accountType);
+
       foxRiveLoaderRef.current?.stop();
       await handlePostWalletCreation(authType);
 
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
-      });
-      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-        wallet_setup_type: 'new',
-        new_wallet: true,
-        account_type: accountType,
-        ...getWalletSetupCompletedAttributionAnalyticsProps(
-          attributionRecord,
-          isSelected,
-        ),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -531,8 +538,7 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    attributionRecord,
-    isSelected,
+    emitNewWalletSetupCompleted,
   ]);
 
   const onPasswordChange = useCallback(

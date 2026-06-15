@@ -62,6 +62,7 @@ import {
 import type { RootState } from '../../../reducers';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
+import { applyMarketingConsentToWalletSetupCompletedEvent } from '../../../util/analytics/pendingDeeplinkUtmParameters';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -215,7 +216,7 @@ const OptinMetrics = () => {
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.
-    if (events?.length) {
+    if (events?.length && isBasicUsageChecked) {
       let delay = 0; // Initialize delay
       const eventTrackingDelay = 200; // ms delay between each event
       events.forEach((eventArgs) => {
@@ -226,9 +227,10 @@ const OptinMetrics = () => {
         // as precision is only to the milisecond
         // and loop seems to runs faster than that
         setTimeout(() => {
-          const event = AnalyticsEventBuilder.createEventBuilder(
-            eventArgs[0],
-          ).build();
+          const event = applyMarketingConsentToWalletSetupCompletedEvent(
+            AnalyticsEventBuilder.createEventBuilder(eventArgs[0]).build(),
+            isMarketingChecked,
+          );
           metrics.trackEvent(event);
         }, delay);
         delay += eventTrackingDelay;

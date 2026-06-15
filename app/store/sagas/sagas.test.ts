@@ -48,14 +48,29 @@ jest.mock('../../core/EngineService', () => ({
   start: jest.fn(),
 }));
 
-jest.mock('../../core/AppStateEventListener', () => ({
-  AppStateEventProcessor: {
+jest.mock('../../core/AppStateEventListener', () => {
+  const appStateEventProcessor = {
     start: jest.fn(),
-    pendingDeeplink: null,
-    pendingDeeplinkSource: null,
+    pendingDeeplink: null as string | null,
+    pendingDeeplinkSource: null as string | null,
+    onboardingInstallDeeplinkHandled: false,
     clearPendingDeeplink: jest.fn(),
-  },
-}));
+    markOnboardingInstallDeeplinkHandled: jest.fn(() => {
+      appStateEventProcessor.onboardingInstallDeeplinkHandled = true;
+    }),
+  };
+
+  return { AppStateEventProcessor: appStateEventProcessor };
+});
+
+const mockAppStateEventProcessor = jest.requireMock(
+  '../../core/AppStateEventListener',
+).AppStateEventProcessor as {
+  pendingDeeplink: string | null;
+  onboardingInstallDeeplinkHandled: boolean;
+  clearPendingDeeplink: jest.Mock;
+  markOnboardingInstallDeeplinkHandled: jest.Mock;
+};
 
 jest.mock('../../core/Analytics', () => ({
   __esModule: true,
@@ -667,6 +682,7 @@ describe('handleDeeplinkSaga', () => {
     __resetSDKServicesInitializationForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
+    AppStateEventProcessor.onboardingInstallDeeplinkHandled = false;
   });
 
   describe('without deeplink', () => {
@@ -945,6 +961,12 @@ describe('handleDeeplinkSaga', () => {
             .silentRun();
 
           expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.markOnboardingInstallDeeplinkHandled,
+          ).toHaveBeenCalled();
         });
 
         it('does not wait for MainNavigator readiness before handling onboarding deeplinks', async () => {

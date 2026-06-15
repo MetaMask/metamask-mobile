@@ -10,6 +10,7 @@ import { AccountType } from '../../../constants/onboarding';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -912,6 +913,112 @@ describe('OptinMetrics', () => {
       await waitFor(() => {
         expect(mockAnalytics.optIn).toHaveBeenCalled();
       });
+    });
+
+    it('strips utm params from buffered Wallet Setup Completed when marketing consent is off', async () => {
+      jest.useFakeTimers();
+      const mockEvents = [
+        [
+          AnalyticsEventBuilder.createEventBuilder({
+            name: EVENT_NAME.WALLET_SETUP_COMPLETED,
+            properties: {
+              wallet_setup_type: 'new',
+              utm_source: 'install',
+            },
+          }).build(),
+        ],
+      ];
+
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        {
+          state: {
+            onboarding: { events: mockEvents },
+            security: { dataCollectionForMarketing: false },
+          },
+        },
+      );
+
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+      fireEvent.press(marketingCheckbox);
+      fireEvent.press(marketingCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
+      });
+
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.WALLET_SETUP_COMPLETED,
+            properties: expect.objectContaining({
+              wallet_setup_type: 'new',
+            }),
+          }),
+        );
+      });
+
+      const walletSetupCall = mockAnalytics.trackEvent.mock.calls.find(
+        ([event]) => event.name === EVENT_NAME.WALLET_SETUP_COMPLETED,
+      );
+      expect(walletSetupCall?.[0].properties?.utm_source).toBeUndefined();
+
+      jest.useRealTimers();
+    });
+
+    it('keeps utm params on buffered Wallet Setup Completed when marketing consent is on', async () => {
+      jest.useFakeTimers();
+      const mockEvents = [
+        [
+          AnalyticsEventBuilder.createEventBuilder({
+            name: EVENT_NAME.WALLET_SETUP_COMPLETED,
+            properties: {
+              wallet_setup_type: 'new',
+              utm_source: 'install',
+            },
+          }).build(),
+        ],
+      ];
+
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        {
+          state: {
+            onboarding: { events: mockEvents },
+            security: { dataCollectionForMarketing: false },
+          },
+        },
+      );
+
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+      fireEvent.press(marketingCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
+      });
+
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        const walletSetupCall = mockAnalytics.trackEvent.mock.calls.find(
+          ([event]) => event.name === EVENT_NAME.WALLET_SETUP_COMPLETED,
+        );
+        expect(walletSetupCall?.[0].properties?.utm_source).toBe('install');
+      });
+
+      jest.useRealTimers();
     });
 
     it('should handle platform-specific scroll calculations', () => {

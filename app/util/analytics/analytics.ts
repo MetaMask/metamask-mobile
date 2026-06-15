@@ -17,6 +17,7 @@ import {
   enrichWithABTests,
   getRemoteFeatureFlagsFromState,
 } from './enrichWithABTests';
+import { removeUtmPropertiesWithoutMarketingConsent } from './removeUtmPropertiesWithoutMarketingConsent';
 
 /**
  * Analytics helper interface
@@ -64,6 +65,21 @@ const trackEvent = (event: AnalyticsTrackingEvent): void => {
   } catch {
     enrichedEvent = event;
   }
+
+  const dataCollectionForMarketing =
+    store.getState().security?.dataCollectionForMarketing ?? null;
+
+  enrichedEvent = {
+    ...enrichedEvent,
+    properties: removeUtmPropertiesWithoutMarketingConsent(
+      enrichedEvent.properties,
+      dataCollectionForMarketing,
+    ),
+    sensitiveProperties: removeUtmPropertiesWithoutMarketingConsent(
+      enrichedEvent.sensitiveProperties,
+      dataCollectionForMarketing,
+    ),
+  };
 
   queueManager.queueOperation('trackEvent', enrichedEvent).catch((error) => {
     Logger.log('Analytics: Unhandled error in trackEvent', error);

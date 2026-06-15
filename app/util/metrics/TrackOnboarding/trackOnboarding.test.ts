@@ -1,11 +1,13 @@
 import trackOnboarding from './trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 
 const { InteractionManager } = jest.requireActual('react-native');
-InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+const mockRunAfterInteractions = jest.fn(async (callback: () => void) =>
   callback(),
 );
+InteractionManager.runAfterInteractions = mockRunAfterInteractions;
 
 const mockIsEnabled = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -28,6 +30,20 @@ describe('trackOnboarding', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('does not defer Wallet Setup Completed via InteractionManager', () => {
+    mockIsEnabled.mockReturnValue(false);
+
+    const mockEvent = AnalyticsEventBuilder.createEventBuilder({
+      name: EVENT_NAME.WALLET_SETUP_COMPLETED,
+      properties: { wallet_setup_type: 'new' },
+    }).build();
+
+    trackOnboarding(mockEvent, mockSaveOnboardingEvent);
+
+    expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+    expect(mockSaveOnboardingEvent).toHaveBeenCalled();
   });
 
   it('calls saveOnboardingEvent when metrics is not enabled', async () => {

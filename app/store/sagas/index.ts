@@ -39,6 +39,7 @@ import { applyVaultInitialization } from '../../util/generateSkipOnboardingState
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
+import { isOnboardingDeeplink } from '../../util/analytics/pendingDeeplinkUtmParameters';
 import UrlParser from 'url-parse';
 import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
@@ -300,14 +301,19 @@ export function* handleDeeplinkSaga() {
         AppStateEventProcessor.pendingDeeplinkSource ??
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
-      if (!existingUser && url.pathname === '/onboarding') {
+      if (
+        !existingUser &&
+        isOnboardingDeeplink(AppStateEventProcessor.pendingDeeplink)
+      ) {
         // New-user onboarding lives outside the post-login navigation tree.
-        setTimeout(() => {
-          SharedDeeplinkManager.parse(url.href, {
-            origin: storedSource,
-          });
-        }, 200);
-        AppStateEventProcessor.clearPendingDeeplink();
+        if (!AppStateEventProcessor.onboardingInstallDeeplinkHandled) {
+          setTimeout(() => {
+            SharedDeeplinkManager.parse(url.href, {
+              origin: storedSource,
+            });
+          }, 200);
+          AppStateEventProcessor.markOnboardingInstallDeeplinkHandled();
+        }
         continue;
       }
     }
