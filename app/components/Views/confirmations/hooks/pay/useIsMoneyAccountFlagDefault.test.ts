@@ -66,7 +66,6 @@ describe('useIsMoneyAccountFlagDefault', () => {
     TransactionType.perpsDeposit,
     TransactionType.perpsWithdraw,
     TransactionType.predictDeposit,
-    TransactionType.predictDepositAndOrder,
     TransactionType.predictWithdraw,
   ])(
     'returns true for %s when flag is "money-account" and money account exists',
@@ -128,6 +127,7 @@ describe('useIsMoneyAccountFlagDefault', () => {
     TransactionType.swap,
     TransactionType.bridge,
     TransactionType.moneyAccountDeposit,
+    TransactionType.predictDepositAndOrder,
   ])(
     'returns false for non-perps/predict type %s even when flag is enabled',
     (type) => {
