@@ -230,6 +230,10 @@ export function HwQrScanner() {
     onScanSuccess,
   });
 
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleCancel = useCallback(async () => {
     try {
       await cancelQRScanRequestIfPresent();
@@ -368,7 +372,7 @@ export function HwQrScanner() {
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
-          onPress={handleCancel}
+          onPress={handleGoBack}
         />
         <Box twClassName="h-10 w-10" />
       </Box>

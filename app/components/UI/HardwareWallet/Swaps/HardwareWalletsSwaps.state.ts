@@ -1,3 +1,5 @@
+import type { QuoteResponse } from '@metamask/bridge-controller';
+
 /**
  * Status of the hardware wallet swap flow state machine.
  * Transitions: Idle → Waiting → Submitted | Rejected | Failed | Disconnected | Cancelled
@@ -88,6 +90,30 @@ export type HardwareWalletsSwapsEvent =
   | { type: HardwareWalletsSwapsEventType.Retry }
   | { type: HardwareWalletsSwapsEventType.Cancel };
 
+type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'>;
+
+function getEvmTxTo(
+  tx: QuoteWithTxData['approval'] | QuoteWithTxData['trade'],
+): string | undefined {
+  if (tx && typeof tx === 'object' && 'to' in tx && typeof tx.to === 'string') {
+    return tx.to;
+  }
+  return undefined;
+}
+
+export function buildStartPayload(
+  activeQuote: QuoteWithTxData,
+): HardwareWalletsSwapsEvent {
+  return {
+    type: HardwareWalletsSwapsEventType.Start,
+    payload: {
+      totalSteps: activeQuote.approval ? 2 : 1,
+      spenderAddress: getEvmTxTo(activeQuote.approval),
+      recipientAddress: getEvmTxTo(activeQuote.trade),
+    },
+  };
+}
+
 export const initialHardwareWalletsSwapsState: HardwareWalletsSwapsState = {
   status: HardwareWalletsSwapsStatus.Idle,
   currentStep: 0,
@@ -133,19 +159,28 @@ function isCurrentStepKind(
  * Finds the step at the current position matching the given kind,
  * or falls back to the step at the current index.
  */
-function updateStepStatus(
-  state: HardwareWalletsSwapsState,
+function findStepIndexByKind(
+  steps: HardwareWalletsSwapsStep[],
+  stepKind: HardwareWalletsSwapsStepKind,
+): number {
+  return steps.findIndex(
+    (step) =>
+      step.kind === stepKind &&
+      step.status !== HardwareWalletsSwapsStepStatus.Signed &&
+      step.status !== HardwareWalletsSwapsStepStatus.Rejected,
+  );
+}
+
+function updateStepStatusByKind(
+  steps: HardwareWalletsSwapsStep[],
   stepKind: HardwareWalletsSwapsStepKind,
   status: HardwareWalletsSwapsStepStatus,
 ): HardwareWalletsSwapsStep[] {
-  const targetIndex = state.steps.findIndex(
-    (step, index) => step.kind === stepKind && index === state.currentStep,
-  );
-  const fallbackIndex = Math.max(state.currentStep, 0);
-  const indexToUpdate = targetIndex >= 0 ? targetIndex : fallbackIndex;
+  const targetIndex = findStepIndexByKind(steps, stepKind);
+  if (targetIndex < 0) return steps;
 
-  return state.steps.map((step, index) =>
-    index === indexToUpdate ? { ...step, status } : step,
+  return steps.map((step, index) =>
+    index === targetIndex ? { ...step, status } : step,
   );
 }
 
@@ -172,7 +207,7 @@ export function hardwareWalletsSwapsReducer(
         disconnectedStep: null,
       };
     }
-    case HardwareWalletsSwapsEventType.Signing:
+    case HardwareWalletsSwapsEventType.Signing: {
       if (
         state.status === HardwareWalletsSwapsStatus.Rejected ||
         state.status === HardwareWalletsSwapsStatus.Submitted ||
@@ -182,19 +217,31 @@ export function hardwareWalletsSwapsReducer(
       ) {
         return state;
       }
-      if (!isCurrentStepKind(state, event.payload.stepKind)) {
+      if (state.steps.length === 0) return state;
+      const signingIndex = findStepIndexByKind(
+        state.steps,
+        event.payload.stepKind,
+      );
+      if (signingIndex < 0) return state;
+      const signingStep = state.steps[signingIndex];
+      if (
+        signingStep.status !== HardwareWalletsSwapsStepStatus.Waiting &&
+        signingStep.status !== HardwareWalletsSwapsStepStatus.Signing
+      ) {
         return state;
       }
 
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Waiting,
-        steps: updateStepStatus(
-          state,
+        currentStep: signingIndex,
+        steps: updateStepStatusByKind(
+          state.steps,
           event.payload.stepKind,
           HardwareWalletsSwapsStepStatus.Signing,
         ),
       };
+    }
     case HardwareWalletsSwapsEventType.Signed: {
       if (
         state.status === HardwareWalletsSwapsStatus.Rejected ||
@@ -205,20 +252,23 @@ export function hardwareWalletsSwapsReducer(
       ) {
         return state;
       }
-      if (!isCurrentStepKind(state, event.payload.stepKind)) {
-        return state;
-      }
+      if (state.steps.length === 0) return state;
+      const signedIndex = findStepIndexByKind(
+        state.steps,
+        event.payload.stepKind,
+      );
+      if (signedIndex < 0) return state;
 
-      const nextStep = state.currentStep + 1;
+      const nextStep = signedIndex + 1;
       return {
         ...state,
         status:
           nextStep >= state.totalSteps
             ? HardwareWalletsSwapsStatus.Submitted
             : HardwareWalletsSwapsStatus.Waiting,
-        currentStep: Math.min(nextStep, state.totalSteps - 1),
-        steps: updateStepStatus(
-          state,
+        currentStep: nextStep,
+        steps: updateStepStatusByKind(
+          state.steps,
           event.payload.stepKind,
           HardwareWalletsSwapsStepStatus.Signed,
         ),
@@ -239,8 +289,8 @@ export function hardwareWalletsSwapsReducer(
         ...state,
         status: HardwareWalletsSwapsStatus.Rejected,
         steps: stepKind
-          ? updateStepStatus(
-              state,
+          ? updateStepStatusByKind(
+              state.steps,
               stepKind,
               HardwareWalletsSwapsStepStatus.Rejected,
             )
@@ -255,22 +305,16 @@ export function hardwareWalletsSwapsReducer(
       };
     }
     case HardwareWalletsSwapsEventType.DeviceDisconnected:
-      if (
-        state.status === HardwareWalletsSwapsStatus.Rejected ||
-        state.status === HardwareWalletsSwapsStatus.Submitted ||
-        state.status === HardwareWalletsSwapsStatus.Failed ||
-        state.status === HardwareWalletsSwapsStatus.Disconnected ||
-        state.status === HardwareWalletsSwapsStatus.Cancelled
-      ) {
-        return state;
-      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Disconnected,
         disconnectedStep: state.currentStep,
       };
     case HardwareWalletsSwapsEventType.TransactionFailed:
-      if (state.status !== HardwareWalletsSwapsStatus.Waiting) {
+      if (
+        state.status !== HardwareWalletsSwapsStatus.Waiting &&
+        state.status !== HardwareWalletsSwapsStatus.Submitted
+      ) {
         return state;
       }
       return {
@@ -278,26 +322,16 @@ export function hardwareWalletsSwapsReducer(
         status: HardwareWalletsSwapsStatus.Failed,
       };
     case HardwareWalletsSwapsEventType.Retry: {
-      if (state.status === HardwareWalletsSwapsStatus.Disconnected) {
-        const restoredStep = state.disconnectedStep ?? state.currentStep;
-        return {
-          ...state,
-          status: HardwareWalletsSwapsStatus.Waiting,
-          currentStep: restoredStep,
-          steps: state.steps.map((step, index) =>
-            index === restoredStep
-              ? { ...step, status: HardwareWalletsSwapsStepStatus.Waiting }
-              : step,
-          ),
-          disconnectedStep: null,
-        };
-      }
       if (
+        state.status !== HardwareWalletsSwapsStatus.Disconnected &&
         state.status !== HardwareWalletsSwapsStatus.Rejected &&
         state.status !== HardwareWalletsSwapsStatus.Failed
       ) {
         return state;
       }
+      // All retry paths fully reset: the batch sign tracker invalidates
+      // all in-flight state and re-submits the entire batch, so every
+      // step must return to Waiting and currentStep restarts at 0.
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Waiting,
@@ -310,6 +344,13 @@ export function hardwareWalletsSwapsReducer(
       };
     }
     case HardwareWalletsSwapsEventType.Cancel:
+      if (
+        state.status === HardwareWalletsSwapsStatus.Idle ||
+        state.status === HardwareWalletsSwapsStatus.Submitted ||
+        state.status === HardwareWalletsSwapsStatus.Cancelled
+      ) {
+        return state;
+      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Cancelled,
