@@ -874,6 +874,29 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
+    it('tracks RESIDENCY_BLOCKED, shows error toast, and clears the flag when residency is blocked after auth', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          isResidencyBlocked: true,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(null),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+          reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        }),
+      );
+    });
+
     it('clears the flag silently when authenticated but requirements are missing', () => {
       applySelectorMocks(
         buildSelectors({

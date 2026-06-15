@@ -420,7 +420,15 @@ export const useMoneyAccountCardLinkage =
       }
 
       if (isResidencyBlocked) {
+        trackMoneyAccountLinkingEvent(
+          MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
+          {
+            entrypoint: pendingMoneyAccountCardLinkEntryPoint,
+            reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+          },
+        );
         dispatch(setPendingMoneyAccountCardLink(null));
+        showErrorToast();
         return;
       }
 
@@ -454,6 +462,8 @@ export const useMoneyAccountCardLinkage =
       cardHomeDataStatus,
       openLinkCardSheet,
       dispatch,
+      showErrorToast,
+      trackMoneyAccountLinkingEvent,
     ]);
 
     const confirmLinkInBackground = useCallback(

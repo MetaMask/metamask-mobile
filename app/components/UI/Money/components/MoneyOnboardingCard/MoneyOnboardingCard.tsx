@@ -48,7 +48,7 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { tokenTotal, isAggregatedBalanceLoading } = useMoneyAccountBalance();
+  const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
@@ -66,7 +66,7 @@ const MoneyOnboardingCard = () => {
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const isMoneyAccountFunded = Boolean(
-    !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
+    !isBalanceLoading && tokenTotal?.isGreaterThan(0),
   );
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
@@ -207,7 +207,7 @@ const MoneyOnboardingCard = () => {
   useEffect(() => {
     if (
       hasTrackedCardStepViewRef.current ||
-      isAggregatedBalanceLoading ||
+      isBalanceLoading ||
       !isCardAnalyticsReady ||
       !isOnboardingCardVisible ||
       !isVisibleAfterAutoSkip ||
@@ -230,7 +230,7 @@ const MoneyOnboardingCard = () => {
     trackEvent,
     createEventBuilder,
     effectiveCurrentStep,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     isCardAnalyticsReady,
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
@@ -337,11 +337,7 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (
-    isAggregatedBalanceLoading ||
-    !isOnboardingCardVisible ||
-    !isVisibleAfterAutoSkip
-  ) {
+  if (isBalanceLoading || !isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
     return null;
   }
 
