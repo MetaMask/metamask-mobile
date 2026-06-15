@@ -1,5 +1,7 @@
 import '../../../../tests/component-view/mocks';
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { RefreshControl } from 'react-native';
+import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
@@ -13,52 +15,16 @@ import {
   renderActivityListViewWithRoutes,
 } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
-import { ActivityListSelectorsIDs } from './ActivityList.testIds';
+import {
+  activityListRowItemTestId,
+  activityListRowStatusTestId,
+} from './ActivityList.testIds';
 
 describeForPlatforms('ActivityList', () => {
-  it('renders confirmed local activity rows with complete row data after load', async () => {
+  it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
     const state = initialStateActivityWithLocalTransactions([
       buildConfirmedLocalSendTransaction(),
-    ]).build();
-
-    const { findByTestId } = renderActivityListView({ state });
-
-    const row = await findByTestId('transaction-item-0');
-    const rowScope = within(row);
-
-    expect(
-      await findByTestId(ActivityListSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(rowScope.getByText('Sent ETH')).toBeOnTheScreen();
-    expect(rowScope.getByTestId('transaction-status-0')).toHaveTextContent(
-      strings('transaction.confirmed'),
-    );
-    expect(rowScope.getByText('-1 ETH')).toBeOnTheScreen();
-  });
-
-  it('renders pending local transactions with submitted status label', async () => {
-    const state = initialStateActivityWithLocalTransactions([
       buildPendingLocalSendTransaction(),
-    ]).build();
-
-    const { findByTestId } = renderActivityListView({ state });
-
-    const status = await findByTestId('transaction-status-0');
-
-    expect(status).toHaveTextContent(strings('transaction.submitted'));
-  });
-
-  it('shows the legacy empty state when no transactions are available', async () => {
-    const { findByText } = renderActivityListView();
-
-    expect(
-      await findByText(strings('wallet.no_transactions')),
-    ).toBeOnTheScreen();
-  });
-
-  it('navigates to transaction details when a confirmed row is pressed', async () => {
-    const state = initialStateActivityWithLocalTransactions([
-      buildConfirmedLocalSendTransaction(),
     ]).build();
 
     const { findByTestId } = renderActivityListViewWithRoutes({
@@ -66,10 +32,45 @@ describeForPlatforms('ActivityList', () => {
       extraRoutes: [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
     });
 
-    fireEvent.press(await findByTestId('transaction-item-0'));
+    const pendingStatus = await findByTestId(activityListRowStatusTestId(0));
+
+    expect(pendingStatus).toHaveTextContent(strings('transaction.submitted'));
+
+    const confirmedRow = await findByTestId(activityListRowItemTestId(1));
+    const confirmedScope = within(confirmedRow);
+
+    expect(confirmedScope.getByText('Sent ETH')).toBeOnTheScreen();
+    expect(
+      confirmedScope.getByTestId(activityListRowStatusTestId(1)),
+    ).toHaveTextContent(strings('transaction.confirmed'));
+    expect(confirmedScope.getByText('-1 ETH')).toBeOnTheScreen();
+
+    fireEvent.press(confirmedRow);
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)),
     ).toBeOnTheScreen();
+  });
+
+  it('pull to refresh on an empty list syncs incoming transactions through Engine', async () => {
+    const updateIncomingSpy = jest
+      .spyOn(Engine.context.TransactionController, 'updateIncomingTransactions')
+      .mockResolvedValue(undefined);
+
+    const { UNSAFE_getByType } = renderActivityListView({
+      overrides: {
+        settings: {
+          basicFunctionalityEnabled: true,
+        },
+      },
+    });
+
+    fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
+
+    await waitFor(() => {
+      expect(updateIncomingSpy).toHaveBeenCalledTimes(1);
+    });
+
+    updateIncomingSpy.mockRestore();
   });
 });

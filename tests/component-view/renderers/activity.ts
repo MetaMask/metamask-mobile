@@ -15,7 +15,7 @@ import {
 
 interface RenderActivityScreenViewOptions {
   overrides?: DeepPartial<RootState>;
-  state?: RootState;
+  state?: DeepPartial<RootState>;
 }
 
 interface RenderActivityScreenViewWithRoutesOptions
@@ -25,7 +25,7 @@ interface RenderActivityScreenViewWithRoutesOptions
 
 interface RenderActivityListViewOptions {
   overrides?: DeepPartial<RootState>;
-  state?: RootState;
+  state?: DeepPartial<RootState>;
 }
 
 interface RenderActivityListViewWithRoutesOptions
@@ -36,6 +36,11 @@ interface RenderActivityListViewWithRoutesOptions
 interface RenderActivityViewOptions {
   overrides?: DeepPartial<RootState>;
   redesignEnabled?: boolean;
+}
+
+interface RenderActivityViewWithRoutesOptions
+  extends RenderActivityViewOptions {
+  extraRoutes: { name: string; Component?: React.ComponentType<object> }[];
 }
 
 function ActivityViewWithProviders() {
@@ -58,13 +63,13 @@ function ActivityListWithProviders() {
   return React.createElement(
     HardwareWalletProvider,
     null,
-    React.createElement(ActivityList, { header: null }),
+    React.createElement(ActivityList),
   );
 }
 
 function buildActivityState(options: {
   overrides?: DeepPartial<RootState>;
-  state?: RootState;
+  state?: DeepPartial<RootState>;
   redesignEnabled?: boolean;
 }) {
   if (options.state) {
@@ -142,6 +147,22 @@ export function renderActivityView(
   return renderComponentViewScreen(
     ActivityViewWithProviders,
     { name: Routes.TRANSACTIONS_VIEW },
+    { state },
+  );
+}
+
+export function renderActivityViewWithRoutes(
+  options: RenderActivityViewWithRoutesOptions,
+): ReturnType<typeof renderScreenWithRoutes> {
+  const state = buildActivityState({
+    overrides: options.overrides,
+    redesignEnabled: options.redesignEnabled,
+  });
+
+  return renderScreenWithRoutes(
+    ActivityViewWithProviders,
+    { name: Routes.TRANSACTIONS_VIEW },
+    options.extraRoutes,
     { state },
   );
 }

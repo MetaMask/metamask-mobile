@@ -1,18 +1,38 @@
-import { TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { getLocalTransactionStatus } from './helpers';
 
-const makeGroup = (overrides: Record<string, unknown>) => ({
+type LocalTransactionStatusInput = Parameters<
+  typeof getLocalTransactionStatus
+>[0];
+
+const baseTransactionMeta = {
+  chainId: '0x1',
+  id: 'activity-helpers-test-tx',
+  networkClientId: 'mainnet',
+  time: 0,
+  txParams: {},
+} as const;
+
+const makeGroup = (
+  overrides: Partial<TransactionMeta> = {},
+): LocalTransactionStatusInput => ({
   primaryTransaction: {
+    ...baseTransactionMeta,
     txReceipt: {},
     type: 'simpleSend',
-    status: 'submitted',
+    status: TransactionStatus.submitted,
     ...overrides,
-  },
+  } as TransactionMeta,
   initialTransaction: {
+    ...baseTransactionMeta,
     isSmartTransaction: false,
     txParams: {},
     ...overrides,
-  },
+  } as TransactionMeta & { isSmartTransaction?: boolean },
 });
 
 describe('getLocalTransactionStatus', () => {
@@ -43,7 +63,7 @@ describe('getLocalTransactionStatus', () => {
   it('maps cancelled (cancel-type tx) → failed', () => {
     const group = makeGroup({
       status: TransactionStatus.confirmed,
-      type: 'cancel',
+      type: TransactionType.cancel,
     });
 
     expect(getLocalTransactionStatus(group)).toBe('failed');
@@ -83,36 +103,39 @@ describe('getLocalTransactionStatus', () => {
   });
 
   it('maps smart tx pending → pending', () => {
-    const group = {
+    const group: LocalTransactionStatusInput = {
       primaryTransaction: makeGroup({}).primaryTransaction,
       initialTransaction: {
+        ...baseTransactionMeta,
         isSmartTransaction: true,
         status: 'pending',
-      },
+      } as unknown as TransactionMeta & { isSmartTransaction?: boolean },
     };
 
     expect(getLocalTransactionStatus(group)).toBe('pending');
   });
 
   it('maps smart tx success → success', () => {
-    const group = {
+    const group: LocalTransactionStatusInput = {
       primaryTransaction: makeGroup({}).primaryTransaction,
       initialTransaction: {
+        ...baseTransactionMeta,
         isSmartTransaction: true,
         status: 'success',
-      },
+      } as unknown as TransactionMeta & { isSmartTransaction?: boolean },
     };
 
     expect(getLocalTransactionStatus(group)).toBe('success');
   });
 
   it('maps smart tx cancelled → failed', () => {
-    const group = {
+    const group: LocalTransactionStatusInput = {
       primaryTransaction: makeGroup({}).primaryTransaction,
       initialTransaction: {
+        ...baseTransactionMeta,
         isSmartTransaction: true,
         status: 'cancelled',
-      },
+      } as unknown as TransactionMeta & { isSmartTransaction?: boolean },
     };
 
     expect(getLocalTransactionStatus(group)).toBe('failed');

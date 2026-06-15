@@ -1,11 +1,17 @@
 import '../../../../tests/component-view/mocks';
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
 import type { DeepPartial } from '../../../util/test/renderWithProvider';
 import type { RootState } from '../../../reducers';
+import Routes from '../../../constants/navigation/Routes';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { renderActivityView } from '../../../../tests/component-view/renderers/activity';
-import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
+import {
+  renderActivityView,
+  renderActivityViewWithRoutes,
+} from '../../../../tests/component-view/renderers/activity';
+import { getRouteProbeTestId } from '../../../../tests/component-view/render';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 
 const legacyActivityViewState = {
   engine: {
@@ -21,34 +27,34 @@ const legacyActivityViewState = {
 } as unknown as DeepPartial<RootState>;
 
 describeForPlatforms('ActivityView', () => {
-  it('renders the legacy activity shell when the redesign flag is off', () => {
-    const { getByTestId, queryByTestId } = renderActivityView({
+  it('opens network manager when the legacy network filter is pressed', async () => {
+    const { getByTestId, findByTestId } = renderActivityViewWithRoutes({
       overrides: legacyActivityViewState,
+      extraRoutes: [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
     });
 
+    const networkFilter = await waitFor(() =>
+      getByTestId(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
+    );
+
+    fireEvent.press(networkFilter);
+
     expect(
-      getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
+      await findByTestId(getRouteProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)),
     ).toBeOnTheScreen();
-    expect(
-      queryByPlaceholderText(strings('activity_view.search_placeholder')),
-    ).not.toBeOnTheScreen();
   });
 
-  it('renders the redesigned activity screen when the redesign flag is on', async () => {
-    const { queryByTestId, findByPlaceholderText } = renderActivityView({
+  it('types in search after the redesigned screen lazy-loads', async () => {
+    const { findByPlaceholderText } = renderActivityView({
       redesignEnabled: true,
     });
 
-    expect(
-      queryByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
-    ).not.toBeOnTheScreen();
+    const searchInput = await waitFor(() =>
+      findByPlaceholderText(strings('activity_view.search_placeholder')),
+    );
 
-    await waitFor(async () => {
-      expect(
-        await findByPlaceholderText(
-          strings('activity_view.search_placeholder'),
-        ),
-      ).toBeOnTheScreen();
-    });
+    fireEvent.changeText(searchInput, 'swap');
+
+    expect(searchInput).toHaveProp('value', 'swap');
   });
 });

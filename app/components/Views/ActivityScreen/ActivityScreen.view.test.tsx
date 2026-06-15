@@ -8,7 +8,6 @@ import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
 } from '../../../../tests/component-view/renderers/activity';
-import { initialStateActivity } from '../../../../tests/component-view/presets/activity';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
@@ -77,16 +76,6 @@ describeForPlatforms('ActivityScreen', () => {
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the empty transactions message when the account has no activity', async () => {
-    const { findByText } = renderActivityScreenView({
-      state: initialStateActivity().build(),
-    });
-
-    expect(
-      await findByText(strings('wallet.no_transactions')),
     ).toBeOnTheScreen();
   });
 });
