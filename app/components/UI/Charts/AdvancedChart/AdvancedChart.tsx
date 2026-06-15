@@ -97,6 +97,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
+      currentPriceLineColorOverride,
     },
     ref,
   ) => {
@@ -146,10 +147,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           lineColorOverride: initialLineColorRef.current,
           successColorOverride: initialSuccessColorRef.current,
           errorColorOverride: initialErrorColorRef.current,
+          currentPriceLineColorOverride,
         }),
-      // Color overrides intentionally excluded — hot-swapped via SET_THEME_COLORS.
+      // lineColorOverride/successColorOverride/errorColorOverride intentionally excluded —
+      // hot-swapped via SET_THEME_COLORS. currentPriceLineColorOverride is a direct dep:
+      // it is theme-derived and changes only with theme, so no extra rebuilds occur and
+      // the initial-ref indirection would introduce a stale-color race on theme change.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [theme, enableDrawingTools, disabledFeatures, lineChrome],
+      [theme, enableDrawingTools, disabledFeatures, lineChrome, currentPriceLineColorOverride],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes

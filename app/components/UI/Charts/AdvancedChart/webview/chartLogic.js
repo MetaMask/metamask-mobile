@@ -2243,7 +2243,8 @@ function createLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  var color = window.CONFIG.theme.successColor;
+  var color =
+    window.CONFIG.theme.currentPriceColor || window.CONFIG.theme.successColor;
   var candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
   var candlePrice =
     candlePt && isFinite(candlePt.price) ? candlePt.price : lastBar.close;
@@ -2329,7 +2330,9 @@ function createLineLastPriceLine() {
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
   const color =
-    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+    window.CONFIG.theme.currentPriceColor ||
+    window.CONFIG.theme.lineColor ||
+    window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
