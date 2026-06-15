@@ -181,9 +181,12 @@ export const selectCardResidencyRegion = createSelector(
     buildCardResidencyRegion(countryOfResidence, usState),
 );
 
+const selectCardResidencyBlockedRegions = (state: RootState): string[] =>
+  selectMusdConversionBlockedCountries(state);
+
 export const selectIsCardResidencyBlocked = createSelector(
   selectCardResidencyRegion,
-  selectMusdConversionBlockedCountries,
+  selectCardResidencyBlockedRegions,
   (residencyRegion, blockedRegions): boolean =>
     isCardResidencyInBlockedRegions(residencyRegion, blockedRegions),
 );
