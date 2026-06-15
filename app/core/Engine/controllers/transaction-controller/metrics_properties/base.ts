@@ -62,6 +62,14 @@ export function getTransactionTypeValue(
     return 'predict_deposit';
   }
 
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.predictDepositAndOrder,
+    ])
+  ) {
+    return 'predict_deposit_and_order';
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
     return 'predict_withdraw';
   }

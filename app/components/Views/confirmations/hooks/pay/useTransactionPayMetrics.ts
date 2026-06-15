@@ -89,6 +89,9 @@ export function useTransactionPayMetrics() {
     (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]) ||
       hasTransactionType(transactionMeta, [TransactionType.predictDeposit]) ||
       hasTransactionType(transactionMeta, [
+        TransactionType.predictDepositAndOrder,
+      ]) ||
+      hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
       ]))
   ) {

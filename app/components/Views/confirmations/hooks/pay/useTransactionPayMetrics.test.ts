@@ -234,6 +234,27 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
+  it('includes simulation_sending_assets_total_value for predict deposit and order', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    runHook({ type: TransactionType.predictDepositAndOrder });
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          simulation_sending_assets_total_value: 1.23,
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
   it('includes simulation_sending_assets_total_value for money account deposit', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
