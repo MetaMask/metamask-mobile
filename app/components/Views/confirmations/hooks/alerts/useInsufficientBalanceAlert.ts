@@ -21,7 +21,7 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
 } from '../pay/useTransactionPayData';
-import { useMoneyDepositNoFee } from '../pay/useMoneyDepositNoFee';
+import { useMoneyNoFeeTokens } from '../pay/useMoneyNoFeeTokens';
 
 const IGNORE_TYPES = [
   TransactionType.perpsWithdraw,
@@ -46,7 +46,7 @@ export const useInsufficientBalanceAlert = ({
   const isQuotesLoading = useIsTransactionPayLoading();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
-  const isMoneyNoFee = useMoneyDepositNoFee();
+  const { isMoneyNoFeeToken: isMoneyNoFee } = useMoneyNoFeeTokens();
 
   return useMemo(() => {
     if (

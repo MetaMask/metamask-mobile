@@ -28,7 +28,7 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
-import { useMoneyDepositNoFee } from '../pay/useMoneyDepositNoFee';
+import { useMoneyNoFeeTokens } from '../pay/useMoneyNoFeeTokens';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -36,7 +36,7 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../tokens/useTokenWithBalance');
 jest.mock('../pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
-jest.mock('../pay/useMoneyDepositNoFee');
+jest.mock('../pay/useMoneyNoFeeTokens');
 
 const PAY_TOKEN_MOCK = {
   address: '0x123' as Hex,
@@ -101,7 +101,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    jest.mocked(useMoneyDepositNoFee).mockReturnValue(false);
+    jest
+      .mocked(useMoneyNoFeeTokens)
+      .mockReturnValue({ isMoneyNoFeeToken: false });
     useTransactionPayRequiredTokensMock.mockReturnValue([REQUIRED_TOKEN_MOCK]);
     useTransactionPayTotalsMock.mockReturnValue(TOTALS_MOCK);
     useTokenWithBalanceMock.mockReturnValue(NATIVE_TOKEN_MOCK);
@@ -375,8 +377,10 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toStrictEqual([]);
     });
 
-    it('returns no alert when useMoneyDepositNoFee is true', () => {
-      jest.mocked(useMoneyDepositNoFee).mockReturnValue(true);
+    it('returns no alert when useMoneyNoFeeTokens is true', () => {
+      jest
+        .mocked(useMoneyNoFeeTokens)
+        .mockReturnValue({ isMoneyNoFeeToken: true });
 
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,

@@ -2,10 +2,9 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { useMoneyDepositNoFee } from './useMoneyDepositNoFee';
+import { useMoneyNoFeeTokens } from './useMoneyNoFeeTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
 
 jest.mock('react-redux');
@@ -31,7 +30,7 @@ const PAY_TOKEN = {
   symbol: 'USDC',
 };
 
-describe('useMoneyDepositNoFee', () => {
+describe('useMoneyNoFeeTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -46,9 +45,6 @@ describe('useMoneyDepositNoFee', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMetaMaskPayFlags) {
-        return { noNetworkFeeChains: [] };
-      }
       if (selector === selectMoneyNoFeeTokens) {
         return {};
       }
@@ -56,40 +52,14 @@ describe('useMoneyDepositNoFee', () => {
     });
   });
 
-  it.each([
-    TransactionType.moneyAccountDeposit,
-    TransactionType.moneyAccountWithdraw,
-  ])(
-    'returns true for %s when pay token chain is in noNetworkFeeChains',
-    (type) => {
-      mockUseTransactionMetadataRequest.mockReturnValue({
-        type,
-        txParams: { from: '0x123' },
-      } as never);
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayFlags) {
-          return { noNetworkFeeChains: ['0x1'] };
-        }
-        if (selector === selectMoneyNoFeeTokens) {
-          return {};
-        }
-        return undefined;
-      });
-
-      const { result } = renderHook(() => useMoneyDepositNoFee());
-      expect(result.current).toBe(true);
-    },
-  );
-
   it('returns false when transaction is not a money account deposit or withdraw', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       type: TransactionType.contractInteraction,
       txParams: { from: '0x123' },
     } as never);
 
-    const { result } = renderHook(() => useMoneyDepositNoFee());
-    expect(result.current).toBe(false);
+    const { result } = renderHook(() => useMoneyNoFeeTokens());
+    expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 
   it('returns false when payToken is undefined', () => {
@@ -98,43 +68,37 @@ describe('useMoneyDepositNoFee', () => {
       setPayToken: jest.fn(),
     });
 
-    const { result } = renderHook(() => useMoneyDepositNoFee());
-    expect(result.current).toBe(false);
+    const { result } = renderHook(() => useMoneyNoFeeTokens());
+    expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 
   it('returns false when chain and token are not in any no-fee list', () => {
-    const { result } = renderHook(() => useMoneyDepositNoFee());
-    expect(result.current).toBe(false);
+    const { result } = renderHook(() => useMoneyNoFeeTokens());
+    expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 
   it('returns true when pay token symbol + chainId is in noFeeTokens', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMetaMaskPayFlags) {
-        return { noNetworkFeeChains: [] };
-      }
       if (selector === selectMoneyNoFeeTokens) {
         return { '0x1': ['USDC'] };
       }
       return undefined;
     });
 
-    const { result } = renderHook(() => useMoneyDepositNoFee());
-    expect(result.current).toBe(true);
+    const { result } = renderHook(() => useMoneyNoFeeTokens());
+    expect(result.current).toEqual({ isMoneyNoFeeToken: true });
   });
 
   it('returns true when pay token matches noFeeTokens wildcard chain', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMetaMaskPayFlags) {
-        return { noNetworkFeeChains: [] };
-      }
       if (selector === selectMoneyNoFeeTokens) {
         return { '*': ['USDC'] };
       }
       return undefined;
     });
 
-    const { result } = renderHook(() => useMoneyDepositNoFee());
-    expect(result.current).toBe(true);
+    const { result } = renderHook(() => useMoneyNoFeeTokens());
+    expect(result.current).toEqual({ isMoneyNoFeeToken: true });
   });
 
   it('returns false when pay token symbol does not match noFeeTokens entry', () => {
@@ -144,17 +108,14 @@ describe('useMoneyDepositNoFee', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMetaMaskPayFlags) {
-        return { noNetworkFeeChains: [] };
-      }
       if (selector === selectMoneyNoFeeTokens) {
         return { '0x1': ['USDC'] };
       }
       return undefined;
     });
 
-    const { result } = renderHook(() => useMoneyDepositNoFee());
-    expect(result.current).toBe(false);
+    const { result } = renderHook(() => useMoneyNoFeeTokens());
+    expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 
   it('returns false when pay token chain does not match noFeeTokens entry', () => {
@@ -164,16 +125,13 @@ describe('useMoneyDepositNoFee', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMetaMaskPayFlags) {
-        return { noNetworkFeeChains: [] };
-      }
       if (selector === selectMoneyNoFeeTokens) {
         return { '0x1': ['USDC'] };
       }
       return undefined;
     });
 
-    const { result } = renderHook(() => useMoneyDepositNoFee());
-    expect(result.current).toBe(false);
+    const { result } = renderHook(() => useMoneyNoFeeTokens());
+    expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 });

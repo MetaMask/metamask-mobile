@@ -23,7 +23,7 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
-import { useMoneyDepositNoFee } from '../pay/useMoneyDepositNoFee';
+import { useMoneyNoFeeTokens } from '../pay/useMoneyNoFeeTokens';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -72,7 +72,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
   );
-  const isMoneyNoFee = useMoneyDepositNoFee();
+  const { isMoneyNoFeeToken: isMoneyNoFee } = useMoneyNoFeeTokens();
 
   // Must also compare chainId: in post-quote withdrawals payToken is on the
   // destination chain, which may share the same native-token address as the
