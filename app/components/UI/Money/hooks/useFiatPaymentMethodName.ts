@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
+import { selectRampsOrders } from '../../../../selectors/rampsController';
+import type { RootState } from '../../../../reducers';
 
 /**
  * Resolves the human-readable payment-method name (e.g. "Apple Pay", "Debit
- * Card") for a fiat-funded money deposit by fetching its ramp order.
+ * Card") for a fiat-funded money deposit by reading its ramp order.
  *
- * This is a one-shot lookup: the payment method is fixed for the lifetime of an
- * order, so — unlike {@link useFiatOrderStatus}, which polls for status — we
- * fetch once. Returns `undefined` while loading, when the tx isn't a fiat
- * deposit, or if the order lookup fails; callers should fall back to a
- * synchronous label (e.g. the provider name).
+ * The payment method is fixed for the lifetime of an order, so this prefers the
+ * order already cached in `RampsController` state and falls back to a one-shot
+ * `getOrder` fetch only on a cache miss
+ * Returns `undefined` while the order is unresolved, when the tx isn't a fiat
+ * deposit, or when the order has no payment method.
  */
 export function useFiatPaymentMethodName(
   tx: TransactionMeta,
@@ -19,29 +22,25 @@ export function useFiatPaymentMethodName(
   const provider = tx.metamaskPay?.fiat?.provider;
   const walletAddress = tx.txParams?.from;
 
-  const [paymentMethodName, setPaymentMethodName] = useState<
-    string | undefined
-  >();
+  const paymentMethodName = useSelector((state: RootState) =>
+    orderId
+      ? selectRampsOrders(state).find(
+          (order) => order.providerOrderId === orderId,
+        )?.paymentMethod?.name
+      : undefined,
+  );
 
   useEffect(() => {
-    if (!orderId || !provider || !walletAddress) {
-      setPaymentMethodName(undefined);
-      return undefined;
+    // Already cached, or not a fiat deposit — nothing to fetch.
+    if (paymentMethodName || !orderId || !provider || !walletAddress) {
+      return;
     }
-
-    let cancelled = false;
-    Engine.context.RampsController.getOrder(provider, orderId, walletAddress)
-      .then((order) => {
-        if (!cancelled) {
-          setPaymentMethodName(order.paymentMethod?.name);
-        }
-      })
-      .catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [orderId, provider, walletAddress]);
+    Engine.context.RampsController.getOrder(
+      provider,
+      orderId,
+      walletAddress,
+    ).catch(() => undefined);
+  }, [paymentMethodName, orderId, provider, walletAddress]);
 
   return paymentMethodName;
 }

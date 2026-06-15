@@ -1,7 +1,12 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { act } from '@testing-library/react-hooks';
 import { type TransactionMeta } from '@metamask/transaction-controller';
+import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 
 import Engine from '../../../../core/Engine';
+import {
+  renderHookWithProvider,
+  type ProviderValues,
+} from '../../../../util/test/renderWithProvider';
 import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -27,6 +32,39 @@ function makeTx(fiat?: {
   } as unknown as TransactionMeta;
 }
 
+function makeOrder(overrides: Partial<RampsOrder> = {}): RampsOrder {
+  return {
+    isOnlyLink: false,
+    success: true,
+    cryptoAmount: '1',
+    fiatAmount: 1,
+    providerOrderId: 'o-1',
+    providerOrderLink: 'https://example.com/o-1',
+    createdAt: 0,
+    totalFeesFiat: 0,
+    txHash: '0xabc',
+    walletAddress: WALLET,
+    status: RampsOrderStatus.Completed,
+    network: { name: 'Ethereum', chainId: 'eip155:1' },
+    canBeUpdated: false,
+    idHasExpired: false,
+    excludeFromPurchases: false,
+    timeDescriptionPending: '5-10 minutes',
+    orderType: 'BUY',
+    ...overrides,
+  } as RampsOrder;
+}
+
+function makeState(orders: RampsOrder[] = []): ProviderValues['state'] {
+  return {
+    engine: {
+      backgroundState: {
+        RampsController: { orders },
+      },
+    },
+  } as unknown as ProviderValues['state'];
+}
+
 function flushPromises() {
   return act(async () => {
     await Promise.resolve();
@@ -38,103 +76,150 @@ describe('useFiatPaymentMethodName', () => {
     jest.resetAllMocks();
   });
 
-  it('does not call getOrder when the order id is missing', () => {
-    renderHook(() => useFiatPaymentMethodName(makeTx({ provider: 'transak' })));
+  it('does not fetch when the order id is missing', () => {
+    renderHookWithProvider(
+      () => useFiatPaymentMethodName(makeTx({ provider: 'transak' })),
+      { state: makeState() },
+    );
     expect(getOrderMock).not.toHaveBeenCalled();
   });
 
-  it('does not call getOrder when the provider is missing', () => {
-    renderHook(() => useFiatPaymentMethodName(makeTx({ orderId: 'o-1' })));
-    expect(getOrderMock).not.toHaveBeenCalled();
-  });
-
-  it('does not call getOrder when the wallet address is missing', () => {
+  it('does not fetch when the wallet address is missing', () => {
     const tx = {
       id: 'tx-1',
       txParams: {},
       metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak' } },
     } as unknown as TransactionMeta;
-    renderHook(() => useFiatPaymentMethodName(tx));
+    renderHookWithProvider(() => useFiatPaymentMethodName(tx), {
+      state: makeState(),
+    });
     expect(getOrderMock).not.toHaveBeenCalled();
   });
 
-  it('does not call getOrder for a non-fiat deposit', () => {
-    renderHook(() => useFiatPaymentMethodName(makeTx()));
+  it('does not fetch for a non-fiat deposit', () => {
+    renderHookWithProvider(() => useFiatPaymentMethodName(makeTx()), {
+      state: makeState(),
+    });
     expect(getOrderMock).not.toHaveBeenCalled();
   });
 
-  it('returns undefined before the order resolves', () => {
-    getOrderMock.mockReturnValue(new Promise(() => undefined));
+  it('returns the cached payment-method name without fetching', () => {
+    const orders = [
+      makeOrder({
+        providerOrderId: 'o-1',
+        paymentMethod: { id: 'pm', name: 'Apple Pay' },
+      }),
+    ];
 
-    const { result } = renderHook(() =>
-      useFiatPaymentMethodName(makeTx({ orderId: 'o-1', provider: 'transak' })),
+    const { result } = renderHookWithProvider(
+      () =>
+        useFiatPaymentMethodName(
+          makeTx({ orderId: 'o-1', provider: 'transak' }),
+        ),
+      { state: makeState(orders) },
     );
 
-    expect(result.current).toBeUndefined();
+    expect(result.current).toBe('Apple Pay');
+    expect(getOrderMock).not.toHaveBeenCalled();
   });
 
-  it('fetches the order with (provider, orderId, wallet) and returns the payment-method name', async () => {
-    getOrderMock.mockResolvedValue({
-      paymentMethod: { id: 'pm', name: 'Apple Pay' },
-    } as Awaited<ReturnType<typeof getOrderMock>>);
+  it('matches the cached order by providerOrderId, ignoring others', () => {
+    const orders = [
+      makeOrder({
+        providerOrderId: 'other',
+        paymentMethod: { id: 'pm', name: 'Debit Card' },
+      }),
+      makeOrder({
+        providerOrderId: 'o-1',
+        paymentMethod: { id: 'pm', name: 'Apple Pay' },
+      }),
+    ];
 
-    const { result } = renderHook(() =>
-      useFiatPaymentMethodName(
-        makeTx({ orderId: 'o-1', provider: 'transak-native' }),
-      ),
+    const { result } = renderHookWithProvider(
+      () =>
+        useFiatPaymentMethodName(
+          makeTx({ orderId: 'o-1', provider: 'transak' }),
+        ),
+      { state: makeState(orders) },
+    );
+
+    expect(result.current).toBe('Apple Pay');
+    expect(getOrderMock).not.toHaveBeenCalled();
+  });
+
+  it('fetches with (provider, orderId, wallet) on a cache miss', async () => {
+    getOrderMock.mockResolvedValue(
+      makeOrder() as Awaited<ReturnType<typeof getOrderMock>>,
+    );
+
+    renderHookWithProvider(
+      () =>
+        useFiatPaymentMethodName(
+          makeTx({ orderId: 'o-1', provider: 'transak-native' }),
+        ),
+      { state: makeState() },
     );
 
     await flushPromises();
 
     expect(getOrderMock).toHaveBeenCalledWith('transak-native', 'o-1', WALLET);
-    expect(result.current).toBe('Apple Pay');
   });
 
-  it('returns undefined when the order has no payment method', async () => {
+  it('returns undefined on a cache miss until the fetched order lands in state', async () => {
+    // The fetch writes the order into controller state; this test store is
+    // static, so the selector keeps returning undefined.
     getOrderMock.mockResolvedValue(
-      {} as Awaited<ReturnType<typeof getOrderMock>>,
+      makeOrder({
+        paymentMethod: { id: 'pm', name: 'Apple Pay' },
+      }) as Awaited<ReturnType<typeof getOrderMock>>,
     );
 
-    const { result } = renderHook(() =>
-      useFiatPaymentMethodName(makeTx({ orderId: 'o-1', provider: 'transak' })),
+    const { result } = renderHookWithProvider(
+      () =>
+        useFiatPaymentMethodName(
+          makeTx({ orderId: 'o-1', provider: 'transak' }),
+        ),
+      { state: makeState() },
     );
 
     await flushPromises();
 
     expect(result.current).toBeUndefined();
+  });
+
+  it('still fetches when a cached order has no payment method', () => {
+    getOrderMock.mockResolvedValue(
+      makeOrder() as Awaited<ReturnType<typeof getOrderMock>>,
+    );
+    const orders = [
+      makeOrder({ providerOrderId: 'o-1', paymentMethod: undefined }),
+    ];
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useFiatPaymentMethodName(
+          makeTx({ orderId: 'o-1', provider: 'transak' }),
+        ),
+      { state: makeState(orders) },
+    );
+
+    expect(result.current).toBeUndefined();
+    expect(getOrderMock).toHaveBeenCalledWith('transak', 'o-1', WALLET);
   });
 
   it('swallows lookup failures and returns undefined', async () => {
     getOrderMock.mockRejectedValue(new Error('network'));
 
-    const { result } = renderHook(() =>
-      useFiatPaymentMethodName(makeTx({ orderId: 'o-1', provider: 'transak' })),
+    const { result } = renderHookWithProvider(
+      () =>
+        useFiatPaymentMethodName(
+          makeTx({ orderId: 'o-1', provider: 'transak' }),
+        ),
+      { state: makeState() },
     );
 
     await flushPromises();
 
-    expect(result.current).toBeUndefined();
-  });
-
-  it('does not set state after unmount (no late update)', async () => {
-    let resolveOrder!: (value: unknown) => void;
-    getOrderMock.mockReturnValue(
-      new Promise((resolve) => {
-        resolveOrder = resolve;
-      }) as ReturnType<typeof getOrderMock>,
-    );
-
-    const { result, unmount } = renderHook(() =>
-      useFiatPaymentMethodName(makeTx({ orderId: 'o-1', provider: 'transak' })),
-    );
-
-    unmount();
-    await act(async () => {
-      resolveOrder({ paymentMethod: { id: 'pm', name: 'Apple Pay' } });
-      await Promise.resolve();
-    });
-
-    // Unmounted before resolution: the cancelled guard prevents the update.
     expect(result.current).toBeUndefined();
   });
 });

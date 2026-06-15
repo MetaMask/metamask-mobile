@@ -18,9 +18,8 @@ import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 // Mocks
 // ---------------------------------------------------------------------------
 
-// The async ramp-order lookup is exercised in useFiatPaymentMethodName.test.ts;
-// here we control its resolved value directly. Defaults to undefined so deposit
-// rows fall back to the synchronous provider label.
+// The async ramp-order lookup is tested in useFiatPaymentMethodName.test.ts;
+// here we defaults to undefined so deposit rows fall back to the default label.
 jest.mock('./useFiatPaymentMethodName', () => ({
   useFiatPaymentMethodName: jest.fn(),
 }));
