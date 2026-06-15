@@ -146,7 +146,7 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+    <View style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
@@ -237,7 +237,7 @@ const ImportPrivateKey = () => {
             </View>
           </View>
         </View>
-        <View style={styles.buttonWrapper}>
+        <SafeAreaView edges={['bottom']} style={styles.buttonWrapper}>
           <Button
             onPress={() => goNext()}
             label={strings('import_private_key.cta_text')}
@@ -248,10 +248,10 @@ const ImportPrivateKey = () => {
             isDisabled={loading}
             testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
           />
-        </View>
+        </SafeAreaView>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP={false} />
-    </SafeAreaView>
+    </View>
   );
 };
 

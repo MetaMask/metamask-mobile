@@ -579,10 +579,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const uniqueId = useMemo(() => uuidv4(), []);
 
   const content = (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
+    <Box twClassName="flex-1 bg-default">
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
@@ -834,7 +831,10 @@ const ImportFromSecretRecoveryPhrase = ({
         </Animated.View>
       </KeyboardAwareScrollView>
       {currentStep === 0 && (
-        <Box twClassName="px-4 py-4 bg-default">
+        <SafeAreaView
+          edges={['bottom']}
+          style={tw.style('px-4 py-4 bg-default')}
+        >
           <Button
             variant={ButtonVariant.Primary}
             onPress={handleContinueImportFlow}
@@ -845,7 +845,7 @@ const ImportFromSecretRecoveryPhrase = ({
           >
             {strings('import_from_seed.continue')}
           </Button>
-        </Box>
+        </SafeAreaView>
       )}
       {currentStep === 0 && isKeyboardVisible && (
         <KeyboardStickyView
@@ -861,7 +861,7 @@ const ImportFromSecretRecoveryPhrase = ({
         </KeyboardStickyView>
       )}
       <ScreenshotDeterrent enabled isSRP />
-    </SafeAreaView>
+    </Box>
   );
 
   return <KeyboardProvider>{content}</KeyboardProvider>;
