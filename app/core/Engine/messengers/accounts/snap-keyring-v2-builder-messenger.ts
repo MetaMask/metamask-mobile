@@ -1,7 +1,7 @@
 import { MessengerActions } from '@metamask/messenger';
 import { RootMessenger } from '../../../lib/messenger';
 import {
-  getSnapKeyringBuilderMessenger,
+  getLegacySnapKeyringBuilderMessenger,
   SnapKeyringBuilderMessenger,
 } from './snap-keyring-builder-messenger';
 
@@ -24,5 +24,5 @@ export function getSnapKeyringV2BuilderMessenger(
 ) {
   // We re-use the same messenger to preserve the same namespace and avoid duplicating the events
   // and actions of the Snap keyring v2 for ALL consumers.
-  return getSnapKeyringBuilderMessenger(messenger);
+  return getLegacySnapKeyringBuilderMessenger(messenger);
 }

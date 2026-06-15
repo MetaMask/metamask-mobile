@@ -1,4 +1,7 @@
-import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
+import {
+  SnapKeyring as SnapKeyringV2,
+  SnapKeyringV1Adapter,
+} from '@metamask/eth-snap-keyring/v2';
 import { KeyringV1Adapter } from '@metamask/keyring-sdk/v2';
 import { KeyringType } from '@metamask/keyring-api/v2';
 import type { KeyringAccount } from '@metamask/keyring-api';
@@ -45,10 +48,10 @@ export class SnapKeyringV2Impl extends SnapKeyringImpl {
  * @param helpers - Helpers required by the v2 Snap keyring implementation.
  * @returns A v2 Snap keyring builder.
  */
-export function snapKeyringBuilderV2(
+export function snapKeyringV2AdaptedAsV1Builder(
   messenger: SnapKeyringBuilderV2Messenger,
-): SnapKeyringBuilderV2 {
-  const SnapKeyringBuilderV2AdapterV1 = () => {
+): KeyringBuilder {
+  const SnapKeyringV2AdaptedAsV1BuilderV2 = () => {
     const v2 = new SnapKeyringV2({
       messenger,
       callbacks: new SnapKeyringV2Impl(messenger),
@@ -63,24 +66,33 @@ export function snapKeyringBuilderV2(
     // with the other v1 methods.
     return new KeyringV1Adapter(v2) as unknown as Keyring;
   };
-  SnapKeyringBuilderV2AdapterV1.type = KeyringType.Snap;
+  SnapKeyringV2AdaptedAsV1BuilderV2.type = KeyringType.Snap;
 
-  const SnapKeyringBuilderV2Resolver = (keyring: Keyring) => {
+  return SnapKeyringV2AdaptedAsV1BuilderV2;
+}
+
+/**
+ * Constructs a v2 SnapKeyring builder with specified handlers for managing
+ * Snap accounts.
+ *
+ * @param messenger - The messenger instance.
+ * @param helpers - Helpers required by the v2 Snap keyring implementation.
+ * @returns A v2 Snap keyring builder.
+ */
+export function snapKeyringV2Builder(
+  messenger: SnapKeyringBuilderV2Messenger,
+): KeyringV2Builder {
+  const SnapKeyringBuilderV2 = (keyring: Keyring) => {
     assert(
-      keyring instanceof KeyringV1Adapter,
+      keyring instanceof SnapKeyringV1Adapter,
       'Expected KeyringV1Adapter instance (that wraps a SnapKeyringV2)',
     );
 
     // Retrieve the original v2 reference from the adapter so both v1 and v2
     // builders share the same underlying SnapKeyringV2 instance.
-    return (keyring as KeyringV1Adapter).unwrap() as SnapKeyringV2;
+    return (keyring as SnapKeyringV1Adapter).unwrap() as SnapKeyringV2;
   };
-  SnapKeyringBuilderV2Resolver.type = KeyringType.Snap;
+  SnapKeyringBuilderV2.type = KeyringType.Snap;
 
-  return {
-    name: 'SnapKeyringBuilderV2',
-    state: null,
-    v1Builder: SnapKeyringBuilderV2AdapterV1,
-    v2Builder: SnapKeyringBuilderV2Resolver,
-  };
+  return SnapKeyringBuilderV2;
 }

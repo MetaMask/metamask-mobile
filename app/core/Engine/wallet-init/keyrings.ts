@@ -2,6 +2,7 @@ import { RootMessenger } from '../types';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
+  KeyringBuilder,
   KeyringControllerOptions,
   KeyringV2Builder,
 } from '@metamask/keyring-controller';
@@ -23,15 +24,18 @@ import { MoneyKeyring } from '@metamask/eth-money-keyring';
 import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
-import { snapKeyringBuilder, snapKeyringBuilderV2 } from '../../SnapKeyring';
-import { SnapKeyringBuilderMessenger } from '../../SnapKeyring/types';
-import { getSnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
+import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
 import {
   scanCompleted,
   scanRequested,
 } from '../../redux/slices/qrKeyringScanner';
+import {
+  snapKeyringV2AdaptedAsV1Builder,
+  snapKeyringV2Builder,
+} from '../../SnapKeyring/SnapKeyringV2';
+import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -55,7 +59,7 @@ export function getKeyringBuilders(
     hmacSha512: async (key, data) => hmacSha512(key, data),
   };
 
-  const keyrings = [];
+  const keyrings: KeyringBuilder[] = [];
 
   const qrKeyringBuilder = () => {
     const keyring = new QrKeyring({ bridge: qrKeyringBridge });
@@ -111,19 +115,18 @@ export function getKeyringBuilders(
   keyrings.push(moneyKeyringBuilder);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const snapKeyringMessenger = getSnapKeyringBuilderMessenger(messenger);
-  keyrings.push(snapKeyringBuilder(snapKeyringMessenger));
-  ///: END:ONLY_INCLUDE_IF
+  const snapKeyringMessenger = getLegacySnapKeyringBuilderMessenger(messenger);
+  // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
+  keyrings.push(legacySnapKeyringBuilder(snapKeyringMessenger));
 
   // The v2 Snap keyring is registered via `KeyringV1Adapter`, which owns the
   // inner `SnapKeyring` (v2) instance and exposes a v1-compatible facade for
   // KeyringController vault management. The same inner instance is retrieved
   // via `unwrap()` for the v2 builder, so both entries share the same
   // underlying object — enabling both `withKeyring` and `withKeyringV2`.
-  keyrings.push(snapKeyringBuilderV2(snapKeyringMessenger).v1Builder);
+  keyrings.push(snapKeyringV2AdaptedAsV1Builder(snapKeyringMessenger));
   ///: END:ONLY_INCLUDE_IF
 
-  // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
   return keyrings;
 }
 
@@ -188,7 +191,7 @@ export function getKeyringV2Builders(
     // KeyringController vault management. The same inner instance is retrieved
     // via `unwrap()` for the v2 builder, so both entries share the same
     // underlying object — enabling both `withKeyring` and `withKeyringV2`.
-    snapKeyringBuilderV2(getSnapKeyringV2BuilderMessenger(messenger)),
+    snapKeyringV2Builder(getSnapKeyringV2BuilderMessenger(messenger)),
     ///: END:ONLY_INCLUDE_IF
   ];
 }

@@ -1,9 +1,5 @@
 import { Messenger } from '@metamask/messenger';
-import {
-  RootMessenger,
-  RootMessengerActions,
-  RootMessengerEvents,
-} from '../../types';
+import { RootMessenger } from '../../types';
 import { SnapKeyringBuilderMessenger } from '../../../SnapKeyring/types';
 
 export type { SnapKeyringBuilderMessenger };
@@ -15,8 +11,8 @@ export type { SnapKeyringBuilderMessenger };
  * @param messenger - The root messenger instance, used to create a child messenger for the Snap keyring and to delegate necessary actions to it.
  * @returns The Snap keyring messenger instance.
  */
-export function getSnapKeyringBuilderMessenger(
-  messenger: RootMessenger<RootMessengerActions, RootMessengerEvents>,
+export function getLegacySnapKeyringBuilderMessenger(
+  messenger: RootMessenger,
 ): SnapKeyringBuilderMessenger {
   const snapKeyringMessenger: SnapKeyringBuilderMessenger = new Messenger({
     namespace: 'SnapKeyring',
@@ -41,14 +37,9 @@ export function getSnapKeyringBuilderMessenger(
       'AccountsController:getAccountByAddress',
       'AccountsController:setAccountName',
       'AccountsController:listMultichainAccounts',
-      'AccountsController:updateAccounts',
       'SnapController:handleRequest',
       'SnapController:getSnap',
       'SnapController:isMinimumPlatformVersion',
-      'PreferencesController:getState',
-      'RemoteFeatureFlagController:getState',
-      'MetaMetricsController:trackEvent',
-      'LegacyBackgroundApiService:removeAccount',
     ],
   });
 
