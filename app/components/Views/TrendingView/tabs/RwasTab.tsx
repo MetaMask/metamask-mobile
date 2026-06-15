@@ -6,7 +6,6 @@ import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   applyMarketFilters,
-  MarketCategory,
   type PerpsMarketData,
   type SortOptionId,
 } from '@metamask/perps-controller';
@@ -28,8 +27,11 @@ import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsToggleBlock, {
   type PerpsFilterKey,
-  EQUITY_CATEGORIES,
 } from '../feeds/perps/PerpsToggleBlock';
+import {
+  CATEGORY_DISPLAY_ORDER,
+  normalizeFilterKey,
+} from '../../../UI/Perps/utils/marketCategoryMapping';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
@@ -42,6 +44,13 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
+/** Categories shown as pills in the RWAs tab, in controller display order. */
+const RWA_CATEGORIES = CATEGORY_DISPLAY_ORDER.filter((c) =>
+  (['stock', 'pre-ipo', 'index', 'etf', 'forex'] as PerpsFilterKey[]).includes(
+    c as PerpsFilterKey,
+  ),
+) as PerpsFilterKey[];
+
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
   onViewAll: (filter: PerpsFilterKey, sortOptionId: SortOptionId) => void;
@@ -52,37 +61,21 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   onViewAll,
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
+  const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
 
   const tabs = useMemo<
     PillToggleCardListTab<PerpsMarketData, PerpsFilterKey>[]
   >(
-    () => [
-      {
-        key: 'commodity',
-        name: strings('trending.rwa_pill_commodities'),
-        items: applyMarketFilters(
-          perps.data.map((d) => d.market),
-          { categories: [MarketCategory.Commodity], limit: 3 },
-        ),
-      },
-      {
-        key: 'stock',
-        name: strings('trending.rwa_pill_stocks'),
-        items: applyMarketFilters(
-          perps.data.map((d) => d.market),
-          { categories: EQUITY_CATEGORIES, limit: 3 },
-        ),
-      },
-      {
-        key: 'forex',
-        name: strings('trending.rwa_pill_forex'),
-        items: applyMarketFilters(
-          perps.data.map((d) => d.market),
-          { categories: [MarketCategory.Forex], limit: 3 },
-        ),
-      },
-    ],
-    [perps.data],
+    () =>
+      RWA_CATEGORIES.map((category) => ({
+        key: category,
+        name: strings(`perps.home.tabs.${normalizeFilterKey(category)}`),
+        items: applyMarketFilters(markets, {
+          categories: [category],
+          limit: 3,
+        }),
+      })),
+    [markets],
   );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
@@ -92,7 +85,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       title={strings('trending.rwa_perps_section')}
       tabs={tabs}
       isLoading={perps.isLoading}
-      defaultPillKey="commodity"
+      defaultPillKey={RWA_CATEGORIES[0]}
       onViewAll={onViewAll}
       sortOptionId={perps.defaultSortOptionId}
       tabName="RWAs"

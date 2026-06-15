@@ -229,6 +229,54 @@ describe('PerpsToggleBlock', () => {
     });
   });
 
+  describe('empty-tab filtering', () => {
+    it('hides a pill whose items array is empty once loaded', () => {
+      const tabs: PerpsToggleBlockProps['tabs'] = [
+        { key: 'stock', name: 'Stocks', items: STOCKS_MARKETS },
+        { key: 'commodity', name: 'Commodities', items: [] },
+      ];
+      const { getByTestId, queryByTestId } = renderBlock({
+        ...DEFAULT_PROPS,
+        tabs,
+        isLoading: false,
+      });
+
+      expect(getByTestId('test-toggle-pill-stock')).toBeTruthy();
+      expect(queryByTestId('test-toggle-pill-commodity')).toBeNull();
+    });
+
+    it('shows all pills while loading even if items are empty', () => {
+      const tabs: PerpsToggleBlockProps['tabs'] = [
+        { key: 'stock', name: 'Stocks', items: [] },
+        { key: 'commodity', name: 'Commodities', items: [] },
+      ];
+      const { getByTestId } = renderBlock({
+        ...DEFAULT_PROPS,
+        tabs,
+        isLoading: true,
+      });
+
+      expect(getByTestId('test-toggle-pill-stock')).toBeTruthy();
+      expect(getByTestId('test-toggle-pill-commodity')).toBeTruthy();
+    });
+
+    it('defaults to the first pill that has items', () => {
+      const tabs: PerpsToggleBlockProps['tabs'] = [
+        { key: 'stock', name: 'Stocks', items: [] },
+        { key: 'commodity', name: 'Commodities', items: COMMODITY_MARKETS },
+      ];
+      const { getByTestId } = renderBlock({
+        ...DEFAULT_PROPS,
+        tabs,
+        defaultPillKey: 'stock',
+        isLoading: false,
+      });
+
+      // commodity pill is active (stock was empty and hidden)
+      expect(getByTestId('perps-row-GOLD')).toBeTruthy();
+    });
+  });
+
   describe('analytics', () => {
     it('calls trackExploreInteracted with correct context when a row is pressed', () => {
       const mockTrack = trackExploreInteracted as jest.Mock;

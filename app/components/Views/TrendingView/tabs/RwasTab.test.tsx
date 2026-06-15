@@ -244,7 +244,7 @@ describe('RwasTab', () => {
 
     expect(mockNavigateToPerpsMarketList).toHaveBeenCalledWith(
       mockNavigation,
-      'commodity',
+      'stock',
       'priceChange',
     );
   });

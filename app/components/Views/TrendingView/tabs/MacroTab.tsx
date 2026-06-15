@@ -3,7 +3,6 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   applyMarketFilters,
-  MarketCategory,
   type PerpsMarketData,
   type SortOptionId,
 } from '@metamask/perps-controller';
@@ -11,12 +10,15 @@ import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigatio
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  CATEGORY_DISPLAY_ORDER,
+  normalizeFilterKey,
+} from '../../../UI/Perps/utils/marketCategoryMapping';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsToggleBlock, {
   type PerpsFilterKey,
-  EQUITY_CATEGORIES,
 } from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
@@ -25,6 +27,13 @@ import { navigateToExplorePredictionsList } from '../feeds/predictions/predictio
 import ExploreScroll from '../components/ExploreScroll';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
+
+/** Categories shown as pills in the Macro tab, in controller display order. */
+const MACRO_CATEGORIES = CATEGORY_DISPLAY_ORDER.filter((c) =>
+  (
+    ['stock', 'pre-ipo', 'index', 'etf', 'commodity'] as PerpsFilterKey[]
+  ).includes(c as PerpsFilterKey),
+) as PerpsFilterKey[];
 
 interface MacroPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -36,29 +45,21 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   onViewAll,
 }) => {
   const perps = usePerpsFeed({ variant: 'macro', refresh });
+  const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
 
   const tabs = useMemo<
     PillToggleCardListTab<PerpsMarketData, PerpsFilterKey>[]
   >(
-    () => [
-      {
-        key: 'stock',
-        name: strings('trending.macro_pill_stocks'),
-        items: applyMarketFilters(
-          perps.data.map((d) => d.market),
-          { categories: EQUITY_CATEGORIES, limit: 3 },
-        ),
-      },
-      {
-        key: 'commodity',
-        name: strings('trending.macro_pill_commodities'),
-        items: applyMarketFilters(
-          perps.data.map((d) => d.market),
-          { categories: [MarketCategory.Commodity], limit: 3 },
-        ),
-      },
-    ],
-    [perps.data],
+    () =>
+      MACRO_CATEGORIES.map((category) => ({
+        key: category,
+        name: strings(`perps.home.tabs.${normalizeFilterKey(category)}`),
+        items: applyMarketFilters(markets, {
+          categories: [category],
+          limit: 3,
+        }),
+      })),
+    [markets],
   );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
@@ -68,7 +69,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
       title={strings('trending.macro_stocks_commodity_perps')}
       tabs={tabs}
       isLoading={perps.isLoading}
-      defaultPillKey="stock"
+      defaultPillKey={MACRO_CATEGORIES[0]}
       onViewAll={onViewAll}
       sortOptionId={perps.defaultSortOptionId}
       tabName="Macro"

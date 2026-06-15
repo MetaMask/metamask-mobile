@@ -1,8 +1,7 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import {
-  MarketCategory,
   type MarketTypeFilter,
   type PerpsMarketData,
   type SortOptionId,
@@ -21,14 +20,6 @@ import {
 
 /** Valid perps category filter keys — all `MarketTypeFilter` values except `'all'`. */
 export type PerpsFilterKey = Exclude<MarketTypeFilter, 'all'>;
-
-/** All equity-like market categories that appear under the "Stocks" pill. */
-export const EQUITY_CATEGORIES: PerpsFilterKey[] = [
-  MarketCategory.Stock,
-  MarketCategory.PreIpo,
-  MarketCategory.Index,
-  MarketCategory.Etf,
-];
 
 const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
 
@@ -67,7 +58,15 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   testIdPrefix,
   listTestId,
 }) => {
-  const activePillKey = useRef<PerpsFilterKey>(defaultPillKey);
+  // While loading all pills are shown (items will fill in). Once loaded, hide
+  // pills whose category returned no data so the user never sees an empty list.
+  const visibleTabs = useMemo(
+    () => (isLoading ? tabs : tabs.filter((t) => t.items.length > 0)),
+    [isLoading, tabs],
+  );
+
+  const firstVisibleKey = visibleTabs[0]?.key ?? defaultPillKey;
+  const activePillKey = useRef<PerpsFilterKey>(firstVisibleKey);
 
   const renderItem: ListRenderItem<PerpsMarketData> = useCallback(
     ({ item, index }) => (
@@ -98,11 +97,12 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
         sectionName={sectionName}
       />
       <PillToggleCardList<PerpsMarketData, PerpsFilterKey>
-        tabs={tabs}
+        tabs={visibleTabs}
         isLoading={isLoading}
         renderItem={renderItem}
         Skeleton={PerpsRowSingleSkeleton}
         idPrefix={idPrefix}
+        defaultPillKey={firstVisibleKey}
         onPillChange={(key) => {
           activePillKey.current = key;
         }}
