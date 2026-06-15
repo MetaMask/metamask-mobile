@@ -477,8 +477,15 @@ export class WebSocketManager {
               !remainingPriceTokenIds.has(tokenId) &&
               !this.orderbookSubscriptions.has(tokenId),
           );
+          const remainingTokenIds =
+            this.getSubscribedMarketTokenIdsWithOrderbook();
           if (tokenIdsToUnsubscribe.length > 0) {
-            this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
+            if (remainingTokenIds.length === 0) {
+              this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
+            }
+          }
+          if (remainingTokenIds.length > 0) {
+            this.sendMarketSubscribe(remainingTokenIds);
           }
         }
       }
@@ -533,8 +540,15 @@ export class WebSocketManager {
             this.orderbookEmitTimers.delete(tokenId);
           }
           const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
+          const remainingTokenIds =
+            this.getSubscribedMarketTokenIdsWithOrderbook();
           if (!remainingPriceTokenIds.has(tokenId)) {
-            this.sendMarketUnsubscribe([tokenId]);
+            if (remainingTokenIds.length === 0) {
+              this.sendMarketUnsubscribe([tokenId]);
+            }
+          }
+          if (remainingTokenIds.length > 0) {
+            this.sendMarketSubscribe(remainingTokenIds);
           }
         }
       }
@@ -705,7 +719,7 @@ export class WebSocketManager {
 
   private ensureMarketConnection(tokenIds: string[]): void {
     if (this.marketWs?.readyState === WebSocket.OPEN) {
-      this.sendMarketSubscribe(tokenIds);
+      this.sendMarketSubscribe(this.getSubscribedMarketTokenIdsWithOrderbook());
       return;
     }
     if (this.marketWs?.readyState === WebSocket.CONNECTING) {
@@ -942,14 +956,20 @@ export class WebSocketManager {
     return subscribedTokenIds;
   }
 
-  private resubscribeAllMarkets(): void {
+  private getSubscribedMarketTokenIdsWithOrderbook(): string[] {
     const allTokenIds = this.getSubscribedMarketTokenIds();
     this.orderbookSubscriptions.forEach((_, tokenId) => {
       allTokenIds.add(tokenId);
     });
 
-    if (allTokenIds.size > 0) {
-      this.sendMarketSubscribe(Array.from(allTokenIds));
+    return Array.from(allTokenIds);
+  }
+
+  private resubscribeAllMarkets(): void {
+    const allTokenIds = this.getSubscribedMarketTokenIdsWithOrderbook();
+
+    if (allTokenIds.length > 0) {
+      this.sendMarketSubscribe(allTokenIds);
     }
   }
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PriceQuery, PriceResult, PriceUpdate } from '../types';
+import { useLiveMarketPrices } from './useLiveMarketPrices';
 
 export interface UsePredictLivePricesOptions {
   enabled?: boolean;
@@ -19,6 +20,12 @@ const normalizePriceResult = (result: PriceResult): PriceUpdate => ({
   price: result.entry.buy,
   bestBid: result.entry.sell,
   bestAsk: result.entry.buy,
+});
+
+const toPriceRequestQuery = (query: PriceQuery): PriceQuery => ({
+  marketId: query.marketId,
+  outcomeId: query.outcomeId,
+  outcomeTokenId: query.outcomeTokenId,
 });
 
 const getNormalizedQueries = (queries: PriceQuery[]): PriceQuery[] => {
@@ -56,10 +63,9 @@ export const usePredictLivePrices = (
   options: UsePredictLivePricesOptions = {},
 ): UsePredictLivePricesResult => {
   const { enabled = true } = options;
-  const [prices, setPrices] = useState<Map<string, PriceUpdate>>(
+  const [warmupPrices, setWarmupPrices] = useState<Map<string, PriceUpdate>>(
     () => new Map(),
   );
-  const [isConnected, setIsConnected] = useState(false);
   const [priceVersion, setPriceVersion] = useState(0);
 
   const activeTokenIdsRef = useRef<Set<string>>(new Set());
@@ -77,6 +83,11 @@ export const usePredictLivePrices = (
     () => JSON.stringify(normalizedQueries),
     [normalizedQueries],
   );
+  const currentTokenIds = useMemo(
+    () => normalizedQueries.map((query) => query.outcomeTokenId),
+    [normalizedQueries],
+  );
+  const livePricesEnabled = enabled && currentTokenIds.length > 0;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -89,12 +100,12 @@ export const usePredictLivePrices = (
     };
   }, []);
 
-  const commitPriceUpdates = useCallback((updates: PriceUpdate[]) => {
+  const commitWarmupPriceUpdates = useCallback((updates: PriceUpdate[]) => {
     if (!isMountedRef.current || updates.length === 0) {
       return;
     }
 
-    setPrices((previousPrices) => {
+    setWarmupPrices((previousPrices) => {
       const nextPrices = new Map(previousPrices);
       updates.forEach((update) => {
         nextPrices.set(update.tokenId, update);
@@ -116,7 +127,7 @@ export const usePredictLivePrices = (
 
       try {
         const response = await Engine.context.PredictController.getPrices({
-          queries: newlyVisibleQueries,
+          queries: newlyVisibleQueries.map(toPriceRequestQuery),
         });
 
         const updates = response.results
@@ -135,41 +146,52 @@ export const usePredictLivePrices = (
           })
           .map(normalizePriceResult);
 
-        commitPriceUpdates(updates);
+        commitWarmupPriceUpdates(updates);
       } catch (error) {
         DevLogger.log('usePredictLivePrices: Error fetching prices', error);
       }
     },
-    [commitPriceUpdates],
+    [commitWarmupPriceUpdates],
   );
 
-  const handlePriceUpdates = useCallback(
-    (updates: PriceUpdate[]) => {
-      const activeUpdates = updates.filter((update) =>
-        activeTokenIdsRef.current.has(update.tokenId),
+  const handleLivePriceUpdates = useCallback((updates: PriceUpdate[]) => {
+    const activeUpdates = updates.filter((update) =>
+      activeTokenIdsRef.current.has(update.tokenId),
+    );
+
+    if (activeUpdates.length === 0) {
+      return;
+    }
+
+    websocketGenerationRef.current += 1;
+    activeUpdates.forEach((update) => {
+      websocketTokenGenerationsRef.current.set(
+        update.tokenId,
+        websocketGenerationRef.current,
       );
+    });
 
-      if (activeUpdates.length === 0) {
-        return;
-      }
+    setPriceVersion((previousVersion) => previousVersion + 1);
+  }, []);
 
-      websocketGenerationRef.current += 1;
-      activeUpdates.forEach((update) => {
-        websocketTokenGenerationsRef.current.set(
-          update.tokenId,
-          websocketGenerationRef.current,
-        );
-      });
+  const {
+    prices: livePrices,
+    getPrice: getLivePrice,
+    isConnected,
+  } = useLiveMarketPrices(currentTokenIds, {
+    enabled: livePricesEnabled,
+    onPriceUpdates: handleLivePriceUpdates,
+  });
 
-      commitPriceUpdates(activeUpdates);
-    },
-    [commitPriceUpdates],
-  );
+  const prices = useMemo(() => {
+    const nextPrices = new Map(warmupPrices);
+    livePrices.forEach((price, tokenId) => {
+      nextPrices.set(tokenId, price);
+    });
+    return nextPrices;
+  }, [livePrices, warmupPrices]);
 
   useEffect(() => {
-    const currentTokenIds = normalizedQueries.map(
-      (query) => query.outcomeTokenId,
-    );
     const currentTokenIdSet = new Set(currentTokenIds);
     const previousTokenIdSet = activeTokenIdsRef.current;
 
@@ -181,7 +203,6 @@ export const usePredictLivePrices = (
 
     if (!enabled || currentTokenIds.length === 0) {
       activeTokenIdsRef.current = new Set();
-      setIsConnected(false);
       return;
     }
 
@@ -206,36 +227,14 @@ export const usePredictLivePrices = (
       tokenEpochsAtRequest,
       websocketGenerationRef.current,
     );
-
-    const { PredictController } = Engine.context;
-    const unsubscribe = PredictController.subscribeToMarketPrices(
-      currentTokenIds,
-      handlePriceUpdates,
-    );
-
-    const checkConnection = () => {
-      if (!isMountedRef.current) {
-        return;
-      }
-
-      const status = PredictController.getConnectionStatus();
-      setIsConnected(status.marketConnected);
-    };
-
-    checkConnection();
-    const intervalId = setInterval(checkConnection, 1000);
-
-    return () => {
-      unsubscribe();
-      clearInterval(intervalId);
-    };
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, fetchWarmupPrices, handlePriceUpdates, queriesKey]);
+  }, [enabled, fetchWarmupPrices, queriesKey]);
 
   const getPrice = useCallback(
-    (tokenId: string): PriceUpdate | undefined => prices.get(tokenId),
-    [prices],
+    (tokenId: string): PriceUpdate | undefined =>
+      getLivePrice(tokenId) ?? prices.get(tokenId),
+    [getLivePrice, prices],
   );
 
   return {

@@ -5,9 +5,15 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
+import {
+  PredictGameStatus,
+  PredictMarket,
+  PredictOutcome,
+  PredictPriceHistoryInterval,
+  PriceQuery,
+  PriceUpdate,
+} from '../../types';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import {
   getPrimaryMoneylineOutcomes,
   isDrawCapableLeague,
@@ -41,6 +47,7 @@ const FIDELITY_BY_TIMEFRAME: Record<ChartTimeframe, number> = {
 };
 
 const ENDED_GAME_FIDELITY = 2;
+const EMPTY_LIVE_PRICES = new Map<string, PriceUpdate>();
 
 const getMinuteTimestamp = (timestamp: number): number =>
   Math.floor(timestamp / 60000) * 60000;
@@ -50,6 +57,41 @@ const toMilliseconds = (timestamp: number): number =>
 
 const toUnixSeconds = (isoString: string): number =>
   Math.floor(new Date(isoString).getTime() / 1000);
+
+const toPriceQuery = (
+  outcome: PredictOutcome,
+  outcomeTokenId: string,
+): PriceQuery => ({
+  marketId: outcome.marketId,
+  outcomeId: outcome.id,
+  outcomeTokenId,
+  sportsMarketType: outcome.sportsMarketType,
+});
+
+export const getPredictGameChartPriceQueries = (
+  market: PredictMarket,
+): PriceQuery[] => {
+  const game = market.game;
+  const moneylineOutcomes = getPrimaryMoneylineOutcomes(market.outcomes);
+
+  if (
+    game?.league &&
+    isDrawCapableLeague(game.league) &&
+    moneylineOutcomes.length >= 3
+  ) {
+    return [...moneylineOutcomes]
+      .sort((a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0))
+      .flatMap((outcome) => {
+        const token = outcome.tokens[0];
+        return token ? [toPriceQuery(outcome, token.id)] : [];
+      });
+  }
+
+  const outcome = moneylineOutcomes[0];
+  return outcome
+    ? outcome.tokens.map((token) => toPriceQuery(outcome, token.id))
+    : [];
+};
 
 const getDefaultTimeframe = (
   gameStatus: PredictGameStatus | undefined,
@@ -68,6 +110,10 @@ const getDefaultTimeframe = (
 
 const PredictGameChart: React.FC<PredictGameChartProps> = ({
   market,
+  livePrices = EMPTY_LIVE_PRICES,
+  getLivePrice,
+  livePriceVersion = 0,
+  onLiveStatusChange,
   testID,
 }) => {
   const game = market.game;
@@ -80,22 +126,13 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     [market.outcomes],
   );
 
-  const tokenIds = useMemo(() => {
-    if (
-      game?.league &&
-      isDrawCapableLeague(game.league) &&
-      moneylineOutcomes.length >= 3
-    ) {
-      return [...moneylineOutcomes]
-        .sort(
-          (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-        )
-        .map((o) => o.tokens[0]?.id)
-        .filter((id): id is string => Boolean(id));
-    }
-    const tokens = moneylineOutcomes[0]?.tokens ?? [];
-    return tokens.map((t) => t.id);
-  }, [moneylineOutcomes, game?.league]);
+  const tokenIds = useMemo(
+    () =>
+      getPredictGameChartPriceQueries(market).map(
+        (query) => query.outcomeTokenId,
+      ),
+    [market],
+  );
 
   const seriesConfig: GameChartSeriesConfig[] | null = useMemo(() => {
     if (!game) return null;
@@ -150,9 +187,15 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       enabled: tokenIds.length >= 2,
     });
 
-  const { prices } = useLiveMarketPrices(tokenIds, {
-    enabled: isLive && tokenIds.length >= 2,
-  });
+  useEffect(() => {
+    onLiveStatusChange?.(isLive && tokenIds.length >= 2);
+  }, [isLive, onLiveStatusChange, tokenIds.length]);
+
+  const resolveLivePrice = useCallback(
+    (tokenId: string): PriceUpdate | undefined =>
+      getLivePrice?.(tokenId) ?? livePrices.get(tokenId),
+    [getLivePrice, livePrices],
+  );
 
   const historicalChartData: GameChartSeries[] = useMemo(() => {
     if (priceHistories.length < tokenIds.length || !seriesConfig) return [];
@@ -208,7 +251,18 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   }, [isLive, historicalChartData, isFetching]);
 
   const updateLiveData = useCallback(() => {
-    if (!isLive || !initialDataLoadedRef.current || prices.size === 0) return;
+    if (
+      !isLive ||
+      !initialDataLoadedRef.current ||
+      !Number.isFinite(livePriceVersion)
+    ) {
+      return;
+    }
+
+    const hasLivePrice = tokenIds.some((tokenId) => resolveLivePrice(tokenId));
+    if (!hasLivePrice) {
+      return;
+    }
 
     const now = Date.now();
     const currentMinute = getMinuteTimestamp(now);
@@ -224,7 +278,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
 
       const newData = prevData.map((series, index) => {
         const tokenId = tokenIds[index];
-        const priceUpdate = prices.get(tokenId);
+        const priceUpdate = resolveLivePrice(tokenId);
         const existingData = [...series.data];
         const lastPoint = existingData[existingData.length - 1];
 
@@ -252,11 +306,45 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
 
       return newData;
     });
-  }, [isLive, prices, tokenIds]);
+  }, [isLive, livePriceVersion, resolveLivePrice, tokenIds]);
 
   useEffect(() => {
     updateLiveData();
   }, [updateLiveData]);
+
+  const liveChartDataWithLatestPrices = useMemo(() => {
+    if (
+      !isLive ||
+      liveChartData.length < 2 ||
+      !Number.isFinite(livePriceVersion)
+    ) {
+      return liveChartData;
+    }
+
+    let hasLivePrice = false;
+    const nextData = liveChartData.map((series, index) => {
+      const tokenId = tokenIds[index];
+      const priceUpdate = resolveLivePrice(tokenId);
+      const lastPoint = series.data[series.data.length - 1];
+      if (!priceUpdate || !lastPoint) {
+        return series;
+      }
+
+      hasLivePrice = true;
+      const nextSeriesData = [...series.data];
+      nextSeriesData[nextSeriesData.length - 1] = {
+        ...lastPoint,
+        value: Number((priceUpdate.bestAsk * 100).toFixed(2)),
+      };
+
+      return {
+        ...series,
+        data: nextSeriesData,
+      };
+    });
+
+    return hasLivePrice ? nextData : liveChartData;
+  }, [isLive, liveChartData, livePriceVersion, resolveLivePrice, tokenIds]);
 
   const handleTimeframeChange = useCallback((newTimeframe: ChartTimeframe) => {
     setTimeframe(newTimeframe);
@@ -266,7 +354,9 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     refetch();
   }, [refetch]);
 
-  const chartData = isLive ? liveChartData : historicalChartData;
+  const chartData = isLive
+    ? liveChartDataWithLatestPrices
+    : historicalChartData;
   const hasChartData =
     chartData.length >= 2 && chartData.every((s) => s?.data?.length > 0);
   const isLoading =

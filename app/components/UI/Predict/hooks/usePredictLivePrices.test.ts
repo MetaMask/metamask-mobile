@@ -3,6 +3,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { GetPriceResponse, PriceQuery, PriceUpdate } from '../types';
 import { usePredictLivePrices } from './usePredictLivePrices';
+import { useLiveMarketPrices } from './useLiveMarketPrices';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -18,6 +19,10 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
+}));
+
+jest.mock('./useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(),
 }));
 
 const createPriceQuery = (
@@ -61,20 +66,26 @@ const flushPromises = async () => {
 
 describe('usePredictLivePrices', () => {
   const mockGetPrices = Engine.context.PredictController.getPrices as jest.Mock;
-  const mockSubscribeToMarketPrices = Engine.context.PredictController
-    .subscribeToMarketPrices as jest.Mock;
-  const mockGetConnectionStatus = Engine.context.PredictController
-    .getConnectionStatus as jest.Mock;
-  const mockUnsubscribe = jest.fn();
+  const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
+  let livePrices: Map<string, PriceUpdate>;
+  let liveConnected: boolean;
+  let capturedOnPriceUpdates: ((updates: PriceUpdate[]) => void) | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetPrices.mockResolvedValue(createPriceResponse({}));
-    mockSubscribeToMarketPrices.mockReturnValue(mockUnsubscribe);
-    mockGetConnectionStatus.mockReturnValue({
-      sportsConnected: false,
-      marketConnected: true,
+    livePrices = new Map();
+    liveConnected = true;
+    capturedOnPriceUpdates = undefined;
+    mockUseLiveMarketPrices.mockImplementation((_, options) => {
+      capturedOnPriceUpdates = options?.onPriceUpdates;
+      return {
+        prices: livePrices,
+        getPrice: (tokenId: string) => livePrices.get(tokenId),
+        isConnected: liveConnected,
+        lastUpdateTime: null,
+      };
     });
   });
 
@@ -83,18 +94,18 @@ describe('usePredictLivePrices', () => {
   });
 
   describe('warm-up fetching', () => {
-    it('starts warm-up fetch before websocket subscription', () => {
+    it('starts warm-up fetch and delegates token IDs to live market prices', () => {
       const queries = [createPriceQuery('token-1')];
 
       renderHook(() => usePredictLivePrices(queries));
 
       expect(mockGetPrices).toHaveBeenCalledWith({ queries });
-      expect(mockSubscribeToMarketPrices).toHaveBeenCalledWith(
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
         ['token-1'],
-        expect.any(Function),
-      );
-      expect(mockGetPrices.mock.invocationCallOrder[0]).toBeLessThan(
-        mockSubscribeToMarketPrices.mock.invocationCallOrder[0],
+        expect.objectContaining({
+          enabled: true,
+          onPriceUpdates: expect.any(Function),
+        }),
       );
     });
 
@@ -146,12 +157,15 @@ describe('usePredictLivePrices', () => {
       );
 
       expect(mockGetPrices).not.toHaveBeenCalled();
-      expect(mockSubscribeToMarketPrices).not.toHaveBeenCalled();
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-1'],
+        expect.objectContaining({ enabled: false }),
+      );
     });
   });
 
   describe('subscription management', () => {
-    it('subscribes to visible token IDs', () => {
+    it('delegates visible token IDs to useLiveMarketPrices', () => {
       renderHook(() =>
         usePredictLivePrices([
           createPriceQuery('token-2'),
@@ -159,13 +173,16 @@ describe('usePredictLivePrices', () => {
         ]),
       );
 
-      expect(mockSubscribeToMarketPrices).toHaveBeenCalledWith(
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
         ['token-1', 'token-2'],
-        expect.any(Function),
+        expect.objectContaining({
+          enabled: true,
+          onPriceUpdates: expect.any(Function),
+        }),
       );
     });
 
-    it('unsubscribes when token IDs change', () => {
+    it('delegates changed token IDs to useLiveMarketPrices', () => {
       const { rerender } = renderHook(
         ({ queries }) => usePredictLivePrices(queries),
         { initialProps: { queries: [createPriceQuery('token-1')] } },
@@ -173,21 +190,13 @@ describe('usePredictLivePrices', () => {
 
       rerender({ queries: [createPriceQuery('token-2')] });
 
-      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
-      expect(mockSubscribeToMarketPrices).toHaveBeenLastCalledWith(
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
         ['token-2'],
-        expect.any(Function),
+        expect.objectContaining({
+          enabled: true,
+          onPriceUpdates: expect.any(Function),
+        }),
       );
-    });
-
-    it('unsubscribes on unmount', () => {
-      const { unmount } = renderHook(() =>
-        usePredictLivePrices([createPriceQuery('token-1')]),
-      );
-
-      unmount();
-
-      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
     });
 
     it('does not resubscribe when query order changes without token changes', () => {
@@ -204,29 +213,27 @@ describe('usePredictLivePrices', () => {
         queries: [createPriceQuery('token-1'), createPriceQuery('token-2')],
       });
 
-      expect(mockSubscribeToMarketPrices).toHaveBeenCalledTimes(1);
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+        ['token-1', 'token-2'],
+        expect.objectContaining({ enabled: true }),
+      );
     });
   });
 
   describe('price updates', () => {
     it('updates prices from websocket callbacks', () => {
-      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
-      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
       const { result } = renderHook(() =>
         usePredictLivePrices([createPriceQuery('token-1')]),
       );
+      const update = createLivePrice('token-1', {
+        price: 0.81,
+        bestBid: 0.8,
+        bestAsk: 0.82,
+      });
 
       act(() => {
-        capturedCallback([
-          createLivePrice('token-1', {
-            price: 0.81,
-            bestBid: 0.8,
-            bestAsk: 0.82,
-          }),
-        ]);
+        livePrices.set('token-1', update);
+        capturedOnPriceUpdates?.([update]);
       });
 
       expect(result.current.getPrice('token-1')).toEqual({
@@ -238,25 +245,24 @@ describe('usePredictLivePrices', () => {
       expect(result.current.priceVersion).toBe(1);
     });
 
-    it('keeps previously seen prices after tokens leave the visible set', () => {
-      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
-      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
+    it('removes inactive live prices from the merged price map', () => {
       const { result, rerender } = renderHook(
         ({ queries }) => usePredictLivePrices(queries),
         { initialProps: { queries: [createPriceQuery('token-1')] } },
       );
       act(() => {
-        capturedCallback([createLivePrice('token-1', { price: 0.74 })]);
+        const update = createLivePrice('token-1', { price: 0.74 });
+        livePrices.set('token-1', update);
+        capturedOnPriceUpdates?.([update]);
       });
 
       rerender({ queries: [] });
 
-      expect(result.current.getPrice('token-1')?.price).toBe(0.74);
-      expect(result.current.prices.size).toBe(1);
-      expect(result.current.isConnected).toBe(false);
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+        [],
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(result.current.prices.size).toBe(0);
     });
 
     it('ignores REST warm-up results when websocket updates arrive first', async () => {
@@ -266,22 +272,17 @@ describe('usePredictLivePrices', () => {
           resolveWarmup = resolve;
         }),
       );
-      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
-      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
       const { result } = renderHook(() =>
         usePredictLivePrices([createPriceQuery('token-1')]),
       );
+      const update = createLivePrice('token-1', {
+        price: 0.82,
+        bestBid: 0.81,
+        bestAsk: 0.83,
+      });
       act(() => {
-        capturedCallback([
-          createLivePrice('token-1', {
-            price: 0.82,
-            bestBid: 0.81,
-            bestAsk: 0.83,
-          }),
-        ]);
+        livePrices.set('token-1', update);
+        capturedOnPriceUpdates?.([update]);
       });
 
       await act(async () => {
@@ -302,32 +303,11 @@ describe('usePredictLivePrices', () => {
 
   describe('connection status', () => {
     it('reflects market websocket connection status', () => {
-      mockGetConnectionStatus.mockReturnValue({
-        sportsConnected: false,
-        marketConnected: false,
-      });
+      liveConnected = false;
 
       const { result } = renderHook(() =>
         usePredictLivePrices([createPriceQuery('token-1')]),
       );
-
-      expect(result.current.isConnected).toBe(false);
-    });
-
-    it('refreshes market websocket connection status on interval', () => {
-      mockGetConnectionStatus
-        .mockReturnValueOnce({ sportsConnected: false, marketConnected: true })
-        .mockReturnValueOnce({
-          sportsConnected: false,
-          marketConnected: false,
-        });
-      const { result } = renderHook(() =>
-        usePredictLivePrices([createPriceQuery('token-1')]),
-      );
-
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
 
       expect(result.current.isConnected).toBe(false);
     });

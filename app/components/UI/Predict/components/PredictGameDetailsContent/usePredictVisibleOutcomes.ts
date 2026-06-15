@@ -14,6 +14,7 @@ interface UsePredictVisibleOutcomesParams<TItem> {
   enabled?: boolean;
   getVisibleCardKey: (item: TItem) => string | undefined;
   getCardVisibleKey?: (cardModel: OutcomeCardModel) => string;
+  preserveVisibleCardPositionsOnReset?: boolean;
   resetKey?: string;
   settleDelayMs?: number;
 }
@@ -61,6 +62,7 @@ const toPriceQuery = (
   marketId: outcome.marketId,
   outcomeId: outcome.id,
   outcomeTokenId,
+  sportsMarketType: outcome.sportsMarketType,
 });
 
 const getLineIndices = (outcomes: PredictOutcome[]): number[] =>
@@ -167,6 +169,7 @@ export const usePredictVisibleOutcomes = <TItem>({
   enabled = true,
   getVisibleCardKey,
   getCardVisibleKey = defaultGetCardVisibleKey,
+  preserveVisibleCardPositionsOnReset = false,
   resetKey,
   settleDelayMs = DEFAULT_SETTLE_DELAY_MS,
 }: UsePredictVisibleOutcomesParams<TItem>): UsePredictVisibleOutcomesResult<TItem> => {
@@ -177,6 +180,7 @@ export const usePredictVisibleOutcomes = <TItem>({
     Record<string, number | undefined>
   >({});
   const latestVisibleCardKeysRef = useRef<Set<string>>(new Set());
+  const latestVisibleCardIndexesRef = useRef<number[]>([]);
   const isScrollActiveRef = useRef(false);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -228,6 +232,7 @@ export const usePredictVisibleOutcomes = <TItem>({
     clearScrollIdleTimer();
     isScrollActiveRef.current = false;
     latestVisibleCardKeysRef.current = new Set();
+    latestVisibleCardIndexesRef.current = [];
     setVisibleCardKeys((previousVisibleCardKeys) =>
       previousVisibleCardKeys.size === 0 ? previousVisibleCardKeys : new Set(),
     );
@@ -286,7 +291,7 @@ export const usePredictVisibleOutcomes = <TItem>({
         return;
       }
 
-      latestVisibleCardKeysRef.current = new Set(
+      const nextVisibleCardKeys = new Set(
         viewableItems
           .map((viewableItem) =>
             viewableItem.item
@@ -295,6 +300,12 @@ export const usePredictVisibleOutcomes = <TItem>({
           )
           .filter((key): key is string => Boolean(key)),
       );
+      latestVisibleCardKeysRef.current = nextVisibleCardKeys;
+      latestVisibleCardIndexesRef.current = cardModels
+        .map((cardModel, index) =>
+          nextVisibleCardKeys.has(getCardVisibleKey(cardModel)) ? index : -1,
+        )
+        .filter((index) => index !== -1);
 
       if (!isScrollActiveRef.current) {
         if (shouldCommitNextViewabilityImmediatelyRef.current) {
@@ -309,9 +320,11 @@ export const usePredictVisibleOutcomes = <TItem>({
     },
     [
       applyLatestVisibleCardKeys,
+      cardModels,
       clearSettleTimer,
       commitLatestVisibleCardKeys,
       enabled,
+      getCardVisibleKey,
       getVisibleCardKey,
     ],
   );
@@ -344,9 +357,47 @@ export const usePredictVisibleOutcomes = <TItem>({
     }
 
     previousResetKeyRef.current = resetKey;
-    clearVisibleState();
     shouldCommitNextViewabilityImmediatelyRef.current = true;
-  }, [clearVisibleState, resetKey]);
+
+    if (!enabled || !preserveVisibleCardPositionsOnReset) {
+      clearVisibleState();
+      return;
+    }
+
+    clearSettleTimer();
+    clearScrollIdleTimer();
+    isScrollActiveRef.current = false;
+
+    const nextVisibleCardKeys = new Set(
+      latestVisibleCardIndexesRef.current
+        .map((index) => cardModels[index])
+        .filter((cardModel): cardModel is OutcomeCardModel =>
+          Boolean(cardModel),
+        )
+        .map(getCardVisibleKey),
+    );
+
+    latestVisibleCardKeysRef.current = nextVisibleCardKeys;
+    setVisibleCardKeys((previousVisibleCardKeys) =>
+      areSetsEqual(previousVisibleCardKeys, nextVisibleCardKeys)
+        ? previousVisibleCardKeys
+        : nextVisibleCardKeys,
+    );
+    setSelectedLineIndices((previousSelectedLineIndices) =>
+      Object.keys(previousSelectedLineIndices).length === 0
+        ? previousSelectedLineIndices
+        : {},
+    );
+  }, [
+    cardModels,
+    clearScrollIdleTimer,
+    clearSettleTimer,
+    clearVisibleState,
+    enabled,
+    getCardVisibleKey,
+    preserveVisibleCardPositionsOnReset,
+    resetKey,
+  ]);
 
   useEffect(
     () => () => {

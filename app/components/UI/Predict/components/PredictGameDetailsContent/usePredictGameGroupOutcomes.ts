@@ -4,6 +4,7 @@ import Logger from '../../../../../util/Logger';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
+  type PriceQuery,
   type PredictOutcome,
   type PredictOutcomeGroup,
 } from '../../types';
@@ -28,6 +29,7 @@ interface UsePredictGameGroupOutcomesResult {
   openCardModels: OutcomeCardModel[];
   closedOutcomes: PredictOutcome[];
   activeGroupTokenIds: string[];
+  activeGroupPriceQueries: PriceQuery[];
   showResolvedSection: boolean;
   hasPartialResolution: boolean;
 }
@@ -214,6 +216,49 @@ const collectCardModelTokenIds = (cardModels: OutcomeCardModel[]): string[] => [
   ),
 ];
 
+const toPriceQuery = (
+  outcome: PredictOutcome,
+  outcomeTokenId: string,
+): PriceQuery => ({
+  marketId: outcome.marketId,
+  outcomeId: outcome.id,
+  outcomeTokenId,
+  sportsMarketType: outcome.sportsMarketType,
+});
+
+const collectCardModelPriceQueries = (
+  cardModels: OutcomeCardModel[],
+): PriceQuery[] => {
+  const queriesByTokenId = new Map<string, PriceQuery>();
+
+  cardModels
+    .flatMap((cardModel) => {
+      if (cardModel.kind === 'simple') {
+        return cardModel.outcome.tokens.map((token) =>
+          toPriceQuery(cardModel.outcome, token.id),
+        );
+      }
+
+      if (cardModel.kind === 'moneyline') {
+        return cardModel.outcomes.flatMap((outcome) => {
+          const token = outcome.tokens[0];
+          return token ? [toPriceQuery(outcome, token.id)] : [];
+        });
+      }
+
+      return cardModel.outcomes.flatMap((outcome) =>
+        outcome.tokens.map((token) => toPriceQuery(outcome, token.id)),
+      );
+    })
+    .forEach((query) => {
+      if (!queriesByTokenId.has(query.outcomeTokenId)) {
+        queriesByTokenId.set(query.outcomeTokenId, query);
+      }
+    });
+
+  return [...queriesByTokenId.values()];
+};
+
 const isOpenOutcome = (outcome: PredictOutcome): boolean =>
   outcome.status === OPEN_PREDICT_OUTCOME_STATUS &&
   outcome.resolutionStatus !== 'resolved';
@@ -277,11 +322,16 @@ export const usePredictGameGroupOutcomes = ({
     () => collectCardModelTokenIds(openCardModels),
     [openCardModels],
   );
+  const activeGroupPriceQueries = useMemo(
+    () => collectCardModelPriceQueries(openCardModels),
+    [openCardModels],
+  );
 
   return {
     openCardModels,
     closedOutcomes,
     activeGroupTokenIds,
+    activeGroupPriceQueries,
     showResolvedSection: closedOutcomes.length > 0,
     hasPartialResolution:
       closedOutcomes.length > 0 && openCardModels.length > 0,

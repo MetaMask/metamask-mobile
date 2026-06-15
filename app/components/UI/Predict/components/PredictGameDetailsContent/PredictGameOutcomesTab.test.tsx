@@ -6,9 +6,9 @@ import type {
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
+  PriceQuery,
 } from '../../types';
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import Logger from '../../../../../util/Logger';
@@ -76,13 +76,7 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockGetLivePrice = jest.fn();
-const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
-
-jest.mock('../../hooks/useLiveMarketPrices', () => ({
-  useLiveMarketPrices: jest.fn(() => ({
-    getPrice: mockGetLivePrice,
-  })),
-}));
+const mockOnVisiblePriceQueriesChange = jest.fn();
 
 const mockOnBuyPress = jest.fn();
 
@@ -258,6 +252,8 @@ const renderTab = (
       groupMap={toGroupMap([tab])}
       game={game}
       activeChipKey={tab.key}
+      getPrice={mockGetLivePrice}
+      onVisiblePriceQueriesChange={mockOnVisiblePriceQueriesChange}
       onBuyPress={mockOnBuyPress}
     />,
   );
@@ -266,13 +262,8 @@ describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetLivePrice.mockReturnValue(undefined);
+    mockOnVisiblePriceQueriesChange.mockClear();
     mockCapturedCards = [];
-    mockUseLiveMarketPrices.mockImplementation(() => ({
-      getPrice: mockGetLivePrice,
-      prices: new Map(),
-      isConnected: true,
-      lastUpdateTime: null,
-    }));
   });
 
   describe('getSportsMarketTypeLabel', () => {
@@ -362,6 +353,8 @@ describe('PredictGameOutcomesTab', () => {
           groupMap={toGroupMap([createTab('game_lines', [createCard()])])}
           game={mockGame}
           activeChipKey="nonexistent_key"
+          getPrice={mockGetLivePrice}
+          onVisiblePriceQueriesChange={mockOnVisiblePriceQueriesChange}
           onBuyPress={mockOnBuyPress}
         />,
       );
@@ -771,7 +764,7 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('subscription ownership', () => {
-    it('subscribes once for every token in the active group', () => {
+    it('subscribes to rendered active group tokens', () => {
       const tab = createTab('game_lines', [
         createCard({
           key: 'soccer_player_goals-0',
@@ -819,24 +812,30 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = renderTab(tab);
 
-      const initialTokenSubscriptions = mockUseLiveMarketPrices.mock.calls.map(
-        ([tokenIds]) => tokenIds,
-      );
-      expect(initialTokenSubscriptions).toEqual([
-        [
-          'player-over',
-          'player-under',
-          'line-low-over',
-          'line-low-under',
-          'line-high-over',
-          'line-high-under',
-        ],
+      const initialPriceSubscription =
+        mockOnVisiblePriceQueriesChange.mock.calls
+          .at(-1)?.[0]
+          .map((query: PriceQuery) => query.outcomeTokenId);
+      expect(initialPriceSubscription).toEqual([
+        'player-over',
+        'player-under',
+        'line-high-over',
+        'line-high-under',
       ]);
 
-      mockUseLiveMarketPrices.mockClear();
+      mockOnVisiblePriceQueriesChange.mockClear();
       fireEvent(getByTestId('game_lines-total_corners-line-0-8.5'), 'touchEnd');
 
-      expect(mockUseLiveMarketPrices).not.toHaveBeenCalled();
+      expect(
+        mockOnVisiblePriceQueriesChange.mock.calls
+          .at(-1)?.[0]
+          .map((query: PriceQuery) => query.outcomeTokenId),
+      ).toEqual([
+        'player-over',
+        'player-under',
+        'line-low-over',
+        'line-low-under',
+      ]);
     });
   });
 
@@ -874,9 +873,11 @@ describe('PredictGameOutcomesTab', () => {
       expect(queryByText('Closed Moneyline')).toBeNull();
       fireEvent.press(getByText('Resolved outcomes'));
       expect(getByText('Closed Moneyline')).toBeTruthy();
-      expect(mockUseLiveMarketPrices.mock.calls.at(-1)?.[0]).toEqual([
-        'ml-open',
-      ]);
+      expect(
+        mockOnVisiblePriceQueriesChange.mock.calls
+          .at(-1)?.[0]
+          .map((query: PriceQuery) => query.outcomeTokenId),
+      ).toEqual(['ml-open']);
     });
 
     it('shows resolved outcomes in a collapsible section when the entire group is settled', () => {

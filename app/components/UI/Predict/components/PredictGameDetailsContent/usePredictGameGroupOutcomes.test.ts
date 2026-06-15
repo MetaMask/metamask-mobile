@@ -94,6 +94,7 @@ describe('usePredictGameGroupOutcomes', () => {
       openCardModels: [],
       closedOutcomes: [],
       activeGroupTokenIds: [],
+      activeGroupPriceQueries: [],
       showResolvedSection: false,
       hasPartialResolution: false,
     });
@@ -173,6 +174,11 @@ describe('usePredictGameGroupOutcomes', () => {
       'corners-over-85',
       'corners-under-85',
     ]);
+    expect(
+      result.current.activeGroupPriceQueries.map(
+        (query) => query.outcomeTokenId,
+      ),
+    ).toEqual(['ml-home', 'corners-over-85', 'corners-under-85']);
     expect(result.current.showResolvedSection).toBe(true);
     expect(result.current.hasPartialResolution).toBe(true);
   });
@@ -200,6 +206,7 @@ describe('usePredictGameGroupOutcomes', () => {
     expect(result.current.openCardModels).toEqual([]);
     expect(result.current.closedOutcomes).toHaveLength(1);
     expect(result.current.activeGroupTokenIds).toEqual([]);
+    expect(result.current.activeGroupPriceQueries).toEqual([]);
     expect(result.current.showResolvedSection).toBe(true);
     expect(result.current.hasPartialResolution).toBe(false);
   });

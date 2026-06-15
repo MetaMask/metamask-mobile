@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { RefreshControl } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -11,9 +11,10 @@ import type {
   PredictOutcomeGroup,
   PredictOutcomeToken,
   PredictPosition,
+  PriceQuery,
+  PriceUpdate,
 } from '../../types';
 import { useTheme } from '../../../../../util/theme';
-import { usePredictLivePrices } from '../../hooks/usePredictLivePrices';
 import PredictChipList, { type PredictChipItem } from '../PredictChipList';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictPicks from '../PredictPicks/PredictPicks';
@@ -70,6 +71,10 @@ export interface PredictGameDetailsOutcomesListProps {
   onChipSelect: (key: string) => void;
   activePositions: PredictPosition[];
   claimablePositions: PredictPosition[];
+  getPrice: (tokenId: string) => PriceUpdate | undefined;
+  priceVersion: number;
+  onVisiblePriceQueriesChange: (queries: PriceQuery[]) => void;
+  onChartVisibilityChange?: (visible: boolean) => void;
   listHeaderComponent?: React.ReactElement;
 }
 
@@ -98,6 +103,10 @@ const PredictGameDetailsOutcomesList = memo(
     onChipSelect,
     activePositions,
     claimablePositions,
+    getPrice,
+    priceVersion,
+    onVisiblePriceQueriesChange,
+    onChartVisibilityChange,
     listHeaderComponent,
   }: PredictGameDetailsOutcomesListProps) => {
     const tw = useTailwind();
@@ -148,13 +157,32 @@ const PredictGameDetailsOutcomesList = memo(
       cardModels,
       enabled: showOutcomes,
       getVisibleCardKey,
+      preserveVisibleCardPositionsOnReset: true,
       resetKey: visibilityScopeKey,
     });
-    const { getPrice, priceVersion } = usePredictLivePrices(
-      visiblePriceQueries,
-      {
-        enabled: showOutcomes,
+
+    useEffect(() => {
+      onVisiblePriceQueriesChange(showOutcomes ? visiblePriceQueries : []);
+    }, [onVisiblePriceQueriesChange, showOutcomes, visiblePriceQueries]);
+
+    useEffect(
+      () => () => {
+        onVisiblePriceQueriesChange([]);
+        onChartVisibilityChange?.(false);
       },
+      [onChartVisibilityChange, onVisiblePriceQueriesChange],
+    );
+
+    const handleViewableItemsChanged = useCallback(
+      (info: Parameters<typeof onViewableItemsChanged>[0]) => {
+        onViewableItemsChanged(info);
+        onChartVisibilityChange?.(
+          info.viewableItems.some(
+            (viewableItem) => viewableItem.item?.type === 'header',
+          ),
+        );
+      },
+      [onChartVisibilityChange, onViewableItemsChanged],
     );
 
     const listData = useMemo<PredictGameDetailsListItem[]>(() => {
@@ -380,7 +408,7 @@ const PredictGameDetailsOutcomesList = memo(
           onScroll={onScroll}
           onScrollBeginDrag={onScrollBeginDrag}
           onScrollEndDrag={onScrollEndDrag}
-          onViewableItemsChanged={onViewableItemsChanged}
+          onViewableItemsChanged={handleViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
         />
       </Box>

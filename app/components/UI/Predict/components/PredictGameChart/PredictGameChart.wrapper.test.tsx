@@ -3,19 +3,18 @@ import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render, act, waitFor } from '@testing-library/react-native';
 import PredictGameChart from './PredictGameChart';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import {
   PredictMarket,
   PredictMarketStatus,
   PredictPriceHistoryInterval,
   PredictGameStatus,
   PredictOutcome,
+  PriceUpdate,
 } from '../../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock the hooks
 jest.mock('../../hooks/usePredictPriceHistory');
-jest.mock('../../hooks/useLiveMarketPrices');
 
 // Mock PredictGameChartContent to capture props
 jest.mock('./PredictGameChartContent', () => {
@@ -55,7 +54,6 @@ jest.mock('./PredictGameChartContent', () => {
 });
 
 const mockUsePredictPriceHistory = usePredictPriceHistory as jest.Mock;
-const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
 
 const createMockPriceHistory = (
   tokenIndex: number,
@@ -153,13 +151,6 @@ describe('PredictGameChart Wrapper', () => {
       errors: [null, null],
       refetch: jest.fn(),
     });
-
-    mockUseLiveMarketPrices.mockReturnValue({
-      prices: new Map(),
-      getPrice: jest.fn(),
-      isConnected: false,
-      lastUpdateTime: null,
-    });
   });
 
   afterEach(() => {
@@ -181,11 +172,17 @@ describe('PredictGameChart Wrapper', () => {
       );
     });
 
-    it('calls useLiveMarketPrices with enabled true for live timeframe', () => {
-      render(<PredictGameChart market={defaultMarket} />);
+    it('notifies parent when live prices are needed for live timeframe', async () => {
+      const onLiveStatusChange = jest.fn();
+      render(
+        <PredictGameChart
+          market={defaultMarket}
+          onLiveStatusChange={onLiveStatusChange}
+        />,
+      );
 
-      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(defaultTokenIds, {
-        enabled: true,
+      await waitFor(() => {
+        expect(onLiveStatusChange).toHaveBeenCalledWith(true);
       });
     });
 
@@ -197,13 +194,6 @@ describe('PredictGameChart Wrapper', () => {
       render(<PredictGameChart market={marketNoTokens} />);
 
       expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
-        expect.objectContaining({
-          enabled: false,
-        }),
-      );
-
-      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
-        expect.anything(),
         expect.objectContaining({
           enabled: false,
         }),
@@ -258,10 +248,6 @@ describe('PredictGameChart Wrapper', () => {
           enabled: true,
         }),
       );
-      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
-        ['token-home', 'token-draw', 'token-away'],
-        { enabled: true },
-      );
     });
   });
 
@@ -279,8 +265,13 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
+      const onLiveStatusChange = jest.fn();
       const { getByTestId } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          onLiveStatusChange={onLiveStatusChange}
+          testID="chart"
+        />,
       );
 
       await waitFor(() => {
@@ -308,8 +299,13 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
+      const onLiveStatusChange = jest.fn();
       const { getByTestId } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          onLiveStatusChange={onLiveStatusChange}
+          testID="chart"
+        />,
       );
 
       await waitFor(() => {
@@ -334,8 +330,13 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
+      const onLiveStatusChange = jest.fn();
       const { getByTestId } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          onLiveStatusChange={onLiveStatusChange}
+          testID="chart"
+        />,
       );
 
       await waitFor(() => {
@@ -454,14 +455,14 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
-      const pricesMap = new Map([
+      const pricesMap = new Map<string, PriceUpdate>([
         [
           'token-a',
           {
             tokenId: 'token-a',
             price: 0.54,
+            bestBid: 0.54,
             bestAsk: 0.56,
-            timestamp: Date.now(),
           },
         ],
         [
@@ -469,21 +470,18 @@ describe('PredictGameChart Wrapper', () => {
           {
             tokenId: 'token-b',
             price: 0.44,
+            bestBid: 0.44,
             bestAsk: 0.46,
-            timestamp: Date.now(),
           },
         ],
       ]);
 
-      mockUseLiveMarketPrices.mockReturnValue({
-        prices: pricesMap,
-        getPrice: (id: string) => pricesMap.get(id),
-        isConnected: true,
-        lastUpdateTime: Date.now(),
-      });
-
       const { getByTestId, rerender } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
       );
 
       // Wait for initial data to load
@@ -494,7 +492,13 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       // Trigger re-render with updated prices
-      rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
+      rerender(
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
+      );
 
       await waitFor(() => {
         const dataText = getByTestId('content-data').children[0];
@@ -502,6 +506,105 @@ describe('PredictGameChart Wrapper', () => {
 
         expect(data[0].data).toHaveLength(1);
         expect(data[0].data[0].value).toBe(56);
+      });
+    });
+
+    it('updates from shared parent getLivePrice when live price version changes', async () => {
+      const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
+      jest.setSystemTime(new Date(baseTimestamp + 30000));
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: [
+          [{ timestamp: baseTimestamp, price: 0.65 }],
+          [{ timestamp: baseTimestamp, price: 0.24 }],
+          [{ timestamp: baseTimestamp, price: 0.12 }],
+        ],
+        isFetching: false,
+        errors: [null, null, null],
+        refetch: jest.fn(),
+      });
+
+      const market = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'fifwc',
+        },
+        outcomes: [
+          createChartOutcome({
+            id: 'home',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 0,
+            tokens: [{ id: 'token-home', title: 'Saudi Arabia', price: 0.12 }],
+          }),
+          createChartOutcome({
+            id: 'draw',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 1,
+            tokens: [{ id: 'token-draw', title: 'Draw', price: 0.24 }],
+          }),
+          createChartOutcome({
+            id: 'away',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 2,
+            tokens: [{ id: 'token-away', title: 'Uruguay', price: 0.65 }],
+          }),
+        ],
+      });
+
+      const livePrices = new Map<string, PriceUpdate>();
+      const getLivePrice = (tokenId: string) => livePrices.get(tokenId);
+      const { getByTestId, rerender } = render(
+        <PredictGameChart
+          market={market}
+          getLivePrice={getLivePrice}
+          livePriceVersion={0}
+          testID="chart"
+        />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+        expect(data).toHaveLength(3);
+      });
+
+      livePrices.set('token-away', {
+        tokenId: 'token-away',
+        price: 0.64,
+        bestBid: 0.63,
+        bestAsk: 0.64,
+      });
+      livePrices.set('token-draw', {
+        tokenId: 'token-draw',
+        price: 0.25,
+        bestBid: 0.24,
+        bestAsk: 0.25,
+      });
+      livePrices.set('token-home', {
+        tokenId: 'token-home',
+        price: 0.13,
+        bestBid: 0.12,
+        bestAsk: 0.13,
+      });
+
+      rerender(
+        <PredictGameChart
+          market={market}
+          getLivePrice={getLivePrice}
+          livePriceVersion={1}
+          testID="chart"
+        />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+        expect(
+          data.map(
+            (series: { data: { value: number }[] }) =>
+              series.data.at(-1)?.value,
+          ),
+        ).toEqual([13, 25, 64]);
       });
     });
 
@@ -538,14 +641,14 @@ describe('PredictGameChart Wrapper', () => {
       const nextMinute = baseTimestamp + 60000;
       jest.setSystemTime(new Date(nextMinute));
 
-      const pricesMap = new Map([
+      const pricesMap = new Map<string, PriceUpdate>([
         [
           'token-a',
           {
             tokenId: 'token-a',
             price: 0.54,
+            bestBid: 0.54,
             bestAsk: 0.56,
-            timestamp: nextMinute,
           },
         ],
         [
@@ -553,20 +656,19 @@ describe('PredictGameChart Wrapper', () => {
           {
             tokenId: 'token-b',
             price: 0.44,
+            bestBid: 0.44,
             bestAsk: 0.46,
-            timestamp: nextMinute,
           },
         ],
       ]);
 
-      mockUseLiveMarketPrices.mockReturnValue({
-        prices: pricesMap,
-        getPrice: (id: string) => pricesMap.get(id),
-        isConnected: true,
-        lastUpdateTime: nextMinute,
-      });
-
-      rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
+      rerender(
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
+      );
 
       await waitFor(() => {
         const dataText = getByTestId('content-data').children[0];
@@ -631,27 +733,24 @@ describe('PredictGameChart Wrapper', () => {
 
       jest.setSystemTime(new Date(baseTimestamp + 120000));
 
-      const pricesMap = new Map([
+      const pricesMap = new Map<string, PriceUpdate>([
         [
           'token-a',
           {
             tokenId: 'token-a',
             price: 0.54,
+            bestBid: 0.54,
             bestAsk: 0.56,
-            timestamp: baseTimestamp + 120000,
           },
         ],
       ]);
 
-      mockUseLiveMarketPrices.mockReturnValue({
-        prices: pricesMap,
-        getPrice: (id: string) => pricesMap.get(id),
-        isConnected: true,
-        lastUpdateTime: baseTimestamp + 120000,
-      });
-
       const { getByTestId } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
       );
 
       await waitFor(() => {
@@ -679,27 +778,24 @@ describe('PredictGameChart Wrapper', () => {
 
       jest.setSystemTime(new Date(baseTimestamp + 30000));
 
-      const pricesMap = new Map([
+      const pricesMap = new Map<string, PriceUpdate>([
         [
           'token-a',
           {
             tokenId: 'token-a',
             price: 0.64,
+            bestBid: 0.64,
             bestAsk: 0.66,
-            timestamp: baseTimestamp + 30000,
           },
         ],
       ]);
 
-      mockUseLiveMarketPrices.mockReturnValue({
-        prices: pricesMap,
-        getPrice: (id: string) => pricesMap.get(id),
-        isConnected: true,
-        lastUpdateTime: baseTimestamp + 30000,
-      });
-
       const { getByTestId } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
       );
 
       await waitFor(() => {
@@ -727,14 +823,14 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
-      const pricesMap = new Map([
+      const pricesMap = new Map<string, PriceUpdate>([
         [
           'token-a',
           {
             tokenId: 'token-a',
             price: 0.69,
+            bestBid: 0.69,
             bestAsk: 0.71,
-            timestamp: baseTimestamp + 30000,
           },
         ],
         [
@@ -742,21 +838,18 @@ describe('PredictGameChart Wrapper', () => {
           {
             tokenId: 'token-b',
             price: 0.29,
+            bestBid: 0.29,
             bestAsk: 0.31,
-            timestamp: baseTimestamp + 30000,
           },
         ],
       ]);
 
-      mockUseLiveMarketPrices.mockReturnValue({
-        prices: pricesMap,
-        getPrice: (id: string) => pricesMap.get(id),
-        isConnected: true,
-        lastUpdateTime: baseTimestamp + 30000,
-      });
-
       const { getByTestId, rerender } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
       );
 
       await waitFor(() => {
@@ -777,7 +870,13 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
-      rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
+      rerender(
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
+      );
 
       await waitFor(() => {
         const dataText = getByTestId('content-data').children[0];
@@ -840,8 +939,13 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
+      const onLiveStatusChange = jest.fn();
       const { getByTestId } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          onLiveStatusChange={onLiveStatusChange}
+          testID="chart"
+        />,
       );
 
       // Change to 6h timeframe
@@ -849,13 +953,9 @@ describe('PredictGameChart Wrapper', () => {
         getByTestId('timeframe-trigger').props.onTouchEnd();
       });
 
-      // Live prices hook should be disabled
+      // Parent subscription should be disabled.
       await waitFor(() => {
-        const lastCall =
-          mockUseLiveMarketPrices.mock.calls[
-            mockUseLiveMarketPrices.mock.calls.length - 1
-          ];
-        expect(lastCall[1].enabled).toBe(false);
+        expect(onLiveStatusChange).toHaveBeenLastCalledWith(false);
       });
     });
 
@@ -947,27 +1047,24 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       // Only provide price for token-a
-      const pricesMap = new Map([
+      const pricesMap = new Map<string, PriceUpdate>([
         [
           'token-a',
           {
             tokenId: 'token-a',
             price: 0.54,
+            bestBid: 0.54,
             bestAsk: 0.56,
-            timestamp: Date.now(),
           },
         ],
       ]);
 
-      mockUseLiveMarketPrices.mockReturnValue({
-        prices: pricesMap,
-        getPrice: (id: string) => pricesMap.get(id),
-        isConnected: true,
-        lastUpdateTime: Date.now(),
-      });
-
       const { getByTestId } = render(
-        <PredictGameChart market={defaultMarket} testID="chart" />,
+        <PredictGameChart
+          market={defaultMarket}
+          livePrices={pricesMap}
+          testID="chart"
+        />,
       );
 
       await waitFor(() => {
@@ -1207,14 +1304,16 @@ describe('PredictGameChart Wrapper', () => {
         },
       });
 
-      render(<PredictGameChart market={scheduledMarket} testID="chart" />);
-
-      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          enabled: false,
-        }),
+      const onLiveStatusChange = jest.fn();
+      render(
+        <PredictGameChart
+          market={scheduledMarket}
+          onLiveStatusChange={onLiveStatusChange}
+          testID="chart"
+        />,
       );
+
+      expect(onLiveStatusChange).toHaveBeenCalledWith(false);
     });
   });
 });

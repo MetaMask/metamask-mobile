@@ -12,17 +12,21 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import { usePredictLivePrices } from '../../hooks/usePredictLivePrices';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictChipList from '../PredictChipList';
-import PredictGameChart from '../PredictGameChart';
+import PredictGameChart, {
+  getPredictGameChartPriceQueries,
+} from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
@@ -35,6 +39,7 @@ import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.type
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+import type { PriceQuery } from '../../types';
 
 const CHIPS_STICKY_INDEX = 2;
 
@@ -64,6 +69,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
+  const isScreenFocused = useIsFocused();
+  const [visibleOutcomePriceQueries, setVisibleOutcomePriceQueries] = useState<
+    PriceQuery[]
+  >([]);
+  const [isChartLive, setIsChartLive] = useState(game?.status === 'ongoing');
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
@@ -103,6 +113,33 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
   );
+  const chartPriceQueries = useMemo(
+    () => getPredictGameChartPriceQueries(market),
+    [market],
+  );
+  const chartLivePriceQueries = useMemo(
+    () => (isScreenFocused && isChartLive ? chartPriceQueries : []),
+    [chartPriceQueries, isChartLive, isScreenFocused],
+  );
+  const combinedPriceQueries = useMemo(
+    () => [...chartLivePriceQueries, ...visibleOutcomePriceQueries],
+    [chartLivePriceQueries, visibleOutcomePriceQueries],
+  );
+  const { prices, getPrice, priceVersion } = usePredictLivePrices(
+    combinedPriceQueries,
+    {
+      enabled: combinedPriceQueries.length > 0,
+    },
+  );
+  const handleVisiblePriceQueriesChange = useCallback(
+    (queries: PriceQuery[]) => {
+      setVisibleOutcomePriceQueries(queries);
+    },
+    [],
+  );
+  const handleChartLiveStatusChange = useCallback((live: boolean) => {
+    setIsChartLive(live);
+  }, []);
 
   const gameDetailsHeader = useMemo<React.ReactElement | undefined>(() => {
     if (!game) {
@@ -121,12 +158,23 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         <Box twClassName="mt-4">
           <PredictGameChart
             market={market}
+            livePrices={prices}
+            getLivePrice={getPrice}
+            livePriceVersion={priceVersion}
+            onLiveStatusChange={handleChartLiveStatusChange}
             testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
           />
         </Box>
       </>
     );
-  }, [game, market]);
+  }, [
+    game,
+    getPrice,
+    handleChartLiveStatusChange,
+    market,
+    priceVersion,
+    prices,
+  ]);
 
   if (!outcome || !game) {
     return null;
@@ -190,6 +238,9 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           onChipSelect={handleChipSelect}
           activePositions={activePositions}
           claimablePositions={claimablePositions}
+          getPrice={getPrice}
+          priceVersion={priceVersion}
+          onVisiblePriceQueriesChange={handleVisiblePriceQueriesChange}
           listHeaderComponent={gameDetailsHeader}
         />
       ) : (
@@ -237,6 +288,8 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             claimablePositions={claimablePositions}
             groupMap={groupMap}
             activeChipKey={activeChipKey}
+            getPrice={getPrice}
+            onVisiblePriceQueriesChange={handleVisiblePriceQueriesChange}
             onBetPress={onBetPress}
           />
         </ScrollView>

@@ -1,40 +1,85 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type {
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
+  PriceQuery,
+  PriceUpdate,
 } from '../../types';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import PredictResolvedOutcomesSection from '../PredictResolvedOutcomesSection';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import PredictGameOutcomeCard, {
   type BuyHandler,
 } from './PredictGameOutcomeCard';
 import { usePredictGameGroupOutcomes } from './usePredictGameGroupOutcomes';
+import { resolveVisibleOutcomePriceQueries } from './usePredictVisibleOutcomes';
 
 const OutcomesContent = memo(
   ({
     group,
     onBuyPress,
     game,
+    getPrice,
     isResolvedExpanded,
     onResolvedExpandedToggle,
+    onVisiblePriceQueriesChange,
   }: {
     group: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
+    getPrice: (tokenId: string) => PriceUpdate | undefined;
     isResolvedExpanded: boolean;
     onResolvedExpandedToggle: () => void;
+    onVisiblePriceQueriesChange: (queries: PriceQuery[]) => void;
   }) => {
-    const {
-      openCardModels,
-      closedOutcomes,
-      activeGroupTokenIds,
-      showResolvedSection,
-    } = usePredictGameGroupOutcomes({ group });
-    const { getPrice } = useLiveMarketPrices(activeGroupTokenIds);
+    const { openCardModels, closedOutcomes, showResolvedSection } =
+      usePredictGameGroupOutcomes({ group });
+    const [selectedLineIndices, setSelectedLineIndices] = useState<
+      Record<string, number | undefined>
+    >({});
+
+    useEffect(() => {
+      setSelectedLineIndices({});
+    }, [group.key]);
+
+    const visibleCardKeys = useMemo(
+      () => new Set(openCardModels.map((cardModel) => cardModel.key)),
+      [openCardModels],
+    );
+    const priceQueries = useMemo(
+      () =>
+        resolveVisibleOutcomePriceQueries({
+          cardModels: openCardModels,
+          selectedLineIndices,
+          visibleCardKeys,
+        }),
+      [openCardModels, selectedLineIndices, visibleCardKeys],
+    );
+
+    useEffect(() => {
+      onVisiblePriceQueriesChange(priceQueries);
+    }, [onVisiblePriceQueriesChange, priceQueries]);
+
+    useEffect(
+      () => () => onVisiblePriceQueriesChange([]),
+      [onVisiblePriceQueriesChange],
+    );
+
+    const handleSelectedLineIndexChange = useCallback(
+      (cardKey: string, nextIndex: number) => {
+        setSelectedLineIndices((previousSelectedLineIndices) =>
+          previousSelectedLineIndices[cardKey] === nextIndex
+            ? previousSelectedLineIndices
+            : {
+                ...previousSelectedLineIndices,
+                [cardKey]: nextIndex,
+              },
+        );
+      },
+      [],
+    );
 
     return (
       <>
@@ -45,6 +90,10 @@ const OutcomesContent = memo(
             onBuyPress={onBuyPress}
             game={game}
             getPrice={getPrice}
+            selectedLineIndex={selectedLineIndices[cardModel.key]}
+            onSelectedLineIndexChange={(nextIndex) =>
+              handleSelectedLineIndexChange(cardModel.key, nextIndex)
+            }
           />
         ))}
         {showResolvedSection && (
@@ -65,11 +114,20 @@ export interface OutcomesTabProps {
   groupMap: Map<string, PredictOutcomeGroup>;
   game?: PredictMarketGame;
   activeChipKey: string;
+  getPrice: (tokenId: string) => PriceUpdate | undefined;
+  onVisiblePriceQueriesChange: (queries: PriceQuery[]) => void;
   onBuyPress: (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 }
 
 const PredictGameOutcomesTab = memo(
-  ({ groupMap, game, activeChipKey, onBuyPress }: OutcomesTabProps) => {
+  ({
+    groupMap,
+    game,
+    activeChipKey,
+    getPrice,
+    onVisiblePriceQueriesChange,
+    onBuyPress,
+  }: OutcomesTabProps) => {
     const selectedGroup = groupMap.get(activeChipKey);
     const [expandedByChipKey, setExpandedByChipKey] = useState<
       Record<string, boolean>
@@ -82,6 +140,12 @@ const PredictGameOutcomesTab = memo(
       }));
     }, [activeChipKey]);
 
+    useEffect(() => {
+      if (!selectedGroup) {
+        onVisiblePriceQueriesChange([]);
+      }
+    }, [onVisiblePriceQueriesChange, selectedGroup]);
+
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
         {selectedGroup && (
@@ -90,8 +154,10 @@ const PredictGameOutcomesTab = memo(
               group={selectedGroup}
               onBuyPress={onBuyPress}
               game={game}
+              getPrice={getPrice}
               isResolvedExpanded={isResolvedExpanded}
               onResolvedExpandedToggle={toggleResolvedExpanded}
+              onVisiblePriceQueriesChange={onVisiblePriceQueriesChange}
             />
           </Box>
         )}

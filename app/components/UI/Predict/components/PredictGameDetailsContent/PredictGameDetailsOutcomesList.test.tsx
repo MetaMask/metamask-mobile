@@ -1,14 +1,12 @@
 import React from 'react';
 import { act, render, waitFor } from '@testing-library/react-native';
 import { View } from 'react-native';
-import Engine from '../../../../../core/Engine';
 import type {
   PredictMarket,
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
-  PriceUpdate,
 } from '../../types';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
@@ -79,16 +77,6 @@ jest.mock('@shopify/flash-list', () => {
     },
   };
 });
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      getPrices: jest.fn(),
-      subscribeToMarketPrices: jest.fn(),
-      getConnectionStatus: jest.fn(),
-    },
-  },
-}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -286,6 +274,9 @@ const createDefaultProps = (
     onChipSelect: jest.fn(),
     activePositions: [],
     claimablePositions: [],
+    getPrice: jest.fn(),
+    priceVersion: 0,
+    onVisiblePriceQueriesChange: jest.fn(),
     ...overrides,
   };
 };
@@ -297,29 +288,12 @@ const settleVisibility = () => {
 };
 
 describe('PredictGameDetailsOutcomesList', () => {
-  const mockGetPrices = Engine.context.PredictController.getPrices as jest.Mock;
-  const mockSubscribeToMarketPrices = Engine.context.PredictController
-    .subscribeToMarketPrices as jest.Mock;
-  const mockGetConnectionStatus = Engine.context.PredictController
-    .getConnectionStatus as jest.Mock;
-  let capturedPriceCallback: (updates: PriceUpdate[]) => void = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockVisibleItemKeys = null;
     mockLatestFlashListExtraData = undefined;
     mockFlashListMountCount = 0;
-    capturedPriceCallback = jest.fn();
-    mockGetPrices.mockResolvedValue({ providerId: 'polymarket', results: [] });
-    mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
-      capturedPriceCallback = callback;
-      return jest.fn();
-    });
-    mockGetConnectionStatus.mockReturnValue({
-      sportsConnected: false,
-      marketConnected: true,
-    });
   });
 
   afterEach(() => {
@@ -362,7 +336,7 @@ describe('PredictGameDetailsOutcomesList', () => {
     ).toBeOnTheScreen();
   });
 
-  it('subscribes only to visible rendered-button token IDs', async () => {
+  it('reports visible rendered-button price queries', async () => {
     const visibleGroup = createSingleOutcomeGroup({
       subgroupKey: 'visible_card',
       outcome: createOutcome({
@@ -393,81 +367,68 @@ describe('PredictGameDetailsOutcomesList', () => {
     };
     mockVisibleItemKeys = ['game-details-outcome-visible-outcome'];
 
+    const onVisiblePriceQueriesChange = jest.fn();
     render(
       <PredictGameDetailsOutcomesList
         {...createDefaultProps({
           groupMap: new Map([[mixedGroup.key, mixedGroup]]),
           activeChipKey: mixedGroup.key,
           chips: [{ key: mixedGroup.key, label: 'Mixed' }],
+          onVisiblePriceQueriesChange,
         })}
       />,
     );
     settleVisibility();
 
     await waitFor(() => {
-      expect(mockSubscribeToMarketPrices).toHaveBeenCalledWith(
-        ['visible-over', 'visible-under'],
-        expect.any(Function),
+      expect(onVisiblePriceQueriesChange).toHaveBeenLastCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ outcomeTokenId: 'visible-over' }),
+          expect.objectContaining({ outcomeTokenId: 'visible-under' }),
+        ]),
       );
     });
-    expect(mockSubscribeToMarketPrices).not.toHaveBeenCalledWith(
-      ['hidden-over', 'hidden-under'],
-      expect.any(Function),
-    );
   });
 
-  it('subscribes only to the default selected line tokens for visible line cards', async () => {
+  it('reports selected visible line price queries for line cards', async () => {
     const lineGroup = createLineGroup();
     mockVisibleItemKeys = ['game-details-outcome-total_corners'];
 
+    const onVisiblePriceQueriesChange = jest.fn();
     render(
       <PredictGameDetailsOutcomesList
         {...createDefaultProps({
           groupMap: new Map([[lineGroup.key, lineGroup]]),
           activeChipKey: lineGroup.key,
           chips: [{ key: lineGroup.key, label: 'Game Lines' }],
+          onVisiblePriceQueriesChange,
         })}
       />,
     );
     settleVisibility();
 
     await waitFor(() => {
-      expect(mockSubscribeToMarketPrices).toHaveBeenCalledWith(
-        ['over-95', 'under-95'],
-        expect.any(Function),
+      expect(onVisiblePriceQueriesChange).toHaveBeenLastCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ outcomeTokenId: 'over-95' }),
+          expect.objectContaining({ outcomeTokenId: 'under-95' }),
+        ]),
       );
     });
-    expect(mockSubscribeToMarketPrices).not.toHaveBeenCalledWith(
-      ['over-85', 'under-85', 'over-95', 'under-95'],
-      expect.any(Function),
-    );
   });
 
-  it('passes price version changes through FlashList extraData', async () => {
+  it('passes price version through FlashList extraData', async () => {
     mockVisibleItemKeys = ['game-details-outcome-visible-outcome'];
-    render(<PredictGameDetailsOutcomesList {...createDefaultProps()} />);
+    render(
+      <PredictGameDetailsOutcomesList
+        {...createDefaultProps({ priceVersion: 3 })}
+      />,
+    );
     settleVisibility();
-    await waitFor(() => {
-      expect(mockSubscribeToMarketPrices).toHaveBeenCalledWith(
-        ['visible-over', 'visible-under'],
-        expect.any(Function),
-      );
-    });
-
-    act(() => {
-      capturedPriceCallback([
-        {
-          tokenId: 'visible-over',
-          price: 0.72,
-          bestBid: 0.71,
-          bestAsk: 0.73,
-        },
-      ]);
-    });
 
     expect(mockLatestFlashListExtraData).toEqual(
       expect.objectContaining({
-        priceVersion: 1,
+        priceVersion: 3,
       }),
     );
   });

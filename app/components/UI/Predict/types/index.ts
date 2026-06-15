@@ -457,6 +457,7 @@ export interface PriceQuery {
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
+  sportsMarketType?: string;
 }
 
 export interface GetPriceResponse {

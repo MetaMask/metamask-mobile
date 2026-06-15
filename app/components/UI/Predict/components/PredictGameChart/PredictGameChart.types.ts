@@ -1,4 +1,4 @@
-import { PredictMarket } from '../../types';
+import { PredictMarket, PriceUpdate } from '../../types';
 
 export interface GameChartDataPoint {
   timestamp: number;
@@ -31,6 +31,10 @@ export interface PredictGameChartContentProps {
 
 export interface PredictGameChartProps {
   market: PredictMarket;
+  livePrices?: Map<string, PriceUpdate>;
+  getLivePrice?: (tokenId: string) => PriceUpdate | undefined;
+  livePriceVersion?: number;
+  onLiveStatusChange?: (isLive: boolean) => void;
   testID?: string;
 }
 
