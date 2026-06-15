@@ -2340,6 +2340,9 @@ describe('selectHasEligibleSwapSource', () => {
       jest.requireActual('@metamask/assets-controllers')
         .selectAssetsBySelectedAccountGroup,
     );
+    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
+    selectAssetsBySelectedAccountGroup.clearCache();
+    selectHasEligibleSwapSource.clearCache();
   });
 
   /**
@@ -2352,6 +2355,10 @@ describe('selectHasEligibleSwapSource', () => {
     innerSelector.mockReturnValue(
       buildAssetsByChain(assets) as AccountGroupAssets,
     );
+    // createDeepEqualSelector keeps a separate memoizedResultFunc cache;
+    // clearCache() alone does not reset it when mockState() is deep-equal
+    // across tests but the inner mock return value changes.
+    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
     selectAssetsBySelectedAccountGroup.clearCache();
     selectHasEligibleSwapSource.clearCache();
     return selectHasEligibleSwapSource(mockState());
