@@ -112,7 +112,7 @@ const MoneyHomeView = () => {
     totalFiatFormatted,
     totalFiatRaw,
     vaultApyQuery,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
@@ -659,7 +659,7 @@ const MoneyHomeView = () => {
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
               yearlyEarnings={yearlyEarnings}
-              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+              isLoading={vaultApyQuery.isLoading || isBalanceLoading}
               onInfoPress={handleEarningsInfoPress}
             />
             <Divider />
