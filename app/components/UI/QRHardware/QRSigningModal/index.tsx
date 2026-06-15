@@ -3,9 +3,13 @@ import Modal from 'react-native-modal';
 import { StyleSheet, View } from 'react-native';
 import QRSigningDetails from '../QRSigningDetails';
 import { useTheme } from '../../../../util/theme';
+import { Theme } from '../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../util/theme/themeUtils';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { QrScanRequest } from '@metamask/eth-qr-keyring';
+
+export const QR_SIGNING_MODAL_CONTENT_TEST_ID = 'qr-signing-modal-content';
 
 interface IQRSigningModalProps {
   isVisible: boolean;
@@ -15,9 +19,7 @@ interface IQRSigningModalProps {
   onFailure?: (error: string) => void;
 }
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (theme: Theme) =>
   StyleSheet.create({
     modal: {
       margin: 0,
@@ -26,7 +28,7 @@ const createStyles = (colors: any) =>
     contentWrapper: {
       justifyContent: 'flex-end',
       height: 600,
-      backgroundColor: colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
       paddingTop: 24,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
@@ -40,8 +42,9 @@ const QRSigningModal = ({
   onCancel,
   onFailure,
 }: IQRSigningModalProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
   const [isModalCompleteShow, setModalCompleteShow] = useState(false);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
@@ -75,7 +78,10 @@ const QRSigningModal = ({
       }}
       propagateSwipe
     >
-      <View style={styles.contentWrapper}>
+      <View
+        style={styles.contentWrapper}
+        testID={QR_SIGNING_MODAL_CONTENT_TEST_ID}
+      >
         <QRSigningDetails
           pendingScanRequest={pendingScanRequest}
           showCancelButton
