@@ -663,6 +663,44 @@ describe('LedgerSelectAccount', () => {
     });
   });
 
+  describe('HD Path Defaulting', () => {
+    it.each([LEDGER_BIP44_PATH, LEDGER_LEGACY_PATH])(
+      'always sets HD path to Ledger Live on mount regardless of previously stored path (%s)',
+      async (previousPath) => {
+        mockGetHDPath.mockResolvedValue(previousPath);
+        mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+        renderWithProvider(<LedgerSelectAccount />);
+
+        await waitFor(() => {
+          expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LIVE_PATH);
+        });
+      },
+    );
+
+    it('sets HD path to Ledger Live before fetching accounts', async () => {
+      const callOrder: string[] = [];
+      mockSetHDPath.mockImplementation(async () => {
+        callOrder.push('setHDPath');
+      });
+      mockGetLedgerAccountsByOperation.mockImplementation(async () => {
+        callOrder.push('getLedgerAccountsByOperation');
+        return mockAccounts;
+      });
+
+      renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(callOrder).toContain('setHDPath');
+        expect(callOrder).toContain('getLedgerAccountsByOperation');
+      });
+
+      expect(callOrder.indexOf('setHDPath')).toBeLessThan(
+        callOrder.indexOf('getLedgerAccountsByOperation'),
+      );
+    });
+  });
+
   describe('getPathString', () => {
     it('correctly maps Ledger Live path constant', () => {
       expect(LEDGER_LIVE_PATH).toBe("m/44'/60'/0'/0/0");
