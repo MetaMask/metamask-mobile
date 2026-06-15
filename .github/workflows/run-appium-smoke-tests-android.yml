@@ -64,11 +64,17 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
       }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-accounts-android-smoke
+      test-suite-name: appium-accounts-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: SmokeAccounts
+      split_number: ${{ matrix.split }}
+      total_splits: 2
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}

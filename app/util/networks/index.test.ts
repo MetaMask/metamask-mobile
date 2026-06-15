@@ -22,6 +22,7 @@ import NetworkList, {
   isWhitelistedRpcUrl,
   isWhitelistedNetworkName,
   canDeleteNetwork,
+  isMonadMainnetChainId,
 } from '.';
 import {
   convertNetworkId,
@@ -193,6 +194,18 @@ describe('network-utils', () => {
     });
     it('returns true for custom chain ID 0x2a', () => {
       expect(canDeleteNetwork('0x2a')).toBe(true);
+    });
+    it('returns false for Monad mainnet', () => {
+      expect(canDeleteNetwork(NETWORKS_CHAIN_ID.MONAD)).toBe(false);
+    });
+  });
+
+  describe('isMonadMainnetChainId', () => {
+    it('returns true for Monad mainnet chain ID', () => {
+      expect(isMonadMainnetChainId(NETWORKS_CHAIN_ID.MONAD)).toBe(true);
+    });
+    it('returns false for a different chain ID', () => {
+      expect(isMonadMainnetChainId('0x1')).toBe(false);
     });
   });
 

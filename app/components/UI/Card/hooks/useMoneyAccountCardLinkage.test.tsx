@@ -6,13 +6,16 @@ import Logger from '../../../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
+import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
+  selectIsCardVerified,
   selectIsCardholder,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
+  selectMoneyAccountVedaTokenConfig,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -156,6 +159,7 @@ const buildSelectors = (
     vaultConfig?: { chainId?: string } | undefined;
     isMoneyAccountEnabled?: boolean;
     isCardAuthenticated?: boolean;
+    isCardVerified?: boolean;
     isCardholder?: boolean;
     delegationSettings?: unknown;
     isAlreadyDelegated?: boolean;
@@ -163,12 +167,15 @@ const buildSelectors = (
     cardHomeDataStatus?: CardHomeDataStatusMock;
     isMonadSponsorshipEnabled?: boolean;
     moneyAccountCardLinkInProgress?: boolean;
+    cardFeatureFlag?: unknown;
+    vedaConfig?: unknown;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
   vaultConfig: { chainId: '0x8f' },
   isMoneyAccountEnabled: true,
   isCardAuthenticated: true,
+  isCardVerified: true,
   isCardholder: false,
   delegationSettings: { ok: true },
   isAlreadyDelegated: false,
@@ -176,6 +183,28 @@ const buildSelectors = (
   cardHomeDataStatus: 'success' as CardHomeDataStatusMock,
   isMonadSponsorshipEnabled: true,
   moneyAccountCardLinkInProgress: false,
+  cardFeatureFlag: {
+    chains: {
+      'eip155:143': {
+        enabled: true,
+        tokens: [
+          {
+            address: '0xveda',
+            symbol: 'veda',
+            decimals: 6,
+            enabled: true,
+            name: 'Veda',
+          },
+        ],
+      },
+    },
+  },
+  vedaConfig: {
+    caipChainId: 'eip155:143',
+    address: '0xveda',
+    decimals: 6,
+    delegationContract: '0xdelegation',
+  },
   ...overrides,
 });
 
@@ -188,6 +217,7 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return state.isMoneyAccountEnabled;
     if (selector === selectIsCardAuthenticated)
       return state.isCardAuthenticated;
+    if (selector === selectIsCardVerified) return state.isCardVerified;
     if (selector === selectIsCardholder) return state.isCardholder;
     if (selector === selectCardDelegationSettings)
       return state.delegationSettings;
@@ -200,6 +230,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return state.pendingMoneyAccountCardLink;
     if (selector === getGasFeesSponsoredNetworkEnabled)
       return (_chainId: string) => state.isMonadSponsorshipEnabled;
+    if (selector === selectCardFeatureFlag) return state.cardFeatureFlag;
+    if (selector === selectMoneyAccountVedaTokenConfig) return state.vedaConfig;
     return undefined;
   });
 };
@@ -262,6 +294,18 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
+    it('reports canLink=false when the card user is not VERIFIED', () => {
+      applySelectorMocks(buildSelectors({ isCardVerified: false }));
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.isCardVerified).toBe(false);
+    });
+
+    it('reports isCardVerified=true when verification status is VERIFIED', () => {
+      const { result } = renderLinkageHook();
+      expect(result.current.isCardVerified).toBe(true);
+    });
+
     it('reports canLink=false when there is no Money account', () => {
       applySelectorMocks(buildSelectors({ primaryMoneyAccount: undefined }));
       const { result } = renderLinkageHook();
@@ -278,6 +322,87 @@ describe('useMoneyAccountCardLinkage', () => {
       applySelectorMocks(buildSelectors({ vaultConfig: undefined }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
+    });
+
+    it('reports canLink=false when VEDA is not allowlisted in the cardFeature flag', () => {
+      applySelectorMocks(
+        buildSelectors({
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xusdc',
+                    symbol: 'USDC',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'USD Coin',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.moneyAccountCardToken).toBeNull();
+    });
+
+    it('reports canLink=true when VEDA is allowlisted by address under the mUSD display symbol', () => {
+      applySelectorMocks(
+        buildSelectors({
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xveda',
+                    symbol: 'mUSD',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'MetaMask USD',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(true);
+      expect(result.current.hasMoneyAccountRequirements).toBe(true);
+      expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
+    });
+
+    it('reports canLink=false when VEDA is present but disabled in the cardFeature flag', () => {
+      applySelectorMocks(
+        buildSelectors({
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xveda',
+                    symbol: 'veda',
+                    decimals: 6,
+                    enabled: false,
+                    name: 'Veda',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.moneyAccountCardToken).toBeNull();
     });
 
     it('reports canLink=false when the Monad USDC token cannot be resolved', () => {
@@ -435,6 +560,19 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
+    it('no-ops when the user is authenticated but not VERIFIED', () => {
+      applySelectorMocks(buildSelectors({ isCardVerified: false }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
     it('no-ops when the user is authenticated and the Money Account is already delegated', () => {
       applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
       const { result } = renderLinkageHook();
@@ -589,6 +727,40 @@ describe('useMoneyAccountCardLinkage', () => {
   });
 
   describe('resume effect (pendingMoneyAccountCardLink)', () => {
+    it('clears the pending flag without opening the sheet when authenticated but not VERIFIED', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          isCardVerified: false,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(null),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it.each(['idle', 'loading'] as const)(
+      'keeps the pending flag while card data is still %s and verification is unknown',
+      (cardHomeDataStatus) => {
+        applySelectorMocks(
+          buildSelectors({
+            pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            isCardVerified: false,
+            cardHomeDataStatus,
+          }),
+        );
+        renderLinkageHook();
+
+        expect(mockDispatch).not.toHaveBeenCalledWith(
+          setPendingMoneyAccountCardLink(null),
+        );
+        expect(mockNavigate).not.toHaveBeenCalled();
+      },
+    );
+
     it('opens the Link Card sheet and clears the flag when authenticated and canLink', () => {
       applySelectorMocks(
         buildSelectors({

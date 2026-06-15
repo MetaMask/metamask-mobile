@@ -632,13 +632,6 @@ describe('EncapsulatedElement', () => {
       ).toBe(true);
     });
 
-    it('returns true for { custom }', () => {
-      const config: LocatorConfig = {
-        detox: () => createMockDetoxElement(),
-      };
-      expect(isSelector({ custom: config })).toBe(true);
-    });
-
     it('returns false for null', () => {
       expect(isSelector(null)).toBe(false);
     });
@@ -802,24 +795,6 @@ describe('EncapsulatedElement', () => {
         expect(spy).toHaveBeenCalledTimes(1);
         const config = spy.mock.calls[0][0] as LocatorConfig;
         expect(typeof config.detox).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ custom }', () => {
-      it('delegates directly to encapsulated() with the provided LocatorConfig', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const mockDetoxElement = createMockDetoxElement();
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(mockDetoxElement);
-        const customConfig: LocatorConfig = {
-          detox: () => mockDetoxElement,
-        };
-
-        resolve({ custom: customConfig });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        expect(spy.mock.calls[0][0]).toBe(customConfig);
         spy.mockRestore();
       });
     });

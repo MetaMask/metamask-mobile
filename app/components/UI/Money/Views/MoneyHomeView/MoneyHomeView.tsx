@@ -10,7 +10,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BannerAlert,
+  BannerAlertSeverity,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -36,14 +41,10 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
-import NavigationService from '../../../../../core/NavigationService';
 import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
@@ -112,8 +113,7 @@ const MoneyHomeView = () => {
     totalFiatRaw,
     vaultApyQuery,
     isAggregatedBalanceLoading,
-    isBalanceFetchError,
-    isBalanceFetching,
+    lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
   } = useMoneyAccountBalance();
@@ -140,7 +140,6 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -163,24 +162,30 @@ const MoneyHomeView = () => {
   const {
     startLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
     isLinking,
+    hasMoneyAccountRequirements,
   } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
-  } else if (isBalanceFetchError && isBalanceFetching) {
-    displayState = { kind: 'retrying' };
-  } else if (isBalanceFetchError) {
-    displayState = { kind: 'error', onRetry: refetchBalance };
-  } else if (isAggregatedBalanceLoading) {
-    displayState = { kind: 'loading' };
-  } else if (totalFiatFormatted === undefined) {
-    displayState = { kind: 'unavailable' };
-  } else {
+  } else if (totalFiatFormatted !== undefined) {
+    // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else {
+    // No fresh balance (loading, fetch error, or rate not ready). Carry the
+    // cached balance (when valid for this account/currency) so it renders as a
+    // muted "last known" figure; otherwise the slot shows a dash. Either way a
+    // BannerAlert accompanies it.
+    displayState = {
+      kind: 'unavailable',
+      lastKnownValue: lastKnownTotalFiatFormatted,
+    };
   }
+
+  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
@@ -188,6 +193,7 @@ const MoneyHomeView = () => {
     !!totalFiatRaw &&
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
+  const isEmptyState = hasBalanceValue && !isFunded;
 
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
@@ -266,19 +272,28 @@ const MoneyHomeView = () => {
     [navigation, trackButtonClicked],
   );
 
+  const handleFooterAddMoneyPress = useCallback(() => {
+    handleAddPress({
+      labelKey: 'money.footer.add_money',
+      componentName: COMPONENT_NAMES.MONEY_FOOTER,
+    });
+  }, [handleAddPress]);
+
   const handleMusdRowAddPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: 'money.musd_row.add',
       component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-      redirect_target: hasMusdBalance
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : SCREEN_NAMES.RAMP_BUY,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    routeAddMoney();
-  }, [hasMusdBalance, routeAddMoney, trackButtonClicked]);
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyHomeView] Failed to initiate deposit from mUSD row',
+      }),
+    );
+  }, [initiateDeposit, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
@@ -398,12 +413,11 @@ const MoneyHomeView = () => {
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
       trackSurfaceClicked({
         component_name: componentName,
-        redirect_target: SCREEN_NAMES.ASSET_OVERVIEW,
+        redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      NavigationService.navigation.navigate('Asset', {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
+      Linking.openURL(AppConstants.URLS.MUSD_PRICE).catch((error: Error) => {
+        Logger.error(error, '[MoneyHomeView] Failed to open mUSD price page');
       });
     },
     [trackSurfaceClicked],
@@ -494,10 +508,12 @@ const MoneyHomeView = () => {
   const handleWhatYouGetPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_WHAT_YOU_GET,
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
   }, [trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
@@ -506,10 +522,12 @@ const MoneyHomeView = () => {
       button_intent: MONEY_BUTTON_INTENTS.LEARN_MORE,
       component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET_SECTION,
       label_key: 'money.what_you_get.learn_more',
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
   }, [trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
@@ -561,11 +579,13 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardAuthenticated || isCardholder) {
-    metamaskCardMode = 'link';
+  } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
+    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
+  } else if (isCardAuthenticated) {
+    metamaskCardMode = null;
   } else {
     metamaskCardMode = 'upsell';
   }
@@ -600,6 +620,19 @@ const MoneyHomeView = () => {
           />
         }
       >
+        {showBalanceUnavailableBanner && (
+          <Box twClassName="px-4 pt-2">
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              title={strings('money.balance_unavailable')}
+              description={strings(
+                'money.balance_unavailable_banner_description',
+              )}
+              style={styles.balanceUnavailableBanner}
+              testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
+            />
+          </Box>
+        )}
         <MoneyBalanceSummary
           apy={apyPercent}
           displayState={displayState}
@@ -622,7 +655,7 @@ const MoneyHomeView = () => {
           card={{ onPress: handleActionButtonCardPress }}
         />
         <MoneyOnboardingCard />
-        {hasSpendableBalance && (
+        {hasBalanceValue && isFunded && (
           <>
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
@@ -633,7 +666,7 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {hasBalanceValue && !isFunded && (
+        {isEmptyState && (
           <>
             <MoneyHowItWorks
               apy={apyPercent}
@@ -654,7 +687,7 @@ const MoneyHomeView = () => {
               onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
-            <Divider />
+            <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
           </>
         )}
         {(showCardActivityLoading || activityItems.length >= 1) && (
@@ -690,57 +723,53 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyMetaMaskCard
-          mode={metamaskCardMode}
-          onGetNowPress={navigateToCardHome}
-          onHeaderPress={handleCardHeaderPress}
-          onLinkPress={handleLinkCardPress}
-          onManagePress={navigateToCardHome}
-          showMetalCard={hasMetalCard}
-          isLinkDisabled={isLinking}
-          cardBalance={cardBalance}
-          apy={apyPercent}
-          analyticsScreen={CardScreens.MONEY_HOME}
-          analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
-          analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-          analyticsCardState={cardState}
-          analyticsReady={isCardAnalyticsReady}
-        />
-        <Divider />
-        {isFunded && (
+        {metamaskCardMode && (
           <>
-            <MoneyCondensedInfoCards
-              onHowItWorksPress={() =>
-                handleHowItWorksPress({
-                  componentName:
-                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
-                })
-              }
-              onMusdPress={() =>
-                handleMusdRowPress({
-                  componentName:
-                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
-                })
-              }
-              onWhatYouGetPress={handleWhatYouGetPress}
+            <MoneyMetaMaskCard
+              mode={metamaskCardMode}
+              onGetNowPress={navigateToCardHome}
+              onHeaderPress={handleCardHeaderPress}
+              onLinkPress={handleLinkCardPress}
+              onManagePress={navigateToCardHome}
+              showMetalCard={hasMetalCard}
+              isLinkDisabled={isLinking}
+              cardBalance={cardBalance}
+              isBalanceStale={showBalanceUnavailableBanner}
+              apy={apyPercent}
+              analyticsScreen={CardScreens.MONEY_HOME}
+              analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+              analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+              analyticsCardState={cardState}
+              analyticsReady={isCardAnalyticsReady}
             />
             <Divider />
           </>
         )}
-        {hasBalanceValue && !isFunded && (
+        {isFunded && (
+          <MoneyCondensedInfoCards
+            onHowItWorksPress={() =>
+              handleHowItWorksPress({
+                componentName:
+                  COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
+              })
+            }
+            onMusdPress={() =>
+              handleMusdRowPress({
+                componentName: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
+              })
+            }
+            onWhatYouGetPress={handleWhatYouGetPress}
+          />
+        )}
+        {isEmptyState && (
           <MoneyWhatYouGet
             apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
           />
         )}
-        <MoneyFooter
-          onAddMoneyPress={() =>
-            handleAddPress({
-              labelKey: 'money.footer.add_money',
-              componentName: COMPONENT_NAMES.MONEY_FOOTER,
-            })
-          }
-        />
+        {!isEmptyState && (
+          <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
+        )}
       </ScrollView>
     </Box>
   );
