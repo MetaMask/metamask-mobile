@@ -62,8 +62,8 @@ const makeTx = (overrides: Partial<TransactionMeta> = {}): TransactionMeta =>
 
 const selectorState = {
   allTokens: {
-    [from.toLowerCase()]: {
-      '0x2105': [{ address: usdc, decimals: 6, symbol: 'USDC' }],
+    '0x2105': {
+      [from.toLowerCase()]: [{ address: usdc, decimals: 6, symbol: 'USDC' }],
     },
   },
   bridgeHistory: {},

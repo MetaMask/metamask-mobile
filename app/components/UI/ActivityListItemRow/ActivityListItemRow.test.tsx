@@ -51,25 +51,12 @@ const mockState = {
 };
 
 // Minimal required mocks
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { default: 'white', alternative: 'grey' },
-      text: { default: 'black', alternative: 'grey', muted: 'grey' },
-      border: { muted: 'grey' },
-      success: { default: 'green' },
-      error: { default: 'red' },
-      warning: { default: 'orange' },
-      primary: { default: 'blue' },
-      icon: { default: 'grey' },
-    },
-    typography: {
-      sBodyLGMedium: { fontSize: 16 },
-      sBodyMDBold: { fontSize: 14, fontWeight: 'bold' },
-      sBodyMD: { fontSize: 14 },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => {
