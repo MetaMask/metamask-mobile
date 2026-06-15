@@ -1,12 +1,21 @@
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
 import { RootState } from '../../../reducers';
 import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
+  selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import {
+  MUSD_DECIMALS,
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../Earn/constants/musd';
 import { renderShortAddress } from '../../../util/address';
 import {
   applyDisplaySign,
@@ -18,6 +27,7 @@ import {
   type TokenAmount,
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
+import type { MarketRateLookupToken } from '../../../util/activity-adapters/fiat';
 import { balanceToFiatNumber, renderFiat } from '../../../util/number/bigint';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 
@@ -34,6 +44,106 @@ function tokenPairSubtitle(
   return sourceSymbol && destinationSymbol
     ? `${sourceSymbol} → ${destinationSymbol}`
     : undefined;
+}
+
+function normalizeBridgeQuoteChainId(
+  chainId: string | number | undefined,
+): string | undefined {
+  if (chainId === undefined) {
+    return undefined;
+  }
+
+  if (typeof chainId === 'number') {
+    return `0x${chainId.toString(16)}`;
+  }
+
+  if (chainId.startsWith('eip155:')) {
+    const [, decimalChainId] = chainId.split(':');
+    const parsedChainId = Number.parseInt(decimalChainId, 10);
+    return Number.isNaN(parsedChainId)
+      ? undefined
+      : `0x${parsedChainId.toString(16)}`;
+  }
+
+  if (/^\d+$/u.test(chainId)) {
+    return `0x${Number.parseInt(chainId, 10).toString(16)}`;
+  }
+
+  return chainId.toLowerCase();
+}
+
+function getBridgeQuoteNetworkName(
+  chainId: string | number | undefined,
+): string | undefined {
+  const normalizedChainId = normalizeBridgeQuoteChainId(chainId);
+
+  return normalizedChainId
+    ? NETWORK_TO_SHORT_NETWORK_NAME_MAP[
+        normalizedChainId as keyof typeof NETWORK_TO_SHORT_NETWORK_NAME_MAP
+      ]
+    : undefined;
+}
+
+function bridgeRouteSubtitle(
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
+): string | undefined {
+  const { srcChainId, destChainId } = bridgeHistoryItem?.quote ?? {};
+  const srcChainName = getBridgeQuoteNetworkName(srcChainId);
+  const destChainName = getBridgeQuoteNetworkName(destChainId);
+
+  return srcChainName && destChainName
+    ? `${srcChainName} → ${destChainName}`
+    : undefined;
+}
+
+function tokenFromBridgeQuoteAsset({
+  amount,
+  asset,
+  direction,
+}: {
+  amount: string | undefined;
+  asset:
+    | {
+        assetId?: string;
+        decimals?: number;
+        symbol?: string;
+      }
+    | undefined;
+  direction: TokenAmount['direction'];
+}): TokenAmount | undefined {
+  if (!amount || !asset?.symbol) {
+    return undefined;
+  }
+
+  return {
+    amount,
+    direction,
+    symbol: asset.symbol,
+    ...(asset.decimals === undefined ? {} : { decimals: asset.decimals }),
+    ...(asset.assetId ? { assetId: asset.assetId } : {}),
+  };
+}
+
+function getBridgeQuoteTokens(
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
+): {
+  sourceToken?: TokenAmount;
+  destinationToken?: TokenAmount;
+} {
+  const quote = bridgeHistoryItem?.quote;
+
+  return {
+    sourceToken: tokenFromBridgeQuoteAsset({
+      amount: quote?.srcTokenAmount,
+      asset: quote?.srcAsset,
+      direction: 'out',
+    }),
+    destinationToken: tokenFromBridgeQuoteAsset({
+      amount: quote?.destTokenAmount ?? quote?.minDestTokenAmount,
+      asset: quote?.destAsset,
+      direction: 'in',
+    }),
+  };
 }
 
 function shortAddress(address?: string): string | undefined {
@@ -144,17 +254,111 @@ function uniqueTokens(tokens: (TokenAmount | undefined)[]): TokenAmount[] {
   return result;
 }
 
-function resolveAvatarTokens(item: ActivityListItem): TokenAmount[] {
+function enrichStablecoinTokenMetadata(
+  token: TokenAmount | undefined,
+  chainId: string | undefined,
+): TokenAmount | undefined {
+  const hexChainId = getHexChainId(chainId);
+  const isMusd =
+    token?.symbol === MUSD_TOKEN.symbol &&
+    Boolean(hexChainId && MUSD_TOKEN_ADDRESS_BY_CHAIN[hexChainId]);
+
+  if (!token || !isMusd || !hexChainId) {
+    return token;
+  }
+
+  return {
+    ...token,
+    decimals: token.decimals ?? MUSD_DECIMALS,
+    assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
+  };
+}
+
+function areSameDisplayToken(
+  sourceToken: TokenAmount | undefined,
+  destinationToken: TokenAmount | undefined,
+): boolean {
+  if (!sourceToken || !destinationToken) {
+    return false;
+  }
+
+  if (sourceToken.symbol && destinationToken.symbol) {
+    return sourceToken.symbol === destinationToken.symbol;
+  }
+
+  return Boolean(
+    sourceToken.assetId &&
+      destinationToken.assetId &&
+      sourceToken.assetId === destinationToken.assetId,
+  );
+}
+
+function resolveAvatarTokens(
+  item: ActivityListItem,
+  bridgeHistoryItem?: BridgeHistoryItem,
+): TokenAmount[] {
+  if (
+    item.type === 'swap' ||
+    item.type === 'convert' ||
+    item.type === 'wrap' ||
+    item.type === 'unwrap'
+  ) {
+    return [
+      enrichStablecoinTokenMetadata(item.data.sourceToken, item.chainId),
+      enrichStablecoinTokenMetadata(item.data.destinationToken, item.chainId),
+    ].filter((token): token is TokenAmount =>
+      Boolean(token?.symbol || token?.assetId),
+    );
+  }
+
+  if (item.type === 'bridge') {
+    const bridgeQuoteTokens = getBridgeQuoteTokens(bridgeHistoryItem);
+    const sourceToken = enrichStablecoinTokenMetadata(
+      bridgeQuoteTokens.sourceToken ?? item.data.sourceToken,
+      item.chainId,
+    );
+    const destinationToken = enrichStablecoinTokenMetadata(
+      bridgeQuoteTokens.destinationToken ?? item.data.destinationToken,
+      item.chainId,
+    );
+
+    return sourceToken &&
+      destinationToken &&
+      !areSameDisplayToken(sourceToken, destinationToken)
+      ? [sourceToken, destinationToken]
+      : uniqueTokens([sourceToken]);
+  }
+
+  if (item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal') {
+    return uniqueTokens([
+      enrichStablecoinTokenMetadata(
+        item.data.destinationToken ?? item.data.sourceToken,
+        item.chainId,
+      ),
+    ]);
+  }
+
   const { data } = item;
   return uniqueTokens([
-    'sourceToken' in data ? data.sourceToken : undefined,
-    'destinationToken' in data ? data.destinationToken : undefined,
-    'token' in data ? data.token : undefined,
+    'sourceToken' in data
+      ? enrichStablecoinTokenMetadata(data.sourceToken, item.chainId)
+      : undefined,
+    'destinationToken' in data
+      ? enrichStablecoinTokenMetadata(data.destinationToken, item.chainId)
+      : undefined,
+    'token' in data
+      ? enrichStablecoinTokenMetadata(data.token, item.chainId)
+      : undefined,
   ]);
+}
+
+function isNamelessNftToken(token: TokenAmount | undefined): boolean {
+  return Boolean(token?.amount && !token.symbol && !token.assetId);
 }
 
 function resolveCoreContent(
   item: ActivityListItem,
+  bridgeHistoryItem?: BridgeHistoryItem,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -250,28 +454,41 @@ function resolveCoreContent(
       };
     }
     case 'bridge': {
-      const { sourceToken, destinationToken } = item.data;
+      const bridgeQuoteTokens = getBridgeQuoteTokens(bridgeHistoryItem);
+      const sourceToken =
+        bridgeQuoteTokens.sourceToken ?? item.data.sourceToken;
+      const destinationToken =
+        bridgeQuoteTokens.destinationToken ?? item.data.destinationToken;
       const sourceSymbol = sourceToken?.symbol;
       const destinationSymbol = destinationToken?.symbol;
+      const isSourceOnlyApiBridge =
+        !bridgeHistoryItem && sourceToken && !destinationToken;
       const isCrossTokenBridge =
         sourceSymbol && destinationSymbol && sourceSymbol !== destinationSymbol;
+      const subtitle =
+        bridgeRouteSubtitle(bridgeHistoryItem) ??
+        (isCrossTokenBridge
+          ? tokenPairSubtitle(sourceToken, destinationToken)
+          : undefined);
 
       return {
         title: statusTitle(item, {
-          success: isCrossTokenBridge
-            ? 'Swapped'
-            : withOptionalSymbol('Bridged', destinationSymbol ?? sourceSymbol),
-          pending: withOptionalSymbol(
-            'Bridging',
-            destinationSymbol ?? sourceSymbol,
-          ),
-          failed: 'Bridge failed',
+          success: isSourceOnlyApiBridge
+            ? withOptionalSymbol('Sent', sourceSymbol)
+            : isCrossTokenBridge
+              ? 'Swapped'
+              : withOptionalSymbol(
+                  'Bridged',
+                  destinationSymbol ?? sourceSymbol,
+                ),
+          pending: isSourceOnlyApiBridge
+            ? withOptionalSymbol('Sending', sourceSymbol)
+            : withOptionalSymbol('Bridging', destinationSymbol ?? sourceSymbol),
+          failed: isSourceOnlyApiBridge ? 'Send failed' : 'Bridge failed',
         }),
-        subtitle: isCrossTokenBridge
-          ? tokenPairSubtitle(sourceToken, destinationToken)
-          : undefined,
-        primaryToken: destinationToken ?? sourceToken,
-        secondaryToken: destinationToken ? sourceToken : undefined,
+        subtitle,
+        primaryToken: sourceToken,
+        secondaryToken: destinationToken,
       };
     }
     case 'buy':
@@ -280,6 +497,7 @@ function resolveCoreContent(
     case 'deposit': {
       const token = item.data.token;
       const symbol = token?.symbol;
+      const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
       const labels =
         item.type === 'buy'
           ? { success: 'Bought', pending: 'Buying', failed: 'Buy failed' }
@@ -299,12 +517,18 @@ function resolveCoreContent(
 
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol(labels.success, symbol),
-          pending: withOptionalSymbol(labels.pending, symbol),
+          success: withOptionalSymbol(
+            labels.success,
+            isNamelessNftBuy ? 'NFT' : symbol,
+          ),
+          pending: withOptionalSymbol(
+            labels.pending,
+            isNamelessNftBuy ? 'NFT' : symbol,
+          ),
           failed: labels.failed,
         }),
         subtitle: protocolSubtitle(item),
-        primaryToken: token,
+        primaryToken: isNamelessNftBuy ? undefined : token,
       };
     }
     case 'claimMusdBonus':
@@ -432,6 +656,13 @@ function resolveCoreContent(
   }
 }
 
+export function resolveActivityListItemTitle(
+  item: ActivityListItem,
+  titleOverride?: string,
+): string {
+  return titleOverride ?? resolveCoreContent(item).title;
+}
+
 function resolveAmount(
   token: TokenAmount | undefined,
   activityType: ActivityListItem['type'],
@@ -445,11 +676,15 @@ function resolveAmount(
   const amount = token.symbol
     ? `${displayAmount} ${token.symbol}`
     : displayAmount;
+  const isSpendingCapActivity =
+    activityType === 'approveSpendingCap' ||
+    activityType === 'increaseSpendingCap' ||
+    activityType === 'revokeSpendingCap';
   const signPrefix = getDisplaySignPrefix(token.direction, {
-    showPlus: shouldShowPlusSign(activityType),
+    showPlus: !isSpendingCapActivity && shouldShowPlusSign(activityType),
   });
 
-  return applyDisplaySign(amount, signPrefix);
+  return isSpendingCapActivity ? amount : applyDisplaySign(amount, signPrefix);
 }
 
 function formatTokenQuantity(amount: string): string {
@@ -504,6 +739,37 @@ function isNativeAsset(token: TokenAmount): boolean {
   );
 }
 
+function getMusdMarketRateToken(
+  token: TokenAmount,
+  hexChainId: Hex,
+): MarketRateLookupToken | undefined {
+  if (
+    token.symbol !== MUSD_TOKEN.symbol ||
+    !MUSD_TOKEN_ADDRESS_BY_CHAIN[hexChainId]
+  ) {
+    return undefined;
+  }
+
+  return {
+    address: MUSD_TOKEN_ADDRESS_BY_CHAIN[hexChainId].toLowerCase(),
+    symbol: MUSD_TOKEN.symbol,
+    decimals: token.decimals ?? MUSD_DECIMALS,
+    chainId: hexChainId,
+  };
+}
+
+function getMusdNativeExchangeRate({
+  usdConversionRate,
+}: {
+  usdConversionRate: number | null | undefined;
+}): number | undefined {
+  if (!usdConversionRate) {
+    return undefined;
+  }
+
+  return 1 / usdConversionRate;
+}
+
 function resolveFiatAmount({
   activityType,
   contractExchangeRates,
@@ -511,6 +777,7 @@ function resolveFiatAmount({
   currentCurrency,
   hexChainId,
   token,
+  usdConversionRate,
 }: {
   activityType: ActivityListItem['type'];
   contractExchangeRates:
@@ -520,17 +787,23 @@ function resolveFiatAmount({
   currentCurrency: string | undefined;
   hexChainId: Hex | undefined;
   token: TokenAmount | undefined;
+  usdConversionRate: number | null | undefined;
 }): string | undefined {
   if (!token || !currentCurrency || !hexChainId) return undefined;
 
   const humanAmount = getHumanReadableTokenAmount(token);
   if (humanAmount === undefined) return undefined;
 
-  const lookupToken = toMarketRateLookupToken(token, hexChainId);
+  const lookupToken =
+    toMarketRateLookupToken(token, hexChainId) ??
+    getMusdMarketRateToken(token, hexChainId);
   const exchangeRate = isNativeAsset(token)
     ? 1
     : lookupToken
-      ? (contractExchangeRates?.[lookupToken.address]?.price ?? undefined)
+      ? (contractExchangeRates?.[lookupToken.address]?.price ??
+        (lookupToken.symbol === MUSD_TOKEN.symbol
+          ? getMusdNativeExchangeRate({ usdConversionRate })
+          : undefined))
       : undefined;
 
   if (!conversionRate || !exchangeRate) return undefined;
@@ -557,6 +830,7 @@ function resolveFiatAmount({
 export function useActivityListItemRowContent(
   item: ActivityListItem,
   chainId?: string,
+  bridgeHistoryItem?: BridgeHistoryItem,
 ): ActivityListItemRowContent {
   const networkChainId = chainId ?? item.chainId;
   const hexChainId = getHexChainId(networkChainId);
@@ -571,23 +845,39 @@ export function useActivityListItemRowContent(
       ? selectContractExchangeRatesByChainId(state, hexChainId)
       : undefined,
   );
+  const usdConversionRate = useSelector((state: RootState) =>
+    hexChainId
+      ? selectUSDConversionRateByChainId(state, hexChainId)
+      : undefined,
+  );
 
-  const content = resolveCoreContent(item);
-  const primaryAmount = resolveAmount(content.primaryToken, item.type);
+  const content = resolveCoreContent(item, bridgeHistoryItem);
+  const primaryToken = enrichStablecoinTokenMetadata(
+    content.primaryToken,
+    networkChainId,
+  );
+  const secondaryToken = enrichStablecoinTokenMetadata(
+    content.secondaryToken,
+    networkChainId,
+  );
+  const primaryAmount = resolveAmount(primaryToken, item.type);
   const secondaryAmount =
-    resolveAmount(content.secondaryToken, item.type) ??
+    resolveAmount(secondaryToken, item.type) ??
     resolveFiatAmount({
       activityType: item.type,
       contractExchangeRates,
       conversionRate,
       currentCurrency,
       hexChainId,
-      token: content.primaryToken,
+      token: primaryToken,
+      usdConversionRate,
     });
 
   return {
     ...content,
-    avatarTokens: resolveAvatarTokens(item),
+    avatarTokens: resolveAvatarTokens(item, bridgeHistoryItem),
+    primaryToken,
+    secondaryToken,
     primaryAmount,
     secondaryAmount,
   };

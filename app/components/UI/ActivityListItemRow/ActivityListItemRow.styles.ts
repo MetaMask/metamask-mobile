@@ -17,7 +17,10 @@ export const createStyles = (
     listItem: {
       minHeight: 64,
       justifyContent: 'center',
-      paddingVertical: 8,
+      paddingLeft: 0,
+      paddingRight: 0,
+      paddingTop: 8,
+      paddingBottom: 8,
     },
     icon: {
       width: 32,
@@ -26,26 +29,33 @@ export const createStyles = (
     tokenIconStack: {
       width: 32,
       height: 32,
+      borderRadius: 16,
+      overflow: 'hidden',
+      flexDirection: 'row',
     },
     tokenIconStackBack: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
+      width: 16,
+      height: 32,
+      overflow: 'hidden',
     } as ViewStyle,
     tokenIconStackFront: {
-      position: 'absolute',
-      right: 0,
-      bottom: 0,
+      width: 16,
+      height: 32,
+      overflow: 'hidden',
     } as ViewStyle,
-    listItemContent: {
-      alignItems: 'center',
-      marginTop: 0,
-      paddingTop: 0,
-    },
-    listItemBody: {
-      flex: 1,
-      minWidth: 0,
-    },
+    tokenIconStackFrontImage: {
+      position: 'absolute',
+      left: -16,
+      top: 0,
+    } as ViewStyle,
+    tokenIconStackDivider: {
+      position: 'absolute',
+      left: 15,
+      top: 0,
+      width: 1,
+      height: 32,
+      backgroundColor: colors.text.default,
+    } as ViewStyle,
     listItemTitle: {
       ...typography.sBodyMDMedium,
       fontFamily: getFontFamily(TextVariant.BodyMDMedium),

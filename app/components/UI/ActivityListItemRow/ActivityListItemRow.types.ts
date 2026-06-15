@@ -1,3 +1,4 @@
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type {
   ActivityListItem,
   TokenAmount,
@@ -12,6 +13,7 @@ export interface ActivityListItemRowProps {
    * for swap/bridge rows derived from bridge history.
    */
   title?: string;
+  bridgeHistoryItem?: BridgeHistoryItem;
 }
 
 export interface ActivityListItemRowContent {

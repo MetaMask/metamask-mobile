@@ -51,6 +51,7 @@ import {
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import TransactionElement from '../../UI/TransactionElement';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
+import ListItem from '../../Base/ListItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
 import { getAddressUrl } from '../../../core/Multichain/utils';
@@ -68,6 +69,10 @@ import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMulticha
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { type ActivityListItem } from './types';
+import {
+  groupActivityListItems,
+  type GroupedActivityListItem,
+} from '../../../util/activity-adapters';
 import {
   isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
@@ -96,6 +101,44 @@ const generateKey = (item: ActivityListItem): string => {
     return `${item.chainId}:${hash}`;
   }
   return `${item.chainId}:${item.timestamp}:${item.type}`;
+};
+
+const generateGroupedKey = (item: GroupedActivityListItem): string => {
+  if (item.type === 'pending-header') {
+    return 'pending-header';
+  }
+
+  if (item.type === 'date-header') {
+    return `date-header-${item.date}`;
+  }
+
+  return generateKey(item.item);
+};
+
+const isSameLocalDay = (date: Date, otherDate: Date) =>
+  date.getFullYear() === otherDate.getFullYear() &&
+  date.getMonth() === otherDate.getMonth() &&
+  date.getDate() === otherDate.getDate();
+
+const formatDateHeader = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  if (isSameLocalDay(date, today)) {
+    return strings('perps.today');
+  }
+
+  if (isSameLocalDay(date, yesterday)) {
+    return strings('perps.yesterday');
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
 };
 
 const noop = () => undefined;
@@ -366,6 +409,7 @@ const ActivityList = ({
       unifiedTransactionSource;
     return mergeTransactionsByTime(localItems, confirmedEvmItems, nonEvmItems);
   }, [unifiedTransactionSource]);
+  const groupedData = useMemo(() => groupActivityListItems(data), [data]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
   const popularListBlockExplorer = useBlockExplorer(
@@ -655,22 +699,26 @@ const ActivityList = ({
 
   // Index of the last API-confirmed EVM item — used to trigger pagination.
   const lastConfirmedEvmIndex = useMemo(() => {
-    for (let index = data.length - 1; index >= 0; index -= 1) {
-      const item = data[index];
-      if (item.raw?.type === 'apiEvmTransaction') {
+    for (let index = groupedData.length - 1; index >= 0; index -= 1) {
+      const item = groupedData[index];
+      if (item.type === 'item' && item.item.raw?.type === 'apiEvmTransaction') {
         return index;
       }
     }
     return -1;
-  }, [data]);
+  }, [groupedData]);
 
   const lastConfirmedEvmKey =
     lastConfirmedEvmIndex >= 0
-      ? generateKey(data[lastConfirmedEvmIndex])
+      ? generateGroupedKey(groupedData[lastConfirmedEvmIndex])
       : undefined;
 
   const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<ActivityListItem>[] }) => {
+    ({
+      viewableItems,
+    }: {
+      viewableItems: ViewToken<GroupedActivityListItem>[];
+    }) => {
       if (
         !hasNextPage ||
         isFetchingNextPage ||
@@ -700,10 +748,10 @@ const ActivityList = ({
     ],
   );
 
-  const listRef = useRef<FlashListRef<ActivityListItem>>(null);
+  const listRef = useRef<FlashListRef<GroupedActivityListItem>>(null);
 
-  const { handleScroll } = useTransactionAutoScroll(data, listRef, {
-    keyExtractor: (item: ActivityListItem) => generateKey(item),
+  const { handleScroll } = useTransactionAutoScroll(groupedData, listRef, {
+    keyExtractor: generateGroupedKey,
   });
 
   const handleListScroll = useCallback(
@@ -727,15 +775,32 @@ const ActivityList = ({
   );
 
   const shouldShowTransactionList = !isInitialLoading && data.length > 0;
-  const items = shouldShowTransactionList ? data : [];
+  const items = shouldShowTransactionList ? groupedData : [];
 
   const renderItem = ({
-    item,
+    item: groupedItem,
     index,
   }: {
-    item: ActivityListItem;
+    item: GroupedActivityListItem;
     index: number;
   }) => {
+    if (groupedItem.type === 'pending-header') {
+      return (
+        <ListItem.Date style={styles.dateHeader}>
+          {strings('transactions.pending')}
+        </ListItem.Date>
+      );
+    }
+
+    if (groupedItem.type === 'date-header') {
+      return (
+        <ListItem.Date style={styles.dateHeader}>
+          {formatDateHeader(groupedItem.date)}
+        </ListItem.Date>
+      );
+    }
+
+    const { item } = groupedItem;
     const raw = item.raw;
 
     // Pending local EVM transactions: route to TransactionElement for speed-up/cancel UI.
@@ -803,6 +868,7 @@ const ActivityList = ({
 
     return (
       <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem}
         item={item}
         index={index}
         onPress={handleActivityItemPress}
@@ -821,7 +887,7 @@ const ActivityList = ({
               data={items}
               testID={ActivityListSelectorsIDs.CONTAINER}
               renderItem={renderItem}
-              keyExtractor={generateKey}
+              keyExtractor={generateGroupedKey}
               ListHeaderComponent={header}
               ListEmptyComponent={
                 isInitialLoading ? renderInitialLoading : renderEmptyList

@@ -1,6 +1,7 @@
 import React, { ComponentType } from 'react';
 import { RefreshControl } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import {
   TransactionStatus,
@@ -8,14 +9,14 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
+import Routes from '../../../constants/navigation/Routes';
 import _renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { selectTransactions } from './helpers/transformations';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { getSwapBridgeTxActivityTitle } from '../../UI/Bridge/utils/transaction-history';
+import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
@@ -172,6 +173,13 @@ jest.mock(
   '../../UI/MultichainBridgeTransactionListItem',
   () => 'MultichainBridgeTransactionListItem',
 );
+jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
+  ActivityListItemRow: 'ActivityListItemRow',
+  resolveActivityListItemTitle: jest.fn(
+    (item: { type: string }, title?: string) =>
+      title ?? `resolved-${item.type}`,
+  ),
+}));
 jest.mock('../../UI/TransactionActionModal', () => 'TransactionActionModal');
 jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
   const ReactActual = jest.requireActual('react');
@@ -585,6 +593,22 @@ describe('UnifiedTransactionsView with transactions', () => {
     expect(transactionElements.length).toBeGreaterThanOrEqual(0);
   });
 
+  it('does not render ActivityListItemRow by default', () => {
+    // Arrange & Act
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      {
+        state: stateWithTransactions,
+      },
+    );
+
+    // Default matches the current/main list renderer; the new row is opt-in.
+    const activityItems = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
+    );
+    expect(activityItems.length).toBe(0);
+  });
+
   it('uses the Accounts API bridge transaction when the source hash matches bridge history', () => {
     mockUseTransactionsQuery(createConfirmedBridgeTransaction());
     mockSelectBridgeHistoryForAccount.mockReturnValue(bridgeHistory);
@@ -600,6 +624,32 @@ describe('UnifiedTransactionsView with transactions', () => {
 
     expect(transactionIds).toContain(apiBridgeTransactionId);
     expect(transactionIds).not.toContain(BRIDGE_TX_ID);
+  });
+
+  it('resolves swap/bridge row title using bridge history with mismatched hash casing', () => {
+    mockUseTransactionsQuery(createConfirmedBridgeTransaction());
+    mockBridgeHistoryItemsBySrcTxHash[BRIDGE_TX_HASH.toUpperCase()] =
+      bridgeHistory[BRIDGE_TX_ID];
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView renderActivityListItemRow />,
+      {
+        state: stateWithConfirmedBridgeTransaction,
+      },
+    );
+
+    const activityItems = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
+    );
+    const bridgeActivityItem = activityItems.find(
+      ({ props }) => props.item?.data?.hash === BRIDGE_TX_HASH.toLowerCase(),
+    );
+
+    expect(bridgeActivityItem?.props.title).toBe(
+      getSwapBridgeTxActivityTitle(
+        bridgeHistory[BRIDGE_TX_ID] as BridgeHistoryItem,
+      ),
+    );
   });
 
   it('keeps the local bridge transaction when Accounts API only has a nonce collision', () => {
@@ -773,6 +823,43 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
     expect(
       UNSAFE_queryAllByType(asComponentType('TransactionElement')).length,
     ).toBeGreaterThanOrEqual(1);
+  });
+
+  it('opens legacy transaction details when pressing a confirmed EVM activity row', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView renderActivityListItemRow />,
+      { state: stateOnlyMainnet },
+    );
+
+    const [activityItem] = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
+    );
+    const expectedActionKey = resolveActivityListItemTitle(
+      activityItem.props.item,
+    );
+
+    activityItem.props.onPress(activityItem.props.item);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.objectContaining({
+        screen: Routes.SHEET.TRANSACTION_DETAILS,
+        params: expect.objectContaining({
+          tx: expect.objectContaining({
+            hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          }),
+          transactionElement: expect.objectContaining({
+            actionKey: expectedActionKey,
+          }),
+          transactionDetails: expect.objectContaining({
+            hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          }),
+        }),
+      }),
+    );
+    expect(expectedActionKey).not.toBe(activityItem.props.item.type);
   });
 
   it('hides pending EVM transactions when their chain is not in the enabled filter', () => {

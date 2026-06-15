@@ -93,20 +93,24 @@ function TokenAvatar({
 
   return (
     <View style={styles.tokenIconStack}>
-      <AvatarToken
-        name={sourceToken.symbol}
-        imageSource={tokenImageSources[0]}
-        size={AvatarSize.Sm}
-        isIpfsGatewayCheckBypassed
-        style={styles.tokenIconStackBack}
-      />
-      <AvatarToken
-        name={destinationToken.symbol}
-        imageSource={tokenImageSources[1]}
-        size={AvatarSize.Sm}
-        isIpfsGatewayCheckBypassed
-        style={styles.tokenIconStackFront}
-      />
+      <View style={styles.tokenIconStackBack}>
+        <AvatarToken
+          name={sourceToken.symbol}
+          imageSource={tokenImageSources[0]}
+          size={AvatarSize.Md}
+          isIpfsGatewayCheckBypassed
+        />
+      </View>
+      <View style={styles.tokenIconStackFront}>
+        <AvatarToken
+          name={destinationToken.symbol}
+          imageSource={tokenImageSources[1]}
+          size={AvatarSize.Md}
+          isIpfsGatewayCheckBypassed
+          style={styles.tokenIconStackFrontImage}
+        />
+      </View>
+      <View style={styles.tokenIconStackDivider} />
     </View>
   );
 }
