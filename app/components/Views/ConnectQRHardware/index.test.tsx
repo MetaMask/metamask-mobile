@@ -228,7 +228,9 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [{ type: mockQrKeyring.type, accounts: [] }],
+        // We cannot re-use `mockQrKeyring` since module mocking is ran before variable
+        // declaration.
+        keyrings: [{ type: 'QR Hardware Wallet Device', accounts: [] }],
       },
       getAccounts: jest.fn(),
       getKeyringsByType: jest.fn().mockResolvedValue([]),
@@ -238,7 +240,7 @@ jest.mock('../../../core/Engine', () => ({
           keyrings: [
             {
               keyring: { type: mockQrKeyring.type },
-              metadata: { id: '1234', name: 'QR Hardware Wallet Device' },
+              metadata: { id: '1234', name: '' },
             },
           ],
           addNewKeyring: jest.fn(),
