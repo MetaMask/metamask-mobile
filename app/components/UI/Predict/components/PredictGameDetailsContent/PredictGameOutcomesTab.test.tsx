@@ -15,7 +15,7 @@ import Logger from '../../../../../util/Logger';
 import {
   buildOutcomeCardModels,
   getSportsMarketTypeLabel,
-} from './usePredictGameOutcomeRows';
+} from './usePredictGameGroupOutcomes';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
