@@ -12,6 +12,21 @@ import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoadi
 import MoneyActivityView from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import type { CardTransaction } from '../../types/moneyActivity';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+
+const mockTrackScreenViewed = jest.fn();
+const mockTrackButtonClicked = jest.fn();
+const mockTrackActivitySurfaceClicked = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -48,11 +63,11 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
       onPress,
     }: {
       tx: { id: string };
-      onPress?: (id: string) => void;
+      onPress?: (tx: { id: string }) => void;
     }) => (
       <RNPressable
         testID={`activity-mock-tx-${tx.id}`}
-        onPress={() => onPress?.(tx.id)}
+        onPress={() => onPress?.(tx)}
       >
         <Text>{tx.id}</Text>
       </RNPressable>
@@ -81,7 +96,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.activity.empty': 'No activity yet',
       'money.activity.filter_all': 'All',
       'money.activity.filter_deposits': 'Deposits',
-      'money.activity.filter_transfers': 'Transfers',
+      'money.activity.filter_sends': 'Sends',
+      'money.activity.pending': 'Pending',
     };
     return map[key] ?? key;
   },
@@ -122,6 +138,11 @@ describe('MoneyActivityView', () => {
       moneyAddress: '0x0000000000000000000000000000000000000001',
       mockDataEnabled: false,
     });
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackScreenViewed: mockTrackScreenViewed,
+      trackButtonClicked: mockTrackButtonClicked,
+      trackActivitySurfaceClicked: mockTrackActivitySurfaceClicked,
+    });
     mockUseMoneyAccountCardTransactions.mockReturnValue({
       cardTransactions: [],
       isLoading: false,
@@ -145,7 +166,7 @@ describe('MoneyActivityView', () => {
     expect(
       getByTestId(MoneyActivityLoadingTestIds.CONTAINER),
     ).toBeOnTheScreen();
-    expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
+    expect(queryByTestId('activity-mock-tx-money-tx-converted')).toBeNull();
   });
 
   it('renders the main container', () => {
@@ -183,7 +204,38 @@ describe('MoneyActivityView', () => {
   it('renders transaction rows from activity data', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
-    expect(getByTestId('activity-mock-tx-money-tx-1')).toBeOnTheScreen();
+    expect(
+      getByTestId('activity-mock-tx-money-tx-converted'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders a Pending section for in-flight rows', () => {
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    // The fixture includes submitted (pending) rows, so the bucket appears.
+    expect(
+      getByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('activity-mock-tx-money-tx-depositing'),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the Pending section when nothing is in flight', () => {
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: MOCK_DEPOSITS.filter(
+        (tx) => tx.id === 'money-tx-converted',
+      ),
+      deposits: MOCK_DEPOSITS.filter((tx) => tx.id === 'money-tx-converted'),
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
   });
 
   it('shows only deposit rows when the Deposits filter is selected', () => {
@@ -193,8 +245,10 @@ describe('MoneyActivityView', () => {
 
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
 
-    expect(getByTestId('activity-mock-tx-money-tx-1')).toBeOnTheScreen();
-    expect(queryByTestId('activity-mock-tx-money-tx-4')).toBeNull();
+    expect(
+      getByTestId('activity-mock-tx-money-tx-converted'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-sent')).toBeNull();
   });
 
   it('shows only transfer rows when the Transfers filter is selected', () => {
@@ -204,8 +258,8 @@ describe('MoneyActivityView', () => {
 
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
 
-    expect(getByTestId('activity-mock-tx-money-tx-4')).toBeOnTheScreen();
-    expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
+    expect(getByTestId('activity-mock-tx-money-tx-sent')).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-converted')).toBeNull();
   });
 
   it('renders empty state when there are no transactions', () => {
@@ -229,7 +283,7 @@ describe('MoneyActivityView', () => {
   it('pressing a row navigates to the transaction details sheet when mockDataEnabled is false', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
-    fireEvent.press(getByTestId('activity-mock-tx-money-tx-1'));
+    fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
@@ -290,5 +344,61 @@ describe('MoneyActivityView', () => {
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
 
     expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_ACTIVITY screen_name', () => {
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
+      });
+    });
+
+    it('calls trackScreenViewed on mount', () => {
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockTrackScreenViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackButtonClicked with FILTER intent and All filter label when "All" filter is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_ALL));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.FILTER,
+        label_key: 'money.activity.filter_all',
+        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_ALL,
+      });
+    });
+
+    it('calls trackButtonClicked with FILTER intent and Deposits filter label when "Deposits" filter is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.FILTER,
+        label_key: 'money.activity.filter_deposits',
+        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_DEPOSITS,
+      });
+    });
+
+    it('calls trackActivitySurfaceClicked with transaction and MONEY_ACTIVITY_DETAILS redirect when a row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
+
+      expect(mockTrackActivitySurfaceClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
+          component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
+          transaction: expect.objectContaining({ id: 'money-tx-converted' }),
+        }),
+      );
+    });
   });
 });

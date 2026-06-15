@@ -357,6 +357,7 @@ export interface RootStackParamList extends ParamListBase {
   TransactionsView: TransactionsViewParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   RewardsView: undefined;
+  RewardsFlow: NestedNavigationParams | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;

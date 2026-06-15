@@ -224,19 +224,19 @@ describe('MoneyPotentialEarnings', () => {
     expect(onViewAll).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onTokenPress with the pressed token when Convert is tapped', () => {
+  it('calls onTokenButtonPress with the pressed token when the Add button is tapped', () => {
     const onTokenPress = jest.fn();
     const { getByText } = render(
       <MoneyPotentialEarnings
         apy={4}
         tokens={[MOCK_USDC]}
-        onTokenPress={onTokenPress}
+        onTokenButtonPress={onTokenPress}
       />,
     );
 
     fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
-    expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC);
+    expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC, 0, 1);
   });
 
   it('calls onHeaderPress when the section header is tapped', () => {

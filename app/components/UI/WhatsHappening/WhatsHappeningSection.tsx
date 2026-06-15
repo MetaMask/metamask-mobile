@@ -8,14 +8,17 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
-  StyleSheet,
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TextVariant } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import ErrorState from '../../Views/Homepage/components/ErrorState';
 import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
@@ -50,10 +53,6 @@ const SKELETON_KEYS = Array.from(
   { length: MAX_ITEMS_DISPLAYED },
   (__, i) => `skeleton-${i}`,
 );
-
-const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
-});
 
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
@@ -125,21 +124,60 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
+  const carouselContent = hasError ? (
+    <ErrorState
+      title={strings('homepage.error.unable_to_load', {
+        section: title.toLowerCase(),
+      })}
+      onRetry={refresh}
+    />
+  ) : (
+    <PerpsStreamProvider>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+        snapToOffsets={SNAP_OFFSETS}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        testID={WhatsHappeningSelectorsIDs.CAROUSEL}
+      >
+        {isLoading ? (
+          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
+        ) : (
+          <>
+            {items.map((item: WhatsHappeningItem, index: number) => (
+              <WhatsHappeningCard
+                key={item.id}
+                item={item}
+                cardIndex={index}
+                source={source}
+                onPress={() => handleCardPress(index)}
+              />
+            ))}
+            <ViewMoreCard
+              onPress={handleViewAll}
+              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
+              textVariant={TextVariant.BodyLg}
+            />
+          </>
+        )}
+      </ScrollView>
+    </PerpsStreamProvider>
+  );
+
   if (hasError) {
     return (
-      <View style={styles.sectionGap}>
+      <Box paddingBottom={3}>
+        <SectionDivider />
         <SectionHeader
           title={title}
+          isInteractive
           onPress={handleViewAll}
           testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
         />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
-      </View>
+        {carouselContent}
+      </Box>
     );
   }
 
@@ -148,45 +186,16 @@ const WhatsHappeningSection = forwardRef<
   }
 
   return (
-    <View style={styles.sectionGap}>
+    <Box paddingBottom={3}>
+      <SectionDivider />
       <SectionHeader
         title={title}
+        isInteractive
         onPress={handleViewAll}
         testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
       />
-      <PerpsStreamProvider>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-          snapToOffsets={SNAP_OFFSETS}
-          decelerationRate="fast"
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          testID={WhatsHappeningSelectorsIDs.CAROUSEL}
-        >
-          {isLoading ? (
-            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
-          ) : (
-            <>
-              {items.map((item: WhatsHappeningItem, index: number) => (
-                <WhatsHappeningCard
-                  key={item.id}
-                  item={item}
-                  cardIndex={index}
-                  source={source}
-                  onPress={() => handleCardPress(index)}
-                />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAll}
-                twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-                textVariant={TextVariant.BodyLg}
-              />
-            </>
-          )}
-        </ScrollView>
-      </PerpsStreamProvider>
-    </View>
+      {carouselContent}
+    </Box>
   );
 });
 
