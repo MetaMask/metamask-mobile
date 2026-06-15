@@ -201,7 +201,7 @@ export const PopularList = [
     ticker: 'USDC',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.arc.io/',
+      blockExplorerUrl: 'https://explorer.arc.io',
       imageUrl: 'ARC',
       imageSource: require('../../images/arc-network-logo.png'),
     },
