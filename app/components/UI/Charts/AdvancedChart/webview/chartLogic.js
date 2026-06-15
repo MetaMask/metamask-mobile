@@ -745,9 +745,9 @@ function applySeriesColors() {
 function handleSetThemeColors(payload) {
   if (!payload) return;
   var theme = window.CONFIG.theme;
-  if (payload.lineColor) theme.lineColor = payload.lineColor;
-  if (payload.successColor) theme.successColor = payload.successColor;
-  if (payload.errorColor) theme.errorColor = payload.errorColor;
+  if (payload.lineColor != null) theme.lineColor = payload.lineColor;
+  if (payload.successColor != null) theme.successColor = payload.successColor;
+  if (payload.errorColor != null) theme.errorColor = payload.errorColor;
 
   if (!window.chartWidget || !window.isChartReady) return;
 
