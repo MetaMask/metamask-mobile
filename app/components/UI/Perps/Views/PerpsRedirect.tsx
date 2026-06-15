@@ -4,11 +4,9 @@ import NavigationService from '../../../../core/NavigationService';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import PerpsLoader from '../components/PerpsLoader';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
-import { useNavigation, StackActions } from '@react-navigation/native';
 
 const PerpsRedirect: React.FC = () => {
   const { isConnected, isConnecting, isInitialized } = usePerpsConnection();
-  const navigation = useNavigation();
 
   useEffect(() => {
     // Only redirect when successfully connected
@@ -17,24 +15,21 @@ const PerpsRedirect: React.FC = () => {
       // Using the same pattern as PerpsTutorialCarousel
       NavigationService.navigation.navigate(Routes.WALLET.HOME);
 
-      // Replace PERPS_TAB with PERPS_HOME in the stack so that if the user
-      // returns to the Perps stack, they land on the home screen instead of
-      // triggering another redirect.
-      navigation.dispatch(StackActions.replace(Routes.PERPS.PERPS_HOME));
-
       // The timeout is REQUIRED - React Navigation needs time to:
       // 1. Complete the navigation transition
       // 2. Mount the Wallet component
       // 3. Make navigation context available for setParams
       // Without this delay, the tab selection will fail
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         NavigationService.navigation.setParams({
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
       }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+      return () => clearTimeout(timerId);
     }
-  }, [isConnected, isInitialized, navigation]);
+  }, [isConnected, isInitialized]);
 
   // Show loader while initializing or connecting
   if (!isInitialized || isConnecting) {
