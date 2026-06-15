@@ -198,7 +198,7 @@ export const PerpsRelatedMarketsSelectorsIDs = {
 };
 
 export const getPerpsRelatedMarketsSelector = {
-  tile: (symbol: string) => `perps-related-markets-tile-${symbol}`,
+  tile: (symbol: string) => `perps-market-tile-card-${symbol}`,
   pill: (symbol: string) => `perps-related-markets-pill-${symbol}`,
 };
 
