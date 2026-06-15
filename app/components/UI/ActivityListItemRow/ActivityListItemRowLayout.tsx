@@ -1,6 +1,9 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, TouchableHighlight, View } from 'react-native';
 import { ListItem } from '@metamask/design-system-react-native';
+import ListItemColumn, {
+  WidthType,
+} from '../../../component-library/components/List/ListItemColumn';
 import type {
   ActivityListItem,
   TokenAmount,
@@ -83,15 +86,23 @@ export function ActivityListItemRowLayout({
     ) : undefined;
 
   return (
-    <ListItem
-      isInteractive
-      style={[styles.row, styles.listItem]}
+    <TouchableHighlight
       onPress={onPress}
       testID={`activity-item-${index ?? 0}`}
-      avatar={avatar}
-      title={titleNode}
-      description={subtitleNode}
-      endAccessory={amountColumn}
-    />
+      underlayColor="transparent"
+    >
+      <ListItem style={[styles.row, styles.listItem]}>
+        <ListItemColumn>{avatar}</ListItemColumn>
+        <ListItemColumn widthType={WidthType.Fill}>
+          {titleNode}
+          {subtitleNode}
+        </ListItemColumn>
+        {amountColumn ? (
+          <ListItemColumn style={styles.listItemAmounts}>
+            {amountColumn}
+          </ListItemColumn>
+        ) : null}
+      </ListItem>
+    </TouchableHighlight>
   );
 }
