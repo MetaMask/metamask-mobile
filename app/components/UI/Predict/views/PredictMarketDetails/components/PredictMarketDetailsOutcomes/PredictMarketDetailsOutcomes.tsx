@@ -1,23 +1,8 @@
 import React, { memo } from 'react';
-import { Pressable } from 'react-native';
-import { strings } from '../../../../../../../../locales/i18n';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../../util/theme';
+import { Box } from '@metamask/design-system-react-native';
 import PredictMarketOutcome from '../../../../components/PredictMarketOutcome';
 import PredictMarketOutcomeResolved from '../../../../components/PredictMarketOutcomeResolved';
+import PredictResolvedOutcomesSection from '../../../../components/PredictResolvedOutcomesSection';
 import {
   PredictMarketStatus,
   type PredictMarket,
@@ -62,9 +47,6 @@ const PredictMarketDetailsOutcomes = memo(
     isResolvedExpanded,
     onResolvedExpandedToggle,
   }: PredictMarketDetailsOutcomesProps) => {
-    const tw = useTailwind();
-    const { colors } = useTheme();
-
     if (!market) {
       return null;
     }
@@ -116,60 +98,13 @@ const PredictMarketDetailsOutcomes = memo(
               entryPoint={entryPoint as PredictEntryPoint | undefined}
             />
           ))}
-          <Pressable
-            onPress={() => onResolvedExpandedToggle((prev: boolean) => !prev)}
-            style={({ pressed }) =>
-              tw.style(
-                'w-full rounded-xl bg-default px-4 py-3 mt-2 mb-4 bg-muted',
-                pressed && 'bg-pressed',
-              )
+          <PredictResolvedOutcomesSection
+            closedOutcomes={closedOutcomes}
+            isExpanded={isResolvedExpanded}
+            onToggle={() =>
+              onResolvedExpandedToggle((previousExpanded) => !previousExpanded)
             }
-            accessibilityRole="button"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="gap-3"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-2"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
-                  color={TextColor.TextDefault}
-                >
-                  {strings('predict.resolved_outcomes')}
-                </Text>
-                <Box twClassName="px-2 py-0.5 rounded bg-muted">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {closedOutcomes.length}
-                  </Text>
-                </Box>
-              </Box>
-              <Icon
-                name={
-                  isResolvedExpanded ? IconName.ArrowUp : IconName.ArrowDown
-                }
-                size={IconSize.Md}
-                color={colors.text.alternative}
-              />
-            </Box>
-            {isResolvedExpanded &&
-              closedOutcomes.map((outcome) => (
-                <PredictMarketOutcomeResolved
-                  key={outcome.id}
-                  outcome={outcome}
-                  noContainer
-                />
-              ))}
-          </Pressable>
+          />
         </Box>
       );
     }

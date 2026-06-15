@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { RefreshControl } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -21,8 +21,9 @@ import PredictGameOutcomeCard, {
   type BuyHandler,
   type OutcomeCardModel,
 } from './PredictGameOutcomeCard';
+import PredictResolvedOutcomesSection from '../PredictResolvedOutcomesSection';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
-import { usePredictGameOutcomeRows } from './usePredictGameOutcomeRows';
+import { usePredictGameGroupOutcomes } from './usePredictGameGroupOutcomes';
 import { usePredictVisibleOutcomes } from './usePredictVisibleOutcomes';
 
 type PredictGameDetailsListItem =
@@ -44,6 +45,12 @@ type PredictGameDetailsListItem =
       type: 'outcome-card';
       key: string;
       cardModel: OutcomeCardModel;
+    }
+  | {
+      type: 'resolved-outcomes';
+      key: string;
+      closedOutcomes: PredictOutcome[];
+      collapsible: boolean;
     };
 
 export interface PredictGameDetailsOutcomesListProps {
@@ -96,7 +103,24 @@ const PredictGameDetailsOutcomesList = memo(
     const tw = useTailwind();
     const { colors } = useTheme();
     const selectedGroup = groupMap.get(activeChipKey);
-    const { cardModels } = usePredictGameOutcomeRows(selectedGroup);
+    const {
+      openCardModels: cardModels,
+      closedOutcomes,
+      showResolvedSection,
+      hasPartialResolution,
+    } = usePredictGameGroupOutcomes({
+      group: selectedGroup,
+    });
+    const [expandedByChipKey, setExpandedByChipKey] = useState<
+      Record<string, boolean>
+    >({});
+    const isResolvedExpanded = expandedByChipKey[activeChipKey] ?? false;
+    const toggleResolvedExpanded = useCallback(() => {
+      setExpandedByChipKey((previousExpandedByChipKey) => ({
+        ...previousExpandedByChipKey,
+        [activeChipKey]: !previousExpandedByChipKey[activeChipKey],
+      }));
+    }, [activeChipKey]);
     const currentTabKey = showTabBar ? tabs[activeTab]?.key : 'outcomes';
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
@@ -168,15 +192,27 @@ const PredictGameDetailsOutcomesList = memo(
             cardModel,
           });
         });
+
+        if (showResolvedSection) {
+          items.push({
+            type: 'resolved-outcomes',
+            key: 'game-details-resolved-outcomes',
+            closedOutcomes,
+            collapsible: hasPartialResolution,
+          });
+        }
       }
 
       return items;
     }, [
       cardModels,
+      closedOutcomes,
+      hasPartialResolution,
       listHeaderComponent,
       showDisabledPositions,
       showOutcomes,
       showPositions,
+      showResolvedSection,
       showStickyHeader,
     ]);
 
@@ -203,6 +239,7 @@ const PredictGameDetailsOutcomesList = memo(
       () => ({
         activeChipKey,
         activeTab,
+        isResolvedExpanded,
         priceVersion,
         selectedLineIndices,
         visibleCardKeys,
@@ -211,6 +248,7 @@ const PredictGameDetailsOutcomesList = memo(
       [
         activeChipKey,
         activeTab,
+        isResolvedExpanded,
         priceVersion,
         selectedLineIndices,
         visibleCardKeys,
@@ -283,6 +321,17 @@ const PredictGameDetailsOutcomesList = memo(
                 />
               </Box>
             );
+          case 'resolved-outcomes':
+            return (
+              <Box twClassName="px-4">
+                <PredictResolvedOutcomesSection
+                  closedOutcomes={item.closedOutcomes}
+                  isExpanded={isResolvedExpanded}
+                  onToggle={toggleResolvedExpanded}
+                  collapsible={item.collapsible}
+                />
+              </Box>
+            );
         }
       },
       [
@@ -293,6 +342,7 @@ const PredictGameDetailsOutcomesList = memo(
         claimablePositions,
         getPrice,
         handleBuyPress,
+        isResolvedExpanded,
         market,
         onChipSelect,
         onSelectedLineIndexChange,
@@ -301,6 +351,7 @@ const PredictGameDetailsOutcomesList = memo(
         showChips,
         showTabBar,
         tabs,
+        toggleResolvedExpanded,
       ],
     );
 

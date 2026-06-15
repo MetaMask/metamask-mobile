@@ -61,6 +61,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         '1st Set Total Games',
       'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
       'predict.sports_market_types.tennis_completed_match': 'Completed Match',
+      'predict.resolved_outcomes': 'Resolved outcomes',
     };
     if (key.startsWith('predict.sports_market_types.basketball_')) {
       return translations[key] ?? `[missing "${key}" translation]`;
@@ -836,6 +837,67 @@ describe('PredictGameOutcomesTab', () => {
       fireEvent(getByTestId('game_lines-total_corners-line-0-8.5'), 'touchEnd');
 
       expect(mockUseLiveMarketPrices).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resolved outcomes', () => {
+    it('renders collapsible resolved section for partially settled groups', () => {
+      const tab = createTab('game_lines', [
+        createCard({
+          key: 'moneyline',
+          outcomes: [
+            createOutcome({
+              id: 'moneyline-open',
+              status: 'open',
+              sportsMarketType: 'moneyline',
+              tokens: [createToken({ id: 'ml-open', price: 0.6 })],
+            }),
+            createOutcome({
+              id: 'moneyline-closed',
+              status: 'closed',
+              sportsMarketType: 'moneyline',
+              groupItemTitle: 'Closed Moneyline',
+              tokens: [
+                createToken({ id: 'ml-closed-win', price: 1 }),
+                createToken({ id: 'ml-closed-lose', price: 0 }),
+              ],
+            }),
+          ],
+        }),
+      ]);
+
+      const { getByText, queryByText, queryByTestId } = renderTab(tab);
+
+      expect(getByText('Resolved outcomes')).toBeTruthy();
+      expect(getByText('1')).toBeTruthy();
+      expect(queryByTestId('game_lines-moneyline-title')).toBeTruthy();
+      expect(queryByText('Closed Moneyline')).toBeNull();
+      fireEvent.press(getByText('Resolved outcomes'));
+      expect(getByText('Closed Moneyline')).toBeTruthy();
+      expect(mockUseLiveMarketPrices.mock.calls.at(-1)?.[0]).toEqual([
+        'ml-open',
+      ]);
+    });
+
+    it('shows resolved outcomes directly when the entire group is settled', () => {
+      const tab = createTab('props', [
+        createCard({
+          key: 'player_goals',
+          outcomes: [
+            createOutcome({
+              id: 'player-closed',
+              status: 'closed',
+              sportsMarketType: 'soccer_player_goals',
+            }),
+          ],
+        }),
+      ]);
+
+      const { getByText, queryByText } = renderTab(tab);
+
+      expect(queryByText('Resolved outcomes')).toBeNull();
+      expect(getByText('Team A vs Team B')).toBeTruthy();
+      expect(mockCapturedCards).toHaveLength(0);
     });
   });
 });
