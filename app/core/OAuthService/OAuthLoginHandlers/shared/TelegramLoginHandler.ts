@@ -1,5 +1,5 @@
 import { openAuthSessionAsync, openBrowserAsync } from 'expo-web-browser';
-import { Alert, AppState, Linking, Platform } from 'react-native';
+import { AppState, Linking, Platform } from 'react-native';
 import {
   Env as ProfileSyncEnv,
   getEnvUrls,
@@ -54,17 +54,6 @@ const waitForRedirectUrl = (
 const wait = (timeoutMs: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
 
-const alertResolve = (title: string, message: unknown): Promise<void> =>
-  new Promise((resolve) => {
-    const body =
-      typeof message === 'string'
-        ? message
-        : message instanceof Error
-          ? (message.stack ?? message.message)
-          : JSON.stringify(message, null, 2);
-    Alert.alert(title, body, [{ text: 'OK', onPress: () => resolve() }]);
-  });
-
 const isNetworkRequestError = (error: unknown) =>
   error instanceof Error && error.message.includes('Network request failed');
 
@@ -75,6 +64,76 @@ const redirectUrlHasExpectedState = (url: string, expectedState: string) => {
     return false;
   }
 };
+
+const isOAuthRedirectUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+
+    return (
+      parsedUrl.pathname === '/oauth-redirect' ||
+      parsedUrl.hostname === 'oauth-redirect'
+    );
+  } catch {
+    return false;
+  }
+};
+
+const isExpectedOAuthRedirectUrl = (url: string, expectedRedirectUri: string) =>
+  url.startsWith(expectedRedirectUri) ||
+  (isOAuthRedirectUrl(url) && url.startsWith('https://link.metamask.io/')) ||
+  (isOAuthRedirectUrl(url) && url.startsWith('metamask://'));
+
+const waitForAndroidRedirectOrResume = (
+  expectedRedirectUri: string,
+  expectedState: string,
+  timeoutMs: number,
+) =>
+  new Promise<boolean>((resolve) => {
+    let sawBrowserAppState = AppState.currentState !== 'active';
+    let didResolve = false;
+    const subscriptionRef: {
+      appState?: ReturnType<typeof AppState.addEventListener>;
+      linking?: ReturnType<typeof Linking.addEventListener>;
+    } = {};
+
+    const finish = (didRedirectOrResume: boolean) => {
+      if (didResolve) {
+        return;
+      }
+
+      didResolve = true;
+      subscriptionRef.appState?.remove();
+      subscriptionRef.linking?.remove();
+      resolve(didRedirectOrResume);
+    };
+
+    const timeout = setTimeout(() => finish(false), timeoutMs);
+
+    subscriptionRef.linking = Linking.addEventListener('url', ({ url }) => {
+      if (
+        isExpectedOAuthRedirectUrl(url, expectedRedirectUri) &&
+        redirectUrlHasExpectedState(url, expectedState)
+      ) {
+        clearTimeout(timeout);
+        finish(true);
+      }
+    });
+
+    subscriptionRef.appState = AppState.addEventListener(
+      'change',
+      (nextState) => {
+        if (nextState !== 'active') {
+          sawBrowserAppState = true;
+          return;
+        }
+
+        if (sawBrowserAppState) {
+          clearTimeout(timeout);
+          finish(true);
+        }
+      },
+    );
+  });
 
 const waitForActiveAppState = async () => {
   if (AppState.currentState === 'active') {
@@ -211,50 +270,28 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     });
 
     if (Platform.OS === 'android') {
-      let removeRedirectListener: (() => void) | undefined;
-      const redirectUrlPromise = new Promise<string>((resolve) => {
-        const subscription = Linking.addEventListener('url', ({ url }) => {
-          if (
-            url.startsWith(this.redirectUri) &&
-            redirectUrlHasExpectedState(url, this.nonce)
-          ) {
-            resolve(url);
-          }
-        });
+      const redirectOrResumePromise = waitForAndroidRedirectOrResume(
+        this.redirectUri,
+        this.nonce,
+        ANDROID_LOGIN_REDIRECT_TIMEOUT_MS,
+      );
 
-        removeRedirectListener = () => subscription.remove();
+      await openBrowserAsync(initiateUrl.toString(), {
+        createTask: false,
       });
 
-      try {
-        await openBrowserAsync(initiateUrl.toString(), {
-          createTask: false,
-        });
+      const didRedirectOrResume = await redirectOrResumePromise;
 
-        const linkingRedirectUrl = await waitForRedirectUrl(
-          redirectUrlPromise,
-          ANDROID_LOGIN_REDIRECT_TIMEOUT_MS,
-        );
-
-        if (linkingRedirectUrl) {
-          return buildLoginResult();
-        }
-
-        const initialUrl = await Linking.getInitialURL();
-
-        if (
-          initialUrl?.startsWith(this.redirectUri) &&
-          redirectUrlHasExpectedState(initialUrl, this.nonce)
-        ) {
-          return buildLoginResult();
-        }
-
-        throw new OAuthError(
-          'TelegramLoginHandler: No OAuth redirect received',
-          OAuthErrorType.TelegramLoginError,
-        );
-      } finally {
-        removeRedirectListener?.();
+      if (didRedirectOrResume) {
+        // Telegram sometimes returns to the existing Android task without
+        // delivering the universal-link intent to React Native.
+        return buildLoginResult();
       }
+
+      throw new OAuthError(
+        'TelegramLoginHandler: No OAuth redirect received',
+        OAuthErrorType.TelegramLoginError,
+      );
     }
 
     const authRequest = new AuthRequest({
@@ -302,7 +339,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     let removeRedirectListener: (() => void) | undefined;
     const redirectUrlPromise = new Promise<string>((resolve) => {
       const subscription = Linking.addEventListener('url', ({ url }) => {
-        const matchesRedirectUri = url.startsWith(this.redirectUri);
+        const matchesRedirectUri = isExpectedOAuthRedirectUrl(
+          url,
+          this.redirectUri,
+        );
 
         if (matchesRedirectUri) {
           resolve(url);
@@ -312,10 +352,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       removeRedirectListener = () => subscription.remove();
     });
 
-    await alertResolve(
-      'TELEGRAM LOGIN HANDLER authorizationUrl',
-      authorizationUrl,
-    );
     try {
       const result = await openAuthSessionAsync(
         authorizationUrl,
@@ -325,7 +361,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         },
       );
 
-      await alertResolve('TELEGRAM LOGIN HANDLER result', result);
       if (result.type === 'success') {
         return result.url;
       }
@@ -334,10 +369,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         redirectUrlPromise,
         REDIRECT_LINKING_FALLBACK_TIMEOUT_MS,
       );
-      await alertResolve(
-        'TELEGRAM LOGIN HANDLER linkingRedirectUrl',
-        linkingRedirectUrl,
-      );
 
       if (linkingRedirectUrl) {
         return linkingRedirectUrl;
@@ -345,7 +376,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
       const initialUrl = await Linking.getInitialURL();
 
-      if (initialUrl?.startsWith(this.redirectUri)) {
+      if (
+        initialUrl &&
+        isExpectedOAuthRedirectUrl(initialUrl, this.redirectUri)
+      ) {
         return initialUrl;
       }
 
@@ -367,11 +401,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         'TelegramLoginHandler: Unknown error',
         OAuthErrorType.TelegramLoginError,
       );
-    } catch (error) {
-      await alertResolve('TELEGRAM LOGIN HANDLER error', error);
-      throw error;
     } finally {
-      await alertResolve('TELEGRAM LOGIN HANDLER finally', 'finally');
       removeRedirectListener?.();
     }
   }
