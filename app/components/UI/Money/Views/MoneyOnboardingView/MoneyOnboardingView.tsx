@@ -1,18 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  ButtonVariant,
-  IconColor,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { IconColor, TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import RiveOnboardingStepper, {
-  type OnboardingStep,
-  type RiveConfig,
+import type {
+  OnboardingStep,
+  RiveConfig,
 } from '../../../RiveOnboardingStepper';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
@@ -26,6 +22,136 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+
+/** RiveOnboarding Imports */
+import Rive, {
+  AutoBind,
+  useRive,
+  useRiveString,
+  useRiveNumber,
+  Fit,
+} from 'rive-react-native';
+import { PixelRatio } from 'react-native';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const MoneyOnboardingAnimationV3 = require('../../../../../animations/money_account_onboarding_animation_v3.riv');
+const RIVE_STATE_MACHINE_NAME_V2 = 'State Machine 1';
+const CARD_CASHBACK_PERCENTAGE_V2 = 3;
+
+const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {
+  UI1: 0,
+  UI2: 1,
+  UI3: 2,
+  UI4: 3,
+};
+
+interface RiveOnboardingProps {
+  onStepViewed: (stepIndex: number) => void;
+  onComplete: (stepIndex: number) => void;
+}
+
+const RiveOnboarding = ({ onStepViewed, onComplete }: RiveOnboardingProps) => {
+  const { apyPercent } = useMoneyAccountBalance();
+  const [ref, riveRef] = useRive();
+
+  // --- Text runs (stepText1–4: title, content, footer) ---
+  const [, setStep1Title] = useRiveString(riveRef, 'stepText1/title');
+  const [, setStep1Content] = useRiveString(riveRef, 'stepText1/content');
+  const [, setStep1Footer] = useRiveString(riveRef, 'stepText1/footer');
+
+  const [, setStep2Title] = useRiveString(riveRef, 'stepText2/title');
+  const [, setStep2Content] = useRiveString(riveRef, 'stepText2/content');
+  const [, setStep2Footer] = useRiveString(riveRef, 'stepText2/footer');
+
+  const [, setStep3Title] = useRiveString(riveRef, 'stepText3/title');
+  const [, setStep3Content] = useRiveString(riveRef, 'stepText3/content');
+  const [, setStep3Footer] = useRiveString(riveRef, 'stepText3/footer');
+
+  const [, setStep4Title] = useRiveString(riveRef, 'stepText4/title');
+  const [, setStep4Content] = useRiveString(riveRef, 'stepText4/content');
+  const [, setStep4Footer] = useRiveString(riveRef, 'stepText4/footer');
+
+  // --- Number inputs ---
+  const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
+  const [, setCoinSeq] = useRiveNumber(riveRef, 'coinSeq');
+  const [, setCardSeq] = useRiveNumber(riveRef, 'cardSeq');
+
+  useEffect(() => {
+    if (!riveRef) return;
+
+    setStep1Title(strings('money.rive_onboarding.step1_title'));
+    setStep1Content(
+      strings('money.rive_onboarding.step1_body', { percentage: apyPercent }),
+    );
+    setStep1Footer(strings('money.rive_onboarding.step1_footer_text'));
+
+    setStep2Title(strings('money.rive_onboarding.step2_title'));
+    setStep2Content(strings('money.rive_onboarding.step2_body'));
+    setStep2Footer(strings('money.rive_onboarding.step2_footer_text'));
+
+    setStep3Title(strings('money.rive_onboarding.step3_title'));
+    setStep3Content(
+      strings('money.rive_onboarding.step3_body', {
+        percentage: CARD_CASHBACK_PERCENTAGE_V2,
+      }),
+    );
+    setStep3Footer(strings('money.rive_onboarding.step3_footer_text'));
+
+    setStep4Title(strings('money.rive_onboarding.step4_title'));
+    setStep4Content(strings('money.rive_onboarding.step4_body'));
+    setStep4Footer(strings('money.rive_onboarding.step4_footer_text'));
+
+    setTransitionSpeed(300);
+    setCoinSeq(0);
+    setCardSeq(0);
+  }, [
+    riveRef,
+    apyPercent,
+    setStep1Title,
+    setStep1Content,
+    setStep1Footer,
+    setStep2Title,
+    setStep2Content,
+    setStep2Footer,
+    setStep3Title,
+    setStep3Content,
+    setStep3Footer,
+    setStep4Title,
+    setStep4Content,
+    setStep4Footer,
+    setTransitionSpeed,
+    setCoinSeq,
+    setCardSeq,
+  ]);
+
+  const handleStateChanged = useCallback(
+    (_stateMachineName: string, stateName: string) => {
+      const stepIndex = RIVE_STATE_TO_STEP_INDEX[stateName];
+      if (stepIndex !== undefined) {
+        onStepViewed(stepIndex);
+        return;
+      }
+
+      if (stateName === 'FinalState') {
+        onComplete(3);
+      }
+    },
+    [onStepViewed, onComplete],
+  );
+
+  return (
+    <Rive
+      ref={ref}
+      source={MoneyOnboardingAnimationV3}
+      artboardName="Money_Account"
+      stateMachineName={RIVE_STATE_MACHINE_NAME_V2}
+      dataBinding={AutoBind(true)}
+      fit={Fit.Layout}
+      layoutScaleFactor={PixelRatio.get()}
+      onStateChanged={handleStateChanged}
+    />
+  );
+};
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MoneyOnboardingAnimation = require('../../../../../animations/money_account_onboarding_animation.riv');
@@ -226,23 +352,9 @@ const MoneyOnboardingView = () => {
   );
 
   return (
-    <RiveOnboardingStepper
-      steps={steps}
-      riveConfig={RIVE_CONFIG}
-      riveStyle={RIVE_ANIMATION_STYLE}
-      renderBackground={renderBackground}
-      titleTextColor={textColor}
-      bodyTextColor={textColor}
-      footerTextColor={footerTextColor}
-      progressBarColor={progressBarColor}
-      buttonVariant={ButtonVariant.Primary}
-      buttonIsInverse={buttonIsInverse}
-      closeButtonIconColor={iconColor}
-      onClose={handleClose}
-      onComplete={handleComplete}
+    <RiveOnboarding
       onStepViewed={handleStepViewed}
-      autoCompleteOnLastStep
-      enableRiveAnimation={isStepperAnimationEnabled}
+      onComplete={handleComplete}
     />
   );
 };
