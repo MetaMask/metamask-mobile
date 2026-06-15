@@ -4060,6 +4060,8 @@
     "price_change_under_development": "This experience is currently under development",
     "set_price_alert": "Set price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
+    "delete_success": "Price alert deleted.",
+    "duplicate_threshold": "An alert at this price already exists.",
     "manage_title": "Price alerts",
     "add_alert": "Add alert",
     "reaches_threshold": "Reaches {{threshold}}",
