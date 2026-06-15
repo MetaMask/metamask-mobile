@@ -14,29 +14,6 @@ jest.mock('./useNetworkEnabledPredicate', () => ({
 jest.mock(
   '../../../../../../UI/Bridge/constants/default-swap-dest-tokens',
   () => ({
-    DefaultSwapDestTokens: {
-      'eip155:1/erc20:musd': {
-        symbol: 'mUSD',
-        address: '0xmusd',
-        chainId: '0x1',
-        decimals: 6,
-        name: 'MetaMask USD',
-      },
-      'eip155:137/erc20:usdc_matic': {
-        symbol: 'USDC',
-        address: '0xusdc_matic',
-        chainId: '0x89',
-        decimals: 6,
-        name: 'USD Coin (Polygon)',
-      },
-      'eip155:1/erc20:weth': {
-        symbol: 'WETH',
-        address: '0xweth',
-        chainId: '0x1',
-        decimals: 18,
-        name: 'Wrapped Ether',
-      },
-    },
     Bip44TokensForDefaultPairs: {
       'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
         symbol: 'USDC',
@@ -46,6 +23,36 @@ jest.mock(
         name: 'USD Coin',
       },
     },
+  }),
+);
+
+jest.mock(
+  '../../../../../../UI/Bridge/utils/getAllChainDefaultDestTokens',
+  () => ({
+    getAllChainDefaultDestTokens: jest.fn(() => [
+      {
+        symbol: 'mUSD',
+        address: '0xmusd',
+        chainId: '0x1',
+        decimals: 6,
+        name: 'MetaMask USD',
+      },
+      {
+        symbol: 'USDC',
+        address: '0xusdc_matic',
+        chainId: '0x89',
+        decimals: 6,
+        name: 'USD Coin (Polygon)',
+      },
+      {
+        // Intentionally non-stablecoin to verify filtering
+        symbol: 'WETH',
+        address: '0xweth',
+        chainId: '0x1',
+        decimals: 18,
+        name: 'Wrapped Ether',
+      },
+    ]),
   }),
 );
 
