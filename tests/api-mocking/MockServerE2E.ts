@@ -107,7 +107,7 @@ export const safeGetBodyText = async (request: {
   }
 };
 
-interface LiveRequest {
+export interface LiveRequest {
   url: string;
   method: string;
   timestamp: string;
@@ -122,6 +122,12 @@ interface JsonRpcLikeMessage {
 
 export interface InternalMockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
+  // Count of OS-proxy-intercepted native arrivals (matched or not). Non-zero
+  // only when the device proxy is actually on the path — the N3 canary asserts
+  // this is > 0 to prove the proxy isn't silently dormant.
+  _deviceProxyRequestCount?: number;
+  // Unmocked device-proxied requests, for the N4 warn-only inventory.
+  _deviceProxyUnmocked?: LiveRequest[];
 }
 
 export type HttpProxyTrafficSource = 'shim-proxy' | 'device-proxy';
@@ -159,6 +165,10 @@ export type ProxyHandlerResult = ProxyHandlerResponse | 'close';
 interface NormalizedHttpProxyRequestOptions {
   events: MockEventsObject;
   liveRequests?: LiveRequest[];
+  // Collects unmocked device-proxy-sourced requests for the N4 warn-only
+  // summary. Unlike liveRequests, recording here never fails the test —
+  // native traffic enforcement is a deliberate later step.
+  deviceProxyMisses?: LiveRequest[];
   forwardRequest?: typeof handleDirectFetch;
   getForwardUrl?: (targetUrl: string, source: HttpProxyTrafficSource) => string;
 }
@@ -811,6 +821,40 @@ const createMockEventResponse = (
   };
 };
 
+export interface DeviceProxyTrafficSummary {
+  totalRequests: number;
+  unmockedCount: number;
+  hosts: { host: string; count: number }[];
+}
+
+/**
+ * Builds the N4 device-proxy traffic summary: the total OS-proxy-intercepted
+ * native requests, the unmocked subset, and those unmocked requests deduped by
+ * host and ranked by descending count — a ready-made inventory of native
+ * traffic still to mock. Pure (no I/O) so it is unit-testable in isolation.
+ */
+export const buildDeviceProxySummary = (
+  totalRequests: number,
+  misses: LiveRequest[],
+): DeviceProxyTrafficSummary => {
+  const byHost = new Map<string, number>();
+  for (const miss of misses) {
+    let host: string;
+    try {
+      host = new URL(miss.url).host;
+    } catch {
+      host = miss.url;
+    }
+    byHost.set(host, (byHost.get(host) ?? 0) + 1);
+  }
+
+  const hosts = Array.from(byHost.entries())
+    .map(([host, count]) => ({ host, count }))
+    .sort((a, b) => b.count - a.count || a.host.localeCompare(b.host));
+
+  return { totalRequests, unmockedCount: misses.length, hosts };
+};
+
 const logDirectDeviceProxyMiss = (
   method: string,
   targetUrl: string,
@@ -912,6 +956,13 @@ export const handleNormalizedHttpProxyRequest = async (
 
   if (request.source === 'device-proxy') {
     logDirectDeviceProxyMiss(method, updatedUrl, request.bodyText);
+    // Record for the N4 warn-only inventory. This does NOT fail the test
+    // (cf. liveRequests below) — surfacing native traffic still to mock.
+    options.deviceProxyMisses?.push({
+      url: updatedUrl,
+      method,
+      timestamp: new Date().toISOString(),
+    });
   } else if (!isUrlAllowed(updatedUrl)) {
     const errorMessage = `Request going to live server: ${updatedUrl}`;
     logger.warn(errorMessage);
@@ -999,6 +1050,8 @@ export default class MockServerE2E implements Resource {
 
     this._server = getLocal(getMockttpProxyOptions()) as InternalMockServer;
     this._server._liveRequests = [];
+    this._server._deviceProxyRequestCount = 0;
+    this._server._deviceProxyUnmocked = [];
     await this._server.start(this._serverPort);
 
     logger.info(
@@ -1045,6 +1098,8 @@ export default class MockServerE2E implements Resource {
     this._webSocketUrlsByStreamId.clear();
     this._httpRequestLogContextById.clear();
     this._server._liveRequests = [];
+    this._server._deviceProxyRequestCount = 0;
+    this._server._deviceProxyUnmocked = [];
 
     this._server.reset();
     await this._applyServerConfiguration();
@@ -1154,6 +1209,7 @@ export default class MockServerE2E implements Resource {
             {
               events: this._events,
               liveRequests: this._server?._liveRequests,
+              deviceProxyMisses: this._server?._deviceProxyUnmocked,
               getForwardUrl: getProxyForwardUrl,
             },
           );
@@ -1231,6 +1287,14 @@ export default class MockServerE2E implements Resource {
           request.headers[CORS_PREFLIGHT_REQUEST_METHOD_HEADER]
         ) {
           return synthesizeCorsPreflightResponse(request.headers);
+        }
+
+        // This is a genuine OS-proxy-intercepted native arrival (not a
+        // self-reference, health-check, or preflight). Count it as proof the
+        // device proxy is on the path — the N3 canary asserts this is > 0.
+        if (this._server) {
+          this._server._deviceProxyRequestCount =
+            (this._server._deviceProxyRequestCount ?? 0) + 1;
         }
 
         // Re-enter raw device-proxy arrivals through our own /proxy ingress
@@ -1698,6 +1762,41 @@ export default class MockServerE2E implements Resource {
         `All requests drained in ${Date.now() - start}ms, proceeding with shutdown`,
       );
     }
+  }
+
+  /**
+   * Number of OS-proxy-intercepted native requests observed this test. Used by
+   * the device-proxy canary spec to assert the proxy is actually on the path
+   * (> 0); it is 0 when the proxy is dormant (e.g. Detox iOS in Phase 0).
+   */
+  getDeviceProxyRequestCount(): number {
+    return this._server?._deviceProxyRequestCount ?? 0;
+  }
+
+  /**
+   * Emits the N4 warn-only summary of device-proxy traffic and returns it.
+   * Warn-only by design: unmocked native traffic is surfaced as an inventory,
+   * not failed — enforcement is a deliberate later step (vs. validateLiveRequests,
+   * which fails the test for unmocked shim traffic). Returns an empty summary
+   * when the proxy never engaged (no native arrivals).
+   */
+  summarizeDeviceProxyTraffic(): DeviceProxyTrafficSummary {
+    const summary = buildDeviceProxySummary(
+      this._server?._deviceProxyRequestCount ?? 0,
+      this._server?._deviceProxyUnmocked ?? [],
+    );
+
+    if (summary.totalRequests === 0) {
+      return summary;
+    }
+
+    const hostList = summary.hosts
+      .map(({ host, count }) => `${host}(${count})`)
+      .join(', ');
+    logger.warn(
+      `[E2E_DEVICE_PROXY_UNMOCKED_SUMMARY] total=${summary.totalRequests} unmocked=${summary.unmockedCount} hosts=${hostList}`,
+    );
+    return summary;
   }
 
   validateLiveRequests(): void {
