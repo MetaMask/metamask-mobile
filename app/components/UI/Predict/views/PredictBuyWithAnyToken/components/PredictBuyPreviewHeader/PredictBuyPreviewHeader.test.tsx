@@ -13,7 +13,6 @@ import {
   type PredictOutcomeToken,
   type OrderPreview,
 } from '../../../../types';
-import { TEST_HEX_COLORS } from '../../../../testUtils/mockColors';
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, options?: Record<string, unknown>) => {
@@ -326,41 +325,19 @@ describe('PredictBuyPreviewHeader', () => {
       expect(screen.getByText(/Yes at 0\.75¢/)).toBeOnTheScreen();
     });
 
-    it('normalizes moneyline team picks back to Yes', () => {
+    it('renders provider-normalized moneyline team picks', () => {
       const market = createMockMarket({
         title: 'Korea Republic vs. Czechia',
-        game: {
-          id: 'game-1',
-          startTime: '2026-06-11T23:00:00Z',
-          status: 'scheduled',
-          league: 'fifwc',
-          elapsed: null,
-          period: null,
-          score: null,
-          homeTeam: {
-            id: 'team-home',
-            name: 'Korea Republic',
-            logo: 'https://example.com/korea.png',
-            abbreviation: 'KOR',
-            color: TEST_HEX_COLORS.ERROR_BRIGHT,
-          },
-          awayTeam: {
-            id: 'team-away',
-            name: 'Czechia',
-            logo: 'https://example.com/czechia.png',
-            abbreviation: 'CZE',
-            color: TEST_HEX_COLORS.PURE_BLUE,
-          },
-        },
       });
       const outcome = createMockOutcome({
         title: 'Korea Republic vs. Czechia',
         groupItemTitle: 'Korea Republic',
+        image: 'https://example.com/korea.png',
         sportsMarketType: 'moneyline',
         tokens: [
           {
             id: 'token-1',
-            title: 'Korea Republic',
+            title: 'Yes',
             shortTitle: 'KOR',
             price: 0.65,
           },
@@ -373,7 +350,7 @@ describe('PredictBuyPreviewHeader', () => {
           outcome={outcome}
           outcomeToken={createMockOutcomeToken({
             id: 'token-1',
-            title: 'Korea Republic',
+            title: 'Yes',
             shortTitle: 'KOR',
             price: 0.65,
           })}

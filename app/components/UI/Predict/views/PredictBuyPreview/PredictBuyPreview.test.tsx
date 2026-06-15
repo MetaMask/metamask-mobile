@@ -8,7 +8,6 @@ import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import PredictBuyPreview, {
   predictBuyPreviewDismissedViaBackRef,
   predictBuyPreviewOrderInitiatedRef,
@@ -2087,43 +2086,21 @@ describe('PredictBuyPreview', () => {
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
     });
 
-    it('normalizes moneyline team picks back to Yes', () => {
+    it('renders provider-normalized moneyline team picks', () => {
       const moneylineMarket: PredictMarket = {
         ...mockMarket,
         title: 'Korea Republic vs. Czechia',
-        game: {
-          id: 'game-1',
-          startTime: '2026-06-11T23:00:00Z',
-          status: 'scheduled',
-          league: 'fifwc',
-          elapsed: null,
-          period: null,
-          score: null,
-          homeTeam: {
-            id: 'team-home',
-            name: 'Korea Republic',
-            logo: 'https://example.com/korea.png',
-            abbreviation: 'KOR',
-            color: TEST_HEX_COLORS.ERROR_BRIGHT,
-          },
-          awayTeam: {
-            id: 'team-away',
-            name: 'Czechia',
-            logo: 'https://example.com/czechia.png',
-            abbreviation: 'CZE',
-            color: TEST_HEX_COLORS.PURE_BLUE,
-          },
-        },
         outcomes: [
           {
             ...mockMarket.outcomes[0],
             title: 'Korea Republic vs. Czechia',
             groupItemTitle: 'Korea Republic',
+            image: 'https://example.com/korea.png',
             sportsMarketType: 'moneyline',
             tokens: [
               {
                 id: 'outcome-token-789',
-                title: 'Korea Republic',
+                title: 'Yes',
                 shortTitle: 'KOR',
                 price: 0.5,
               },

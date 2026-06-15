@@ -50,7 +50,6 @@ import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
-import { resolvePredictBuyHeaderDisplay } from '../utils/predictBuyHeader';
 
 // Registration stack of sheet-mode providers — multiple providers can be
 // mounted simultaneously (e.g. HomeTabs + PredictScreenStack when the user
@@ -496,13 +495,6 @@ export const PredictPreviewSheetProvider: React.FC<
     }),
     [openBuySheet, openSellSheet, dismissPreviewSheet, buyParams],
   );
-  const buyHeaderDisplay = buyParams
-    ? resolvePredictBuyHeaderDisplay({
-        market: buyParams.market,
-        outcome: buyParams.outcome,
-        outcomeToken: buyParams.outcomeToken,
-      })
-    : null;
 
   return (
     <PredictPreviewSheetContext.Provider value={contextValue}>
@@ -512,12 +504,12 @@ export const PredictPreviewSheetProvider: React.FC<
           ref={buySheetRef}
           isFullscreen={false}
           title={[
-            buyHeaderDisplay?.outcomeTokenTitle,
-            buyHeaderDisplay?.outcomeGroupTitle || buyParams.outcome?.title,
+            buyParams.outcomeToken?.title,
+            buyParams.outcome?.groupItemTitle || buyParams.outcome?.title,
           ]
             .filter(Boolean)
             .join(' · ')}
-          image={buyHeaderDisplay?.image}
+          image={buyParams.outcome?.image}
           subtitle={
             buyParams.outcomeToken
               ? `${strings('predict.odds')} ${formatCents(buyParams.outcomeToken.price ?? 0)}`
