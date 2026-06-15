@@ -499,6 +499,9 @@ function HeadlessPlayground() {
         assetId: effectiveAssetId,
         amount: headlessAmountAsNumber,
         currency: fiatCurrency,
+        // Sandbox default: the playground simulates the Money "Add funds"
+        // consumer, so tag the headless analytics surface accordingly.
+        ramp_surface: 'money_account' as const,
       };
       const session = startHeadlessBuy(params, {
         onOrderCreated: (orderId) => {

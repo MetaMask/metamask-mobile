@@ -1,3 +1,11 @@
+/**
+ * Headless ramps surface the event was triggered from. Set on every event
+ * emitted on the headless deposit path (TRAM-3623) so the funnel can be sliced
+ * by which product feature initiated the buy. Optional and empty for all
+ * non-headless (UB2 / native Deposit) events, keeping the change additive.
+ */
+export type RampSurface = 'money_account' | 'perps' | 'prediction';
+
 interface RampsButtonClicked {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
@@ -120,8 +128,10 @@ interface RampsOtpConfirmed {
 interface RampsOtpFailed {
   quote_session_id?: string;
   region: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
+  error_message?: string;
 }
 
 interface RampsOtpResent {
@@ -157,7 +167,8 @@ interface RampsAddressEntered {
 
 interface RampsTransactionConfirmed {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
   amount_destination: number;
@@ -167,6 +178,7 @@ interface RampsTransactionConfirmed {
   total_fee: number;
   payment_method_id: string;
   country: string;
+  region?: string;
   chain_id: string;
   currency_destination: string;
   currency_destination_symbol?: string;
@@ -217,9 +229,12 @@ interface RampsTransactionFailed {
 
 interface RampsKycApplicationFailed {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   kyc_type: string;
+  region?: string;
+  error_message?: string;
 }
 
 interface RampsKycApplicationApproved {
@@ -260,7 +275,9 @@ interface RampsUserDetailsFetched {
 
 interface RampsScreenViewed {
   location: string;
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
+  region?: string;
 }
 
 interface RampsBackButtonClicked {
@@ -393,7 +410,9 @@ interface RampsToastButtonClicked {
 interface RampsCheckoutFunnelBase {
   checkout_session_id: string;
   location: 'Checkout';
-  ramp_type: 'UNIFIED_BUY_2';
+  ramp_type: 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_surface?: RampSurface;
+  region?: string;
   provider_name?: string;
 }
 
@@ -421,6 +440,7 @@ interface RampsCheckoutHttpErrorReceived extends RampsCheckoutFunnelBase {
   url_path: string;
   status_code: number;
   is_initial_url: boolean;
+  error_message?: string;
 }
 
 interface RampsCheckoutCallbackDetected extends RampsCheckoutFunnelBase {
