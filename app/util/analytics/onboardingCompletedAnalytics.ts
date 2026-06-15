@@ -1,3 +1,4 @@
+import type { JsonMap } from '../../core/Analytics/MetaMetrics.types';
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from './walletSetupCompletedAttribution';
 
 export const ONBOARDING_IMPLEMENTATION_TYPE_NATIVE = 'native' as const;
@@ -9,18 +10,18 @@ export type OnboardingType =
   | typeof ONBOARDING_TYPE_SEED_PHRASE
   | typeof ONBOARDING_TYPE_SOCIAL_LOGIN;
 
-export interface WalletSetupCompletedAnalyticsProps {
+export interface WalletSetupCompletedAnalyticsProps extends JsonMap {
   wallet_setup_type: 'new' | 'import';
   new_wallet: boolean;
   account_type: string;
 }
 
-export type OnboardingCompletedAnalyticsProps =
-  WalletSetupCompletedAnalyticsProps &
-    WalletSetupCompletedAttributionAnalyticsPayload & {
-      implementation_type: typeof ONBOARDING_IMPLEMENTATION_TYPE_NATIVE;
-      onboarding_type: OnboardingType;
-    };
+export interface OnboardingCompletedAnalyticsProps
+  extends WalletSetupCompletedAnalyticsProps,
+    WalletSetupCompletedAttributionAnalyticsPayload {
+  implementation_type: typeof ONBOARDING_IMPLEMENTATION_TYPE_NATIVE;
+  onboarding_type: OnboardingType;
+}
 
 export function getOnboardingCompletedAnalyticsProps(
   walletSetupCompletedProps: WalletSetupCompletedAnalyticsProps &

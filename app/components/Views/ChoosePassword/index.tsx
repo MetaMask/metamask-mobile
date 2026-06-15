@@ -528,7 +528,7 @@ const ChoosePassword = () => {
         MetaMetricsEvents.ONBOARDING_COMPLETED,
         getOnboardingCompletedAnalyticsProps(
           walletSetupCompletedProps,
-          isSocialLogin,
+          Boolean(isSocialLogin),
         ),
       );
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
