@@ -22,7 +22,9 @@ import {
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
-import PerpsToggleBlock from '../feeds/perps/PerpsToggleBlock';
+import PerpsToggleBlock, {
+  type PerpsFilterKey,
+} from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
@@ -37,7 +39,7 @@ import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
+  onViewAll: (filter: PerpsFilterKey, sortOptionId: SortOptionId) => void;
 }
 
 const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
@@ -46,7 +48,9 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
 
-  const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
+  const tabs = useMemo<
+    PillToggleCardListTab<PerpsMarketData, PerpsFilterKey>[]
+  >(() => {
     const byType = (type: PerpsMarketData['marketType']) =>
       perps.data
         .filter((d) => d.market.marketType === type)
@@ -58,12 +62,12 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       .map((d) => d.market);
     return [
       {
-        key: 'commodities',
+        key: 'commodity',
         name: strings('trending.rwa_pill_commodities'),
         items: byType('commodity'),
       },
       {
-        key: 'stocks',
+        key: 'stock',
         name: strings('trending.rwa_pill_stocks'),
         items: stockLikeItems,
       },
@@ -82,7 +86,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       title={strings('trending.rwa_perps_section')}
       tabs={tabs}
       isLoading={perps.isLoading}
-      defaultPillKey="commodities"
+      defaultPillKey="commodity"
       onViewAll={onViewAll}
       sortOptionId={perps.defaultSortOptionId}
       tabName="RWAs"

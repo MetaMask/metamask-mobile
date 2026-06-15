@@ -90,16 +90,16 @@ const Skeleton = () => <Text testID="skeleton-item">sk</Text>;
 const STOCKS_MARKETS = [makeMarket('AAPL'), makeMarket('GOOGL')];
 const COMMODITY_MARKETS = [makeMarket('GOLD')];
 
-const DEFAULT_TABS = [
-  { key: 'stocks', name: 'Stocks', items: STOCKS_MARKETS },
-  { key: 'commodities', name: 'Commodities', items: COMMODITY_MARKETS },
+const DEFAULT_TABS: PerpsToggleBlockProps['tabs'] = [
+  { key: 'stock', name: 'Stocks', items: STOCKS_MARKETS },
+  { key: 'commodity', name: 'Commodities', items: COMMODITY_MARKETS },
 ];
 
 const DEFAULT_PROPS: PerpsToggleBlockProps = {
   title: 'Stocks & Commodities',
   tabs: DEFAULT_TABS,
   isLoading: false,
-  defaultPillKey: 'stocks',
+  defaultPillKey: 'stock',
   onViewAll: jest.fn(),
   sortOptionId: 'volume',
   tabName: 'Macro',
@@ -137,8 +137,8 @@ describe('PerpsToggleBlock', () => {
 
     it('renders pill buttons for each tab', () => {
       const { getByTestId } = renderBlock();
-      expect(getByTestId('test-toggle-pill-stocks')).toBeTruthy();
-      expect(getByTestId('test-toggle-pill-commodities')).toBeTruthy();
+      expect(getByTestId('test-toggle-pill-stock')).toBeTruthy();
+      expect(getByTestId('test-toggle-pill-commodity')).toBeTruthy();
     });
   });
 
@@ -153,25 +153,25 @@ describe('PerpsToggleBlock', () => {
   });
 
   describe('pill switching', () => {
-    it('shows the commodities items after selecting the commodities pill', () => {
+    it('shows the commodity items after selecting the commodity pill', () => {
       const { getByTestId, queryByTestId } = renderBlock();
 
       act(() => {
-        fireEvent.press(getByTestId('test-toggle-pill-commodities'));
+        fireEvent.press(getByTestId('test-toggle-pill-commodity'));
       });
 
       expect(getByTestId('perps-row-GOLD')).toBeTruthy();
       expect(queryByTestId('perps-row-AAPL')).toBeNull();
     });
 
-    it('switching back to stocks shows stocks items again', () => {
+    it('switching back to stock shows stock items again', () => {
       const { getByTestId } = renderBlock();
 
       act(() => {
-        fireEvent.press(getByTestId('test-toggle-pill-commodities'));
+        fireEvent.press(getByTestId('test-toggle-pill-commodity'));
       });
       act(() => {
-        fireEvent.press(getByTestId('test-toggle-pill-stocks'));
+        fireEvent.press(getByTestId('test-toggle-pill-stock'));
       });
 
       expect(getByTestId('perps-row-AAPL')).toBeTruthy();
@@ -186,7 +186,7 @@ describe('PerpsToggleBlock', () => {
       fireEvent.press(getByTestId('section-header-view-all-test'));
 
       expect(onViewAll).toHaveBeenCalledTimes(1);
-      expect(onViewAll).toHaveBeenCalledWith('stocks', 'volume');
+      expect(onViewAll).toHaveBeenCalledWith('stock', 'volume');
     });
 
     it('calls onViewAll with the newly active pill key after switching pills', () => {
@@ -194,12 +194,12 @@ describe('PerpsToggleBlock', () => {
       const { getByTestId } = renderBlock({ ...DEFAULT_PROPS, onViewAll });
 
       act(() => {
-        fireEvent.press(getByTestId('test-toggle-pill-commodities'));
+        fireEvent.press(getByTestId('test-toggle-pill-commodity'));
       });
 
       fireEvent.press(getByTestId('section-header-view-all-test'));
 
-      expect(onViewAll).toHaveBeenCalledWith('commodities', 'volume');
+      expect(onViewAll).toHaveBeenCalledWith('commodity', 'volume');
     });
 
     it('forwards the sortOptionId prop unchanged regardless of active pill', () => {
@@ -211,11 +211,11 @@ describe('PerpsToggleBlock', () => {
       });
 
       act(() => {
-        fireEvent.press(getByTestId('test-toggle-pill-commodities'));
+        fireEvent.press(getByTestId('test-toggle-pill-commodity'));
       });
       fireEvent.press(getByTestId('section-header-view-all-test'));
 
-      expect(onViewAll).toHaveBeenCalledWith('commodities', 'priceChange');
+      expect(onViewAll).toHaveBeenCalledWith('commodity', 'priceChange');
     });
 
     it('calls onViewAll only once per press', () => {
