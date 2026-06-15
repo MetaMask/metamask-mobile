@@ -461,7 +461,7 @@ describe('ActivityList', () => {
     );
   });
 
-  it('renders local pending and confirmed rows, refreshes, paginates, and opens the EVM explorer', async () => {
+  it('renders local pending and confirmed transaction rows', () => {
     render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     expect(
@@ -469,18 +469,38 @@ describe('ActivityList', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId('pending-local-id')).toBeOnTheScreen();
     expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
+  });
+
+  it('refreshes incoming transactions and refetches the list on pull-to-refresh', async () => {
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     fireEvent.press(screen.getByTestId('mock-refresh'));
+
     await waitFor(() => expect(updateIncomingTransactions).toHaveBeenCalled());
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards scroll events to onScroll', () => {
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     fireEvent.press(screen.getByTestId('mock-scroll'));
+
     expect(mockOnScroll).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetches the next page when viewable items change', () => {
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     fireEvent.press(screen.getByTestId('mock-viewable'));
+
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the EVM block explorer from the footer', () => {
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     fireEvent.press(screen.getByTestId('evm-footer'));
+
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       params: {
         title: 'Configured Explorer',
@@ -488,8 +508,13 @@ describe('ActivityList', () => {
       },
       screen: 'SimpleWebview',
     });
+  });
+
+  it('navigates to transaction details when a confirmed row is pressed', () => {
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
+
     expect(mockNavigate).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({

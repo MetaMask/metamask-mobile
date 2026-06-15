@@ -114,6 +114,35 @@ jest.mock('expo/fetch', () => ({
   fetch,
 }));
 
+// @metamask/perps-controller no longer exports MarketCategory / MARKET_CATEGORIES on
+// this branch, but Perps UI (pulled in via TransactionElement → Balance) still reads
+// them at module load. Stub the enum so component-view tests can import Activity views.
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+
+  return {
+    ...actual,
+    MarketCategory: {
+      CryptoCurrency: 'crypto',
+      Stock: 'stock',
+      PreIpo: 'pre-ipo',
+      Index: 'index',
+      Etf: 'etf',
+      Forex: 'forex',
+      Commodity: 'commodity',
+    },
+    MARKET_CATEGORIES: [
+      'crypto',
+      'stock',
+      'pre-ipo',
+      'forex',
+      'commodity',
+      'index',
+      'etf',
+    ],
+  };
+});
+
 // Reanimated setup is usually required for navigation/animations
 try {
   require('react-native-reanimated').setUpTests();

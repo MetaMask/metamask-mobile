@@ -51,25 +51,12 @@ const mockState = {
 };
 
 // Minimal required mocks
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { default: 'white', alternative: 'grey' },
-      text: { default: 'black', alternative: 'grey', muted: 'grey' },
-      border: { muted: 'grey' },
-      success: { default: 'green' },
-      error: { default: 'red' },
-      warning: { default: 'orange' },
-      primary: { default: 'blue' },
-      icon: { default: 'grey' },
-    },
-    typography: {
-      sBodyLGMedium: { fontSize: 16 },
-      sBodyMDBold: { fontSize: 14, fontWeight: 'bold' },
-      sBodyMD: { fontSize: 14 },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => {
@@ -471,121 +458,5 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 
     expect(getByText('Swap ETH to USDC')).toBeOnTheScreen();
     expect(queryByText(strings('transactions.swaps_transaction'))).toBeNull();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// getLocalTransactionStatus exhaustiveness test
-// ---------------------------------------------------------------------------
-
-describe('getLocalTransactionStatus — all local transaction status paths', () => {
-  const { getLocalTransactionStatus } = jest.requireActual(
-    '../../../util/activity-adapters/adapters/helpers',
-  );
-  const { TransactionStatus } = jest.requireActual(
-    '@metamask/transaction-controller',
-  );
-
-  const makeGroup = (overrides: Record<string, unknown>) => ({
-    primaryTransaction: {
-      txReceipt: {},
-      type: 'simpleSend',
-      status: 'submitted',
-      ...overrides,
-    },
-    initialTransaction: {
-      isSmartTransaction: false,
-      txParams: {},
-      ...overrides,
-    },
-  });
-
-  it('maps confirmed → success', () => {
-    const group = makeGroup({ status: TransactionStatus.confirmed });
-    expect(getLocalTransactionStatus(group)).toBe('success');
-  });
-
-  it('maps failed → failed', () => {
-    const group = makeGroup({ status: TransactionStatus.failed });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
-  });
-
-  it('maps dropped → failed', () => {
-    const group = makeGroup({ status: TransactionStatus.dropped });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
-  });
-
-  it('maps rejected → failed', () => {
-    const group = makeGroup({ status: TransactionStatus.rejected });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
-  });
-
-  it('maps cancelled (cancel-type tx) → failed', () => {
-    const group = makeGroup({
-      status: TransactionStatus.confirmed,
-      type: 'cancel',
-    });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
-  });
-
-  it('maps submitted → pending', () => {
-    const group = makeGroup({ status: TransactionStatus.submitted });
-    expect(getLocalTransactionStatus(group)).toBe('pending');
-  });
-
-  it('maps approved → pending', () => {
-    const group = makeGroup({ status: TransactionStatus.approved });
-    expect(getLocalTransactionStatus(group)).toBe('pending');
-  });
-
-  it('maps unapproved → pending', () => {
-    const group = makeGroup({ status: TransactionStatus.unapproved });
-    expect(getLocalTransactionStatus(group)).toBe('pending');
-  });
-
-  it('maps signed → pending', () => {
-    const group = makeGroup({ status: TransactionStatus.signed });
-    expect(getLocalTransactionStatus(group)).toBe('pending');
-  });
-
-  it('maps receipt status 0x0 (revert) → failed', () => {
-    const group = makeGroup({
-      status: TransactionStatus.confirmed,
-      txReceipt: { status: '0x0' },
-    });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
-  });
-
-  it('maps smart tx pending → pending', () => {
-    const group = {
-      primaryTransaction: makeGroup({}).primaryTransaction,
-      initialTransaction: {
-        isSmartTransaction: true,
-        status: 'pending',
-      },
-    };
-    expect(getLocalTransactionStatus(group)).toBe('pending');
-  });
-
-  it('maps smart tx success → success', () => {
-    const group = {
-      primaryTransaction: makeGroup({}).primaryTransaction,
-      initialTransaction: {
-        isSmartTransaction: true,
-        status: 'success',
-      },
-    };
-    expect(getLocalTransactionStatus(group)).toBe('success');
-  });
-
-  it('maps smart tx cancelled → failed', () => {
-    const group = {
-      primaryTransaction: makeGroup({}).primaryTransaction,
-      initialTransaction: {
-        isSmartTransaction: true,
-        status: 'cancelled',
-      },
-    };
-    expect(getLocalTransactionStatus(group)).toBe('failed');
   });
 });

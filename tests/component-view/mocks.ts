@@ -268,6 +268,7 @@ jest.mock('../../app/core/Engine', () => {
         addTransaction: jest.fn().mockResolvedValue({}),
         getTransactions: jest.fn().mockReturnValue([]),
         updateEditableParams: jest.fn(),
+        updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),
         getNonceLock: jest
           .fn()
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
