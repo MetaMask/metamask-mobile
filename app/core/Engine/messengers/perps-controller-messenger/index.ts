@@ -4,6 +4,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 /**
@@ -31,12 +33,13 @@ export function getPerpsControllerMessenger(
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
   });
-  // TS2590: The union of PerpsControllerAllowedActions & GlobalActions exceeds
-  // TypeScript's complexity limit. The delegate call is correct at runtime;
-  // suppress the compiler error rather than weakening the types.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error TS2590
   rootExtendedMessenger.delegate({
+    messenger: messenger as Messenger<
+      'PerpsController',
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'GeolocationController:getGeolocation',
       'NetworkController:getState',
@@ -57,7 +60,6 @@ export function getPerpsControllerMessenger(
       'AccountsController:selectedAccountChange',
       'AccountTreeController:selectedAccountGroupChange',
     ],
-    messenger,
   });
   return messenger;
 }
