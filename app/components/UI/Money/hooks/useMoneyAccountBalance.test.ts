@@ -308,15 +308,12 @@ describe('useMoneyAccountBalance', () => {
       }
       return undefined;
     });
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        musdBalance: { data: { balance: '0' }, isLoading: false },
-        musdEquivalentBalance: {
-          data: { balanceOfInAssets: '0' },
-          isLoading: false,
-        },
-      }),
-    );
+    setupDefaultQueries({
+      data: { musdBalance: '0', vmusdValueInMusd: '0', totalBalance: '0' },
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
 
     const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -522,11 +519,12 @@ describe('useMoneyAccountBalance', () => {
     });
 
     it('isBalanceUnavailable is true on a balance fetch error', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+      });
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -548,11 +546,12 @@ describe('useMoneyAccountBalance', () => {
     });
 
     it('does not persist the balance on a fetch error', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+      });
 
       renderHook(() => useMoneyAccountBalance());
 
