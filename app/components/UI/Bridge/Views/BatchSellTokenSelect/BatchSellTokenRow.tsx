@@ -205,6 +205,10 @@ export function BatchSellTokenRow({
       </View>
     ) : undefined;
 
+  const pressTargetAccessibilityLabel = `${token.symbol} ${strings(
+    'bridge.batch_sell_checkbox_label',
+  )}`;
+
   return (
     <TokenSelectorItem
       token={token}
@@ -214,6 +218,8 @@ export function BatchSellTokenRow({
       isSelected={isSelected}
       shouldChangeSelectedStyle={false}
       shouldShowNetworkIcon={false}
+      shouldIncludeChildrenInPressTarget
+      pressTargetAccessibilityLabel={pressTargetAccessibilityLabel}
       secondaryRowContent={secondaryRowContent}
       balanceLayoutConfigOverride={
         TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
@@ -228,10 +234,11 @@ export function BatchSellTokenRow({
     >
       <Checkbox
         isSelected={isSelected}
-        onChange={() => onTokenPress(token)}
-        accessibilityLabel={`${token.symbol} ${strings(
-          'bridge.batch_sell_checkbox_label',
-        )}`}
+        // eslint-disable-next-line no-empty-function
+        onChange={() => {}}
+        pointerEvents="none"
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
       />
     </TokenSelectorItem>
   );
