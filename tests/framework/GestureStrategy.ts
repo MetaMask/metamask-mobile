@@ -38,6 +38,8 @@ export interface UnifiedGestureOptions {
   enabledStableReads?: number;
   /** Extra wait (ms) after enabled/interactive, before click — Appium only */
   postEnabledSettleMs?: number;
+  /** Long press duration in ms — passed through to PlaywrightGestures.longPress */
+  duration?: number;
 }
 
 /**
@@ -279,6 +281,7 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.longPress(asDetoxElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description,
+      duration: opts?.duration,
     });
   }
 
@@ -346,9 +349,17 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param elem - The element to tap
    * @returns A promise that resolves when the tap is complete
    */
-  async tap(elem: EncapsulatedElementType): Promise<void> {
+  async tap(
+    elem: EncapsulatedElementType,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.waitAndTap(el);
+    await PlaywrightGestures.waitAndTap(el, {
+      timeout: opts?.timeout,
+      delay: opts?.delay,
+      checkForDisplayed: opts?.checkForDisplayed ?? true,
+      checkForEnabled: opts?.checkForEnabled,
+    });
   }
 
   /**
@@ -365,7 +376,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
     await PlaywrightGestures.waitAndTap(el, {
       timeout: opts?.timeout,
       delay: opts?.delay,
-      checkForDisplayed: opts?.checkForDisplayed,
+      checkForDisplayed: opts?.checkForDisplayed ?? true,
       checkForEnabled: opts?.checkForEnabled,
       waitForInteractive: opts?.waitForInteractive,
       enabledStableReads: opts?.enabledStableReads,
@@ -437,9 +448,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param elem - The element to long press
    * @returns A promise that resolves when the long press is complete
    */
-  async longPress(elem: EncapsulatedElementType): Promise<void> {
+  async longPress(
+    elem: EncapsulatedElementType,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.longPress(el);
+    await PlaywrightGestures.longPress(el, opts?.duration);
   }
 
   /**

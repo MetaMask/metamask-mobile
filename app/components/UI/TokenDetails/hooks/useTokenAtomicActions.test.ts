@@ -12,6 +12,7 @@ import {
   useHandleOnSend,
   useHandleOnSwap,
 } from './useTokenAtomicActions';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { TokenI } from '../../Tokens/types';
 import { SecurityDataType } from '../../Bridge/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -30,7 +31,6 @@ import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
@@ -91,7 +91,6 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
   getOrders: jest.fn(),
-  getRampRoutingDecision: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rampsController', () => ({
@@ -150,10 +149,10 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
-const mockRampsUnifiedV1Enabled = jest.fn(() => false);
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+const mockRampsUnifiedV2Enabled = jest.fn(() => false);
+jest.mock('../../Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
   __esModule: true,
-  default: () => mockRampsUnifiedV1Enabled(),
+  default: () => mockRampsUnifiedV2Enabled(),
 }));
 
 const mockSendNonEvmAsset = jest.fn().mockResolvedValue(false);
@@ -162,6 +161,8 @@ jest.mock('../../../hooks/useSendNonEvmAsset', () => ({
     sendNonEvmAsset: mockSendNonEvmAsset,
   }),
 }));
+
+const mockGetSwapDestToken = jest.mocked(getSwapDestToken);
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn(() => ({
@@ -184,6 +185,10 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 jest.mock('../../Bridge/utils/tokenUtils', () => ({
   getDefaultDestToken: jest.fn(),
   getNativeSourceToken: jest.fn(),
+}));
+
+jest.mock('../../Bridge/utils/getSwapDestToken', () => ({
+  getSwapDestToken: jest.fn(() => undefined),
 }));
 
 jest.mock('@metamask/utils', () => ({
@@ -221,7 +226,6 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 const mockGetOrders = jest.mocked(getOrders);
-const mockGetRampRoutingDecision = jest.mocked(getRampRoutingDecision);
 const mockSelectRampsOrdersForSelectedAccountGroup = jest.mocked(
   selectRampsOrdersForSelectedAccountGroup,
 );
@@ -259,7 +263,6 @@ const setupSelectorDefaults = () => {
   mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
   mockGetDetectedGeolocation.mockReturnValue('US');
   mockGetOrders.mockReturnValue([]);
-  mockGetRampRoutingDecision.mockReturnValue(null);
   mockSelectRampsOrdersForSelectedAccountGroup.mockReturnValue([]);
   mockGetProviderToken.mockResolvedValue({
     success: true,
@@ -284,7 +287,7 @@ beforeEach(() => {
     goToSwaps: mockGoToSwaps,
     networkModal: null,
   });
-  mockRampsUnifiedV1Enabled.mockReturnValue(false);
+  mockRampsUnifiedV2Enabled.mockReturnValue(false);
 });
 
 /**
@@ -565,14 +568,14 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
     });
   });
 
-  it('switches ramp_type to UNIFIED_BUY when the unified-v1 flag is enabled', async () => {
-    mockRampsUnifiedV1Enabled.mockReturnValue(true);
+  it('switches ramp_type to UNIFIED_BUY_2 when the unified-v2 flag is enabled', async () => {
+    mockRampsUnifiedV2Enabled.mockReturnValue(true);
 
     const { result } = await renderOnBuy();
     result.current();
 
     assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
-      ramp_type: 'UNIFIED_BUY',
+      ramp_type: 'UNIFIED_BUY_2',
     });
   });
 
@@ -874,6 +877,71 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
     const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
     assertSwapCall(sourceToken, destToken);
+  });
+
+  // Regression tests: verify that the per-source destToken override is forwarded
+  // correctly to goToSwaps, and that a chain-wide default is NOT used as an
+  // override when the source token has no explicit entry (the original bug).
+  describe('destTokenOverride regression', () => {
+    const MOCK_OVERRIDE_TOKEN = {
+      address: '0x3600000000000000000000000000000000000000',
+      chainId: '0x13b2',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+    };
+
+    it('passes the per-source override as destToken when goToSwaps fires (has balance → swap-out path)', () => {
+      mockGetSwapDestToken.mockReturnValueOnce(MOCK_OVERRIDE_TOKEN as never);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('1') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toStrictEqual(
+        expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
+      );
+    });
+
+    it('passes the per-source override as destToken on the swap-into path (zero balance, buy source available)', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0x1': [
+          userAsset({
+            assetId: WETH_ADDRESS,
+            symbol: 'WETH',
+            fiatBalance: 500,
+          }),
+        ],
+      } as AccountGroupAssets);
+      mockGetSwapDestToken.mockReturnValueOnce(MOCK_OVERRIDE_TOKEN as never);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('0') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toStrictEqual(
+        expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
+      );
+    });
+
+    it('passes undefined as destToken when getSwapDestToken returns undefined (no override configured)', () => {
+      mockGetSwapDestToken.mockReturnValueOnce(undefined);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('1') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toBeUndefined();
+    });
   });
 });
 

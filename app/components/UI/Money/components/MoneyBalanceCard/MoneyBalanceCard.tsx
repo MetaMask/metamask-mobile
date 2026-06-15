@@ -32,7 +32,8 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import Logger from '../../../../../util/Logger';
 import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
@@ -52,7 +53,7 @@ const MoneyBalanceCard = () => {
     totalFiatRaw,
     totalFiatFormatted,
     apyPercent,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     isBalanceFetchError,
     isBalanceFetching,
     refetchBalance,
@@ -60,7 +61,7 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
@@ -85,7 +86,7 @@ const MoneyBalanceCard = () => {
   const isUnavailable =
     hasMoneyAccount &&
     !isBalanceFetchError &&
-    !isAggregatedBalanceLoading &&
+    !isBalanceLoading &&
     totalFiatFormatted === undefined;
 
   // Genuinely zero balance — distinct from unavailable.
@@ -154,13 +155,15 @@ const MoneyBalanceCard = () => {
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: buttonLabelKey,
-      redirect_target: hasMusdBalance
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : SCREEN_NAMES.RAMP_BUY,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    routeAddMoney();
-  }, [buttonLabelKey, hasMusdBalance, routeAddMoney, trackButtonClicked]);
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyBalanceCard] Failed to initiate deposit',
+      }),
+    );
+  }, [buttonLabelKey, initiateDeposit, trackButtonClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({
@@ -185,7 +188,7 @@ const MoneyBalanceCard = () => {
         </Text>
       );
     }
-    if (isAggregatedBalanceLoading || isRetrying) {
+    if (isBalanceLoading || isRetrying) {
       return (
         <Skeleton
           height={24}

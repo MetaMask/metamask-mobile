@@ -11,7 +11,7 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -33,7 +33,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
-const mockRouteAddMoney = jest.fn();
+const mockInitiateDeposit = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -60,9 +60,9 @@ jest.mock('../../hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
+jest.mock('../../hooks/useMoneyAccount', () => ({
   __esModule: true,
-  useMoneyAccountAddRouting: jest.fn(),
+  useMoneyAccountDeposit: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -75,6 +75,11 @@ jest.mock('../../../../../selectors/onboarding', () => ({
   selectWalletHomeOnboardingFlowVisible: jest.fn(),
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
@@ -82,7 +87,7 @@ const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
   selectWalletHomeOnboardingFlowVisible,
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
-const mockUseMoneyAccountAddRouting = jest.mocked(useMoneyAccountAddRouting);
+const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
 const createBalanceMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
@@ -91,7 +96,7 @@ const createBalanceMock = (
     totalFiatFormatted: '$1,000.00',
     totalFiatRaw: '1000',
     tokenTotal: undefined,
-    isAggregatedBalanceLoading: false,
+    isBalanceLoading: false,
     isBalanceFetchError: false,
     isBalanceFetching: false,
     refetchBalance: jest.fn(),
@@ -102,20 +107,14 @@ const createBalanceMock = (
       data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
       isLoading: false,
     },
-    musdBalanceQuery: {
-      data: { balance: '1000000000' },
-      isLoading: false,
-    },
-    musdEquivalentBalanceQuery: {
+    moneyBalanceQuery: {
       data: {
-        musdEquivalentValue: '0',
-        musdSHFvdBalance: '0',
-        exchangeRate: '1000000',
+        musdBalance: '1000000000',
+        vmusdValueInMusd: '0',
+        totalBalance: '1000000000',
       },
       isLoading: false,
     },
-    musdFiatFormatted: '$1,000.00',
-    musdSHFvdFiatFormatted: '$0.00',
     ...overrides,
   }) as ReturnType<typeof useMoneyAccountBalance>;
 
@@ -140,11 +139,10 @@ describe('MoneyBalanceCard', () => {
     mockUseMoneyNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
-    mockRouteAddMoney.mockResolvedValue(undefined);
-    mockUseMoneyAccountAddRouting.mockReturnValue({
-      hasMusdBalance: false,
-      routeAddMoney: mockRouteAddMoney,
-    } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
+    mockInitiateDeposit.mockResolvedValue(undefined);
+    mockUseMoneyAccountDeposit.mockReturnValue({
+      initiateDeposit: mockInitiateDeposit,
+    });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
       trackComponentViewed: mockTrackComponentViewed,
@@ -228,31 +226,31 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
     });
 
-    it('tracks the Add click with the Buy flow redirect target when the wallet holds no mUSD', () => {
+    it('logs an error when initiateDeposit rejects', async () => {
+      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.balance_card.add',
-        redirect_target: SCREEN_NAMES.RAMP_BUY,
-      });
+      await Promise.resolve();
+
+      expect(Logger.default.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: expect.stringContaining('MoneyBalanceCard'),
+        }),
+      );
     });
 
-    it('tracks the Add click with the deposit redirect target when the wallet holds mUSD', () => {
-      mockUseMoneyAccountAddRouting.mockReturnValue({
-        hasMusdBalance: true,
-        routeAddMoney: mockRouteAddMoney,
-      } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
-
+    it('tracks the Add click with the deposit redirect target', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
@@ -315,7 +313,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
@@ -330,7 +328,7 @@ describe('MoneyBalanceCard', () => {
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_key: 'homepage.sections.money_empty_state.earn',
-        redirect_target: SCREEN_NAMES.RAMP_BUY,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
   });
@@ -395,7 +393,7 @@ describe('MoneyBalanceCard', () => {
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-        expect(mockRouteAddMoney).toHaveBeenCalled();
+        expect(mockInitiateDeposit).toHaveBeenCalled();
         expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
       });
     });
@@ -433,7 +431,7 @@ describe('MoneyBalanceCard', () => {
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-        expect(mockRouteAddMoney).toHaveBeenCalled();
+        expect(mockInitiateDeposit).toHaveBeenCalled();
       });
     });
   });
@@ -499,7 +497,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
     });
 
     it('opens the Money balance info sheet when the info icon is pressed', () => {
@@ -524,7 +522,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
     });
   });
@@ -532,7 +530,7 @@ describe('MoneyBalanceCard', () => {
   describe('loading states', () => {
     it('renders balance skeleton when balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({ isAggregatedBalanceLoading: true }),
+        createBalanceMock({ isBalanceLoading: true }),
       );
 
       const { getByTestId, queryByTestId } = renderWithProvider(

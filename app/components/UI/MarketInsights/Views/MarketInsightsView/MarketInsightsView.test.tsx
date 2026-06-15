@@ -275,12 +275,13 @@ jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => ({
 }));
 
 let mockIsQuickBuyEnabled = false;
-jest.mock(
-  '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy',
-  () => ({
-    selectSocialAiAssetDetailsQuickBuyEnabled: () => mockIsQuickBuyEnabled,
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { showQuickBuy: mockIsQuickBuyEnabled },
+    variantName: mockIsQuickBuyEnabled ? 'treatment' : 'control',
+    isActive: true,
   }),
-);
+}));
 
 const mockPlayImpact = jest.fn();
 jest.mock('../../../../../util/haptics', () => ({

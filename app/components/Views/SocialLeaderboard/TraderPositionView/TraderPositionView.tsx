@@ -20,8 +20,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  ButtonHero,
-  ButtonHeroSize,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -365,14 +366,15 @@ const TraderPositionView = () => {
           </ScrollView>
 
           <Box twClassName="px-4 py-3">
-            <ButtonHero
-              size={ButtonHeroSize.Lg}
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
               isFullWidth
               onPress={handleBuyPress}
               testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
             >
               {strings('social_leaderboard.trader_position.buy')}
-            </ButtonHero>
+            </Button>
           </Box>
 
           <TraderPositionQuickBuy

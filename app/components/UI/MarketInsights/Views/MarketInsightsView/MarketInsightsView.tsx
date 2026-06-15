@@ -86,10 +86,8 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
-import AssetDetailsQuickBuy from '../../../TokenDetails/components/AssetDetailsQuickBuy';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
-import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { useStickyQuickBuy } from '../../../TokenDetails/hooks/useStickyQuickBuy';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -227,12 +225,8 @@ const MarketInsightsView: React.FC = () => {
   );
 
   const isEligible = useSelector(selectPerpsEligibility);
-  const isQuickBuyEnabled = useSelector(
-    selectSocialAiAssetDetailsQuickBuyEnabled,
-  );
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
   const { track } = usePerpsEventTracking();
@@ -405,7 +399,6 @@ const MarketInsightsView: React.FC = () => {
   ]);
 
   const handleStickyQuickBuyPress = useCallback(() => {
-    playImpact(ImpactMoment.PrimaryCTA);
     const event = createEventBuilder(
       MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
     )
@@ -417,7 +410,6 @@ const MarketInsightsView: React.FC = () => {
       })
       .build();
     trackEvent(event);
-    setIsQuickBuyVisible(true);
   }, [
     trackEvent,
     createEventBuilder,
@@ -426,9 +418,11 @@ const MarketInsightsView: React.FC = () => {
     routeSource,
   ]);
 
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
+  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+    token: stickyFooterToken ?? null,
+    source: 'market_insights',
+    onPress: handleStickyQuickBuyPress,
+  });
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -883,9 +877,7 @@ const MarketInsightsView: React.FC = () => {
               buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
               onSwapPress={handleStickySwapPress}
               onBuyPress={handleStickyBuyPress}
-              onQuickBuyPress={
-                isQuickBuyEnabled ? handleStickyQuickBuyPress : undefined
-              }
+              onQuickBuyPress={onQuickBuyPress}
               quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
               sourcePage="MarketInsightsView"
               isPricePositive={isPricePositive}
@@ -912,14 +904,7 @@ const MarketInsightsView: React.FC = () => {
         />
       ) : null}
 
-      {isQuickBuyEnabled && stickyFooterToken && (
-        <AssetDetailsQuickBuy
-          isVisible={isQuickBuyVisible}
-          token={stickyFooterToken}
-          onClose={handleQuickBuyClose}
-          source="market_insights"
-        />
-      )}
+      {quickBuySheet}
 
       {isEligibilityModalVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
