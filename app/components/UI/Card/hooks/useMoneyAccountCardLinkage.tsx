@@ -375,7 +375,12 @@ export const useMoneyAccountCardLinkage =
       if (!isCardAuthenticated) return;
 
       if (!isCardVerified) {
-        dispatch(setPendingMoneyAccountCardLink(null));
+        if (
+          cardHomeDataStatus === 'success' ||
+          cardHomeDataStatus === 'error'
+        ) {
+          dispatch(setPendingMoneyAccountCardLink(null));
+        }
         return;
       }
 

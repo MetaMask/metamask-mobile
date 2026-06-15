@@ -742,6 +742,25 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it.each(['idle', 'loading'] as const)(
+      'keeps the pending flag while card data is still %s and verification is unknown',
+      (cardHomeDataStatus) => {
+        applySelectorMocks(
+          buildSelectors({
+            pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            isCardVerified: false,
+            cardHomeDataStatus,
+          }),
+        );
+        renderLinkageHook();
+
+        expect(mockDispatch).not.toHaveBeenCalledWith(
+          setPendingMoneyAccountCardLink(null),
+        );
+        expect(mockNavigate).not.toHaveBeenCalled();
+      },
+    );
+
     it('opens the Link Card sheet and clears the flag when authenticated and canLink', () => {
       applySelectorMocks(
         buildSelectors({
