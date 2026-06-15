@@ -23,7 +23,28 @@ import {
   selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../constants/network';
+import {
+  AccountGroupAssets,
+  selectAssetsBySelectedAccountGroup as innerSelectAssetsBySelectedAccountGroup,
+} from '@metamask/assets-controllers';
 import I18n from '../../../locales/i18n';
+
+// Wrap the inner assets-controllers selector in a jest.fn so the Arc
+// filtering describe block can override its return value without affecting
+// other tests (which use the real implementation via mockThrough).
+jest.mock('@metamask/assets-controllers', () => {
+  const actual = jest.requireActual('@metamask/assets-controllers');
+  return {
+    ...actual,
+    selectAssetsBySelectedAccountGroup: jest.fn(
+      actual.selectAssetsBySelectedAccountGroup,
+    ),
+  };
+});
 
 jest.mock('../../../locales/i18n', () => ({
   __esModule: true,
@@ -2279,6 +2300,8 @@ describe('selectAssetsByAccountGroupId', () => {
 });
 
 describe('selectHasEligibleSwapSource', () => {
+  const innerSelector = jest.mocked(innerSelectAssetsBySelectedAccountGroup);
+
   const ETH_MAINNET = '0x1';
   const OPTIMISM = '0xa';
   const DAI_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
@@ -2309,12 +2332,37 @@ describe('selectHasEligibleSwapSource', () => {
       return acc;
     }, {});
 
+  beforeEach(() => jest.clearAllMocks());
+
+  afterEach(() => {
+    // Restore call-through so other describe blocks use the real implementation.
+    innerSelector.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers')
+        .selectAssetsBySelectedAccountGroup,
+    );
+    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
+    selectAssetsBySelectedAccountGroup.clearCache();
+    selectHasEligibleSwapSource.clearCache();
+  });
+
   /**
-   * Invokes the selector's pure result function so each test can focus on
-   * behavior rather than rebuilding the full Redux state shape.
+   * Mocks the inner assets-controllers selector and runs the full selector
+   * against a real mockState so each test exercises the whole selector chain.
+   * Caches are cleared before each call so reselect memoization does not mask
+   * the new mock value when mockState() produces the same state shape.
    */
-  const runSelector = (assets: AssetFixture[]): boolean =>
-    selectHasEligibleSwapSource.resultFunc(buildAssetsByChain(assets) as never);
+  const runSelector = (assets: AssetFixture[]): boolean => {
+    innerSelector.mockReturnValue(
+      buildAssetsByChain(assets) as AccountGroupAssets,
+    );
+    // createDeepEqualSelector keeps a separate memoizedResultFunc cache;
+    // clearCache() alone does not reset it when mockState() is deep-equal
+    // across tests but the inner mock return value changes.
+    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
+    selectAssetsBySelectedAccountGroup.clearCache();
+    selectHasEligibleSwapSource.clearCache();
+    return selectHasEligibleSwapSource(mockState());
+  };
 
   const returnsTrueCases = [
     {
@@ -2376,5 +2424,75 @@ describe('selectHasEligibleSwapSource', () => {
 
   it('returns true for the default mockState since positive-fiat assets exist', () => {
     expect(selectHasEligibleSwapSource(mockState())).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// filterArcUsdcErc20Token – Arc USDC ERC-20 filtering
+// Tests exercise the private filter through selectAssetsBySelectedAccountGroup
+// by overriding the inner assets-controllers selector for this describe block.
+// ---------------------------------------------------------------------------
+
+describe('selectAssetsBySelectedAccountGroup – Arc USDC ERC-20 filter', () => {
+  const innerSelector = jest.mocked(innerSelectAssetsBySelectedAccountGroup);
+
+  const ARC = NETWORKS_CHAIN_ID.ARC;
+  const ARC_ERC20 = ARC_USDC_TOKEN_ADDRESS;
+  const NATIVE_ADDR = '0x0000000000000000000000000000000000000000';
+  const DAI_ADDR = '0x6b175474e89094c44da98b954eedeac495271d0f';
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const run = () => selectAssetsBySelectedAccountGroup.resultFunc({} as any);
+
+  beforeEach(() => jest.clearAllMocks());
+
+  afterEach(() => {
+    // Restore call-through so other describe blocks use the real implementation.
+    innerSelector.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers')
+        .selectAssetsBySelectedAccountGroup,
+    );
+  });
+
+  it('removes the Arc USDC ERC-20 token from Arc chain assets', () => {
+    innerSelector.mockReturnValue({
+      [ARC]: [
+        { address: ARC_ERC20, symbol: 'USDC' },
+        { address: NATIVE_ADDR, symbol: 'USDC' },
+      ],
+    } as unknown as AccountGroupAssets);
+
+    const result = run();
+
+    expect(result[ARC]).toHaveLength(1);
+    expect((result[ARC][0] as { address: string }).address).toBe(NATIVE_ADDR);
+  });
+
+  it('leaves non-Arc chains untouched', () => {
+    innerSelector.mockReturnValue({
+      '0x1': [
+        { address: ARC_ERC20, symbol: 'USDC' }, // same address on mainnet — must stay
+        { address: DAI_ADDR, symbol: 'DAI' },
+      ],
+      [ARC]: [
+        { address: ARC_ERC20, symbol: 'USDC' }, // must be removed
+        { address: NATIVE_ADDR, symbol: 'USDC' },
+      ],
+    } as unknown as AccountGroupAssets);
+
+    const result = run();
+
+    expect(result['0x1']).toHaveLength(2);
+    expect(result[ARC]).toHaveLength(1);
+    expect((result[ARC][0] as { address: string }).address).toBe(NATIVE_ADDR);
+  });
+
+  it('passes through unchanged when Arc chain is absent', () => {
+    const assets = {
+      '0x1': [{ address: DAI_ADDR, symbol: 'DAI' }],
+    } as unknown as AccountGroupAssets;
+    innerSelector.mockReturnValue(assets);
+
+    expect(run()).toStrictEqual(assets);
   });
 });

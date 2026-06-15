@@ -2673,7 +2673,7 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Category search shortcut', () => {
-    it('navigates to market list with crypto category when search button is pressed', () => {
+    it('navigates to market list without filters when search button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -2690,7 +2690,6 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(mockNavigateToMarketList).toHaveBeenCalledWith({
         source: 'magnifying_glass',
-        defaultMarketTypeFilter: 'crypto',
       });
     });
   });

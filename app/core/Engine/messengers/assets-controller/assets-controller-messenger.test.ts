@@ -63,7 +63,6 @@ describe('getAssetsControllerMessenger', () => {
           'PreferencesController:stateChange',
           'NetworkController:stateChange',
           'TransactionController:transactionConfirmed',
-          'TransactionController:incomingTransactionsReceived',
           'BackendWebSocketService:connectionStateChanged',
           'AccountsController:accountBalancesUpdated',
           'PermissionController:stateChange',

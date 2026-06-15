@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "자금 부족",
-      "message": "계정에 네트워크 수수료를 지불할 %{nativeCurrency}(이)가 부족합니다.",
-      "buy_action": "%{nativeCurrency} 구매"
+      "message": "계정에 네트워크 수수료를 지불할 {{nativeCurrency}}(이)가 부족합니다.",
+      "buy_action": "{{nativeCurrency}} 구매"
     },
     "signed_or_submitted": {
       "title": "트랜잭션 진행 중",
@@ -142,7 +142,7 @@
       "message": "수신자 주소가 직접 토큰 전송을 지원하지 않을 수 있습니다. 이 경우 자금이 손실될 수 있습니다. 이 계약이 전송되는 토큰을 받을 수 있다는 확신이 있을 때만 계속하세요."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "이 네트워크에서는 계정에 최소 %{minBalance} %{nativeTokenSymbol}의 잔액을 유지해야 합니다.",
+      "message": "이 네트워크에서는 계정에 최소 {{minBalance}} {{nativeTokenSymbol}}의 잔액을 유지해야 합니다.",
       "title": "최소 잔액이 필요합니다"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "비밀번호를 잊으셨나요?",
     "cant_proceed": "'삭제(Delete)'라는 단어를 입력할 때까지 더 진행할 수 없습니다. 이 단어를 입력하시면, 현재 지갑을 지우는 것을 선택하는 것입니다.",
     "invalid_password": "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
-    "type_delete": "‘%{erase}’을(를) 입력해 컨펌하세요",
+    "type_delete": "‘{{erase}}’을(를) 입력해 컨펌하세요",
     "erase_my": "예, 지갑을 초기화합니다",
     "cancel": "취소",
     "are_you_sure": "진행하시겠습니까?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "주문을 취소할 수 없습니다. 다시 시도해 주세요."
     },
     "webview_modal": {
-      "error": "웹뷰 오류 발생: %{code}"
+      "error": "웹뷰 오류 발생: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "{{currency}} 예치에 실패했습니다! 불편을 드려 죄송합니다. 다시 시도해 주세요!",
@@ -3564,13 +3564,13 @@
     "general_heading": "일반",
     "privacy_heading": "개인정보 보호",
     "failed_to_fetch_chain_id": "체인 ID를 가져올 수 없습니다. RPC URL이 맞습니까?",
-    "endpoint_returned_different_chain_id": "엔드포인트가 다른 체인 ID 결과를 나타냅니다: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "엔드포인트가 다른 체인 ID 결과를 나타냅니다: {{chainIdReturned}}",
     "chain_id_required": "체인 ID가 필요합니다. 해당 ID는 네트워크에 표시된 체인 ID와 일치해야 합니다. 자리수를 입력하거나 '0x'으로 시작하는 16진수의 자리수를 입력하실 수 있습니다.",
     "invalid_hex_number": "잘못된 16진수입니다.",
     "invalid_hex_number_leading_zeros": "잘못된 16진수입니다. 문자열 앞에 0이 있으면 이를 제거하세요.",
     "invalid_number": "잘못된 숫자입니다. 십진수나 '0x'로 시작하는 16진수를 입력하세요.",
     "invalid_number_leading_zeros": "잘못된 숫자입니다. 문자열 앞에 0이 있으면 이를 제거하세요.",
-    "invalid_number_range": "잘못된 숫자입니다. 1과 %{maxSafeChainId} 사이에 숫자를 입력하세요",
+    "invalid_number_range": "잘못된 숫자입니다. 1과 {{maxSafeChainId}} 사이에 숫자를 입력하세요",
     "hide_zero_balance_tokens_title": "잔고 없는 토큰 숨기기",
     "hide_zero_balance_tokens_desc": "토큰 목록에서 잔고가 없는 토큰을 보이지 않게 합니다.",
     "haptic_feedback_title": "햅틱 피드백",
@@ -4444,8 +4444,8 @@
     "confusable_msg": "ENS 이름에 혼란을 줄 수 있는 글자가 들어 있는 것을 확인했습니다. 사기를 방지하기 위해 ENS 이름을 확인하세요.",
     "similar_to": "(은)는 다음과 유사합니다.",
     "contains_zero_width": "에 너비가 0인 문자가 있습니다.",
-    "dapp_suggested_gas": "이 가스요금은 %{origin}에 의해 제안된 것입니다. 이것은 기존의 가스 예측 시스템을 사용하며 부정확할 수 있습니다. 그러나 이 가스요금을 수정하면 거래에 문제가 생길 수 있습니다. 질문이 있으시면 %{origin}에 문의하세요.",
-    "dapp_suggested_eip1559_gas": "이 가스요금은 %{origin}에 의해 제안된 것입니다. 이를 무시하면 거래에 문제가 생길 수 있습니다. 질문이 있으시면 %{origin}에 문의하세요.",
+    "dapp_suggested_gas": "이 가스요금은 {{origin}}에 의해 제안된 것입니다. 이것은 기존의 가스 예측 시스템을 사용하며 부정확할 수 있습니다. 그러나 이 가스요금을 수정하면 거래에 문제가 생길 수 있습니다. 질문이 있으시면 {{origin}}에 문의하세요.",
+    "dapp_suggested_eip1559_gas": "이 가스요금은 {{origin}}에 의해 제안된 것입니다. 이를 무시하면 거래에 문제가 생길 수 있습니다. 질문이 있으시면 {{origin}}에 문의하세요.",
     "address_invalid": "수신인 주소가 올바르지 않습니다.",
     "ens_not_found": "이 이름에 설정된 주소가 없습니다.",
     "unknown_qr_code": "잘못된 QR 코드입니다. 다시 시도하세요.",
@@ -6216,7 +6216,7 @@
     }
   },
   "invalid_network": {
-    "title": "맞춤 네트워크용 체인 ID \n %{network}\n네트워크를 다시 입력해야 합니다.",
+    "title": "맞춤 네트워크용 체인 ID \n {{network}}\n네트워크를 다시 입력해야 합니다.",
     "message": "악의적이고 오류가 있는 네트워크 제공자로부터 자신을 보호하려면 체인 ID가 모든 맞춤 네트워크에 꼭 필요합니다.",
     "hint": "다음에서 가장 인기 있는 네트워크의 체인 ID를 찾을 수 있습니다:",
     "edit_network_button": "네트워크 수정",
@@ -6248,7 +6248,7 @@
     "cancel": "취소",
     "approve": "승인",
     "unrecognized_chain": "이 사용자 지정 네트워크는 인식되지 않았습니다",
-    "invalid_chain": "체인 ID용 %{rpcUrl}(이)가 체인 ID 네트워크 목록과 일치하지 않습니다",
+    "invalid_chain": "체인 ID용 {{rpcUrl}}(이)가 체인 ID 네트워크 목록과 일치하지 않습니다",
     "alert_recommend": "체인 ID를",
     "alert_verify": "인증할 것을 권고합니다",
     "warning_subtext_new": {

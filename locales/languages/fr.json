@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Fonds insuffisants",
-      "message": "Vous n’avez pas assez de %{nativeCurrency} sur votre compte pour payer les frais de réseau.",
-      "buy_action": "Achetez %{nativeCurrency}"
+      "message": "Vous n’avez pas assez de {{nativeCurrency}} sur votre compte pour payer les frais de réseau.",
+      "buy_action": "Achetez {{nativeCurrency}}"
     },
     "signed_or_submitted": {
       "title": "Transaction en cours",
@@ -142,7 +142,7 @@
       "message": "L’adresse du destinataire ne prend peut-être pas en charge les transferts directs de jetons, ce qui pourrait entraîner une perte de fonds. Ne poursuivez que si vous êtes certain que ce contrat est capable de recevoir votre transfert."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Ce réseau spécifique exige que vous mainteniez une réserve de %{minBalance} %{nativeTokenSymbol} sur votre compte.",
+      "message": "Ce réseau spécifique exige que vous mainteniez une réserve de {{minBalance}} {{nativeTokenSymbol}} sur votre compte.",
       "title": "Un solde de réserve est requis"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "Mot de passe oublié ?",
     "cant_proceed": "Vous ne pouvez pas continuer tant que vous n’avez pas saisi le mot « Supprimer ». Ce faisant, vous acceptez d’effacer votre portefeuille actuel.",
     "invalid_password": "Le mot de passe est erroné, réessayez.",
-    "type_delete": "Tapez « %{erase} » pour confirmer",
+    "type_delete": "Tapez « {{erase}} » pour confirmer",
     "erase_my": "Oui, réinitialiser le portefeuille",
     "cancel": "Annuler",
     "are_you_sure": "En êtes-vous sûr(e) ?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "Nous n’avons pas pu annuler votre ordre. Veuillez réessayer."
     },
     "webview_modal": {
-      "error": "Webview a rencontré une erreur : %{code}"
+      "error": "Webview a rencontré une erreur : {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "Le dépôt de {{currency}} a échoué ! Veuillez réessayer et nous excuser pour les désagréments occasionnés.",
@@ -3564,13 +3564,13 @@
     "general_heading": "Général",
     "privacy_heading": "Confidentialité",
     "failed_to_fetch_chain_id": "Impossible de récupérer l’identificateur de chaîne. Votre URL de RPC est-elle correcte ?",
-    "endpoint_returned_different_chain_id": "Le point terminal a renvoyé un identificateur de chaîne différent : %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "Le point terminal a renvoyé un identificateur de chaîne différent : {{chainIdReturned}}",
     "chain_id_required": "L’identificateur de chaîne est requis. Il doit correspondre à celui renvoyé par le réseau. Vous pouvez saisir un nombre décimal ou hexadécimal avec le préfixe « 0x ».",
     "invalid_hex_number": "Numéro hexadécimal non valide.",
     "invalid_hex_number_leading_zeros": "Numéro hexadécimal non valide. Supprimez tous les zéros en trop.",
     "invalid_number": "Numéro non valide. Saisissez un nombre décimal ou hexadécimal avec le préfixe « 0x ».",
     "invalid_number_leading_zeros": "Numéro non valide. Supprimez tous les zéros en trop.",
-    "invalid_number_range": "Numéro non valide. Saisissez un nombre compris entre 1 et %{maxSafeChainId}.",
+    "invalid_number_range": "Numéro non valide. Saisissez un nombre compris entre 1 et {{maxSafeChainId}}.",
     "hide_zero_balance_tokens_title": "Masquer les jetons sans solde",
     "hide_zero_balance_tokens_desc": "Empêche l’affichage des jetons sans solde dans votre liste de jetons.",
     "haptic_feedback_title": "Retour haptique",
@@ -4444,8 +4444,8 @@
     "confusable_msg": "Nous avons détecté un caractère pouvant prêter à confusion dans le nom de l’ENS. Vérifiez le nom de l’ENS pour éviter toute fraude potentielle.",
     "similar_to": "est similaire à",
     "contains_zero_width": "contient un caractère sans chasse",
-    "dapp_suggested_gas": "Ces frais de gaz ont été suggérés par %{origin}, mais cette ancienne estimation peut être inexacte. Toutefois, si vous les modifiez, vous risquez de rencontrer des difficultés lors de votre transaction. Veuillez contacter %{origin} pour toute question.",
-    "dapp_suggested_eip1559_gas": "Ces frais de gaz ont été suggérés par %{origin}. Si vous n’en tenez pas compte, vous risquez de rencontrer des difficultés lors de votre transaction. Veuillez contacter %{origin} pour toute question.",
+    "dapp_suggested_gas": "Ces frais de gaz ont été suggérés par {{origin}}, mais cette ancienne estimation peut être inexacte. Toutefois, si vous les modifiez, vous risquez de rencontrer des difficultés lors de votre transaction. Veuillez contacter {{origin}} pour toute question.",
+    "dapp_suggested_eip1559_gas": "Ces frais de gaz ont été suggérés par {{origin}}. Si vous n’en tenez pas compte, vous risquez de rencontrer des difficultés lors de votre transaction. Veuillez contacter {{origin}} pour toute question.",
     "address_invalid": "L’adresse du destinataire n’est pas valide.",
     "ens_not_found": "Aucune adresse n’a été définie pour ce nom.",
     "unknown_qr_code": "Code QR non valide. Veuillez réessayer.",
@@ -6216,7 +6216,7 @@
     }
   },
   "invalid_network": {
-    "title": "L’ID de chaîne pour le réseau personnalisé \n %{network} \n  doit être saisi à nouveau.",
+    "title": "L’ID de chaîne pour le réseau personnalisé \n {{network}} \n  doit être saisi à nouveau.",
     "message": "Pour vous protéger des fournisseurs de réseau malveillants ou défectueux, les ID de chaîne sont désormais obligatoires pour tous les réseaux personnalisés.",
     "hint": "Vous pouvez trouver les ID de chaîne des réseaux les plus populaires sur",
     "edit_network_button": "Modifier le réseau",
@@ -6248,7 +6248,7 @@
     "cancel": "Annuler",
     "approve": "Approuver",
     "unrecognized_chain": "Ce réseau personnalisé n’est pas reconnu",
-    "invalid_chain": "Le %{rpcUrl} de cet ID de chaîne ne correspond pas à la liste chainid.network",
+    "invalid_chain": "Le {{rpcUrl}} de cet ID de chaîne ne correspond pas à la liste chainid.network",
     "alert_recommend": "Nous vous recommandons de",
     "alert_verify": "vérifier l’ID de chaîne",
     "warning_subtext_new": {

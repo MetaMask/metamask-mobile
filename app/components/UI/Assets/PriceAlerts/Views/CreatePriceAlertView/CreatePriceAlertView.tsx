@@ -114,8 +114,15 @@ const CreatePriceAlertView: React.FC = () => {
         'CreatePriceAlert'
       >
     >();
-  const { symbol, ticker, currentPrice, currentCurrency, assetId, fromManage } =
-    route.params;
+  const {
+    symbol,
+    ticker,
+    currentPrice,
+    currentCurrency,
+    assetId,
+    fromManage,
+    existingThresholds,
+  } = route.params;
 
   const displayTicker = ticker || symbol;
   const [alertType, setAlertType] = useState<PriceAlertType>(
@@ -152,6 +159,13 @@ const CreatePriceAlertView: React.FC = () => {
   }, [targetAmount]);
 
   const hasValidTarget = targetPrice > 0;
+
+  const isDuplicateThreshold = useMemo(
+    () =>
+      hasValidTarget &&
+      (existingThresholds ?? []).some((t) => t === targetPrice),
+    [hasValidTarget, existingThresholds, targetPrice],
+  );
 
   const percentDiff = useMemo(() => {
     if (!hasInput || currentPrice <= 0 || targetPrice <= 0) {
@@ -384,11 +398,15 @@ const CreatePriceAlertView: React.FC = () => {
                   variant={ButtonVariant.Primary}
                   onPress={handleSaveAlert}
                   isLoading={isSubmitting}
-                  isDisabled={isSubmitting || !hasValidTarget}
+                  isDisabled={
+                    isSubmitting || !hasValidTarget || isDuplicateThreshold
+                  }
                   testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
                   twClassName="mb-3 w-full"
                 >
-                  {strings('price_alerts.set_price_alert')}
+                  {isDuplicateThreshold
+                    ? strings('price_alerts.duplicate_threshold')
+                    : strings('price_alerts.set_price_alert')}
                 </Button>
               ) : (
                 <Box
