@@ -30,6 +30,11 @@ import { isEthAccount } from '../core/Multichain/utils';
 import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import { selectCardFeatureFlag } from './featureFlagController/card';
+import { selectMusdConversionBlockedCountries } from '../components/UI/Earn/selectors/featureFlags';
+import {
+  buildCardResidencyRegion,
+  isCardResidencyInBlockedRegions,
+} from '../components/UI/Card/util/residency';
 
 const LINEA_MAINNET_CAIP_CHAIN_ID = 'eip155:59144';
 const CASHBACK_FUNDING_SYMBOL = 'USDC';
@@ -159,6 +164,30 @@ export const selectMoneyAccountVedaTokenConfig = createSelector(
     getVedaTokenConfig(data?.delegationSettings),
 );
 
+export const selectCardCountryOfResidence = createSelector(
+  selectCardHomeData,
+  (data): string | null => data?.account?.countryOfResidence ?? null,
+);
+
+export const selectCardUsState = createSelector(
+  selectCardHomeData,
+  (data): string | null => data?.account?.usState ?? null,
+);
+
+export const selectCardResidencyRegion = createSelector(
+  selectCardCountryOfResidence,
+  selectCardUsState,
+  (countryOfResidence, usState): string | null =>
+    buildCardResidencyRegion(countryOfResidence, usState),
+);
+
+export const selectIsCardResidencyBlocked = createSelector(
+  selectCardResidencyRegion,
+  selectMusdConversionBlockedCountries,
+  (residencyRegion, blockedRegions): boolean =>
+    isCardResidencyInBlockedRegions(residencyRegion, blockedRegions),
+);
+
 const toFundingTokenWithVedaContext = (
   asset: Parameters<typeof toCardFundingToken>[0],
   vedaConfig: VedaTokenConfig | null,
@@ -203,7 +232,14 @@ export const selectCardAvailableTokens = createSelector(
   selectSelectedEvmAccount,
   selectCardFeatureFlag,
   selectMoneyAccountVedaTokenConfig,
-  (data, selectedAccount, cardFeatureFlag, vedaConfig): CardFundingToken[] => {
+  selectIsCardResidencyBlocked,
+  (
+    data,
+    selectedAccount,
+    cardFeatureFlag,
+    vedaConfig,
+    isResidencyBlocked,
+  ): CardFundingToken[] => {
     const currentAddress = selectedAccount?.address;
     const currentAddressLower = currentAddress?.toLowerCase();
     const fundingAssets = data?.fundingAssets ?? [];
@@ -255,7 +291,11 @@ export const selectCardAvailableTokens = createSelector(
         ...placeholder,
         walletAddress: currentAddress,
         isMoneyAccountEntry: isMoneyAccountEntry(placeholder, vedaConfig),
-      }));
+      }))
+      .filter(
+        (placeholder) =>
+          !isResidencyBlocked || !placeholder.isMoneyAccountEntry,
+      );
 
     return sortCardFundingTokens([...realEntries, ...placeholders]);
   },
