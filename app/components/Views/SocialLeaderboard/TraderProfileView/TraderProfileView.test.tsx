@@ -797,8 +797,8 @@ describe('TraderProfileView', () => {
     });
   });
 
-  describe('headline PnL (spot-chains only, hyperliquid excluded)', () => {
-    it('sums perChainPnl across SPOT_CHAINS and excludes hyperliquid', () => {
+  describe('headline PnL (sum across all chains incl. hyperliquid)', () => {
+    it('sums perChainPnl across every chain, including hyperliquid', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
         stats: { ...fixtureProfile.stats, pnl30d: 999999 },
@@ -816,13 +816,32 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      // Sum is 100,000 — hyperliquid contribution ignored
-      expect(screen.getByText('+$100,000.00')).toBeOnTheScreen();
+      // Sum is 1,000,000 — hyperliquid is included
+      expect(screen.getByText('+$1,000,000.00')).toBeOnTheScreen();
       // And the trader's global pnl30d (999,999) is NOT what we display
       expect(screen.queryByText('+$999,999.00')).not.toBeOnTheScreen();
     });
 
-    it('handles negative spot PnL by summing into a negative total', () => {
+    it('shows the Hyperliquid PnL for a perps-only trader (regression: was 0)', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        // Global pnl30d is 0 for a perps-only trader; the real PnL lives in the
+        // per-chain hyperliquid breakdown.
+        stats: { ...fixtureProfile.stats, pnl30d: 0 },
+        perChainBreakdown: {
+          perChainPnl: { hyperliquid: 1_474_000 },
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(screen.getByText('+$1,474,000.00')).toBeOnTheScreen();
+      expect(screen.queryByText('+$0.00')).not.toBeOnTheScreen();
+    });
+
+    it('sums negative per-chain values (incl. hyperliquid) into a negative total', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
         stats: { ...fixtureProfile.stats, pnl30d: 12_345 },
@@ -831,7 +850,7 @@ describe('TraderProfileView', () => {
             base: -1_000,
             solana: -2_500,
             ethereum: 500,
-            hyperliquid: 50_000,
+            hyperliquid: -50_000,
           },
           perChainRoi: {},
           perChainVolume: {},
@@ -840,8 +859,8 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      // -1000 + -2500 + 500 = -3000
-      expect(screen.getByText('-$3,000.00')).toBeOnTheScreen();
+      // -1000 + -2500 + 500 + -50000 = -53000
+      expect(screen.getByText('-$53,000.00')).toBeOnTheScreen();
     });
 
     it('treats a missing chain entry as 0', () => {
