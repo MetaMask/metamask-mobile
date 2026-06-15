@@ -626,7 +626,7 @@ function handleAddIndicator(payload) {
         inputs = { in_0: 12, in_1: 26, in_2: 9 };
         overrides = {
           showLegendValues: !hideValues,
-          'MACD.color': _macdColors.macd || '#2962FF',
+          'MACD.color': _macdColors.macd || '#5C8FFF',
           'Signal.color': _macdColors.signal || '#FF6D00',
           'Histogram.color.0': _macdColors.histogramPositive || '#26A69A',
           'Histogram.color.1': _macdColors.histogramNegative || '#EF5350',
@@ -3262,7 +3262,7 @@ var INDICATOR_LEGEND_CONFIG = {
       {
         tvTitle: 'MACD',
         label: 'MACD(12,26)',
-        color: _macdColors.macd || '#2962FF',
+        color: _macdColors.macd || '#5C8FFF',
       },
       {
         tvTitle: 'Signal',

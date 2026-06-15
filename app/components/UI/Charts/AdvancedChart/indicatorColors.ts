@@ -24,7 +24,7 @@ export const MA_LENGTHS: Record<keyof typeof MA_INDICATOR_COLORS, number> = {
 
 // ── MACD colors ────────────────────────────────────────────────────────
 export const MACD_COLORS = {
-  macd: '#2962FF',
+  macd: '#5C8FFF',
   signal: '#FF6D00',
   histogramPositive: '#26A69A',
   histogramNegative: '#EF5350',
