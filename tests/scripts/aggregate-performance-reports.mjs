@@ -26,6 +26,24 @@ function getBuildTypeInfo() {
 }
 
 /**
+ * Get the smart performance test selection details passed from the workflow.
+ * @returns {{ runTests: boolean|null, tags: string, reasoning: string, skipReason: string|null }}
+ */
+function getPerformanceTestSelectionInfo() {
+  const rawRunTests = process.env.PERFORMANCE_TESTS_RUN;
+  const runTests =
+    rawRunTests === 'true' ? true : rawRunTests === 'false' ? false : null;
+  const tags = process.env.PERFORMANCE_TESTS_TAGS || '';
+  const reasoning = process.env.PERFORMANCE_TESTS_SELECTION_REASONING || '';
+  const skipReason =
+    runTests === false
+      ? 'Smart E2E Selection found no performance-relevant changes'
+      : null;
+
+  return { runTests, tags, reasoning, skipReason };
+}
+
+/**
  * Recursively find JSON files containing performance metrics
  * @param {string} dir - Directory to search
  * @param {string[]} jsonFiles - Array to collect found files
@@ -221,6 +239,7 @@ function createEmptyReport(outputPath) {
   fs.writeFileSync('tests/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
   
   const { buildVariant, buildType } = getBuildTypeInfo();
+  const performanceTestSelection = getPerformanceTestSelectionInfo();
   const emptySummary = {
     totalTests: 0,
     platforms: { android: 0, ios: 0 },
@@ -246,14 +265,19 @@ function createEmptyReport(outputPath) {
       commit: process.env.GITHUB_SHA || 'unknown',
       workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
       buildVariant,
-      buildType
+      buildType,
+      performanceTestSelection
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown',
     buildVariant,
     buildType,
-    warning: 'No test results found'
+    performanceTestSelection,
+    warning:
+      performanceTestSelection.runTests === false
+        ? 'Performance tests were not run because Smart E2E Selection found no performance-relevant changes'
+        : 'No test results found'
   };
   
   fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
@@ -302,13 +326,15 @@ function createFallbackReport(outputPath, error) {
         commit: process.env.GITHUB_SHA || 'unknown',
         workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
         buildVariant,
-        buildType
+        buildType,
+        performanceTestSelection: getPerformanceTestSelectionInfo()
       },
       generatedAt: new Date().toISOString(),
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       buildVariant,
       buildType,
+      performanceTestSelection: getPerformanceTestSelectionInfo(),
       error: error.message
     }, null, 2));
     console.log('✅ Fallback reports created successfully');
@@ -526,11 +552,13 @@ function createSummary(groupedResults) {
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+      performanceTestSelection: getPerformanceTestSelectionInfo(),
       ...getBuildTypeInfo()
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown',
+    performanceTestSelection: getPerformanceTestSelectionInfo(),
     ...getBuildTypeInfo()
   };
   

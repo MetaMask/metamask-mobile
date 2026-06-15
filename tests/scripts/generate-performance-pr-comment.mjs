@@ -42,6 +42,10 @@ const branch = summary.branch ?? 'unknown';
 const commit = (summary.commit ?? 'unknown').slice(0, 7);
 const runId = summary.metadata?.workflowRun ?? process.env.GITHUB_RUN_ID ?? '';
 const repo = process.env.GITHUB_REPOSITORY ?? '';
+const performanceTestSelection =
+  summary.metadata?.performanceTestSelection ?? summary.performanceTestSelection;
+const performanceTestsSkippedBySelection =
+  performanceTestSelection?.runTests === false;
 
 const failedStats = summary.failedTestsStats ?? {};
 const uniqueFailedTests = failedStats.uniqueFailedTests ?? 0;
@@ -172,6 +176,25 @@ let md = '';
 // Title
 md += `## ⚡ Performance Test Results\n\n`;
 md += `> ℹ️ Performance test results are currently non-blocking and will not block this PR.\n\n`;
+
+if (performanceTestsSkippedBySelection) {
+  md += `⏭️ **Performance tests were not run** — Smart E2E Selection found no performance-relevant changes for this PR.\n\n`;
+
+  if (performanceTestSelection.reasoning) {
+    md += `**Selection reasoning:** ${performanceTestSelection.reasoning}\n\n`;
+  }
+
+  md += `---\n`;
+  md += `**Branch:** \`${branch}\` · **Build:** ${buildType} · **Commit:** \`${commit}\``;
+  if (runId && repo) {
+    md += ` · [View full run](https://github.com/${repo}/actions/runs/${runId})`;
+  }
+  md += '\n';
+
+  fs.writeFileSync(OUTPUT_FILE, md);
+  console.log(`✅ PR comment written to ${OUTPUT_FILE}`);
+  process.exit(0);
+}
 
 // Overall status line
 if (summary.warning || summary.error) {

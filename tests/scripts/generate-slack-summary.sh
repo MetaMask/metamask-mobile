@@ -18,6 +18,53 @@ if [ -f "$SUMMARY_FILE" ]; then
     # Get build type (normal vs experimental)
     buildType=$(jq -r '.buildType // "Normal"' "$SUMMARY_FILE")
     totalTests=$(jq -r '.uniqueTests // .totalTests // 0' "$SUMMARY_FILE")
+    selectionRunTests=$(jq -r '
+        if .metadata.performanceTestSelection.runTests? == false or .performanceTestSelection.runTests? == false then
+            "false"
+        elif .metadata.performanceTestSelection.runTests? == true or .performanceTestSelection.runTests? == true then
+            "true"
+        else
+            ""
+        end
+    ' "$SUMMARY_FILE")
+    selectionSkipReason=$(jq -r '.metadata.performanceTestSelection.skipReason // .performanceTestSelection.skipReason // ""' "$SUMMARY_FILE")
+    selectionReasoning=$(jq -r '.metadata.performanceTestSelection.reasoning // .performanceTestSelection.reasoning // ""' "$SUMMARY_FILE")
+
+    # Build type label
+    if [ "$buildType" = "Experimental" ]; then
+        buildTypeLabel="Experimental"
+    else
+        buildTypeLabel="Normal"
+    fi
+
+    if [ "$selectionRunTests" = "false" ]; then
+        SUMMARY="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        SUMMARY+="*⏭️ Performance E2E Tests — ${buildTypeLabel} Build*\n"
+        SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        SUMMARY+="*📊 SUMMARY*\n"
+        SUMMARY+="├─ ⏭️ Status: NOT RUN\n"
+        SUMMARY+="├─ 🧠 Selection: Smart E2E Selection found no performance-relevant changes\n"
+        SUMMARY+="└─ 🧪 Total tests: 0\n\n"
+
+        if [ -n "$selectionReasoning" ] && [ "$selectionReasoning" != "null" ]; then
+            SUMMARY+="*📝 SELECTION REASONING*\n"
+            SUMMARY+="${selectionReasoning}\n\n"
+        elif [ -n "$selectionSkipReason" ] && [ "$selectionSkipReason" != "null" ]; then
+            SUMMARY+="*📝 SELECTION REASONING*\n"
+            SUMMARY+="${selectionSkipReason}\n\n"
+        fi
+
+        SUMMARY+="*🔧 BUILD INFO*\n"
+        SUMMARY+="├─ Build: ${buildTypeLabel}\n"
+        SUMMARY+="├─ Branch: \`${BRANCH_NAME:-$GITHUB_REF_NAME}\`\n"
+        SUMMARY+="└─ Commit: \`${GITHUB_SHA:0:7}\`\n\n"
+
+        SUMMARY+="<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|🔗 View full results>\n"
+        SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        echo "$SUMMARY"
+        exit 0
+    fi
 
     # Get failed tests statistics
     # uniqueFailedTests counts each test name once regardless of how many platforms failed
@@ -78,13 +125,6 @@ if [ -f "$SUMMARY_FILE" ]; then
         fi
     fi
     
-    # Build type label
-    if [ "$buildType" = "Experimental" ]; then
-        buildTypeLabel="Experimental"
-    else
-        buildTypeLabel="Normal"
-    fi
-
     # Helper: format device key "DeviceName+OSVersion" -> "DeviceName (vOSVersion)"
     format_device_name() {
         local device="$1"
