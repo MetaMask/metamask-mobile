@@ -195,4 +195,102 @@ describe('usePredictGameGroupOutcomes', () => {
     expect(result.current.showResolvedSection).toBe(true);
     expect(result.current.hasPartialResolution).toBe(false);
   });
+
+  it('treats resolved outcomes with open status but resolved resolutionStatus as closed', () => {
+    const group = createGroup('first_set', [
+      createCard({
+        key: 'tennis_first_set_winner',
+        outcomes: [
+          createOutcome({
+            id: 'set-1-winner',
+            status: 'open',
+            resolutionStatus: 'resolved',
+            sportsMarketType: 'tennis_first_set_winner',
+            groupItemTitle: 'Set 1 Winner',
+          }),
+        ],
+      }),
+    ]);
+
+    const { result } = renderHook(() =>
+      usePredictGameGroupOutcomes({
+        group,
+      }),
+    );
+
+    expect(result.current.openCardModels).toEqual([]);
+    expect(result.current.closedOutcomes.map((outcome) => outcome.id)).toEqual([
+      'set-1-winner',
+    ]);
+    expect(result.current.showResolvedSection).toBe(true);
+    expect(result.current.hasPartialResolution).toBe(false);
+  });
+
+  it('groups all settled first-set tennis outcomes into the resolved section', () => {
+    const createClosedSetOutcome = (
+      id: string,
+      sportsMarketType: string,
+      groupItemTitle: string,
+      line?: number,
+    ) =>
+      createOutcome({
+        id,
+        status: 'closed',
+        resolutionStatus: 'resolved',
+        sportsMarketType,
+        groupItemTitle,
+        ...(line !== undefined && { line }),
+        tokens: [
+          createToken({ id: `${id}-yes`, price: 1 }),
+          createToken({ id: `${id}-no`, price: 0 }),
+        ],
+      });
+
+    const group = createGroup('first_set', [
+      createCard({
+        key: 'tennis_first_set_winner',
+        outcomes: [
+          createClosedSetOutcome(
+            'set-1-winner',
+            'tennis_first_set_winner',
+            'Set 1 Winner',
+          ),
+        ],
+      }),
+      createCard({
+        key: 'tennis_first_set_totals',
+        outcomes: [
+          createClosedSetOutcome(
+            'set-1-total-85',
+            'tennis_first_set_totals',
+            'Set 1 O/U 8.5',
+            8.5,
+          ),
+          createClosedSetOutcome(
+            'set-1-total-95',
+            'tennis_first_set_totals',
+            'Set 1 O/U 9.5',
+            9.5,
+          ),
+          createClosedSetOutcome(
+            'set-1-total-105',
+            'tennis_first_set_totals',
+            'Set 1 O/U 10.5',
+            10.5,
+          ),
+        ],
+      }),
+    ]);
+
+    const { result } = renderHook(() =>
+      usePredictGameGroupOutcomes({
+        group,
+      }),
+    );
+
+    expect(result.current.openCardModels).toEqual([]);
+    expect(result.current.closedOutcomes).toHaveLength(4);
+    expect(result.current.showResolvedSection).toBe(true);
+    expect(result.current.hasPartialResolution).toBe(false);
+  });
 });

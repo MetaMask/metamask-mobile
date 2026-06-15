@@ -23,10 +23,13 @@ interface UsePredictGameGroupOutcomesResult {
 }
 
 const isOpenOutcome = (outcome: PredictOutcome): boolean =>
-  outcome.status === OPEN_PREDICT_OUTCOME_STATUS;
+  outcome.status === OPEN_PREDICT_OUTCOME_STATUS &&
+  outcome.resolutionStatus !== 'resolved';
 
 const isResolvedOutcome = (outcome: PredictOutcome): boolean =>
-  outcome.status === 'closed' || outcome.status === 'resolved';
+  outcome.status === 'closed' ||
+  outcome.status === 'resolved' ||
+  outcome.resolutionStatus === 'resolved';
 
 const splitOutcomeGroupByStatus = (
   group: PredictOutcomeGroup,

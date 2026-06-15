@@ -107,7 +107,6 @@ const PredictGameDetailsOutcomesList = memo(
       openCardModels: cardModels,
       closedOutcomes,
       showResolvedSection,
-      hasPartialResolution,
     } = usePredictGameGroupOutcomes({
       group: selectedGroup,
     });
@@ -198,7 +197,7 @@ const PredictGameDetailsOutcomesList = memo(
             type: 'resolved-outcomes',
             key: 'game-details-resolved-outcomes',
             closedOutcomes,
-            collapsible: hasPartialResolution,
+            collapsible: true,
           });
         }
       }
@@ -207,7 +206,6 @@ const PredictGameDetailsOutcomesList = memo(
     }, [
       cardModels,
       closedOutcomes,
-      hasPartialResolution,
       listHeaderComponent,
       showDisabledPositions,
       showOutcomes,

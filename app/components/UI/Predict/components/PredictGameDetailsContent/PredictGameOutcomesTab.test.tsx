@@ -879,7 +879,7 @@ describe('PredictGameOutcomesTab', () => {
       ]);
     });
 
-    it('shows resolved outcomes directly when the entire group is settled', () => {
+    it('shows resolved outcomes in a collapsible section when the entire group is settled', () => {
       const tab = createTab('props', [
         createCard({
           key: 'player_goals',
@@ -895,7 +895,10 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByText, queryByText } = renderTab(tab);
 
-      expect(queryByText('Resolved outcomes')).toBeNull();
+      expect(getByText('Resolved outcomes')).toBeTruthy();
+      expect(getByText('1')).toBeTruthy();
+      expect(queryByText('Team A vs Team B')).toBeNull();
+      fireEvent.press(getByText('Resolved outcomes'));
       expect(getByText('Team A vs Team B')).toBeTruthy();
       expect(mockCapturedCards).toHaveLength(0);
     });

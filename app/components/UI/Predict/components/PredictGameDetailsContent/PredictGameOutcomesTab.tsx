@@ -33,7 +33,6 @@ const OutcomesContent = memo(
       closedOutcomes,
       activeGroupTokenIds,
       showResolvedSection,
-      hasPartialResolution,
     } = usePredictGameGroupOutcomes({ group });
     const { getPrice } = useLiveMarketPrices(activeGroupTokenIds);
 
@@ -53,7 +52,6 @@ const OutcomesContent = memo(
             closedOutcomes={closedOutcomes}
             isExpanded={isResolvedExpanded}
             onToggle={onResolvedExpandedToggle}
-            collapsible={hasPartialResolution}
           />
         )}
       </>
