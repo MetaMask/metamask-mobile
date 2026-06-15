@@ -2742,6 +2742,7 @@
     "error": {
       "title": "Unable to connect to predictions",
       "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
+      "chart_connection_error": "There is an issue connecting. Please try again later.",
       "retry": "Retry"
     },
     "error_messages": {
@@ -6908,6 +6909,8 @@
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
     "balance_unavailable": "Balance unavailable",
+    "balance_unavailable_value": "$—",
+    "balance_unavailable_banner_description": "We’re temporarily unable to display your balance. Your funds are safe—please try again shortly.",
     "balance_retry": "Retry",
     "balance_no_account": "Money account not found",
     "onboarding": {

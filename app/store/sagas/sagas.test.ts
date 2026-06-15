@@ -57,13 +57,6 @@ jest.mock('../../core/AppStateEventListener', () => ({
   },
 }));
 
-jest.mock('../../core/Analytics', () => ({
-  __esModule: true,
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({}),
-  },
-}));
-
 jest.mock('../../util/Logger', () => ({
   __esModule: true,
   default: {
