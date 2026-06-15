@@ -32,7 +32,7 @@ const DEFAULT_IOS_APP =
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
  * - IOS_SIMULATOR_UDID — booted sim UDID (CI sets this from prepare-ios-appium-runner)
  * - APPIUM_SMOKE_SUITE_NAME — CI suite id for per-job report/video paths
- * - PLAYWRIGHT_JSON_OUTPUT_FILE — CI path for Playwright JSON report (flaky-test bot)
+ * - PLAYWRIGHT_JSON_OUTPUT_FILE — CI path for Playwright JSON report (always playwright-report.json per job; suite id is the artifact name)
  *
  * Usage:
  * yarn appium-smoke:android
