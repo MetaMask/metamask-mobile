@@ -44,7 +44,7 @@ import {
   setInfuraAvailabilityNotBlocked,
 } from '../../../actions/infuraAvailability';
 
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
@@ -92,8 +92,12 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { shouldShowNetworkListToast } from './utils';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator();
+const NativeStack = createNativeStackNavigator();
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -494,20 +498,23 @@ const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 const MainFlow = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={Routes.MAIN_FLOW}
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
-      <Stack.Screen
+      <NativeStack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
+      <NativeStack.Screen
         name={'ReviewModal'}
         component={ReviewModal}
-        options={{ animationEnabled: false, presentation: 'modal' }}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
