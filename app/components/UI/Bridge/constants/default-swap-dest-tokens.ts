@@ -192,6 +192,15 @@ export const DefaultSwapDestTokens: Partial<
       decimals: 6,
     },
   },
+  [NETWORK_CHAIN_ID.ARC]: {
+    symbol: 'EURC',
+    name: 'EURC',
+    address: '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/5042/0xbef5f6d51cb62b58e6a8f77868681825c6fe21c1.png',
+    chainId: NETWORK_CHAIN_ID.ARC,
+  },
   [SolScope.Mainnet]: {
     '*': {
       address:

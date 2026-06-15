@@ -23,6 +23,10 @@ import { selectSelectedInternalAccountByScope } from './multichainAccounts/accou
 import { isEthAccount } from '../core/Multichain/utils';
 import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import {
+  getVedaTokenConfig,
+  type VedaTokenConfig,
+} from '../components/UI/Card/util/vedaToken';
+import {
   selectMoneyAccounts,
   selectPrimaryMoneyAccount,
 } from './moneyAccountController';
@@ -134,6 +138,12 @@ export const selectCardHomeDataStatus = createSelector(
     cardState?.cardHomeDataStatus ?? 'idle',
 );
 
+export const selectMoneyAccountVedaTokenConfig = createSelector(
+  selectCardHomeData,
+  (data): VedaTokenConfig | null =>
+    getVedaTokenConfig(data?.delegationSettings),
+);
+
 export const selectCardPrimaryToken = createSelector(
   selectCardHomeData,
   selectMoneyAccounts,
@@ -206,12 +216,15 @@ export const selectCardAvailableTokens = createSelector(
 
     const placeholders = buildDelegationTokenList({
       delegationSettings,
+      enforceSupportList: true,
       getSupportedTokensByChainId: (chainId) =>
-        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? []).map((t) => ({
-          address: t.address ?? undefined,
-          symbol: t.symbol ?? undefined,
-          name: t.name ?? undefined,
-        })),
+        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? [])
+          .filter((t) => t?.enabled !== false)
+          .map((t) => ({
+            address: t.address ?? undefined,
+            symbol: t.symbol ?? undefined,
+            name: t.name ?? undefined,
+          })),
     })
       .filter(
         (placeholder) =>
