@@ -42,6 +42,10 @@ import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
+import {
+  markNavStart,
+  NavPerfLabel,
+} from '../../../../../util/navigation/navPerf';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -327,6 +331,7 @@ export const useSwapBridgeNavigation = ({
       }
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
+      markNavStart(NavPerfLabel.BridgeView);
       navigation.navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
         params,

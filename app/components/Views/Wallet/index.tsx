@@ -96,6 +96,11 @@ import {
 } from '../../../component-library/components/Toast';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  markNavStart,
+  NavPerfLabel,
+  useMarkNavEnd,
+} from '../../../util/navigation/navPerf';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   trackActionButtonClick,
@@ -333,6 +338,8 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
   const { navigate } = useNavigation();
+  useMarkNavEnd(NavPerfLabel.SettingsMenuBack);
+  useMarkNavEnd(NavPerfLabel.AssetViewBack);
   const walletRef = useRef(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
@@ -838,6 +845,7 @@ const Wallet = ({
   );
 
   const handleHamburgerPress = useCallback(() => {
+    markNavStart(NavPerfLabel.SettingsMenu);
     trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
@@ -1174,11 +1182,11 @@ const Wallet = ({
                   <PickerAccount
                     ref={walletRef}
                     accountName={displayName}
-                    onPress={() =>
+                    onPress={() => {
                       navigation.navigate(
                         ...createAccountSelectorNavDetails({}),
-                      )
-                    }
+                      );
+                    }}
                     testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
                     hitSlop={touchAreaSlop}
                     style={styles.headerAccountPickerStyle}

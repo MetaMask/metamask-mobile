@@ -34,6 +34,10 @@ import OldButton, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  markNavStart,
+  NavPerfLabel,
+} from '../../../../../util/navigation/navPerf';
 import { useNavigation } from '@react-navigation/native';
 import {
   setDestTokenExchangeRate,
@@ -238,12 +242,14 @@ export const TokenInputArea = forwardRef<
     const navigation = useNavigation();
 
     const navigateToDestTokenSelector = () => {
+      markNavStart(NavPerfLabel.BridgeTokenSelector);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: 'dest',
       });
     };
 
     const navigateToSourceTokenSelector = () => {
+      markNavStart(NavPerfLabel.BridgeTokenSelector);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: 'source',
       });

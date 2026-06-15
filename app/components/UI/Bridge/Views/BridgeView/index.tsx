@@ -62,6 +62,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewMode, SecurityDataType } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  markNavStart,
+  NavPerfLabel,
+  useMarkNavEnd,
+} from '../../../../../util/navigation/navPerf';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
@@ -132,6 +137,8 @@ interface BridgeViewContentProps {
 }
 
 const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
+  useMarkNavEnd(NavPerfLabel.BridgeView);
+  useMarkNavEnd(NavPerfLabel.BridgeViewBack);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -411,10 +418,12 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     [dispatch, syncFiatAmountToTokenAmount],
   );
 
-  const handleSourceTokenPress = () =>
+  const handleSourceTokenPress = () => {
+    markNavStart(NavPerfLabel.BridgeTokenSelector);
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
     });
+  };
 
   const handleFlipTokensPress = useCallback(() => {
     resetToTokenMode();
@@ -423,10 +432,12 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     });
   }, [destTokenAmount, handleSwitchTokens, resetToTokenMode]);
 
-  const handleDestTokenPress = () =>
+  const handleDestTokenPress = () => {
+    markNavStart(NavPerfLabel.BridgeTokenSelector);
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
     });
+  };
 
   const getContentMode = () => {
     if (isZeroState) return 'zero';
@@ -468,7 +479,10 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     >
       <HeaderStandard
         title={headerTitle}
-        onBack={() => navigation.goBack()}
+        onBack={() => {
+          markNavStart(NavPerfLabel.BridgeViewBack);
+          navigation.goBack();
+        }}
         includesTopInset
       />
       <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>

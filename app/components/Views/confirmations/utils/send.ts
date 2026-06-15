@@ -15,6 +15,10 @@ import { v4 as uuid } from 'uuid';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  markNavStart,
+  NavPerfLabel,
+} from '../../../../util/navigation/navPerf';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -116,6 +120,10 @@ export const handleSendPageNavigation = (
     } else {
       screen = Routes.SEND.AMOUNT;
     }
+  }
+
+  if (screen === Routes.SEND.AMOUNT) {
+    markNavStart(NavPerfLabel.SendAmount);
   }
 
   navigate(Routes.SEND.DEFAULT, {
