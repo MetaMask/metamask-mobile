@@ -31,7 +31,6 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
-  getMarketTypeFilter,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -730,8 +729,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleCategorySearchPress = useCallback(() => {
     if (!market) return;
 
-    const resolvedCategory = getMarketTypeFilter(market);
-
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
@@ -740,12 +737,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
-      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: resolvedCategory,
     });
 
     navigateToMarketList({
       source: PERPS_EVENT_VALUE.SOURCE.MAGNIFYING_GLASS,
-      defaultMarketTypeFilter: resolvedCategory,
     });
   }, [market, track, navigateToMarketList]);
 
