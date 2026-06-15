@@ -44,6 +44,7 @@ describe('PreferencesControllerInit', () => {
         ipfsGateway: 'https://dweb.link/ipfs/',
         securityAlertsEnabled: true,
         smartTransactionsOptInStatus: true,
+        advancedGasFee: {},
         tokenSortConfig: {
           key: 'tokenFiatAmount',
           order: 'dsc',

@@ -67,6 +67,7 @@ export const mockedEngine = {
     },
     PreferencesController: {
       state: {},
+      setAdvancedGasFee: jest.fn(),
     },
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn(),

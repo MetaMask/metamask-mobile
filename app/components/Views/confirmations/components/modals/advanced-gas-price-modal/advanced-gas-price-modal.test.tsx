@@ -6,7 +6,12 @@ import { simpleSendTransaction } from '../../../__mocks__/controllers/transactio
 import { GasModalType } from '../../../constants/gas';
 import { AdvancedGasPriceModal } from './advanced-gas-price-modal';
 
+const mockPersistGasFeePreference = jest.fn();
+
 jest.mock('../../../../../../util/transaction-controller');
+jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
+  usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),
+}));
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => {
   const { simpleSendTransaction: actualSimpleSendTransaction } =
     jest.requireActual(
@@ -60,6 +65,12 @@ describe('AdvancedGasPriceModal', () => {
         userFeeLevel: 'custom',
       }),
     );
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      simpleSendTransaction,
+      {
+        userFeeLevel: 'custom',
+      },
+    );
     expect(mockHandleCloseModals).toHaveBeenCalledTimes(1);
   });
 
@@ -90,6 +101,13 @@ describe('AdvancedGasPriceModal', () => {
         gasPrice: '0x37e11d600',
         userFeeLevel: 'custom',
       }),
+    );
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      simpleSendTransaction,
+      {
+        userFeeLevel: 'custom',
+        gasPrice: '0x37e11d600',
+      },
     );
   });
 

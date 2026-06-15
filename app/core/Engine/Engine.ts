@@ -128,6 +128,7 @@ import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
+import { approvalControllerInit } from './controllers/approval-controller-init';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -317,6 +318,7 @@ export class Engine {
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
+        ApprovalController: approvalControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -423,7 +425,7 @@ export class Engine {
       messengerClientsByName.RemoteFeatureFlagController;
     const accountsController = messengerClientsByName.AccountsController;
     const accountTreeController = messengerClientsByName.AccountTreeController;
-    const approvalController = this.#wallet.getInstance('ApprovalController');
+    const approvalController = messengerClientsByName.ApprovalController;
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
     const accountTrackerController =
