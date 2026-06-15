@@ -264,6 +264,7 @@ jobs:
           - audit:ci
           - test:depcheck
           - test:tgz-check
+          - constraints
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
