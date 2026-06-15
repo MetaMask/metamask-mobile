@@ -11,6 +11,7 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
+import { handleOrderStatusChangedForHeadlessRampsFunnel } from './event-handlers/headlessRampsFunnel';
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
   const parts = regionCode.toLowerCase().split('-');
@@ -272,6 +273,21 @@ describe('ramps controller init', () => {
         expect(mockInit).toHaveBeenCalledTimes(1);
       });
     });
+
+    it('registers the headless ramps funnel subscriber on orderStatusChanged (TRAM-3623)', () => {
+      const initMessenger = createMockInitMessenger({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+      initRequestMock.initMessenger = initMessenger;
+
+      rampsControllerInit(initRequestMock);
+
+      expect(initMessenger.subscribe).toHaveBeenCalledWith(
+        'RampsController:orderStatusChanged',
+        handleOrderStatusChangedForHeadlessRampsFunnel,
+      );
+    });
   });
 
   describe('when V2 feature flag is disabled', () => {
@@ -298,6 +314,18 @@ describe('ramps controller init', () => {
       await waitFor(() => {
         expect(mockInit).not.toHaveBeenCalled();
       });
+    });
+
+    it('does not register the headless ramps funnel subscriber when V2 is disabled (TRAM-3623)', () => {
+      const initMessenger = createMockInitMessenger({ enabled: false });
+      initRequestMock.initMessenger = initMessenger;
+
+      rampsControllerInit(initRequestMock);
+
+      expect(initMessenger.subscribe).not.toHaveBeenCalledWith(
+        'RampsController:orderStatusChanged',
+        handleOrderStatusChangedForHeadlessRampsFunnel,
+      );
     });
 
     it('does not call init when RemoteFeatureFlagController throws', async () => {
