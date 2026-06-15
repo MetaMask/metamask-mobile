@@ -76,26 +76,6 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
-  () => {
-    const { TouchableOpacity, View } = jest.requireActual('react-native');
-    return ({
-      children,
-      onPress,
-      label,
-    }: {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      label?: React.ReactNode;
-    }) => (
-      <TouchableOpacity testID="apply-button" onPress={onPress}>
-        <View>{label || children}</View>
-      </TouchableOpacity>
-    );
-  },
-);
-
 describe('TrendingTokenPriceChangeBottomSheet', () => {
   const mockOnClose = jest.fn();
 
