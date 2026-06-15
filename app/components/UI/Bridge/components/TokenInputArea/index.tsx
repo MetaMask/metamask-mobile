@@ -109,10 +109,6 @@ const createStyles = ({
       alignItems: 'center',
       gap: 8,
     },
-    amountTypeToggle: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     currencyContainer: {
       flex: 1,
     },
@@ -412,26 +408,32 @@ export const TokenInputArea = forwardRef<
             ) : (
               <>
                 <Box style={styles.currencyContainer}>
-                  <Box style={styles.secondaryValueContainer}>
-                    {shouldShowSecondaryAmount ? (
-                      <Text color={TextColor.Alternative}>
-                        {secondaryAmountDisplayValue}
-                      </Text>
-                    ) : null}
-                    {onAmountTypeTogglePress ? (
-                      <TouchableOpacity
-                        style={styles.amountTypeToggle}
-                        onPress={onAmountTypeTogglePress}
-                        testID={amountTypeToggleTestID}
-                      >
-                        <Icon
-                          name={IconName.SwapVertical}
-                          size={IconSize.Sm}
-                          color={IconColor.Alternative}
-                        />
-                      </TouchableOpacity>
-                    ) : null}
-                  </Box>
+                  {onAmountTypeTogglePress ? (
+                    <TouchableOpacity
+                      style={styles.secondaryValueContainer}
+                      onPress={onAmountTypeTogglePress}
+                      testID={amountTypeToggleTestID}
+                    >
+                      {shouldShowSecondaryAmount ? (
+                        <Text color={TextColor.Alternative}>
+                          {secondaryAmountDisplayValue}
+                        </Text>
+                      ) : null}
+                      <Icon
+                        name={IconName.SwapVertical}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    </TouchableOpacity>
+                  ) : (
+                    <Box style={styles.secondaryValueContainer}>
+                      {shouldShowSecondaryAmount ? (
+                        <Text color={TextColor.Alternative}>
+                          {secondaryAmountDisplayValue}
+                        </Text>
+                      ) : null}
+                    </Box>
+                  )}
                 </Box>
                 <Box
                   flexDirection={
