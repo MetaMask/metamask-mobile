@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.81.1]
 
+### Added
+
+- Adds Swap/Bridge feature to ARC mainnet. (#31413)
+
+### Fixed
+
+- Fixed the MetaMask Card section on the Money screen so the "Link card" option and funding token placeholders are only shown when the card spending token is enabled in the card feature configuration. (#31611)
+- Removed the trailing slash from the Arc explorer URL defined in app/util/networks/customNetworks.tsx so now the URL is correctly generated. (#31718)
+- Fixed Arc native token support, included patches for MetaMask/core#9006 and MetaMask/core#9007 (#31662)
+
+### 
+
 ## [7.81.0]
 
 ### Added
