@@ -50,6 +50,11 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
   },
 });
 
+/**
+ * Build the list of keyring builders.
+ *
+ * @returns The keyring builders to register with the `KeyringController`.
+ */
 export function getKeyringBuilders(
   messenger: RootMessenger,
 ): KeyringControllerOptions['keyringBuilders'] {
@@ -178,9 +183,16 @@ function buildMoneyKeyringV2Builder<Wrapper, Legacy>(
   return builder as unknown as KeyringV2Builder;
 }
 
-export function getKeyringV2Builders(
-  messenger: RootMessenger,
-): KeyringControllerOptions['keyringV2Builders'] {
+/**
+ * Build the list of V2 keyring builders.
+ *
+ * Each builder wraps the legacy keyring (created by
+ * `getKeyringBuilders`) in its V2 wrapper, keyed by the legacy keyring's
+ * `type` so the controller can resolve it via `withKeyringV2`.
+ *
+ * @returns The V2 keyring builders to register with the `KeyringController`.
+ */
+export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Builders'] {
   return [
     buildHardwareKeyringV2Builder(LedgerKeyringV2, LedgerKeyring.type),
     buildHardwareKeyringV2Builder(QrKeyringV2, QrKeyring.type),
@@ -191,7 +203,7 @@ export function getKeyringV2Builders(
     // KeyringController vault management. The same inner instance is retrieved
     // via `unwrap()` for the v2 builder, so both entries share the same
     // underlying object — enabling both `withKeyring` and `withKeyringV2`.
-    snapKeyringV2Builder(getSnapKeyringV2BuilderMessenger(messenger)),
+    snapKeyringV2Builder(),
     ///: END:ONLY_INCLUDE_IF
   ];
 }

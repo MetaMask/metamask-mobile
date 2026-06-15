@@ -75,13 +75,10 @@ export function snapKeyringV2AdaptedAsV1Builder(
  * Constructs a v2 SnapKeyring builder with specified handlers for managing
  * Snap accounts.
  *
- * @param messenger - The messenger instance.
  * @param helpers - Helpers required by the v2 Snap keyring implementation.
  * @returns A v2 Snap keyring builder.
  */
-export function snapKeyringV2Builder(
-  messenger: SnapKeyringBuilderV2Messenger,
-): KeyringV2Builder {
+export function snapKeyringV2Builder(): KeyringV2Builder {
   const SnapKeyringBuilderV2 = (keyring: Keyring) => {
     assert(
       keyring instanceof SnapKeyringV1Adapter,

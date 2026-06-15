@@ -38,7 +38,7 @@ export function initializeWallet({
       keyringController: {
         encryptor,
         keyringBuilders: getKeyringBuilders(messenger),
-        keyringV2Builders: getKeyringV2Builders(messenger),
+        keyringV2Builders: getKeyringV2Builders(),
       },
       storageService: {
         storage: mobileStorageAdapter,
