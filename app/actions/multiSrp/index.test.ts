@@ -95,10 +95,7 @@ jest.mock('../../multichain-accounts/discovery', () => ({
     mockDiscoverAccounts(entropySource),
 }));
 
-const mockGetSnapKeyring = jest.fn().mockResolvedValue(true);
-
 jest.mock('../../core/Engine', () => ({
-  getSnapKeyring: () => mockGetSnapKeyring(),
   context: {
     KeyringController: {
       addNewKeyring: (keyringType: ExtendedKeyringTypes, args: unknown) =>
@@ -156,7 +153,6 @@ describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
-    mockGetSnapKeyring.mockResolvedValue(true);
     mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
     mockCreateMultichainAccountWallet.mockResolvedValue(
       mockMultichainAccountWallet,
@@ -190,7 +186,6 @@ describe('MultiSRP Actions', () => {
 
       // Assert async operations and callback receive the actual discovered accounts count
       await waitFor(() => {
-        expect(mockGetSnapKeyring).toHaveBeenCalled();
         expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
         expect(mockDiscoverAccounts).toHaveBeenCalledWith(mockEntropySource);
         expect(mockCallback).toHaveBeenCalledWith({
@@ -221,7 +216,6 @@ describe('MultiSRP Actions', () => {
 
       // Assert async operations and callback receives 0 when discovery fails
       await waitFor(() => {
-        expect(mockGetSnapKeyring).toHaveBeenCalled();
         expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
         expect(mockDiscoverAccounts).toHaveBeenCalledWith(mockEntropySource);
         expect(mockCallback).toHaveBeenCalledWith({
