@@ -31,6 +31,8 @@ export function getPerpsControllerMessenger(
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
   });
+  // PerpsController's 98-member action union intersected with GlobalActions exceeds TS's type complexity limit
+  // @ts-expect-error TS2590
   rootExtendedMessenger.delegate({
     actions: [
       'GeolocationController:getGeolocation',
