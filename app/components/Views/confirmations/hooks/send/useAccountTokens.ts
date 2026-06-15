@@ -64,7 +64,9 @@ export function useAccountTokens({
   const accountOverride = useTransactionAccountOverride();
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
   const accountAssets = useAccountGroupAssets(accountOverride);
-  const assets = accountAssets ?? globalAssets;
+  const hasOverrideData =
+    accountAssets !== undefined && Object.keys(accountAssets).length > 0;
+  const assets = hasOverrideData ? accountAssets : globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   const assetIds = useMemo(
