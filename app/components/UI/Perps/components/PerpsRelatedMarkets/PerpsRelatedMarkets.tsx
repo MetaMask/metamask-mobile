@@ -18,6 +18,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { PillScrollList } from '../../../Trending/components/PillScrollList';
+import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import { PerpsPillItem } from '../PerpsPillItem';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
@@ -30,13 +32,14 @@ import {
   RELATED_MARKETS_HEADER_TAPPED,
   RELATED_MARKETS_SOURCE,
 } from '../../utils/relatedMarkets';
+import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 
 export interface PerpsRelatedMarketsProps {
   currentMarket: PerpsMarketData;
 }
 
 const MAX_PILLS = 12;
-const PILLS_PER_ROW = 6;
+const ROW_COUNT = 2;
 
 const styles = StyleSheet.create({
   rail: {
@@ -54,15 +57,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  pillGrid: {
-    paddingHorizontal: 16,
-    gap: 10,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
 });
 
 const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
@@ -78,9 +72,11 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
     [currentMarket, allMarkets],
   );
   const collectionId = relatedMarketsResult?.collection.id;
-  const markets = useMemo(
-    () => relatedMarketsResult?.markets.slice(0, MAX_PILLS),
-    [relatedMarketsResult?.markets],
+  const markets = relatedMarketsResult?.markets;
+
+  const feedItems: PerpsFeedItem[] = useMemo(
+    () => (markets ?? []).map((market) => ({ market, isWatchlisted: false })),
+    [markets],
   );
 
   const handleMarketPress = useCallback(
@@ -127,14 +123,21 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
     });
   }, [collectionId, currentMarket, navigateToMarketList, track]);
 
+  const renderPill = useCallback(
+    (item: PerpsFeedItem, index: number) => (
+      <PerpsPillItem
+        item={item}
+        onNavigateToMarketDetails={() => handleMarketPress(item.market, index)}
+      />
+    ),
+    [handleMarketPress],
+  );
+
   if (!relatedMarketsResult || !markets) {
     return null;
   }
 
   const { collection } = relatedMarketsResult;
-
-  const row1 = markets.slice(0, PILLS_PER_ROW);
-  const row2 = markets.slice(PILLS_PER_ROW, MAX_PILLS);
 
   return (
     <View
@@ -160,33 +163,17 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
         </View>
       </TouchableOpacity>
 
-      <View
-        style={styles.pillGrid}
-        testID={PerpsRelatedMarketsSelectorsIDs.PILL_GRID}
-      >
-        <View style={styles.pillRow}>
-          {row1.map((market, index) => (
-            <PerpsPillItem
-              key={market.symbol}
-              item={{ market, isWatchlisted: false }}
-              onNavigateToMarketDetails={() => handleMarketPress(market, index)}
-            />
-          ))}
-        </View>
-        {row2.length > 0 && (
-          <View style={styles.pillRow}>
-            {row2.map((market, index) => (
-              <PerpsPillItem
-                key={market.symbol}
-                item={{ market, isWatchlisted: false }}
-                onNavigateToMarketDetails={() =>
-                  handleMarketPress(market, index + PILLS_PER_ROW)
-                }
-              />
-            ))}
-          </View>
-        )}
-      </View>
+      <PillScrollList<PerpsFeedItem>
+        data={feedItems}
+        isLoading={false}
+        renderItem={renderPill}
+        keyExtractor={(item) => item.market.symbol}
+        Skeleton={SectionPillsSkeleton}
+        rowCount={ROW_COUNT}
+        maxPills={MAX_PILLS}
+        wrapperTwClassName="bg-transparent"
+        listTestId={PerpsRelatedMarketsSelectorsIDs.PILL_GRID}
+      />
     </View>
   );
 };

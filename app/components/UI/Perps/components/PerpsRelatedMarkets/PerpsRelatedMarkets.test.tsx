@@ -10,6 +10,7 @@ import {
   RELATED_MARKETS_HEADER_TAPPED,
   RELATED_MARKETS_SOURCE,
 } from '../../utils/relatedMarkets';
+import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import PerpsRelatedMarkets from './PerpsRelatedMarkets';
 
 const mockNavigate = jest.fn();
@@ -38,6 +39,45 @@ jest.mock('../../hooks/usePerpsNavigation', () => ({
   usePerpsNavigation: () => ({
     navigateToMarketList: mockNavigateToMarketList,
   }),
+}));
+
+jest.mock('../../../Trending/components/PillScrollList', () => ({
+  PillScrollList: ({
+    data,
+    isLoading,
+    renderItem,
+    keyExtractor,
+    listTestId,
+    maxPills = 12,
+  }: {
+    data: PerpsFeedItem[];
+    isLoading: boolean;
+    renderItem: (item: PerpsFeedItem, index: number) => React.ReactNode;
+    keyExtractor: (item: PerpsFeedItem) => string;
+    listTestId: string;
+    maxPills?: number;
+  }) => {
+    const ReactModule = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    const displayData = data.slice(0, maxPills);
+    return ReactModule.createElement(
+      View,
+      { testID: listTestId },
+      isLoading
+        ? ReactModule.createElement(View, { testID: 'mock-pill-skeleton' })
+        : displayData.map((item: PerpsFeedItem, index: number) =>
+            ReactModule.createElement(
+              View,
+              { key: keyExtractor(item) },
+              renderItem(item, index),
+            ),
+          ),
+    );
+  },
+}));
+
+jest.mock('../../../Trending/components/SectionPillsSkeleton', () => ({
+  SectionPillsSkeleton: () => null,
 }));
 
 jest.mock('../PerpsPillItem', () => {
@@ -91,7 +131,7 @@ describe('PerpsRelatedMarkets', () => {
     mockUsePerpsMarkets.mockReturnValue(mockMarketsResult([]));
   });
 
-  it('renders pills in a grid layout without sparklines', () => {
+  it('renders pills in a scrollable grid without sparklines', () => {
     mockUsePerpsMarkets.mockReturnValue(
       mockMarketsResult([createMarket('FET'), createMarket('TAO')]),
     );
@@ -124,7 +164,7 @@ describe('PerpsRelatedMarkets', () => {
     ).toBeNull();
   });
 
-  it('caps markets at 12 pills (2 rows of 6)', () => {
+  it('caps markets at 12 pills', () => {
     const markets = Array.from({ length: 15 }, (_, i) =>
       createMarket(`MKT${i}`),
     );
@@ -186,7 +226,7 @@ describe('PerpsRelatedMarkets', () => {
     });
   });
 
-  it('tracks correct position for pills in second row', () => {
+  it('tracks correct position for pills', () => {
     const markets = Array.from({ length: 8 }, (_, i) =>
       createMarket(`MKT${i}`),
     );
