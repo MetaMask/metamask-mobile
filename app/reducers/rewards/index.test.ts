@@ -30,7 +30,11 @@ import rewardsReducer, {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
+  setVipRefereeDashboard,
+  setVipRefereeDashboardError,
+  setVipRefereeDashboardLoading,
   acceptVipInvite,
+  acceptVipRefereeInvite,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -574,6 +578,18 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.refereeCount).toBe(0);
+    });
+
+    it('should store isVipReferee and referredByVipCode when provided', () => {
+      const action = setReferralDetails({
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+      });
+
+      const state = rewardsReducer(initialState, action);
+
+      expect(state.isVipReferee).toBe(true);
+      expect(state.referredByVipCode).toBe('VIPCODE');
     });
 
     it('should set referralDetailsLoading to false', () => {
@@ -1991,6 +2007,12 @@ describe('rewardsReducer', () => {
         referralCode: 'TEST123',
         refereeCount: 10,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
+        vipRefereeDashboard: {},
+        vipRefereeDashboardLoading: false,
+        vipRefereeDashboardError: false,
+        vipRefereeSplashAccepted: {},
         currentTier: {
           id: 'tier-platinum',
           name: 'Platinum',
@@ -2143,6 +2165,12 @@ describe('rewardsReducer', () => {
         referralCode: 'PERSISTED123',
         refereeCount: 15,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
+        vipRefereeDashboard: {},
+        vipRefereeDashboardLoading: false,
+        vipRefereeDashboardError: false,
+        vipRefereeSplashAccepted: {},
         currentTier: {
           id: 'tier-diamond',
           name: 'Diamond',
@@ -4821,6 +4849,7 @@ describe('setVipDashboard', () => {
       start: '2099-06-01T00:00:00.000Z',
       end: '2099-06-30T23:59:59.999Z',
     },
+    computedAt: '2099-06-30T14:52:00.000Z',
     currentTier: {
       id: 'mock-tier-alpha-3',
       name: 'Mock Tier Alpha 3',
@@ -4976,6 +5005,93 @@ describe('acceptVipInvite', () => {
       'sub-1': true,
       'sub-2': true,
     });
+  });
+});
+
+describe('VIP referee actions', () => {
+  // Obviously-synthetic fixture — never real VIP codes/figures.
+  const mockRefereeDashboard = {
+    referredByCode: 'TESTCODE',
+    points: 1234,
+    swapsVolume: 1000,
+    perpsVolume: 2000,
+    computedAt: '2099-06-30T14:52:00.000Z',
+    lastFetched: 1767225600000,
+  };
+
+  it('setReferralDetails stores isVipReferee and referredByVipCode', () => {
+    const state = rewardsReducer(
+      initialState,
+      setReferralDetails({
+        referralCode: 'MYCODE',
+        refereeCount: 0,
+        referredByCode: 'TESTCODE',
+        isVipReferee: true,
+        referredByVipCode: 'TESTCODE',
+      }),
+    );
+
+    expect(state.isVipReferee).toBe(true);
+    expect(state.referredByVipCode).toBe('TESTCODE');
+  });
+
+  it('setVipRefereeDashboard sets the dashboard by subscription id and clears error', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      vipRefereeDashboardError: true,
+    };
+    const state = rewardsReducer(
+      stateWithError,
+      setVipRefereeDashboard({
+        subscriptionId: 'sub-1',
+        dashboard: mockRefereeDashboard,
+      }),
+    );
+
+    expect(state.vipRefereeDashboard['sub-1']).toEqual(mockRefereeDashboard);
+    expect(state.vipRefereeDashboardError).toBe(false);
+  });
+
+  it('setVipRefereeDashboard removes the dashboard when payload is null', () => {
+    const stateWithDashboard: RewardsState = {
+      ...initialState,
+      vipRefereeDashboard: { 'sub-1': mockRefereeDashboard },
+    };
+    const state = rewardsReducer(
+      stateWithDashboard,
+      setVipRefereeDashboard({ subscriptionId: 'sub-1', dashboard: null }),
+    );
+
+    expect(state.vipRefereeDashboard['sub-1']).toBeUndefined();
+  });
+
+  it('setVipRefereeDashboardLoading sets the loading flag', () => {
+    const state = rewardsReducer(
+      initialState,
+      setVipRefereeDashboardLoading(true),
+    );
+
+    expect(state.vipRefereeDashboardLoading).toBe(true);
+  });
+
+  it('setVipRefereeDashboardError sets the error flag', () => {
+    const state = rewardsReducer(
+      initialState,
+      setVipRefereeDashboardError(true),
+    );
+
+    expect(state.vipRefereeDashboardError).toBe(true);
+  });
+
+  it('acceptVipRefereeInvite marks the referee splash accepted, distinct from vipSplashAccepted', () => {
+    const state = rewardsReducer(
+      initialState,
+      acceptVipRefereeInvite({ subscriptionId: 'sub-1' }),
+    );
+
+    expect(state.vipRefereeSplashAccepted['sub-1']).toBe(true);
+    // Must NOT touch the regular VIP splash flag.
+    expect(state.vipSplashAccepted['sub-1']).toBeUndefined();
   });
 });
 
