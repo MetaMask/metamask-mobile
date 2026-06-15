@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { BatchSellQuoteDetails, BatchSellQuoteDetailsModal } from './index';
@@ -220,6 +220,7 @@ describe('BatchSellQuoteDetailsModal', () => {
     ).toBeOnTheScreen();
     expect(queryByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(queryByText('7,638.23 USDC')).toBeNull();
+    expect(queryByText('7,485.47 USDC')).toBeNull();
   });
 
   it('renders row-level loading and unavailable states', () => {
@@ -295,6 +296,88 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(
       queryByTestId(
         `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+      ),
+    ).toBeNull();
+  });
+
+  it('renders min received beneath total received with info icon on total row', () => {
+    const onMinimumReceivedInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <BatchSellQuoteDetails
+        {...defaultDetailsProps}
+        onMinimumReceivedInfoPress={onMinimumReceivedInfoPress}
+      />,
+    );
+
+    const totalRow = getByTestId(
+      BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_ROW,
+    );
+    const minRow = getByTestId(
+      BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_ROW,
+    );
+
+    expect(
+      within(totalRow).getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(minRow).queryByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON,
+      ),
+    ).toBeNull();
+  });
+
+  it('renders a non-pressable info icon when onMinimumReceivedInfoPress is omitted', () => {
+    const { queryByTestId } = render(
+      <BatchSellQuoteDetails {...defaultDetailsProps} />,
+    );
+
+    expect(
+      queryByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON,
+      ),
+    ).toBeNull();
+  });
+
+  it('falls back to tokenSymbol for row testIDs when key is missing', () => {
+    const { getByTestId } = render(
+      <BatchSellQuoteDetails
+        {...defaultDetailsProps}
+        tokenData={[
+          {
+            tokenSymbol: 'ETH',
+            slippage: '0.5%',
+            receivedAmount: '100 USDC',
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      getByTestId(`${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW}-ETH`),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders summary values when isLoading is omitted', () => {
+    const { getByText, queryByTestId } = render(
+      <BatchSellQuoteDetails
+        tokenData={defaultDetailsProps.tokenData}
+        totalReceived={defaultDetailsProps.totalReceived}
+        minimumReceived={defaultDetailsProps.minimumReceived}
+      />,
+    );
+
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
+    expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
+      ),
+    ).toBeNull();
+    expect(
+      queryByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON,
       ),
     ).toBeNull();
   });
