@@ -1008,6 +1008,19 @@ export async function withFixtures(
     }
 
     if (mockServerInstance) {
+      // N4: warn-only summary of OS-proxy-intercepted native traffic and the
+      // unmocked subset. Best-effort — must never fail the test (native-traffic
+      // enforcement is a deliberate later step), so it runs before live-request
+      // validation and swallows its own errors.
+      try {
+        mockServerInstance.summarizeDeviceProxyTraffic();
+      } catch (summaryError) {
+        logger.warn(
+          'Device-proxy traffic summary failed (non-critical):',
+          summaryError,
+        );
+      }
+
       try {
         // Validate live requests
         mockServerInstance.validateLiveRequests();

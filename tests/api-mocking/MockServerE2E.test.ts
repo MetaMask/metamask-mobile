@@ -4,8 +4,10 @@ import { WebSocketServer, WebSocket as WsClient } from 'ws';
 import MockServerE2E, {
   getProxyForwardUrl,
   handleNormalizedHttpProxyRequest,
+  buildDeviceProxySummary,
   type NormalizedHttpProxyRequest,
   type ProxyHandlerResponse,
+  type LiveRequest,
 } from './MockServerE2E';
 import {
   setupMockRequest,
@@ -380,6 +382,72 @@ describe('handleNormalizedHttpProxyRequest', () => {
     expect(forwardedHeaders).not.toHaveProperty('host');
   });
 
+  it('records device-proxy misses into deviceProxyMisses (not shim, not matched)', async () => {
+    const forwardRequest = jest
+      .fn()
+      .mockResolvedValue({ statusCode: 204, body: '' });
+    const deviceProxyMisses: LiveRequest[] = [];
+
+    // device-proxy unmocked → recorded for the N4 inventory
+    await handleNormalizedHttpProxyRequest(
+      createRequest({
+        source: 'device-proxy',
+        targetUrl: 'https://api.example.test/x',
+      }),
+      {
+        events: {},
+        forwardRequest,
+        deviceProxyMisses,
+        getForwardUrl: (u) => u,
+      },
+    );
+    expect(deviceProxyMisses).toHaveLength(1);
+    expect(deviceProxyMisses[0]).toMatchObject({
+      url: 'https://api.example.test/x',
+      method: 'GET',
+    });
+
+    // shim-proxy unmocked → tracked as a live request, NOT a device-proxy miss
+    const liveRequests: LiveRequest[] = [];
+    await handleNormalizedHttpProxyRequest(
+      createRequest({
+        source: 'shim-proxy',
+        targetUrl: 'https://api.example.test/y',
+      }),
+      {
+        events: {},
+        forwardRequest,
+        deviceProxyMisses,
+        liveRequests,
+        getForwardUrl: (u) => u,
+      },
+    );
+    expect(deviceProxyMisses).toHaveLength(1);
+
+    // matched mock → neither
+    await handleNormalizedHttpProxyRequest(
+      createRequest({
+        source: 'device-proxy',
+        targetUrl: 'https://api.example.test/m',
+      }),
+      {
+        events: {
+          GET: [
+            {
+              urlEndpoint: 'https://api.example.test/m',
+              responseCode: 200,
+              response: {},
+            },
+          ],
+        },
+        forwardRequest,
+        deviceProxyMisses,
+        getForwardUrl: (u) => u,
+      },
+    );
+    expect(deviceProxyMisses).toHaveLength(1);
+  });
+
   it('uses PlatformDetector for Android shim localhost forwarding', () => {
     jest.spyOn(PlatformDetector, 'getPlatform').mockReturnValue('android');
 
@@ -554,6 +622,33 @@ describe('bridgeLocalWebSocketPort', () => {
   }, 30000);
 });
 
+describe('buildDeviceProxySummary (N4)', () => {
+  it('dedupes misses by host and ranks by descending count', () => {
+    const misses: LiveRequest[] = [
+      { url: 'https://a.test/1', method: 'GET', timestamp: 't' },
+      { url: 'https://a.test/2', method: 'POST', timestamp: 't' },
+      { url: 'https://b.test/1', method: 'GET', timestamp: 't' },
+    ];
+
+    const summary = buildDeviceProxySummary(10, misses);
+
+    expect(summary.totalRequests).toBe(10);
+    expect(summary.unmockedCount).toBe(3);
+    expect(summary.hosts).toEqual([
+      { host: 'a.test', count: 2 },
+      { host: 'b.test', count: 1 },
+    ]);
+  });
+
+  it('returns an empty summary when nothing was observed', () => {
+    expect(buildDeviceProxySummary(0, [])).toEqual({
+      totalRequests: 0,
+      unmockedCount: 0,
+      hosts: [],
+    });
+  });
+});
+
 describe('raw device-proxy ingress (loopback re-entry)', () => {
   let mockServer: MockServerE2E | undefined;
 
@@ -711,6 +806,30 @@ describe('raw device-proxy ingress (loopback re-entry)', () => {
     expect(lowered).toContain(
       'access-control-allow-headers: content-type,solana-client',
     );
+  }, 15000);
+
+  it('counts device-proxy arrivals and summarizes unmocked hosts (N4)', async () => {
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    expect(mockServer.getDeviceProxyRequestCount()).toBe(0);
+
+    // An unmocked native arrival (unforwardable host): counted, and recorded
+    // in the unmocked inventory regardless of the forward outcome.
+    await sendRawProxyFormRequest(
+      mockServer.getServerPort(),
+      'http://unmocked.canary.invalid/ping',
+    ).catch(() => '');
+
+    expect(mockServer.getDeviceProxyRequestCount()).toBeGreaterThanOrEqual(1);
+
+    const summary = mockServer.summarizeDeviceProxyTraffic();
+    expect(summary.totalRequests).toBeGreaterThanOrEqual(1);
+    expect(summary.unmockedCount).toBeGreaterThanOrEqual(1);
+    expect(
+      summary.hosts.some((h) => h.host === 'unmocked.canary.invalid'),
+    ).toBe(true);
   }, 15000);
 
   it('keeps device-proxy source semantics through the loopback (no live-request failures)', async () => {
