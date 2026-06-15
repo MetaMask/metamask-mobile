@@ -248,7 +248,7 @@ const OptinMetrics = () => {
       }
     }
 
-    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+    if (isBasicUsageChecked) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
