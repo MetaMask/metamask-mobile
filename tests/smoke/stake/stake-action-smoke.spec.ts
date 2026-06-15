@@ -18,7 +18,18 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
-describe(SmokeStake('Stake from Actions'), (): void => {
+// Quarantined on Android under the device proxy (MMQA-1923). The wallet home
+// renders the new Homepage layout and the fixture/accounts.api balance does not
+// surface under the proxy, so the inline Earn CTA (earnButton) never becomes
+// visible and the flow can't proceed. The lending specs exercise the same
+// staking subsystem and PASS proxied, so this is a test-flow incompatibility to
+// rewrite (mirror the lending sync-off-early + TokensView navigation), not an
+// app regression. iOS keeps running (the Detox iOS proxy is dormant, so the
+// spec passes there). Re-enable once rewritten — see follow-up task.
+const describeOrSkip =
+  device.getPlatform() === 'ios' ? describe : describe.skip;
+
+describeOrSkip(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_STAKE: string = '1';
 
