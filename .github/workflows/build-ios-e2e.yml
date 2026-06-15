@@ -486,7 +486,7 @@ jobs:
           key: bitrise-ios-app-${{ inputs.build_type }}-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Build iOS E2E App (Bitrise RN cache)
-        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "Building iOS E2E App on Bitrise runner..."
           bitrise-build-cache react-native run yarn build:ios:${{ inputs.build_type }}:e2e
@@ -512,7 +512,7 @@ jobs:
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
