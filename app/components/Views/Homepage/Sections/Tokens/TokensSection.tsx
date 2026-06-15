@@ -242,7 +242,11 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View
+        ref={sectionViewRef}
+        onLayout={onLayout}
+        testID={WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER}
+      >
         <SectionDivider />
         <SectionHeader
           title={title}
@@ -361,7 +365,11 @@ const TokensSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View
+        ref={sectionViewRef}
+        onLayout={onLayout}
+        testID={WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER}
+      >
         <Box paddingBottom={3}>
           <SectionDivider />
           <SectionHeader

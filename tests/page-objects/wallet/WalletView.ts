@@ -824,7 +824,7 @@ class WalletView {
           ),
         ios: () =>
           PlaywrightMatchers.getElementByAccessibilityId(
-            `${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}`,
+            WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
           ),
       },
     });

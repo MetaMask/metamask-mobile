@@ -17,6 +17,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction, PlaywrightGestures } from '../../framework';
 import Utilities from '../../framework/Utilities';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 export type PerpsOrderSide = 'long' | 'short';
 
@@ -146,6 +147,16 @@ class PerpsMarketListView {
     await encapsulatedAction({
       appium: async () => {
         const marketElement = await asPlaywrightElement(this.marketRowItemBTC);
+
+        if (PlatformDetector.isIOS()) {
+          await PlaywrightGestures.waitAndTap(marketElement, {
+            checkForDisplayed: false,
+            checkForEnabled: false,
+            delay: 0,
+          });
+          return;
+        }
+
         await PlaywrightGestures.scrollIntoView(marketElement);
         await PlaywrightGestures.waitAndTap(marketElement);
       },

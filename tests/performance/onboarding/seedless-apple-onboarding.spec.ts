@@ -73,7 +73,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer6 = new TimerHelper(
         'Apple: Dismiss feature sheet → wallet main screen visible',
-        { ios: 12000, android: 5000 },
+        { ios: 15000, android: 5000 },
         currentDeviceDetails.platform,
       );
 

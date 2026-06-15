@@ -331,7 +331,10 @@ class AccountListBottomSheet {
           exactMatch,
         );
         await PlaywrightGestures.scrollIntoView(accountEl);
-        await PlaywrightGestures.waitAndTap(accountEl);
+        await PlaywrightGestures.waitAndTap(accountEl, {
+          checkForStable: true,
+          waitForInteractive: true,
+        });
       },
     });
   }

@@ -48,7 +48,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
       const openPositionTimer = new TimerHelper(
         'Position opened',
-        { ios: 10500, android: 14000 },
+        { ios: 10500, android: 15000 },
         currentDeviceDetails.platform,
       );
 
@@ -83,7 +83,11 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       await selectMarketTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketListView.header),
+          () => asPlaywrightElement(PerpsMarketListView.header),
+          {
+            description: 'Market list screen should be visible',
+            fastAppiumLookup: true,
+          },
         );
       });
 

@@ -46,7 +46,7 @@ class ProtectYourWalletView {
         }
         const button = await asPlaywrightElement(this.remindMeLaterButton);
         await PlaywrightGestures.scrollIntoView(button);
-        await PlaywrightGestures.waitAndTap(button);
+        await PlaywrightGestures.waitAndTap(button, { checkForStable: true });
       },
     });
   }
