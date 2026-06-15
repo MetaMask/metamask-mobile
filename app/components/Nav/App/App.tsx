@@ -20,7 +20,10 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
+import OnboardingFundWallet from '../../Views/OnboardingFundWallet';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
+import TokenListRoutes from '../../UI/Ramp/routes';
+import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
@@ -330,6 +333,11 @@ const OnboardingNav = () => {
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen
+        name={Routes.ONBOARDING.FUND_WALLET}
+        component={OnboardingFundWallet}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
         component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
@@ -381,24 +389,61 @@ const SimpleWebviewScreen = () => (
   </Stack.Navigator>
 );
 
-const OnboardingRootNav = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.ONBOARDING.NAV}
-    screenOptions={{ headerShown: false }}
-  >
-    <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <Stack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
-      options={{ presentation: 'modal' }}
-    />
-    <Stack.Screen
-      name={Routes.WEBVIEW.MAIN}
-      component={SimpleWebviewScreen}
-      options={{ presentation: 'modal' }}
-    />
-  </Stack.Navigator>
-);
+const MultichainAddressList = () => {
+  const route = useRoute();
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAccountAddressList}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const OnboardingRootNav = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      initialRouteName={Routes.ONBOARDING.NAV}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
+      <Stack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={TokenListRoutes}
+      />
+      <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAddressList}
+      />
+      <Stack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcher}
+        options={{ presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name={Routes.WEBVIEW.MAIN}
+        component={SimpleWebviewScreen}
+        options={{ presentation: 'modal' }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const VaultRecoveryFlow = () => {
   const { colors } = useTheme();
@@ -947,25 +992,6 @@ const MultichainAccountDetailsActions = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
         component={RevealSRP}
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
-};
-
-const MultichainAddressList = () => {
-  const route = useRoute();
-
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: true,
-      }}
-    >
-      <Stack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={MultichainAccountAddressList}
         initialParams={route?.params}
       />
     </Stack.Navigator>
