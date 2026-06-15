@@ -1,10 +1,7 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
@@ -23,8 +20,8 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const Stack = createStackNavigator();
+const ModalStack = createStackNavigator();
 
 // For Money screens that require bottom navbar.
 const MoneyTabScreenStack = () => {
@@ -37,7 +34,7 @@ const MoneyTabScreenStack = () => {
       initialRouteName={Routes.MONEY.HOME}
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
+        cardStyle: { backgroundColor: colors.background.default },
       }}
     >
       <Stack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
@@ -72,7 +69,7 @@ const MoneyConfirmationScreenStack = () => {
       }
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
+        cardStyle: { backgroundColor: colors.background.default },
       }}
     >
       <Stack.Screen
@@ -86,10 +83,7 @@ const MoneyConfirmationScreenStack = () => {
 
 const MoneyModalStack = () => (
   <ModalStack.Navigator
-    screenOptions={{
-      ...clearNativeStackNavigatorOptions,
-      ...transparentModalScreenOptions,
-    }}
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
   >
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.ADD_MONEY_SHEET}
