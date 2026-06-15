@@ -408,32 +408,29 @@ export const TokenInputArea = forwardRef<
             ) : (
               <>
                 <Box style={styles.currencyContainer}>
-                  {onAmountTypeTogglePress ? (
-                    <TouchableOpacity
-                      style={styles.secondaryValueContainer}
-                      onPress={onAmountTypeTogglePress}
-                      testID={amountTypeToggleTestID}
-                    >
-                      {shouldShowSecondaryAmount ? (
-                        <Text color={TextColor.Alternative}>
-                          {secondaryAmountDisplayValue}
-                        </Text>
-                      ) : null}
+                  <TouchableOpacity
+                    style={styles.secondaryValueContainer}
+                    onPress={onAmountTypeTogglePress}
+                    disabled={!onAmountTypeTogglePress}
+                    testID={
+                      onAmountTypeTogglePress
+                        ? amountTypeToggleTestID
+                        : undefined
+                    }
+                  >
+                    {shouldShowSecondaryAmount ? (
+                      <Text color={TextColor.Alternative}>
+                        {secondaryAmountDisplayValue}
+                      </Text>
+                    ) : null}
+                    {onAmountTypeTogglePress ? (
                       <Icon
                         name={IconName.SwapVertical}
                         size={IconSize.Sm}
                         color={IconColor.Alternative}
                       />
-                    </TouchableOpacity>
-                  ) : (
-                    <Box style={styles.secondaryValueContainer}>
-                      {shouldShowSecondaryAmount ? (
-                        <Text color={TextColor.Alternative}>
-                          {secondaryAmountDisplayValue}
-                        </Text>
-                      ) : null}
-                    </Box>
-                  )}
+                    ) : null}
+                  </TouchableOpacity>
                 </Box>
                 <Box
                   flexDirection={
