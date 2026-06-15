@@ -63,7 +63,7 @@ interface RampStackParamList {
     /** User-entered fiat from BuildQuote; used when resetting stack so amount screen keeps the typed value. */
     amount?: number;
   };
-  RampKycProcessing: undefined;
+  RampKycProcessing: { headlessSessionId?: string } | undefined;
   RampEnterEmail: undefined;
   Checkout: {
     url: string;
@@ -180,6 +180,54 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const fiatCurrency = userRegion?.country?.currency || '';
   const regionIsoCode = userRegion?.regionCode || '';
 
+  /**
+   * Emits a HEADLESS `RAMPS_ORDER_FAILED` for headless buy failures (TRAM-3623
+   * §7). These events were previously unwired on the headless path - the
+   * non-React `failSession` registry helper can't read region or fire
+   * analytics, so the React host (this hook) emits here right before/around the
+   * `failSession` call. No-op when there is no live headless session, so the
+   * regular (non-headless) flow is unaffected and stays additive.
+   *
+   * `quote` is passed when the caller has one in scope (KYC/limits path); the
+   * amount falls back to it, while token / payment-method / region come from
+   * the already-resolved controller selections.
+   */
+  const emitHeadlessOrderFailed = useCallback(
+    (error: unknown, quote?: TransakBuyQuote) => {
+      const session = getSession(headlessSessionId);
+      if (!session) {
+        return;
+      }
+      trackEvent('RAMPS_ORDER_FAILED', {
+        ramp_type: 'HEADLESS',
+        ramp_surface: session.params?.ramp_surface,
+        amount_source: Number(quote?.fiatAmount ?? session.params?.amount ?? 0),
+        amount_destination: 0,
+        payment_method_id: selectedPaymentMethod?.id || '',
+        region: regionIsoCode,
+        chain_id: (selectedToken?.chainId as string) || '',
+        currency_destination: selectedToken?.assetId || '',
+        currency_destination_symbol: selectedToken?.symbol || undefined,
+        currency_source: quote?.fiatCurrency || fiatCurrency || '',
+        error_message: parseUserFacingError(
+          error,
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+        is_authenticated: true,
+      });
+    },
+    [
+      headlessSessionId,
+      trackEvent,
+      selectedPaymentMethod?.id,
+      regionIsoCode,
+      selectedToken?.chainId,
+      selectedToken?.assetId,
+      selectedToken?.symbol,
+      fiatCurrency,
+    ],
+  );
+
   const checkUserLimits = useCallback(
     async (quote: TransakBuyQuote, kycType: string) => {
       try {
@@ -251,16 +299,27 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         }
       } catch (error) {
         if (error instanceof LimitExceededError) {
+          // Surfaced to the Headless Host as recoverable data, not a terminal
+          // failure - intentionally no RAMPS_ORDER_FAILED here.
           throw error;
         }
         if (headlessSessionId) {
+          // Infra failure during the limits check: emit the HEADLESS failure
+          // event (TRAM-3623 §7) before failSession closes the session.
+          emitHeadlessOrderFailed(error, quote);
           failSession(headlessSessionId, error);
           throw error;
         }
         Logger.error(error as Error, 'Failed to check user limits');
       }
     },
-    [getUserLimits, fiatCurrency, selectedPaymentMethod?.id, headlessSessionId],
+    [
+      getUserLimits,
+      fiatCurrency,
+      selectedPaymentMethod?.id,
+      headlessSessionId,
+      emitHeadlessOrderFailed,
+    ],
   );
 
   const navigateToVerifyIdentityCallback = useCallback(
@@ -444,7 +503,16 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         // flow — the consumer handles its own notification UI. Keep
         // `addOrder` and the analytics event in both modes so Redux
         // state + telemetry parity is preserved.
-        if (!getSession(headlessSessionId)) {
+        //
+        // Snapshot headless context BEFORE navigateToOrderProcessingCallback
+        // below `closeSession`s the session (TRAM-3623 §4): the terminal
+        // RAMPS_TRANSACTION_CONFIRMED event must carry `ramp_type: 'HEADLESS'`
+        // and the seeded `ramp_surface`, but the session is gone by the time
+        // we emit otherwise.
+        const confirmSession = getSession(headlessSessionId);
+        const wasHeadless = Boolean(confirmSession);
+        const rampSurface = confirmSession?.params?.ramp_surface;
+        if (!wasHeadless) {
           showV2OrderToast({
             orderId: rampsOrder.providerOrderId,
             cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
@@ -458,7 +526,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         });
 
         trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
+          ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
+          ramp_surface: rampSurface,
           amount_source: Number(rampsOrder.fiatAmount),
           amount_destination: Number(rampsOrder.cryptoAmount),
           exchange_rate: Number(rampsOrder.exchangeRate),
@@ -469,6 +538,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           total_fee: Number(rampsOrder.totalFeesFiat),
           payment_method_id: rampsOrder.paymentMethod?.id || '',
           country: regionIsoCode,
+          region: regionIsoCode,
           chain_id: rampsOrder.network?.chainId || '',
           currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
           currency_destination_symbol: rampsOrder.cryptoCurrency?.symbol || '',
@@ -480,6 +550,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         Logger.error(error as Error, {
           message: 'useTransakRouting: Failed to process order after checkout',
         });
+        // Emit the HEADLESS failure event BEFORE failSession tears the session
+        // down (TRAM-3623 §7) so the surface snapshot is still available.
+        emitHeadlessOrderFailed(error);
         if (failSession(headlessSessionId, error)) {
           dismissActiveHeadlessFlow();
         }
@@ -495,6 +568,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       trackEvent,
       headlessSessionId,
       dismissActiveHeadlessFlow,
+      emitHeadlessOrderFailed,
     ],
   );
 
@@ -525,10 +599,19 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       const baseEntry = buildBaseRouteEntry({ amount });
       navigation.reset({
         index: 1,
-        routes: [baseEntry, { name: Routes.RAMP.KYC_PROCESSING }],
+        routes: [
+          baseEntry,
+          {
+            name: Routes.RAMP.KYC_PROCESSING,
+            // Thread the headless session id so KycProcessing can flip its
+            // KYC analytics to `ramp_type: 'HEADLESS'` (TRAM-3623). The screen
+            // has no params of its own, so we forward it here.
+            params: headlessSessionId ? { headlessSessionId } : undefined,
+          },
+        ],
       });
     },
-    [navigation, buildBaseRouteEntry],
+    [navigation, buildBaseRouteEntry, headlessSessionId],
   );
 
   const navigateToKycWebviewCallback = useCallback(
@@ -556,12 +639,15 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           buildBaseRouteEntry({ amount }),
           {
             name: Routes.RAMP.KYC_PROCESSING,
+            // Thread the headless session id (TRAM-3623) - see
+            // navigateToKycProcessingCallback.
+            params: headlessSessionId ? { headlessSessionId } : undefined,
           },
           { name: routeName, params: routeParams },
         ],
       });
     },
-    [navigation, buildBaseRouteEntry],
+    [navigation, buildBaseRouteEntry, headlessSessionId],
   );
 
   const routeAfterAuthentication = useCallback(
@@ -619,9 +705,42 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   paymentDetails: depositOrder.paymentDetails,
                 });
 
-                if (getSession(headlessSessionId)) {
+                // Manual-bank-transfer headless branch (TRAM-3623 §4): this
+                // path historically fired NO confirmed event because headless
+                // diverts to navigateToOrderProcessingCallback and returns.
+                // Snapshot the surface BEFORE that call closes the session,
+                // then emit a HEADLESS terminal RAMPS_TRANSACTION_CONFIRMED so
+                // the funnel sees the same terminal signal as the webview path.
+                const manualBankSession = getSession(headlessSessionId);
+                if (manualBankSession) {
+                  const rampSurface = manualBankSession.params?.ramp_surface;
                   navigateToOrderProcessingCallback({
                     orderId: rampsOrder.providerOrderId,
+                  });
+                  trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+                    ramp_type: 'HEADLESS',
+                    ramp_surface: rampSurface,
+                    amount_source: Number(rampsOrder.fiatAmount),
+                    amount_destination: Number(rampsOrder.cryptoAmount),
+                    exchange_rate: Number(rampsOrder.exchangeRate),
+                    gas_fee: rampsOrder.networkFees
+                      ? Number(rampsOrder.networkFees)
+                      : 0,
+                    processing_fee: rampsOrder.partnerFees
+                      ? Number(rampsOrder.partnerFees)
+                      : 0,
+                    total_fee: Number(rampsOrder.totalFeesFiat),
+                    payment_method_id: rampsOrder.paymentMethod?.id || '',
+                    country: regionIsoCode,
+                    region: regionIsoCode,
+                    chain_id: rampsOrder.network?.chainId || '',
+                    currency_destination:
+                      rampsOrder.cryptoCurrency?.assetId || '',
+                    currency_destination_symbol:
+                      rampsOrder.cryptoCurrency?.symbol || '',
+                    currency_destination_network:
+                      rampsOrder.network?.name || '',
+                    currency_source: rampsOrder.fiatCurrency?.symbol || '',
                   });
                   return true;
                 }

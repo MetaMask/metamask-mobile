@@ -97,7 +97,8 @@ interface RampsOrderSelected {
 
 interface RampsOrderFailed {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
   amount_destination: number;
@@ -152,7 +153,8 @@ interface RampsKycStarted {
 interface RampsBasicInfoEntered {
   quote_session_id?: string;
   region: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   kyc_type: string;
 }
@@ -160,7 +162,8 @@ interface RampsBasicInfoEntered {
 interface RampsAddressEntered {
   quote_session_id?: string;
   region: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   kyc_type: string;
 }
@@ -208,7 +211,8 @@ interface RampsTransactionCompleted {
 
 interface RampsTransactionFailed {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
   amount_destination: number;
@@ -239,7 +243,8 @@ interface RampsKycApplicationFailed {
 
 interface RampsKycApplicationApproved {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_surface?: RampSurface;
   user_id?: string;
   kyc_type: string;
 }
