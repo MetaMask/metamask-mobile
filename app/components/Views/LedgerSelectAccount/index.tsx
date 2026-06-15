@@ -161,10 +161,10 @@ const LedgerSelectAccount = () => {
           setTargetWalletType(HardwareWalletType.Ledger);
           const isReady = await ensureDeviceReady();
 
-          // We default to the Ledger Live path BEFORE fetching accounts.
-          await setHDPath(LEDGER_LIVE_PATH);
-
           if (isReady) {
+            // We default to the Ledger Live path BEFORE fetching accounts.
+            await setHDPath(LEDGER_LIVE_PATH);
+
             DevLogger.log(
               '[LedgerSelectAccount] Device ready - fetching accounts',
             );
