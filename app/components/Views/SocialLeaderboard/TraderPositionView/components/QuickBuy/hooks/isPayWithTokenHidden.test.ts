@@ -31,7 +31,7 @@ const baseSources: PayWithHiddenSources = {
   ignoredEvmTokens: {},
   ignoredNonEvmAssets: {},
   evmAccountAddress: EVM_ACCOUNT,
-  nonEvmAccountId: SOL_ACCOUNT_ID,
+  resolveNonEvmAccountId: () => SOL_ACCOUNT_ID,
 };
 
 describe('isPayWithTokenHidden', () => {
@@ -98,13 +98,41 @@ describe('isPayWithTokenHidden', () => {
     expect(isPayWithTokenHidden(solToken(SOL_ASSET), sources)).toBe(false);
   });
 
-  it('returns false for a non-EVM token when no non-EVM account id is available', () => {
+  it('returns false for a non-EVM token when no non-EVM account id is resolved', () => {
     const sources: PayWithHiddenSources = {
       ...baseSources,
-      nonEvmAccountId: undefined,
+      resolveNonEvmAccountId: () => undefined,
       ignoredNonEvmAssets: { [SOL_ACCOUNT_ID]: [SOL_ASSET] },
     };
 
+    expect(isPayWithTokenHidden(solToken(SOL_ASSET), sources)).toBe(false);
+  });
+
+  it('scopes the hidden check to the account that owns the token chain', () => {
+    const BTC_SCOPE = 'bip122:000000000019d6689c085ae165831e93';
+    const BTC_ACCOUNT_ID = 'btc-account-id';
+    const BTC_ASSET = `${BTC_SCOPE}/slip44:0`;
+    const btcToken = (address: string): BridgeToken =>
+      ({
+        address,
+        chainId: BTC_SCOPE,
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        decimals: 8,
+      }) as BridgeToken;
+
+    const sources: PayWithHiddenSources = {
+      ...baseSources,
+      resolveNonEvmAccountId: (chainId) =>
+        chainId === BTC_SCOPE ? BTC_ACCOUNT_ID : SOL_ACCOUNT_ID,
+      ignoredNonEvmAssets: {
+        // Hidden under the Bitcoin account, not the Solana account.
+        [BTC_ACCOUNT_ID]: [BTC_ASSET],
+      },
+    };
+
+    expect(isPayWithTokenHidden(btcToken(BTC_ASSET), sources)).toBe(true);
+    // The Solana token must not match the Bitcoin account's hidden list.
     expect(isPayWithTokenHidden(solToken(SOL_ASSET), sources)).toBe(false);
   });
 

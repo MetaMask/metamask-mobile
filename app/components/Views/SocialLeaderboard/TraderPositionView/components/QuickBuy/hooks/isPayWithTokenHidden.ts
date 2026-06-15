@@ -1,5 +1,5 @@
 import { isNonEvmChainId } from '@metamask/bridge-controller';
-import type { Hex } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 
 /**
@@ -17,8 +17,14 @@ export interface PayWithHiddenSources {
   ignoredNonEvmAssets: Record<string, string[] | undefined> | undefined;
   /** Selected EVM account address used to scope `ignoredEvmTokens`. */
   evmAccountAddress: string | undefined;
-  /** Selected non-EVM account id used to scope `ignoredNonEvmAssets`. */
-  nonEvmAccountId: string | undefined;
+  /**
+   * Resolves the owning non-EVM account id for a token's CAIP chain id. Hidden
+   * non-EVM assets are keyed per account (e.g. Solana and Bitcoin holdings live
+   * under different accounts), so the account must be resolved from the token's
+   * own chain rather than assuming a single account. Mirrors how
+   * `useAssetVisibility` scopes the account to the asset's chain.
+   */
+  resolveNonEvmAccountId: (chainId: CaipChainId) => string | undefined;
 }
 
 /**
@@ -26,7 +32,7 @@ export interface PayWithHiddenSources {
  * the visibility semantics of `useAssetVisibility.isHidden`. EVM tokens are
  * matched case-insensitively by address under the selected EVM account (keyed by
  * chainId); non-EVM tokens are matched by their CAIP-19 asset id (`token.address`)
- * under the selected non-EVM account.
+ * under the account that owns the token's chain.
  */
 export const isPayWithTokenHidden = (
   token: BridgeToken,
@@ -34,12 +40,13 @@ export const isPayWithTokenHidden = (
     ignoredEvmTokens,
     ignoredNonEvmAssets,
     evmAccountAddress,
-    nonEvmAccountId,
+    resolveNonEvmAccountId,
   }: PayWithHiddenSources,
 ): boolean => {
   if (isNonEvmChainId(token.chainId)) {
-    if (!nonEvmAccountId) return false;
-    const ignored = ignoredNonEvmAssets?.[nonEvmAccountId];
+    const accountId = resolveNonEvmAccountId(token.chainId as CaipChainId);
+    if (!accountId) return false;
+    const ignored = ignoredNonEvmAssets?.[accountId];
     return Boolean(ignored?.includes(token.address));
   }
 

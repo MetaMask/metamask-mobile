@@ -119,7 +119,13 @@ const token = (symbol: string, chainId = '0x1'): BridgeToken =>
 describe('usePayWithTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockImplementation(() => undefined);
+    // Resolve `useSelector` by invoking each (mocked) selector. `accountByScope`
+    // defaults to a resolver that finds no account, so tests that don't set up
+    // accounts behave as "nothing hidden" rather than crashing.
+    mockUseSelector.mockImplementation((selector: (state: never) => unknown) =>
+      selector(FAKE_STATE),
+    );
+    mockAccountByScope.mockReturnValue(() => undefined);
     mockUseNetworkEnabledPredicate.mockReturnValue(() => true);
   });
 

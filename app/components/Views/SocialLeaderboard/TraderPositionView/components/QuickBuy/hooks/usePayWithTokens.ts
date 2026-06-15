@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { SolScope } from '@metamask/keyring-api';
+import type { CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
 import { useTokensWithBalance } from '../../../../../../UI/Bridge/hooks/useTokensWithBalance';
@@ -40,18 +41,14 @@ export const usePayWithTokens = (): {
   const heldTokens = useTokensWithBalance({ chainIds: sourceChainIds });
   const isChainEnabled = useNetworkEnabledPredicate();
 
-  const accountAddress = useSelector(
-    (state: RootState) =>
-      selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
-  );
+  const accountByScope = useSelector(selectSelectedInternalAccountByScope);
+  const accountAddress = accountByScope(EVM_SCOPE)?.address;
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
 
-  const solanaAccount = useSelector((state: RootState) =>
-    selectSelectedInternalAccountByScope(state)(SolScope.Mainnet),
-  );
+  const solanaAccount = accountByScope(SolScope.Mainnet);
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
 
@@ -94,7 +91,8 @@ export const usePayWithTokens = (): {
           ignoredEvmTokens,
           ignoredNonEvmAssets,
           evmAccountAddress: accountAddress,
-          nonEvmAccountId: solanaAccount?.id,
+          resolveNonEvmAccountId: (chainId: CaipChainId) =>
+            accountByScope(chainId)?.id,
         })
       )
         continue;
@@ -108,6 +106,7 @@ export const usePayWithTokens = (): {
   }, [
     heldTokens,
     isChainEnabled,
+    accountByScope,
     accountAddress,
     accountsByChainId,
     tokenBalances,
