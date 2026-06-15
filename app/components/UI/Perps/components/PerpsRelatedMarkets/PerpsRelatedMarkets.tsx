@@ -2,7 +2,6 @@ import React, { memo, useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
-  getMarketTypeFilter,
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
@@ -109,8 +108,6 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
       return;
     }
 
-    const resolvedCategory = getMarketTypeFilter(currentMarket);
-
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: RELATED_MARKETS_HEADER_TAPPED,
       [RELATED_MARKETS_EVENT_PROPERTY.SOURCE_MARKET]: currentMarket.symbol,
@@ -119,9 +116,9 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
 
     navigateToMarketList({
       source: RELATED_MARKETS_SOURCE,
-      defaultMarketTypeFilter: resolvedCategory,
+      defaultMarketTypeFilter: collectionId,
     });
-  }, [collectionId, currentMarket, navigateToMarketList, track]);
+  }, [collectionId, currentMarket.symbol, navigateToMarketList, track]);
 
   const renderPill = useCallback(
     (item: PerpsFeedItem, index: number) => (

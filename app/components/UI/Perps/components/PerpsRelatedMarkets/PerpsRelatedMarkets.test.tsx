@@ -3,7 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { PerpsRelatedMarketsSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsRelatedMarketsSelector,
+  PerpsRelatedMarketsSelectorsIDs,
+} from '../../Perps.testIds';
 import {
   RELATED_MARKETS_EVENT_PROPERTY,
   RELATED_MARKET_CLICKED,
@@ -147,8 +150,12 @@ describe('PerpsRelatedMarkets', () => {
     expect(
       screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.PILL_GRID),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('perps-market-tile-card-FET')).toBeOnTheScreen();
-    expect(screen.getByTestId('perps-market-tile-card-TAO')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getPerpsRelatedMarketsSelector.tile('TAO')),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText('+1.00%')).toHaveLength(2);
   });
 
@@ -173,7 +180,7 @@ describe('PerpsRelatedMarkets', () => {
     render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
     const pills = screen.getAllByText(/^MKT\d+$/);
-    expect(pills.length).toBeLessThanOrEqual(12);
+    expect(pills).toHaveLength(12);
   });
 
   it('tracks pill tap and navigates with related markets source', () => {
@@ -182,7 +189,9 @@ describe('PerpsRelatedMarkets', () => {
 
     render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
-    fireEvent.press(screen.getByTestId('perps-market-tile-card-FET'));
+    fireEvent.press(
+      screen.getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
+    );
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
@@ -234,7 +243,9 @@ describe('PerpsRelatedMarkets', () => {
 
     render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
-    fireEvent.press(screen.getByTestId('perps-market-tile-card-MKT7'));
+    fireEvent.press(
+      screen.getByTestId(getPerpsRelatedMarketsSelector.tile('MKT7')),
+    );
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
