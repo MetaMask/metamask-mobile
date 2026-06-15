@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
+import { areAddressesEqual } from '../../../../util/address';
 
 export interface PersistedMoneyBalance {
   /** Money account address this balance belongs to. */
@@ -62,7 +63,7 @@ export const isPersistedMoneyBalanceUsable = (
 ): persisted is PersistedMoneyBalance =>
   Boolean(persisted) &&
   Boolean(address) &&
-  persisted?.address === address &&
+  areAddressesEqual(persisted?.address ?? '', address ?? '') &&
   persisted?.currency === currency;
 
 export const { setLastKnownMoneyBalance, clearLastKnownMoneyBalance } = actions;

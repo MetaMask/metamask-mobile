@@ -625,6 +625,7 @@ const MoneyHomeView = () => {
               description={strings(
                 'money.balance_unavailable_banner_description',
               )}
+              style={styles.balanceUnavailableBanner}
               testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
             />
           </Box>
