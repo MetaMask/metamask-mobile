@@ -37,6 +37,22 @@ export interface PredictBuyPreviewHeaderTitleProps {
   preview?: OrderPreview | null;
 }
 
+const getOutcomeTokenLabel = (
+  outcome: PredictOutcome,
+  outcomeToken: PredictOutcomeToken,
+  preview?: OrderPreview | null,
+) => {
+  const selectedOutcomeToken =
+    outcome.tokens.find((token) => token.id === preview?.outcomeTokenId) ??
+    outcomeToken;
+  const sharePrice = preview?.sharePrice ?? selectedOutcomeToken?.price ?? 0;
+
+  return {
+    title: selectedOutcomeToken?.title ?? '',
+    sharePrice,
+  };
+};
+
 export function PredictBuyPreviewHeaderTitle({
   market,
   outcome,
@@ -44,14 +60,15 @@ export function PredictBuyPreviewHeaderTitle({
   preview,
 }: PredictBuyPreviewHeaderTitleProps) {
   const tw = useTailwind();
-  const selectedOutcomeToken =
-    outcome.tokens.find((token) => token.id === preview?.outcomeTokenId) ??
-    outcomeToken;
-  const sharePrice = preview?.sharePrice ?? selectedOutcomeToken?.price ?? 0;
+  const { title: outcomeTokenTitle, sharePrice } = getOutcomeTokenLabel(
+    outcome,
+    outcomeToken,
+    preview,
+  );
 
   const separator = '·';
   const outcomeTokenLabel = strings('predict.buy_preview_outcome_at_price', {
-    outcome: selectedOutcomeToken?.title ?? '',
+    outcome: outcomeTokenTitle,
     price: formatCents(sharePrice),
   });
 
@@ -90,7 +107,7 @@ export function PredictBuyPreviewHeaderTitle({
             variant={TextVariant.BodySm}
             twClassName="font-medium"
             color={
-              selectedOutcomeToken?.title === 'Yes'
+              outcomeTokenTitle === 'Yes'
                 ? TextColor.SuccessDefault
                 : TextColor.ErrorDefault
             }
