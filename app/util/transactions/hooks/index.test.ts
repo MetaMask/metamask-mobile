@@ -131,6 +131,7 @@ describe('getTransactionControllerHooks', () => {
       enablePerpsMoneyAccountTransactions: false,
       slippage: 0.005,
       stxDisabled: false,
+      noNetworkFeeChains: [],
     });
     jest.mocked(accountSupports7702).mockResolvedValue(false);
     jest.mocked(isSendBundleSupported).mockResolvedValue(true);
