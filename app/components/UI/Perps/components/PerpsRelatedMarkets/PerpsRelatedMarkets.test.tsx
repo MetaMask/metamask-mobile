@@ -3,25 +3,24 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  getPerpsRelatedMarketsSelector,
-  PerpsRelatedMarketsSelectorsIDs,
-} from '../../Perps.testIds';
+import { PerpsRelatedMarketsSelectorsIDs } from '../../Perps.testIds';
 import {
   RELATED_MARKETS_EVENT_PROPERTY,
   RELATED_MARKET_CLICKED,
+  RELATED_MARKETS_HEADER_TAPPED,
   RELATED_MARKETS_SOURCE,
 } from '../../utils/relatedMarkets';
 import PerpsRelatedMarkets from './PerpsRelatedMarkets';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
-const mockUseHomepageSparklines = jest.fn();
+const mockNavigateToMarketList = jest.fn();
 const mockUsePerpsMarkets = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
+    canGoBack: () => true,
   }),
 }));
 
@@ -35,41 +34,34 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
-  () => ({
-    useHomepageSparklines: (...args: unknown[]) =>
-      mockUseHomepageSparklines(...args),
+jest.mock('../../hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({
+    navigateToMarketList: mockNavigateToMarketList,
   }),
-);
+}));
 
-jest.mock(
-  '../../../../Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard',
-  () => {
-    const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
-    return function MockPerpsMarketTileCard({
-      market,
-      onPress,
-      sparklineData,
-      testID,
+jest.mock('../PerpsPillItem', () => {
+  const { Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    PerpsPillItem: function MockPerpsPillItem({
+      item,
+      onNavigateToMarketDetails,
     }: {
-      market: PerpsMarketData;
-      onPress?: () => void;
-      sparklineData?: number[];
-      testID?: string;
+      item: { market: PerpsMarketData };
+      onNavigateToMarketDetails?: (market: PerpsMarketData) => void;
     }) {
       return (
-        <TouchableOpacity testID={testID} onPress={onPress}>
-          <Text>{market.symbol}</Text>
-          <Text>{market.change24hPercent}</Text>
-          <View testID={`sparkline-${market.symbol}`}>
-            <Text>{sparklineData?.length ?? 0}</Text>
-          </View>
+        <TouchableOpacity
+          testID={`perps-market-tile-card-${item.market.symbol}`}
+          onPress={() => onNavigateToMarketDetails?.(item.market)}
+        >
+          <Text>{item.market.symbol}</Text>
+          <Text>{item.market.change24hPercent}</Text>
         </TouchableOpacity>
       );
-    };
-  },
-);
+    },
+  };
+});
 
 const createMarket = (
   symbol: string,
@@ -96,16 +88,10 @@ const mockMarketsResult = (markets: PerpsMarketData[]) => ({
 describe('PerpsRelatedMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseHomepageSparklines.mockReturnValue({
-      sparklines: {
-        FET: [1, 2, 3],
-        TAO: [3, 2, 1],
-      },
-    });
     mockUsePerpsMarkets.mockReturnValue(mockMarketsResult([]));
   });
 
-  it('renders related market tiles with homepage sparkline format', () => {
+  it('renders pills in a grid layout without sparklines', () => {
     mockUsePerpsMarkets.mockReturnValue(
       mockMarketsResult([createMarket('FET'), createMarket('TAO')]),
     );
@@ -119,10 +105,10 @@ describe('PerpsRelatedMarkets', () => {
       screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
+      screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.PILL_GRID),
     ).toBeOnTheScreen();
-    expect(mockUseHomepageSparklines).toHaveBeenCalledWith(['FET', 'TAO']);
-    expect(screen.getByTestId('sparkline-FET')).toHaveTextContent('3');
+    expect(screen.getByTestId('perps-market-tile-card-FET')).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-market-tile-card-TAO')).toBeOnTheScreen();
     expect(screen.getAllByText('+1.00%')).toHaveLength(2);
   });
 
@@ -138,15 +124,25 @@ describe('PerpsRelatedMarkets', () => {
     ).toBeNull();
   });
 
-  it('tracks tile tap and navigates with related markets source', () => {
+  it('caps markets at 12 pills (2 rows of 6)', () => {
+    const markets = Array.from({ length: 15 }, (_, i) =>
+      createMarket(`MKT${i}`),
+    );
+    mockUsePerpsMarkets.mockReturnValue(mockMarketsResult(markets));
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
+
+    const pills = screen.getAllByText(/^MKT\d+$/);
+    expect(pills.length).toBeLessThanOrEqual(12);
+  });
+
+  it('tracks pill tap and navigates with related markets source', () => {
     const targetMarket = createMarket('FET');
     mockUsePerpsMarkets.mockReturnValue(mockMarketsResult([targetMarket]));
 
     render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
-    fireEvent.press(
-      screen.getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
-    );
+    fireEvent.press(screen.getByTestId('perps-market-tile-card-FET'));
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
@@ -167,58 +163,44 @@ describe('PerpsRelatedMarkets', () => {
     });
   });
 
-  it('tracks rail slide once', () => {
+  it('navigates to market list with category filter on header press', () => {
     mockUsePerpsMarkets.mockReturnValue(
       mockMarketsResult([createMarket('FET')]),
     );
 
     render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
-    const scrollView = screen.getByTestId(
-      PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW,
-    );
-    fireEvent(scrollView, 'scrollBeginDrag');
-    fireEvent(scrollView, 'scrollBeginDrag');
+    fireEvent.press(screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.HEADER));
 
-    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        interaction_type: RELATED_MARKETS_HEADER_TAPPED,
+        [RELATED_MARKETS_EVENT_PROPERTY.SOURCE_MARKET]: 'RNDR',
+        [RELATED_MARKETS_EVENT_PROPERTY.CATEGORY]: 'crypto',
+      },
+    );
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      source: RELATED_MARKETS_SOURCE,
+      defaultMarketTypeFilter: 'crypto',
+    });
+  });
+
+  it('tracks correct position for pills in second row', () => {
+    const markets = Array.from({ length: 8 }, (_, i) =>
+      createMarket(`MKT${i}`),
+    );
+    mockUsePerpsMarkets.mockReturnValue(mockMarketsResult(markets));
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
+
+    fireEvent.press(screen.getByTestId('perps-market-tile-card-MKT7'));
+
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
       expect.objectContaining({
-        interaction_type: 'slide',
-        section_viewed: RELATED_MARKETS_SOURCE,
-        asset: 'RNDR',
-      }),
-    );
-  });
-
-  it('tracks rail slide again after current market changes', () => {
-    mockUsePerpsMarkets.mockReturnValue(
-      mockMarketsResult([createMarket('FET')]),
-    );
-
-    const { rerender } = render(
-      <PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />,
-    );
-
-    const scrollView = screen.getByTestId(
-      PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW,
-    );
-    fireEvent(scrollView, 'scrollBeginDrag');
-
-    rerender(<PerpsRelatedMarkets currentMarket={createMarket('TAO')} />);
-
-    fireEvent(
-      screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW),
-      'scrollBeginDrag',
-    );
-
-    expect(mockTrack).toHaveBeenCalledTimes(2);
-    expect(mockTrack).toHaveBeenLastCalledWith(
-      MetaMetricsEvents.PERPS_UI_INTERACTION,
-      expect.objectContaining({
-        interaction_type: 'slide',
-        section_viewed: RELATED_MARKETS_SOURCE,
-        asset: 'TAO',
+        interaction_type: RELATED_MARKET_CLICKED,
+        [RELATED_MARKETS_EVENT_PROPERTY.POSITION]: 8,
       }),
     );
   });

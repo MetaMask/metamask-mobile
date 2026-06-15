@@ -1,12 +1,16 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { memo, useCallback, useMemo } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
+  getMarketTypeFilter,
   PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -14,18 +18,16 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import PerpsMarketTileCard from '../../../../Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
-import { useHomepageSparklines } from '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
+import { PerpsPillItem } from '../PerpsPillItem';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import {
-  getPerpsRelatedMarketsSelector,
-  PerpsRelatedMarketsSelectorsIDs,
-} from '../../Perps.testIds';
+import { PerpsRelatedMarketsSelectorsIDs } from '../../Perps.testIds';
 import {
   getRelatedMarketsForMarket,
   RELATED_MARKETS_EVENT_PROPERTY,
   RELATED_MARKET_CLICKED,
+  RELATED_MARKETS_HEADER_TAPPED,
   RELATED_MARKETS_SOURCE,
 } from '../../utils/relatedMarkets';
 
@@ -33,17 +35,33 @@ export interface PerpsRelatedMarketsProps {
   currentMarket: PerpsMarketData;
 }
 
+const MAX_PILLS = 12;
+const PILLS_PER_ROW = 6;
+
 const styles = StyleSheet.create({
   rail: {
     paddingVertical: 16,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 12,
   },
-  content: {
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pillGrid: {
     paddingHorizontal: 16,
     gap: 10,
+  },
+  pillRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
 });
 
@@ -52,21 +70,18 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
 }) => {
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
-  const hasTrackedSlide = useRef(false);
+  const { navigateToMarketList } = usePerpsNavigation();
 
-  // Markets come from the StreamManager's marketData channel, so this
-  // subscription shares the cache with any other usePerpsMarkets consumer.
   const { markets: allMarkets } = usePerpsMarkets();
   const relatedMarketsResult = useMemo(
     () => getRelatedMarketsForMarket(currentMarket, allMarkets),
     [currentMarket, allMarkets],
   );
   const collectionId = relatedMarketsResult?.collection.id;
-  const markets = relatedMarketsResult?.markets;
-
-  useEffect(() => {
-    hasTrackedSlide.current = false;
-  }, [currentMarket.symbol]);
+  const markets = useMemo(
+    () => relatedMarketsResult?.markets.slice(0, MAX_PILLS),
+    [relatedMarketsResult?.markets],
+  );
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, index: number) => {
@@ -93,27 +108,24 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
     [collectionId, currentMarket.symbol, navigation, track],
   );
 
-  const handleScrollBeginDrag = useCallback(() => {
-    if (hasTrackedSlide.current) {
+  const handleHeaderPress = useCallback(() => {
+    if (!collectionId) {
       return;
     }
 
-    hasTrackedSlide.current = true;
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIDE,
-      [PERPS_EVENT_PROPERTY.SECTION_VIEWED]: RELATED_MARKETS_SOURCE,
-      [PERPS_EVENT_PROPERTY.LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
-      [PERPS_EVENT_PROPERTY.ASSET]: currentMarket.symbol,
-    });
-  }, [currentMarket.symbol, track]);
+    const resolvedCategory = getMarketTypeFilter(currentMarket);
 
-  const symbols = useMemo(
-    () => (markets ?? []).map((market) => market.symbol),
-    [markets],
-  );
-  const { sparklines } = useHomepageSparklines(symbols);
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: RELATED_MARKETS_HEADER_TAPPED,
+      [RELATED_MARKETS_EVENT_PROPERTY.SOURCE_MARKET]: currentMarket.symbol,
+      [RELATED_MARKETS_EVENT_PROPERTY.CATEGORY]: collectionId,
+    });
+
+    navigateToMarketList({
+      source: RELATED_MARKETS_SOURCE,
+      defaultMarketTypeFilter: resolvedCategory,
+    });
+  }, [collectionId, currentMarket, navigateToMarketList, track]);
 
   if (!relatedMarketsResult || !markets) {
     return null;
@@ -121,39 +133,60 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
 
   const { collection } = relatedMarketsResult;
 
+  const row1 = markets.slice(0, PILLS_PER_ROW);
+  const row2 = markets.slice(PILLS_PER_ROW, MAX_PILLS);
+
   return (
     <View
       style={styles.rail}
       testID={PerpsRelatedMarketsSelectorsIDs.RAIL}
       accessibilityLabel={`${strings('perps.market.related_markets')} - ${collection.label}`}
     >
-      <View style={styles.header}>
-        <Text
-          variant={TextVariant.HeadingMd}
-          color={TextColor.TextDefault}
-          testID={PerpsRelatedMarketsSelectorsIDs.HEADER}
-        >
-          {strings('perps.market.related_markets')}
-        </Text>
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        testID={PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW}
+      <TouchableOpacity
+        style={styles.header}
+        onPress={handleHeaderPress}
+        testID={PerpsRelatedMarketsSelectorsIDs.HEADER}
+        accessibilityRole="button"
       >
-        {markets.map((market, index) => (
-          <PerpsMarketTileCard
-            key={market.symbol}
-            market={market}
-            sparklineData={sparklines[market.symbol]}
-            onPress={() => handleMarketPress(market, index)}
-            testID={getPerpsRelatedMarketsSelector.tile(market.symbol)}
+        <View style={styles.headerLeft}>
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {strings('perps.market.related_markets')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
           />
-        ))}
-      </ScrollView>
+        </View>
+      </TouchableOpacity>
+
+      <View
+        style={styles.pillGrid}
+        testID={PerpsRelatedMarketsSelectorsIDs.PILL_GRID}
+      >
+        <View style={styles.pillRow}>
+          {row1.map((market, index) => (
+            <PerpsPillItem
+              key={market.symbol}
+              item={{ market, isWatchlisted: false }}
+              onNavigateToMarketDetails={() => handleMarketPress(market, index)}
+            />
+          ))}
+        </View>
+        {row2.length > 0 && (
+          <View style={styles.pillRow}>
+            {row2.map((market, index) => (
+              <PerpsPillItem
+                key={market.symbol}
+                item={{ market, isWatchlisted: false }}
+                onNavigateToMarketDetails={() =>
+                  handleMarketPress(market, index + PILLS_PER_ROW)
+                }
+              />
+            ))}
+          </View>
+        )}
+      </View>
     </View>
   );
 };
