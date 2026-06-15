@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Dana tidak cukup",
-      "message": "%{nativeCurrency} di akun Anda tidak cukup untuk membayar biaya jaringan.",
-      "buy_action": "Beli %{nativeCurrency}"
+      "message": "{{nativeCurrency}} di akun Anda tidak cukup untuk membayar biaya jaringan.",
+      "buy_action": "Beli {{nativeCurrency}}"
     },
     "signed_or_submitted": {
       "title": "Transaksi sedang berlangsung",
@@ -142,7 +142,7 @@
       "message": "Alamat penerima mungkin tidak mendukung transfer token langsung, yang dapat mengakibatkan hilangnya dana. Lanjutkan hanya jika Anda yakin kontrak ini dapat menerima transfer."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Jaringan khusus ini mengharuskan Anda untuk mempertahankan saldo cadangan sebesar %{minBalance} %{nativeTokenSymbol} di akun Anda.",
+      "message": "Jaringan khusus ini mengharuskan Anda untuk mempertahankan saldo cadangan sebesar {{minBalance}} {{nativeTokenSymbol}} di akun Anda.",
       "title": "Saldo cadangan diperlukan"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "Lupa kata sandi?",
     "cant_proceed": "Tindakan ini tidak dapat dilanjutkan sampai Anda mengetik kata 'Hapus'. Dengan tindakan ini, Anda memilih untuk menghapus dompet saat ini.",
     "invalid_password": "Kata sandi salah, coba lagi.",
-    "type_delete": "Ketik ‘%{erase}’ untuk mengonfirmasi",
+    "type_delete": "Ketik ‘{{erase}}’ untuk mengonfirmasi",
     "erase_my": "Ya, reset dompet",
     "cancel": "Batalkan",
     "are_you_sure": "Anda yakin?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "Kami tidak dapat membatalkan order Anda. Coba lagi."
     },
     "webview_modal": {
-      "error": "Kesalahan penerimaan Webview: %{code}"
+      "error": "Kesalahan penerimaan Webview: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "Deposit sejumlah {{currency}} gagal! Coba lagi. Mohon maaf atas ketidaknyamanan yang timbul!",
@@ -3564,13 +3564,13 @@
     "general_heading": "Umum",
     "privacy_heading": "Privasi",
     "failed_to_fetch_chain_id": "Tidak dapat mengambil ID chain. Apakah URL RPC Anda sudah benar?",
-    "endpoint_returned_different_chain_id": "Titik akhir mengembalikan ID chain yang berbeda: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "Titik akhir mengembalikan ID chain yang berbeda: {{chainIdReturned}}",
     "chain_id_required": "ID chain wajib diisi. ID harus cocok dengan ID chain yang dikembalikan oleh jaringan. Anda dapat memasukkan angka heksadesimal dengan awalan desimal atau '0x'.",
     "invalid_hex_number": "Nomor heksadesimal tidak valid.",
     "invalid_hex_number_leading_zeros": "Nomor heksadesimal tidak valid. Hapus semua nol di depan.",
     "invalid_number": "Nomor tidak valid. Masukkan angka heksadesimal dengan awalan desimal atau '0x'.",
     "invalid_number_leading_zeros": "Nomor tidak valid. Hapus semua nol di depan.",
-    "invalid_number_range": "Nomor tidak valid. Masukkan angka antara 1 dan %{maxSafeChainId}",
+    "invalid_number_range": "Nomor tidak valid. Masukkan angka antara 1 dan {{maxSafeChainId}}",
     "hide_zero_balance_tokens_title": "Sembunyikan token tanpa saldo",
     "hide_zero_balance_tokens_desc": "Mencegah token tanpa saldo ditampilkan di daftar token Anda.",
     "haptic_feedback_title": "Umpan balik haptic",
@@ -4444,8 +4444,8 @@
     "confusable_msg": "Kami telah mendeteksi karakter yang membingungkan dalam nama ENS. Periksa nama ENS untuk menghindari potensi penipuan.",
     "similar_to": "serupa dengan",
     "contains_zero_width": "berisi karakter non-cetak",
-    "dapp_suggested_gas": "Biaya gas ini telah disarankan oleh %{origin}. Biaya ini menggunakan estimasi gas lama yang kurang akurat. Namun, mengedit biaya gas ini dapat menyebabkan masalah pada transaksi Anda. Jika ada pertanyaan, hubungi %{origin}.",
-    "dapp_suggested_eip1559_gas": "Biaya gas ini telah disarankan oleh %{origin}. Mengubahnya dapat menyebabkan masalah pada transaksi Anda. Jika ada pertanyaan, hubungi %{origin}.",
+    "dapp_suggested_gas": "Biaya gas ini telah disarankan oleh {{origin}}. Biaya ini menggunakan estimasi gas lama yang kurang akurat. Namun, mengedit biaya gas ini dapat menyebabkan masalah pada transaksi Anda. Jika ada pertanyaan, hubungi {{origin}}.",
+    "dapp_suggested_eip1559_gas": "Biaya gas ini telah disarankan oleh {{origin}}. Mengubahnya dapat menyebabkan masalah pada transaksi Anda. Jika ada pertanyaan, hubungi {{origin}}.",
     "address_invalid": "Alamat penerima tidak valid.",
     "ens_not_found": "Belum mengatur alamat untuk nama ini.",
     "unknown_qr_code": "Kode QR tidak valid. Harap coba lagi.",
@@ -6216,7 +6216,7 @@
     }
   },
   "invalid_network": {
-    "title": "ID chain untuk jaringan khusus \n %{network} \n harus dimasukkan kembali.",
+    "title": "ID chain untuk jaringan khusus \n {{network}} \n harus dimasukkan kembali.",
     "message": "Untuk melindungi Anda dari penyedia jaringan yang berbahaya atau rusak, ID chain kini diperlukan untuk semua jaringan khusus.",
     "hint": "Anda dapat menemukan ID chain dari jaringan paling populer di",
     "edit_network_button": "Edit jaringan",
@@ -6248,7 +6248,7 @@
     "cancel": "Batal",
     "approve": "Setujui",
     "unrecognized_chain": "Jaringan khusus ini tidak dikenali",
-    "invalid_chain": "%{rpcUrl} untuk ID Chain ini tidak cocok dengan daftar chainid.network",
+    "invalid_chain": "{{rpcUrl}} untuk ID Chain ini tidak cocok dengan daftar chainid.network",
     "alert_recommend": "Kami merekomendasikan agar Anda",
     "alert_verify": "memverifikasikan ID rantai",
     "warning_subtext_new": {

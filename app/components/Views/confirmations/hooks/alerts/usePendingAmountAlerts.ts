@@ -16,7 +16,7 @@ export function usePendingAmountAlerts({
   pendingFiatAmount?: string;
 }): Alert[] {
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
-    pendingAmountUsd: pendingTokenAmount,
+    pendingAmountUsd: pendingFiatAmount ?? '0',
   });
 
   const mmPayHardwareAccountAlert = useMMPayHardwareAccountAlert();
