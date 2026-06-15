@@ -9,6 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import ActivityList from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
@@ -354,11 +356,83 @@ jest.mock('./helpers/transformations', () => {
         raw: { type: 'keyringTransaction', data: tx },
       })),
     ),
-    mergeTransactionsByTime: jest.fn((local, confirmed, nonEvm) => [
-      ...local,
-      ...confirmed,
-      ...nonEvm,
-    ]),
+    mergeTransactionsByTime: jest.fn(
+      (local, confirmed, nonEvm, perps = [], predict = []) => [
+        ...perps,
+        ...predict,
+        ...local,
+        ...confirmed,
+        ...nonEvm,
+      ],
+    ),
+  };
+});
+
+jest.mock('../../UI/Perps', () => ({
+  selectPerpsEnabledFlag: jest.fn(
+    (state: { perpsEnabled: boolean }) => state.perpsEnabled,
+  ),
+}));
+
+jest.mock('../../UI/Predict', () => ({
+  selectPredictEnabledFlag: jest.fn(
+    (state: { predictEnabled: boolean }) => state.predictEnabled,
+  ),
+}));
+
+let mockPerpsSourceState: {
+  items: unknown[];
+  isLoading: boolean;
+  error: string | null;
+  refetch?: () => Promise<void>;
+} = { items: [], isLoading: false, error: null };
+
+jest.mock('./hooks/PerpsActivitySource', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    INITIAL_PERPS_ACTIVITY_SOURCE_STATE: {
+      items: [],
+      isLoading: false,
+      error: null,
+    },
+    PerpsActivitySource: ({
+      onChange,
+    }: {
+      onChange: (state: unknown) => void;
+    }) => {
+      ReactActual.useEffect(() => {
+        onChange(mockPerpsSourceState);
+      }, [onChange]);
+      return null;
+    },
+  };
+});
+
+let mockPredictSourceState: {
+  items: unknown[];
+  isLoading: boolean;
+  error: string | null;
+  refetch?: () => Promise<void>;
+} = { items: [], isLoading: false, error: null };
+
+jest.mock('./hooks/PredictActivitySource', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    INITIAL_PREDICT_ACTIVITY_SOURCE_STATE: {
+      items: [],
+      isLoading: false,
+      error: null,
+    },
+    PredictActivitySource: ({
+      onChange,
+    }: {
+      onChange: (state: unknown) => void;
+    }) => {
+      ReactActual.useEffect(() => {
+        onChange(mockPredictSourceState);
+      }, [onChange]);
+      return null;
+    },
   };
 });
 
@@ -381,6 +455,8 @@ const selectorValues = {
     },
   },
   nonEvmState: { transactions: [] as unknown[] },
+  perpsEnabled: false,
+  predictEnabled: false,
   providerType: 'mainnet',
   related: new Map(),
   selectedAccount: { address: '0xselected' },
@@ -429,6 +505,10 @@ describe('ActivityList', () => {
     selectorValues.enabledEvm = ['0x1'];
     selectorValues.enabledNonEvm = [];
     selectorValues.nonEvmState = { transactions: [] };
+    selectorValues.perpsEnabled = false;
+    selectorValues.predictEnabled = false;
+    mockPerpsSourceState = { items: [], isLoading: false, error: null };
+    mockPredictSourceState = { items: [], isLoading: false, error: null };
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
     ];
@@ -496,6 +576,204 @@ describe('ActivityList', () => {
         screen: expect.any(String),
       }),
     );
+  });
+
+  it('hides rows whose kind does not match the type filter', () => {
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+
+    expect(screen.queryByTestId('row-0xconfirmed')).toBeNull();
+    expect(screen.queryByTestId('pending-local-id')).toBeNull();
+  });
+
+  it('keeps rows whose kind matches the type filter', () => {
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
+    expect(screen.getByTestId('pending-local-id')).toBeOnTheScreen();
+  });
+
+  it('hides rows outside the selected network filter', () => {
+    render(<ActivityList networkFilter={['eip155:59144']} />);
+
+    expect(screen.queryByTestId('row-0xconfirmed')).toBeNull();
+  });
+
+  it('renders perps items when the perps flag is on and the Perps filter is selected', () => {
+    selectorValues.perpsEnabled = true;
+    mockPerpsSourceState = {
+      items: [
+        {
+          type: 'perpsOpenLong',
+          chainId: 'eip155:42161',
+          status: 'success',
+          timestamp: 5,
+          data: { hash: 'perps-fill-1', token: { symbol: 'USD' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+
+    expect(screen.getByTestId('row-perps-fill-1')).toBeOnTheScreen();
+    expect(screen.queryByTestId('row-0xconfirmed')).toBeNull();
+  });
+
+  it('does not render perps items when the perps flag is disabled', () => {
+    selectorValues.perpsEnabled = false;
+    mockPerpsSourceState = {
+      items: [
+        {
+          type: 'perpsOpenLong',
+          chainId: 'eip155:42161',
+          status: 'success',
+          timestamp: 5,
+          data: { hash: 'perps-fill-1', token: { symbol: 'USD' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+
+    expect(screen.queryByTestId('row-perps-fill-1')).toBeNull();
+  });
+
+  it('renders predict items when the predict flag is on and the Predictions filter is selected', () => {
+    selectorValues.predictEnabled = true;
+    mockPredictSourceState = {
+      items: [
+        {
+          type: 'predictionPlaced',
+          chainId: 'eip155:137',
+          status: 'success',
+          timestamp: 6,
+          data: { hash: 'predict-1', token: { symbol: 'USDC' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
+
+    expect(screen.getByTestId('row-predict-1')).toBeOnTheScreen();
+  });
+
+  it('does not render predict items when the predict flag is disabled', () => {
+    selectorValues.predictEnabled = false;
+    mockPredictSourceState = {
+      items: [
+        {
+          type: 'predictionPlaced',
+          chainId: 'eip155:137',
+          status: 'success',
+          timestamp: 6,
+          data: { hash: 'predict-1', token: { symbol: 'USDC' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
+
+    expect(screen.queryByTestId('row-predict-1')).toBeNull();
+  });
+
+  it('navigates a perps trade row to the position transaction detail screen', () => {
+    selectorValues.perpsEnabled = true;
+    const perpsTx = { id: 'fill-1', type: 'trade' };
+    mockPerpsSourceState = {
+      items: [
+        {
+          type: 'perpsOpenLong',
+          chainId: 'eip155:42161',
+          status: 'success',
+          timestamp: 5,
+          raw: { type: 'perpsTransaction', data: perpsTx },
+          data: { hash: 'perps-fill-1', token: { symbol: 'USD' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+    fireEvent.press(screen.getByTestId('row-perps-fill-1'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionTransaction', {
+      transaction: perpsTx,
+    });
+  });
+
+  it('navigates a perps funding row to the funding transaction detail screen', () => {
+    selectorValues.perpsEnabled = true;
+    const perpsTx = { id: 'funding-1', type: 'funding' };
+    mockPerpsSourceState = {
+      items: [
+        {
+          type: 'perpsPaidFundingFees',
+          chainId: 'eip155:42161',
+          status: 'success',
+          timestamp: 5,
+          raw: { type: 'perpsTransaction', data: perpsTx },
+          data: { hash: 'perps-funding-1', token: { symbol: 'USD' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+    fireEvent.press(screen.getByTestId('row-perps-funding-1'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('PerpsFundingTransaction', {
+      transaction: perpsTx,
+    });
+  });
+
+  it('navigates a predict row to the predict activity detail screen', () => {
+    selectorValues.predictEnabled = true;
+    const predictActivity = {
+      id: 'p1',
+      providerId: 'polymarket',
+      title: 'Will Spain win the 2026 FIFA World Cup?',
+      outcome: 'Yes',
+      entry: { type: 'buy', timestamp: 1_700_000_000, amount: 3, price: 0.42 },
+    };
+    mockPredictSourceState = {
+      items: [
+        {
+          type: 'predictionPlaced',
+          chainId: 'eip155:137',
+          status: 'success',
+          timestamp: 1_700_000_000_000,
+          raw: { type: 'predictActivity', data: predictActivity },
+          data: { hash: 'predict-1', token: { symbol: 'USDC' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
+    fireEvent.press(screen.getByTestId('row-predict-1'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictActivityDetail',
+      params: {
+        activity: expect.objectContaining({
+          id: 'p1',
+          type: 'BUY',
+          marketTitle: 'Will Spain win the 2026 FIFA World Cup?',
+          amountUsd: 3,
+          outcome: 'Yes',
+        }),
+      },
+    });
   });
 
   it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {

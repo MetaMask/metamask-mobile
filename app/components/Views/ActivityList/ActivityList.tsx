@@ -1,6 +1,6 @@
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TransactionType } from '@metamask/transaction-controller';
-import { numberToHex } from '@metamask/utils';
+import { numberToHex, type CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import {
   FlashList,
@@ -80,6 +80,25 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
+import {
+  INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
+  PerpsActivitySource,
+  type PerpsActivitySourceState,
+} from './hooks/PerpsActivitySource';
+import {
+  INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
+  PredictActivitySource,
+  type PredictActivitySourceState,
+} from './hooks/PredictActivitySource';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { predictActivityToItem } from '../../UI/Predict/utils/predictActivityToItem';
+import {
+  ActivityTypeFilter,
+  activityKindMatchesTypeFilter,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../ActivityScreen/types';
 import {
   ActivityListItemRow,
   resolveActivityListItemTitle,
@@ -170,6 +189,8 @@ interface ActivityListProps {
   chainId?: string; // used by non-EVM list items for explorer links
   location?: TransactionDetailLocation;
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  typeFilter?: ActivityTypeFilter;
+  networkFilter?: CaipChainId[] | null;
 }
 
 const ActivityList = ({
@@ -177,6 +198,8 @@ const ActivityList = ({
   chainId,
   location,
   onScroll,
+  typeFilter,
+  networkFilter,
 }: ActivityListProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -217,6 +240,14 @@ const ActivityList = ({
 
   // Local EVM transactions mapped through the shared adapter
   const localActivityItems = useLocalActivityItems();
+
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
+    INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
+  );
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const [predictSource, setPredictSource] =
+    useState<PredictActivitySourceState>(INITIAL_PREDICT_ACTIVITY_SOURCE_STATE);
 
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
@@ -400,8 +431,39 @@ const ActivityList = ({
   const data = useMemo<ActivityListItem[]>(() => {
     const { localItems, confirmedEvmItems, nonEvmItems } =
       unifiedTransactionSource;
-    return mergeTransactionsByTime(localItems, confirmedEvmItems, nonEvmItems);
-  }, [unifiedTransactionSource]);
+    const merged = mergeTransactionsByTime(
+      localItems,
+      confirmedEvmItems,
+      nonEvmItems,
+      isPerpsEnabled ? perpsSource.items : [],
+      isPredictEnabled ? predictSource.items : [],
+    );
+
+    let filtered = merged;
+    if (typeFilter !== undefined) {
+      filtered = filtered.filter((item) =>
+        activityKindMatchesTypeFilter(item.type, typeFilter),
+      );
+    }
+    if (networkFilter && networkFilter.length > 0) {
+      const allowedChains = new Set(
+        networkFilter.map((caipChainId) => caipChainId.toLowerCase()),
+      );
+      filtered = filtered.filter((item) =>
+        allowedChains.has(item.chainId.toLowerCase()),
+      );
+    }
+
+    return filtered;
+  }, [
+    unifiedTransactionSource,
+    typeFilter,
+    networkFilter,
+    isPerpsEnabled,
+    perpsSource.items,
+    isPredictEnabled,
+    predictSource.items,
+  ]);
   const groupedData = useMemo(() => groupActivityListItems(data), [data]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
@@ -578,19 +640,55 @@ const ActivityList = ({
     cancelUnsignedQRTransaction,
   } = useUnifiedTxActions();
 
+  const perpsRefetch = perpsSource.refetch;
+  const predictRefetch = predictSource.refetch;
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([updateIncomingTransactions(), refetch()]);
+      await Promise.all([
+        updateIncomingTransactions(),
+        refetch(),
+        perpsRefetch?.(),
+        predictRefetch?.(),
+      ]);
     } finally {
       setRefreshing(false);
     }
-  }, [refetch]);
+  }, [refetch, perpsRefetch, predictRefetch]);
 
   const handleActivityItemPress = useCallback(
     (item: ActivityListItem) => {
       const { raw } = item;
       if (!raw) return;
+
+      // Perps rows route to the dedicated perps detail screens, mirroring the
+      // legacy perps transactions view (trade → position, funding → funding,
+      // order → order). Deposits/withdrawals have no detail screen.
+      if (raw.type === 'perpsTransaction') {
+        const perpsTx = raw.data;
+        if (perpsTx.type === 'trade') {
+          navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
+            transaction: perpsTx,
+          });
+        } else if (perpsTx.type === 'funding') {
+          navigation.navigate(Routes.PERPS.FUNDING_TRANSACTION, {
+            transaction: perpsTx,
+          });
+        } else if (perpsTx.type === 'order') {
+          navigation.navigate(Routes.PERPS.ORDER_TRANSACTION, {
+            transaction: perpsTx,
+          });
+        }
+        return;
+      }
+
+      if (raw.type === 'predictActivity') {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.ACTIVITY_DETAIL,
+          params: { activity: predictActivityToItem(raw.data) },
+        });
+        return;
+      }
 
       const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
       const actionKey = resolveActivityListItemTitle(
@@ -904,6 +1002,15 @@ const ActivityList = ({
             />
           )}
         </PriceChartContext.Consumer>
+        {/* Renderless perps feed — mounts the perps providers only when enabled */}
+        {isPerpsEnabled ? (
+          <PerpsActivitySource onChange={setPerpsSource} />
+        ) : null}
+        {/* Renderless predict feed — gated so its Polygon-ensure side effect
+            never runs for users without Predict enabled */}
+        {isPredictEnabled ? (
+          <PredictActivitySource onChange={setPredictSource} />
+        ) : null}
         {/* Speed up / Cancel modals */}
         <CancelSpeedupModal
           isVisible={speedUpIsOpen || cancelIsOpen}

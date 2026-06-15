@@ -11,6 +11,7 @@ export function ActivityListItemRowLayout({
   avatar,
   index,
   isFailed,
+  titleSeverity,
   item,
   onPress,
   primaryAmount,
@@ -23,6 +24,7 @@ export function ActivityListItemRowLayout({
   avatar: React.ReactNode;
   index?: number;
   isFailed: boolean;
+  titleSeverity?: 'error' | 'warning';
   item: ActivityListItem;
   onPress?: () => void;
   primaryAmount?: string;
@@ -33,10 +35,16 @@ export function ActivityListItemRowLayout({
   title: string;
 }) {
   const testIdSuffix = item.data.hash ?? index;
+  const titleSeverityStyle =
+    isFailed || titleSeverity === 'error'
+      ? styles.listItemTitleFailed
+      : titleSeverity === 'warning'
+        ? styles.listItemTitleWarning
+        : undefined;
   const titleNode = (
     <Text
       numberOfLines={1}
-      style={[styles.listItemTitle, isFailed && styles.listItemTitleFailed]}
+      style={[styles.listItemTitle, titleSeverityStyle]}
       testID={`activity-title-${testIdSuffix}`}
     >
       {title}
@@ -44,7 +52,6 @@ export function ActivityListItemRowLayout({
   );
   const subtitleNode = subtitle ? (
     <Text
-      numberOfLines={1}
       style={styles.subtitleText}
       testID={`activity-subtitle-${testIdSuffix}`}
     >
@@ -88,6 +95,7 @@ export function ActivityListItemRowLayout({
       style={[styles.row, styles.listItem]}
       onPress={onPress}
       testID={`activity-item-${index ?? 0}`}
+      verticalAlignment="top"
       avatar={avatar}
       title={titleNode}
       description={subtitleNode}

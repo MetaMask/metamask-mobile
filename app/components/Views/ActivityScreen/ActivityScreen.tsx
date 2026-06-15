@@ -193,6 +193,8 @@ const ActivityScreen = () => {
           <ActivityList
             header={activityListHeader}
             onScroll={handleActivityListScroll}
+            typeFilter={typeFilter}
+            networkFilter={networkFilter}
           />
         </Box>
 

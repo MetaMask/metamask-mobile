@@ -28,8 +28,50 @@ import {
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
 import type { MarketRateLookupToken } from '../../../util/activity-adapters/fiat';
-import { balanceToFiatNumber, renderFiat } from '../../../util/number/bigint';
+import {
+  addCurrencySymbol,
+  balanceToFiatNumber,
+  renderFiat,
+} from '../../../util/number/bigint';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { getAssetIconUrl } from '../Perps/utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
+
+/** Perps deposit/withdraw — money to/from the perps account balance. */
+function isPerpsFundsKind(type: ActivityKind): boolean {
+  return type === 'perpsAddFunds' || type === 'perpsWithdrawFunds';
+}
+
+/** Perps funding fee accrual on a market. */
+function isPerpsFundingKind(type: ActivityKind): boolean {
+  return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
+}
+
+/** Perps directional trades (open/close long/short and their variants). */
+function isPerpsTradeKind(type: ActivityKind): boolean {
+  return (
+    (type.startsWith('perps') &&
+      !isPerpsFundsKind(type) &&
+      !isPerpsFundingKind(type)) ||
+    type.startsWith('market') ||
+    type.startsWith('stopMarket')
+  );
+}
+
+/** Rows whose avatar is the HyperLiquid market (single icon, no USD leg). */
+function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
+  return isPerpsTradeKind(type) || isPerpsFundingKind(type);
+}
+
+/** Predict trades (placed / cashed out / claimed winnings) — USD-denominated. */
+function isPredictTradeKind(type: ActivityKind): boolean {
+  return (
+    type === 'predictionPlaced' ||
+    type === 'predictionCashedOut' ||
+    type === 'predictionClaimWinnings'
+  );
+}
 
 function withOptionalSymbol(label: string, symbol?: string): string {
   return symbol ? `${label} ${symbol}` : label;
@@ -158,6 +200,27 @@ function formatProtocolName(protocol: string): string {
     .join(' ');
 }
 
+function perpsPositionSubtitle(item: ActivityListItem): string | undefined {
+  const sourceToken =
+    'sourceToken' in item.data ? item.data.sourceToken : undefined;
+  if (!sourceToken?.symbol) {
+    return undefined;
+  }
+  const displaySymbol = getPerpsDisplaySymbol(sourceToken.symbol);
+  if (sourceToken.amount === undefined) {
+    return displaySymbol;
+  }
+  return `${formatTokenQuantity(sourceToken.amount)} ${displaySymbol}`;
+}
+
+function getPredictActivity(item: ActivityListItem) {
+  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
+}
+
+function predictMarketSubtitle(item: ActivityListItem): string | undefined {
+  return getPredictActivity(item)?.title;
+}
+
 function protocolSubtitle(item: ActivityListItem): string | undefined {
   const rawData =
     item.raw?.type === 'apiEvmTransaction' ? item.raw.data : undefined;
@@ -199,13 +262,12 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   predictionsAddFunds: () => strings('transactions.tx_review_predict_deposit'),
   predictionsWithdrawFunds: () =>
     strings('transactions.tx_review_predict_withdraw'),
-  predictionClaimWinnings: () =>
-    strings('transactions.tx_review_predict_claim'),
-  predictionCashedOut: () =>
-    strings('transactions.activity_prediction_cashed_out'),
+  predictionClaimWinnings: () => strings('predict.transactions.claim_title'),
+  predictionCashedOut: () => strings('predict.transactions.sell_title'),
+  // Design board copy: "Prediction placed" (not the legacy "Predicted").
   predictionPlaced: () => strings('transactions.activity_prediction_placed'),
-  perpsAddFunds: () => strings('transactions.tx_review_perps_deposit'),
-  perpsWithdrawFunds: () => strings('transactions.tx_review_perps_withdraw'),
+  perpsAddFunds: () => strings('transactions.activity_perps_account_funded'),
+  perpsWithdrawFunds: () => strings('transactions.activity_perps_withdrawal'),
   perpsOpenLong: () => strings('transactions.activity_perps_open_long'),
   perpsCloseLong: () => strings('transactions.activity_perps_close_long'),
   perpsCloseLongLiquidated: () =>
@@ -336,6 +398,12 @@ function resolveAvatarTokens(
         item.chainId,
       ),
     ]);
+  }
+
+  if (isPerpsMarketAvatarKind(item.type)) {
+    const market =
+      'sourceToken' in item.data ? item.data.sourceToken : undefined;
+    return market?.symbol ? [market] : [];
   }
 
   const { data } = item;
@@ -647,10 +715,26 @@ function resolveCoreContent(
           : undefined,
         primaryToken: item.data.token,
       };
+    case 'perpsAddFunds':
+    case 'perpsWithdrawFunds':
+      return {
+        title: resolveFallbackTitle(item.type),
+        subtitle: strings('transactions.activity_perps_balance'),
+        primaryToken: item.data.token,
+      };
+    // Predict trades: the subtitle is the market question, carried on `raw`.
+    case 'predictionPlaced':
+    case 'predictionCashedOut':
+    case 'predictionClaimWinnings':
+      return {
+        title: resolveFallbackTitle(item.type),
+        subtitle: predictMarketSubtitle(item),
+        primaryToken: item.data.token,
+      };
     default:
       return {
         title: resolveFallbackTitle(item.type),
-        subtitle: protocolSubtitle(item),
+        subtitle: perpsPositionSubtitle(item) ?? protocolSubtitle(item),
         primaryToken: 'token' in item.data ? item.data.token : undefined,
       };
   }
@@ -827,6 +911,68 @@ function resolveFiatAmount({
   return applyDisplaySign(fiatAmount, signPrefix);
 }
 
+function resolveUsdDenominatedFiat({
+  token,
+  conversionRate,
+  usdConversionRate,
+  currentCurrency,
+  precise = false,
+}: {
+  token: TokenAmount | undefined;
+  conversionRate: number | null | undefined;
+  usdConversionRate: number | null | undefined;
+  currentCurrency: string | undefined;
+  precise?: boolean;
+}): string | undefined {
+  const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
+  if (!token || humanAmount === undefined) return undefined;
+
+  const signPrefix = getDisplaySignPrefix(token.direction, { showPlus: true });
+
+  if (precise) {
+    const fiat = addCurrencySymbol(
+      Number.parseFloat(humanAmount),
+      (currentCurrency ?? 'usd') as Parameters<typeof addCurrencySymbol>[1],
+      true,
+      true,
+    );
+    return fiat ? applyDisplaySign(fiat, signPrefix) : undefined;
+  }
+
+  if (conversionRate && usdConversionRate) {
+    const fiat = renderFiat(
+      balanceToFiatNumber(
+        Number.parseFloat(humanAmount),
+        conversionRate,
+        1 / usdConversionRate,
+      ),
+      currentCurrency as Parameters<typeof renderFiat>[1],
+      2,
+    );
+    return fiat ? applyDisplaySign(fiat, signPrefix) : undefined;
+  }
+
+  const usdFiat = renderFiat(
+    Number.parseFloat(humanAmount),
+    'usd' as Parameters<typeof renderFiat>[1],
+    2,
+  );
+  return usdFiat ? applyDisplaySign(usdFiat, signPrefix) : undefined;
+}
+
+function perpsCollateralSecondaryAmount(
+  token: TokenAmount | undefined,
+): string | undefined {
+  const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
+  if (!token || humanAmount === undefined || !token.symbol) return undefined;
+
+  const display = `${formatTokenQuantity(humanAmount)} ${token.symbol}`;
+  return applyDisplaySign(
+    display,
+    getDisplaySignPrefix(token.direction, { showPlus: false }),
+  );
+}
+
 export function useActivityListItemRowContent(
   item: ActivityListItem,
   chainId?: string,
@@ -860,22 +1006,56 @@ export function useActivityListItemRowContent(
     content.secondaryToken,
     networkChainId,
   );
-  const primaryAmount = resolveAmount(primaryToken, item.type);
-  const secondaryAmount =
-    resolveAmount(secondaryToken, item.type) ??
-    resolveFiatAmount({
-      activityType: item.type,
-      contractExchangeRates,
-      conversionRate,
-      currentCurrency,
-      hexChainId,
-      token: primaryToken,
-      usdConversionRate,
-    });
+
+  const isPerpsFunds = isPerpsFundsKind(item.type);
+  const isPerpsFunding = isPerpsFundingKind(item.type);
+  const isUsdDenominated =
+    isPerpsFunds ||
+    isPerpsTradeKind(item.type) ||
+    isPerpsFunding ||
+    isPredictTradeKind(item.type);
+  const domainFiatAmount = isUsdDenominated
+    ? resolveUsdDenominatedFiat({
+        token: primaryToken,
+        conversionRate,
+        usdConversionRate,
+        currentCurrency,
+        precise: isPerpsFunding,
+      })
+    : undefined;
+
+  const primaryAmount =
+    domainFiatAmount ?? resolveAmount(primaryToken, item.type);
+  const secondaryAmount = domainFiatAmount
+    ? isPerpsFunds
+      ? perpsCollateralSecondaryAmount(primaryToken)
+      : undefined
+    : (resolveAmount(secondaryToken, item.type) ??
+      resolveFiatAmount({
+        activityType: item.type,
+        contractExchangeRates,
+        conversionRate,
+        currentCurrency,
+        hexChainId,
+        token: primaryToken,
+        usdConversionRate,
+      }));
+
+  const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
+    ? 'sourceToken' in item.data
+      ? item.data.sourceToken?.symbol
+      : undefined
+    : undefined;
+  const avatarIconUrl = perpsMarketSymbol
+    ? getAssetIconUrl(perpsMarketSymbol)
+    : isPredictTradeKind(item.type)
+      ? getPredictActivity(item)?.icon
+      : undefined;
 
   return {
     ...content,
     avatarTokens: resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarIconUrl,
     primaryToken,
     secondaryToken,
     primaryAmount,
