@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import WebView, { WebViewNavigation } from '@metamask/react-native-webview';
 import AppConstants from '../../../core/AppConstants';
-import NotificationManager from '../../../core/NotificationManager';
 import {
   FiatOrder,
   getPendingOrders,
@@ -28,13 +27,11 @@ import { trackEvent } from './hooks/useAnalytics';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from './Aggregator/sdk';
 import useFetchRampNetworks from './Aggregator/hooks/useFetchRampNetworks';
-import getNotificationDetails from './utils/getNotificationDetails';
 import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
-import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
 import { showV2OrderToast } from './utils/v2OrderToast';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
@@ -60,20 +57,12 @@ export async function processFiatOrder(
         trackEvent(event, params);
       }
       InteractionManager.runAfterInteractions(() => {
-        const isV2 = isRampsUnifiedV2Enabled(state);
-        if (isV2) {
-          showV2OrderToast({
-            orderId: updatedOrder.id,
-            cryptocurrency: updatedOrder.cryptocurrency,
-            cryptoAmount: updatedOrder.cryptoAmount,
-            status: updatedOrder.state as unknown as RampsOrderStatus,
-          });
-        } else {
-          const notificationDetails = getNotificationDetails(updatedOrder);
-          if (notificationDetails) {
-            NotificationManager.showSimpleNotification(notificationDetails);
-          }
-        }
+        showV2OrderToast({
+          orderId: updatedOrder.id,
+          cryptocurrency: updatedOrder.cryptocurrency,
+          cryptoAmount: updatedOrder.cryptoAmount,
+          status: updatedOrder.state as unknown as RampsOrderStatus,
+        });
       });
     }
     dispatchUpdateFiatOrder(updatedOrder);
@@ -106,20 +95,12 @@ async function processCustomOrderId(
       }
       dispatchAddFiatOrder(fiatOrder);
       InteractionManager.runAfterInteractions(() => {
-        const isV2 = isRampsUnifiedV2Enabled(state);
-        if (isV2) {
-          showV2OrderToast({
-            orderId: fiatOrder.id,
-            cryptocurrency: fiatOrder.cryptocurrency,
-            cryptoAmount: fiatOrder.cryptoAmount,
-            status: fiatOrder.state as unknown as RampsOrderStatus,
-          });
-        } else {
-          const notificationDetails = getNotificationDetails(fiatOrder);
-          if (notificationDetails) {
-            NotificationManager.showSimpleNotification(notificationDetails);
-          }
-        }
+        showV2OrderToast({
+          orderId: fiatOrder.id,
+          cryptocurrency: fiatOrder.cryptocurrency,
+          cryptoAmount: fiatOrder.cryptoAmount,
+          status: fiatOrder.state as unknown as RampsOrderStatus,
+        });
       });
     });
     dispatchRemoveFiatCustomIdData(customOrderIdData);

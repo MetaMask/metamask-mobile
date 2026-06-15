@@ -12,7 +12,6 @@ import { CardFundingToken, FundingStatus } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
@@ -85,8 +84,6 @@ jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
-jest.mock('../../../Ramp/hooks/useRampsUnifiedV2Enabled');
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -152,10 +149,6 @@ describe('AddFundsBottomSheet', () => {
       goToBuy: mockGoToBuy,
       goToDeposit: mockGoToDeposit,
     });
-
-    // Default V2 enabled — the whole point of this migration is UB2 routing.
-    // Individual tests override to false where they need to assert V1 fallback.
-    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(true);
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: true,
@@ -255,20 +248,6 @@ describe('AddFundsBottomSheet', () => {
     expect(trace).toHaveBeenCalledWith({
       name: TraceName.LoadDepositExperience,
     });
-  });
-
-  it('tags analytics with ramp_type DEPOSIT when the UB2 feature flag is disabled', () => {
-    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(false);
-
-    const { getByText } = setupComponent();
-
-    fireEvent.press(getByText('Fund with cash'));
-
-    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ramp_type: 'DEPOSIT',
-      }),
-    );
   });
 
   it('handles swap option press correctly', () => {

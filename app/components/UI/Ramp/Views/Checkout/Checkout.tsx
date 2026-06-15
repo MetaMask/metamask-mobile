@@ -31,7 +31,6 @@ import {
   HeaderStandard,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 import {
   closeSession,
@@ -104,7 +103,6 @@ const Checkout = () => {
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const isV2Enabled = useRampsUnifiedV2Enabled();
 
   const {
     url: uri,
@@ -361,15 +359,13 @@ const Checkout = () => {
           return;
         }
 
-        if (isV2Enabled) {
-          showV2OrderToast({
-            orderId: rampsOrder.providerOrderId,
-            cryptocurrency:
-              rampsOrder.cryptoCurrency?.symbol ?? params?.cryptocurrency ?? '',
-            cryptoAmount: rampsOrder.cryptoAmount,
-            status: rampsOrder.status,
-          });
-        }
+        showV2OrderToast({
+          orderId: rampsOrder.providerOrderId,
+          cryptocurrency:
+            rampsOrder.cryptoCurrency?.symbol ?? params?.cryptocurrency ?? '',
+          cryptoAmount: rampsOrder.cryptoAmount,
+          status: rampsOrder.status,
+        });
 
         closeSourceRef.current = 'callback_success';
 
@@ -404,7 +400,6 @@ const Checkout = () => {
       navigation,
       addOrder,
       getOrderFromCallback,
-      isV2Enabled,
       params?.cryptocurrency,
       headlessSessionId,
       dismissActiveHeadlessFlow,

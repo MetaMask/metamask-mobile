@@ -32,11 +32,6 @@ jest.mock('../../hooks/useRampsOrders', () => ({
   useRampsOrders: jest.fn(),
 }));
 
-jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -224,10 +219,6 @@ const mockUseParams = jest.requireMock(
 const mockUseRampsOrders = jest.requireMock('../../hooks/useRampsOrders')
   .useRampsOrders as jest.Mock;
 
-const mockUseRampsUnifiedV2Enabled = jest.requireMock(
-  '../../hooks/useRampsUnifiedV2Enabled',
-).default as jest.Mock;
-
 const mockUseAnalytics = jest.requireMock(
   '../../../../hooks/useAnalytics/useAnalytics',
 ).useAnalytics as jest.Mock;
@@ -262,7 +253,6 @@ describe('Checkout', () => {
       getOrderFromCallback: mockGetOrderFromCallback,
       addPrecreatedOrder: mockAddPrecreatedOrder,
     });
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -513,8 +503,8 @@ describe('Checkout', () => {
     });
   });
 
-  describe('V2 enabled flow', () => {
-    it('calls showV2OrderToast when V2 is enabled and callback succeeds', async () => {
+  describe('callback success flow', () => {
+    it('calls showV2OrderToast when callback succeeds', async () => {
       const { showV2OrderToast } = jest.requireMock(
         '../../utils/v2OrderToast',
       ) as {
@@ -527,7 +517,6 @@ describe('Checkout', () => {
         status: 'COMPLETED',
       };
       mockGetOrderFromCallback.mockResolvedValue(mockOrder);
-      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com/checkout',
         providerName: 'Test',
@@ -692,7 +681,6 @@ describe('Checkout', () => {
         }),
       }));
       mockGetOrderFromCallback.mockResolvedValue(mockOrder);
-      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     });
 
     it('fires onOrderCreated, closes the session, and pops the ramp stack when a live session is present', async () => {

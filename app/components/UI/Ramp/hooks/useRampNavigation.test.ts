@@ -9,7 +9,6 @@ import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
-import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 
@@ -59,8 +58,6 @@ jest.mock('../Views/BuildQuote', () => {
     createBuildQuoteNavDetails: mockFn,
   };
 });
-jest.mock('./useRampsUnifiedV2Enabled');
-
 const mockRefreshGeolocation = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -75,10 +72,6 @@ const mockNavigate = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
-const mockUseRampsUnifiedV2Enabled =
-  useRampsUnifiedV2Enabled as jest.MockedFunction<
-    typeof useRampsUnifiedV2Enabled
-  >;
 const mockCreateRampNavigationDetails =
   createRampNavigationDetails as jest.MockedFunction<
     typeof createRampNavigationDetails
@@ -103,7 +96,7 @@ const supportedUserRegion = {
 } as unknown as UserRegion;
 
 // renders the hook with a known geolocation in state by default so the
-// V2 eligibility gate passes; callers can override geolocation per test.
+// eligibility gate passes; callers can override geolocation per test.
 const renderUseRampNavigation = (stateOverride: object = {}) =>
   renderHookWithProvider(() => useRampNavigation(), {
     state: merge(
@@ -130,8 +123,6 @@ describe('useRampNavigation', () => {
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
-
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
 
     mockRefreshGeolocation.mockResolvedValue('UNKNOWN');
 
@@ -160,12 +151,7 @@ describe('useRampNavigation', () => {
   });
 
   describe('goToBuy', () => {
-    describe('when unified V2 is enabled', () => {
-      beforeEach(() => {
-        mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-      });
-
-      it('navigates to BuildQuote when assetId is provided', () => {
+    it('navigates to BuildQuote when assetId is provided', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
@@ -219,8 +205,7 @@ describe('useRampNavigation', () => {
         });
       });
 
-      it('navigates to TokenSelection when no assetId is provided (matches handleRampUrl deeplink)', () => {
-        // V2 on: must go to TokenSelection like handleRampUrl, not legacy
+    it('navigates to TokenSelection when no assetId is provided (matches handleRampUrl deeplink)', () => {
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
           undefined,
@@ -240,7 +225,7 @@ describe('useRampNavigation', () => {
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
       });
 
-      it('does not navigate to BuildQuote when overrideUnifiedRouting is true', () => {
+    it('does not navigate to BuildQuote when overrideUnifiedRouting is true', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [Routes.RAMP.BUY] as const;
         mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
@@ -258,7 +243,7 @@ describe('useRampNavigation', () => {
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       });
 
-      describe('unsupported token routing', () => {
+    describe('unsupported token routing', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
 
         it('navigates to RampUnsupportedModal when tokens loaded and the resolved assetId is not in allTokens', () => {
@@ -341,7 +326,7 @@ describe('useRampNavigation', () => {
         });
       });
 
-      describe('eligibility gate (geolocation + RampsController region)', () => {
+    describe('eligibility gate (geolocation + RampsController region)', () => {
         it('refreshes geolocation and shows the eligibility failed modal when geolocation stays UNKNOWN', async () => {
           mockRefreshGeolocation.mockResolvedValue('UNKNOWN');
           const intent = { assetId: 'eip155:1/erc20:0x123' };
@@ -465,45 +450,10 @@ describe('useRampNavigation', () => {
           );
         });
       });
-    });
-
-    describe('when unified V2 is disabled', () => {
-      it('navigates to aggregator BUY without intent', () => {
-        const mockNavDetails = [Routes.RAMP.BUY] as const;
-        mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
-
-        const { result } = renderUseRampNavigation();
-
-        result.current.goToBuy();
-
-        expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
-          AggregatorRampType.BUY,
-          undefined,
-        );
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-      });
-
-      it('navigates to aggregator with intent', () => {
-        const intent = { assetId: 'eip155:1/erc20:0x123' };
-        const mockNavDetails = [Routes.RAMP.BUY] as const;
-        mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
-
-        const { result } = renderUseRampNavigation();
-
-        result.current.goToBuy(intent);
-
-        expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
-          AggregatorRampType.BUY,
-          intent,
-        );
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-      });
-    });
   });
 
   describe('goToAggregator', () => {
     it('navigates to aggregator BUY flow (overrides unified routing)', () => {
-      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       const mockNavDetails = [Routes.RAMP.BUY] as const;
       mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
@@ -538,7 +488,6 @@ describe('useRampNavigation', () => {
 
   describe('goToSell', () => {
     it('navigates to aggregator SELL flow (overrides unified routing)', () => {
-      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       const mockNavDetails = [Routes.RAMP.SELL] as const;
       mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
@@ -572,7 +521,6 @@ describe('useRampNavigation', () => {
 
   describe('goToDeposit', () => {
     it('navigates to deposit flow (overrides unified routing)', () => {
-      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       const mockNavDetails = [Routes.DEPOSIT.ID] as const;
       mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
 

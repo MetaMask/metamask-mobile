@@ -10,7 +10,6 @@ import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
-import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
@@ -38,7 +37,6 @@ enum RampMode {
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
-  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const { userRegion } = useRampsUserRegion();
   const { countries } = useRampsCountries();
@@ -56,8 +54,7 @@ export const useRampNavigation = () => {
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
 
-      const isUnifiedRoutingEnabled =
-        isRampsUnifiedV2Enabled && !overrideUnifiedRouting;
+      const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
 
       // Eligibility gate: region + support now come from RampsController
       // (selectUserRegion / selectCountries) plus GeolocationController,
@@ -90,12 +87,8 @@ export const useRampNavigation = () => {
         }
       }
 
-      // V2: If assetId is provided and V2 is enabled, route to BuildQuote
-      if (
-        isRampsUnifiedV2Enabled &&
-        intent?.assetId &&
-        !overrideUnifiedRouting
-      ) {
+      // If assetId is provided, route to BuildQuote
+      if (intent?.assetId && !overrideUnifiedRouting) {
         // Resolve to the controller's canonical assetId format (lowercase)
         const controllerAssetId = resolveRampControllerAssetId(
           intent.assetId,
@@ -132,17 +125,13 @@ export const useRampNavigation = () => {
         return;
       }
 
-      // V2: If no assetId and V2 is enabled, route to TokenSelection (matches handleRampUrl deeplink behavior)
-      if (
-        isRampsUnifiedV2Enabled &&
-        !intent?.assetId &&
-        !overrideUnifiedRouting
-      ) {
+      // If no assetId, route to TokenSelection (matches handleRampUrl deeplink behavior)
+      if (!intent?.assetId && !overrideUnifiedRouting) {
         navigation.navigate(...createTokenSelectionNavDetails());
         return;
       }
 
-      // When overriding unified routing or when unified V2 is disabled
+      // When overriding unified routing
       if (mode === RampMode.DEPOSIT) {
         navigation.navigate(...createDepositNavigationDetails(intent));
       } else {
@@ -154,7 +143,6 @@ export const useRampNavigation = () => {
     [
       setSelectedToken,
       navigation,
-      isRampsUnifiedV2Enabled,
       userRegion,
       countries,
       rampsTokens,
