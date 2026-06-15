@@ -18,6 +18,8 @@ export const PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT = false;
 export const PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT = false;
 export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT: string | undefined =
   undefined;
+export const PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT: number | undefined =
+  undefined;
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -63,6 +65,7 @@ export interface MetaMaskPayExtendedFlags {
   enableMoneyHomePagePerpsTransaction: boolean;
   enableMoneyHomePagePredictTransaction: boolean;
   defaultPaySelectedSection?: string;
+  moneyAccountDepositLimit?: number;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -156,6 +159,10 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
       PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
 
+    const moneyAccountDepositLimit =
+      (metaMaskPayExtendedFlags?.moneyAccountDepositLimit as number) ??
+      PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT;
+
     return {
       attemptsMax,
       bufferInitial,
@@ -169,6 +176,7 @@ export const selectMetaMaskPayFlags = createSelector(
       enableMoneyHomePagePerpsTransaction,
       enableMoneyHomePagePredictTransaction,
       defaultPaySelectedSection,
+      moneyAccountDepositLimit,
     };
   },
 );

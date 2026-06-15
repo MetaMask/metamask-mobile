@@ -1,0 +1,57 @@
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { Alert, Severity } from '../../types/alerts';
+import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
+import { AlertKeys } from '../../constants/alerts';
+import { strings } from '../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+
+function formatUsdAmount(value: number): string {
+  return `$${value.toLocaleString('en-US')}`;
+}
+
+export function useMoneyAccountDepositLimitAlert({
+  pendingAmount,
+}: {
+  pendingAmount?: string;
+} = {}): Alert[] {
+  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { moneyAccountDepositLimit } = useSelector(selectMetaMaskPayFlags);
+
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
+  const exceedsLimit = useMemo(() => {
+    if (!isMoneyAccountDeposit || moneyAccountDepositLimit === undefined) {
+      return false;
+    }
+
+    const amount = Number(pendingAmount ?? '0');
+    return amount > moneyAccountDepositLimit;
+  }, [isMoneyAccountDeposit, moneyAccountDepositLimit, pendingAmount]);
+
+  return useMemo(() => {
+    if (!exceedsLimit || moneyAccountDepositLimit === undefined) {
+      return [];
+    }
+
+    return [
+      {
+        key: AlertKeys.MoneyAccountDepositLimit,
+        field: RowAlertKey.Amount,
+        title: strings('alert_system.money_account_deposit_limit.title', {
+          amount: formatUsdAmount(moneyAccountDepositLimit),
+        }),
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+  }, [exceedsLimit, moneyAccountDepositLimit]);
+}
