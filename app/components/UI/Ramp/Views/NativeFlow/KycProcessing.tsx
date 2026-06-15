@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import styleSheet from '../../Deposit/Views/KycProcessing/KycProcessing.styles';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -33,7 +27,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import type { TransakUserDetails } from '@metamask/ramps-controller';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { getSession } from '../../headless/sessionRegistry';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { KYC_PROCESSING_TEST_IDS } from './KycProcessing.testIds';
@@ -56,14 +50,7 @@ const V2KycProcessing = () => {
   // Headless deposit (TRAM-3623): flip the KYC outcome events to
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when in a headless
   // flow; keep 'DEPOSIT' otherwise.
-  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
-  const headlessDepositRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'DEPOSIT' as const },
-    [headlessSessionId, headlessSurface],
-  );
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const {
     getAdditionalRequirements,

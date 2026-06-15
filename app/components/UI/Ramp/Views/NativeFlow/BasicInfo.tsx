@@ -47,7 +47,7 @@ import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { getSession } from '../../headless/sessionRegistry';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 
@@ -87,14 +87,7 @@ const V2BasicInfo = (): JSX.Element => {
   // Headless deposit (TRAM-3623): tag RAMPS_BASIC_INFO_ENTERED with
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
   // part of a headless buy flow; keep 'DEPOSIT' otherwise.
-  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
-  const headlessDepositRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'DEPOSIT' as const },
-    [headlessSessionId, headlessSurface],
-  );
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);

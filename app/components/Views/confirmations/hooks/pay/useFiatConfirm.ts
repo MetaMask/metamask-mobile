@@ -82,7 +82,7 @@ export function useFiatConfirm() {
         paymentMethodId: fiatPayment?.selectedPaymentMethodId,
         currency: 'USD',
         walletAddress: transactionMetadata?.txParams?.from,
-        ramp_surface: rampSurface,
+        rampSurface,
       },
       {
         onOrderCreated: (orderIdFromCallback) => {

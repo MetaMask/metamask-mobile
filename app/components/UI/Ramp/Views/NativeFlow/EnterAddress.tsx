@@ -32,7 +32,7 @@ import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { getSession } from '../../headless/sessionRegistry';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
 import StateSelector from './StateSelector';
 
@@ -68,14 +68,7 @@ const V2EnterAddress = (): JSX.Element => {
   // Headless deposit (TRAM-3623): tag RAMPS_ADDRESS_ENTERED with
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
   // part of a headless buy flow; keep 'DEPOSIT' otherwise.
-  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
-  const headlessDepositRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'DEPOSIT' as const },
-    [headlessSessionId, headlessSurface],
-  );
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const transakRoutingConfig = useMemo(
     () =>

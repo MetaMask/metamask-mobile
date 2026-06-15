@@ -324,7 +324,7 @@ describe('useTransakRouting', () => {
         .getSession as jest.Mock;
       mockGetSession.mockReturnValue({
         id: 'hs-kyc',
-        params: { ramp_surface: 'perps' },
+        params: { rampSurface: 'perps' },
         callbacks: {
           onOrderCreated: jest.fn(),
           onClose: jest.fn(),
@@ -783,7 +783,7 @@ describe('useTransakRouting', () => {
         .getSession as jest.Mock;
       mockGetSession.mockReturnValue({
         id: 'hs-idproof',
-        params: { ramp_surface: 'prediction' },
+        params: { rampSurface: 'prediction' },
         callbacks: {
           onOrderCreated: jest.fn(),
           onClose: jest.fn(),
@@ -1813,7 +1813,7 @@ describe('useTransakRouting', () => {
       mockGetSession.mockReturnValue({
         id: 'hs-1',
         status: 'continued',
-        params: { ramp_surface: 'money_account' },
+        params: { rampSurface: 'money_account' },
         callbacks: {
           onOrderCreated,
           onError: jest.fn(),
@@ -1935,7 +1935,7 @@ describe('useTransakRouting', () => {
       mockGetSession.mockReturnValue({
         id: 'hs-1',
         status: 'continued',
-        params: { ramp_surface: 'money_account', amount: 100 },
+        params: { rampSurface: 'money_account', amount: 100 },
         callbacks: {
           onOrderCreated: jest.fn(),
           onError: jest.fn(),
@@ -1991,7 +1991,7 @@ describe('useTransakRouting', () => {
       mockGetSession.mockReturnValue({
         id: 'hs-1',
         status: 'continued',
-        params: { ramp_surface: 'money_account' },
+        params: { rampSurface: 'money_account' },
         callbacks: {
           onOrderCreated,
           onError: jest.fn(),

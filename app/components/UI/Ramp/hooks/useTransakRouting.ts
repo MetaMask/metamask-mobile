@@ -200,7 +200,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       }
       trackEvent('RAMPS_ORDER_FAILED', {
         ramp_type: 'HEADLESS',
-        ramp_surface: session.params?.ramp_surface,
+        ramp_surface: session.params?.rampSurface,
         amount_source: Number(quote?.fiatAmount ?? session.params?.amount ?? 0),
         amount_destination: 0,
         payment_method_id: selectedPaymentMethod?.id || '',
@@ -511,7 +511,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         // we emit otherwise.
         const confirmSession = getSession(headlessSessionId);
         const wasHeadless = Boolean(confirmSession);
-        const rampSurface = confirmSession?.params?.ramp_surface;
+        const rampSurface = confirmSession?.params?.rampSurface;
         if (!wasHeadless) {
           showV2OrderToast({
             orderId: rampsOrder.providerOrderId,
@@ -713,7 +713,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 // the funnel sees the same terminal signal as the webview path.
                 const manualBankSession = getSession(headlessSessionId);
                 if (manualBankSession) {
-                  const rampSurface = manualBankSession.params?.ramp_surface;
+                  const rampSurface = manualBankSession.params?.rampSurface;
                   navigateToOrderProcessingCallback({
                     orderId: rampsOrder.providerOrderId,
                   });
@@ -801,7 +801,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             const kycStartedSession = getSession(headlessSessionId);
             trackEvent('RAMPS_KYC_STARTED', {
               ramp_type: kycStartedSession ? 'HEADLESS' : 'DEPOSIT',
-              ramp_surface: kycStartedSession?.params?.ramp_surface,
+              ramp_surface: kycStartedSession?.params?.rampSurface,
               kyc_type: requirements.kycType || '',
               region: regionIsoCode,
             });
@@ -848,7 +848,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               const idProofKycSession = getSession(headlessSessionId);
               trackEvent('RAMPS_KYC_STARTED', {
                 ramp_type: idProofKycSession ? 'HEADLESS' : 'DEPOSIT',
-                ramp_surface: idProofKycSession?.params?.ramp_surface,
+                ramp_surface: idProofKycSession?.params?.rampSurface,
                 kyc_type: 'STANDARD',
                 region: regionIsoCode,
               });

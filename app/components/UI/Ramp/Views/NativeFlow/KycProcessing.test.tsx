@@ -271,7 +271,7 @@ describe('V2KycProcessing', () => {
     (getSession as jest.Mock).mockReturnValue({
       id: 'hs-1',
       status: 'continued',
-      params: { ramp_surface: 'money_account' },
+      params: { rampSurface: 'money_account' },
     });
     mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
     mockGetUserDetails.mockResolvedValue({

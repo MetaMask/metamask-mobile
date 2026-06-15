@@ -128,7 +128,7 @@ const Checkout = () => {
   // `region` (RampsController). For non-headless UB2 traffic these stay
   // undefined, so `buildBaseProps` keeps its `UNIFIED_BUY_2` defaults.
   const headlessRampSurface = getSession(headlessSessionId)?.params
-    ?.ramp_surface;
+    ?.rampSurface;
   const regionCode = userRegion?.regionCode || undefined;
   const headlessBaseOverrides = useMemo(
     () =>
@@ -254,7 +254,7 @@ const Checkout = () => {
           createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
             .addProperties({
               ramp_type: 'HEADLESS',
-              ramp_surface: session.params?.ramp_surface,
+              ramp_surface: session.params?.rampSurface,
               amount_source: Number(
                 quoteRecord?.amountIn ?? session.params?.amount ?? 0,
               ),

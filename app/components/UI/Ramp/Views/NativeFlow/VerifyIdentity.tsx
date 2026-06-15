@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, Linking, ScrollView } from 'react-native';
 import {
   Text,
@@ -32,7 +32,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useDispatch } from 'react-redux';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
-import { getSession } from '../../headless/sessionRegistry';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
 
@@ -65,14 +65,7 @@ const V2VerifyIdentity = () => {
   // Headless deposit (TRAM-3623): flip every emit on this screen to
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when a headless
   // session drives the flow. All emits here default to 'UNIFIED_BUY_2'.
-  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
-  const headlessRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'UNIFIED_BUY_2' as const },
-    [headlessSessionId, headlessSurface],
-  );
+  const { headlessRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const navigateToEnterEmail = useCallback(() => {
     navigation.navigate(

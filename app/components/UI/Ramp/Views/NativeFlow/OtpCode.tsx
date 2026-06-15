@@ -47,7 +47,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { getSession } from '../../headless/sessionRegistry';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 
@@ -104,21 +104,8 @@ const V2OtpCode = () => {
   // drives the flow, sourced from the per-screen `headlessSessionId`. Two
   // variants because some events default to 'UNIFIED_BUY_2' and others (OTP_*)
   // to 'DEPOSIT' when not headless.
-  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
-  const headlessRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'UNIFIED_BUY_2' as const },
-    [headlessSessionId, headlessSurface],
-  );
-  const headlessDepositRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'DEPOSIT' as const },
-    [headlessSessionId, headlessSurface],
-  );
+  const { headlessRampProps, headlessDepositRampProps } =
+    useHeadlessRampProps(headlessSessionId);
 
   const {
     setAuthToken,

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import {
   Text,
@@ -34,7 +28,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { getSession } from '../../headless/sessionRegistry';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
 
 export interface V2EnterEmailParams {
@@ -69,23 +63,8 @@ const V2EnterEmail = () => {
   // the UB2/DEPOSIT literals) plus the seeded `ramp_surface`, sourced from the
   // per-screen `headlessSessionId` so non-headless UB2 traffic is unaffected.
   const headlessSessionId = params?.headlessSessionId;
-  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
-  const headlessRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'UNIFIED_BUY_2' as const },
-    [headlessSessionId, headlessSurface],
-  );
-  // For events whose non-headless literal is 'DEPOSIT' (e.g. EMAIL_SUBMITTED),
-  // keep 'DEPOSIT' when not headless and flip to HEADLESS otherwise.
-  const headlessDepositRampProps = useMemo(
-    () =>
-      headlessSessionId
-        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
-        : { ramp_type: 'DEPOSIT' as const },
-    [headlessSessionId, headlessSurface],
-  );
+  const { headlessRampProps, headlessDepositRampProps } =
+    useHeadlessRampProps(headlessSessionId);
 
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
