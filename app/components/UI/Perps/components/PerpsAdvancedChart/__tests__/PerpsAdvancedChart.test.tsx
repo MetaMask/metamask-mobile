@@ -76,16 +76,16 @@ describe('mapTpslToPositionLines', () => {
 describe('getPerpsPositionLineColors', () => {
   it('maps the four overlay lines to the matching theme tokens (parity with the Lightweight chart)', () => {
     const colors = {
-      text: { muted: 'token-text-muted' },
+      text: { alternative: 'token-text-alternative' },
       success: { default: 'token-success-default' },
-      background: { alternative: 'token-background-alternative' },
+      warning: { default: 'token-warning-default' },
       error: { default: 'token-error-default' },
     } as unknown as Colors;
 
     expect(getPerpsPositionLineColors(colors)).toEqual({
-      entry: 'token-text-muted',
+      entry: 'token-text-alternative',
       takeProfit: 'token-success-default',
-      stopLoss: 'token-background-alternative',
+      stopLoss: 'token-warning-default',
       liquidation: 'token-error-default',
     });
   });

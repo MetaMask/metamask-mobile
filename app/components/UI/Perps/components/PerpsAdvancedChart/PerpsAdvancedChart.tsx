@@ -103,9 +103,9 @@ export function mapTpslToPositionLines(
  */
 export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
   return {
-    entry: colors.text.muted,
+    entry: colors.text.alternative,
     takeProfit: colors.success.default,
-    stopLoss: colors.background.alternative,
+    stopLoss: colors.warning.default,
     liquidation: colors.error.default,
   };
 }
