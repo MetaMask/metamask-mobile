@@ -23,6 +23,35 @@ describe('webviewFunnelAnalytics', () => {
       expect(result.ramp_type).toBe('UNIFIED_BUY_2');
       expect(result.provider_name).toBeUndefined();
     });
+
+    it('defaults to UNIFIED_BUY_2 with no surface/region (non-headless)', () => {
+      const result = buildBaseProps({
+        checkoutSessionId: 'session-3',
+        providerName: 'Transak',
+      });
+      expect(result.ramp_type).toBe('UNIFIED_BUY_2');
+      expect(result.ramp_surface).toBeUndefined();
+      expect(result.region).toBeUndefined();
+    });
+
+    it('applies HEADLESS overrides (ramp_type, ramp_surface, region)', () => {
+      expect(
+        buildBaseProps({
+          checkoutSessionId: 'session-4',
+          providerName: 'Transak',
+          rampType: 'HEADLESS',
+          rampSurface: 'money_account',
+          region: 'us-ca',
+        }),
+      ).toEqual({
+        checkout_session_id: 'session-4',
+        location: 'Checkout',
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'money_account',
+        region: 'us-ca',
+        provider_name: 'Transak',
+      });
+    });
   });
 
   describe('extractHostname', () => {

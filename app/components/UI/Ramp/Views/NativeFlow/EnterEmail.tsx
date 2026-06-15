@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TextInput, View } from 'react-native';
 import {
   Text,
@@ -28,6 +34,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { getSession } from '../../headless/sessionRegistry';
 import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
 
 export interface V2EnterEmailParams {
@@ -57,17 +64,40 @@ const V2EnterEmail = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { sendUserOtp } = useTransakController();
 
+  // Headless deposit (TRAM-3623): when this screen is part of a headless buy
+  // flow, every analytics emit is tagged `ramp_type: 'HEADLESS'` (overriding
+  // the UB2/DEPOSIT literals) plus the seeded `ramp_surface`, sourced from the
+  // per-screen `headlessSessionId` so non-headless UB2 traffic is unaffected.
+  const headlessSessionId = params?.headlessSessionId;
+  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
+  const headlessRampProps = useMemo(
+    () =>
+      headlessSessionId
+        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
+        : { ramp_type: 'UNIFIED_BUY_2' as const },
+    [headlessSessionId, headlessSurface],
+  );
+  // For events whose non-headless literal is 'DEPOSIT' (e.g. EMAIL_SUBMITTED),
+  // keep 'DEPOSIT' when not headless and flip to HEADLESS otherwise.
+  const headlessDepositRampProps = useMemo(
+    () =>
+      headlessSessionId
+        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
+        : { ramp_type: 'DEPOSIT' as const },
+    [headlessSessionId, headlessSurface],
+  );
+
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
         .addProperties({
           location: 'Enter Email',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, headlessRampProps]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -77,11 +107,11 @@ const V2EnterEmail = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
         .addProperties({
           location: 'Enter Email',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const emailInputRef = useRef<TextInput>(null);
 
@@ -109,7 +139,7 @@ const V2EnterEmail = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_EMAIL_SUBMITTED)
             .addProperties({
-              ramp_type: 'DEPOSIT',
+              ...headlessDepositRampProps,
             })
             .build(),
         );
@@ -132,7 +162,15 @@ const V2EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [email, navigation, sendUserOtp, trackEvent, createEventBuilder, params]);
+  }, [
+    email,
+    navigation,
+    sendUserOtp,
+    trackEvent,
+    createEventBuilder,
+    params,
+    headlessDepositRampProps,
+  ]);
 
   return (
     <ScreenLayout>

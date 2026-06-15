@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, Linking, ScrollView } from 'react-native';
 import {
   Text,
@@ -32,6 +32,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useDispatch } from 'react-redux';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
+import { getSession } from '../../headless/sessionRegistry';
 import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
 
@@ -61,6 +62,18 @@ const V2VerifyIdentity = () => {
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
+  // Headless deposit (TRAM-3623): flip every emit on this screen to
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when a headless
+  // session drives the flow. All emits here default to 'UNIFIED_BUY_2'.
+  const headlessSurface = getSession(headlessSessionId)?.params?.ramp_surface;
+  const headlessRampProps = useMemo(
+    () =>
+      headlessSessionId
+        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessSurface }
+        : { ramp_type: 'UNIFIED_BUY_2' as const },
+    [headlessSessionId, headlessSurface],
+  );
+
   const navigateToEnterEmail = useCallback(() => {
     navigation.navigate(
       ...createV2EnterEmailNavDetails({
@@ -78,11 +91,11 @@ const V2VerifyIdentity = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
         .addProperties({
           location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, headlessRampProps]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -92,24 +105,30 @@ const V2VerifyIdentity = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
         .addProperties({
           location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const handleSubmit = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_TERMS_CONSENT_CLICKED)
         .addProperties({
           location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
     dispatch(setHasAgreedTransakNativePolicy(true));
     navigateToEnterEmail();
-  }, [dispatch, navigateToEnterEmail, trackEvent, createEventBuilder]);
+  }, [
+    dispatch,
+    navigateToEnterEmail,
+    trackEvent,
+    createEventBuilder,
+    headlessRampProps,
+  ]);
 
   const handleTransakLink = useCallback(() => {
     let urlDomain: string = TRANSAK_URL;
@@ -124,12 +143,12 @@ const V2VerifyIdentity = () => {
           location: 'Verify Identity',
           external_link_description: 'Transak',
           url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
     Linking.openURL(TRANSAK_URL);
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const handlePrivacyPolicyLink = useCallback(() => {
     let urlDomain: string = CONSENSYS_PRIVACY_POLICY_URL;
@@ -144,12 +163,12 @@ const V2VerifyIdentity = () => {
           location: 'Verify Identity',
           external_link_description: 'Privacy Policy',
           url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
     Linking.openURL(CONSENSYS_PRIVACY_POLICY_URL);
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const handleTransakTermsLink = useCallback(() => {
     const termsUrl =
@@ -166,12 +185,12 @@ const V2VerifyIdentity = () => {
           location: 'Verify Identity',
           external_link_description: 'Transak Terms',
           url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
     Linking.openURL(termsUrl);
-  }, [regionIsoCode, trackEvent, createEventBuilder]);
+  }, [regionIsoCode, trackEvent, createEventBuilder, headlessRampProps]);
 
   return (
     <ScreenLayout>
