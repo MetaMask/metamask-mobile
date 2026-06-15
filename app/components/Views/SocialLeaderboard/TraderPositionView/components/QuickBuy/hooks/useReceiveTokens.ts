@@ -9,7 +9,10 @@ import { selectAccountsByChainId } from '../../../../../../../selectors/accountT
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../../../selectors/currencyRateController';
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
@@ -164,6 +167,7 @@ export const useReceiveTokens = (
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
   const allNetworkConfigs = useSelector(
@@ -183,6 +187,7 @@ export const useReceiveTokens = (
             tokenBalances,
             tokenMarketData,
             currencyRates,
+            currentCurrency,
             allNetworkConfigs,
             solanaAccount: solanaAccount ?? undefined,
             tronAccount: tronAccount ?? undefined,
@@ -206,6 +211,7 @@ export const useReceiveTokens = (
       tokenBalances,
       tokenMarketData,
       currencyRates,
+      currentCurrency,
       allNetworkConfigs,
       solanaAccount,
       tronAccount,
