@@ -618,14 +618,12 @@ function handleAddIndicator(payload) {
     var chart = window.chartWidget.activeChart();
     var studyName, inputs, overrides;
 
-    var hideValues = isLegendOverlayEnabled();
-
     switch (indicatorName) {
       case 'MACD':
         studyName = 'MACD';
         inputs = { in_0: 12, in_1: 26, in_2: 9 };
         overrides = {
-          showLegendValues: !hideValues,
+          showLegendValues: false,
           'MACD.color': _macdColors.macd || '#5C8FFF',
           'Signal.color': _macdColors.signal || '#FF6D00',
           'Histogram.color.0': _macdColors.histogramPositive || '#26A69A',
@@ -636,7 +634,7 @@ function handleAddIndicator(payload) {
         studyName = 'Relative Strength Index';
         inputs = { in_0: 14 };
         overrides = {
-          showLegendValues: !hideValues,
+          showLegendValues: false,
           'Plot.color': _rsiColors.plot || '#E91E90',
           'hlines background.visible': false,
         };
@@ -645,7 +643,7 @@ function handleAddIndicator(payload) {
         studyName = 'Bollinger Bands';
         inputs = { in_0: 20, in_1: 2 };
         overrides = {
-          showLegendValues: !hideValues,
+          showLegendValues: false,
           'Upper.color': _bolColors.upper || '#E040FB',
           'Basis.color': _bolColors.basis || '#E040FB',
           'Lower.color': _bolColors.lower || '#E040FB',
@@ -654,12 +652,12 @@ function handleAddIndicator(payload) {
       case 'MA200':
         studyName = 'Moving Average';
         inputs = { length: 200 };
-        overrides = { showLegendValues: !hideValues };
+        overrides = { showLegendValues: false };
         break;
       default:
         studyName = indicatorName;
         inputs = payload.inputs || {};
-        overrides = { showLegendValues: !hideValues };
+        overrides = { showLegendValues: false };
         break;
     }
 
@@ -759,7 +757,7 @@ function handleSetMAVisibility(payload) {
           false,
           { length: MA_LENGTHS[maName] },
           {
-            showLegendValues: !isLegendOverlayEnabled(),
+            showLegendValues: false,
             'Plot.color': MA_COLORS[maName],
           },
         )
@@ -3605,7 +3603,7 @@ function createVolumeStudy(useOverlay) {
     var chart = window.chartWidget.activeChart();
     var t = window.CONFIG.theme;
     var overrides = {
-      showLegendValues: !isLegendOverlayEnabled(),
+      showLegendValues: false,
       'volume.transparency': useOverlay ? 70 : 0,
       'volume.color.0': t.errorColor,
       'volume.color.1': t.successColor,
@@ -4236,12 +4234,9 @@ function initChart() {
           'paneProperties.legendProperties.showBarChange': false,
           'paneProperties.legendProperties.showVolume': false,
           'paneProperties.legendProperties.showBackground': false,
-          'paneProperties.legendProperties.showStudyTitles':
-            !isLegendOverlayEnabled(),
-          'paneProperties.legendProperties.showStudyArguments':
-            !isLegendOverlayEnabled(),
-          'paneProperties.legendProperties.showStudyValues':
-            !isLegendOverlayEnabled(),
+          'paneProperties.legendProperties.showStudyTitles': false,
+          'paneProperties.legendProperties.showStudyArguments': false,
+          'paneProperties.legendProperties.showStudyValues': false,
           'mainSeriesProperties.showPriceLine': !initCustomDashed,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,

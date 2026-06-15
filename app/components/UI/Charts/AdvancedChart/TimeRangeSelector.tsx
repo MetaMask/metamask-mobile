@@ -59,6 +59,8 @@ interface TimeRangeSelectorProps {
   ranges?: TimeRange[];
   /** Current chart type -- drives the toggle icon appearance. */
   chartType?: ChartType;
+  /** Called when the user taps the single chart-type toggle button (main branch style). */
+  onChartTypeToggle?: () => void;
   /** Called when the user selects a chart type from the segmented toggle. */
   onChartTypeSelect?: (type: ChartType) => void;
   /** Override background color for the selected pill (A/B test). */
@@ -71,6 +73,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   onSelect,
   ranges = TIME_RANGES,
   chartType,
+  onChartTypeToggle,
   onChartTypeSelect,
   selectedColor,
 }) => {
@@ -153,7 +156,42 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               </Pressable>
             );
           })}
-          {onChartTypeSelect ? (
+          {onChartTypeToggle ? (
+            <Pressable
+              style={({ pressed }) =>
+                tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
+              }
+              onPress={onChartTypeToggle}
+              accessibilityRole="button"
+              accessibilityLabel={
+                chartType === ChartType.Candles
+                  ? 'Switch to line chart'
+                  : 'Switch to candlestick chart'
+              }
+            >
+              {chartType === ChartType.Candles ? (
+                <Icon
+                  name={IconName.Diagram}
+                  size={IconSize.Lg}
+                  twClassName={
+                    selectedColor
+                      ? `text-[${selectedColor}]`
+                      : 'text-icon-alternative'
+                  }
+                />
+              ) : (
+                <Icon
+                  name={IconName.Candlestick}
+                  size={IconSize.Lg}
+                  twClassName={
+                    selectedColor
+                      ? `text-[${selectedColor}]`
+                      : 'text-icon-alternative'
+                  }
+                />
+              )}
+            </Pressable>
+          ) : onChartTypeSelect ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}

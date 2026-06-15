@@ -7,8 +7,7 @@ const styleSheet = (params: { theme: Theme }) =>
     wrapper: {
       width: '100%',
       paddingHorizontal: 16,
-      paddingTop: 12,
-      paddingBottom: 16,
+      paddingVertical: 12,
       flexDirection: 'column',
       alignItems: 'flex-start',
     } as ViewStyle,
@@ -40,22 +39,16 @@ const styleSheet = (params: { theme: Theme }) =>
     timeRangeContainer: {
       width: '100%',
       alignSelf: 'stretch',
-      paddingBottom: 12,
+      paddingTop: 12,
+      paddingBottom: 24,
       flexDirection: 'column',
       alignItems: 'flex-start',
+      gap: 10,
     } as ViewStyle,
     /** Under flex-start parent, stretch so inner space-between uses full screen width */
     timeRangeSelectorWrap: {
       width: '100%',
       alignSelf: 'stretch',
-    } as ViewStyle,
-    intervalRow: {
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingBottom: 12,
     } as ViewStyle,
     noDataOverlay: {
       ...StyleSheet.absoluteFillObject,

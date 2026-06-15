@@ -216,6 +216,15 @@ const PriceLegacy = ({
           )}
         </Text>
       </View>
+      <Box twClassName="mt-3 w-full overflow-hidden">
+        <PriceChart
+          prices={distributedPriceData}
+          priceDiff={priceDiff}
+          isLoading={isLoading}
+          onChartIndexChange={handleChartInteraction}
+          chartColorOverride={initialAmbientColor}
+        />
+      </Box>
       {chartNavigationButtons.length > 0 && onTimePeriodChange && (
         <View style={styles.timeRangeContainer}>
           <Box twClassName="w-full px-4">
@@ -235,15 +244,6 @@ const PriceLegacy = ({
           </Box>
         </View>
       )}
-      <Box twClassName="w-full overflow-hidden pb-4">
-        <PriceChart
-          prices={distributedPriceData}
-          priceDiff={priceDiff}
-          isLoading={isLoading}
-          onChartIndexChange={handleChartInteraction}
-          chartColorOverride={initialAmbientColor}
-        />
-      </Box>
     </>
   );
 };

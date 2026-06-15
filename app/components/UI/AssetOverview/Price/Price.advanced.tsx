@@ -72,6 +72,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -161,6 +162,9 @@ const PriceAdvanced = ({
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -224,6 +228,12 @@ const PriceAdvanced = ({
     },
     [chartType, createEventBuilder, trackEvent, dispatch],
   );
+
+  const toggleChartType = useCallback(() => {
+    const next =
+      chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
+    handleChartTypeSelect(next);
+  }, [chartType, handleChartTypeSelect]);
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -712,28 +722,21 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <View style={styles.timeRangeContainer}>
-        <View style={styles.timeRangeSelectorWrap}>
-          {shouldFallbackToLegacy ? (
-            <TimeRangeSelector
-              isChartLoading={chartLoading}
-              selected={timeRange}
-              onSelect={handleTimeRangeSelect}
-              chartType={chartType}
-              onChartTypeSelect={handleChartTypeSelect}
-              selectedColor={initialAmbientColor}
-            />
-          ) : (
+      {isTechnicalIndicatorsEnabled && (
+        <View style={styles.timeRangeContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
             <IntervalBar
               selectedInterval={displayInterval}
               onIntervalSelect={handleInlineIntervalSelect}
               chartType={chartType}
               onChartTypeSelect={handleChartTypeSelect}
             />
-          )}
+          </View>
         </View>
-      </View>
-      <Box twClassName="w-full">
+      )}
+      <Box
+        twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+      >
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
@@ -753,13 +756,15 @@ const PriceAdvanced = ({
               realtimeBar={realtimeBar}
               height={chartHeight}
               showVolume={
-                chartType === ChartType.Candles &&
-                activeIndicators.has('Volume')
+                isTechnicalIndicatorsEnabled
+                  ? chartType === ChartType.Candles &&
+                    activeIndicators.has('Volume')
+                  : chartType === ChartType.Candles
               }
               volumeOverlay
               chartType={chartType}
-              indicators={indicatorsArray}
-              selectedMAs={selectedMAs}
+              indicators={isTechnicalIndicatorsEnabled ? indicatorsArray : []}
+              selectedMAs={isTechnicalIndicatorsEnabled ? selectedMAs : []}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
@@ -777,12 +782,16 @@ const PriceAdvanced = ({
               errorColorOverride={
                 initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
               }
-              legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
+              legendOverlay={
+                isTechnicalIndicatorsEnabled
+                  ? TOKEN_DETAILS_LEGEND_OVERLAY
+                  : undefined
+              }
             />
           )}
         </View>
       </Box>
-      {chartType === ChartType.Candles ? (
+      {isTechnicalIndicatorsEnabled && chartType === ChartType.Candles ? (
         <Box twClassName="w-full mb-3">
           <IndicatorBar
             maLabel={maLabel}
@@ -791,6 +800,19 @@ const PriceAdvanced = ({
             onIndicatorToggle={handleIndicatorToggle}
           />
         </Box>
+      ) : !isTechnicalIndicatorsEnabled ? (
+        <View style={styles.timeRangeContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
+            <TimeRangeSelector
+              isChartLoading={chartLoading}
+              selected={timeRange}
+              onSelect={handleTimeRangeSelect}
+              chartType={chartType}
+              onChartTypeToggle={toggleChartType}
+              selectedColor={initialAmbientColor}
+            />
+          </View>
+        </View>
       ) : (
         <Box twClassName="pb-4" />
       )}
