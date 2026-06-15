@@ -4,12 +4,11 @@ import NavigationService from '../../../../core/NavigationService';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import PerpsLoader from '../components/PerpsLoader';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 
 const PerpsRedirect: React.FC = () => {
   const { isConnected, isConnecting, isInitialized } = usePerpsConnection();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
 
   useEffect(() => {
     // Only redirect when successfully connected
@@ -21,7 +20,7 @@ const PerpsRedirect: React.FC = () => {
       // Replace PERPS_TAB with PERPS_HOME in the stack so that if the user
       // returns to the Perps stack, they land on the home screen instead of
       // triggering another redirect.
-      navigation.replace(Routes.PERPS.PERPS_HOME);
+      navigation.dispatch(StackActions.replace(Routes.PERPS.PERPS_HOME));
 
       // The timeout is REQUIRED - React Navigation needs time to:
       // 1. Complete the navigation transition
