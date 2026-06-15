@@ -37,7 +37,7 @@ import { AlertKeys } from '../../../constants/alerts';
 
 const RAMP_TYPE_HEADLESS = 'HEADLESS' as const;
 const RAMP_SURFACE_MONEY_ACCOUNT: RampSurface = 'money_account';
-const CURRENCY_SOURCE = 'usd';
+const CURRENCY_SOURCE = 'USD';
 
 /** Reads a numeric field that the SDK may type as `number | string`. */
 function toNumber(value: number | string | undefined): number {
@@ -236,8 +236,7 @@ export function useMoneyDepositFunnelMetrics() {
 
     lastQuoteErrorKeyRef.current = errorKey;
     emit(MetaMetricsEvents.RAMPS_QUOTE_ERROR, {
-      ramp_type: RAMP_TYPE_HEADLESS,
-      ramp_surface: RAMP_SURFACE_MONEY_ACCOUNT,
+      ...baseProps,
       error_message:
         typeof quoteErrorAlert.message === 'string'
           ? quoteErrorAlert.message
@@ -252,6 +251,7 @@ export function useMoneyDepositFunnelMetrics() {
     quoteErrorAlert,
     amountFiat,
     assetId,
+    baseProps,
     emit,
     selectedPaymentMethodId,
   ]);

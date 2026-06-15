@@ -866,6 +866,42 @@ describe('CustomAmountInfo', () => {
       );
     });
 
+    it('does not emit RAMPS_ORDER_PROPOSED when applying the amount throws on Done press', async () => {
+      setMoneyDeposit();
+      const error = new Error('update failed');
+      const loggerErrorMock = jest.mocked(Logger.error);
+      loggerErrorMock.mockClear();
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: true,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: jest.fn().mockRejectedValue(error),
+      });
+
+      const { getByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      // Amount-committed must not fire when the apply rejects; the error is
+      // still logged by the Done handler's catch block.
+      expect(
+        emittedPayloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED),
+      ).toBeUndefined();
+      expect(loggerErrorMock).toHaveBeenCalledWith(
+        error,
+        expect.stringContaining('Failed to apply custom amount on Done press'),
+      );
+    });
+
     it('emits RAMPS_CONTINUE_BUTTON_CLICKED on confirm press for moneyAccountDeposit', async () => {
       setMoneyDeposit();
       useConfirmActionsMock.mockReturnValue({

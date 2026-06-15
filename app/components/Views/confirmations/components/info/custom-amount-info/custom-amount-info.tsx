@@ -213,6 +213,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         } else {
           await updateTokenAmount();
         }
+        // Amount committed (pre-quote) funnel event; only fires once the amount
+        // has been successfully applied above (no-op for non-money flows).
+        trackAmountCommitted();
       } catch (error) {
         Logger.error(
           error as Error,
@@ -221,8 +224,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       } finally {
         EngineService.flushState();
         setIsKeyboardVisible(false);
-        // Amount committed (pre-quote) funnel event; no-op for non-money flows.
-        trackAmountCommitted();
         onAmountSubmit?.();
       }
     }, [

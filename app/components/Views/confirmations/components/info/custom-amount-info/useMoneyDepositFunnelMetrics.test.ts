@@ -128,7 +128,7 @@ describe('useMoneyDepositFunnelMetrics', () => {
         processing_fee: 3,
         payment_method_id: '/payments/debit-credit-card',
         currency_destination: 'eip155:1/slip44:60',
-        currency_source: 'usd',
+        currency_source: 'USD',
       });
     });
 
@@ -157,9 +157,10 @@ describe('useMoneyDepositFunnelMetrics', () => {
       expect(payloadFor(MetaMetricsEvents.RAMPS_QUOTE_ERROR)).toEqual({
         ramp_type: 'HEADLESS',
         ramp_surface: 'money_account',
+        region: REGION,
         error_message: 'No quotes available',
         amount: 100,
-        currency_source: 'usd',
+        currency_source: 'USD',
         currency_destination: 'eip155:1/slip44:60',
         payment_method_id: '/payments/debit-credit-card',
       });
@@ -178,6 +179,7 @@ describe('useMoneyDepositFunnelMetrics', () => {
         expect.objectContaining({
           ramp_type: 'HEADLESS',
           ramp_surface: 'money_account',
+          region: REGION,
           error_message: 'Over the limit',
         }),
       );
@@ -197,7 +199,7 @@ describe('useMoneyDepositFunnelMetrics', () => {
         amount_source: 100,
         payment_method_id: '/payments/debit-credit-card',
         currency_destination: 'eip155:1/slip44:60',
-        currency_source: 'usd',
+        currency_source: 'USD',
       });
     });
 
@@ -246,7 +248,7 @@ describe('useMoneyDepositFunnelMetrics', () => {
           amount_source: 100,
           payment_method_id: '/payments/debit-credit-card',
           currency_destination: 'eip155:1/slip44:60',
-          currency_source: 'usd',
+          currency_source: 'USD',
         },
       );
     });
