@@ -49,6 +49,14 @@ const styleSheet = (params: { theme: Theme }) =>
       width: '100%',
       alignSelf: 'stretch',
     } as ViewStyle,
+    intervalRow: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+    } as ViewStyle,
     noDataOverlay: {
       ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',

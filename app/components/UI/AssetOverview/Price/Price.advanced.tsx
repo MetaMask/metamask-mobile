@@ -41,6 +41,7 @@ import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
+import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import { createIntervalPickerNavDetails } from '../../Charts/AdvancedChart/IntervalPickerSheet';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { TOKEN_DETAILS_LEGEND_OVERLAY } from '../../Charts/AdvancedChart/indicatorColors';
@@ -335,6 +336,10 @@ const PriceAdvanced = ({
       }),
     );
   }, [navigation, displayInterval]);
+
+  const handleInlineIntervalSelect = useCallback((interval: string) => {
+    setDisplayInterval(interval);
+  }, []);
 
   const [selectedMAs, setSelectedMAs] = useState<string[]>([]);
 
@@ -719,14 +724,24 @@ const PriceAdvanced = ({
       </View>
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
-          <TimeRangeSelector
-            isChartLoading={chartLoading}
-            selected={timeRange}
-            onSelect={handleTimeRangeSelect}
-            chartType={chartType}
-            onChartTypeSelect={handleChartTypeSelect}
-            selectedColor={initialAmbientColor}
-          />
+          {shouldFallbackToLegacy ? (
+            <TimeRangeSelector
+              isChartLoading={chartLoading}
+              selected={timeRange}
+              onSelect={handleTimeRangeSelect}
+              chartType={chartType}
+              onChartTypeSelect={handleChartTypeSelect}
+              selectedColor={initialAmbientColor}
+            />
+          ) : (
+            <IntervalBar
+              selectedInterval={displayInterval}
+              onIntervalSelect={handleInlineIntervalSelect}
+              onMorePress={handleIntervalPress}
+              chartType={chartType}
+              onChartTypeSelect={handleChartTypeSelect}
+            />
+          )}
         </View>
       </View>
       <Box twClassName="w-full">
@@ -781,8 +796,6 @@ const PriceAdvanced = ({
       {chartType === ChartType.Candles ? (
         <Box twClassName="w-full mb-3">
           <IndicatorBar
-            intervalLabel={displayInterval}
-            onIntervalPress={handleIntervalPress}
             maLabel={maLabel}
             onMAPress={handleMAPress}
             activeIndicators={activeIndicators}
