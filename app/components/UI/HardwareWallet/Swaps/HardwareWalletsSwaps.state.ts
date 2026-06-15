@@ -1,4 +1,4 @@
-import type { QuoteResponse } from '@metamask/bridge-controller';
+import { isEvmTxData, type QuoteResponse } from '@metamask/bridge-controller';
 
 /**
  * Status of the hardware wallet swap flow state machine.
@@ -92,24 +92,17 @@ export type HardwareWalletsSwapsEvent =
 
 type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'>;
 
-function getEvmTxTo(
-  tx: QuoteWithTxData['approval'] | QuoteWithTxData['trade'],
-): string | undefined {
-  if (tx && typeof tx === 'object' && 'to' in tx && typeof tx.to === 'string') {
-    return tx.to;
-  }
-  return undefined;
-}
-
 export function buildStartPayload(
   activeQuote: QuoteWithTxData,
 ): HardwareWalletsSwapsEvent {
+  const { approval, trade } = activeQuote;
   return {
     type: HardwareWalletsSwapsEventType.Start,
     payload: {
-      totalSteps: activeQuote.approval ? 2 : 1,
-      spenderAddress: getEvmTxTo(activeQuote.approval),
-      recipientAddress: getEvmTxTo(activeQuote.trade),
+      totalSteps: approval ? 2 : 1,
+      spenderAddress:
+        approval && isEvmTxData(approval) ? approval.to : undefined,
+      recipientAddress: trade && isEvmTxData(trade) ? trade.to : undefined,
     },
   };
 }
