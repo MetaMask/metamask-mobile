@@ -310,7 +310,6 @@ const PredictGameDetailsOutcomesList = memo(
         twClassName="flex-1"
       >
         <FlashList
-          key={visibilityScopeKey}
           data={listData}
           extraData={extraData}
           keyExtractor={keyExtractor}

@@ -16,6 +16,7 @@ import PredictGameDetailsOutcomesList from './PredictGameDetailsOutcomesList';
 
 let mockVisibleItemKeys: string[] | null = null;
 let mockLatestFlashListExtraData: unknown;
+let mockFlashListMountCount = 0;
 
 jest.mock('@shopify/flash-list', () => {
   const ReactActual = jest.requireActual('react');
@@ -41,6 +42,10 @@ jest.mock('@shopify/flash-list', () => {
       testID?: string;
     }) => {
       mockLatestFlashListExtraData = extraData;
+
+      ReactActual.useEffect(() => {
+        mockFlashListMountCount += 1;
+      }, []);
 
       ReactActual.useEffect(() => {
         const visibleItems = mockVisibleItemKeys
@@ -304,6 +309,7 @@ describe('PredictGameDetailsOutcomesList', () => {
     jest.useFakeTimers();
     mockVisibleItemKeys = null;
     mockLatestFlashListExtraData = undefined;
+    mockFlashListMountCount = 0;
     capturedPriceCallback = jest.fn();
     mockGetPrices.mockResolvedValue({ providerId: 'polymarket', results: [] });
     mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
@@ -464,5 +470,22 @@ describe('PredictGameDetailsOutcomesList', () => {
         priceVersion: 1,
       }),
     );
+  });
+
+  it('does not remount FlashList when tab scope changes', () => {
+    const commonProps = createDefaultProps({
+      showChips: false,
+      tabs: [
+        { key: 'outcomes', label: 'Outcomes' },
+        { key: 'positions', label: 'Positions' },
+      ],
+    });
+    const { rerender } = render(
+      <PredictGameDetailsOutcomesList {...commonProps} activeTab={0} />,
+    );
+
+    rerender(<PredictGameDetailsOutcomesList {...commonProps} activeTab={1} />);
+
+    expect(mockFlashListMountCount).toBe(1);
   });
 });

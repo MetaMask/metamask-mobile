@@ -104,27 +104,33 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     [showStickyHeader],
   );
 
+  const gameDetailsHeader = useMemo<React.ReactElement | undefined>(() => {
+    if (!game) {
+      return undefined;
+    }
+
+    return (
+      <>
+        <Box twClassName="px-4 py-2">
+          <PredictSportScoreboard
+            game={game}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
+          />
+        </Box>
+
+        <Box twClassName="mt-4">
+          <PredictGameChart
+            market={market}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
+          />
+        </Box>
+      </>
+    );
+  }, [game, market]);
+
   if (!outcome || !game) {
     return null;
   }
-
-  const gameDetailsHeader = (
-    <>
-      <Box twClassName="px-4 py-2">
-        <PredictSportScoreboard
-          game={game}
-          testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
-        />
-      </Box>
-
-      <Box twClassName="mt-4">
-        <PredictGameChart
-          market={market}
-          testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
-        />
-      </Box>
-    </>
-  );
 
   return (
     <SafeAreaView
