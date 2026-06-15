@@ -45,10 +45,13 @@ const MoneyBalanceSummary = ({
   apy,
   onApyInfoPress,
 }: MoneyBalanceSummaryProps) => {
-  const showApy = displayState.kind === 'balance';
+  // APY + mUSD label stays visible alongside the balance and in the
+  // unavailable states (dash / last known figure), but not while loading.
+  const showApy =
+    displayState.kind === 'balance' || displayState.kind === 'unavailable';
 
   const renderApySlot = () => {
-    if (displayState.kind === 'loading' || displayState.kind === 'retrying') {
+    if (displayState.kind === 'loading') {
       return (
         <Skeleton
           height={24}
@@ -78,7 +81,7 @@ const MoneyBalanceSummary = ({
             {strings('money.apy_currency_suffix')}
           </Text>
         </Text>
-        {onApyInfoPress && displayState.kind === 'balance' && (
+        {onApyInfoPress && (
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
@@ -96,32 +99,6 @@ const MoneyBalanceSummary = ({
     switch (displayState.kind) {
       case 'loading':
         return <BalanceSkeleton />;
-      case 'retrying':
-        return <BalanceSkeleton />;
-      case 'error':
-        return (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="mb-2 gap-2"
-            testID={MoneyBalanceSummaryTestIds.BALANCE_ERROR}
-          >
-            <Text
-              variant={TextVariant.BodyLg}
-              color={TextColor.TextAlternative}
-            >
-              {strings('money.balance_unavailable')}
-            </Text>
-            <ButtonIcon
-              iconName={IconName.Refresh}
-              iconProps={{ color: IconColor.InfoDefault, size: IconSize.Lg }}
-              size={ButtonIconSize.Sm}
-              onPress={displayState.onRetry}
-              accessibilityLabel={strings('money.balance_retry')}
-              testID={MoneyBalanceSummaryTestIds.BALANCE_RETRY}
-            />
-          </Box>
-        );
       case 'balance':
         return (
           <Text
@@ -145,14 +122,18 @@ const MoneyBalanceSummary = ({
           </Text>
         );
       case 'unavailable':
+        // A previously cached balance renders as a muted "last known" figure;
+        // with no cache the slot shows a dash. Both pair with the BannerAlert.
         return (
           <Text
-            variant={TextVariant.BodyLg}
+            variant={TextVariant.DisplayLg}
+            fontWeight={FontWeight.Bold}
             color={TextColor.TextAlternative}
             testID={MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE}
             twClassName="mb-2"
           >
-            {strings('money.balance_unavailable')}
+            {displayState.lastKnownValue ??
+              strings('money.balance_unavailable_value')}
           </Text>
         );
       default:

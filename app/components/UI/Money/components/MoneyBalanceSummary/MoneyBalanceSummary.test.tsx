@@ -10,10 +10,11 @@ const balanceState = (value = '$0.00'): MoneyBalanceDisplayState => ({
   value,
 });
 const loadingState: MoneyBalanceDisplayState = { kind: 'loading' };
-const retryingState: MoneyBalanceDisplayState = { kind: 'retrying' };
-const errorState = (onRetry = jest.fn()): MoneyBalanceDisplayState => ({
-  kind: 'error',
-  onRetry,
+const unavailableState = (
+  lastKnownValue?: string,
+): MoneyBalanceDisplayState => ({
+  kind: 'unavailable',
+  lastKnownValue,
 });
 
 describe('MoneyBalanceSummary', () => {
@@ -157,96 +158,6 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  describe('error state', () => {
-    it('renders the balance-unavailable message when balance fetch fails', () => {
-      const { getByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={errorState()} />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_ERROR),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_ERROR),
-      ).toHaveTextContent(/Balance unavailable/);
-    });
-
-    it('renders the retry icon button', () => {
-      const { getByLabelText, getByTestId, queryByText } = render(
-        <MoneyBalanceSummary apy={4} displayState={errorState()} />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_RETRY),
-      ).toBeOnTheScreen();
-      expect(getByLabelText(strings('money.balance_retry'))).toBeOnTheScreen();
-      expect(queryByText(strings('money.balance_retry'))).not.toBeOnTheScreen();
-    });
-
-    it('calls onRetry when the retry icon button is pressed', () => {
-      const mockRetry = jest.fn();
-      const { getByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={errorState(mockRetry)} />,
-      );
-
-      fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.BALANCE_RETRY));
-
-      expect(mockRetry).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not render the balance text', () => {
-      const { queryByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={errorState()} />,
-      );
-
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('hides the APY row', () => {
-      const { queryByTestId } = render(
-        <MoneyBalanceSummary
-          apy={4}
-          displayState={errorState()}
-          onApyInfoPress={jest.fn()}
-        />,
-      );
-
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('retrying state', () => {
-    it('renders the balance skeleton', () => {
-      const { getByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={retryingState} />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_SKELETON),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render the balance text or error message', () => {
-      const { queryByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={retryingState} />,
-      );
-
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_ERROR),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   describe('noAccount state', () => {
     const noAccountState: MoneyBalanceDisplayState = { kind: 'noAccount' };
 
@@ -289,31 +200,32 @@ describe('MoneyBalanceSummary', () => {
   });
 
   describe('unavailable state', () => {
-    const unavailableState: MoneyBalanceDisplayState = { kind: 'unavailable' };
-
-    it('renders the balance-unavailable message', () => {
+    it('renders a dash when there is no last known balance', () => {
       const { getByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={unavailableState} />,
+        <MoneyBalanceSummary apy={4} displayState={unavailableState()} />,
       );
 
       expect(
         getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
-      ).toHaveTextContent(strings('money.balance_unavailable'));
+      ).toHaveTextContent(strings('money.balance_unavailable_value'));
     });
 
-    it('does not render a retry button (distinct from error kind)', () => {
-      const { queryByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={unavailableState} />,
+    it('renders the last known balance when one is available', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={unavailableState('$2,384.34')}
+        />,
       );
 
       expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_RETRY),
-      ).not.toBeOnTheScreen();
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent('$2,384.34');
     });
 
-    it('does not render the balance text', () => {
+    it('does not render the regular balance text', () => {
       const { queryByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={unavailableState} />,
+        <MoneyBalanceSummary apy={4} displayState={unavailableState()} />,
       );
 
       expect(
@@ -321,21 +233,19 @@ describe('MoneyBalanceSummary', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the APY row', () => {
-      const { queryByTestId } = render(
+    it('keeps the APY row visible', () => {
+      const { getByTestId } = render(
         <MoneyBalanceSummary
           apy={4}
-          displayState={unavailableState}
+          displayState={unavailableState('$2,384.34')}
           onApyInfoPress={jest.fn()}
         />,
       );
 
+      expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-      ).not.toBeOnTheScreen();
+        getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 });
