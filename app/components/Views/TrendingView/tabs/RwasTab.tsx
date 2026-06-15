@@ -4,8 +4,12 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
-import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
+import {
+  applyMarketFilters,
+  MarketCategory,
+  type PerpsMarketData,
+  type SortOptionId,
+} from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -24,6 +28,7 @@ import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsToggleBlock, {
   type PerpsFilterKey,
+  EQUITY_CATEGORIES,
 } from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
@@ -50,34 +55,35 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
 
   const tabs = useMemo<
     PillToggleCardListTab<PerpsMarketData, PerpsFilterKey>[]
-  >(() => {
-    const byType = (type: PerpsMarketData['marketType']) =>
-      perps.data
-        .filter((d) => d.market.marketType === type)
-        .slice(0, 3)
-        .map((d) => d.market);
-    const stockLikeItems = perps.data
-      .filter((d) => isEquityAsset(d.market.marketType))
-      .slice(0, 3)
-      .map((d) => d.market);
-    return [
+  >(
+    () => [
       {
         key: 'commodity',
         name: strings('trending.rwa_pill_commodities'),
-        items: byType('commodity'),
+        items: applyMarketFilters(
+          perps.data.map((d) => d.market),
+          { categories: [MarketCategory.Commodity], limit: 3 },
+        ),
       },
       {
         key: 'stock',
         name: strings('trending.rwa_pill_stocks'),
-        items: stockLikeItems,
+        items: applyMarketFilters(
+          perps.data.map((d) => d.market),
+          { categories: EQUITY_CATEGORIES, limit: 3 },
+        ),
       },
       {
         key: 'forex',
         name: strings('trending.rwa_pill_forex'),
-        items: byType('forex'),
+        items: applyMarketFilters(
+          perps.data.map((d) => d.market),
+          { categories: [MarketCategory.Forex], limit: 3 },
+        ),
       },
-    ];
-  }, [perps.data]);
+    ],
+    [perps.data],
+  );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 

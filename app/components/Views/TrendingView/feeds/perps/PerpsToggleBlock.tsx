@@ -1,10 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
-import type {
-  MarketTypeFilter,
-  PerpsMarketData,
-  SortOptionId,
+import {
+  MarketCategory,
+  type MarketTypeFilter,
+  type PerpsMarketData,
+  type SortOptionId,
 } from '@metamask/perps-controller';
 import PerpsRowItem from './PerpsRowItem';
 import PerpsRowSkeleton from '../../../../UI/Perps/components/PerpsRowSkeleton';
@@ -20,6 +21,14 @@ import {
 
 /** Valid perps category filter keys — all `MarketTypeFilter` values except `'all'`. */
 export type PerpsFilterKey = Exclude<MarketTypeFilter, 'all'>;
+
+/** All equity-like market categories that appear under the "Stocks" pill. */
+export const EQUITY_CATEGORIES: PerpsFilterKey[] = [
+  MarketCategory.Stock,
+  MarketCategory.PreIpo,
+  MarketCategory.Index,
+  MarketCategory.Etf,
+];
 
 const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
 
