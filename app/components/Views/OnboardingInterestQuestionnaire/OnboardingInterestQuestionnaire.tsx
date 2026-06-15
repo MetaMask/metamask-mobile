@@ -38,6 +38,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectAccountGroupBalanceForEmptyState } from '../../../selectors/assets/balances';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
@@ -120,6 +121,11 @@ const OnboardingInterestQuestionnaire = () => {
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   const accountType = routeAccountType ?? reduxAccountType;
+  const accountGroupBalance = useSelector(
+    selectAccountGroupBalanceForEmptyState,
+  );
+  const walletHasFunds =
+    (accountGroupBalance?.totalBalanceInUserCurrency ?? 0) > 0;
 
   const [selectedIds, setSelectedIds] = useState<Set<InterestOptionId>>(
     new Set(),
@@ -208,6 +214,11 @@ const OnboardingInterestQuestionnaire = () => {
         .build(),
     );
 
+    if (walletHasFunds) {
+      onComplete();
+      return;
+    }
+
     navigation.navigate(Routes.ONBOARDING.FUND_WALLET, {
       onComplete,
       ...(accountType && { accountType }),
@@ -222,6 +233,7 @@ const OnboardingInterestQuestionnaire = () => {
     accountType,
     onComplete,
     navigation,
+    walletHasFunds,
   ]);
 
   const onSkip = useCallback(() => {
