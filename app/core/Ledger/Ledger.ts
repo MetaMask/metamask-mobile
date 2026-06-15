@@ -317,10 +317,18 @@ export const unlockLedgerWalletAccount = async (index: number) => {
           );
         }
 
+        // Ledger Live mode uses a per-account hardened third segment;
+        // Legacy and BIP-44 modes are `${hdPath}/${index}`.
+        // NOTE: Use `keyring.hdPath` (that is set using `setHDPath` function) + We force
+        // the type, since `createAccounts` expects a specific derivation path format.
+        const derivationPath: `m/${string}` =
+          keyring.hdPath === LEDGER_LIVE_PATH
+            ? `m/44'/60'/${index}'/0/0`
+            : `${keyring.hdPath}/${index}`;
         const [account] = await keyring.createAccounts({
-          type: 'bip44:derive-index',
+          type: 'bip44:derive-path',
           entropySource: keyring.entropySource,
-          groupIndex: index,
+          derivationPath,
         });
 
         if (!account) {
