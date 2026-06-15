@@ -1383,8 +1383,8 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('allows About tab selection while positions queries are still loading', () => {
-      setupPredictMarketDetailsTest(
+    it('ignores About tab selection until positions queries finish loading', () => {
+      const { rerender } = setupPredictMarketDetailsTest(
         {},
         {},
         {
@@ -1399,6 +1399,27 @@ describe('PredictMarketDetails', () => {
         getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
+
+      expect(
+        screen.queryByText('predict.market_details.volume'),
+      ).not.toBeOnTheScreen();
+
+      const { usePredictPositions } = jest.requireMock(
+        '../../hooks/usePredictPositions',
+      );
+      usePredictPositions.mockImplementation(() => ({
+        data: [],
+        isLoading: false,
+        isRefetching: false,
+        error: null,
+        refetch: jest.fn(),
+      }));
+
+      rerender(<PredictMarketDetails />);
+      const readyAboutTab = screen.getByTestId(
+        getPredictMarketDetailsSelector.tabBarTab('about'),
+      );
+      fireEvent.press(readyAboutTab);
 
       expect(
         screen.getByText('predict.market_details.volume'),

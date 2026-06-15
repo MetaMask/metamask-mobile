@@ -41,6 +41,7 @@ interface PredictMarketDetailsTabContentProps {
 const PredictMarketDetailsTabContent = memo(
   ({
     activeTab,
+    tabsReady,
     tabs,
     market,
     activePositions,
@@ -59,7 +60,11 @@ const PredictMarketDetailsTabContent = memo(
     isResolvedExpanded,
     onResolvedExpandedToggle,
   }: PredictMarketDetailsTabContentProps) => {
-    const currentKey = activeTab === null ? tabs[0]?.key : tabs[activeTab]?.key;
+    if (activeTab === null || !tabsReady) {
+      return null;
+    }
+
+    const currentKey = tabs[activeTab]?.key;
 
     if (currentKey === 'about') {
       return (

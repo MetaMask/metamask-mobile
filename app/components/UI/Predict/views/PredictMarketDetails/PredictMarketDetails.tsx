@@ -293,6 +293,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const handleTabPress = (tabIndex: number) => {
+    if (!tabsReady) return;
     setUserSelectedTab(true);
     setActiveTab(tabIndex);
   };
