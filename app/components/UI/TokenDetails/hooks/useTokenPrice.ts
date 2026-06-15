@@ -119,6 +119,9 @@ export const useTokenPrice = ({
   >();
   const fetchIdRef = useRef(0);
 
+  // Stable token key to prevent unnecessary re-fetches
+  const tokenKey = `${chainId}-${itemAddress}-${currentCurrency}`;
+
   // For non-imported tokens (not in Redux), fetch price + market data in a
   // single call. This gives us both the exchange rate and the pre-computed
   // percentage changes from the spot-prices API, avoiding the historical-prices
@@ -174,14 +177,20 @@ export const useTokenPrice = ({
     };
 
     fetchData();
-  }, [
-    chainId,
-    itemAddress,
-    currentCurrency,
-    marketDataRate,
-    nativeCurrency,
-    conversionRateByTicker,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenKey, marketDataRate]);
+
+  // For time periods that use spot-prices percentage (1d, 1w, 1m, 1y),
+  // wait for spot-prices to load before showing data to avoid flicker.
+  // For other periods (3m, 3y, all), we must rely on historical prices.
+  const spotPctField = SPOT_PRICE_PCT_BY_TIME_PERIOD[timePeriod];
+  const needsSpotPriceFetch = marketDataRate === undefined && !!itemAddress;
+  // Wait for spot-prices data when: token not in Redux, time period uses spot %,
+  // and we haven't fetched yet (fetchedMarketData is still undefined).
+  const isWaitingForSpotPrice =
+    needsSpotPriceFetch &&
+    spotPctField !== undefined &&
+    fetchedMarketData === undefined;
 
   const exchangeRate = marketDataRate ?? fetchedRate;
 
@@ -218,7 +227,6 @@ export const useTokenPrice = ({
   // incorrect percentages.
   // For imported tokens, read from Redux (tokenMarketEntry); for non-imported
   // tokens, fall back to the fetched market data.
-  const spotPctField = SPOT_PRICE_PCT_BY_TIME_PERIOD[timePeriod];
   const spotPct = spotPctField
     ? ((tokenMarketEntry?.[spotPctField] as number | undefined) ??
       (fetchedMarketData?.[spotPctField] as number | undefined) ??
@@ -231,12 +239,16 @@ export const useTokenPrice = ({
     priceDiff = currentPrice - derivedComparePrice;
   }
 
+  // Combine loading states: wait for both historical prices AND spot-prices
+  // (when needed for the current time period) to avoid percentage flicker.
+  const combinedIsLoading = isLoading || isWaitingForSpotPrice;
+
   return {
     currentPrice,
     priceDiff,
     comparePrice,
     prices,
-    isLoading,
+    isLoading: combinedIsLoading,
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
