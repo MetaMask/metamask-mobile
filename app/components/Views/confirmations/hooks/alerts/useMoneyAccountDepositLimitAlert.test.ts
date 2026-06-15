@@ -48,14 +48,17 @@ describe('useMoneyAccountDepositLimitAlert', () => {
 
   it('returns alert when pending amount exceeds deposit limit', () => {
     const { result } = runHook({ pendingAmount: '150000' });
+    const expectedTitle = strings(
+      'alert_system.money_account_deposit_limit.title',
+      { amount: '$100,000' },
+    );
 
     expect(result.current).toEqual([
       {
         key: AlertKeys.MoneyAccountDepositLimit,
         field: RowAlertKey.Amount,
-        title: strings('alert_system.money_account_deposit_limit.title', {
-          amount: '$100,000',
-        }),
+        title: expectedTitle,
+        message: expectedTitle,
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -107,14 +110,17 @@ describe('useMoneyAccountDepositLimitAlert', () => {
     });
 
     const { result } = runHook({ pendingAmount: '60000' });
+    const expectedTitle = strings(
+      'alert_system.money_account_deposit_limit.title',
+      { amount: '$50,000' },
+    );
 
     expect(result.current).toEqual([
       {
         key: AlertKeys.MoneyAccountDepositLimit,
         field: RowAlertKey.Amount,
-        title: strings('alert_system.money_account_deposit_limit.title', {
-          amount: '$50,000',
-        }),
+        title: expectedTitle,
+        message: expectedTitle,
         severity: Severity.Danger,
         isBlocking: true,
       },

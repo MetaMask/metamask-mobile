@@ -42,13 +42,16 @@ export function useMoneyAccountDepositLimitAlert({
       return [];
     }
 
+    const title = strings('alert_system.money_account_deposit_limit.title', {
+      amount: formatUsdAmount(moneyAccountDepositLimit),
+    });
+
     return [
       {
         key: AlertKeys.MoneyAccountDepositLimit,
         field: RowAlertKey.Amount,
-        title: strings('alert_system.money_account_deposit_limit.title', {
-          amount: formatUsdAmount(moneyAccountDepositLimit),
-        }),
+        title,
+        message: title,
         severity: Severity.Danger,
         isBlocking: true,
       },
