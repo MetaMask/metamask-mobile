@@ -297,6 +297,43 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.totalFiatRaw).toBeUndefined();
   });
 
+  it('returns $0.00 (not unavailable) when the balance is zero and the rate is missing', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPrimaryMoneyAccount) {
+        return { address: MOCK_ADDRESS };
+      }
+      if (selector === selectTokenMarketData) {
+        // No price data available → musdFiatRate cannot be computed.
+        return {};
+      }
+      if (selector === selectCurrencyRates) {
+        return MOCK_CURRENCY_RATES;
+      }
+      if (selector === selectNetworkConfigurations) {
+        return MOCK_NETWORK_CONFIGURATIONS;
+      }
+      if (selector === selectCurrentCurrency) {
+        return 'usd';
+      }
+      return undefined;
+    });
+    mockUseQueries.mockReturnValue(
+      makeQueryResults({
+        musdBalance: { data: { balance: '0' }, isLoading: false },
+        musdEquivalentBalance: {
+          data: { balanceOfInAssets: '0' },
+          isLoading: false,
+        },
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.totalFiatFormatted).toBe('$0.00');
+    expect(result.current.totalFiatRaw).toBe('0');
+    expect(result.current.isBalanceUnavailable).toBe(false);
+  });
+
   it('returns formatted total fiat when all data is available', () => {
     // musdFiatRate = price(0.0005) * conversionRate(2000) = 1.0
     // musd balance 1 * 1.0 = $1.00, musdSHFvd balance 2 * 1.0 = $2.00, total = $3.00

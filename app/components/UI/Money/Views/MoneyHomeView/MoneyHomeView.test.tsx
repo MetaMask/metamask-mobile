@@ -559,14 +559,13 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('unavailable takes precedence over loading', () => {
+    it('renders the unavailable slot whenever there is no fresh balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
         isAggregatedBalanceLoading: true,
         isBalanceFetchError: true,
         isBalanceFetching: false,
-        isBalanceUnavailable: true,
         lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyPercent: 5,
@@ -584,9 +583,6 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_SKELETON),
       ).not.toBeOnTheScreen();
     });
 

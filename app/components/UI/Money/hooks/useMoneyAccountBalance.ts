@@ -175,15 +175,19 @@ const useMoneyAccountBalance = (
           : musdSHFvdDecimal;
 
       if (!musdFiatRate) {
+        // Undefined during loading or error so callers can distinguish from a genuine zero.
+        const settledTokenTotal =
+          isAggregatedBalanceLoading || isBalanceFetchError
+            ? undefined
+            : musdDecimal.plus(musdSHFvdDecimal);
         return {
           musdFiat: undefined,
           musdSHFvdFiat: undefined,
-          // Undefined during loading or error so callers can distinguish from a genuine zero.
-          tokenTotal:
-            isAggregatedBalanceLoading || isBalanceFetchError
-              ? undefined
-              : musdDecimal.plus(musdSHFvdDecimal),
-          totalFiat: undefined,
+          tokenTotal: settledTokenTotal,
+          // A zero balance is $0.00 regardless of the missing rate — 0 tokens
+          // convert to 0 fiat without one. Only a non-zero balance is genuinely
+          // unavailable when there's no rate to convert it.
+          totalFiat: settledTokenTotal?.isZero() ? new BigNumber(0) : undefined,
           withdrawableMusd: computedWithdrawableMusd,
         };
       }
@@ -257,11 +261,9 @@ const useMoneyAccountBalance = (
     currentCurrency,
   ]);
 
-  // True whenever the live balance cannot be shown — a fetch error or a
-  // missing formatting dependency once loading has settled.
-  const isBalanceUnavailable =
-    isBalanceFetchError ||
-    (!isAggregatedBalanceLoading && totalFiatFormatted === undefined);
+  // True whenever there is no fresh balance to show — still loading, a fetch
+  // error, or a missing formatting dependency (e.g. rate not ready).
+  const isBalanceUnavailable = totalFiatFormatted === undefined;
 
   // Last successfully fetched balance, but only when it still matches the
   // account and currency in view; otherwise it would be misleading.

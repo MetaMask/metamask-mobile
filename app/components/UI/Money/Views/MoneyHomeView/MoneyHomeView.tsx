@@ -113,7 +113,6 @@ const MoneyHomeView = () => {
     totalFiatRaw,
     vaultApyQuery,
     isAggregatedBalanceLoading,
-    isBalanceUnavailable,
     lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
@@ -174,17 +173,15 @@ const MoneyHomeView = () => {
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
-  } else if (isBalanceUnavailable) {
-    // Carry the cached balance (when valid for this account/currency) so it can
-    // be shown as a muted "last known" figure; otherwise the slot shows a dash.
+  } else {
+    // No fresh balance (loading, fetch error, or rate not ready). Carry the
+    // cached balance (when valid for this account/currency) so it renders as a
+    // muted "last known" figure; otherwise the slot shows a dash. Either way a
+    // BannerAlert accompanies it.
     displayState = {
       kind: 'unavailable',
       lastKnownValue: lastKnownTotalFiatFormatted,
     };
-  } else if (isAggregatedBalanceLoading) {
-    displayState = { kind: 'loading' };
-  } else {
-    displayState = { kind: 'unavailable' };
   }
 
   const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
@@ -733,6 +730,7 @@ const MoneyHomeView = () => {
               showMetalCard={hasMetalCard}
               isLinkDisabled={isLinking}
               cardBalance={cardBalance}
+              isBalanceStale={showBalanceUnavailableBanner}
               apy={apyPercent}
               analyticsScreen={CardScreens.MONEY_HOME}
               analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}

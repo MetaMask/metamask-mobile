@@ -9,7 +9,6 @@ const balanceState = (value = '$0.00'): MoneyBalanceDisplayState => ({
   kind: 'balance',
   value,
 });
-const loadingState: MoneyBalanceDisplayState = { kind: 'loading' };
 const unavailableState = (
   lastKnownValue?: string,
 ): MoneyBalanceDisplayState => ({
@@ -44,30 +43,6 @@ describe('MoneyBalanceSummary', () => {
     expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
       '$123.45',
     );
-  });
-
-  it('renders the balance skeleton instead of the balance value when loading', () => {
-    const { getByTestId, queryByTestId } = render(
-      <MoneyBalanceSummary apy={4} displayState={loadingState} />,
-    );
-
-    expect(
-      getByTestId(MoneyBalanceSummaryTestIds.BALANCE_SKELETON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders the APY skeleton instead of the APY text when loading', () => {
-    const { getByTestId, queryByTestId } = render(
-      <MoneyBalanceSummary apy={4} displayState={loadingState} />,
-    );
-
-    expect(
-      getByTestId(MoneyBalanceSummaryTestIds.APY_SKELETON),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
   });
 
   it('does not render the info button when no handler is provided', () => {
@@ -125,21 +100,6 @@ describe('MoneyBalanceSummary', () => {
     expect(
       getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('hides the APY tooltip button when in loading state', () => {
-    const mockInfoPress = jest.fn();
-    const { queryByTestId } = render(
-      <MoneyBalanceSummary
-        apy={4}
-        displayState={loadingState}
-        onApyInfoPress={mockInfoPress}
-      />,
-    );
-
-    expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-    ).not.toBeOnTheScreen();
   });
 
   it('hides the APY text and info button when apy is negative', () => {

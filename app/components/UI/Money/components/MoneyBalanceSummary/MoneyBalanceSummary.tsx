@@ -9,7 +9,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -31,36 +30,17 @@ interface MoneyBalanceSummaryProps {
   onApyInfoPress?: () => void;
 }
 
-const BalanceSkeleton = () => (
-  <Skeleton
-    height={48}
-    width={160}
-    twClassName="mb-2 rounded-md"
-    testID={MoneyBalanceSummaryTestIds.BALANCE_SKELETON}
-  />
-);
-
 const MoneyBalanceSummary = ({
   displayState,
   apy,
   onApyInfoPress,
 }: MoneyBalanceSummaryProps) => {
   // APY + mUSD label stays visible alongside the balance and in the
-  // unavailable states (dash / last known figure), but not while loading.
+  // unavailable states (dash / last known figure).
   const showApy =
     displayState.kind === 'balance' || displayState.kind === 'unavailable';
 
   const renderApySlot = () => {
-    if (displayState.kind === 'loading') {
-      return (
-        <Skeleton
-          height={24}
-          width={94}
-          twClassName="rounded-md"
-          testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
-        />
-      );
-    }
     if (!showApy || !isPositiveNumberOrZero(apy)) {
       return null;
     }
@@ -97,8 +77,6 @@ const MoneyBalanceSummary = ({
 
   const renderBalanceSlot = () => {
     switch (displayState.kind) {
-      case 'loading':
-        return <BalanceSkeleton />;
       case 'balance':
         return (
           <Text
