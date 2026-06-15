@@ -7,7 +7,8 @@ import React, {
 } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
@@ -987,6 +988,15 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
+  const dispatch = useDispatch();
+  // Announce to the saga layer (deeplink pipeline) that post-login screens
+  // are now registered with React Navigation. Before this dispatch, a
+  // `navigate('Wallet'|'RampTokenSelection'|...)` call would be silently
+  // dropped because the target screen isn't in the navigation state yet.
+  useEffect(() => {
+    dispatch(mainNavigatorReady());
+  }, [dispatch]);
+
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   // Get feature flag state for conditional Perps screen registration
