@@ -107,6 +107,31 @@ describe('enrichTokenBalance', () => {
       });
     });
 
+    it('prices a lowercase-address ERC-20 against checksum-keyed market data', () => {
+      const deps = withUsdcBalance({
+        tokenMarketData: {
+          '0x1': { [toChecksumAddress(USDC)]: { price: 0.0005 } },
+        },
+      });
+
+      const result = enrichTokenBalance(
+        token({
+          address: USDC.toLowerCase(),
+          chainId: '0x1',
+          symbol: 'USDC',
+          decimals: 6,
+        }),
+        deps,
+      );
+
+      expect(result).toMatchObject({
+        balance: '250.0',
+        balanceFiat: '$250.00',
+        currencyExchangeRate: 1,
+        tokenFiatAmount: 250,
+      });
+    });
+
     it('drops a held token with no market price (strict)', () => {
       const result = enrichTokenBalance(
         token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),

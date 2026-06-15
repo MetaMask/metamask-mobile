@@ -9,6 +9,7 @@ import { BtcScope, TrxScope } from '@metamask/keyring-api';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { calcTokenFiatRate } from '../../../../../../UI/Bridge/utils/exchange-rates';
+import { safeToChecksumAddress } from '../../../../../../../util/address';
 import type { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
 import type { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
 import {
@@ -169,6 +170,28 @@ const readNonEvmBalance = (
 };
 
 /**
+ * Returns a copy of the candidate whose EVM ERC-20 address is checksummed so it
+ * matches the keys `calcTokenFiatRate` uses to look up `tokenMarketData` (which
+ * is keyed by checksummed addresses). Pay-with candidates carry lowercase
+ * addresses, so without this normalization held ERC-20s with valid prices
+ * resolve to no rate and get dropped from the strict (Pay with) picker.
+ * Non-EVM (CAIP asset id) and native addresses are left untouched.
+ */
+const toPricedCandidate = (candidate: BridgeToken): BridgeToken => {
+  if (
+    isNonEvmChainId(candidate.chainId) ||
+    isNativeAddress(candidate.address)
+  ) {
+    return candidate;
+  }
+
+  const checksummedAddress = safeToChecksumAddress(candidate.address);
+  return checksummedAddress
+    ? { ...candidate, address: checksummedAddress }
+    : candidate;
+};
+
+/**
  * Prices a single token candidate from cached Redux balances, returning the
  * shared balance fields (or `null` when the token should be omitted). Balance
  * reading is QuickBuy-specific (EVM natives / ERC-20s via cached balances,
@@ -195,7 +218,7 @@ export const enrichTokenBalance = (
   if (isNaN(balanceNum) || balanceNum <= 0) return dropOrZero();
 
   const exchangeRate = calcTokenFiatRate({
-    token: candidate,
+    token: toPricedCandidate(candidate),
     evmMultiChainMarketData: deps.tokenMarketData,
     networkConfigurationsByChainId: (deps.allNetworkConfigs ?? {}) as Record<
       Hex,
