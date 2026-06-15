@@ -114,6 +114,22 @@ sqlite3 ~/.tool-usage-collection/events.db \
   "SELECT tool_name, tool_type, event_type, agent_vendor, created_at FROM events ORDER BY created_at DESC LIMIT 20;"
 ```
 
+## Demo: pushing a metric to Prometheus
+
+`push-metrics-demo.ts` is a standalone, minimal example of how to remote-write a
+metric to a Prometheus Pushgateway (e.g. for exploring the local usage data in
+Grafana). It is **not wired into the build** — it's a reference you can run by hand.
+
+```bash
+cp scripts/tooling/.env.example scripts/tooling/.env   # then fill in URL + creds
+yarn tsx scripts/tooling/push-metrics-demo.ts
+```
+
+It loads credentials from `scripts/tooling/.env` (gitignored), builds one gauge in
+Prometheus text exposition format, and `POST`s it with basic auth to
+`<PUSHGATEWAY_URL>/metrics/job/<job>/instance/<hostname>`. Swap the hard-coded
+sample metric for values derived from the CSV log to push real usage data.
+
 ## Using dev-tooling-explorer
 
 [dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) is a local web UI for browsing the SQLite database written by the collection hooks. It lets you filter events by repo, tool, agent vendor, or date; view per-session history; explore usage charts; and prune or reset the database.
