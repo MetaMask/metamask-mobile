@@ -322,8 +322,7 @@ describe('ActivityList transformations', () => {
         },
       });
       expect(
-        'assetId' in
-          (result.pages[0].data[0].data as { token: object }).token,
+        'assetId' in (result.pages[0].data[0].data as { token: object }).token,
       ).toBe(false);
     });
 
