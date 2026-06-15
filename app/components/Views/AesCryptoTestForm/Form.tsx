@@ -2,15 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import ClipboardText from './Clipboard';
 import {
   Text,
   TextVariant,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 const TestForm = ({
@@ -99,13 +98,14 @@ const TestForm = ({
         </>
       )}
       <Button
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         onPress={executeTest}
-        label={buttonLabel}
         size={ButtonSize.Md}
         style={styles.button}
         testID={callbackTestId}
-      />
+      >
+        {buttonLabel}
+      </Button>
     </SafeAreaView>
   );
 };

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.83.0",
+  "version": "8.0.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -314,7 +314,7 @@
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^3.1.0",
-    "@metamask/profile-sync-controller": "^28.1.0",
+    "@metamask/profile-sync-controller": "^28.2.0",
     "@metamask/ramps-controller": "^14.1.0",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
@@ -350,7 +350,7 @@
     "@metamask/transaction-pay-controller": "^23.6.0",
     "@metamask/tron-wallet-snap": "^1.25.6",
     "@metamask/utils": "^11.11.0",
-    "@metamask/wallet": "^2.0.0",
+    "@metamask/wallet": "^3.0.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.32.2",

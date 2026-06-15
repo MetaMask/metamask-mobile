@@ -4,18 +4,17 @@ import { Linking, View } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
 import styleSheet from './DeprecatedNetworkModal.styles';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { CONNECTING_TO_DEPRECATED_NETWORK } from '../../../constants/urls';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { CONNECTING_TO_DEPRECATED_NETWORK } from '../../../constants/urls';
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 const DeprecatedNetworkModal = () => {
@@ -51,20 +50,19 @@ const DeprecatedNetworkModal = () => {
       </Text>
       <View style={{ ...styles.footer }}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={dismissModal}
           style={styles.button}
-          label={
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              style={styles.buttonLabel}
-            >
-              {strings('network_information.got_it')}
-            </Text>
-          }
-        />
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            style={styles.buttonLabel}
+          >
+            {strings('network_information.got_it')}
+          </Text>
+        </Button>
       </View>
     </BottomSheet>
   );
