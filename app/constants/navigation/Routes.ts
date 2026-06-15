@@ -351,6 +351,7 @@ const Routes = {
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
+    HW_QR_SCANNER: 'HardwareWalletQRScanner',
   },
   PERPS: {
     ROOT: 'Perps',
@@ -565,6 +566,8 @@ const Routes = {
     CONFIRM: 'AgenticCliDashboardConfirmation',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  CREATE_PRICE_ALERT: 'CreatePriceAlert',
+  MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
