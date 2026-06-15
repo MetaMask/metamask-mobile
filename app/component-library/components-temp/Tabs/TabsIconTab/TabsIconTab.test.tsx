@@ -8,6 +8,7 @@ import { TabIconAnimationContext } from './TabsIconAnimationContext';
 import { IconName } from '../../../components/Icons/Icon/Icon.types';
 
 describe('TabsIconTab', () => {
+  const includeHiddenElements = { includeHiddenElements: true };
   const defaultProps = {
     label: 'Portfolio',
     iconName: IconName.PieChart,
@@ -29,7 +30,7 @@ describe('TabsIconTab', () => {
 
     it('displays the label text', () => {
       const { getByText } = render(<TabsIconTab {...defaultProps} />);
-      expect(getByText('Portfolio')).toBeOnTheScreen();
+      expect(getByText('Portfolio', includeHiddenElements)).toBeOnTheScreen();
     });
   });
 
@@ -69,10 +70,10 @@ describe('TabsIconTab', () => {
 
     it('does not call onPress when disabled', () => {
       const mockOnPress = jest.fn();
-      const { getByText } = render(
+      const { getByLabelText } = render(
         <TabsIconTab {...defaultProps} onPress={mockOnPress} isDisabled />,
       );
-      fireEvent.press(getByText('Portfolio'));
+      fireEvent.press(getByLabelText('Portfolio'));
       expect(mockOnPress).not.toHaveBeenCalled();
     });
   });
@@ -154,7 +155,7 @@ describe('TabsIconTab', () => {
           <TabsIconTab {...defaultProps} />
         </TabIconAnimationContext.Provider>,
       );
-      expect(getByText('Portfolio')).toBeOnTheScreen();
+      expect(getByText('Portfolio', includeHiddenElements)).toBeOnTheScreen();
     });
   });
 });

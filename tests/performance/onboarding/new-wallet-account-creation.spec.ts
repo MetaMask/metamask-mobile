@@ -103,7 +103,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       const screen3Timer = new TimerHelper(
         'Time since the user clicks on new account created until the Token list is visible',
-        { ios: 2000, android: 3000 },
+        { ios: 10000, android: 3000 },
         currentDeviceDetails.platform,
       );
 

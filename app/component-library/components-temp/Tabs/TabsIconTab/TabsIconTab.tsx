@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useContext, useRef, useCallback } from 'react';
-import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import React, { useContext, useCallback } from 'react';
+import { Pressable, StyleProp, ViewStyle } from 'react-native';
 import Reanimated, {
   useAnimatedStyle,
   interpolate,
@@ -45,7 +45,6 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
   ...pressableProps
 }) => {
   const tw = useTailwind();
-  const viewRef = useRef<View>(null);
   const { iconCollapseProgress } = useContext(TabIconAnimationContext);
 
   // Drive icon's layout box (height + marginBottom) and opacity from a Reanimated
@@ -82,73 +81,69 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
   );
 
   return (
-    <View
-      ref={viewRef}
+    <Pressable
       onLayout={handleOnLayout}
-      style={[shouldFillWidth ? tw.style('flex-1') : tw.style('flex-shrink-0')]}
+      style={[
+        shouldFillWidth ? tw.style('flex-1') : tw.style('flex-shrink-0'),
+        tw.style(
+          'px-0 pt-1 pb-2 flex-col items-center justify-center relative',
+          isDisabled && 'opacity-50',
+        ),
+        externalStyle as StyleProp<ViewStyle>,
+      ]}
+      onPress={isDisabled ? undefined : onPress}
+      disabled={isDisabled}
+      testID={testID}
+      accessible={accessible ?? true}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityRole={accessibilityRole ?? 'button'}
+      accessibilityState={{
+        ...accessibilityState,
+        disabled: isDisabled,
+        selected: isActive,
+      }}
+      {...pressableProps}
     >
-      <Pressable
-        style={[
-          tw.style(
-            'px-0 pt-1 pb-2 flex-col items-center justify-center relative',
-            isDisabled && 'opacity-50',
-          ),
-          externalStyle as StyleProp<ViewStyle>,
-        ]}
-        onPress={isDisabled ? undefined : onPress}
-        disabled={isDisabled}
-        testID={testID}
-        accessible={accessible ?? true}
-        accessibilityLabel={accessibilityLabel ?? label}
-        accessibilityRole={accessibilityRole ?? 'button'}
-        accessibilityState={{
-          ...accessibilityState,
-          disabled: isDisabled,
-          selected: isActive,
-        }}
-        {...pressableProps}
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
       >
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          accessible={false}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <Reanimated.View style={iconAnimatedStyle}>
-            <Icon
-              name={iconName}
-              size={IconSize.Lg}
-              color={
-                isDisabled
-                  ? IconColor.Muted
-                  : isActive
-                    ? IconColor.Default
-                    : IconColor.Alternative
-              }
-              {...iconProps}
-            />
-          </Reanimated.View>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={
-              isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
-            }
-            twClassName={
+        <Reanimated.View style={iconAnimatedStyle}>
+          <Icon
+            name={iconName}
+            size={IconSize.Lg}
+            color={
               isDisabled
-                ? 'text-muted'
+                ? IconColor.Muted
                 : isActive
-                  ? 'text-default'
-                  : 'text-alternative'
+                  ? IconColor.Default
+                  : IconColor.Alternative
             }
-            numberOfLines={1}
-          >
-            {label}
-          </Text>
-        </Box>
-      </Pressable>
-    </View>
+            {...iconProps}
+          />
+        </Reanimated.View>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={
+            isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
+          }
+          twClassName={
+            isDisabled
+              ? 'text-muted'
+              : isActive
+                ? 'text-default'
+                : 'text-alternative'
+          }
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+      </Box>
+    </Pressable>
   );
 };
 

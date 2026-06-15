@@ -67,7 +67,7 @@ perfTest.describe(
         await LoginView.tapLoginButton();
         await timer1.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            () => asPlaywrightElement(WalletView.container),
+            () => asPlaywrightElement(WalletView.tokensSection),
             {
               description: 'Wallet balance should be visible',
               fastAppiumLookup: true,

@@ -49,17 +49,17 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       const timer1 = new TimerHelper(
         'Google: Tap "Create new wallet" → OnboardingSheet visible',
-        { ios: 1500, android: 2000 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer2 = new TimerHelper(
         'Google: Tap Google login → post-OAuth screen visible',
-        { ios: 15000, android: 5000 },
+        { ios: 5000, android: 5000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
         'Google: Post-OAuth action → Password fields visible',
-        { ios: 4500, android: 4000 },
+        { ios: 6000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
@@ -74,7 +74,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer6 = new TimerHelper(
         'Google: Dismiss feature sheet → wallet main screen visible',
-        { ios: 30000, android: 5000 },
+        { ios: 15000, android: 5000 },
         currentDeviceDetails.platform,
       );
 

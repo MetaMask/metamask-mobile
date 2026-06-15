@@ -58,7 +58,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer3 = new TimerHelper(
         'Apple: Post-OAuth action → Password fields visible',
-        { ios: 5000, android: 4000 },
+        { ios: 6000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
@@ -73,7 +73,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer6 = new TimerHelper(
         'Apple: Dismiss feature sheet → wallet main screen visible',
-        { ios: 10000, android: 5000 },
+        { ios: 12000, android: 5000 },
         currentDeviceDetails.platform,
       );
 

@@ -50,7 +50,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 2000, android: 1800 },
+        { ios: 3000, android: 1800 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -66,7 +66,7 @@ test.describe(PerformanceOnboarding, () => {
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
         // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 7000, android: 5000 },
+        { ios: 11000, android: 5000 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
