@@ -249,11 +249,18 @@ const LineOutcomeCard = memo(
 
     const [uncontrolledSelectedIdx, setUncontrolledSelectedIdx] =
       useState(initialSelectedIdx);
+    const [animateLineSelection, setAnimateLineSelection] = useState(false);
+    const pendingUserLineSelectionRef = React.useRef(false);
 
     useEffect(() => {
       if (selectedLineIndex === undefined) {
         setUncontrolledSelectedIdx(initialSelectedIdx);
       }
+      if (pendingUserLineSelectionRef.current) {
+        pendingUserLineSelectionRef.current = false;
+        return;
+      }
+      setAnimateLineSelection(false);
     }, [initialSelectedIdx, selectedLineIndex]);
 
     const resolvedSelectedIdx =
@@ -265,6 +272,8 @@ const LineOutcomeCard = memo(
 
     const handleSelectLine = useCallback(
       (_line: number, indexInLines: number) => {
+        pendingUserLineSelectionRef.current = true;
+        setAnimateLineSelection(true);
         if (selectedLineIndex === undefined) {
           setUncontrolledSelectedIdx(indexInLines);
         }
@@ -293,6 +302,7 @@ const LineOutcomeCard = memo(
         lines={lines}
         selectedLine={lines[safeSelectedIdx]}
         selectedIndex={safeSelectedIdx}
+        animateLineSelection={animateLineSelection}
         onSelectLine={handleSelectLine}
         testID={testID}
       />

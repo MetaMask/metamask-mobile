@@ -2,11 +2,11 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictSportLineSelector from './PredictSportLineSelector';
 import { PREDICT_SPORT_LINE_SELECTOR_TEST_IDS } from './PredictSportLineSelector.testIds';
-const mockWithTiming = jest.fn((v: number) => v);
 
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
   const { useRef } = jest.requireActual('react');
+  const withTiming = jest.fn((v: number) => v);
   return {
     __esModule: true,
     default: {
@@ -19,7 +19,7 @@ jest.mock('react-native-reanimated', () => {
       return ref.current;
     },
     useAnimatedStyle: (fn: () => object) => fn(),
-    withTiming: mockWithTiming,
+    withTiming,
     Easing: { inOut: (fn: unknown) => fn, ease: jest.fn() },
   };
 });
@@ -47,6 +47,9 @@ const arrowRightId = `${TEST_ID}-${IDS.ARROW_RIGHT}`;
 const lineId = (index: number, value: number) =>
   `${TEST_ID}-${IDS.LINE_PREFIX}${index}-${value}`;
 
+const getMockWithTiming = () =>
+  jest.requireMock('react-native-reanimated').withTiming as jest.Mock;
+
 describe('PredictSportLineSelector', () => {
   const defaultProps = {
     lines: [4, 4.5, 5, 5.5, 6],
@@ -57,6 +60,7 @@ describe('PredictSportLineSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    getMockWithTiming().mockClear();
   });
 
   it('renders all lines', () => {
@@ -205,6 +209,52 @@ describe('PredictSportLineSelector', () => {
         <PredictSportLineSelector {...defaultProps} selectedLine={5.5} />,
       );
     }).not.toThrow();
+  });
+
+  it('does not animate selected index changes when animation is disabled', () => {
+    const { rerender, UNSAFE_getAllByType } = render(
+      <PredictSportLineSelector {...defaultProps} animateSelection={false} />,
+    );
+    const Box = jest.requireActual('@metamask/design-system-react-native').Box;
+    const layoutBox = UNSAFE_getAllByType(Box).find(
+      (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+    );
+    act(() => {
+      layoutBox?.props.onLayout({
+        nativeEvent: { layout: { width: 300 } },
+      });
+    });
+    getMockWithTiming().mockClear();
+
+    rerender(
+      <PredictSportLineSelector
+        {...defaultProps}
+        selectedLine={5.5}
+        animateSelection={false}
+      />,
+    );
+
+    expect(getMockWithTiming()).not.toHaveBeenCalled();
+  });
+
+  it('animates selected index changes when animation is enabled', () => {
+    const { rerender, UNSAFE_getAllByType } = render(
+      <PredictSportLineSelector {...defaultProps} />,
+    );
+    const Box = jest.requireActual('@metamask/design-system-react-native').Box;
+    const layoutBox = UNSAFE_getAllByType(Box).find(
+      (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+    );
+    act(() => {
+      layoutBox?.props.onLayout({
+        nativeEvent: { layout: { width: 300 } },
+      });
+    });
+    getMockWithTiming().mockClear();
+
+    rerender(<PredictSportLineSelector {...defaultProps} selectedLine={5.5} />);
+
+    expect(getMockWithTiming()).toHaveBeenCalled();
   });
 
   it('fires haptic feedback on line tap', () => {

@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
@@ -35,20 +35,69 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
   useGestureHandlerScrollView = false,
 }) => {
   const tw = useTailwind();
+  const activeChipIndex = useMemo(
+    () => chips.findIndex((chip) => chip.key === activeChipKey),
+    [activeChipKey, chips],
+  );
   const {
     scrollViewRef,
     handleScrollViewLayout,
     handleChipLayout,
     scrollToChipAtIndex,
   } = useChipScrollList(chips.length);
+  const pendingUserSelectedChipKeyRef = useRef<string | null>(null);
 
   const handlePress = useCallback(
     (key: string, index: number) => {
+      pendingUserSelectedChipKeyRef.current =
+        key === activeChipKey ? null : key;
       onChipSelect(key);
-      scrollToChipAtIndex(index);
+      scrollToChipAtIndex(index, true);
     },
-    [onChipSelect, scrollToChipAtIndex],
+    [activeChipKey, onChipSelect, scrollToChipAtIndex],
   );
+
+  const syncActiveChipScroll = useCallback(
+    (animated = false) => {
+      if (activeChipIndex === -1) {
+        return;
+      }
+
+      scrollToChipAtIndex(activeChipIndex, animated);
+    },
+    [activeChipIndex, scrollToChipAtIndex],
+  );
+
+  const handleContainerLayout = useCallback(
+    (event: Parameters<typeof handleScrollViewLayout>[0]) => {
+      handleScrollViewLayout(event);
+      if (pendingUserSelectedChipKeyRef.current) {
+        return;
+      }
+      syncActiveChipScroll(false);
+    },
+    [handleScrollViewLayout, syncActiveChipScroll],
+  );
+
+  const handleChipItemLayout = useCallback(
+    (index: number, event: Parameters<typeof handleChipLayout>[1]) => {
+      handleChipLayout(index, event);
+      if (pendingUserSelectedChipKeyRef.current) {
+        return;
+      }
+      syncActiveChipScroll(false);
+    },
+    [handleChipLayout, syncActiveChipScroll],
+  );
+
+  useEffect(() => {
+    const shouldAnimate =
+      pendingUserSelectedChipKeyRef.current === activeChipKey;
+    syncActiveChipScroll(shouldAnimate);
+    if (shouldAnimate) {
+      pendingUserSelectedChipKeyRef.current = null;
+    }
+  }, [activeChipKey, syncActiveChipScroll]);
 
   if (chips.length === 0) {
     return null;
@@ -60,7 +109,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
       <Pressable
         key={chip.key}
         onPress={() => handlePress(chip.key, index)}
-        onLayout={(event) => handleChipLayout(index, event)}
+        onLayout={(event) => handleChipItemLayout(index, event)}
         style={tw.style(
           chipTwClassName,
           isActive ? 'bg-icon-default' : 'bg-muted',
@@ -97,7 +146,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
     horizontal: true as const,
     showsHorizontalScrollIndicator: false,
     contentContainerStyle: tw.style('px-4 gap-2'),
-    onLayout: handleScrollViewLayout,
+    onLayout: handleContainerLayout,
   };
 
   return (

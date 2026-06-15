@@ -28,6 +28,7 @@ interface PredictSportLineSelectorProps {
   lines: number[];
   selectedLine: number;
   selectedIndex?: number;
+  animateSelection?: boolean;
   onSelectLine: (line: number, index: number) => void;
   testID?: string;
 }
@@ -40,6 +41,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   lines,
   selectedLine,
   selectedIndex: selectedIndexProp,
+  animateSelection = true,
   onSelectLine,
   testID,
 }) => {
@@ -72,11 +74,23 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   useEffect(() => {
     if (containerWidth.value === 0) return;
 
-    translateX.value = withTiming(
-      computeTranslateX(selectedIndex, containerWidth.value),
-      { duration: ANIMATION_DURATION, easing: Easing.inOut(Easing.ease) },
+    const nextTranslateX = computeTranslateX(
+      selectedIndex,
+      containerWidth.value,
     );
-  }, [selectedIndex, computeTranslateX, containerWidth, translateX]);
+    translateX.value = animateSelection
+      ? withTiming(nextTranslateX, {
+          duration: ANIMATION_DURATION,
+          easing: Easing.inOut(Easing.ease),
+        })
+      : nextTranslateX;
+  }, [
+    animateSelection,
+    selectedIndex,
+    computeTranslateX,
+    containerWidth,
+    translateX,
+  ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
