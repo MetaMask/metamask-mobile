@@ -359,6 +359,7 @@ jest.mock('../../app/core/Engine', () => {
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
+        trackCategoryClicked: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
