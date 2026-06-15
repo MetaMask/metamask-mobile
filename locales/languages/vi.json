@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Không đủ tiền",
-      "message": "Bạn không có đủ %{nativeCurrency} trong tài khoản để thanh toán phí mạng.",
-      "buy_action": "Mua %{nativeCurrency}"
+      "message": "Bạn không có đủ {{nativeCurrency}} trong tài khoản để thanh toán phí mạng.",
+      "buy_action": "Mua {{nativeCurrency}}"
     },
     "signed_or_submitted": {
       "title": "Giao dịch đang diễn ra",
@@ -142,7 +142,7 @@
       "message": "Địa chỉ người nhận có thể không hỗ trợ chuyển khoản token trực tiếp, điều này có thể dẫn đến mất tiền. Chỉ tiếp tục nếu bạn chắc chắn hợp đồng này có thể nhận khoản chuyển của bạn."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Mạng cụ thể này yêu cầu duy trì số dư dự trữ tối thiểu là %{minBalance} %{nativeTokenSymbol} trong tài khoản của bạn.",
+      "message": "Mạng cụ thể này yêu cầu duy trì số dư dự trữ tối thiểu là {{minBalance}} {{nativeTokenSymbol}} trong tài khoản của bạn.",
       "title": "Yêu cầu số dư dự trữ"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "Quên mật khẩu?",
     "cant_proceed": "Bạn không thể tiếp tục đến khi gõ từ \"Xóa\". Bằng thao tác này, bạn đang chọn xóa ví hiện tại của bạn.",
     "invalid_password": "Mật khẩu không đúng, vui lòng thử lại.",
-    "type_delete": "Nhập ‘%{erase}’ để xác nhận",
+    "type_delete": "Nhập ‘{{erase}}’ để xác nhận",
     "erase_my": "Có, đặt lại ví",
     "cancel": "Hủy",
     "are_you_sure": "Bạn có chắc chắn không?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "Chúng tôi không thể hủy lệnh của bạn. Vui lòng thử lại."
     },
     "webview_modal": {
-      "error": "Webview gặp lỗi: %{code}"
+      "error": "Webview gặp lỗi: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "Nạp {{currency}} không thành công! Vui lòng thử lại, chúng tôi chân thành xin lỗi vì sự bất tiện này!",
@@ -3564,13 +3564,13 @@
     "general_heading": "Chung",
     "privacy_heading": "Quyền riêng tư",
     "failed_to_fetch_chain_id": "Không thể tìm nạp ID chuỗi. URL của RPC của bạn có chính xác không?",
-    "endpoint_returned_different_chain_id": "Điểm cuối trả về một ID chuỗi khác: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "Điểm cuối trả về một ID chuỗi khác: {{chainIdReturned}}",
     "chain_id_required": "ID chuỗi là bắt buộc. Nó phải khớp với ID chuỗi do mạng trả về. Bạn có thể nhập số thập lục phân có tiền tố là số thập phân hoặc '0x'.",
     "invalid_hex_number": "Số thập lục phân không hợp lệ.",
     "invalid_hex_number_leading_zeros": "Số thập lục phân không hợp lệ. Hãy xóa bất kỳ số 0 nào nằm ở đầu.",
     "invalid_number": "Số không hợp lệ. Nhập số thập lục phân có tiền tố là số thập phân hoặc \"0x\".",
     "invalid_number_leading_zeros": "Số thập lục phân không hợp lệ. Hãy xóa bất kỳ số 0 nào nằm ở đầu.",
-    "invalid_number_range": "Số không hợp lệ. Hãy nhập một số từ 1 đến %{maxSafeChainId}",
+    "invalid_number_range": "Số không hợp lệ. Hãy nhập một số từ 1 đến {{maxSafeChainId}}",
     "hide_zero_balance_tokens_title": "Ẩn token không có số dư",
     "hide_zero_balance_tokens_desc": "Không hiển thị các Token không có số dư trong danh sách Token của bạn.",
     "haptic_feedback_title": "Phản hồi rung",
@@ -4444,8 +4444,8 @@
     "confusable_msg": "Chúng tôi đã phát hiện thấy một ký tự nhầm lẫn trong tên ENS. Hãy kiểm tra tên ENS để tránh nguy cơ bị lừa đảo.",
     "similar_to": "tương tự như",
     "contains_zero_width": "chứa ký tự có chiều rộng bằng không",
-    "dapp_suggested_gas": "Phí gas này được %{origin} đề xuất. Nó đang sử dụng phương pháp ước tính phí gas cũ và có thể không chính xác. Tuy nhiên, việc sửa phí gas có thể gây ra sự cố cho giao dịch của bạn. Vui lòng liên hệ %{origin} nếu bạn có câu hỏi.",
-    "dapp_suggested_eip1559_gas": "Phí gas này được %{origin} đề xuất. Việc ghi đè phí gas có thể gây ra sự cố cho giao dịch của bạn. Vui lòng liên hệ %{origin} nếu bạn có câu hỏi.",
+    "dapp_suggested_gas": "Phí gas này được {{origin}} đề xuất. Nó đang sử dụng phương pháp ước tính phí gas cũ và có thể không chính xác. Tuy nhiên, việc sửa phí gas có thể gây ra sự cố cho giao dịch của bạn. Vui lòng liên hệ {{origin}} nếu bạn có câu hỏi.",
+    "dapp_suggested_eip1559_gas": "Phí gas này được {{origin}} đề xuất. Việc ghi đè phí gas có thể gây ra sự cố cho giao dịch của bạn. Vui lòng liên hệ {{origin}} nếu bạn có câu hỏi.",
     "address_invalid": "Địa chỉ người nhận không hợp lệ.",
     "ens_not_found": "Chưa đặt địa chỉ cho tên này.",
     "unknown_qr_code": "Mã QR không hợp lệ. Vui lòng thử lại.",
@@ -6216,7 +6216,7 @@
     }
   },
   "invalid_network": {
-    "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
+    "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n {{network}} \n.",
     "message": "Để bảo vệ bạn khỏi các nhà cung cấp mạng độc hại hoặc bị lỗi, tất cả các mạng tùy chỉnh hiện bắt buộc phải có ID chuỗi.",
     "hint": "Bạn có thể tìm ID chuỗi của hầu hết mạng phổ biến trên",
     "edit_network_button": "Sửa mạng",
@@ -6248,7 +6248,7 @@
     "cancel": "Hủy",
     "approve": "Phê duyệt",
     "unrecognized_chain": "Không thể nhận diện mạng tùy chỉnh này",
-    "invalid_chain": "%{rpcUrl} cho ID chuỗi này không khớp với danh sách chainid.network",
+    "invalid_chain": "{{rpcUrl}} cho ID chuỗi này không khớp với danh sách chainid.network",
     "alert_recommend": "Chúng tôi khuyên bạn nên",
     "alert_verify": "xác minh ID chuỗi",
     "warning_subtext_new": {

@@ -55,7 +55,6 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
   getPreviousGasFromController,
   speedUpTransaction,
-  updateIncomingTransactions,
 } from '../../../util/transaction-controller';
 import {
   getGasValuesForReplacement,
@@ -405,9 +404,6 @@ class Transactions extends PureComponent {
 
   onRefresh = async () => {
     this.setState({ refreshing: true });
-
-    await updateIncomingTransactions();
-
     this.setState({ refreshing: false });
   };
 

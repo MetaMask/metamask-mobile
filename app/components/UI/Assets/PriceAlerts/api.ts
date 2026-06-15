@@ -1,0 +1,58 @@
+import { useMutation } from '@tanstack/react-query';
+import AppConstants from '../../../../core/AppConstants';
+import Engine from '../../../../core/Engine';
+import type { SaveAlertParams, UpdateAlertParams } from './constants';
+
+const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/alerts`;
+
+async function authenticatedFetch(
+  url: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  const token = await Engine.context.AuthenticationController.getBearerToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      ...options.headers,
+    },
+    credentials: 'omit',
+  });
+}
+
+export const fetchAlerts = (assetId: string): Promise<Response> =>
+  authenticatedFetch(`${ALERTS_URL}?asset=${encodeURIComponent(assetId)}`);
+
+export const createAlert = (params: SaveAlertParams): Promise<Response> =>
+  authenticatedFetch(ALERTS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+export const deleteAlert = (id: string): Promise<Response> =>
+  authenticatedFetch(`${ALERTS_URL}/${id}`, { method: 'DELETE' });
+
+export const updateAlert = (
+  id: string,
+  params: UpdateAlertParams,
+): Promise<Response> =>
+  authenticatedFetch(`${ALERTS_URL}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+export const useSavePriceAlert = () => {
+  const { mutateAsync, isPending } = useMutation<void, Error, SaveAlertParams>({
+    mutationFn: async (params) => {
+      const response = await createAlert(params);
+      if (!response.ok) {
+        const body = await response.text().catch(() => '(no body)');
+        throw new Error(`HTTP ${response.status}: ${body}`);
+      }
+    },
+  });
+  return { save: mutateAsync, isSubmitting: isPending };
+};
