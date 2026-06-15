@@ -332,6 +332,12 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
+      if (isOnboardingDeeplink(deeplink)) {
+        // Wallet creation dispatches LOGIN before Wallet Setup Completed.
+        // Keep the install deeplink until ChoosePassword reads UTMs from it.
+        continue;
+      }
+
       if (isSDKServiceDeeplink(deeplink)) {
         yield call(waitForSDKServicesInitialization);
       }

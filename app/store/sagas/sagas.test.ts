@@ -857,6 +857,41 @@ describe('handleDeeplinkSaga', () => {
           expect(SDKConnect.init).not.toHaveBeenCalled();
         });
 
+        it('preserves onboarding install deeplink after unlock for Wallet Setup Completed', async () => {
+          const onboardingLink =
+            'metamask://onboarding?utm_source=install&utm_campaign=test';
+          AppStateEventProcessor.pendingDeeplink = onboardingLink;
+          AppStateEventProcessor.onboardingInstallDeeplinkHandled = true;
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              onboarding: { completedOnboarding: true },
+              user: { existingUser: true },
+              engine: { backgroundState: {} },
+              confirmation: {},
+              navigation: {},
+              security: {},
+              sdk: {},
+              inpageProvider: {},
+              confirmationMetrics: {},
+              originThrottling: {},
+              notifications: {},
+              bridge: {},
+              banners: {},
+            })
+            .dispatch({ type: UserActionType.LOGIN })
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
+          expect(AppStateEventProcessor.pendingDeeplink).toBe(onboardingLink);
+        });
+
         it('parses non-SDK deeplinks without starting SDK services', async () => {
           const rewardsLink = 'https://link.metamask.io/rewards';
           AppStateEventProcessor.pendingDeeplink = rewardsLink;
