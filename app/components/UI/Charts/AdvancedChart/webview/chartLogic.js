@@ -752,19 +752,14 @@ function handleSetThemeColors(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
 
   try {
-    window.chartWidget.applyOverrides(
-      Object.assign(
-        {
-          'mainSeriesProperties.candleStyle.upColor': theme.successColor,
-          'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
-          'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
-          'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
-          'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
-          'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
-        },
-        getSeriesColorOverrides(theme.lineColor || theme.successColor),
-      ),
-    );
+    window.chartWidget.applyOverrides({
+      'mainSeriesProperties.candleStyle.upColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+    });
   } catch (e) {}
 
   applySeriesColors();
