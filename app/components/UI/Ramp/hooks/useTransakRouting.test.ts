@@ -1666,9 +1666,12 @@ describe('useTransakRouting', () => {
           ]),
         }),
       );
+      // Headless webview-redirect terminal event is flipped to HEADLESS and
+      // carries region (TRAM-3623 §4/§5); the session mock has no params so
+      // ramp_surface is undefined here.
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_TRANSACTION_CONFIRMED',
-        expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+        expect.objectContaining({ ramp_type: 'HEADLESS', region: 'us-ca' }),
       );
       expect(mockReset).not.toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1676,6 +1679,39 @@ describe('useTransakRouting', () => {
         }),
       );
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+    });
+
+    it('carries ramp_surface from the live session on the HEADLESS terminal event', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { ramp_surface: 'money_account' },
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          region: 'us-ca',
+        }),
+      );
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -1768,6 +1804,42 @@ describe('useTransakRouting', () => {
       expect(mockParentPop).toHaveBeenCalled();
     });
 
+    it('emits a HEADLESS RAMPS_ORDER_FAILED when a headless checkout processing failure occurs (TRAM-3623 §7)', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { ramp_surface: 'money_account', amount: 100 },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockFailSession.mockReturnValue({ code: 'UNKNOWN', message: 'boom' });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      mockGetOrder.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_ORDER_FAILED',
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          region: 'us-ca',
+          error_message: expect.any(String),
+        }),
+      );
+    });
+
     it('treats a Transak redirect without orderId as user dismissal when headless', async () => {
       const handler = await runApprovedFlowHeadless();
       expect(handler).not.toBeNull();
@@ -1792,6 +1864,7 @@ describe('useTransakRouting', () => {
       mockGetSession.mockReturnValue({
         id: 'hs-1',
         status: 'continued',
+        params: { ramp_surface: 'money_account' },
         callbacks: {
           onOrderCreated,
           onError: jest.fn(),
@@ -1834,6 +1907,16 @@ describe('useTransakRouting', () => {
       });
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
       expect(mockParentPop).toHaveBeenCalled();
+      // Manual-bank headless branch now fires a HEADLESS terminal confirmed
+      // event (TRAM-3623 §4) that previously did not exist.
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          region: 'us-ca',
+        }),
+      );
     });
 
     it('falls back to the regular order-details reset + toast when session id is present but session is missing from registry', async () => {
