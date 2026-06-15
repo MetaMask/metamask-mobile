@@ -2649,7 +2649,10 @@ function handleSetPositionLines(payload) {
                 showLabel: true,
                 textcolor: line.color,
                 fontsize: 11,
-                horzLabelsAlign: 'right',
+                // Left-aligned so the Entry/TP/SL/Liq text sits on the left edge and does
+                // not overlap the most recent candles on the right. The price value still
+                // renders on the right price axis (showPrice is independent of label align).
+                horzLabelsAlign: 'left',
                 showPrice: true,
               },
             },
