@@ -100,27 +100,22 @@ const MoneyBalanceCard = () => {
 
   const balanceText = totalFiatFormatted ?? '';
 
+  const buttonLabelKey = 'money.balance_card.add';
+  const buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+
   let buttonVariant: ButtonVariant;
-  let buttonLabelKey: string;
-  let buttonTestId: string;
   let containerTestId: string;
 
   if (!hasMoneyAccount || isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelKey = 'money.balance_card.add';
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelKey = 'money.balance_card.add';
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
   } else if (isEmpty) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelKey = 'homepage.sections.money_empty_state.earn';
-    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = isNewUser
       ? MoneyBalanceCardTestIds.NEW_USER_CONTAINER
       : MoneyBalanceCardTestIds.EMPTY_CONTAINER;
@@ -128,8 +123,6 @@ const MoneyBalanceCard = () => {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelKey = 'money.balance_card.add';
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
 

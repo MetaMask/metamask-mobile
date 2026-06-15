@@ -9733,15 +9733,6 @@
       "money": "Money",
       "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
-      "money_empty_state": {
-        "get_started": "Get started",
-        "earn": "Earn",
-        "earn_apy": "Earn {{percentage}}% APY"
-      },
-      "money_filled_state": {
-        "add": "Add",
-        "apy": "{{percentage}}% APY"
-      },
       "tokens": "Tokens",
       "perps": "Perps",
       "related_assets": "Related Assets",
