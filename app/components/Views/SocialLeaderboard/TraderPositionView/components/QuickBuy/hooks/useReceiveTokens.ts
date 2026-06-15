@@ -14,7 +14,7 @@ import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
 } from '../../../../../../../selectors/multichain/multichain';
-import { DefaultSwapDestTokens } from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
+import { getAllChainDefaultDestTokens } from '../../../../../../UI/Bridge/utils/getAllChainDefaultDestTokens';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUtils';
 import { getTokenKey } from '../tokenKey';
@@ -26,7 +26,7 @@ import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 /**
  * Static stablecoin candidates for the Sell "Receive" picker (EVM + Solana).
  *
- * `DefaultSwapDestTokens` carries a single stablecoin per chain (which sets the
+ * `DefaultSwapDestTokens` carries a single default destination stablecoin per chain (which sets the
  * per-chain default selection — e.g. mUSD on mainnet/Linea, USDC on Solana), so
  * we keep those as the leading entries and then append the canonical USDC/USDT
  * set from `RECEIVE_STABLECOIN_CANDIDATES`. The append guarantees both major
@@ -42,7 +42,7 @@ import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
  * native-only via `NATIVE_ONLY_NON_EVM_CHAINS` instead.
  */
 const STABLECOIN_CANDIDATES: BridgeToken[] = (() => {
-  const primaries = Object.values(DefaultSwapDestTokens).filter(
+  const primaries = getAllChainDefaultDestTokens().filter(
     (token) =>
       isStablecoinSymbol(token.symbol) &&
       typeof token.chainId === 'string' &&
