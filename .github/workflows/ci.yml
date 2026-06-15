@@ -1214,7 +1214,6 @@ jobs:
           enabled=$(node scripts/e2e/appium-smoke-tags.mjs "$SELECTED_TAGS")
           echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
 
-  # Android Appium smoke (PR CI). iOS: run-appium-smoke-tests-ios-scheduled.yml.
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
     if: >-
@@ -1233,6 +1232,34 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
+      runner_provider: current
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  appium-smoke-tests-ios:
+    name: 'Appium Smoke Tests (iOS)'
+    if: >-
+      ${{
+        !cancelled() &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' || github.event_name == 'schedule') &&
+        needs.appium-smoke-gate.outputs.enabled == 'true' &&
+        needs.ios-tests-ready.result == 'success'
+      }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, appium-smoke-gate]
+    uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
       runner_provider: current
       selected_tags: >-
         ${{

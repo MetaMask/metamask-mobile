@@ -2,7 +2,7 @@
 /**
  * Smoke tags executed by Appium CI.
  * Android: run-appium-smoke-tests-android.yml (ci.yml).
- * iOS: run-appium-smoke-tests-ios.yml (run-appium-smoke-tests-ios-scheduled.yml).
+ * iOS: run-appium-smoke-tests-ios.yml (ci.yml on main push/schedule).
  * Append a tag here and add a matching job to each orchestrator.
  */
 export const APPIUM_SMOKE_TAGS = ['SmokeAccounts'];
