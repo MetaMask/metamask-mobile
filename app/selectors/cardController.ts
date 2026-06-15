@@ -142,11 +142,6 @@ export const selectCardVerificationStatus = createSelector(
   (data): string | null => data?.account?.verificationStatus ?? null,
 );
 
-/**
- * Strict authenticated KYC gate: true only when the logged-in Card user's
- * verification outcome is VERIFIED. Does not include the on-chain
- * `isCardholder` signal (that drives CTA visibility, not link gating).
- */
 export const selectIsCardVerified = createSelector(
   selectCardVerificationStatus,
   (status) => status === 'VERIFIED',
