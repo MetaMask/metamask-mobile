@@ -20,6 +20,11 @@ import {
   activityListRowStatusTestId,
 } from './ActivityList.testIds';
 
+const transactionControllerWithIncomingSync = Engine.context
+  .TransactionController as unknown as {
+  updateIncomingTransactions: jest.MockedFunction<() => Promise<void>>;
+};
+
 describeForPlatforms('ActivityList', () => {
   it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
     const state = initialStateActivityWithLocalTransactions([
@@ -54,7 +59,10 @@ describeForPlatforms('ActivityList', () => {
 
   it('pull to refresh on an empty list syncs incoming transactions through Engine', async () => {
     const updateIncomingSpy = jest
-      .spyOn(Engine.context.TransactionController, 'updateIncomingTransactions')
+      .spyOn(
+        transactionControllerWithIncomingSync,
+        'updateIncomingTransactions',
+      )
       .mockResolvedValue(undefined);
 
     const { UNSAFE_getByType } = renderActivityListView({
