@@ -32,7 +32,6 @@ import {
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
-  type LegendOverlayConfig,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
@@ -44,6 +43,7 @@ import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import { createIntervalPickerNavDetails } from '../../Charts/AdvancedChart/IntervalPickerSheet';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
+import { TOKEN_DETAILS_LEGEND_OVERLAY } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -71,63 +71,6 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
-
-/* eslint-disable @metamask/design-tokens/color-no-hex */
-const TOKEN_DETAILS_LEGEND_OVERLAY: LegendOverlayConfig = {
-  enabled: true,
-  config: {
-    MACD: {
-      plots: [
-        { tvTitle: 'MACD', label: 'MACD(12,26)', color: '#2962FF' },
-        { tvTitle: 'Signal', label: 'Signal', color: '#FF6D00' },
-        { tvTitle: 'Histogram', label: 'Hist', color: '#26A69A' },
-      ],
-      useIndex: true,
-    },
-    RSI: {
-      plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#E91E90' }],
-      useIndex: true,
-    },
-    BOL: {
-      plots: [
-        { tvTitle: 'Upper', label: 'BB(20,2)', color: '#E040FB' },
-        { tvTitle: 'Median', label: 'M', color: '#E040FB' },
-        { tvTitle: 'Lower', label: 'L', color: '#E040FB' },
-      ],
-      useIndex: true,
-    },
-    Volume: {
-      plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
-      useIndex: true,
-    },
-    MA5: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: '#8B8BF5' }],
-    },
-    MA25: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: '#FF6B9D' }],
-    },
-    MA50: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: '#F5A623' }],
-    },
-    MA75: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: '#B8E62E' }],
-    },
-    MA99: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: '#5CC9F5' }],
-    },
-  },
-};
-/* eslint-enable @metamask/design-tokens/color-no-hex */
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by

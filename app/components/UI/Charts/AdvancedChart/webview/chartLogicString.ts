@@ -20,6 +20,7 @@ export default `/**
  *   useCustomPriceLabels }
  *   Single source of truth; \`SET_LINE_CHROME\` replaces it. Missing keys in old HTML fall back in
  *   \`getLineChrome\` via \`LINE_CHROME_DEFAULTS\`.
+ * - indicatorColors: { MA, MACD, RSI, BOL } — sourced from indicatorColors.ts
  */
 
 // ============================================
@@ -78,6 +79,19 @@ window.__mmLayoutSettleFallbackTimer = null;
 
 function bumpLineChartOhlcvEpoch() {
   window.lineChartOhlcvEpoch = (window.lineChartOhlcvEpoch || 0) + 1;
+}
+
+// ============================================
+// Indicator colors from CONFIG (single source of truth in indicatorColors.ts)
+// ============================================
+var _ic = (window.CONFIG && window.CONFIG.indicatorColors) || {};
+var _maColors = _ic.MA || {};
+var _macdColors = _ic.MACD || {};
+var _rsiColors = _ic.RSI || {};
+var _bolColors = _ic.BOL || {};
+
+function getMAColor(name, fallback) {
+  return _maColors[name] || fallback;
 }
 
 // ============================================
@@ -621,10 +635,10 @@ function handleAddIndicator(payload) {
         inputs = { in_0: 12, in_1: 26, in_2: 9 };
         overrides = {
           showLegendValues: !hideValues,
-          'MACD.color': '#2962FF',
-          'Signal.color': '#FF6D00',
-          'Histogram.color.0': '#26A69A',
-          'Histogram.color.1': '#EF5350',
+          'MACD.color': _macdColors.macd || '#2962FF',
+          'Signal.color': _macdColors.signal || '#FF6D00',
+          'Histogram.color.0': _macdColors.histogramPositive || '#26A69A',
+          'Histogram.color.1': _macdColors.histogramNegative || '#EF5350',
         };
         break;
       case 'RSI':
@@ -632,7 +646,7 @@ function handleAddIndicator(payload) {
         inputs = { in_0: 14 };
         overrides = {
           showLegendValues: !hideValues,
-          'Plot.color': '#E91E90',
+          'Plot.color': _rsiColors.plot || '#E91E90',
           'hlines background.visible': false,
         };
         break;
@@ -641,9 +655,9 @@ function handleAddIndicator(payload) {
         inputs = { in_0: 20, in_1: 2 };
         overrides = {
           showLegendValues: !hideValues,
-          'Upper.color': '#E040FB',
-          'Basis.color': '#E040FB',
-          'Lower.color': '#E040FB',
+          'Upper.color': _bolColors.upper || '#E040FB',
+          'Basis.color': _bolColors.basis || '#E040FB',
+          'Lower.color': _bolColors.lower || '#E040FB',
         };
         break;
       case 'MA200':
@@ -713,11 +727,11 @@ function handleRemoveIndicator(payload) {
 // ============================================
 var MA_LENGTHS = { MA5: 5, MA25: 25, MA50: 50, MA75: 75, MA99: 99 };
 var MA_COLORS = {
-  MA5: '#8B8BF5',
-  MA25: '#FF6B9D',
-  MA50: '#F5A623',
-  MA75: '#B8E62E',
-  MA99: '#5CC9F5',
+  MA5: getMAColor('MA5', '#8B8BF5'),
+  MA25: getMAColor('MA25', '#FF6B9D'),
+  MA50: getMAColor('MA50', '#F5A623'),
+  MA75: getMAColor('MA75', '#B8E62E'),
+  MA99: getMAColor('MA99', '#5CC9F5'),
 };
 
 function handleSetMAVisibility(payload) {
@@ -3254,21 +3268,21 @@ function getLegendConfig() {
 var INDICATOR_LEGEND_CONFIG = {
   MACD: {
     plots: [
-      { tvTitle: 'MACD', label: 'MACD(12,26)', color: '#2962FF' },
-      { tvTitle: 'Signal', label: 'Signal', color: '#FF6D00' },
-      { tvTitle: 'Histogram', label: 'Hist', color: '#26A69A' },
+      { tvTitle: 'MACD', label: 'MACD(12,26)', color: _macdColors.macd || '#2962FF' },
+      { tvTitle: 'Signal', label: 'Signal', color: _macdColors.signal || '#FF6D00' },
+      { tvTitle: 'Histogram', label: 'Hist', color: _macdColors.histogramPositive || '#26A69A' },
     ],
     useIndex: true,
   },
   RSI: {
-    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#E91E90' }],
+    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: _rsiColors.plot || '#E91E90' }],
     useIndex: true,
   },
   BOL: {
     plots: [
-      { tvTitle: 'Upper', label: 'BB(20,2)', color: '#E040FB' },
-      { tvTitle: 'Median', label: 'M', color: '#E040FB' },
-      { tvTitle: 'Lower', label: 'L', color: '#E040FB' },
+      { tvTitle: 'Upper', label: 'BB(20,2)', color: _bolColors.upper || '#E040FB' },
+      { tvTitle: 'Median', label: 'M', color: _bolColors.basis || '#E040FB' },
+      { tvTitle: 'Lower', label: 'L', color: _bolColors.lower || '#E040FB' },
     ],
     useIndex: true,
   },
@@ -3279,27 +3293,27 @@ var INDICATOR_LEGEND_CONFIG = {
   MA5: {
     isMA: true,
     useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: '#8B8BF5' }],
+    plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: MA_COLORS.MA5 }],
   },
   MA25: {
     isMA: true,
     useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: '#FF6B9D' }],
+    plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: MA_COLORS.MA25 }],
   },
   MA50: {
     isMA: true,
     useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: '#F5A623' }],
+    plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: MA_COLORS.MA50 }],
   },
   MA75: {
     isMA: true,
     useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: '#B8E62E' }],
+    plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: MA_COLORS.MA75 }],
   },
   MA99: {
     isMA: true,
     useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: '#5CC9F5' }],
+    plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: MA_COLORS.MA99 }],
   },
 };
 

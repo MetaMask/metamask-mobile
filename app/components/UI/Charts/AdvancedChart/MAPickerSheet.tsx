@@ -24,16 +24,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-
-/* eslint-disable @metamask/design-tokens/color-no-hex */
-export const MA_OPTIONS = [
-  { label: 'MA5', color: '#8B8BF5' },
-  { label: 'MA25', color: '#FF6B9D' },
-  { label: 'MA50', color: '#F5A623' },
-  { label: 'MA75', color: '#B8E62E' },
-  { label: 'MA99', color: '#5CC9F5' },
-] as const;
-/* eslint-enable @metamask/design-tokens/color-no-hex */
+import { MA_OPTIONS } from './indicatorColors';
 
 export interface MAPickerSheetParams {
   selectedMAs?: string[];

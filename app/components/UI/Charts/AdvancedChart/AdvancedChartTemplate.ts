@@ -6,6 +6,7 @@ import {
   resolveLineChromeOptions,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
+import { INDICATOR_COLORS_FOR_WEBVIEW } from './indicatorColors';
 
 /**
  * CDN base URL for the TradingView charting library assets.
@@ -92,7 +93,8 @@ window.CONFIG = {
     useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
-  legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })}
+  legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
+  indicatorColors: ${JSON.stringify(INDICATOR_COLORS_FOR_WEBVIEW)}
 };
 `;
 };
