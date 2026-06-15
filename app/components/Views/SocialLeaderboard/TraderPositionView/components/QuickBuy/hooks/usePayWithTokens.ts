@@ -13,9 +13,12 @@ import { selectCurrencyRates } from '../../../../../../../selectors/currencyRate
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
+  selectMultichainAssetsAllIgnoredAssets,
 } from '../../../../../../../selectors/multichain/multichain';
+import { getTokensControllerAllIgnoredTokens } from '../../../../../../../selectors/assets/assets-migration';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
+import { isPayWithTokenHidden } from './isPayWithTokenHidden';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
@@ -52,6 +55,13 @@ export const usePayWithTokens = (): {
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
 
+  // Hidden-token state from the same consolidated selectors the main wallet
+  // list uses, so tokens hidden via "long tap -> hide" are excluded here too.
+  const ignoredEvmTokens = useSelector(getTokensControllerAllIgnoredTokens);
+  const ignoredNonEvmAssets = useSelector(
+    selectMultichainAssetsAllIgnoredAssets,
+  );
+
   const allNetworkConfigs = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.NetworkController
@@ -78,6 +88,16 @@ export const usePayWithTokens = (): {
     for (const token of heldTokens) {
       // Scope holdings to networks the user has enabled in wallet settings.
       if (!isChainEnabled(token.chainId)) continue;
+      // Exclude tokens the user has hidden (TSA-649).
+      if (
+        isPayWithTokenHidden(token, {
+          ignoredEvmTokens,
+          ignoredNonEvmAssets,
+          evmAccountAddress: accountAddress,
+          nonEvmAccountId: solanaAccount?.id,
+        })
+      )
+        continue;
       const enrichment = enrichTokenBalance(token, deps);
       if (!enrichment) continue;
       result.push({ ...token, ...enrichment });
@@ -97,6 +117,8 @@ export const usePayWithTokens = (): {
     solanaAccount,
     multichainBalances,
     multichainRates,
+    ignoredEvmTokens,
+    ignoredNonEvmAssets,
   ]);
 
   return { options, isLoading: false };
