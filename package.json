@@ -625,6 +625,7 @@
     "@walletconnect/types": "^2.23.0",
     "@wdio/protocols": "^9.27.0",
     "@welldone-software/why-did-you-render": "^8.0.1",
+    "@yarnpkg/types": "^4.0.1",
     "agent-device": "^0.14.8",
     "appium": "^2.5.4",
     "appium-adb": "^9.11.4",
@@ -810,7 +811,7 @@
       "@metamask/transaction-pay-controller>@metamask/bridge-status-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
     }
   },
-  "packageManager": "yarn@4.14.1",
+  "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
   "foundryup": {
     "binaries": [
       "anvil"
