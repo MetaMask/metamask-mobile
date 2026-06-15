@@ -19,14 +19,20 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../../UI/Perps/utils/formatUtils';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpPositionDirection } from '../../utils/perp';
+import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface TraderTokenInfoRowProps {
   symbol: string;
   position?: Position;
   marketCap: number | undefined;
+  /** Latest price; shown in place of market cap for perps. */
+  currentPrice?: number | undefined;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
   onCopyTokenAddress?: () => void;
@@ -142,29 +148,54 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   );
 };
 
-interface TraderMarketCapProps {
+interface TraderHeaderStatProps {
+  isPerp: boolean;
   marketCap: number | undefined;
+  currentPrice: number | undefined;
 }
 
-const TraderMarketCap: React.FC<TraderMarketCapProps> = ({ marketCap }) => (
-  <Box alignItems={BoxAlignItems.End}>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {marketCap != null ? formatCompactUsd(marketCap) : '\u2014'}
-    </Text>
-    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-      {strings('social_leaderboard.trader_position.market_cap')}
-    </Text>
-  </Box>
-);
+/**
+ * Top-right header stat. Perps have no market cap, so they surface the current
+ * price instead; spot positions keep the market cap.
+ */
+const TraderHeaderStat: React.FC<TraderHeaderStatProps> = ({
+  isPerp,
+  marketCap,
+  currentPrice,
+}) => {
+  const value = isPerp
+    ? currentPrice != null
+      ? formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+      : '\u2014'
+    : marketCap != null
+      ? formatCompactUsd(marketCap)
+      : '\u2014';
+
+  return (
+    <Box alignItems={BoxAlignItems.End}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+      >
+        {value}
+      </Text>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {strings(
+          isPerp
+            ? 'social_leaderboard.trader_position.price'
+            : 'social_leaderboard.trader_position.market_cap',
+        )}
+      </Text>
+    </Box>
+  );
+};
 
 const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
   symbol,
   position,
   marketCap,
+  currentPrice,
   pricePercentChange,
   activeTimePeriodLabel,
   onCopyTokenAddress,
@@ -183,7 +214,11 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
       onCopyTokenAddress={onCopyTokenAddress}
       copyTokenAddressTestID={copyTokenAddressTestID}
     />
-    <TraderMarketCap marketCap={marketCap} />
+    <TraderHeaderStat
+      isPerp={position ? isPerpPosition(position) : false}
+      marketCap={marketCap}
+      currentPrice={currentPrice}
+    />
   </Box>
 );
 

@@ -69,7 +69,7 @@ const fixtureTraders: TopTrader[] = [
   },
 ];
 
-type ChainKey = 'all' | 'base' | 'solana' | 'ethereum';
+type ChainKey = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
 
 const buildResult = (
   overrides: Partial<UseTopTradersResult> = {},
@@ -90,6 +90,7 @@ const mockResultsByChain: Record<ChainKey, UseTopTradersResult> = {
   base: buildResult(),
   solana: buildResult(),
   ethereum: buildResult(),
+  hyperliquid: buildResult(),
 };
 
 const setChainResult = (
@@ -261,9 +262,9 @@ describe('TopTradersView', () => {
     expect(typeof refreshControl.props.refreshing).toBe('boolean');
   });
 
-  it('invalidates all four tab queries when the scroll view is pulled down', async () => {
+  it('invalidates every tab query when the scroll view is pulled down', async () => {
     // Each chain's result wraps the shared mockRefresh — pull-to-refresh
-    // should call it once per tab (4 total).
+    // should call it once per tab (all, base, solana, ethereum, hyperliquid).
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
@@ -272,7 +273,7 @@ describe('TopTradersView', () => {
       await list.props.refreshControl.props.onRefresh();
     });
 
-    expect(mockRefresh).toHaveBeenCalledTimes(4);
+    expect(mockRefresh).toHaveBeenCalledTimes(5);
   });
 
   it('logs an error when refresh fails', async () => {
@@ -306,7 +307,7 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders all four chain filter pills', () => {
+  it('renders all chain filter pills including Hyperliquid', () => {
     renderWithProvider(<TopTradersView />);
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
@@ -320,6 +321,9 @@ describe('TopTradersView', () => {
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ETHEREUM),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+    ).toBeOnTheScreen();
   });
 
   it('fires a separate query per chain on mount (parallel prefetch)', () => {
@@ -329,13 +333,15 @@ describe('TopTradersView', () => {
       ([opts]) => opts?.chains,
     );
     // "All" tab explicitly requests the spot chains so hyperliquid (perps)
-    // doesn't dominate the rankings; chain tabs each request their own chain.
+    // doesn't dominate the rankings; chain tabs each request their own chain,
+    // including a dedicated hyperliquid (perps) tab.
     expect(chainsArgs).toEqual(
       expect.arrayContaining([
         ['base', 'solana', 'ethereum'],
         ['base'],
         ['solana'],
         ['ethereum'],
+        ['hyperliquid'],
       ]),
     );
   });
@@ -354,6 +360,20 @@ describe('TopTradersView', () => {
     );
 
     expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
+    expect(screen.getByText('baznocap')).toBeOnTheScreen();
+    expect(screen.queryByText('nervousdegen')).not.toBeOnTheScreen();
+  });
+
+  it('shows the Hyperliquid tab’s own (perps) traders when selected', () => {
+    setChainResult('hyperliquid', {
+      traders: [{ ...fixtureTraders[2], rank: 1 }],
+    });
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+    );
+
     expect(screen.getByText('baznocap')).toBeOnTheScreen();
     expect(screen.queryByText('nervousdegen')).not.toBeOnTheScreen();
   });

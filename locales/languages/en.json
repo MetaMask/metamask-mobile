@@ -1089,6 +1089,7 @@
     },
     "trader_position": {
       "market_cap": "Market cap",
+      "price": "Price",
       "position": "Position",
       "trades": "Trades",
       "buy": "Buy",

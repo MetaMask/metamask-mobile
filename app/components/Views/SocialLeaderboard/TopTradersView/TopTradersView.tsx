@@ -67,9 +67,14 @@ import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
-type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
+type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
 
 const LEADERBOARD_LIMIT = 50;
+
+// Hyperliquid (perps) is its own tab. It's deliberately kept out of SPOT_CHAINS
+// / the "All" tab — see SPOT_CHAINS — so perps PnL doesn't dominate the spot
+// rankings, but users can still browse the perps leaderboard directly here.
+const HYPERLIQUID_DISPLAY_NAME = 'Hyperliquid';
 
 const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   {
@@ -79,6 +84,7 @@ const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   { key: 'base', label: BASE_DISPLAY_NAME },
   { key: 'solana', label: SOLANA_DISPLAY_NAME },
   { key: 'ethereum', label: MAINNET_DISPLAY_NAME },
+  { key: 'hyperliquid', label: HYPERLIQUID_DISPLAY_NAME },
 ];
 
 const styles = StyleSheet.create({
@@ -195,6 +201,11 @@ const TopTradersView = () => {
     chains: ['ethereum'],
     enabled: isEnabled,
   });
+  const hyperliquidResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['hyperliquid'],
+    enabled: isEnabled,
+  });
 
   const resultsByChain = useMemo(
     () => ({
@@ -202,8 +213,9 @@ const TopTradersView = () => {
       base: baseResult,
       solana: solanaResult,
       ethereum: ethereumResult,
+      hyperliquid: hyperliquidResult,
     }),
-    [allResult, baseResult, solanaResult, ethereumResult],
+    [allResult, baseResult, solanaResult, ethereumResult, hyperliquidResult],
   );
 
   const activeResult = resultsByChain[selectedChain];
@@ -293,6 +305,7 @@ const TopTradersView = () => {
         baseResult.refresh(),
         solanaResult.refresh(),
         ethereumResult.refresh(),
+        hyperliquidResult.refresh(),
         minDuration,
       ]);
     } catch (err) {
@@ -309,7 +322,7 @@ const TopTradersView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [allResult, baseResult, solanaResult, ethereumResult]);
+  }, [allResult, baseResult, solanaResult, ethereumResult, hyperliquidResult]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {

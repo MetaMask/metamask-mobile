@@ -284,6 +284,7 @@ const TraderProfileView = () => {
         tokenSymbol: position.tokenSymbol,
         position,
         source: 'profile_position',
+        isClosed: activeTab === 'closed',
       });
     },
     [
@@ -474,6 +475,7 @@ const TraderProfileView = () => {
                       key={`${position.tokenAddress}-${position.chain}-${index}`}
                       position={position}
                       onPress={handlePositionPress}
+                      isClosed={activeTab === 'closed'}
                     />
                   ))
                 )}

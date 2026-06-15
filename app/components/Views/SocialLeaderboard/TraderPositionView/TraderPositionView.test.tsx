@@ -395,14 +395,23 @@ describe('TraderPositionView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('does not open QuickBuy when the Trade button is pressed', () => {
+    it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
         screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
       );
 
-      expect(mockPlayImpact).not.toHaveBeenCalled();
+      // Perps has no long/short preselect on the market page, so the single
+      // Trade CTA lands the user on that market's Perps page with a minimal
+      // market object — it never opens the spot QuickBuy sheet.
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: { symbol: 'ETH', name: 'ETH' },
+          source: 'social_leaderboard',
+        },
+      });
     });
 
     it('renders the perp leverage and direction badges in the header', () => {

@@ -13,7 +13,12 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpPositionDirection } from '../../utils/perp';
+import {
+  getPerpPositionDirection,
+  isClosedPosition,
+  isPerpPosition,
+} from '../../utils/perp';
+import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
 import {
   formatUsd,
   formatTokenAmount,
@@ -24,21 +29,42 @@ import {
 export interface PositionRowProps {
   position: Position;
   onPress?: (position: Position) => void;
+  /**
+   * Authoritative closed/open flag from the list the row belongs to (e.g. the
+   * profile's Closed tab). Falls back to {@link isClosedPosition} when omitted.
+   */
+  isClosed?: boolean;
 }
 
-const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
-  const isClosed = position.positionAmount === 0 && position.soldUsd > 0;
-
-  const displayValue = isClosed
-    ? position.soldUsd
-    : (position.currentValueUSD ?? null);
+const PositionRow: React.FC<PositionRowProps> = ({
+  position,
+  onPress,
+  isClosed: isClosedProp,
+}) => {
+  const isClosed = isClosedProp ?? isClosedPosition(position);
+  const isPerp = isPerpPosition(position);
 
   const closedPnlPercent =
-    isClosed && position.boughtUsd > 0
+    position.boughtUsd > 0
       ? (position.realizedPnl / position.boughtUsd) * 100
       : null;
 
-  const displayPnlPercent = isClosed ? closedPnlPercent : position.pnlPercent;
+  // Perps don't carry meaningful spot proceeds/current value, so surface their
+  // realized/unrealized PnL ($ + %) instead. Spot keeps soldUsd-on-close /
+  // currentValueUSD-while-open.
+  const perpPnlValue = position.pnlValueUsd ?? position.realizedPnl ?? null;
+
+  const displayValue = isPerp
+    ? perpPnlValue
+    : isClosed
+      ? position.soldUsd
+      : (position.currentValueUSD ?? null);
+
+  const displayPnlPercent = isPerp
+    ? (position.pnlPercent ?? closedPnlPercent)
+    : isClosed
+      ? closedPnlPercent
+      : position.pnlPercent;
   const hasPnl = displayPnlPercent != null;
   const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
   const testID = `position-row-${position.tokenSymbol}`;
@@ -97,13 +123,26 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
       </Box>
 
       <Box alignItems={BoxAlignItems.End}>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
-          {formatUsd(displayValue)}
-        </Text>
+        {isPerp ? (
+          // Keep the absolute amount neutral and let the percentage below carry
+          // the red/green, matching spot rows (the $ figure is just a number;
+          // the % conveys the gain/loss).
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
+            {perpPnlValue != null ? formatPnl(perpPnlValue) : '—'}
+          </Text>
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
+            {formatUsd(displayValue)}
+          </Text>
+        )}
         <Text
           variant={TextVariant.BodySm}
           color={hasPnl ? undefined : TextColor.TextAlternative}

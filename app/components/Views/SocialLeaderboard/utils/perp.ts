@@ -14,6 +14,15 @@ type PerpPositionFields = Pick<
   'perpPositionType' | 'chain' | 'positionAmount'
 >;
 
+type ClosedPositionFields = Pick<
+  Position,
+  | 'perpPositionType'
+  | 'chain'
+  | 'positionAmount'
+  | 'soldUsd'
+  | 'currentValueUSD'
+>;
+
 type PerpTradeFields = Pick<
   Trade,
   'classification' | 'perpPositionType' | 'direction'
@@ -30,6 +39,25 @@ export function isPerpPosition(position: PerpPositionFields): boolean {
     position.perpPositionType != null ||
     position.chain?.toLowerCase() === HYPERLIQUID_CHAIN_NAME
   );
+}
+
+/**
+ * True when a position has been fully closed.
+ *
+ * Spot positions zero out their `positionAmount` once sold, so the presence of
+ * realized proceeds (`soldUsd`) marks them closed. Perps are different: a closed
+ * perp keeps its (non-zero) `positionAmount` in the historical record, so we
+ * instead key off the absence of remaining exposure — a closed perp reports no
+ * `currentValueUSD`.
+ *
+ * Callers that already know the position's open/closed list membership (e.g.
+ * the profile tab) should prefer that signal and use this only as a fallback.
+ */
+export function isClosedPosition(position: ClosedPositionFields): boolean {
+  if (isPerpPosition(position)) {
+    return (position.currentValueUSD ?? 0) === 0;
+  }
+  return position.positionAmount === 0 && position.soldUsd > 0;
 }
 
 /**

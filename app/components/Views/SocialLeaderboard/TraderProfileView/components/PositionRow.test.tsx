@@ -271,5 +271,23 @@ describe('PositionRow', () => {
       expect(screen.queryByText('LONG')).not.toBeOnTheScreen();
       expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
     });
+
+    it('shows PnL as the value for perps instead of the current value', () => {
+      renderWithProvider(<PositionRow position={perpPosition} />);
+
+      // Perps surface realized/unrealized PnL ($1,059.96), not currentValueUSD.
+      expect(screen.getByText('+$1,059.96')).toBeOnTheScreen();
+      expect(screen.queryByText('$2,259.96')).not.toBeOnTheScreen();
+    });
+
+    it('shows the trade date (not the position amount) for a closed perp', () => {
+      const closedPerp = { ...perpPosition, currentValueUSD: 0 };
+
+      renderWithProvider(<PositionRow position={closedPerp} isClosed />);
+
+      expect(screen.getByText('Apr 15, 2026 at 2:00 PM')).toBeOnTheScreen();
+      // Not the "<amount> ETH" subtitle that open positions show.
+      expect(screen.queryByText('1.50B ETH')).not.toBeOnTheScreen();
+    });
   });
 });

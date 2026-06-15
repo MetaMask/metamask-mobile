@@ -7,4 +7,5 @@ export const TopTradersViewSelectorsIDs = {
   CHAIN_FILTER_BASE: 'chain-filter-base',
   CHAIN_FILTER_SOLANA: 'chain-filter-solana',
   CHAIN_FILTER_ETHEREUM: 'chain-filter-ethereum',
+  CHAIN_FILTER_HYPERLIQUID: 'chain-filter-hyperliquid',
 };
