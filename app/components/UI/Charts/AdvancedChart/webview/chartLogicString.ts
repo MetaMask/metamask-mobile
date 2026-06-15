@@ -3268,19 +3268,41 @@ function getLegendConfig() {
 var INDICATOR_LEGEND_CONFIG = {
   MACD: {
     plots: [
-      { tvTitle: 'MACD', label: 'MACD(12,26)', color: _macdColors.macd || '#5C8FFF' },
-      { tvTitle: 'Signal', label: 'Signal', color: _macdColors.signal || '#FF6D00' },
-      { tvTitle: 'Histogram', label: 'Hist', color: _macdColors.histogramPositive || '#26A69A' },
+      {
+        tvTitle: 'MACD',
+        label: 'MACD(12,26)',
+        color: _macdColors.macd || '#5C8FFF',
+      },
+      {
+        tvTitle: 'Signal',
+        label: 'Signal',
+        color: _macdColors.signal || '#FF6D00',
+      },
+      {
+        tvTitle: 'Histogram',
+        label: 'Hist',
+        color: _macdColors.histogramPositive || '#26A69A',
+      },
     ],
     useIndex: true,
   },
   RSI: {
-    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: _rsiColors.plot || '#E91E90' }],
+    plots: [
+      {
+        tvTitle: 'Plot',
+        label: 'RSI(14)',
+        color: _rsiColors.plot || '#E91E90',
+      },
+    ],
     useIndex: true,
   },
   BOL: {
     plots: [
-      { tvTitle: 'Upper', label: 'BB(20,2)', color: _bolColors.upper || '#E040FB' },
+      {
+        tvTitle: 'Upper',
+        label: 'BB(20,2)',
+        color: _bolColors.upper || '#E040FB',
+      },
       { tvTitle: 'Median', label: 'M', color: _bolColors.basis || '#E040FB' },
       { tvTitle: 'Lower', label: 'L', color: _bolColors.lower || '#E040FB' },
     ],
@@ -3462,15 +3484,9 @@ function subscribeStudyDataLoaded(studyId) {
   } catch (e) {}
 }
 
-var _studyLegendRefreshTimer = null;
-
 function scheduleStudyLegendRefresh() {
   if (!isLegendOverlayEnabled()) return;
-  if (_studyLegendRefreshTimer) clearTimeout(_studyLegendRefreshTimer);
-  _studyLegendRefreshTimer = setTimeout(function () {
-    _studyLegendRefreshTimer = null;
-    refreshStudyLegendFromExport();
-  }, 150);
+  refreshStudyLegendFromExport();
 }
 
 function formatLegendValue(num) {

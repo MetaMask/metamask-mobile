@@ -3475,15 +3475,9 @@ function subscribeStudyDataLoaded(studyId) {
   } catch (e) {}
 }
 
-var _studyLegendRefreshTimer = null;
-
 function scheduleStudyLegendRefresh() {
   if (!isLegendOverlayEnabled()) return;
-  if (_studyLegendRefreshTimer) clearTimeout(_studyLegendRefreshTimer);
-  _studyLegendRefreshTimer = setTimeout(function () {
-    _studyLegendRefreshTimer = null;
-    refreshStudyLegendFromExport();
-  }, 150);
+  refreshStudyLegendFromExport();
 }
 
 function formatLegendValue(num) {
