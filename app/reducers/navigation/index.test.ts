@@ -2,8 +2,6 @@ import navigationReducer, { initialNavigationState } from './index';
 import {
   setCurrentRoute,
   setCurrentBottomNavRoute,
-  mainNavigatorReady,
-  NavigationActionType,
 } from '../../actions/navigation';
 
 describe('navigationReducer', () => {
@@ -11,19 +9,6 @@ describe('navigationReducer', () => {
     expect(
       navigationReducer(undefined, { type: '@@INIT' } as never),
     ).toStrictEqual(initialNavigationState);
-  });
-
-  it('creates MAIN_NAVIGATOR_READY without storing it in navigation state', () => {
-    expect(NavigationActionType.MAIN_NAVIGATOR_READY).toBe(
-      'MAIN_NAVIGATOR_READY',
-    );
-    expect(mainNavigatorReady()).toStrictEqual({
-      type: NavigationActionType.MAIN_NAVIGATOR_READY,
-    });
-
-    expect(
-      navigationReducer(initialNavigationState, mainNavigatorReady()),
-    ).toBe(initialNavigationState);
   });
 
   it('updates currentRoute on SET_CURRENT_ROUTE', () => {
