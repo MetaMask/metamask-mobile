@@ -1092,6 +1092,7 @@
       "position": "Position",
       "trades": "Trades",
       "buy": "Buy",
+      "trade": "Trade",
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
       "no_trades": "No trades yet",

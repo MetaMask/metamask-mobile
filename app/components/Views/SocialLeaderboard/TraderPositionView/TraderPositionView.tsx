@@ -20,12 +20,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  BoxFlexDirection,
-  Button,
   ButtonHero,
   ButtonHeroSize,
-  ButtonSize,
-  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -376,29 +372,15 @@ const TraderPositionView = () => {
           </ScrollView>
 
           {isPerp ? (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              gap={3}
-              twClassName="px-4 py-3"
-            >
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Lg}
+            <Box twClassName="px-4 py-3">
+              <ButtonHero
+                size={ButtonHeroSize.Lg}
+                isFullWidth
                 onPress={handlePerpActionPress}
-                twClassName="flex-1"
-                testID={TraderPositionViewSelectorsIDs.LONG_BUTTON}
+                testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
               >
-                {strings('social_leaderboard.trader_position.long')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handlePerpActionPress}
-                twClassName="flex-1"
-                testID={TraderPositionViewSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('social_leaderboard.trader_position.short')}
-              </Button>
+                {strings('social_leaderboard.trader_position.trade')}
+              </ButtonHero>
             </Box>
           ) : (
             <>

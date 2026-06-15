@@ -384,31 +384,24 @@ describe('TraderPositionView', () => {
       };
     });
 
-    it('renders Long/Short buttons instead of the Buy button', () => {
+    it('renders the Trade button instead of the Buy button', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.LONG_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.SHORT_BUTTON),
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       ).not.toBeOnTheScreen();
     });
 
-    it('does not open QuickBuy when the Long/Short buttons are pressed', () => {
+    it('does not open QuickBuy when the Trade button is pressed', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.LONG_BUTTON),
-      );
-      fireEvent.press(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.SHORT_BUTTON),
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
       );
 
-      // No navigation/CTA haptic — the buttons are intentional placeholders.
       expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
