@@ -6,6 +6,7 @@ export const MoneyActivityViewTestIds = {
   FILTER_DEPOSITS: 'money-activity-view-filter-deposits',
   FILTER_TRANSFERS: 'money-activity-view-filter-transfers',
   DATE_HEADER: 'money-activity-view-date-header',
+  PENDING_HEADER: 'money-activity-view-pending-header',
   EMPTY_LIST: 'money-activity-view-empty-list',
   EMPTY_LIST_MESSAGE: 'money-activity-view-empty-list-message',
 };

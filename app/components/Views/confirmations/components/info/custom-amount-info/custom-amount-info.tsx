@@ -2,7 +2,7 @@ import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
-import { BalanceProjection } from '../../balance-projection';
+import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
