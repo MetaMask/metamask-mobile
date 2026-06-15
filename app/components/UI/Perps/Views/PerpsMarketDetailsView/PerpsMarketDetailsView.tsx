@@ -31,7 +31,6 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
-  getMarketTypeFilter,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -738,7 +737,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
-      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: getMarketTypeFilter(market),
     });
 
     navigateToMarketList({
