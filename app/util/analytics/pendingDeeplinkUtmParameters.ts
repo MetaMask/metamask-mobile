@@ -6,16 +6,9 @@ import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 import { EVENT_NAME } from '../../core/Analytics/MetaMetrics.events';
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from './walletSetupCompletedAttribution';
 import { removeUtmPropertiesWithoutMarketingConsent } from './removeUtmPropertiesWithoutMarketingConsent';
+import { UTM_PARAMETERS, type UtmParameter } from './utmParameters';
 
-export const UTM_PARAMETERS = [
-  'utm_campaign',
-  'utm_content',
-  'utm_medium',
-  'utm_source',
-  'utm_term',
-] as const;
-
-export type UtmParameter = (typeof UTM_PARAMETERS)[number];
+export { UTM_PARAMETERS, type UtmParameter };
 
 function getDeeplinkForAttribution(): string | null {
   return (

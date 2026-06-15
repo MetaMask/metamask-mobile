@@ -1,5 +1,5 @@
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-import { UTM_PARAMETERS } from './pendingDeeplinkUtmParameters';
+import { UTM_PARAMETERS } from './utmParameters';
 
 /**
  * Strips marketing UTM fields when the user has not granted marketing consent.
