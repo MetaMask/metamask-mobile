@@ -13,14 +13,10 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import PerpBadges from '../../components/PerpBadges';
-import {
-  getPerpPositionDirection,
-  isClosedPosition,
-  isPerpPosition,
-} from '../../utils/perp';
-import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
+import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 import {
   formatUsd,
+  formatSignedUsd,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -41,7 +37,10 @@ const PositionRow: React.FC<PositionRowProps> = ({
   onPress,
   isClosed: isClosedProp,
 }) => {
-  const isClosed = isClosedProp ?? isClosedPosition(position);
+  // Honor main's spot closed-detection; the explicit prop (from the profile's
+  // Open/Closed tab) overrides it, which perps rely on.
+  const isClosed =
+    isClosedProp ?? (position.positionAmount === 0 && position.soldUsd > 0);
   const isPerp = isPerpPosition(position);
 
   const closedPnlPercent =
@@ -49,27 +48,96 @@ const PositionRow: React.FC<PositionRowProps> = ({
       ? (position.realizedPnl / position.boughtUsd) * 100
       : null;
 
-  // Perps don't carry meaningful spot proceeds/current value, so surface their
-  // realized/unrealized PnL ($ + %) instead. Spot keeps soldUsd-on-close /
-  // currentValueUSD-while-open.
+  const displayPnlPercent = isClosed ? closedPnlPercent : position.pnlPercent;
+  const hasPnlPercent = displayPnlPercent != null;
+  // Perps surface realized/unrealized PnL ($) as the headline figure rather
+  // than spot proceeds / current value.
   const perpPnlValue = position.pnlValueUsd ?? position.realizedPnl ?? null;
-
-  const displayValue = isPerp
+  const pnlSignSource = isPerp
     ? perpPnlValue
     : isClosed
-      ? position.soldUsd
-      : (position.currentValueUSD ?? null);
+      ? position.realizedPnl
+      : (position.pnlValueUsd ?? displayPnlPercent ?? null);
+  const isPnlZero = pnlSignSource === 0;
+  const isPnlPositive = pnlSignSource != null && pnlSignSource > 0;
+  const pnlColorClass =
+    pnlSignSource == null || isPnlZero
+      ? undefined
+      : isPnlPositive
+        ? 'text-success-default'
+        : 'text-error-default';
 
-  const displayPnlPercent = isPerp
-    ? (position.pnlPercent ?? closedPnlPercent)
-    : isClosed
-      ? closedPnlPercent
-      : position.pnlPercent;
-  const hasPnl = displayPnlPercent != null;
-  const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
   const testID = `position-row-${position.tokenSymbol}`;
 
   const perpDirection = getPerpPositionDirection(position);
+
+  const topRight = isPerp ? (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      twClassName={pnlColorClass}
+      color={pnlColorClass ? undefined : TextColor.TextAlternative}
+    >
+      {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : '—'}
+    </Text>
+  ) : isClosed ? (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      twClassName={pnlColorClass}
+      color={pnlColorClass ? undefined : TextColor.TextAlternative}
+    >
+      {formatSignedUsd(position.realizedPnl)}
+    </Text>
+  ) : (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+    >
+      {formatUsd(position.currentValueUSD ?? null)}
+    </Text>
+  );
+
+  const bottomRight =
+    !isPerp && isClosed ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+      >
+        {!hasPnlPercent ? null : isPnlZero ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {'−'}
+          </Text>
+        ) : (
+          <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
+            {isPnlPositive ? '▲' : '▼'}
+          </Text>
+        )}
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
+        </Text>
+      </Box>
+    ) : !isPerp ? (
+      <Text
+        variant={TextVariant.BodySm}
+        twClassName={pnlColorClass}
+        color={pnlColorClass ? undefined : TextColor.TextAlternative}
+      >
+        {position.pnlValueUsd != null
+          ? `${formatSignedUsd(position.pnlValueUsd)} (${formatPercent(displayPnlPercent)})`
+          : formatPercent(displayPnlPercent)}
+      </Text>
+    ) : (
+      <Text
+        variant={TextVariant.BodySm}
+        twClassName={pnlColorClass}
+        color={pnlColorClass ? undefined : TextColor.TextAlternative}
+      >
+        {formatPercent(displayPnlPercent)}
+      </Text>
+    );
 
   const content = (
     <Box
@@ -123,39 +191,8 @@ const PositionRow: React.FC<PositionRowProps> = ({
       </Box>
 
       <Box alignItems={BoxAlignItems.End}>
-        {isPerp ? (
-          // Keep the absolute amount neutral and let the percentage below carry
-          // the red/green, matching spot rows (the $ figure is just a number;
-          // the % conveys the gain/loss).
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-          >
-            {perpPnlValue != null ? formatPnl(perpPnlValue) : '—'}
-          </Text>
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-          >
-            {formatUsd(displayValue)}
-          </Text>
-        )}
-        <Text
-          variant={TextVariant.BodySm}
-          color={hasPnl ? undefined : TextColor.TextAlternative}
-          twClassName={
-            hasPnl
-              ? isPnlPositive
-                ? 'text-success-default'
-                : 'text-error-default'
-              : undefined
-          }
-        >
-          {formatPercent(displayPnlPercent)}
-        </Text>
+        {topRight}
+        {bottomRight}
       </Box>
     </Box>
   );

@@ -126,6 +126,15 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
       'https://static.cx.metamask.io/api/v1/tokenIcons/4326/0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb.png',
     chainId: NETWORK_CHAIN_ID.MEGAETH_MAINNET,
   },
+  [NETWORK_CHAIN_ID.ARC]: {
+    symbol: 'EURC',
+    name: 'EURC',
+    address: '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/5042/0xbef5f6d51cb62b58e6a8f77868681825c6fe21c1.png',
+    chainId: NETWORK_CHAIN_ID.ARC,
+  },
   [SolScope.Mainnet]: {
     address:
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',

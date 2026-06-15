@@ -326,7 +326,7 @@ jobs:
           retention-days: 7
 
       - name: Upload failure screen recordings (Namespace)
-        if: ${{ (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
@@ -334,7 +334,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Upload failure screen recordings (current)
-        if: ${{ (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}

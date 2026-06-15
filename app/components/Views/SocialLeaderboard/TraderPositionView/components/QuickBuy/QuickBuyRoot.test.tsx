@@ -23,7 +23,7 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
 }));
 
 let storedOnOpenCallback: (() => void) | undefined;
-const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
+const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -32,7 +32,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheet: ReactMock.forwardRef(
+    BottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
@@ -44,14 +44,14 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
+          onOpenDialog: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
-          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onCloseDialog: mockOnCloseDialog,
         }));
         return ReactMock.createElement(
           View,
-          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
+          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
           children,
         );
       },
@@ -254,6 +254,7 @@ describe('QuickBuyRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
+    mockOnCloseDialog.mockImplementation((cb?: () => void) => cb?.());
     (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
@@ -421,7 +422,7 @@ describe('QuickBuyRoot', () => {
       return <Pressable testID="probe-close" onPress={onClose} />;
     };
 
-    it('animates the sheet down via onCloseBottomSheet and runs the parent onClose', () => {
+    it('animates the sheet down via onCloseDialog and runs the parent onClose', () => {
       const onClose = jest.fn();
       renderWithProvider(
         <QuickBuyRoot
@@ -441,7 +442,7 @@ describe('QuickBuyRoot', () => {
         fireEvent.press(screen.getByTestId('probe-close'));
       });
 
-      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockOnCloseDialog).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 

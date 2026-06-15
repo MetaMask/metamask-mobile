@@ -243,6 +243,7 @@ const PerpsHomeView = ({
     positions,
     orders,
     watchlistMarkets,
+    suggestedWatchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
@@ -612,6 +613,7 @@ const PerpsHomeView = ({
         showsVerticalScrollIndicator={false}
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
+        testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
       >
         <Box
           onLayout={(event) =>
@@ -670,21 +672,23 @@ const PerpsHomeView = ({
           />
         </Box>
 
-        {/* Service Interruption Banner */}
-        <PerpsServiceInterruptionBanner
-          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-        />
+        <Box paddingBottom={3}>
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
 
-        {/* Balance Actions Component */}
-        <PerpsMarketBalanceActions
-          showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
-          hideBalanceSection
-        />
+          {/* Balance Actions Component */}
+          <PerpsMarketBalanceActions
+            showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
+            hideBalanceSection
+          />
 
-        {/* Competition Banner */}
-        <PerpsCompetitionBanner
-          testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
-        />
+          {/* Competition Banner */}
+          <PerpsCompetitionBanner
+            testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
+          />
+        </Box>
 
         {/* Positions Section */}
         <PerpsHomeSection
@@ -705,6 +709,7 @@ const PerpsHomeView = ({
                 key={`${position.symbol}-${index}`}
                 position={position}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
               />
             ))}
           </View>
@@ -720,11 +725,12 @@ const PerpsHomeView = ({
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
           <View style={styles.positionsOrdersContainer}>
-            {orders.map((order) => (
+            {orders.map((order, index) => (
               <PerpsCard
                 key={order.orderId}
                 order={order}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
               />
             ))}
           </View>
@@ -732,19 +738,27 @@ const PerpsHomeView = ({
 
         {/* What's Happening Section */}
         {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
+          <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
         )}
 
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
+          suggestedMarkets={suggestedWatchlistMarkets}
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
+          onSeeAllPress={
+            watchlistMarkets.length > 0
+              ? () =>
+                  perpsNavigation.navigateToMarketList({
+                    showWatchlistOnly: true,
+                    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                  })
+              : undefined
+          }
         />
 
         {/* Products Section - Category pills grid */}

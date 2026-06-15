@@ -175,7 +175,7 @@ describe('TopTradersView', () => {
 
   it('renders the Top Traders title', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('Top Traders')).toBeOnTheScreen();
+    expect(screen.getByText('Weekly Top Traders')).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {

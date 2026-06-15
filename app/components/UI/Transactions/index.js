@@ -40,6 +40,9 @@ import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -52,7 +55,6 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
   getPreviousGasFromController,
   speedUpTransaction,
-  updateIncomingTransactions,
 } from '../../../util/transaction-controller';
 import {
   getGasValuesForReplacement,
@@ -402,9 +404,6 @@ class Transactions extends PureComponent {
 
   onRefresh = async () => {
     this.setState({ refreshing: true });
-
-    await updateIncomingTransactions();
-
     this.setState({ refreshing: false });
   };
 
@@ -474,6 +473,22 @@ class Transactions extends PureComponent {
         url = result.url;
         title = result.title;
       }
+
+      if (!url) {
+        throw new Error('Missing block explorer URL');
+      }
+
+      trackBlockExplorerLinkClicked(
+        analytics.trackEvent,
+        AnalyticsEventBuilder.createEventBuilder,
+        {
+          location: 'transactions_list',
+          text: title
+            ? `${strings('transactions.view_full_history_on')} ${title}`
+            : strings('asset_details.options.view_on_block'),
+          url,
+        },
+      );
 
       navigation.push('Webview', {
         screen: 'SimpleWebview',

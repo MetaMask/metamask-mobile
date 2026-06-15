@@ -120,6 +120,10 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types.ts';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable/index.ts';
+import {
+  hidePostTradeNotificationSurface,
+  showPostTradeNotificationSurface,
+} from '../../utils/postTradeNotifications';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -221,6 +225,16 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   useRecipientInitialization(hasInitializedRecipient);
 
   useBridgeViewOnFocus({ inputRef, keypadRef });
+
+  useFocusEffect(
+    useCallback(() => {
+      showPostTradeNotificationSurface();
+
+      return () => {
+        hidePostTradeNotificationSurface();
+      };
+    }, []),
+  );
 
   // Scroll to top when navigating to the bridge view if requested
   useFocusEffect(
