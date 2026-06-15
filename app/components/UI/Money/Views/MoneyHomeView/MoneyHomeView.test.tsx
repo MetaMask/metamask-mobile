@@ -173,6 +173,7 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   useMoneyAccountCardLinkage: jest.fn(() => ({
     hasMoneyAccountRequirements: false,
     isCardAuthenticated: false,
+    isCardVerified: false,
     isCardLinkedToMoneyAccount: false,
     primaryMoneyAccount: undefined,
     moneyAccountCardToken: null,
@@ -343,6 +344,7 @@ describe('MoneyHomeView', () => {
     mockUseMoneyAccountCardLinkage.mockReturnValue({
       hasMoneyAccountRequirements: false,
       isCardAuthenticated: false,
+      isCardVerified: false,
       isCardLinkedToMoneyAccount: false,
       primaryMoneyAccount: undefined,
       moneyAccountCardToken: null,
@@ -1434,6 +1436,7 @@ describe('MoneyHomeView', () => {
         mockUseMoneyAccountCardLinkage.mockReturnValue({
           hasMoneyAccountRequirements: true,
           isCardAuthenticated: true,
+          isCardVerified: true,
           isCardLinkedToMoneyAccount: false,
           primaryMoneyAccount: { address: '0xabc' },
           moneyAccountCardToken: { symbol: 'USDC' },
@@ -1947,11 +1950,12 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('selects mode="link" when card-authenticated even if selected wallet is not a cardholder account', () => {
+    it('selects mode="link" when card-authenticated and VERIFIED even if selected wallet is not a cardholder account', () => {
       mockSelectIsCardholder.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
         isCardAuthenticated: true,
+        isCardVerified: true,
         isCardLinkedToMoneyAccount: false,
         primaryMoneyAccount: { address: '0xabc' },
         moneyAccountCardToken: { symbol: 'USDC' },
@@ -1969,6 +1973,31 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('hides the MetaMask Card section when authenticated but not VERIFIED', () => {
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'USDC' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('disables the link button when linkage is in progress', () => {

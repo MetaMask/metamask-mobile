@@ -316,6 +316,74 @@ describe('CreatePriceAlertView', () => {
   });
 });
 
+describe('CreatePriceAlertView — duplicate threshold validation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSave.mockResolvedValue(undefined);
+    mockUseSavePriceAlert.mockImplementation(() => ({
+      save: mockSave,
+      isSubmitting: false,
+    }));
+    // Route has an existing alert at $1500
+    setRoute({
+      symbol: 'ETH',
+      ticker: 'ETH',
+      currentPrice: 1201.98,
+      currentCurrency: 'USD',
+      assetId: 'eip155:1/slip44:60',
+      fromManage: true,
+      existingThresholds: [1500],
+    });
+  });
+
+  it('shows the duplicate error text on the button and disables it when target matches an existing threshold', () => {
+    const { getByTestId, getByText } = renderWithToast();
+
+    // Type 1500 — matches the existing alert
+    fireEvent.press(getByTestId('keypad-key-1'));
+    fireEvent.press(getByTestId('keypad-key-5'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+
+    expect(
+      getByText('An alert at this price already exists.'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('shows the normal Set button label and enables it for a different target price', () => {
+    const { getByTestId, getByText } = renderWithToast();
+
+    // Type 2000 — not a duplicate
+    fireEvent.press(getByTestId('keypad-key-2'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+
+    expect(getByText('Set price alert')).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it('does not call save when Set button is pressed on a duplicate threshold', async () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent.press(getByTestId('keypad-key-1'));
+    fireEvent.press(getByTestId('keypad-key-5'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    expect(mockSave).not.toHaveBeenCalled();
+  });
+});
+
 describe('CreatePriceAlertView — tiny price token', () => {
   beforeEach(() => {
     jest.clearAllMocks();
