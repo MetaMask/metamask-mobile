@@ -467,15 +467,22 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_IMPORTED, {
           biometrics_enabled: Boolean(biometryType),
         });
-        track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        const walletSetupCompletedProps = {
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
           ...walletSetupCompletedAttributionProps,
-        });
+        };
+        track(
+          MetaMetricsEvents.WALLET_SETUP_COMPLETED,
+          walletSetupCompletedProps,
+        );
         track(
           MetaMetricsEvents.ONBOARDING_COMPLETED,
-          getOnboardingCompletedAnalyticsProps(false),
+          getOnboardingCompletedAnalyticsProps(
+            walletSetupCompletedProps,
+            false,
+          ),
         );
 
         fetchAccountsWithActivity();

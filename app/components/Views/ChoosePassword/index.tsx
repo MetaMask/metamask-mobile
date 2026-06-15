@@ -508,18 +508,25 @@ const ChoosePassword = () => {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
       });
-      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-        wallet_setup_type: 'new',
+      const walletSetupCompletedProps = {
+        wallet_setup_type: 'new' as const,
         new_wallet: true,
         account_type: accountType,
         ...getWalletSetupCompletedAttributionAnalyticsProps(
           attributionRecord,
           isSelected,
         ),
-      });
+      };
+      track(
+        MetaMetricsEvents.WALLET_SETUP_COMPLETED,
+        walletSetupCompletedProps,
+      );
       track(
         MetaMetricsEvents.ONBOARDING_COMPLETED,
-        getOnboardingCompletedAnalyticsProps(isSocialLogin),
+        getOnboardingCompletedAnalyticsProps(
+          walletSetupCompletedProps,
+          isSocialLogin,
+        ),
       );
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
