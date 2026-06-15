@@ -884,12 +884,12 @@ describe('Ledger core', () => {
       },
     });
 
-    it(`calls keyring.createAccounts with the unlock index as groupIndex`, async () => {
+    it(`calls keyring.createAccounts with the derivation path for the unlock index`, async () => {
       await unlockLedgerWalletAccount(1);
       expect(ledgerKeyring.createAccounts).toHaveBeenCalledWith({
-        type: 'bip44:derive-index',
+        type: 'bip44:derive-path',
         entropySource: 'test-entropy-source',
-        groupIndex: 1,
+        derivationPath: "m/44'/60'/1'/0/0",
       });
     });
 

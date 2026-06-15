@@ -53,7 +53,6 @@ import { getNotificationServicesPushControllerMessenger } from './notifications/
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
-import { getApprovalControllerMessenger } from './approval-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
@@ -193,10 +192,6 @@ export const MESSENGER_FACTORIES = {
   },
   ConnectivityController: {
     getMessenger: getConnectivityControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ApprovalController: {
-    getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
   },
   AssetsContractController: {

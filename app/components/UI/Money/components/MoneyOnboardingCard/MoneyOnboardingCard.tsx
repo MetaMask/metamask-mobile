@@ -31,7 +31,6 @@ import {
   SCREEN_NAMES,
   BOTTOM_SHEET_NAMES,
 } from '../../constants/moneyEvents';
-
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
 
@@ -76,6 +75,9 @@ const MoneyOnboardingCard = () => {
     isCardLinkedToMoneyAccount,
   });
 
+  const shouldShowLinkCardAction =
+    isCardholder || (isCardAuthenticated && !isCardLinkedToMoneyAccount);
+
   const handleRedirectToCryptoDeposit = useCallback(async () => {
     await initiateDeposit().catch(() => undefined);
   }, [initiateDeposit]);
@@ -88,7 +90,7 @@ const MoneyOnboardingCard = () => {
         total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
       } as const;
 
-      if (isCardAuthenticated && !isCardLinkedToMoneyAccount) {
+      if (shouldShowLinkCardAction) {
         trackOnboardingEvent({
           ...baseProperties,
           step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
@@ -117,8 +119,7 @@ const MoneyOnboardingCard = () => {
     },
     [
       currentStep,
-      isCardAuthenticated,
-      isCardLinkedToMoneyAccount,
+      shouldShowLinkCardAction,
       startLinkFlow,
       trackOnboardingEvent,
       trackEvent,
@@ -252,84 +253,76 @@ const MoneyOnboardingCard = () => {
       image: moneyOnboardingStepperStep1,
     };
 
-    // Case 1: Has MetaMask card but not linked to Money account yet.
-    const step2: StepperCardStep =
-      isCardAuthenticated && !isCardLinkedToMoneyAccount
-        ? {
-            title: strings(
-              'money.onboarding.step_2.unlinked_card_account.title',
+    // Case 1: Cardholder, or authenticated with a card not yet linked.
+    const step2: StepperCardStep = shouldShowLinkCardAction
+      ? {
+          title: strings('money.onboarding.step_2.unlinked_card_account.title'),
+          description: strings(
+            'money.onboarding.step_2.unlinked_card_account.description',
+          ),
+          primaryCta: {
+            text: strings(
+              'money.onboarding.step_2.unlinked_card_account.cta_primary',
             ),
-            description: strings(
-              'money.onboarding.step_2.unlinked_card_account.description',
+            onPress: () =>
+              handleCardCtaPress(
+                strings('money.onboarding.step_2.unlinked_card_account.title', {
+                  locale: 'en',
+                }),
+              ),
+            disabled: isLinking,
+          },
+          secondaryCta: {
+            text: strings(
+              'money.onboarding.step_2.unlinked_card_account.cta_secondary',
             ),
-            primaryCta: {
-              text: strings(
-                'money.onboarding.step_2.unlinked_card_account.cta_primary',
+            onPress: () =>
+              handleSkipPress(
+                strings('money.onboarding.step_2.unlinked_card_account.title', {
+                  locale: 'en',
+                }),
               ),
-              onPress: () =>
-                handleCardCtaPress(
-                  strings(
-                    'money.onboarding.step_2.unlinked_card_account.title',
-                    {
-                      locale: 'en',
-                    },
-                  ),
-                ),
-              disabled: isLinking,
-            },
-            secondaryCta: {
-              text: strings(
-                'money.onboarding.step_2.unlinked_card_account.cta_secondary',
-              ),
-              onPress: () =>
-                handleSkipPress(
-                  strings(
-                    'money.onboarding.step_2.unlinked_card_account.title',
-                    { locale: 'en' },
-                  ),
-                ),
-            },
-            image: moneyOnboardingStepperStep2,
-          }
-        : // No MetaMask card yet.
-          {
-            title: strings('money.onboarding.step_2.no_card_account.title'),
-            description: strings(
-              'money.onboarding.step_2.no_card_account.description',
+          },
+          image: moneyOnboardingStepperStep2,
+        }
+      : // No MetaMask card yet.
+        {
+          title: strings('money.onboarding.step_2.no_card_account.title'),
+          description: strings(
+            'money.onboarding.step_2.no_card_account.description',
+          ),
+          primaryCta: {
+            text: strings(
+              'money.onboarding.step_2.no_card_account.cta_primary',
             ),
-            primaryCta: {
-              text: strings(
-                'money.onboarding.step_2.no_card_account.cta_primary',
+            onPress: () =>
+              handleCardCtaPress(
+                strings('money.onboarding.step_2.no_card_account.title', {
+                  locale: 'en',
+                }),
               ),
-              onPress: () =>
-                handleCardCtaPress(
-                  strings('money.onboarding.step_2.no_card_account.title', {
-                    locale: 'en',
-                  }),
-                ),
-              disabled: isLinking,
-            },
-            secondaryCta: {
-              text: strings(
-                'money.onboarding.step_2.no_card_account.cta_secondary',
+            disabled: isLinking,
+          },
+          secondaryCta: {
+            text: strings(
+              'money.onboarding.step_2.no_card_account.cta_secondary',
+            ),
+            onPress: () =>
+              handleSkipPress(
+                strings('money.onboarding.step_2.no_card_account.title', {
+                  locale: 'en',
+                }),
               ),
-              onPress: () =>
-                handleSkipPress(
-                  strings('money.onboarding.step_2.no_card_account.title', {
-                    locale: 'en',
-                  }),
-                ),
-            },
-            image: moneyOnboardingStepperStep2,
-          };
+          },
+          image: moneyOnboardingStepperStep2,
+        };
 
     return [step1, step2];
   }, [
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
     handleStep1CtaPressed,
-    isCardAuthenticated,
-    isCardLinkedToMoneyAccount,
+    shouldShowLinkCardAction,
     isLinking,
     handleCardCtaPress,
     handleSkipPress,

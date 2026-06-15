@@ -94,16 +94,14 @@ describe('PerpsMarketListView', () => {
       });
     });
 
-    it('shows empty favorites state when view starts in watchlist-only mode with no favorites', async () => {
+    it('shows empty watchlist state when view starts in watchlist-only mode with no favorites', async () => {
       renderPerpsMarketListView({
         initialParams: { showWatchlistOnly: true },
+        streamOverrides: { marketData: marketDataWithCategories },
       });
 
       expect(
-        await screen.findByText(strings('perps.no_favorites_found')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.no_favorites_description')),
+        await screen.findByText(strings('perps.watchlist.empty_subtitle')),
       ).toBeOnTheScreen();
     });
   });

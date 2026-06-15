@@ -26,7 +26,7 @@ export async function getMnemonicSeed(
         type: KeyringType.Hd,
         index: 0,
       },
-      async ({ keyring }) => (keyring as unknown as HdKeyring).seed,
+      async ({ keyring }) => (keyring as HdKeyring).seed,
     )) as Uint8Array | null;
 
     if (!seed) {
@@ -44,7 +44,7 @@ export async function getMnemonicSeed(
       },
       async ({ keyring }) => ({
         type: keyring.type,
-        seed: (keyring as unknown as HdKeyring).seed,
+        seed: (keyring as HdKeyring).seed,
       }),
     );
 

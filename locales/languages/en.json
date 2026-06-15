@@ -118,7 +118,11 @@
       "title": "No quotes"
     },
     "account_no_funds": {
-      "message": "No funds available. Use a different account."
+      "message": "No funds available. Use a different account.",
+      "title": "Insufficient funds"
+    },
+    "fiat_buy_amount_limit": {
+      "title": "Amount out of range"
     },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
@@ -1037,7 +1041,7 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Top Traders",
+      "title": "Weekly Top Traders",
       "chain_filter": {
         "all": "All"
       }
@@ -1071,7 +1075,7 @@
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
       "win_rate": "win rate",
-      "pnl_30d": "30D P&L",
+      "pnl_30d": "30D Return",
       "hold_time": "hold time",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
@@ -1848,6 +1852,7 @@
       "position": "Position",
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
+      "related_markets": "Related markets",
       "recent_trades": "Recent activity",
       "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
@@ -2142,6 +2147,16 @@
     "search_by_token_symbol": "Search by token symbol",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
+    "watchlist": {
+      "empty_title": "Start with the most-traded markets",
+      "empty_subtitle": "Tap + to add a market to your watchlist.",
+      "show_more": "Show {{count}} more",
+      "show_less": "Show less",
+      "add_error": "Failed to add market to watchlist",
+      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
+      "filter_badge_label": "Watchlist",
+      "suggested": "Suggested"
+    },
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
@@ -2274,6 +2289,9 @@
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
+    },
+    "market_details": {
+      "category_search": "Browse related markets"
     }
   },
   "market_insights": {
@@ -2325,7 +2343,7 @@
       "nba_2026_champion_title": "NBA 2026 Champion",
       "fifa_world_cup_2026_title": "FIFA World Cup 2026",
       "events_in_total": "{{count}} events in total",
-      "events_in_total_overflow": "{{count}}+ events in total",
+      "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "Props",
       "championship_unavailable": "No championship market to show yet.",
       "mens_world_cup_title": "Men's World Cup",
@@ -4028,6 +4046,25 @@
     "buy_unified_description": "Buy crypto with cash",
     "sell": "Sell",
     "sell_description": "Sell crypto for cash"
+  },
+  "price_alerts": {
+    "create_title": "Create {{ticker}} price alert",
+    "price_reaches": "Price reaches",
+    "price_change": "Price change",
+    "enter_target_price": "Enter target price",
+    "approx_percent": "≈ {{percent}}%",
+    "approx_percent_above": "above current {{ticker}} price",
+    "approx_percent_below": "below current {{ticker}} price",
+    "recurring": "Recurring",
+    "quick_percentage": "{{percentage}}%",
+    "price_change_under_development": "This experience is currently under development",
+    "set_price_alert": "Set price alert",
+    "save_success": "Price alert for {{ticker}} saved successfully.",
+    "manage_title": "Price alerts",
+    "add_alert": "Add alert",
+    "reaches_threshold": "Reaches {{threshold}}",
+    "once_label": "Once",
+    "no_alerts": "No price alerts set for this asset."
   },
   "asset_overview": {
     "market_closed": "Market closed",
@@ -6868,8 +6905,6 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
-    "deposit_tooltip_title": "Earn up to {{percentage}}%",
-    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "balance_unavailable": "Balance unavailable",
     "balance_retry": "Retry",
     "balance_no_account": "Money account not found",
@@ -6992,10 +7027,10 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "deposit_funds": "Debit card or bank",
-      "move_musd": "Your {{amount}} mUSD",
+      "deposit_funds": "Debit card or bank account",
+      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "receive_external": "External wallet",
+      "receive_external": "External address",
       "coming_soon": "Coming soon"
     },
     "more_sheet": {
@@ -7010,7 +7045,7 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
-      "withdraw_to_bank": "Bank"
+      "withdraw_to_bank": "Bank account"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
@@ -7038,7 +7073,8 @@
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
       "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and may change due to various factors. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols.",
-      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance."
+      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
+      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
       "title": "Estimated earnings",
@@ -7046,15 +7082,17 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
+      "deposit_title": "Projected 1-year balance",
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
     },
     "activity": {
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
-      "filter_transfers": "Transfers"
+      "filter_sends": "Sends"
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
@@ -7065,13 +7103,19 @@
       "what_you_get_subtitle": "Explore your benefits"
     },
     "transaction": {
-      "added": "Added",
       "deposited": "Deposited",
       "received": "Received",
       "sent": "Sent",
-      "transferred": "Transferred",
       "card_transaction": "Card transaction",
       "converted": "Converted",
+      "depositing": "Depositing",
+      "converting": "Converting",
+      "sending": "Sending",
+      "receiving": "Receiving",
+      "deposit_failed": "Deposit failed",
+      "conversion_failed": "Conversion failed",
+      "send_failed": "Send failed",
+      "received_from": "From: {{address}}",
       "failed": "Failed"
     },
     "card_details": {
@@ -7420,6 +7464,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_token": "Select token",
       "from": "From",
       "to": "To",
       "total": "Total",
@@ -7572,7 +7617,7 @@
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
       "projected_balance": "Projected {{projectedYears}}-year balance:",
-      "earn_up_to_apy": "Earn up to {{percentage}}% APY"
+      "earn_up_to_apy": "Earn {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -7711,14 +7756,27 @@
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
     "hardware_wallet_progress": {
-      "approved_token": "Approved {{amount}} {{symbol}}",
+      "confirm_title": "Confirm on your hardware wallet ({{current}}/{{total}})",
+      "submitted_title": "Transaction submitted",
+      "rejected_title": "You rejected this transaction on your device",
+      "failed_title": "Transaction failed",
+      "disconnected_title": "Device disconnected",
+      "approve_token": "Approve {{amount}} {{symbol}}",
       "approving_token": "Approving {{amount}} {{symbol}}",
+      "approved_token": "Approved {{amount}} {{symbol}}",
       "send_token": "Send {{amount}} {{symbol}}",
       "sending_token": "Sending {{amount}} {{symbol}}",
       "sent_token": "Sent {{amount}} {{symbol}}",
+      "spender": "Spender",
       "spender_address": "Spender {{address}}",
+      "recipient": "Recipient",
       "recipient_address": "Recipient {{address}}",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "reconnect": "Reconnect",
+      "done": "Done",
+      "scan_next_qr_code": "Scan next QR code",
+      "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
+      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet"
     },
     "price_impact_info_title": "Price impact",
     "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
@@ -7763,6 +7821,7 @@
       "bridge_success": "Bridge complete",
       "bridge_failed": "Bridge failed",
       "trade_subtitle": "{{sourceAmount}} {{sourceSymbol}} → {{destAmount}} {{destSymbol}}",
+      "what_to_swap_next": "What to swap next",
       "view_activity": "View activity",
       "try_again": "Try again"
     },
@@ -8755,6 +8814,7 @@
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
+      "referral_tag_label": "VIP",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -8779,7 +8839,22 @@
       "retry_button": "Retry",
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
-      "bps_value": "{{bps}} bps"
+      "bps_value": "{{bps}} bps",
+      "referee_splash_title": "WELCOME\nTO GOLD\nFOX VIP",
+      "referee_splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
+      "referee_splash_continue": "Continue",
+      "referee_splash_not_now": "Not now",
+      "referee_referred_by": "Referred by {{code}}",
+      "referee_page_title": "VIP Pilot",
+      "referee_stats_title": "Stats",
+      "referee_period_last_30d": "Last 30d",
+      "referee_points_label": "Points",
+      "referee_swaps_volume_label": "Swaps volume",
+      "referee_perps_volume_label": "Perps volume",
+      "referee_error_title": "We couldn’t load your VIP referee details",
+      "referee_error_description": "Check your connection and try again.",
+      "referral_tag_label": "VIP",
+      "last_updated": "Last updated: {{time}}"
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
@@ -9669,7 +9744,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "top_traders": "Top Traders",
+      "top_traders": "Weekly Top Traders",
       "defi": "DeFi",
       "nfts": "NFTs",
       "trending_tokens": "Trending",
