@@ -21,9 +21,9 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
 } from '../pay/useTransactionPayData';
-import { useMoneyNoFeeTokens } from '../pay/useMoneyNoFeeTokens';
 
 const IGNORE_TYPES = [
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
   TransactionType.predictWithdraw,
 ];
@@ -46,7 +46,6 @@ export const useInsufficientBalanceAlert = ({
   const isQuotesLoading = useIsTransactionPayLoading();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
-  const { isMoneyNoFeeToken: isMoneyNoFee } = useMoneyNoFeeTokens();
 
   return useMemo(() => {
     if (
@@ -103,7 +102,7 @@ export const useInsufficientBalanceAlert = ({
       !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
       !isSponsoredTransaction;
 
-    if (!showAlert || isMoneyNoFee) {
+    if (!showAlert) {
       return [];
     }
 
@@ -140,7 +139,6 @@ export const useInsufficientBalanceAlert = ({
     isUsingPay,
     hasInsufficientBalance,
     isQuotesLoading,
-    isMoneyNoFee,
     nativeCurrency,
     goToBuy,
     onReject,
