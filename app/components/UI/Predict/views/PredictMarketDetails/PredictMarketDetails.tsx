@@ -4,7 +4,13 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
 import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -66,6 +72,8 @@ import { usePredictPreviewSheet } from '../../contexts';
 
 interface PredictMarketDetailsProps {}
 
+type TabKey = 'positions' | 'outcomes' | 'about';
+
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -77,6 +85,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tw = useTailwind();
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
+  // Tracks the user's selected tab by key so the selection survives changes to
+  // the tabs array (e.g. the positions tab being prepended once positions load,
+  // which shifts the index-based activeTab).
+  const selectedTabKeyRef = useRef<TabKey | null>(null);
   const insets = useSafeAreaInsets();
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
@@ -304,8 +316,32 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
   };
 
+  const tabs = useMemo(() => {
+    const result: { label: string; key: TabKey }[] = [];
+    // positions first if user has any
+    if (activePositions.length > 0 || claimablePositions.length > 0) {
+      result.push({
+        label: strings('predict.tabs.positions'),
+        key: 'positions',
+      });
+    }
+    // outcomes next if market has multiple outcomes or is closed
+    if (multipleOutcomes || market?.status === PredictMarketStatus.CLOSED) {
+      result.push({ label: strings('predict.tabs.outcomes'), key: 'outcomes' });
+    }
+    // about last (always present)
+    result.push({ label: strings('predict.tabs.about'), key: 'about' });
+    return result;
+  }, [
+    activePositions.length,
+    claimablePositions.length,
+    multipleOutcomes,
+    market?.status,
+  ]);
+
   const handleTabPress = (tabIndex: number) => {
     setUserSelectedTab(true);
+    selectedTabKeyRef.current = tabs[tabIndex]?.key ?? null;
     setActiveTab(tabIndex);
   };
 
@@ -340,8 +376,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     });
   }, [navigation]);
 
-  type TabKey = 'positions' | 'outcomes' | 'about';
-
   const trackMarketDetailsOpened = useCallback(
     (tabKey: TabKey) => {
       if (!market) return;
@@ -373,33 +407,26 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       transactionActiveAbTests,
     ],
   );
-  const tabs = useMemo(() => {
-    const result: { label: string; key: TabKey }[] = [];
-    // positions first if user has any
-    if (activePositions.length > 0 || claimablePositions.length > 0) {
-      result.push({
-        label: strings('predict.tabs.positions'),
-        key: 'positions',
-      });
-    }
-    // outcomes next if market has multiple outcomes or is closed
-    if (multipleOutcomes || market?.status === PredictMarketStatus.CLOSED) {
-      result.push({ label: strings('predict.tabs.outcomes'), key: 'outcomes' });
-    }
-    // about last (always present)
-    result.push({ label: strings('predict.tabs.about'), key: 'about' });
-    return result;
-  }, [
-    activePositions.length,
-    claimablePositions.length,
-    multipleOutcomes,
-    market?.status,
-  ]);
 
   useEffect(() => {
     if (!tabsReady) return;
 
     const outcomesIndex = tabs.findIndex((t) => t.key === 'outcomes');
+
+    // Keep the user's selection pinned to its tab key. The tabs array can grow
+    // once positions resolve, which shifts indices; without this the selected
+    // tab would silently change to whatever now sits at the same index.
+    if (userSelectedTab && selectedTabKeyRef.current) {
+      const preservedIndex = tabs.findIndex(
+        (t) => t.key === selectedTabKeyRef.current,
+      );
+      if (preservedIndex >= 0) {
+        if (preservedIndex !== activeTab) {
+          setActiveTab(preservedIndex);
+        }
+        return;
+      }
+    }
 
     // for closed markets, display 'outcomes' by default until the user selects a tab
     if (market?.status === PredictMarketStatus.CLOSED) {

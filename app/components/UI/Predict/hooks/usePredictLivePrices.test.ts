@@ -136,7 +136,6 @@ describe('usePredictLivePrices', () => {
       });
 
       expect(result.current.priceVersion).toBe(1);
-      expect(result.current.lastUpdateTime).not.toBeNull();
     });
 
     it('skips warm-up fetch when disabled', () => {

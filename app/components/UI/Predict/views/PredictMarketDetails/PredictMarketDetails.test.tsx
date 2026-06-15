@@ -2926,7 +2926,7 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('resets to Outcomes when selected tab becomes invalid after tabs change on closed market', async () => {
+    it('keeps the user-selected About tab when the positions tab disappears on a closed market', async () => {
       const closedMarket = createMockMarket({
         status: 'closed',
       });
@@ -2970,12 +2970,11 @@ describe('PredictMarketDetails', () => {
 
       rerender(<PredictMarketDetails />);
 
+      // The positions tab is removed, which shifts indices. The user's About
+      // selection must be preserved by key instead of silently switching tabs.
       await waitFor(() => {
         expect(
-          screen.queryByText('predict.market_details.volume'),
-        ).not.toBeOnTheScreen();
-        expect(
-          screen.getByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB),
+          screen.getByText('predict.market_details.volume'),
         ).toBeOnTheScreen();
       });
     });

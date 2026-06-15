@@ -11,7 +11,6 @@ export interface UsePredictLivePricesResult {
   prices: Map<string, PriceUpdate>;
   getPrice: (tokenId: string) => PriceUpdate | undefined;
   isConnected: boolean;
-  lastUpdateTime: number | null;
   priceVersion: number;
 }
 
@@ -61,13 +60,11 @@ export const usePredictLivePrices = (
     () => new Map(),
   );
   const [isConnected, setIsConnected] = useState(false);
-  const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(null);
   const [priceVersion, setPriceVersion] = useState(0);
 
   const activeTokenIdsRef = useRef<Set<string>>(new Set());
   const activeTokenEpochsRef = useRef<Map<string, number>>(new Map());
   const isMountedRef = useRef(true);
-  const priceVersionRef = useRef(0);
   const tokenEpochRef = useRef(0);
   const websocketGenerationRef = useRef(0);
   const websocketTokenGenerationsRef = useRef<Map<string, number>>(new Map());
@@ -81,21 +78,21 @@ export const usePredictLivePrices = (
     [normalizedQueries],
   );
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+    const activeTokenEpochs = activeTokenEpochsRef.current;
+
+    return () => {
       isMountedRef.current = false;
       activeTokenIdsRef.current = new Set();
-      activeTokenEpochsRef.current.clear();
-    },
-    [],
-  );
+      activeTokenEpochs.clear();
+    };
+  }, []);
 
   const commitPriceUpdates = useCallback((updates: PriceUpdate[]) => {
     if (!isMountedRef.current || updates.length === 0) {
       return;
     }
-
-    const updatedAt = Date.now();
 
     setPrices((previousPrices) => {
       const nextPrices = new Map(previousPrices);
@@ -104,12 +101,7 @@ export const usePredictLivePrices = (
       });
       return nextPrices;
     });
-    setLastUpdateTime(updatedAt);
-    setPriceVersion((previousVersion) => {
-      const nextVersion = previousVersion + 1;
-      priceVersionRef.current = nextVersion;
-      return nextVersion;
-    });
+    setPriceVersion((previousVersion) => previousVersion + 1);
   }, []);
 
   const fetchWarmupPrices = useCallback(
@@ -250,7 +242,6 @@ export const usePredictLivePrices = (
     prices,
     getPrice,
     isConnected,
-    lastUpdateTime,
     priceVersion,
   };
 };
