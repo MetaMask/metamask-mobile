@@ -195,11 +195,22 @@ const PriceAdvanced = ({
     );
   }, [createEventBuilder, trackEvent, chartType]);
 
+  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const indicatorsArray = useMemo(
+    () =>
+      ([...activeIndicators] as IndicatorType[]).filter((i) => i !== 'Volume'),
+    [activeIndicators],
+  );
+
   const handleChartTypeSelect = useCallback(
     (next: ChartType) => {
       if (next === chartType) return;
       if (next !== ChartType.Candles) {
         setCrosshairData(null);
+        setActiveIndicators(new Set());
       }
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
@@ -348,16 +359,6 @@ const PriceAdvanced = ({
       }),
     );
   }, [navigation, selectedMAs]);
-
-  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
-    new Set(),
-  );
-
-  const indicatorsArray = useMemo(
-    () =>
-      ([...activeIndicators] as IndicatorType[]).filter((i) => i !== 'Volume'),
-    [activeIndicators],
-  );
 
   const chartHeight = BASE_CHART_HEIGHT;
 
