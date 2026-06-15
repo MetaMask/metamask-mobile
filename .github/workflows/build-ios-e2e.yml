@@ -512,7 +512,7 @@ jobs:
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -542,7 +542,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true')) }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
