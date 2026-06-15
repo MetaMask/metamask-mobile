@@ -25,12 +25,11 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
-import { SolAccountType, SolScope } from '@metamask/keyring-api';
+import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -40,7 +39,6 @@ import {
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
-import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import { BANNER_EVENT_DISPLAY } from '../../../constants/engagement';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -210,28 +208,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           },
         };
       }
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      // solana → open add-account flow (if we don't already redirect below)
-      if (variableName === 'solana') {
-        return {
-          ...s,
-          navigation: {
-            type: 'function',
-            navigate: () =>
-              [
-                Routes.MODAL.ROOT_MODAL_FLOW,
-                {
-                  screen: Routes.SHEET.ADD_ACCOUNT,
-                  params: {
-                    clientType: WalletClientType.Solana,
-                    scope: SolScope.Mainnet,
-                  },
-                },
-              ] as const,
-          },
-        };
-      }
-      ///: END:ONLY_INCLUDE_IF
       return s; // keep Contentful linkUrl for everything else
     },
     [],

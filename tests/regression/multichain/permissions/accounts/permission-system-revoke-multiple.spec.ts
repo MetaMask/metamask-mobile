@@ -10,10 +10,7 @@ import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../../framework/Assertions';
 import { RegressionNetworkExpansion } from '../../../../tags';
-import AddNewAccountSheet from '../../../../page-objects/wallet/AddNewAccountSheet';
 import { DappVariants } from '../../../../framework/Constants';
-
-const AccountTwoText = 'Account 2';
 
 describe(RegressionNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
@@ -49,12 +46,6 @@ describe(RegressionNetworkExpansion('Account Permission Management'), () => {
           ToastModal.notificationTitle,
         );
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AccountListBottomSheet.tapAddEthereumAccountButton();
-        await AddNewAccountSheet.tapConfirmButton();
-        if (device.getPlatform() === 'android') {
-          await Assertions.expectTextDisplayed(AccountTwoText);
-        }
         await AccountListBottomSheet.tapAccountIndex(0);
         await AccountListBottomSheet.tapConnectAccountsButton();
 

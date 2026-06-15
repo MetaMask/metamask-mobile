@@ -19,9 +19,6 @@ import { CarouselSlide } from './types';
 import * as FeatureFlagSelectorsModule from './selectors/featureFlags';
 import { RootState } from '../../../reducers';
 import { selectLastSelectedSolanaAccount } from '../../../selectors/accountsController';
-import Routes from '../../../constants/navigation/Routes';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope } from '@metamask/keyring-api';
 import { setContentPreviewToken } from '../../../actions/notification/helpers';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -478,20 +475,6 @@ describe('Carousel Solana Integration', () => {
   it('switches to existing Solana account when clicked', async () => {
     await arrangeActTestSolanaCarouselClick({ hasSolanaAccount: true });
     expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SolanaAddress123');
-  });
-
-  it('navigates to add account flow when no existing Solana account', async () => {
-    await arrangeActTestSolanaCarouselClick({ hasSolanaAccount: false }); // no solana account
-
-    // Should navigate to add account flow instead of switching accounts
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: WalletClientType.Solana,
-        scope: SolScope.Mainnet,
-      },
-    });
-    expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
   });
 });
 
