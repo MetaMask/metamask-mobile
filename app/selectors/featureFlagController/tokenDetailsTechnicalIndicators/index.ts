@@ -22,6 +22,7 @@ export const TOKEN_DETAILS_TECHNICAL_INDICATORS_FLAG_KEY =
 export const selectTokenDetailsTechnicalIndicatorsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
+    return true;
     const remoteFlag =
       remoteFeatureFlags?.[TOKEN_DETAILS_TECHNICAL_INDICATORS_FLAG_KEY];
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;

@@ -36,6 +36,7 @@ import {
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
+  type OHLCVTimePeriod,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
@@ -85,6 +86,18 @@ const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
   '1W': '1h',
   '1M': '1d',
   '1Y': '1d',
+};
+
+/**
+ * Maps each candle interval to the API timePeriod that returns enough history.
+ * Without this, e.g. interval=1d + timePeriod=1d returns only ~1 bar.
+ */
+const INTERVAL_TO_TIME_PERIOD: Record<string, OHLCVTimePeriod> = {
+  '1m': '1d',
+  '5m': '1d',
+  '15m': '1d',
+  '1h': '1w',
+  '1d': '1m',
 };
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
@@ -277,14 +290,24 @@ const PriceAdvanced = ({
     }
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
+  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+
+  const [displayInterval, setDisplayInterval] = useState(
+    wsInterval.toUpperCase(),
+  );
+
+  useEffect(() => {
+    setDisplayInterval(wsInterval.toUpperCase());
+  }, [wsInterval]);
+
+  const chartInterval = displayInterval.toLowerCase();
 
   /**
    * Used to make sure changing time range always sends a full SET_OHLCV_DATA
    */
   const ohlcvSeriesKey = useMemo(
-    () =>
-      `${assetId}|${config.timePeriod}|${config.interval}|${currentCurrency}`,
-    [assetId, config.timePeriod, config.interval, currentCurrency],
+    () => `${assetId}|${config.timePeriod}|${chartInterval}|${currentCurrency}`,
+    [assetId, config.timePeriod, chartInterval, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -333,19 +356,10 @@ const PriceAdvanced = ({
     hasEmptyData,
   } = useOHLCVChart({
     assetId,
-    timePeriod: config.timePeriod,
-    interval: config.interval,
+    timePeriod: INTERVAL_TO_TIME_PERIOD[chartInterval] ?? config.timePeriod,
+    interval: chartInterval,
     vsCurrency: currentCurrency,
   });
-
-  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
-  const [displayInterval, setDisplayInterval] = useState(
-    wsInterval.toUpperCase(),
-  );
-
-  useEffect(() => {
-    setDisplayInterval(wsInterval.toUpperCase());
-  }, [wsInterval]);
 
   const handleInlineIntervalSelect = useCallback((interval: string) => {
     setDisplayInterval(interval);
@@ -399,7 +413,7 @@ const PriceAdvanced = ({
 
   const { latestBar } = useOHLCVRealtime({
     assetId,
-    interval: wsInterval,
+    interval: chartInterval,
     currency: currentCurrency,
     timePeriod: timeRange.toLowerCase(),
     enabled: wsEnabled,
