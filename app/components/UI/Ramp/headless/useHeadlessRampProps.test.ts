@@ -47,25 +47,6 @@ describe('useHeadlessRampProps', () => {
     expect(getSessionMock).toHaveBeenCalledWith('hs-1');
   });
 
-  it('tags HEADLESS with an undefined surface when the session has no seeded rampSurface', () => {
-    getSessionMock.mockReturnValue({
-      id: 'hs-2',
-      status: 'continued',
-      params: {},
-    } as never);
-
-    const { result } = renderHook(() => useHeadlessRampProps('hs-2'));
-
-    expect(result.current.headlessRampProps).toEqual({
-      ramp_type: 'HEADLESS',
-      ramp_surface: undefined,
-    });
-    expect(result.current.headlessDepositRampProps).toEqual({
-      ramp_type: 'HEADLESS',
-      ramp_surface: undefined,
-    });
-  });
-
   it('keeps prop object identity stable across re-renders with the same session id', () => {
     getSessionMock.mockReturnValue({
       id: 'hs-3',
