@@ -1,6 +1,9 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import Engine from '../../../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
@@ -32,6 +35,13 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      setTransactionConfig: jest.fn(),
+    },
+  },
+}));
 
 describe('usePayWithMoneyAccountSection', () => {
   const useSelectorMock = jest.mocked(useSelector);
@@ -40,10 +50,17 @@ describe('usePayWithMoneyAccountSection', () => {
     useTransactionMetadataRequest,
   );
 
-  const moneyAccountMock = { id: 'ma-1', balance: '100' };
+  const MONEY_ACCOUNT_ADDRESS = '0xc4ff9e84b5754570812d891ade0bad3952bb5946';
+  const moneyAccountMock = {
+    id: 'ma-1',
+    balance: '100',
+    address: MONEY_ACCOUNT_ADDRESS,
+  };
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest.mocked(useNavigation).mockReturnValue({ goBack: jest.fn() } as never);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'tx-1',
@@ -56,7 +73,10 @@ describe('usePayWithMoneyAccountSection', () => {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
-        return { enablePerpsMoneyAccountTransactions: true };
+        return {
+          enablePerpsMoneyAccountTransactions: true,
+          enablePredictMoneyAccountTransactions: true,
+        };
       }
       return undefined;
     });
@@ -66,16 +86,69 @@ describe('usePayWithMoneyAccountSection', () => {
     } as never);
   });
 
-  it('returns null when enablePerpsMoneyAccountTransactions is false', () => {
+  it('returns null when both money account flags are false', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
-        return { enablePerpsMoneyAccountTransactions: false };
+        return {
+          enablePerpsMoneyAccountTransactions: false,
+          enablePredictMoneyAccountTransactions: false,
+        };
       }
       return undefined;
     });
+
+    const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null for predict transaction when only perps flag is true', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectPrimaryMoneyAccount) {
+        return moneyAccountMock;
+      }
+      if (selector === selectMetaMaskPayFlags) {
+        return {
+          enablePerpsMoneyAccountTransactions: true,
+          enablePredictMoneyAccountTransactions: false,
+        };
+      }
+      return undefined;
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'tx-1',
+      type: TransactionType.predictDeposit,
+      txParams: {},
+    } as never);
+
+    const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null for perps transaction when only predict flag is true', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectPrimaryMoneyAccount) {
+        return moneyAccountMock;
+      }
+      if (selector === selectMetaMaskPayFlags) {
+        return {
+          enablePerpsMoneyAccountTransactions: false,
+          enablePredictMoneyAccountTransactions: true,
+        };
+      }
+      return undefined;
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'tx-1',
+      type: TransactionType.perpsDeposit,
+      txParams: {},
+    } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
@@ -100,7 +173,10 @@ describe('usePayWithMoneyAccountSection', () => {
         return null;
       }
       if (selector === selectMetaMaskPayFlags) {
-        return { enablePerpsMoneyAccountTransactions: true };
+        return {
+          enablePerpsMoneyAccountTransactions: true,
+          enablePredictMoneyAccountTransactions: true,
+        };
       }
       return undefined;
     });
@@ -120,39 +196,42 @@ describe('usePayWithMoneyAccountSection', () => {
 
   it.each([
     TransactionType.perpsDeposit,
-    TransactionType.perpsWithdraw,
     TransactionType.predictDeposit,
-    TransactionType.predictDepositAndOrder,
+    TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
-  ])('returns section config for supported transaction type %s', (txType) => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: 'tx-1',
-      type: txType,
-      txParams: {},
-    } as never);
+    TransactionType.predictDepositAndOrder,
+  ])(
+    'returns section config with "available" subtitle for transaction type %s',
+    (txType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: txType,
+        txParams: {},
+      } as never);
 
-    const { result } = renderHook(() => usePayWithMoneyAccountSection());
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
-    expect(result.current).toEqual(
-      expect.objectContaining({
-        id: 'money-account',
-        title: 'Money account',
-        testID: PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID,
-      }),
-    );
-    expect(result.current?.rows).toHaveLength(1);
-    expect(result.current?.rows[0]).toEqual(
-      expect.objectContaining({
-        id: 'money-account-musd',
-        title: 'mUSD',
-        subtitle: '$100.00 available',
-        isSelected: false,
-        isLastUsed: false,
-        trailingElement: 'none',
-        testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
-      }),
-    );
-  });
+      expect(result.current).toEqual(
+        expect.objectContaining({
+          id: 'money-account',
+          title: '',
+          testID: PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID,
+        }),
+      );
+      expect(result.current?.rows).toHaveLength(1);
+      expect(result.current?.rows[0]).toEqual(
+        expect.objectContaining({
+          id: 'money-account-musd',
+          title: 'Money account',
+          subtitle: '$100.00 available',
+          isSelected: false,
+          isLastUsed: false,
+          trailingElement: 'none',
+          testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
+        }),
+      );
+    },
+  );
 
   it('renders subtitle with formatted balance', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
@@ -174,14 +253,14 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current?.rows[0].subtitle).toBeUndefined();
   });
 
-  it('renders an Image icon with the MUSD token image URI', () => {
+  it('renders an Image icon with the money.png source', () => {
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
     const icon = result.current?.rows[0].icon as React.ReactElement<{
-      source: { uri: string };
+      source: number;
     }>;
     expect(icon).toBeDefined();
-    expect(icon.props.source.uri).toContain('tokenIcons');
+    expect(icon.props.source).toBeDefined();
   });
 
   it('keeps the result reference stable across renders when nothing changes', () => {
@@ -193,5 +272,41 @@ describe('usePayWithMoneyAccountSection', () => {
     rerender();
 
     expect(result.current).toBe(firstResult);
+  });
+
+  describe('handlePress', () => {
+    it('sets paymentOverride and refundTo on press', () => {
+      const setConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      expect(setConfigMock).toHaveBeenCalledWith('tx-1', expect.any(Function));
+
+      const config = {} as Record<string, unknown>;
+      setConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
+    });
+
+    it('navigates back on press', () => {
+      const goBackMock = jest.fn();
+      jest
+        .mocked(useNavigation)
+        .mockReturnValue({ goBack: goBackMock } as never);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      expect(goBackMock).toHaveBeenCalled();
+    });
   });
 });

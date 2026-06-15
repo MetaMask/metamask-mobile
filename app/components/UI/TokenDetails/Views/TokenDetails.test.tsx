@@ -1,7 +1,8 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -10,11 +11,15 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
 } from '../components/abTestConfig';
+import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -53,8 +58,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    addListener: jest.fn(() => jest.fn()),
   }),
   useRoute: () => ({ params: mockRouteParams() }),
+  useFocusEffect: jest.fn((cb: () => () => void) => {
+    cb();
+  }),
 }));
 
 const defaultUseTokenPriceReturn = {
@@ -153,10 +162,10 @@ jest.mock('../components/AssetOverviewContent', () => {
     token?: { address?: string; chainId?: string; symbol?: string };
     useAmbientColor?: boolean;
   }) => {
-    mockLastUseAmbientColorProp = useAmbientColor;
-    mockLatestPriceDirectionChange = onPriceDirectionChange;
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
+      mockLastUseAmbientColorProp = useAmbientColor;
+      mockLatestPriceDirectionChange = onPriceDirectionChange;
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
       if (!mockAutoResolveMarketInsights) {
         return;
@@ -165,7 +174,12 @@ jest.mock('../components/AssetOverviewContent', () => {
         isDisplayed: true,
         severity: undefined,
       });
-    }, [onMarketInsightsDisplayResolved, insightsTokenKey]);
+    }, [
+      onMarketInsightsDisplayResolved,
+      onPriceDirectionChange,
+      useAmbientColor,
+      insightsTokenKey,
+    ]);
 
     return null;
   };
@@ -226,6 +240,10 @@ jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
   selectDepositMinimumVersionFlag: jest.fn(() => null),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
+  selectPriceAlertsEnabled: jest.fn(() => false),
+}));
+
 jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampNativeTokenSupported: jest.fn(() => true),
   isNetworkRampSupported: jest.fn(() => true),
@@ -258,6 +276,13 @@ const mockUseABTest = jest.fn((key: string) => {
       isActive: false,
     };
   }
+  if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
+    return {
+      variant: { showQuickBuy: true },
+      variantName: 'treatment',
+      isActive: true,
+    };
+  }
   return {
     variant: { swapLabelKey: 'asset_overview.swap' },
     variantName: 'control',
@@ -274,6 +299,19 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
 
 jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
+}));
+
+const mockAssetDetailsQuickBuy = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../components/AssetDetailsQuickBuy', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockAssetDetailsQuickBuy(props),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
 describe('TokenDetails', () => {
@@ -323,6 +361,7 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
+      if (selector === selectPriceAlertsEnabled) return false;
       return undefined;
     });
   });
@@ -399,6 +438,62 @@ describe('TokenDetails', () => {
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Swap')).toBeNull();
+    });
+  });
+
+  describe('Quick Buy', () => {
+    const getLastQuickBuyProps = () =>
+      mockAssetDetailsQuickBuy.mock.calls[
+        mockAssetDetailsQuickBuy.mock.calls.length - 1
+      ][0];
+
+    it('mounts AssetDetailsQuickBuy hidden by default with the current token', () => {
+      render(<TokenDetails />);
+
+      expect(mockAssetDetailsQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isVisible: false,
+          token: expect.objectContaining({ symbol: 'DAI', chainId: '0x1' }),
+        }),
+      );
+    });
+
+    it('opens AssetDetailsQuickBuy when the sticky lightning button is pressed', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: false }),
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON));
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+
+    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the control variant is assigned', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
+          return {
+            variant: { showQuickBuy: false },
+            variantName: 'control',
+            isActive: true,
+          };
+        }
+        return {
+          variant: { useAmbientPriceColor: false },
+          variantName: 'control',
+          isActive: false,
+        };
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON),
+      ).toBeNull();
+      expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
     });
   });
 
@@ -618,6 +713,184 @@ describe('TokenDetails', () => {
       const { queryByTestId } = render(<TokenDetails />);
 
       expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+  });
+
+  describe('price alert button gating', () => {
+    const enablePriceAlerts = () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectPriceAlertsEnabled) return true;
+        return undefined;
+      });
+    };
+
+    it('passes onPriceAlertPress to the header when the flag is enabled and currentPrice > 0', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 100,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          onPriceAlertPress: expect.any(Function),
+        }),
+      );
+    });
+
+    it('passes undefined onPriceAlertPress when the flag is disabled', () => {
+      // Flag disabled — default mockUseSelector returns false for selectPriceAlertsEnabled
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('passes undefined onPriceAlertPress when currentPrice is 0, even if flag is enabled', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 0,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('passes undefined onPriceAlertPress when CAIP-19 asset id cannot be resolved', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 100,
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        chainId: undefined,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 2500,
+        currentCurrency: 'USD',
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        chainId: '0x1',
+        symbol: 'DAI',
+      });
+
+      render(<TokenDetails />);
+
+      // Retrieve the handler passed to the mocked header component and invoke it
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0] as {
+        onPriceAlertPress?: () => void;
+      };
+      act(() => {
+        lastCall.onPriceAlertPress?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MANAGE_PRICE_ALERTS,
+        expect.objectContaining({
+          symbol: 'DAI',
+          currentPrice: 2500,
+          currentCurrency: 'USD',
+          assetId: expect.stringMatching(/^eip155:1\//),
+        }),
+      );
+    });
+  });
+
+  describe('TOKEN_DETAILS_CLOSED app state tracking', () => {
+    let handleAppStateChange: (nextState: AppStateStatus) => void;
+
+    const getTokenDetailsClosedCallCount = () =>
+      mockCreateEventBuilder.mock.calls.filter(
+        ([event]) => event === MetaMetricsEvents.TOKEN_DETAILS_CLOSED,
+      ).length;
+
+    beforeEach(() => {
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((_, listener) => {
+          handleAppStateChange = listener;
+          return { remove: jest.fn() };
+        });
+      Object.defineProperty(AppState, 'currentState', {
+        configurable: true,
+        value: 'active',
+      });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('does not fire TOKEN_DETAILS_CLOSED on transient inactive (e.g. Control Center)', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('inactive');
+        handleAppStateChange('active');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(0);
+    });
+
+    it('fires TOKEN_DETAILS_CLOSED with app_backgrounded only when app is backgrounded', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'app_backgrounded' }),
+      );
+    });
+
+    it('resets session after iOS background → inactive → active sequence', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+      expect(getTokenDetailsClosedCallCount()).toBe(1);
+
+      act(() => {
+        handleAppStateChange('inactive');
+        handleAppStateChange('active');
+      });
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(2);
     });
   });
 });

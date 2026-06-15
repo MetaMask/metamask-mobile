@@ -41,6 +41,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'confirm.pay_with_bottom_sheet.other_assets': 'Other assets',
       'confirm.pay_with_bottom_sheet.other_assets_description':
         'Select from your tokens',
+      'confirm.pay_with_bottom_sheet.other_assets_receive_description':
+        'Select the token you want to receive',
     };
 
     return translations[key] ?? key;
@@ -188,7 +190,7 @@ describe('usePayWithCryptoSection', () => {
 
     const expectedPreferred = {
       address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET,
+      chainId: CHAIN_IDS.MONAD,
     };
     expect(usePayWithPreferredTokenMock).toHaveBeenCalledWith({
       preferredToken: expectedPreferred,
@@ -252,6 +254,10 @@ describe('usePayWithCryptoSection', () => {
   });
 
   it('returns the crypto section with preferred token and other assets rows', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+      txParams: {},
+    } as never);
     const { result } = renderHook(() => usePayWithCryptoSection());
 
     expect(result.current).toEqual(
@@ -297,6 +303,63 @@ describe('usePayWithCryptoSection', () => {
       }),
     );
     expect(result.current?.rows[1].icon).toEqual(expect.any(Object));
+  });
+
+  it('omits the "available" suffix on subtitles for order-and-deposit flows but keeps the default "Other assets" copy', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDepositAndOrder,
+      txParams: {},
+    } as never);
+    useIsPerpsBalanceSelectedMock.mockReturnValue(false);
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    expect(result.current?.rows[0]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-preferred-token',
+        subtitle: '$12.34',
+      }),
+    );
+    expect(result.current?.rows[1]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-other-assets',
+        subtitle: 'Select from your tokens',
+      }),
+    );
+  });
+
+  it('omits the "available" suffix on subtitles and uses the withdraw "Other assets" copy in withdraw flows', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: {},
+    } as never);
+    usePayWithSelectedTokenMock.mockReturnValue({
+      isSelectedDistinctFromAutomatic: true,
+      selectedToken: SELECTED_TOKEN_MOCK,
+      selectToken: selectTokenMock,
+    });
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    expect(result.current?.rows).toHaveLength(3);
+    expect(result.current?.rows[0]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-preferred-token',
+        subtitle: '$12.34',
+      }),
+    );
+    expect(result.current?.rows[1]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-selected-token',
+        subtitle: '$20.00',
+      }),
+    );
+    expect(result.current?.rows[2]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-other-assets',
+        subtitle: 'Select the token you want to receive',
+      }),
+    );
   });
 
   it('does not mark the preferred token row as selected on perpsDepositAndOrder flows when Perps balance is the implicit default', () => {
@@ -364,6 +427,10 @@ describe('usePayWithCryptoSection', () => {
   });
 
   it('adds the user-selected token row with a checkmark when distinct from the automatic candidate', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+      txParams: {},
+    } as never);
     const distinctSelectedToken = {
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,

@@ -81,12 +81,16 @@ enum EVENT_NAME {
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
   ADDRESS_COPIED = 'Address Copied',
+  ADDRESS_LIST_VIEWED = 'Address List Viewed',
+  QR_CODE_VIEWED = 'QR Code Viewed',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  TOKEN_DETAILS_CLOSED = 'Token Details Closed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
    * toggle, or TradingView link (see `interaction_type` and optional properties).
@@ -154,9 +158,9 @@ enum EVENT_NAME {
   ANALYTICS_REQUEST_DATA_DELETION = 'Delete MetaMetrics Data Request Submitted',
   EXPERIMENT_VIEWED = 'Experiment Viewed',
 
-  // Onboarding Interest Questionnaire
-  ONBOARDING_INTEREST_QUESTION_VIEWED = 'Onboarding Interest Question Viewed',
-  ONBOARDING_INTEREST_QUESTION_SUBMITTED = 'Onboarding Interest Question Submitted',
+  // Onboarding questionnaires (generic; discriminated by question_type)
+  ONBOARDING_QUESTION_VIEWED = 'Onboarding Question Viewed',
+  ONBOARDING_QUESTION_SUBMITTED = 'Onboarding Question Submitted',
 
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED = 'Welcome Message Viewed',
@@ -414,6 +418,8 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
+  ASSET_VIEWED = 'Asset Viewed',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -553,6 +559,9 @@ enum EVENT_NAME {
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
 
   // Push Notifications
+  PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
+  PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED = 'Push Notification Pre-prompt Button Clicked',
+  OS_PUSH_NOTIFICATION_BUTTON_CLICKED = 'OS Push Notification Button Clicked',
   PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
   PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
@@ -623,6 +632,9 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_MONEY_ACCOUNT_LINKING_STARTED = 'Card Money Account Linking Started',
+  CARD_MONEY_ACCOUNT_LINKING_COMPLETED = 'Card Money Account Linking Completed',
+  CARD_MONEY_ACCOUNT_LINKING_FAILED = 'Card Money Account Linking Failed',
   CARD_PUSH_PROVISIONING_STARTED = 'Card Push Provisioning Started',
   CARD_PUSH_PROVISIONING_COMPLETED = 'Card Push Provisioning Completed',
   CARD_PUSH_PROVISIONING_FAILED = 'Card Push Provisioning Failed',
@@ -672,6 +684,7 @@ enum EVENT_NAME {
   PREDICT_GEO_BLOCKED_TRIGGERED = 'Geo Blocked Triggered',
   PREDICT_FEED_VIEWED = 'Predict Feed Viewed',
   PREDICT_BANNER_ACTION = 'Predict Banner Action',
+  PREDICT_SEARCH_INTERACTED = 'Predict Search Interacted',
 
   // Trending
   TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
@@ -725,6 +738,12 @@ enum EVENT_NAME {
   MONEY_HUB_SWAP_BUTTON_CLICKED = 'Money Hub Swap Button Clicked',
   MONEY_HUB_BUY_BUTTON_CLICKED = 'Money Hub Buy Button Clicked',
 
+  // Money
+  MONEY_BUTTON_CLICKED = 'Money Button Clicked',
+  MONEY_SURFACE_CLICKED = 'Money Surface Clicked',
+  MONEY_SURFACE_VIEWED = 'Money Surface Viewed',
+  MONEY_ONBOARDING_EVENT = 'Money Onboarding Event',
+  MONEY_TOOLTIP_CLICKED = 'Money Tooltip Clicked',
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 
@@ -746,6 +765,7 @@ enum EVENT_NAME {
   SOCIAL_QUICK_BUY_TRADE_SUBMITTED = 'Quick Buy Trade Submitted',
   SOCIAL_QUICK_BUY_TRADE_COMPLETED = 'Quick Buy Trade Completed',
   SOCIAL_QUICK_BUY_DISMISSED = 'Quick Buy Dismissed',
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED = 'Quick Trade Mode Toggled',
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED = 'Follow Trading Notification Clicked',
   // Activity
   ACTIVITY_CLICKED = 'Activity Clicked',
@@ -884,6 +904,8 @@ const events = {
 
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   ADDRESS_COPIED: generateOpt(EVENT_NAME.ADDRESS_COPIED),
+  ADDRESS_LIST_VIEWED: generateOpt(EVENT_NAME.ADDRESS_LIST_VIEWED),
+  QR_CODE_VIEWED: generateOpt(EVENT_NAME.QR_CODE_VIEWED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
   NFT_DETAILS_OPENED: generateOpt(EVENT_NAME.NFT_DETAILS_OPENED),
@@ -952,11 +974,11 @@ const events = {
     EVENT_NAME.ANALYTICS_REQUEST_DATA_DELETION,
   ),
   EXPERIMENT_VIEWED: generateOpt(EVENT_NAME.EXPERIMENT_VIEWED),
-  ONBOARDING_INTEREST_QUESTION_VIEWED: generateOpt(
-    EVENT_NAME.ONBOARDING_INTEREST_QUESTION_VIEWED,
+  ONBOARDING_QUESTION_VIEWED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_VIEWED,
   ),
-  ONBOARDING_INTEREST_QUESTION_SUBMITTED: generateOpt(
-    EVENT_NAME.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
+  ONBOARDING_QUESTION_SUBMITTED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_SUBMITTED,
   ),
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt(
     EVENT_NAME.ONBOARDING_WELCOME_MESSAGE_VIEWED,
@@ -1465,6 +1487,15 @@ const events = {
   ),
 
   // Push Notifications Flow
+  PUSH_NOTIFICATION_PRE_PROMPT_VIEWED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_PRE_PROMPT_VIEWED,
+  ),
+  PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED,
+  ),
+  OS_PUSH_NOTIFICATION_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.OS_PUSH_NOTIFICATION_BUTTON_CLICKED,
+  ),
   PUSH_NOTIFICATION_RECEIVED: generateOpt(
     EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
   ),
@@ -1632,7 +1663,11 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  TOKEN_DETAILS_CLOSED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CLOSED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
+  ),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
   CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
@@ -1653,6 +1688,7 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  ASSET_VIEWED: generateOpt(EVENT_NAME.ASSET_VIEWED),
 
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
@@ -1759,6 +1795,15 @@ const events = {
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
   ),
+  CARD_MONEY_ACCOUNT_LINKING_STARTED: generateOpt(
+    EVENT_NAME.CARD_MONEY_ACCOUNT_LINKING_STARTED,
+  ),
+  CARD_MONEY_ACCOUNT_LINKING_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_MONEY_ACCOUNT_LINKING_COMPLETED,
+  ),
+  CARD_MONEY_ACCOUNT_LINKING_FAILED: generateOpt(
+    EVENT_NAME.CARD_MONEY_ACCOUNT_LINKING_FAILED,
+  ),
   CARD_PUSH_PROVISIONING_STARTED: generateOpt(
     EVENT_NAME.CARD_PUSH_PROVISIONING_STARTED,
   ),
@@ -1863,6 +1908,7 @@ const events = {
   ),
   PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
   PREDICT_BANNER_ACTION: generateOpt(EVENT_NAME.PREDICT_BANNER_ACTION),
+  PREDICT_SEARCH_INTERACTED: generateOpt(EVENT_NAME.PREDICT_SEARCH_INTERACTED),
 
   TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
 
@@ -1914,6 +1960,8 @@ const events = {
   MUSD_BONUS_LEARN_MORE_PRESSED: generateOpt(
     EVENT_NAME.MUSD_BONUS_LEARN_MORE_PRESSED,
   ),
+
+  // Money Hub
   MONEY_HUB_SCREEN_VIEWED: generateOpt(EVENT_NAME.MONEY_HUB_SCREEN_VIEWED),
   MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED,
@@ -1927,6 +1975,13 @@ const events = {
   MONEY_HUB_BUY_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_BUY_BUTTON_CLICKED,
   ),
+
+  // Money
+  MONEY_BUTTON_CLICKED: generateOpt(EVENT_NAME.MONEY_BUTTON_CLICKED),
+  MONEY_SURFACE_CLICKED: generateOpt(EVENT_NAME.MONEY_SURFACE_CLICKED),
+  MONEY_SURFACE_VIEWED: generateOpt(EVENT_NAME.MONEY_SURFACE_VIEWED),
+  MONEY_ONBOARDING_EVENT: generateOpt(EVENT_NAME.MONEY_ONBOARDING_EVENT),
+  MONEY_TOOLTIP_CLICKED: generateOpt(EVENT_NAME.MONEY_TOOLTIP_CLICKED),
 
   // Social Leaderboard (follow trading)
   SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED: generateOpt(
@@ -1979,6 +2034,9 @@ const events = {
   ),
   SOCIAL_QUICK_BUY_DISMISSED: generateOpt(
     EVENT_NAME.SOCIAL_QUICK_BUY_DISMISSED,
+  ),
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED: generateOpt(
+    EVENT_NAME.SOCIAL_QUICK_TRADE_MODE_TOGGLED,
   ),
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED: generateOpt(
     EVENT_NAME.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,

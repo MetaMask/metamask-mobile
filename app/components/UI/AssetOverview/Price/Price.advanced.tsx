@@ -170,11 +170,13 @@ const PriceAdvanced = ({
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
             interaction_type: payload.interaction_type,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, chartType],
   );
 
   const handleChartTradingViewClicked = useCallback(() => {
@@ -182,10 +184,11 @@ const PriceAdvanced = ({
       createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
         .addProperties({
           interaction_type: 'tradingview_clicked',
+          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, trackEvent, chartType]);
 
   const toggleChartType = useCallback(() => {
     const next =
@@ -216,12 +219,14 @@ const PriceAdvanced = ({
           .addProperties({
             interaction_type: 'timeframe_changed',
             chart_timeframe: range,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
       setTimeRange(range);
     },
-    [createEventBuilder, timeRange, trackEvent],
+    [createEventBuilder, timeRange, trackEvent, chartType],
   );
 
   const assetId = useMemo(() => {
@@ -390,17 +395,25 @@ const PriceAdvanced = ({
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
   const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+
+  // Hold the last WS price during time-range transitions to avoid stale API flicker
+  const lastRealtimeRef = useRef<number | undefined>(undefined);
+  if (realtimeClose !== undefined) {
+    lastRealtimeRef.current = realtimeClose;
+  }
+  const stablePrice = realtimeClose ?? lastRealtimeRef.current;
+
   const displayPrice =
-    crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice;
+    crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
     return (
-      (crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice) -
+      (crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice) -
       dynamicComparePrice
     );
   }, [
     crosshairData,
-    realtimeClose,
+    stablePrice,
     lastBarClose,
     currentPrice,
     dynamicComparePrice,

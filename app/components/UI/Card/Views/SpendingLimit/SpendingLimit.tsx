@@ -14,7 +14,12 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import {
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
@@ -29,6 +34,7 @@ import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
+import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
@@ -61,6 +67,12 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
 
   const flow = route?.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
+  // Onboarding flow: linear sign-up, exit resets the stack to Card Home.
+  // Other flows: standard back navigation.
+  const headerMode: CardHeaderMode = isOnboardingFlow
+    ? 'close-reset-home'
+    : 'back';
+  const headerHandlers = useCardHeaderHandlers(headerMode);
   const selectedTokenFromRoute = route?.params?.selectedToken;
   const {
     primaryToken,
@@ -107,11 +119,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     isMoneyAccountLocked,
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
-    moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
-    canLinkMoneyAccount,
     moneyAccountApyPercent,
-    hasMetalCard,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -156,27 +164,17 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     return customLimit || '0';
   }, [limitType, customLimit]);
 
-  const moneyAccountTokenDisplayLabel = useMemo(() => {
-    const symbol = strings(
-      'card.card_spending_limit.money_account_token_symbol',
-    );
-    if (moneyAccountTotalFiatFormatted) {
-      return `${symbol} (${moneyAccountTotalFiatFormatted})`;
-    }
-    return symbol;
-  }, [moneyAccountTotalFiatFormatted]);
-
-  const shouldWaitForMoneyAccountBalance =
-    (flow === 'onboarding' || flow === 'enable_card') && canLinkMoneyAccount;
-  if (
-    (isOnboardingFlow && isLoadingHookData) ||
-    (shouldWaitForMoneyAccountBalance && isMoneyAccountBalanceLoading)
-  ) {
+  if (isOnboardingFlow && isLoadingHookData) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
         <Box twClassName="flex-1 justify-center items-center px-6">
           <ActivityIndicator
             testID={SpendingLimitSelectors.LOADING_INDICATOR}
@@ -201,6 +199,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
         <Box twClassName="flex-1 justify-center items-center px-6">
           <Icon
             name={IconName.Danger}
@@ -241,6 +244,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <KeyboardAwareScrollView
         style={tw.style('flex-1 px-4')}
         showsVerticalScrollIndicator={false}
@@ -281,7 +289,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             selectedToken={selectedToken}
             tokenIconUrl={tokenIconUrl}
             tokenLabel={tokenLabel}
-            moneyAccountTokenDisplayLabel={moneyAccountTokenDisplayLabel}
             onPress={handleOtherSelect}
           />
 
@@ -320,8 +327,12 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         {canShowMoneyAccountCta && (
           <SpendAndEarnPromoCard
             apyPercent={moneyAccountApyPercent}
-            cashbackPercent={hasMetalCard ? 3 : 1}
             onPress={selectMoneyAccountAsSource}
+            analytics={{
+              screen: CardScreens.SPENDING_LIMIT,
+              entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+            }}
           />
         )}
 
@@ -349,7 +360,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 onPress={submit}
                 isFullWidth
                 isDisabled={!isValid || isLoading}
-                isLoading={isLoading}
+                isLoading={isLoading && !isMoneyAccountSource}
               >
                 {strings('card.card_spending_limit.confirm_new_limit')}
               </Button>

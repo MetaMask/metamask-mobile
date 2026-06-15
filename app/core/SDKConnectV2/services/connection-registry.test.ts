@@ -1,4 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
+import { handleAgenticCliConnectDeeplink } from '../../AgenticCli/AgenticCliMwpConnectionService';
 import { ConnectionRegistry, MAX_CONNECTIONS } from './connection-registry';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
 import { ConnectionStore } from '../store/connection-store';
@@ -12,6 +13,16 @@ import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import Logger from '../../../util/Logger';
 
+jest.mock('../../AgenticCli/AgenticCliMwpConnectionService', () => {
+  const actual = jest.requireActual<
+    typeof import('../../AgenticCli/AgenticCliMwpConnectionService')
+  >('../../AgenticCli/AgenticCliMwpConnectionService');
+  return {
+    ...actual,
+    handleAgenticCliConnectDeeplink: jest.fn(),
+  };
+});
+
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
 jest.mock('./key-manager');
@@ -24,13 +35,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
     trackEvent: jest.fn(),
   },
 }));
-jest.mock('../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-    log: jest.fn(),
-  },
-}));
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -39,9 +43,20 @@ jest.mock('../../../store', () => ({
     })),
   },
 }));
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
+}));
 
 const mockTrackEvent = analytics.trackEvent as jest.Mock;
 const mockLoggerError = Logger.error as jest.Mock;
+const mockHandleAgenticCliConnectDeeplink =
+  handleAgenticCliConnectDeeplink as jest.MockedFunction<
+    typeof handleAgenticCliConnectDeeplink
+  >;
 
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,6 +149,13 @@ describe('ConnectionRegistry', () => {
     Engine.context.KeyringController.isUnlocked = jest
       .fn()
       .mockReturnValue(true);
+    (
+      Engine.context as unknown as {
+        AuthenticationController: { getBearerToken: jest.Mock };
+      }
+    ).AuthenticationController = {
+      getBearerToken: jest.fn().mockResolvedValue('hydra-token'),
+    };
 
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
@@ -162,8 +184,14 @@ describe('ConnectionRegistry', () => {
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
 
+    mockHandleAgenticCliConnectDeeplink.mockResolvedValue(undefined);
+
     // Wait for initialization to complete
     await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('isMwpDeeplink', () => {
@@ -308,6 +336,56 @@ describe('ConnectionRegistry', () => {
         }),
       );
 
+      spyHandleConnectDeeplink.mockRestore();
+    });
+
+    it('delegates agentic CLI deeplinks to handleAgenticCliConnectDeeplink', async () => {
+      const parseMwpConnectDeeplinkModule = jest.requireActual<
+        typeof import('../utils/parseMwpConnectDeeplink')
+      >('../utils/parseMwpConnectDeeplink');
+      const parseSpy = jest.spyOn(
+        parseMwpConnectDeeplinkModule,
+        'parseMwpConnectPayload',
+      );
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const agenticCliRequest = {
+        ...mockConnectionRequest,
+        connectionType: { name: 'agentic-cli' },
+      };
+      const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(agenticCliRequest),
+      )}`;
+
+      const spyHandleConnectDeeplink = jest
+        .spyOn(registry, 'handleConnectDeeplink')
+        .mockResolvedValue(undefined);
+
+      await registry.handleMwpDeeplink(agenticCliDeeplink);
+
+      expect(parseSpy).toHaveBeenCalledTimes(1);
+      expect(parseSpy).toHaveBeenCalledWith(agenticCliDeeplink);
+      expect(mockHandleAgenticCliConnectDeeplink).toHaveBeenCalledWith(
+        agenticCliDeeplink,
+        expect.objectContaining({
+          relayURL: RELAY_URL,
+          keymanager: mockKeyManager,
+          hostapp: mockHostApp,
+          hasConnection: expect.any(Function),
+          cleanupConnection: expect.any(Function),
+        }),
+        agenticCliRequest,
+      );
+      expect(spyHandleConnectDeeplink).not.toHaveBeenCalled();
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+
+      parseSpy.mockRestore();
       spyHandleConnectDeeplink.mockRestore();
     });
   });
@@ -494,86 +572,6 @@ describe('ConnectionRegistry', () => {
       );
     });
 
-    describe('hideConnectionLoading dismissal', () => {
-      const buildDeeplink = (request: ConnectionRequest): string =>
-        `metamask://connect/mwp?p=${encodeURIComponent(JSON.stringify(request))}`;
-
-      it('dismisses the loading toast on success for direct deeplink flows (initialMessage present)', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
-
-        // mockConnectionRequest already has initialMessage set in beforeEach.
-        await registry.handleConnectDeeplink(validDeeplink);
-
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
-      });
-
-      it('does NOT dismiss the loading toast on success for QR flows (no initialMessage)', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
-
-        const qrRequest: ConnectionRequest = {
-          ...mockConnectionRequest,
-          sessionRequest: {
-            ...mockConnectionRequest.sessionRequest,
-            initialMessage: undefined,
-          },
-        };
-        const qrDeeplink = buildDeeplink(qrRequest);
-
-        await registry.handleConnectDeeplink(qrDeeplink);
-
-        // QR flow still shows the loading toast — it just isn't manually
-        // hidden, since the dapp sends wallet_createSession asynchronously
-        // and the toast must stay visible until the autodismiss fires.
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
-
-        // Sanity: the rest of the happy path still ran.
-        expect(mockStore.save).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
-          mockConnection,
-        ]);
-      });
-
-      it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
-
-        mockConnection.connect.mockRejectedValue(
-          new Error('handshake timeout'),
-        );
-
-        const qrRequest: ConnectionRequest = {
-          ...mockConnectionRequest,
-          sessionRequest: {
-            ...mockConnectionRequest.sessionRequest,
-            initialMessage: undefined,
-          },
-        };
-        const qrDeeplink = buildDeeplink(qrRequest);
-
-        await registry.handleConnectDeeplink(qrDeeplink);
-
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
-      });
-    });
-
     it('should handle invalid URL gracefully', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(
@@ -668,7 +666,6 @@ describe('ConnectionRegistry', () => {
       const connectionError = new Error('Connection failed');
       mockConnection.connect.mockRejectedValue(connectionError);
 
-      const disconnectSpy = jest.spyOn(registry, 'disconnect');
       const eventName =
         MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED.category;
 
@@ -690,9 +687,8 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
 
       // Failed connection is cleaned up properly
-      expect(disconnectSpy).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
+      expect(mockConnection.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockStore.delete).not.toHaveBeenCalledWith(mockConnection.id);
 
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
@@ -714,8 +710,6 @@ describe('ConnectionRegistry', () => {
           failure_reason: 'Connection failed',
         }),
       );
-
-      disconnectSpy.mockRestore();
     });
 
     it('should be idempotent and ignore duplicate deeplink calls', async () => {
@@ -1068,6 +1062,84 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('hideConnectionLoading dismissal', () => {
+    const buildDeeplink = (request: ConnectionRequest): string =>
+      `metamask://connect/mwp?p=${encodeURIComponent(JSON.stringify(request))}`;
+
+    it('dismisses the loading toast on success for direct deeplink flows (initialMessage present)', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // mockConnectionRequest already has initialMessage set in beforeEach.
+      await registry.handleConnectDeeplink(validDeeplink);
+
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT dismiss the loading toast on success for QR flows (no initialMessage)', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const qrRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        sessionRequest: {
+          ...mockConnectionRequest.sessionRequest,
+          initialMessage: undefined,
+        },
+      };
+      const qrDeeplink = buildDeeplink(qrRequest);
+
+      await registry.handleConnectDeeplink(qrDeeplink);
+
+      // QR flow still shows the loading toast — it just isn't manually
+      // hidden, since the dapp sends wallet_createSession asynchronously
+      // and the toast must stay visible until the autodismiss fires.
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
+
+      // Sanity: the rest of the happy path still ran.
+      expect(mockStore.save).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
+        mockConnection,
+      ]);
+    });
+
+    it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      mockConnection.connect.mockRejectedValue(new Error('handshake timeout'));
+
+      const qrRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        sessionRequest: {
+          ...mockConnectionRequest.sessionRequest,
+          initialMessage: undefined,
+        },
+      };
+      const qrDeeplink = buildDeeplink(qrRequest);
+
+      await registry.handleConnectDeeplink(qrDeeplink);
+
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
     });
 
     it('should report connect failures to Sentry with dapp/sdk context', async () => {
@@ -1572,6 +1644,51 @@ describe('ConnectionRegistry', () => {
 
       expect(mockConnection1.client.reconnect).toHaveBeenCalledTimes(1);
       expect(mockConnection2.client.reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes the AppState subscription on destroy()', async () => {
+      // Given: addEventListener returns a subscription with a remove() spy
+      const remove = jest.fn();
+      const mockAddEventListener = AppState.addEventListener as jest.Mock;
+      mockAddEventListener.mockClear();
+      mockAddEventListener.mockReturnValue({ remove });
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // When: the registry is destroyed
+      registry.destroy();
+
+      // Then: the subscription is removed exactly once
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not throw and does not double-remove when destroy() is called twice', async () => {
+      // Given: addEventListener returns a subscription with a remove() spy
+      const remove = jest.fn();
+      const mockAddEventListener = AppState.addEventListener as jest.Mock;
+      mockAddEventListener.mockClear();
+      mockAddEventListener.mockReturnValue({ remove });
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // When: destroy() is called twice
+      registry.destroy();
+      expect(() => registry.destroy()).not.toThrow();
+
+      // Then: the subscription is only removed once (cleared after first call)
+      expect(remove).toHaveBeenCalledTimes(1);
     });
   });
 

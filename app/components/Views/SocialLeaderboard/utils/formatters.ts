@@ -23,6 +23,17 @@ export function formatUsd(value: number | null | undefined): string {
 }
 
 /**
+ * USD with explicit sign on positives. Use for PnL where direction matters
+ * (e.g. `+$0.12`, `-$1,234.56`). Zero is rendered without a sign.
+ */
+export function formatSignedUsd(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  if (value === 0) return formatPerpsFiat(0, { stripTrailingZeros: false });
+  const sign = value > 0 ? '+' : '-';
+  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+/**
  * Formats a raw token quantity for display in list rows.
  * - Values >= 1,000 are abbreviated with K/M/B/T suffixes (e.g. 216.65M).
  * - Smaller values are capped at 4 decimal places, with "< 0.00001" for dust.

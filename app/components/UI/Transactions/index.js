@@ -40,6 +40,9 @@ import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -60,7 +63,10 @@ import {
   normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  createQRSigningTransactionModalNavDetails,
+  QRSignMode,
+} from '../../UI/QRHardware/QRSigningTransactionModal';
 import { CancelSpeedupModal } from '../../Views/confirmations/components/modals/cancel-speedup-modal';
 import PriceChartContext, {
   PriceChartProvider,
@@ -472,6 +478,22 @@ class Transactions extends PureComponent {
         title = result.title;
       }
 
+      if (!url) {
+        throw new Error('Missing block explorer URL');
+      }
+
+      trackBlockExplorerLinkClicked(
+        analytics.trackEvent,
+        AnalyticsEventBuilder.createEventBuilder,
+        {
+          location: 'transactions_list',
+          text: title
+            ? `${strings('transactions.view_full_history_on')} ${title}`
+            : strings('asset_details.options.view_on_block'),
+          url,
+        },
+      );
+
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -607,6 +629,11 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
+      const isQRHardwareAccount = isHardwareAccount(
+        this.props.selectedAddress,
+        [ExtendedKeyringTypes.qr],
+      );
+
       const rawParams = this.getParamsToSend(transactionObject);
       const params = getGasValuesForReplacement(
         rawParams,
@@ -626,6 +653,20 @@ class Transactions extends PureComponent {
         });
         // The shared hardware-wallet flow closes the modal itself on success
         // or rejection.
+        return;
+      }
+
+      if (isQRHardwareAccount) {
+        const transactionId = this.speedUpTxId;
+        this.props.navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId,
+            signMode: QRSignMode.SpeedUp,
+            gasValues: params,
+            onConfirmationComplete: () => undefined,
+          }),
+        );
+        this.closeSpeedUpCancelModal();
         return;
       }
 
@@ -723,6 +764,11 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
+      const isQRHardwareAccount = isHardwareAccount(
+        this.props.selectedAddress,
+        [ExtendedKeyringTypes.qr],
+      );
+
       const rawParams = this.getParamsToSend(transactionObject);
       const params = getGasValuesForReplacement(
         rawParams,
@@ -742,6 +788,20 @@ class Transactions extends PureComponent {
         });
         // The shared hardware-wallet flow closes the modal itself on success
         // or rejection.
+        return;
+      }
+
+      if (isQRHardwareAccount) {
+        const transactionId = this.cancelTxId;
+        this.props.navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId,
+            signMode: QRSignMode.Cancel,
+            gasValues: params,
+            onConfirmationComplete: () => undefined,
+          }),
+        );
+        this.closeSpeedUpCancelModal();
         return;
       }
 

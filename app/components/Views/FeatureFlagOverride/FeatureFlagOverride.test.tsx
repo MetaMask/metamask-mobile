@@ -65,12 +65,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  __esModule: true,
-  useAnalytics: jest.fn(() => ({
-    addTraitsToUser: jest.fn(),
-  })),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock Engine
 const mockSetFlagOverride = jest.fn();
@@ -336,7 +331,7 @@ describe('FeatureFlagOverride', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with title', () => {
+    it('renders HeaderStandard with title', () => {
       renderWithProviders();
 
       expect(

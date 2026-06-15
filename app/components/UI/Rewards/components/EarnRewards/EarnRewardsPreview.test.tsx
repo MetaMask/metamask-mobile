@@ -265,9 +265,10 @@ describe('EarnRewardsPreview', () => {
       fireEvent.press(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARDS_MUSD_CALCULATOR_VIEW,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MUSD_CALCULATOR_VIEW,
+        params: undefined,
+      });
     });
 
     it('triggers card-onboarding deeplink when card card is pressed', () => {

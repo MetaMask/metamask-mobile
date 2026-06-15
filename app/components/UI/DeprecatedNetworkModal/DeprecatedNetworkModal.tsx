@@ -4,18 +4,18 @@ import { Linking, View } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
 import styleSheet from './DeprecatedNetworkModal.styles';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { CONNECTING_TO_DEPRECATED_NETWORK } from '../../../constants/urls';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 const DeprecatedNetworkModal = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -28,46 +28,41 @@ const DeprecatedNetworkModal = () => {
 
   const goToLearnMore = () => {
     Linking.openURL(CONNECTING_TO_DEPRECATED_NETWORK);
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'dapp_connection_request',
-          text: 'Learn More',
-          url_domain: CONNECTING_TO_DEPRECATED_NETWORK,
-        })
-        .build(),
-    );
+    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      location: 'dapp_connection_request',
+      text: 'Learn More',
+      url_domain: CONNECTING_TO_DEPRECATED_NETWORK,
+    });
   };
 
   const sheetRef = useRef(null);
 
   return (
     <BottomSheet ref={sheetRef}>
-      <Text variant={TextVariant.HeadingMD} style={styles.centeredTitle}>
+      <Text variant={TextVariant.HeadingMd} style={styles.centeredTitle}>
         {strings('networks.network_deprecated_title')}
       </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.centeredDescription}>
+      <Text variant={TextVariant.BodyMd} style={styles.centeredDescription}>
         {strings('networks.network_deprecated_description')}{' '}
-        <Text color={TextColor.Info} onPress={goToLearnMore}>
+        <Text color={TextColor.InfoDefault} onPress={goToLearnMore}>
           {strings('accounts.learn_more')}
         </Text>
       </Text>
       <View style={{ ...styles.footer }}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={dismissModal}
           style={styles.button}
-          label={
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
-              style={styles.buttonLabel}
-            >
-              {strings('network_information.got_it')}
-            </Text>
-          }
-        />
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            style={styles.buttonLabel}
+          >
+            {strings('network_information.got_it')}
+          </Text>
+        </Button>
       </View>
     </BottomSheet>
   );

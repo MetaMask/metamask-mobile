@@ -135,6 +135,7 @@ jobs:
             .metamask
             .yarn/cache
             ~/Library/Detox
+            node_modules
 
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' }}
@@ -146,7 +147,9 @@ jobs:
       - name: Set up E2E environment
         # Namespace iOS smoke runs many matrix jobs in parallel; CocoaPods + yarn need more
         # headroom than the composite default (see INFRA-3596 / run 25755790077 timeouts).
-        timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 45 || 25 }}
+        # pod-install is skipped for iOS test-runner jobs: the app is pre-built and Detox
+        # does not require the Pods directory to run tests.
+        timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 30 || 25 }}
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ${{ inputs.platform }}
@@ -157,6 +160,7 @@ jobs:
           runner_provider: ${{ inputs.runner_provider }}
           js-retry-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && '20' || '15' }}
           pod-install-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && '22' || '15' }}
+          skip-pod-install: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -304,6 +308,27 @@ jobs:
           echo "📄 First XML file preview (first 50 lines):"
           find ./previous-test-results -type f -name "*.xml" | head -1 | xargs head -50 || echo "No XML files found"
 
+      # Download the frozen timings snapshot produced by the prepare-e2e-timings
+      # setup job. All shards and re-runs use the same file, so the bin-pack
+      # result is identical across attempts and a failing test always stays on
+      # the shard that GitHub will re-run.
+      - name: Download frozen E2E timings (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        id: download-frozen-timings-namespace
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./e2e-timings/
+      - name: Download frozen E2E timings (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        id: download-frozen-timings-current
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./e2e-timings/
+
       - name: 🧪 Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: |
@@ -321,6 +346,9 @@ jobs:
           RUN_ATTEMPT: ${{ github.run_attempt }}
           # On re-run, pass the path to previous results to run only failed tests
           PREVIOUS_RESULTS_PATH: ${{ (steps.download-previous-results-namespace.outcome == 'success' || steps.download-previous-results-current.outcome == 'success') && './previous-test-results' || '' }}
+          # Frozen timings from the prepare-e2e-timings setup job. All shards
+          # use the same snapshot so bin-packing is stable across re-runs.
+          E2E_TIMINGS_PATH: ${{ (steps.download-frozen-timings-namespace.outcome == 'success' || steps.download-frozen-timings-current.outcome == 'success') && './e2e-timings/e2e-timings.json' || '' }}
 
       - name: Merge Detox JUnit reports
         if: always()

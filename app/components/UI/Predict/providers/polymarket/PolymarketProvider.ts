@@ -19,6 +19,7 @@ import {
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   CryptoPriceHistoryPoint,
@@ -49,6 +50,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
@@ -58,6 +60,10 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
@@ -100,6 +106,9 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
+  fetchRelatedTagsFromPolymarketApi,
+  normalizeRelatedTagsToFilterOptions,
   fetchCarouselFromPolymarketApi,
   getBalance,
   getL2Headers,
@@ -892,7 +901,9 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
+  public getActivity(
+    _params: GetActivityParams & { address: string },
+  ): Promise<PredictActivity[]> {
     return this.fetchActivity(_params);
   }
 
@@ -956,6 +967,63 @@ export class PolymarketProvider implements PredictProvider {
       );
 
       return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    try {
+      const { events, nextCursor } =
+        await fetchMarketsFromPolymarketApi(params);
+
+      const markets = await this.#parseEventsToMarkets({
+        events,
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+      });
+
+      return { markets, nextCursor };
+    } catch (error) {
+      DevLogger.log('Error listing markets via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listMarkets', {
+          hasAfterCursor: Boolean(params?.afterCursor),
+        }),
+      );
+
+      return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]> {
+    const slug = params.baseTagSlug ?? 'all';
+
+    try {
+      const tags = await fetchRelatedTagsFromPolymarketApi(slug);
+
+      return normalizeRelatedTagsToFilterOptions(tags, {
+        source: params.source,
+        baseParams: params.baseParams,
+        limit: params.limit,
+      });
+    } catch (error) {
+      // Dynamic filters are best-effort and non-blocking: on any failure return
+      // an empty list so the UI can keep static filters and hide dynamic ones.
+      DevLogger.log('Error listing filter options via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listFilterOptions', {
+          source: params.source,
+          slug,
+        }),
+      );
+
+      return [];
     }
   }
 
@@ -1856,9 +1924,9 @@ export class PolymarketProvider implements PredictProvider {
 
   private async fetchActivity({
     address,
-  }: {
-    address: string;
-  }): Promise<PredictActivity[]> {
+    limit = PREDICT_ACTIVITY_PAGE_SIZE,
+    offset = 0,
+  }: GetActivityParams & { address: string }): Promise<PredictActivity[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     if (!address) {
@@ -1873,6 +1941,8 @@ export class PolymarketProvider implements PredictProvider {
       const queryParams = new URLSearchParams({
         user: predictAddress,
         excludeLostRedeems: 'true',
+        limit: String(limit),
+        offset: String(offset),
       });
 
       const response = await fetch(
@@ -1889,19 +1959,30 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to get activity');
       }
 
-      const activityRaw = (await response.json()) as PolymarketApiActivity[];
-      const parsedActivity = parsePolymarketActivity(activityRaw);
-      return Array.isArray(parsedActivity) ? parsedActivity : [];
+      const activityRaw = (await response.json()) as unknown;
+
+      if (!Array.isArray(activityRaw)) {
+        throw new Error('Invalid activity response');
+      }
+
+      const parsedActivity = parsePolymarketActivity(
+        activityRaw as PolymarketApiActivity[],
+      );
+
+      if (!Array.isArray(parsedActivity)) {
+        throw new Error('Invalid parsed activity response');
+      }
+
+      return parsedActivity;
     } catch (error) {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('fetchActivity'),
       );
 
-      return [];
+      throw error;
     }
   }
 

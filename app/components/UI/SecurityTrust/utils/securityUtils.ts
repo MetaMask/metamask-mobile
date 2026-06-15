@@ -32,7 +32,7 @@ export interface ResultTypeConfig {
   /** Title for bottom sheet display */
   sheetTitle?: string;
   /** Description for bottom sheet display (may include token symbol placeholder) */
-  getSheetDescription?: (tokenSymbol: string) => string;
+  getSheetDescription?: (tokenSymbol: string | undefined) => string;
 }
 
 export const getResultTypeConfig = (
@@ -88,7 +88,9 @@ export const getResultTypeConfig = (
         },
         sheetTitle: strings('security_trust.risky_token_title'),
         getSheetDescription: (symbol) =>
-          strings('security_trust.risky_token_description', { symbol }),
+          symbol
+            ? strings('security_trust.risky_token_description', { symbol })
+            : strings('security_trust.risky_token_description_no_symbol'),
       };
     case 'Malicious':
       return {
@@ -97,20 +99,24 @@ export const getResultTypeConfig = (
         subtitle: strings('security_trust.subtitle_malicious'),
         icon: IconName.Error,
         iconColor: IconColor.ErrorDefault,
-        iconAlertSeverity: IconAlertSeverity.Error,
+        iconAlertSeverity: IconAlertSeverity.Danger,
         badge: {
           icon: IconName.Danger,
           iconColor: IconColor.ErrorDefault,
-          iconAlertSeverity: IconAlertSeverity.Error,
+          iconAlertSeverity: IconAlertSeverity.Danger,
           label: strings('security_trust.malicious'),
           bg: 'bg-error-muted',
           textColor: TextColor.ErrorDefault,
         },
         sheetTitle: strings('security_trust.malicious_token_title'),
         getSheetDescription: (symbol) =>
-          strings('security_trust.malicious_token_sheet_description', {
-            symbol,
-          }),
+          symbol
+            ? strings('security_trust.malicious_token_sheet_description', {
+                symbol,
+              })
+            : strings(
+                'security_trust.malicious_token_sheet_description_no_symbol',
+              ),
       };
     default:
       return {

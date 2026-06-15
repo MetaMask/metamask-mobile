@@ -1,8 +1,8 @@
-import { Matchers, Gestures } from '../../framework';
+import { Matchers, Gestures, EncapsulatedElementType } from '../../framework';
 import { PredictAddFundsSelectorText } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictAddFunds {
-  get addFundsButton(): DetoxElement {
+  get addFundsButton(): EncapsulatedElementType {
     return Matchers.getElementByText(PredictAddFundsSelectorText.ADD_FUNDS);
   }
 

@@ -42,8 +42,8 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
-import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -90,7 +90,7 @@ jest.mock('../../PayAccountSelector', () => {
     default: () => <View testID="pay-account-selector" />,
   };
 });
-jest.mock('../../balance-projection', () => ({
+jest.mock('../../../../../UI/Money/components/BalanceProjection', () => ({
   BalanceProjection: () => null,
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
@@ -127,6 +127,10 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
   }),
+}));
+
+jest.mock('../../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
+  useHasNativeFiatProvider: () => true,
 }));
 
 jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
@@ -219,6 +223,10 @@ describe('CustomAmountInfo', () => {
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
   );
+  const useClearConfirmationOnBackSwipeMock = jest.mocked(
+    useClearConfirmationOnBackSwipe,
+  );
+  const setIsConfirmationSubmittingMock = jest.fn();
 
   const useRouteMock = jest.mocked(useRoute);
 
@@ -257,6 +265,7 @@ describe('CustomAmountInfo', () => {
       amountFiat: '123.45',
       amountHuman: '0',
       amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
       updatePendingAmount: noop,
@@ -265,7 +274,19 @@ describe('CustomAmountInfo', () => {
     });
 
     useConfirmationContextMock.mockReturnValue({
+      headlessBuyError: undefined,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
       setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({
@@ -310,6 +331,12 @@ describe('CustomAmountInfo', () => {
     expect(getByText('0 TST')).toBeDefined();
   });
 
+  it('sets up back swipe rejection', () => {
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledTimes(1);
+  });
+
   it('does not render payment token if disablePay', () => {
     const { queryByText } = render({ disablePay: true });
     expect(queryByText('TST')).toBeNull();
@@ -332,7 +359,7 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
-  describe('hasExtraBottomPadding', () => {
+  describe('bottomBlock', () => {
     const originalPlatformOS = Platform.OS;
 
     afterEach(() => {
@@ -342,43 +369,30 @@ describe('CustomAmountInfo', () => {
       });
     });
 
-    it('applies 56dp paddingBottom to the bottom block on Android when hasExtraBottomPadding is true', () => {
+    it('applies 16dp paddingBottom to the bottom block on Android', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
       });
 
-      const { getByTestId } = render({ hasExtraBottomPadding: true });
+      const { getByTestId } = render();
 
       expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
-        paddingBottom: 56,
+        paddingBottom: 16,
       });
     });
 
-    it('does not apply paddingBottom to the bottom block when hasExtraBottomPadding is false (Android)', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
-
-      const { getByTestId } = render({ hasExtraBottomPadding: false });
-
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
-        { paddingBottom: 56 },
-      );
-    });
-
-    it('does not apply paddingBottom to the bottom block on iOS even when hasExtraBottomPadding is true', () => {
+    it('does not apply paddingBottom to the bottom block on iOS', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'ios',
         writable: true,
       });
 
-      const { getByTestId } = render({ hasExtraBottomPadding: true });
+      const { getByTestId } = render();
 
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
-        { paddingBottom: 56 },
-      );
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+        paddingBottom: 0,
+      });
     });
   });
 
@@ -489,6 +503,7 @@ describe('CustomAmountInfo', () => {
       amountFiat: '123.45',
       amountHuman: '0',
       amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
       updatePendingAmount: noop,
@@ -505,6 +520,27 @@ describe('CustomAmountInfo', () => {
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
   });
 
+  it('marks the confirmation as submitting when the confirm button is pressed', async () => {
+    const onConfirmMock = jest.fn();
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: onConfirmMock,
+      onReject: jest.fn(),
+    });
+
+    const { getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
+    });
+
+    expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(true);
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+  });
+
   it('still runs UI cleanup and logs the error when updateTokenAmount rejects on Done', async () => {
     const error = new Error('update failed');
     const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
@@ -516,6 +552,7 @@ describe('CustomAmountInfo', () => {
       amountFiat: '123.45',
       amountHuman: '0',
       amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
       updatePendingAmount: noop,
@@ -561,16 +598,18 @@ describe('CustomAmountInfo', () => {
     });
 
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: strings('alert_system.account_no_funds.message'),
+      alertTitle: strings('confirm.custom_amount.insufficient_funds'),
       alertMessage: strings('alert_system.account_no_funds.message'),
     });
 
-    const { getByText } = render({
+    const { getAllByText } = render({
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
+    // The alert message appears in AlertMessage and in the keyboard's alertMessage
+    // prop now that hasFiatOption=true (asset-provider path). Check at least one.
     expect(
-      getByText(strings('alert_system.account_no_funds.message')),
+      getAllByText(strings('alert_system.account_no_funds.message'))[0],
     ).toBeOnTheScreen();
   });
 
@@ -620,6 +659,7 @@ describe('CustomAmountInfo', () => {
         amountFiat: '0',
         amountHuman: '0',
         amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
         hasInput: false,
         isInputChanged: false,
         updatePendingAmount: noop,

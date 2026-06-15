@@ -7,15 +7,11 @@ import {
   Text,
   TextVariant,
   TextColor,
-  AvatarToken,
   AvatarTokenSize,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-  BadgeNetwork,
 } from '@metamask/design-system-react-native';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -23,37 +19,34 @@ import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
-import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
     sliderPercent,
-    maxSpendUsd,
+    isSliderDisabled,
     handleSliderChange,
+    handleSliderDragEnd,
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
     isConfirmDisabled,
-    handleConfirm,
+    handleBuy,
     metamaskFeePercent,
     isHardwareSolanaBlocked,
-    isPriceImpactError,
-    priceImpactViewData,
-    formattedPriceImpact,
+    tradeMode,
     sourceToken,
-    sourceChainId,
     sourceBalanceFiat,
+    destBalanceFiat,
+    destToken,
+    selectedDestStable,
     features,
     setActiveScreen,
   } = useQuickBuyContext();
 
-  const isPriceImpactWarning =
-    !isPriceImpactError && !!priceImpactViewData.icon;
-
-  const networkImage = sourceChainId
-    ? getNetworkImageSource({ chainId: sourceChainId })
-    : undefined;
+  const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
+  const pickerBalanceFiat =
+    tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
 
   return (
     <Box twClassName="px-4 pb-4">
@@ -62,19 +55,22 @@ const QuickBuyActionFooter: React.FC = () => {
         <QuickBuyPercentageSlider
           value={sliderPercent}
           onValueChange={handleSliderChange}
-          disabled={maxSpendUsd <= 0}
+          disabled={isSliderDisabled}
+          onDragEnd={handleSliderDragEnd}
         />
       </Box>
 
-      {/* Pay with row */}
+      {/* Pay with / Receive with row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-3"
+        twClassName="pb-5"
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.pay_with')}
+          {tradeMode === 'sell'
+            ? strings('social_leaderboard.quick_buy.receive')
+            : strings('social_leaderboard.quick_buy.pay_with')}
         </Text>
 
         <TouchableOpacity
@@ -88,33 +84,18 @@ const QuickBuyActionFooter: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-full bg-muted px-3 py-1"
           >
-            {sourceToken ? (
-              networkImage ? (
-                <BadgeWrapper
-                  position={BadgeWrapperPosition.BottomRight}
-                  badge={<BadgeNetwork src={networkImage} />}
-                >
-                  <AvatarToken
-                    size={AvatarTokenSize.Sm}
-                    name={sourceToken.symbol}
-                    src={getBridgeTokenImageSource(sourceToken)}
-                  />
-                </BadgeWrapper>
-              ) : (
-                <AvatarToken
-                  size={AvatarTokenSize.Sm}
-                  name={sourceToken.symbol}
-                  src={getBridgeTokenImageSource(sourceToken)}
-                />
-              )
+            {pickerToken ? (
+              <QuickBuyTokenIcon
+                token={pickerToken}
+                size={AvatarTokenSize.Sm}
+              />
             ) : null}
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              {sourceToken
-                ? sourceBalanceFiat
-                  ? `${sourceToken.symbol} (${sourceBalanceFiat})`
-                  : sourceToken.symbol
+              {pickerToken
+                ? pickerBalanceFiat
+                  ? `${pickerToken.symbol} (${pickerBalanceFiat})`
+                  : pickerToken.symbol
                 : '—'}
             </Text>
             {features.payWithSheet ? (
@@ -128,19 +109,14 @@ const QuickBuyActionFooter: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <QuickBuyBanners
-        isHardwareSolanaBlocked={isHardwareSolanaBlocked}
-        isPriceImpactError={isPriceImpactError}
-        isPriceImpactWarning={isPriceImpactWarning}
-        formattedPriceImpact={formattedPriceImpact}
-      />
+      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 
       <QuickBuyConfirmButton
         state={confirmButtonState}
         label={getButtonLabel()}
         hasValidAmount={hasValidAmount}
         isDisabled={isConfirmDisabled}
-        onPress={handleConfirm}
+        onPress={handleBuy}
         testID="quick-buy-confirm-button"
       />
 

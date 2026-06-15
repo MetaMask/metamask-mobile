@@ -1,13 +1,13 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class SnapSettingsView {
-  get enabledToggle(): DetoxElement {
+  get enabledToggle(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-details-switch');
   }
 
-  get removeButton(): DetoxElement {
+  get removeButton(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-settings-remove-button');
   }
 
@@ -15,8 +15,12 @@ class SnapSettingsView {
     return Matchers.getIdentifier('snap-settings-scrollview');
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('snap-settings-back-button');
+  }
+
+  get listBackButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('snaps-settings-list-back-button');
   }
 
   async toggleEnable(): Promise<void> {
@@ -43,8 +47,14 @@ class SnapSettingsView {
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.tapAtIndex(this.backButton, 0, {
+    await Gestures.tap(this.backButton, {
       elemDescription: 'Snap Settings - Back Button',
+    });
+  }
+
+  async tapListBackButton(): Promise<void> {
+    await Gestures.tap(this.listBackButton, {
+      elemDescription: 'Snaps List - Back Button',
     });
   }
 }

@@ -2,12 +2,14 @@
 #
 # Auto RC OTA / build core (reusable)
 #
-# Shared logic for the Auto RC flow (build-rc-auto.yml): detect an OTA_VERSION bump and either
-# dispatch push-eas-update.yml, or fall through to build.yml.
+# Shared logic for the Auto RC flow (build-rc-auto.yml): detect whether the push is an
+# OTA_VERSION bump and, if so, skip the native build (OTA-only changes are published
+# separately). Otherwise fall through to a native build.yml build (and TestFlight for iOS).
 #
-# Runway's manual entry workflows no longer use this file — they call the dedicated OTA-only or
-# build-only workflows (runway-ota-*.yml, runway-*-builds.yml) directly. Kept here to preserve
-# automatic OTA-vs-build detection on every push to a release branch.
+# This workflow does not push OTA updates — OTA publishing is handled outside this flow.
+#
+# Runway's manual entry workflows do not use this file — they call the dedicated OTA-only or
+# build-only workflows (runway-ota-*.yml, runway-*-builds.yml) directly.
 #
 ##############################################################################################
 name: Auto RC OTA Build Core
@@ -16,7 +18,7 @@ on:
   workflow_call:
     inputs:
       platform:
-        description: 'Target platform passed to push-eas-update and build.yml (android or ios)'
+        description: 'Target platform passed to build.yml (android or ios)'
         required: true
         type: string
       source_branch:
@@ -26,41 +28,35 @@ on:
         required: false
         type: string
         default: ''
-      ota_channel:
-        description: 'push-eas-update channel input (e.g. rc, production)'
-        required: false
-        type: string
-        default: rc
       build_name:
         description: 'build.yml build_name (e.g. main-rc, main-prod)'
         required: false
         type: string
         default: main-rc
-      create_production_ota_tag:
-        description: 'If true, create OTA release tag after production trigger-ota (callers: *production* only)'
-        required: false
-        type: boolean
-        default: false
       environment:
         description: 'Build environment / track passed to upload-to-testflight (e.g. rc, prod)'
         required: false
         type: string
         default: 'rc'
+      distribute_external:
+        description: 'Whether to distribute the iOS build to external TestFlight testers'
+        required: false
+        type: boolean
+        default: true
     outputs:
       semantic_version:
-        description: 'package.json version at the built commit (empty when OTA path taken)'
+        description: 'package.json version at the built commit (empty when OTA bump skips the build)'
         value: ${{ jobs.trigger-build.outputs.semantic_version }}
       ios_version_code:
-        description: 'iOS CURRENT_PROJECT_VERSION at the built commit (empty when OTA path taken)'
+        description: 'iOS CURRENT_PROJECT_VERSION at the built commit (empty when OTA bump skips the build)'
         value: ${{ jobs.trigger-build.outputs.ios_version_code }}
       android_version_code:
-        description: 'Android versionCode at the built commit (empty when OTA path taken)'
+        description: 'Android versionCode at the built commit (empty when OTA bump skips the build)'
         value: ${{ jobs.trigger-build.outputs.android_version_code }}
 
 permissions:
-  contents: write
-  pull-requests: read
-  actions: write
+  contents: read
+  pull-requests: read # required by runway-ota-resolve-context.yml
   id-token: write # required by build.yml
 
 jobs:
@@ -69,34 +65,6 @@ jobs:
     uses: ./.github/workflows/runway-ota-resolve-context.yml
     with:
       source_branch: ${{ inputs.source_branch }}
-    secrets: inherit
-
-  validate-ota-pr:
-    name: Validate PR for OTA
-    needs: resolve-context
-    if: needs.resolve-context.outputs.ota_bump == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate PR number
-        run: |
-          if [[ -z "${{ needs.resolve-context.outputs.pr_number }}" ]]; then
-            echo "::error::No PR found for this branch. OTA update requires a PR number."
-            echo "::error::If you ran the workflow manually (workflow_dispatch), select your release branch in the 'Use workflow from' dropdown (e.g. release/7.71.0), not main."
-            exit 1
-          fi
-          echo "Using PR #${{ needs.resolve-context.outputs.pr_number }}"
-
-  trigger-ota:
-    name: Trigger OTA update
-    needs: [resolve-context, validate-ota-pr]
-    if: needs.resolve-context.outputs.ota_bump == 'true'
-    uses: ./.github/workflows/push-eas-update.yml
-    with:
-      pr_number: ${{ needs.resolve-context.outputs.pr_number }}
-      base_branch: ${{ needs.resolve-context.outputs.base_ref }}
-      message: ${{ needs.resolve-context.outputs.ota_version }}
-      channel: ${{ inputs.ota_channel }}
-      platform: ${{ inputs.platform }}
     secrets: inherit
 
   trigger-build:
@@ -111,16 +79,6 @@ jobs:
       upload_to_sentry: true
     secrets: inherit
 
-  create-ota-production-tag:
-    name: Create OTA production release tag
-    needs: [resolve-context, trigger-ota]
-    if: ${{ inputs.create_production_ota_tag == true }}
-    uses: ./.github/workflows/runway-create-ota-production-tag.yml
-    with:
-      tag_name: ${{ needs.resolve-context.outputs.ota_version }}
-      checkout_ref: ${{ inputs.source_branch || github.ref_name }}
-    secrets: inherit
-
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [trigger-build]
@@ -133,4 +91,5 @@ jobs:
       build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
       build_version: ${{ needs.trigger-build.outputs.semantic_version }}
       build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
+      distribute_external: ${{ inputs.distribute_external }}
     secrets: inherit

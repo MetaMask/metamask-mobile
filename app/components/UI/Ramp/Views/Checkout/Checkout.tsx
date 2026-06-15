@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
 import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,8 +28,8 @@ import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import {
   BottomSheet,
-  type BottomSheetRef,
   HeaderStandard,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
@@ -54,6 +53,7 @@ import {
   extractHostname,
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface CheckoutParams {
   url: string;
@@ -104,7 +104,6 @@ const Checkout = () => {
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const isV2Enabled = useRampsUnifiedV2Enabled();
 
   const {
@@ -167,7 +166,6 @@ const Checkout = () => {
           .addProperties({
             location: 'Checkout',
             ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision ?? undefined,
           })
           .build(),
       );
@@ -177,7 +175,6 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
             }),
             initial_url_path: redactUrlForAnalytics(uri),
             has_callback_flow: hasCallbackFlow,
@@ -190,7 +187,6 @@ const Checkout = () => {
     uri,
     createEventBuilder,
     trackEvent,
-    rampRoutingDecision,
     checkoutSessionId,
     providerName,
     hasCallbackFlow,
@@ -262,7 +258,6 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
             }),
             url_path: redacted,
             previous_url_path: urlHistoryRef.current.previous ?? undefined,
@@ -279,7 +274,6 @@ const Checkout = () => {
       trackEvent,
       checkoutSessionId,
       providerName,
-      rampRoutingDecision,
       effectiveOrderId,
     ],
   );
@@ -303,7 +297,6 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
             }),
             url_path: redactUrlForAnalytics(navState.url),
             order_id: effectiveOrderId ?? undefined,
@@ -421,7 +414,6 @@ const Checkout = () => {
       trackEvent,
       checkoutSessionId,
       providerName,
-      rampRoutingDecision,
       effectiveOrderId,
     ],
   );
@@ -433,11 +425,10 @@ const Checkout = () => {
         .addProperties({
           location: 'Checkout',
           ramp_type: 'UNIFIED_BUY_2',
-          ramp_routing: rampRoutingDecision ?? undefined,
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent, rampRoutingDecision]);
+  }, [createEventBuilder, trackEvent]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     if (headlessSessionId) {
@@ -491,7 +482,6 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
             }),
             url_path: redactedLoadedUrl,
             load_duration_ms: durationMs,
@@ -505,7 +495,6 @@ const Checkout = () => {
       trackEvent,
       checkoutSessionId,
       providerName,
-      rampRoutingDecision,
       headlessSessionId,
       navigation,
     ],
@@ -520,6 +509,7 @@ const Checkout = () => {
     /* no-op until initialized */
   });
   const closeHeadlessOnUnmountRef = useRef<() => void>(() => undefined);
+  const surfaceClass = useElevatedSurface();
   closeHeadlessOnUnmountRef.current = () => {
     if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
       return;
@@ -542,7 +532,6 @@ const Checkout = () => {
           ...buildBaseProps({
             checkoutSessionId,
             providerName,
-            rampRouting: rampRoutingDecision,
           }),
           close_source: closeSourceRef.current ?? 'background',
           order_id: effectiveOrderId ?? undefined,
@@ -584,6 +573,7 @@ const Checkout = () => {
         goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
+        twClassName={surfaceClass}
       >
         {sharedHeader}
         <ScreenLayout>
@@ -618,6 +608,7 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        twClassName={surfaceClass}
       >
         {sharedHeader}
         <WebView
@@ -641,7 +632,6 @@ const Checkout = () => {
                   ...buildBaseProps({
                     checkoutSessionId,
                     providerName,
-                    rampRouting: rampRoutingDecision,
                   }),
                   url_path: redactUrlForAnalytics(errorUrl),
                   status_code: nativeEvent.statusCode,
@@ -690,6 +680,7 @@ const Checkout = () => {
       goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       {sharedHeader}
       <ScreenLayout>
