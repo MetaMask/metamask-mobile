@@ -44,6 +44,7 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -105,14 +106,41 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
     setConfirmationMetric: jest.fn(),
   }),
 }));
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn((_properties: Record<string, unknown>) => ({
+  build: () => 'built-event',
+}));
+const mockCreateEventBuilder = jest.fn((_event: unknown) => ({
+  addProperties: mockAddProperties,
+}));
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({ build: jest.fn() })),
-    })),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+const mockUseRampsUserRegion = jest.fn(() => ({
+  userRegion: { regionCode: 'us-ca' },
+  setUserRegion: jest.fn(),
+}));
+jest.mock('../../../../../UI/Ramp/hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => mockUseRampsUserRegion(),
+}));
+
+/** Returns the addProperties payload for the first emit of `event`. */
+function emittedPayloadFor(event: unknown): Record<string, unknown> | undefined {
+  const callIndex = mockCreateEventBuilder.mock.calls.findIndex(
+    ([arg]) => arg === event,
+  );
+  if (callIndex === -1) {
+    return undefined;
+  }
+  return mockAddProperties.mock.calls[callIndex]?.[0] as Record<
+    string,
+    unknown
+  >;
+}
 
 const mockGoToBuy = jest.fn();
 
@@ -232,6 +260,16 @@ describe('CustomAmountInfo', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    // resetAllMocks clears implementations; restore the analytics capture mocks.
+    mockAddProperties.mockImplementation(() => ({ build: () => 'built-event' }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
+    mockUseRampsUserRegion.mockReturnValue({
+      userRegion: { regionCode: 'us-ca' },
+      setUserRegion: jest.fn(),
+    });
 
     useRouteMock.mockReturnValue({
       key: 'mock-route',
@@ -789,6 +827,158 @@ describe('CustomAmountInfo', () => {
       await pressDone(getByText);
 
       expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
+    });
+  });
+
+  // TRAM-3623 headless ramps funnel wiring through the shared screen.
+  describe('TRAM-3623 funnel events', () => {
+    function setMoneyDeposit() {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/debit-credit-card',
+        amountFiat: '100',
+        caipAssetId: 'eip155:1/slip44:60',
+      } as never);
+    }
+
+    it('emits RAMPS_ORDER_PROPOSED on Done press for moneyAccountDeposit', async () => {
+      setMoneyDeposit();
+
+      const { getByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(emittedPayloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED)).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          region: 'us-ca',
+          amount_source: 100,
+        }),
+      );
+    });
+
+    it('emits RAMPS_CONTINUE_BUTTON_CLICKED on confirm press for moneyAccountDeposit', async () => {
+      setMoneyDeposit();
+      useConfirmActionsMock.mockReturnValue({
+        onConfirm: jest.fn(),
+        onReject: jest.fn(),
+      });
+
+      const { getByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      // Commit the amount first to dismiss the keyboard and reveal the CTA.
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
+      });
+
+      expect(
+        emittedPayloadFor(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED),
+      ).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          region: 'us-ca',
+        }),
+      );
+    });
+
+    it('emits RAMPS_ORDER_SELECTED reactively when a usable quote is present', () => {
+      setMoneyDeposit();
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/debit-credit-card',
+        amountFiat: '100',
+        caipAssetId: 'eip155:1/slip44:60',
+        rampsQuote: {
+          provider: '/providers/transak',
+          quote: {
+            amountIn: 100,
+            amountOut: 0.05,
+            paymentMethod: '/payments/debit-credit-card',
+            totalFees: 5,
+            networkFee: 2,
+            providerFee: 3,
+          },
+        },
+      } as never);
+
+      render({ transactionType: TransactionType.moneyAccountDeposit });
+
+      expect(emittedPayloadFor(MetaMetricsEvents.RAMPS_ORDER_SELECTED)).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          amount_destination: 0.05,
+          total_fee: 5,
+        }),
+      );
+    });
+
+    // Cross-flow isolation: the shared screen also serves these flows; none of
+    // the money RAMPS funnel events may fire for them.
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.moneyAccountWithdraw,
+      TransactionType.musdConversion,
+    ])('fires no money RAMPS funnel events for %s on Done press', async (type) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/debit-credit-card',
+        amountFiat: '100',
+        caipAssetId: 'eip155:1/slip44:60',
+        rampsQuote: {
+          provider: '/providers/transak',
+          quote: { amountIn: 100, amountOut: 0.05 },
+        },
+      } as never);
+      useAlertsMock.mockReturnValue({
+        alerts: [
+          {
+            key: AlertKeys.NoPayTokenQuotes,
+            severity: Severity.Danger,
+            isBlocking: true,
+          },
+        ] as Alert[],
+        generalAlerts: [] as Alert[],
+        fieldAlerts: [] as Alert[],
+      } as AlertsContextParams);
+
+      const { getByText } = render({ transactionType: type });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      const moneyRampEvents = [
+        MetaMetricsEvents.RAMPS_ORDER_PROPOSED,
+        MetaMetricsEvents.RAMPS_ORDER_SELECTED,
+        MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED,
+        MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
+        MetaMetricsEvents.RAMPS_QUOTE_ERROR,
+        MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED,
+        MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
+      ];
+      for (const event of moneyRampEvents) {
+        expect(emittedPayloadFor(event)).toBeUndefined();
+      }
     });
   });
 });

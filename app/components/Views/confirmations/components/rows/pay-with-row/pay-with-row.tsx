@@ -62,7 +62,8 @@ interface PayWithRouteParams {
 
 export function PayWithRow({
   isResultReady,
-}: { isResultReady?: boolean } = {}) {
+  onSelectorOpen,
+}: { isResultReady?: boolean; onSelectorOpen?: () => void } = {}) {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
@@ -88,10 +89,10 @@ export function PayWithRow({
     paymentOverride === PaymentOverride.MoneyAccount ||
     (isDefaultMoneyAccount && !overrideApplied.current)
   ) {
-    return <PayWithRowMoneyAccount />;
+    return <PayWithRowMoneyAccount onSelectorOpen={onSelectorOpen} />;
   }
 
-  return <PayWithRowInteractive />;
+  return <PayWithRowInteractive onSelectorOpen={onSelectorOpen} />;
 }
 
 function PayWithRowLayout({
@@ -146,7 +147,11 @@ function PayWithRowLayout({
   );
 }
 
-function PayWithRowInteractive() {
+function PayWithRowInteractive({
+  onSelectorOpen,
+}: {
+  onSelectorOpen?: () => void;
+} = {}) {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
@@ -176,10 +181,17 @@ function PayWithRowInteractive() {
         mm_pay_token_list_opened: true,
       },
     });
+    onSelectorOpen?.();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
       preferredPaymentToken,
     });
-  }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
+  }, [
+    isDisabled,
+    navigation,
+    onSelectorOpen,
+    preferredPaymentToken,
+    setConfirmationMetric,
+  ]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
@@ -336,7 +348,11 @@ function PayWithRowEmpty({
   );
 }
 
-function PayWithRowMoneyAccount() {
+function PayWithRowMoneyAccount({
+  onSelectorOpen,
+}: {
+  onSelectorOpen?: () => void;
+} = {}) {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
@@ -348,10 +364,11 @@ function PayWithRowMoneyAccount() {
     setConfirmationMetric({
       properties: { mm_pay_token_list_opened: true },
     });
+    onSelectorOpen?.();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
       preferredPaymentToken,
     });
-  }, [navigation, preferredPaymentToken, setConfirmationMetric]);
+  }, [navigation, onSelectorOpen, preferredPaymentToken, setConfirmationMetric]);
 
   if (!payToken) {
     return <PayWithRowSkeleton />;
