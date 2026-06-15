@@ -244,6 +244,8 @@ export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 export const isLineaMainnetChainId = (chainId) =>
   chainId === CHAIN_IDS.LINEA_MAINNET;
 
+export const isMonadMainnetChainId = (chainId) => chainId === CHAIN_IDS.MONAD;
+
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
 /**
@@ -356,7 +358,8 @@ export const canDeleteNetwork = (chainId) =>
     chainId &&
       !isTestNet(chainId) &&
       !isMainNet(chainId) &&
-      !isLineaMainnetChainId(chainId),
+      !isLineaMainnetChainId(chainId) &&
+      !isMonadMainnetChainId(chainId),
   );
 
 export function getNetworkTypeById(id) {

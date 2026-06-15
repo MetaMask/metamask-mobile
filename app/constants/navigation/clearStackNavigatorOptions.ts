@@ -59,3 +59,14 @@ export const fadeNativeOptions: NativeStackNavigationOptions = {
   animation: 'fade',
   gestureEnabled: false,
 };
+
+/**
+ * Native-stack counterpart to JS-stack `TransitionPresets.ModalSlideFromBottomIOS`.
+ * Use default card presentation (not `modal` sheet or `fullScreenModal`) so content
+ * stays full-screen while safe-area / HeaderStandard includesTopInset still work.
+ */
+export const fullScreenModalSlideFromBottomNativeOptions: NativeStackNavigationOptions =
+  {
+    animation: 'slide_from_bottom',
+    headerShown: false,
+  };
