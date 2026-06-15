@@ -228,7 +228,9 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [{ type: mockQrKeyring.type, accounts: [] }],
+        // We cannot re-use `mockQrKeyring` since module mocking is ran before variable
+        // declaration.
+        keyrings: [{ type: 'QR Hardware Wallet Device', accounts: [] }],
       },
       getAccounts: jest.fn(),
       getKeyringsByType: jest.fn().mockResolvedValue([]),
@@ -238,7 +240,7 @@ jest.mock('../../../core/Engine', () => ({
           keyrings: [
             {
               keyring: { type: mockQrKeyring.type },
-              metadata: { id: '1234', name: 'QR Hardware Wallet Device' },
+              metadata: { id: '1234', name: '' },
             },
           ],
           addNewKeyring: jest.fn(),
@@ -296,23 +298,19 @@ describe('ConnectQRHardware', () => {
     jest.spyOn(mockQrKeyring, 'forgetDevice').mockImplementation();
     jest.spyOn(mockQrKeyring, 'getName').mockReturnValue('KeystoneDevice');
     jest.spyOn(mockQrKeyring, 'getMode').mockReturnValue('hd' as never);
-    jest
-      .spyOn(mockQrKeyring, 'getAccounts')
-      .mockResolvedValue([
-        {
-          address: '0x4678901234567890123456789012345678901210',
-        } as unknown as KeyringAccount,
-        {
-          address: '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
-        } as unknown as KeyringAccount,
-      ]);
-    jest
-      .spyOn(mockQrKeyring, 'createAccounts')
-      .mockResolvedValue([
-        {
-          address: '0x4678901234567890123456789012345678901210',
-        } as unknown as KeyringAccount,
-      ]);
+    jest.spyOn(mockQrKeyring, 'getAccounts').mockResolvedValue([
+      {
+        address: '0x4678901234567890123456789012345678901210',
+      } as unknown as KeyringAccount,
+      {
+        address: '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
+      } as unknown as KeyringAccount,
+    ]);
+    jest.spyOn(mockQrKeyring, 'createAccounts').mockResolvedValue([
+      {
+        address: '0x4678901234567890123456789012345678901210',
+      } as unknown as KeyringAccount,
+    ]);
 
     mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
       (addresses) =>

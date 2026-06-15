@@ -324,7 +324,7 @@ export const unlockLedgerWalletAccount = async (index: number) => {
         const derivationPath: `m/${string}` =
           keyring.hdPath === LEDGER_LIVE_PATH
             ? `m/44'/60'/${index}'/0/0`
-            : `${keyring.hdPath}/${index}`;
+            : (`${keyring.hdPath}/${index}` as `m/${string}`);
         const [account] = await keyring.createAccounts({
           type: 'bip44:derive-path',
           entropySource: keyring.entropySource,
