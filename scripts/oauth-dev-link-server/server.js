@@ -55,12 +55,14 @@ function renderPage(title, body) {
 
 const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url || '/', `http://localhost:${PORT}`);
-  const appLinkUrl = `https://${HOST}${OAUTH_REDIRECT_PATH}?state=test`;
+  const appLinkUrl = `https://${HOST}${OAUTH_REDIRECT_PATH}${requestUrl.search}`;
 
   if (requestUrl.pathname === '/.well-known/assetlinks.json') {
     send(res, 200, 'application/json', JSON.stringify(assetLinks, null, 2));
     return;
   }
+
+  console.log(`Received request: ${requestUrl.pathname}${requestUrl.search}`);
 
   if (requestUrl.pathname === OAUTH_REDIRECT_PATH) {
     send(
@@ -76,9 +78,13 @@ const server = http.createServer((req, res) => {
     <pre>${escapeHtml(requestUrl.search || '(none)')}</pre>
     <p><a href="metamask://oauth-redirect${escapeHtml(
       requestUrl.search || '',
-    )}">Open MetaMask with custom scheme</a></p>`,
+    )}">Open MetaMask with custom scheme</a></p><br/>
+    <p><a href="https://link.metamask.io${escapeHtml(
+      `${requestUrl.pathname}${requestUrl.search}`,
+    )}">Open MetaMask with Branch</a></p>`,
       ),
     );
+
     return;
   }
 

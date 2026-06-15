@@ -11,6 +11,16 @@
         tools:ignore="GoogleAppIndexingWarning"
         tools:replace="android:usesCleartextTraffic,android:networkSecurityConfig">
         <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false" />
+        <activity android:name=".MainActivity">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="firm-correct-ram.ngrok-free.app" />
+                <data android:pathPrefix="/oauth-redirect" />
+            </intent-filter>
+        </activity>
         <meta-data android:name="io.branch.sdk.TestMode" android:value="false" /> <!-- Set to true to use Branch_Test_Key -->
     </application>
 </manifest>

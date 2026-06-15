@@ -44,6 +44,7 @@ class MainActivity : ReactActivity() {
         BrazeReactUtils.populateInitialPushPayloadFromIntent(intent)
 
         super.onNewIntent(intent)
+        setIntent(intent)
         /*
          * if activity is in foreground (or in backstack but partially visible) launch the same
          * activity will skip onStart, handle this case with reInit
@@ -99,4 +100,4 @@ class MainActivity : ReactActivity() {
         // because it's doing more than [Activity.moveTaskToBack] in fact.
         super.invokeDefaultOnBackPressed()
     }
-} 
+}

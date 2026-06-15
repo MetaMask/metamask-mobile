@@ -76,6 +76,24 @@ const redirectUrlHasExpectedState = (url: string, expectedState: string) => {
   }
 };
 
+const isOAuthRedirectUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+
+    return (
+      parsedUrl.pathname === '/oauth-redirect' ||
+      parsedUrl.hostname === 'oauth-redirect'
+    );
+  } catch {
+    return false;
+  }
+};
+
+const isExpectedOAuthRedirectUrl = (url: string, expectedRedirectUri: string) =>
+  url.startsWith(expectedRedirectUri) ||
+  (isOAuthRedirectUrl(url) && url.startsWith('https://link.metamask.io/')) ||
+  (isOAuthRedirectUrl(url) && url.startsWith('metamask://'));
+
 const waitForActiveAppState = async () => {
   if (AppState.currentState === 'active') {
     return;
@@ -215,7 +233,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       const redirectUrlPromise = new Promise<string>((resolve) => {
         const subscription = Linking.addEventListener('url', ({ url }) => {
           if (
-            url.startsWith(this.redirectUri) &&
+            isExpectedOAuthRedirectUrl(url, this.redirectUri) &&
             redirectUrlHasExpectedState(url, this.nonce)
           ) {
             resolve(url);
@@ -242,7 +260,8 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         const initialUrl = await Linking.getInitialURL();
 
         if (
-          initialUrl?.startsWith(this.redirectUri) &&
+          initialUrl &&
+          isExpectedOAuthRedirectUrl(initialUrl, this.redirectUri) &&
           redirectUrlHasExpectedState(initialUrl, this.nonce)
         ) {
           return buildLoginResult();
@@ -302,7 +321,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     let removeRedirectListener: (() => void) | undefined;
     const redirectUrlPromise = new Promise<string>((resolve) => {
       const subscription = Linking.addEventListener('url', ({ url }) => {
-        const matchesRedirectUri = url.startsWith(this.redirectUri);
+        const matchesRedirectUri = isExpectedOAuthRedirectUrl(
+          url,
+          this.redirectUri,
+        );
 
         if (matchesRedirectUri) {
           resolve(url);
@@ -345,7 +367,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
       const initialUrl = await Linking.getInitialURL();
 
-      if (initialUrl?.startsWith(this.redirectUri)) {
+      if (
+        initialUrl &&
+        isExpectedOAuthRedirectUrl(initialUrl, this.redirectUri)
+      ) {
         return initialUrl;
       }
 
