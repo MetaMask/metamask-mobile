@@ -82,6 +82,7 @@ const mockOnFocus = jest.fn();
 const mockOnBlur = jest.fn();
 const mockOnInputPress = jest.fn();
 const mockOnMaxPress = jest.fn();
+const mockOnAmountTypeTogglePress = jest.fn();
 
 describe('TokenInputArea', () => {
   beforeEach(() => {
@@ -861,6 +862,32 @@ describe('TokenInputArea', () => {
         undefined,
         undefined,
       );
+    });
+
+    it('toggles amount type when pressing the secondary denomination value', () => {
+      // Arrange
+      mockUseDisplayCurrencyValue.mockReturnValue('$100.00');
+
+      const { getByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+            amount="1"
+            onAmountTypeTogglePress={mockOnAmountTypeTogglePress}
+            amountTypeToggleTestID="amount-type-toggle"
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Act
+      fireEvent.press(getByText('$100.00'));
+
+      // Assert
+      expect(mockOnAmountTypeTogglePress).toHaveBeenCalledTimes(1);
     });
   });
 

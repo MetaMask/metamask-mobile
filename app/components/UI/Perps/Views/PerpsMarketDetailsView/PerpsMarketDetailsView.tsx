@@ -251,6 +251,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // This prevents stale closure issues where the captured position is outdated
   // Initialized to null, will be updated via useEffect when existingPosition is available
   const currentPositionRef = useRef<Position | null>(null);
+  const scrollViewRef = useRef<Animated.ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -294,6 +295,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
     currentMarketSymbolRef.current = market?.symbol;
+  }, [market?.symbol]);
+
+  // Auto-scroll to top when navigating to a different market (e.g. related markets)
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   }, [market?.symbol]);
 
   // Clear optimistic state once Redux has caught up
@@ -1312,6 +1318,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       <View style={styles.scrollableContentContainer}>
         <Animated.ScrollView
+          ref={scrollViewRef}
           style={styles.mainContentScrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}

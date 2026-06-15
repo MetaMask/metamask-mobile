@@ -14,7 +14,7 @@ import {
 import { zeroAddress } from 'ethereumjs-util';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
-import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { getSwapDestToken } from './getSwapDestToken';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 
 export interface ApiTokenForBridgeToken {
@@ -141,20 +141,24 @@ export const convertAPITokensToBridgeTokens = (
   );
 
 /**
- * Helper function to get default destination token, handling both hex and CAIP format chain IDs
+ * Helper function to get default destination token, handling both hex and CAIP format chain IDs.
+ *
+ * Returns the chain-wide default from `DefaultSwapDestTokens`.
+ * Use `getSwapDestToken` when you also know the source token address and want
+ * to respect per-source overrides.
  */
 export const getDefaultDestToken = (
   chainId: Hex | CaipChainId,
 ): BridgeToken | undefined => {
   // Try direct lookup first
-  let token = DefaultSwapDestTokens[chainId];
+  let token = getSwapDestToken(chainId);
   if (token) return token;
 
   // If chainId is CAIP format (e.g., "eip155:1"), convert to hex and try again
   if (typeof chainId === 'string' && chainId.includes(':')) {
     const chainIdFromCaip = chainId.split(':')[1];
     const hexChainId = `0x${parseInt(chainIdFromCaip, 10).toString(16)}` as Hex;
-    token = DefaultSwapDestTokens[hexChainId];
+    token = getSwapDestToken(hexChainId);
     if (token) {
       // Return token with CAIP chainId to match the request format
       return { ...token, chainId };

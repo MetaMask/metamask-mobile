@@ -9,6 +9,7 @@ import { normalizeFilterKey } from './marketCategoryMapping';
 
 export const RELATED_MARKETS_SOURCE = 'related_markets';
 export const RELATED_MARKET_CLICKED = 'related_market_clicked';
+export const RELATED_MARKETS_HEADER_TAPPED = 'related_markets_header_tapped';
 
 export const RELATED_MARKETS_EVENT_PROPERTY = {
   SOURCE_MARKET: 'source_market',
