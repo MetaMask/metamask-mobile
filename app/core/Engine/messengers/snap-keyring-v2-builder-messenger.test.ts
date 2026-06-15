@@ -5,13 +5,15 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import type { SnapKeyringBuilderMessenger } from '../SnapKeyring/types';
-import { getSnapKeyringBuilderV2Messenger } from './snap-keyring-builder-v2-messenger';
+import {
+  getSnapKeyringV2BuilderMessenger,
+  SnapKeyringV2BuilderMessenger,
+} from './snap-keyring-v2-builder-messenger';
 
 type RootMessenger = Messenger<
   MockAnyNamespace,
-  MessengerActions<SnapKeyringBuilderMessenger>,
-  MessengerEvents<SnapKeyringBuilderMessenger>
+  MessengerActions<SnapKeyringV2BuilderMessenger>,
+  MessengerEvents<SnapKeyringV2BuilderMessenger>
 >;
 
 const getRootMessenger = (): RootMessenger =>
@@ -19,10 +21,10 @@ const getRootMessenger = (): RootMessenger =>
     namespace: MOCK_ANY_NAMESPACE,
   });
 
-describe('getSnapKeyringBuilderV2Messenger', () => {
+describe('getSnapKeyringV2BuilderMessenger', () => {
   it('returns a messenger', () => {
     const rootMessenger = getRootMessenger();
-    const messenger = getSnapKeyringBuilderV2Messenger(rootMessenger);
+    const messenger = getSnapKeyringV2BuilderMessenger(rootMessenger);
 
     expect(messenger).toBeInstanceOf(Messenger);
   });

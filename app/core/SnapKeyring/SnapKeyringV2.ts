@@ -12,24 +12,13 @@ import type { Keyring } from '@metamask/keyring-utils';
 import { assert } from '@metamask/utils';
 import { SnapKeyringImpl } from './SnapKeyring';
 import type { SnapKeyringBuilderMessenger } from './types';
-import { isE2E } from '../../util/test/utils';
-
-/**
- * Builder type for the v2 Snap keyring.
- */
-export interface SnapKeyringBuilderV2 {
-  name: 'SnapKeyringBuilderV2';
-  state: null;
-
-  v1Builder: KeyringBuilder;
-  v2Builder: KeyringV2Builder;
-}
+import { hasTestOverrides } from '../../util/test/utils';
 
 /**
  * The v2 messenger has the same scope as the v1 messenger, so we reuse the
  * existing type.
  */
-export type SnapKeyringBuilderV2Messenger = SnapKeyringBuilderMessenger;
+export type SnapKeyringV2BuilderMessenger = SnapKeyringBuilderMessenger;
 
 export class SnapKeyringV2Impl extends SnapKeyringImpl {
   async assertAccountCanBeUsed(_account: KeyringAccount) {
@@ -48,7 +37,7 @@ export class SnapKeyringV2Impl extends SnapKeyringImpl {
  * @returns A v2 Snap keyring builder.
  */
 export function snapKeyringV2AdaptedAsV1Builder(
-  messenger: SnapKeyringBuilderV2Messenger,
+  messenger: SnapKeyringV2BuilderMessenger,
 ): KeyringBuilder {
   const SnapKeyringV2AdaptedAsV1BuilderV2 = () => {
     const v2 = new SnapKeyringV2({
@@ -56,7 +45,7 @@ export function snapKeyringV2AdaptedAsV1Builder(
       callbacks: new SnapKeyringV2Impl(messenger),
       // Enables generic account creation for new chain integration. We keep
       // it on under e2e to match the v1 keyring's behaviour in this codebase.
-      isAnyAccountTypeAllowed: isE2E,
+      isAnyAccountTypeAllowed: hasTestOverrides,
     });
 
     // NOTE: This adapter cannot really be used as a true v1 keyring; here it
@@ -78,7 +67,7 @@ export function snapKeyringV2AdaptedAsV1Builder(
  * @returns A v2 Snap keyring builder.
  */
 export function snapKeyringV2Builder(): KeyringV2Builder {
-  const SnapKeyringBuilderV2 = (keyring: Keyring) => {
+  const SnapKeyringV2Builder = (keyring: Keyring) => {
     assert(
       keyring instanceof SnapKeyringV1Adapter,
       'Expected KeyringV1Adapter instance (that wraps a SnapKeyringV2)',
@@ -88,7 +77,7 @@ export function snapKeyringV2Builder(): KeyringV2Builder {
     // builders share the same underlying SnapKeyringV2 instance.
     return (keyring as SnapKeyringV1Adapter).unwrap() as SnapKeyringV2;
   };
-  SnapKeyringBuilderV2.type = KeyringType.Snap;
+  SnapKeyringV2Builder.type = KeyringType.Snap;
 
-  return SnapKeyringBuilderV2;
+  return SnapKeyringV2Builder;
 }

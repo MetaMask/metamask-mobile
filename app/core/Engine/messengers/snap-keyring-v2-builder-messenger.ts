@@ -3,18 +3,15 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import type { KeyringControllerPersistAllKeyringsAction } from '@metamask/keyring-controller';
-import type { AccountsControllerUpdateAccountsAction } from '@metamask/accounts-controller';
 import type { RootMessenger } from '../types';
-import type { SnapKeyringBuilderV2Messenger as SnapKeyringV2Messenger } from '../../SnapKeyring/SnapKeyringV2';
-import type { SnapKeyringBuilderMessenger } from '../../SnapKeyring/types';
+import type { SnapKeyringV2BuilderMessenger as SnapKeyringV2Messenger } from '../../SnapKeyring/SnapKeyringV2';
 
 /**
  * Re-export of the messenger type used by the v2 Snap keyring. The v2
  * keyring needs the exact same scope as the v1 keyring (the underlying
  * callbacks are shared).
  */
-export type SnapKeyringBuilderV2Messenger = SnapKeyringV2Messenger;
+export type SnapKeyringV2BuilderMessenger = SnapKeyringV2Messenger;
 
 /**
  * Get the messenger for the v2 Snap keyring builder. The actions and events
@@ -22,15 +19,15 @@ export type SnapKeyringBuilderV2Messenger = SnapKeyringV2Messenger;
  * and v2 builders coexist without delegation collisions.
  *
  * @param rootMessenger - The root messenger.
- * @returns The SnapKeyringBuilderV2Messenger.
+ * @returns The SnapKeyringV2BuilderMessenger.
  */
-export function getSnapKeyringBuilderV2Messenger(
+export function getSnapKeyringV2BuilderMessenger(
   rootMessenger: RootMessenger,
-): SnapKeyringBuilderV2Messenger {
+): SnapKeyringV2BuilderMessenger {
   const messenger = new Messenger<
     'SnapKeyringV2',
-    MessengerActions<SnapKeyringBuilderMessenger>,
-    MessengerEvents<SnapKeyringBuilderMessenger>,
+    MessengerActions<SnapKeyringV2BuilderMessenger>,
+    MessengerEvents<SnapKeyringV2BuilderMessenger>,
     RootMessenger
   >({
     namespace: 'SnapKeyringV2',
