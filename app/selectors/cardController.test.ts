@@ -385,7 +385,9 @@ describe('selectCardVerificationStatus', () => {
 
   it('returns null when account is missing', () => {
     const state = createMockRootState({
-      cardHomeData: { account: null } as unknown as CardHomeData,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
     });
     expect(selectCardVerificationStatus(state)).toBeNull();
   });
@@ -394,7 +396,7 @@ describe('selectCardVerificationStatus', () => {
     const state = createMockRootState({
       cardHomeData: {
         account: { verificationStatus: 'PENDING' },
-      } as unknown as CardHomeData,
+      } as unknown as CardControllerState['cardHomeData'],
     });
     expect(selectCardVerificationStatus(state)).toBe('PENDING');
   });
@@ -405,7 +407,7 @@ describe('selectIsCardVerified', () => {
     const state = createMockRootState({
       cardHomeData: {
         account: { verificationStatus: 'VERIFIED' },
-      } as unknown as CardHomeData,
+      } as unknown as CardControllerState['cardHomeData'],
     });
     expect(selectIsCardVerified(state)).toBe(true);
   });
@@ -416,7 +418,7 @@ describe('selectIsCardVerified', () => {
       const state = createMockRootState({
         cardHomeData: {
           account: verificationStatus ? { verificationStatus } : null,
-        } as unknown as CardHomeData,
+        } as unknown as CardControllerState['cardHomeData'],
       });
       expect(selectIsCardVerified(state)).toBe(false);
     },

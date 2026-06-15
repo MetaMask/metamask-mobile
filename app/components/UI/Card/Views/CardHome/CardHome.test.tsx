@@ -6298,7 +6298,6 @@ describe('CardHome Component', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
         isCardAuthenticated: true,
-        isCardVerified: true,
         primaryMoneyAccount: undefined,
         moneyAccountCardToken: null,
         canLink: true,
