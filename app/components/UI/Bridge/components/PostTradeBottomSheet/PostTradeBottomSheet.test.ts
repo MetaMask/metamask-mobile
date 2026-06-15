@@ -1,8 +1,11 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { PostTradeBottomSheet } from './index';
-import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  getPostTradeSuggestionPillTestId,
+  PostTradeBottomSheetTestIds,
+} from './PostTradeBottomSheet.testIds';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
 
 const mockDispatch = jest.fn();
@@ -17,18 +20,24 @@ const mockCreateEventBuilder = jest.fn((event) => ({
 }));
 let mockNow = 1000;
 let mockPostTradeStatus = PostTradeStatus.Failed;
+let mockPostTradeTrendingTokens = {
+  tokens: [] as unknown[],
+  isLoading: false,
+  error: null,
+  refetch: jest.fn(),
+};
 let mockParams = {
   status: PostTradeStatus.Failed,
   sourceAmount: '1.23456',
   destAmount: '2.34567',
   sourceToken: {
-    address: '0xsource',
+    address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     symbol: 'ETH',
     chainId: '0x1',
     decimals: 18,
   },
   destToken: {
-    address: '0xdest',
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     symbol: 'USDC',
     chainId: '0x1',
     decimals: 6,
@@ -40,8 +49,8 @@ const expectedSharedProperties = {
   chain_id_destination: '1',
   token_symbol_source: 'ETH',
   token_symbol_destination: 'USDC',
-  token_address_source: '0xsource',
-  token_address_destination: '0xdest',
+  token_address_source: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+  token_address_destination: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 };
 
 jest.mock('react-redux', () => ({ useDispatch: () => mockDispatch }));
@@ -69,24 +78,33 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('./usePostTradeTxStatus', () => ({
   usePostTradeTxStatus: () => mockPostTradeStatus,
 }));
+jest.mock('./usePostTradeTrendingTokens', () => ({
+  usePostTradeTrendingTokens: () => mockPostTradeTrendingTokens,
+}));
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockNow = 1000;
   jest.spyOn(Date, 'now').mockImplementation(() => mockNow);
   mockPostTradeStatus = PostTradeStatus.Failed;
+  mockPostTradeTrendingTokens = {
+    tokens: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  };
   mockParams = {
     status: PostTradeStatus.Failed,
     sourceAmount: '1.23456',
     destAmount: '2.34567',
     sourceToken: {
-      address: '0xsource',
+      address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
       symbol: 'ETH',
       chainId: '0x1',
       decimals: 18,
     },
     destToken: {
-      address: '0xdest',
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       symbol: 'USDC',
       chainId: '0x1',
       decimals: 6,
@@ -134,7 +152,7 @@ describe('PostTradeBottomSheet', () => {
     const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
 
     mockNow = 1250;
-    fireEvent.press(getByTestId('post-trade-bottom-sheet-close-button'));
+    fireEvent.press(getByTestId(PostTradeBottomSheetTestIds.CLOSE_BUTTON));
 
     expect(
       getTrackedEvent(MetaMetricsEvents.SWAPBRIDGE_STATUS_MODAL_DISMISSED),
@@ -149,10 +167,16 @@ describe('PostTradeBottomSheet', () => {
   });
 
   it('tracks CTA clicks without double-counting dismissal', () => {
-    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
+    const { getByTestId, queryByTestId } = render(
+      React.createElement(PostTradeBottomSheet),
+    );
+
+    expect(
+      queryByTestId(PostTradeBottomSheetTestIds.SUGGESTIONS_SECTION),
+    ).toBeNull();
 
     mockNow = 1400;
-    fireEvent.press(getByTestId('post-trade-bottom-sheet-try-again-button'));
+    fireEvent.press(getByTestId(PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON));
 
     expect(
       getTrackedEvent(MetaMetricsEvents.SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED),
@@ -170,6 +194,95 @@ describe('PostTradeBottomSheet', () => {
     ).toBeUndefined();
     expect(mockResetState).toHaveBeenCalled();
     expect(mockUpdateQuoteParams).toHaveBeenCalled();
-    expect(mockDispatch.mock.calls[3][0].payload).toBe('1.23456');
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setSourceAmount',
+        payload: '1.23456',
+      }),
+    );
+  });
+
+  it('shows skeleton suggestions while trending tokens load', () => {
+    mockPostTradeStatus = PostTradeStatus.InProgress;
+    mockPostTradeTrendingTokens = {
+      tokens: [],
+      isLoading: true,
+      error: null,
+      refetch: jest.fn(),
+    };
+
+    const { getAllByTestId, getByText } = render(
+      React.createElement(PostTradeBottomSheet),
+    );
+
+    expect(getByText('What to swap next')).toBeTruthy();
+    expect(getAllByTestId('section-pills-skeleton').length).toBeGreaterThan(0);
+  });
+
+  it('sets up the swap form with an empty source amount when a suggestion is pressed', () => {
+    mockPostTradeStatus = PostTradeStatus.Success;
+    const suggestedToken = {
+      assetId: 'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+      name: 'Uniswap',
+      symbol: 'UNI',
+      decimals: 18,
+      marketCap: 1000,
+      priceChangePct: { h24: '1.23' },
+    };
+    mockPostTradeTrendingTokens = {
+      tokens: [suggestedToken],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    };
+
+    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
+
+    mockNow = 1500;
+    fireEvent.press(
+      getByTestId(getPostTradeSuggestionPillTestId(suggestedToken.assetId)),
+    );
+
+    expect(
+      getTrackedEvent(MetaMetricsEvents.SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED),
+    ).toMatchObject({
+      properties: {
+        status_at_click: 'complete',
+        cta_clicked: 'trending_token',
+        time_modal_open_ms: 500,
+        token_symbol_clicked: 'UNI',
+        token_address_clicked: '0x1111111111111111111111111111111111111111',
+        token_clicked_is_imported: false,
+      },
+    });
+    expect(mockResetState).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setSourceToken',
+        payload: mockParams.sourceToken,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setDestToken',
+        payload: expect.objectContaining({
+          address: '0x1111111111111111111111111111111111111111',
+          chainId: '0x1',
+          symbol: 'UNI',
+        }),
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setIsDestTokenManuallySet',
+        payload: true,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setSourceAmount',
+        payload: undefined,
+      }),
+    );
   });
 });

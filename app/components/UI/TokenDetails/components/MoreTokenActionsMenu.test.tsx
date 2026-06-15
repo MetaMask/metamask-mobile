@@ -100,14 +100,8 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => false,
-}));
-
 jest.mock('../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => ({
-    ramp_routing: 'test',
     is_authenticated: true,
     preferred_provider: 'test',
     order_count: 0,

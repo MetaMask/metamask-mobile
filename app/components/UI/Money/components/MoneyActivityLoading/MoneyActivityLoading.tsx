@@ -17,7 +17,7 @@ const MoneyActivityLoading = () => (
   <Box
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
-    twClassName="py-8"
+    twClassName="py-3"
     testID={MoneyActivityLoadingTestIds.CONTAINER}
   >
     <Spinner spinnerIconProps={{ size: IconSize.Lg }} />

@@ -5,7 +5,10 @@ import {
 } from './PostTradeBottomSheet.types';
 
 export type PostTradeAnalyticsStatus = 'in_progress' | 'complete' | 'failed';
-export type PostTradeAnalyticsCta = 'view_activity' | 'try_again';
+export type PostTradeAnalyticsCta =
+  | 'view_activity'
+  | 'try_again'
+  | 'trending_token';
 
 export const getAnalyticsStatus = (
   status: PostTradeStatus,
