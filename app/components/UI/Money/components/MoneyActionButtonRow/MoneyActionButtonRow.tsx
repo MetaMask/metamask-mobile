@@ -42,7 +42,7 @@ const ActionButton = ({
   disabled?: boolean;
 }) => (
   <ButtonBase
-    twClassName="flex-1 self-stretch h-full min-h-12 rounded-xl bg-muted px-1 py-3"
+    twClassName="flex-1 rounded-xl bg-muted px-1 py-3"
     onPress={onPress}
     testID={testID}
     isDisabled={disabled}
@@ -51,7 +51,7 @@ const ActionButton = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="w-full flex-1"
+      twClassName="w-full"
     >
       <Icon
         name={iconName}
@@ -79,7 +79,7 @@ const MoneyActionButtonRow = ({
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Stretch}
+    alignItems={BoxAlignItems.Center}
     twClassName="px-4 pt-6 pb-2 gap-2"
     testID={MoneyActionButtonRowTestIds.CONTAINER}
   >
