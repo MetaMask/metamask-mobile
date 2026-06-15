@@ -98,27 +98,44 @@ export const usePositionTokenBalance = (
     // chain-agnostic multichain balance/rate controllers, so it replaces the
     // bespoke per-chain handling here and keeps the EVM branch's
     // `formatChainIdToHex` (which throws for non-EVM CAIP ids) out of reach.
-    // Strict mode (no `includeZeroBalance`): a token the user doesn't hold
-    // returns `null`, so the hook reports "no sellable balance".
+    //
+    // Lenient mode (`includeZeroBalance`) so a held-but-unpriceable token
+    // (real balance, no resolvable rate) stays sellable — matching the EVM
+    // branch below and the wallet-wide `calculateEvmBalances` behaviour. The
+    // lenient path also returns a zero-balance enrichment for tokens the user
+    // doesn't hold, so we drop those (balance ≤ 0) to preserve the strict
+    // "no balance → not sellable" contract. Unpriced holdings render `$0.00`
+    // (via `zeroFiat`) rather than a dash, consistent with the EVM branch.
     if (isNonEvmChainId(caipChainId)) {
-      const enrichment = enrichTokenBalance(destToken, {
-        accountAddress,
-        accountsByChainId,
-        tokenBalances,
-        tokenMarketData,
-        currencyRates,
-        allNetworkConfigs,
-        fiatCurrency,
-        solanaAccount: solanaAccount ?? undefined,
-        tronAccount: tronAccount ?? undefined,
-        bitcoinAccount: bitcoinAccount ?? undefined,
-        multichainBalances,
-        multichainRates: multichainRates as Record<
-          string,
-          { rate?: string } | undefined
-        >,
-      });
-      return enrichment ? { ...destToken, ...enrichment } : undefined;
+      const enrichment = enrichTokenBalance(
+        destToken,
+        {
+          accountAddress,
+          accountsByChainId,
+          tokenBalances,
+          tokenMarketData,
+          currencyRates,
+          allNetworkConfigs,
+          fiatCurrency,
+          solanaAccount: solanaAccount ?? undefined,
+          tronAccount: tronAccount ?? undefined,
+          bitcoinAccount: bitcoinAccount ?? undefined,
+          multichainBalances,
+          multichainRates: multichainRates as Record<
+            string,
+            { rate?: string } | undefined
+          >,
+        },
+        { includeZeroBalance: true },
+      );
+      if (!enrichment || !(parseFloat(enrichment.balance) > 0)) {
+        return undefined;
+      }
+      return {
+        ...destToken,
+        ...enrichment,
+        balanceFiat: enrichment.balanceFiat ?? zeroFiat,
+      };
     }
 
     // ─── EVM branch ────────────────────────────────────────────────────

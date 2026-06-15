@@ -182,6 +182,30 @@ describe('usePositionTokenBalance', () => {
 
       expect(result.current).toBeUndefined();
     });
+
+    it('keeps a held-but-unpriceable Solana balance sellable with a zero fiat', () => {
+      setup({
+        accounts: { [SOL_SCOPE]: solanaAccount },
+        multichainBalances: {
+          [solanaAccount.id]: { [SOL_ASSET]: { amount: '12.5' } },
+        },
+        multichainRates: {},
+      });
+
+      const { result } = renderHook(() =>
+        usePositionTokenBalance(
+          targetOn(SOL_SCOPE, SOL_ASSET),
+          token(SOL_ASSET, SOL_SCOPE, 'SOL'),
+        ),
+      );
+
+      expect(result.current).toMatchObject({
+        balance: '12.5',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
+    });
   });
 
   describe('Tron', () => {
@@ -209,7 +233,7 @@ describe('usePositionTokenBalance', () => {
       });
     });
 
-    it('returns undefined when the held TRX cannot be priced (strict)', () => {
+    it('keeps a held-but-unpriceable TRX balance sellable with a zero fiat', () => {
       setup({
         accounts: { [TRX_SCOPE]: tronAccount },
         multichainBalances: {
@@ -225,7 +249,12 @@ describe('usePositionTokenBalance', () => {
         ),
       );
 
-      expect(result.current).toBeUndefined();
+      expect(result.current).toMatchObject({
+        balance: '100',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
     });
 
     it('returns undefined when there is no Tron account', () => {
