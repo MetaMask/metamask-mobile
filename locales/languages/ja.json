@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "資金不足",
-      "message": "ネットワーク手数料の支払いに十分な%{nativeCurrency}がアカウントにありません。",
-      "buy_action": "%{nativeCurrency}を購入"
+      "message": "ネットワーク手数料の支払いに十分な{{nativeCurrency}}がアカウントにありません。",
+      "buy_action": "{{nativeCurrency}}を購入"
     },
     "signed_or_submitted": {
       "title": "トランザクション進行中",
@@ -142,7 +142,7 @@
       "message": "この受取人のアドレスはトークンの直接送金に対応していない可能性があり、資金を失うおそれがあります。これが送金を受け取れるコントラクトであることを確信している場合のみ、続行してください。"
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "このネットワークでは、アカウントに%{minBalance} %{nativeTokenSymbol}の準備残高が必要です。",
+      "message": "このネットワークでは、アカウントに{{minBalance}} {{nativeTokenSymbol}}の準備残高が必要です。",
       "title": "準備残高が必要です"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "パスワードを忘れた場合",
     "cant_proceed": "「Delete」と入力するまで先に進めません。これにより、現在のウォレットが消去されます。",
     "invalid_password": "パスワードが正しくありません。もう一度お試しください。",
-    "type_delete": "確認のため「%{erase}」と入力してください",
+    "type_delete": "確認のため「{{erase}}」と入力してください",
     "erase_my": "はい、ウォレットをリセットします",
     "cancel": "キャンセル",
     "are_you_sure": "よろしいですか？",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "注文をキャンセルできませんでした。もう一度お試しください。"
     },
     "webview_modal": {
-      "error": "Webviewがエラー %{code} を受信しました"
+      "error": "Webviewがエラー {{code}} を受信しました"
     },
     "notifications": {
       "deposit_failed_title": "{{currency}}のデポジットに失敗しました。もう一度お試しください。ご不便をおかけし、申し訳ございません。",
@@ -3564,13 +3564,13 @@
     "general_heading": "一般",
     "privacy_heading": "プライバシー",
     "failed_to_fetch_chain_id": "チェーンIDを取得できませんでした。正しいRPC URLか確認してください。",
-    "endpoint_returned_different_chain_id": "エンドポイントが異なるIDを返しました: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "エンドポイントが異なるIDを返しました: {{chainIdReturned}}",
     "chain_id_required": "チェーンIDが必要です。ネットワークから返されたチェーンIDと一致している必要があります。10進数または「0x」で始まる16進数を入力できます。",
     "invalid_hex_number": "無効な16進数です。",
     "invalid_hex_number_leading_zeros": "無効な16進数です。先頭の0を削除してください。",
     "invalid_number": "無効な数字です。10進数または「0x」で始まる16進数を入力してください。",
     "invalid_number_leading_zeros": "無効な数字です。先頭の0を削除してください。",
-    "invalid_number_range": "無効な数字です。1と%{maxSafeChainId}の間に数字を入力してください。",
+    "invalid_number_range": "無効な数字です。1と{{maxSafeChainId}}の間に数字を入力してください。",
     "hide_zero_balance_tokens_title": "残高のないトークンを非表示",
     "hide_zero_balance_tokens_desc": "トークンリストに残高がないトークンが表示されないようにします。",
     "haptic_feedback_title": "触覚フィードバック",
@@ -4444,8 +4444,8 @@
     "confusable_msg": "ENS名に紛らわしい文字が検出されました。詐欺防止のため、ENS名を確認してください。",
     "similar_to": "類似するもの:",
     "contains_zero_width": "ゼロ幅文字が含まれています",
-    "dapp_suggested_gas": "このガス代は%{origin}により推奨されています。旧式のガス見積もり方法を使用しているため、精度に欠ける可能性がありますが、このガス代を変更するとトランザクションに問題が発生する場合があります。ご質問がございましたら、%{origin} にお問い合わせください。",
-    "dapp_suggested_eip1559_gas": "このガス代は%{origin}により推奨されています。これを上書きすると、トランザクションに問題が発生する可能性があります。ご質問がございましたら、%{origin} にお問い合わせください。",
+    "dapp_suggested_gas": "このガス代は{{origin}}により推奨されています。旧式のガス見積もり方法を使用しているため、精度に欠ける可能性がありますが、このガス代を変更するとトランザクションに問題が発生する場合があります。ご質問がございましたら、{{origin}} にお問い合わせください。",
+    "dapp_suggested_eip1559_gas": "このガス代は{{origin}}により推奨されています。これを上書きすると、トランザクションに問題が発生する可能性があります。ご質問がございましたら、{{origin}} にお問い合わせください。",
     "address_invalid": "受取人のアドレスが無効です。",
     "ens_not_found": "この名前にはアドレスが設定されていません。",
     "unknown_qr_code": "無効なQRコードです。再度お試しください。",
@@ -6216,7 +6216,7 @@
     }
   },
   "invalid_network": {
-    "title": "カスタムネットワーク\n%{network}\n のチェーンIDの再入力が必要です。",
+    "title": "カスタムネットワーク\n{{network}}\n のチェーンIDの再入力が必要です。",
     "message": "悪質なプロバイダや欠陥のあるプロバイダから保護するため、すべてのカスタムネットワークにチェーンIDが必要になりました。",
     "hint": "よく利用されているネットワークのチェーンIDは、ほとんどが次の場所で確認できます:",
     "edit_network_button": "ネットワークを編集",
@@ -6248,7 +6248,7 @@
     "cancel": "キャンセル",
     "approve": "承認",
     "unrecognized_chain": "このカスタムネットワークは認識されていません",
-    "invalid_chain": "このチェーンIDの%{rpcUrl}は、chainid.networkの情報と一致していません",
+    "invalid_chain": "このチェーンIDの{{rpcUrl}}は、chainid.networkの情報と一致していません",
     "alert_recommend": "チェーンIDを確認することを",
     "alert_verify": "お勧めします",
     "warning_subtext_new": {
