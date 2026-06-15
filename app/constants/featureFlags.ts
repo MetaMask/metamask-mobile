@@ -16,6 +16,7 @@ export enum FeatureFlagNames {
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
   telegramLoginEnabled = 'telegram_login_enabled',
+  onboardingInterestQuestionnaireEnabled = 'onboarding_interest_questionnaire_enabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
 }
@@ -29,4 +30,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
   [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: false,
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.onboardingInterestQuestionnaireEnabled]: true,
 };
