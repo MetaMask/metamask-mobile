@@ -440,6 +440,61 @@ describe('PerpsTPSLView', () => {
         }
       },
     );
+
+    it.each([
+      [
+        'take profit',
+        () => getTakeProfitPriceInput(),
+        () => getTakeProfitPercentageInput(),
+        'handleTakeProfitPriceBlur',
+        'handleTakeProfitPercentageFocus',
+      ],
+      [
+        'stop loss',
+        () => getStopLossPriceInput(),
+        () => getStopLossPercentageInput(),
+        'handleStopLossPriceBlur',
+        'handleStopLossPercentageFocus',
+      ],
+    ])(
+      // Regression test for iOS focus/blur race: on iOS, when the user moves
+      // focus directly from the price field to the % field, the new field's
+      // onFocus fires before the old field's onBlur. The input-scoped
+      // programmaticDismissInputRef must NOT suppress the price field's blur
+      // in this scenario — only the focused field's own programmatic blur is
+      // suppressed.
+      'delivers %s price blur even when iOS dismiss guard is active for the percentage field',
+      (_description, getPriceInput, getPctInput, priceBlurHandler) => {
+        jest.useFakeTimers();
+        try {
+          const mockPriceBlur = jest.fn();
+          renderView({
+            handlers: {
+              ...defaultMockReturn.handlers,
+              [priceBlurHandler]: mockPriceBlur,
+            },
+          });
+
+          // Step 1: focus the price input to set it as the active field.
+          fireEvent(getPriceInput(), 'focus');
+
+          // Step 2: immediately focus the % input WITHOUT flushing the
+          // dismiss-guard timer (simulates iOS focus/blur ordering where
+          // new-field onFocus fires before old-field onBlur). The guard is
+          // now set to the % input's id.
+          fireEvent(getPctInput(), 'focus');
+
+          // Step 3: now the price input fires its onBlur. The guard is scoped
+          // to the % input's id, NOT the price input's id, so the price blur
+          // handler must still be called and tpPriceInputFocused must clear.
+          fireEvent(getPriceInput(), 'blur');
+
+          expect(mockPriceBlur).toHaveBeenCalled();
+        } finally {
+          jest.useRealTimers();
+        }
+      },
+    );
   });
 
   // ==================== Display Hook Data ====================
