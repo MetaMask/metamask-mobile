@@ -33,9 +33,6 @@ on:
 permissions:
   contents: read
   checks: write
-  id-token: write
-  actions: read
-  statuses: read
 
 jobs:
   appium-accounts-ios-smoke:
