@@ -649,11 +649,11 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 3,
-        stocks: 0,
+        stock: 0,
         'pre-ipo': 0,
-        indices: 0,
-        etfs: 0,
-        commodities: 0,
+        index: 0,
+        etf: 0,
+        commodity: 0,
         forex: 0,
         new: 0,
       });
@@ -706,11 +706,11 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 2,
-        stocks: 2,
+        stock: 2,
         'pre-ipo': 0,
-        indices: 0,
-        etfs: 0,
-        commodities: 1,
+        index: 0,
+        etf: 0,
+        commodity: 1,
         forex: 1,
         new: 0,
       });
@@ -736,11 +736,11 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 0,
-        stocks: 0,
+        stock: 0,
         'pre-ipo': 0,
-        indices: 0,
-        etfs: 0,
-        commodities: 0,
+        index: 0,
+        etf: 0,
+        commodity: 0,
         forex: 0,
         new: 0,
       });
@@ -779,7 +779,7 @@ describe('usePerpsMarketListView', () => {
       const { result, rerender } = renderHook(() => usePerpsMarketListView());
 
       expect(result.current.marketCounts.crypto).toBe(1);
-      expect(result.current.marketCounts.stocks).toBe(0);
+      expect(result.current.marketCounts.stock).toBe(0);
 
       // Update markets
       mockUsePerpsMarkets.mockReturnValue({
@@ -802,7 +802,7 @@ describe('usePerpsMarketListView', () => {
       rerender();
 
       expect(result.current.marketCounts.crypto).toBe(1);
-      expect(result.current.marketCounts.stocks).toBe(1);
+      expect(result.current.marketCounts.stock).toBe(1);
     });
   });
 
@@ -869,9 +869,9 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.markets.every((m) => !m.isHip3)).toBe(true);
     });
 
-    it('filters to stocks when filter is "stocks"', () => {
+    it('filters to stocks when filter is "stock"', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stock' }),
       );
 
       // Should only include stock markets
@@ -881,9 +881,9 @@ describe('usePerpsMarketListView', () => {
       ).toBe(true);
     });
 
-    it('filters to commodities when filter is "commodities"', () => {
+    it('filters to commodities when filter is "commodity"', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'commodities' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'commodity' }),
       );
 
       // Should only include commodity markets
@@ -922,11 +922,11 @@ describe('usePerpsMarketListView', () => {
 
     it('exposes market type filter state', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stock' }),
       );
 
       expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
-        'stocks',
+        'stock',
       );
       expect(
         typeof result.current.marketTypeFilterState.setMarketTypeFilter,
@@ -951,10 +951,10 @@ describe('usePerpsMarketListView', () => {
         'crypto',
       );
 
-      rerender({ defaultMarketTypeFilter: 'stocks' });
+      rerender({ defaultMarketTypeFilter: 'stock' });
 
       expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
-        'stocks',
+        'stock',
       );
     });
   });

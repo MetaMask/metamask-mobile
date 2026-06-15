@@ -15,14 +15,9 @@ import {
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { fromTokenMinimalUnitString } from '../../../../util/number';
 import BigNumber from 'bignumber.js';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
 import { formatWithThreshold } from '../../../../util/assets';
-
-const SUPPORTED_MUSD_CHAIN_IDS = [
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.LINEA_MAINNET,
-] as const;
+import { selectMusdBalanceChainIds } from '../selectors/featureFlags';
 
 interface UseMusdBalanceResult {
   hasMusdBalanceOnAnyChain: boolean;
@@ -36,7 +31,7 @@ interface UseMusdBalanceResult {
 }
 
 /**
- * Hook to get MUSD token balance across supported chains (Mainnet, Linea).
+ * Hook to get MUSD token balance across supported chains.
  * @returns Object containing:
  * - hasMusdBalanceOnAnyChain: true if the user has MUSD on any supported chain
  * - hasMusdBalanceOnChain: (chainId) => true if the user has MUSD on that chain
@@ -58,6 +53,7 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const musdBalanceChainIds = useSelector(selectMusdBalanceChainIds);
 
   const balancesPerChainId = useMemo(
     () =>
@@ -85,7 +81,7 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
     let tokenBalanceTotal = new BigNumber(0);
     let fiatBalanceTotal: BigNumber | undefined;
 
-    for (const chainId of SUPPORTED_MUSD_CHAIN_IDS) {
+    for (const chainId of musdBalanceChainIds as Hex[]) {
       const tokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
       const chainBalances = balancesPerChainId[chainId];
       if (!chainBalances || !tokenAddress) {
@@ -187,6 +183,7 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
     balancesPerChainId,
     currencyRates,
     currentCurrency,
+    musdBalanceChainIds,
     networkConfigurations,
     tokenMarketDataByAddressByChainId,
   ]);

@@ -17,7 +17,8 @@ export type PredictAnalyticsEventKey =
   | 'shareAction'
   | 'geoBlockTriggered'
   | 'marketDetailsOpened'
-  | 'bannerAction';
+  | 'bannerAction'
+  | 'searchInteracted';
 
 const mapPortfolioProperties = ({
   actionType,
@@ -195,6 +196,37 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       ...(gameClock ? { [PredictEventProperties.GAME_CLOCK]: gameClock } : {}),
       ...(Array.isArray(activeAbTests) && activeAbTests.length > 0
         ? { [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests }
+        : {}),
+    }),
+  },
+  searchInteracted: {
+    event: MetaMetricsEvents.PREDICT_SEARCH_INTERACTED,
+    logLabel: '📊 [Analytics] PREDICT_SEARCH_INTERACTED',
+    mapProperties: ({
+      interactionType,
+      predictFeedTab,
+      entryPoint,
+      searchQuery,
+      resultsCount,
+      marketId,
+      marketTitle,
+    }) => ({
+      [PredictEventProperties.INTERACTION_TYPE]: interactionType,
+      ...(predictFeedTab
+        ? { [PredictEventProperties.PREDICT_FEED_TAB]: predictFeedTab }
+        : {}),
+      ...(entryPoint
+        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
+        : {}),
+      ...(searchQuery !== undefined
+        ? { [PredictEventProperties.SEARCH_QUERY]: searchQuery }
+        : {}),
+      ...(resultsCount !== undefined
+        ? { [PredictEventProperties.RESULTS_COUNT]: resultsCount }
+        : {}),
+      ...(marketId ? { [PredictEventProperties.MARKET_ID]: marketId } : {}),
+      ...(marketTitle
+        ? { [PredictEventProperties.MARKET_TITLE]: marketTitle }
         : {}),
     }),
   },

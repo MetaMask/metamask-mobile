@@ -21,6 +21,21 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
+const mockTrackSearchInteracted = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackSearchInteracted: (
+          ...args: Parameters<typeof mockTrackSearchInteracted>
+        ) => mockTrackSearchInteracted(...args),
+      },
+    },
+  },
+}));
+
 import PredictFeed from './PredictFeed';
 import { PredictBalance } from '../../components/PredictBalance';
 

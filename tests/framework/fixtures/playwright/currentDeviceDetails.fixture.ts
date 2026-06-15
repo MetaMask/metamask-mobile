@@ -7,6 +7,7 @@ import {
   type WebDriverConfig,
 } from '../../types.ts';
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
+import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import type { CurrentDeviceDetails } from './types.ts';
 
@@ -67,6 +68,17 @@ export const currentDeviceDetailsFixture = {
       );
     }
 
+    // For iOS local simulators, resolve the UDID of the currently-booted device.
+    // CI sets IOS_SIMULATOR_UDID (and project device.udid) from prepare-ios-appium-runner;
+    // prefer those over name lookup when multiple simulators share a display name.
+    let resolvedIosUdid: string | undefined;
+    if (platform === Platform.IOS && isLocalEmulator && deviceNameField) {
+      const preferredUdid =
+        emulatorDevice?.udid?.trim() || process.env.IOS_SIMULATOR_UDID?.trim();
+      resolvedIosUdid =
+        preferredUdid || (await getIosSimulatorUdid(deviceNameField));
+    }
+
     const displayName = deviceNameField ?? deviceUdid ?? 'unknown';
     const providerLabel = isBrowserstack
       ? 'browserstack'
@@ -74,7 +86,7 @@ export const currentDeviceDetailsFixture = {
     const deviceDetails: CurrentDeviceDetails = {
       platform: platform as 'android' | 'ios',
       deviceName: displayName,
-      udid: emulatorDevice?.udid,
+      udid: resolvedIosUdid ?? emulatorDevice?.udid,
       packageName,
       appId,
       launchableActivity,

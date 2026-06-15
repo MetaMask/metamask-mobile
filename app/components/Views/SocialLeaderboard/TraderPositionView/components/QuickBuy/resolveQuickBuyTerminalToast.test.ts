@@ -7,7 +7,9 @@ import {
 } from '../../../../../../util/haptics';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
+  clearSettledQuickBuyTrades,
   getTrackedQuickBuyTradeIds,
+  isQuickBuyTransaction,
   trackQuickBuyTrade,
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
@@ -83,6 +85,7 @@ describe('resolveQuickBuyTerminalToast', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
+    clearSettledQuickBuyTrades();
     Engine.context.MultichainTransactionsController.state.nonEvmTransactions =
       {};
   });
@@ -158,6 +161,23 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(first).toBe(true);
     expect(second).toBe(false);
     expect(showToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the trade recognised as QuickBuy after settling so the delayed generic toast stays suppressed', () => {
+    trackQuickBuyTrade('tx-1', buyTrade);
+    mockGetHistoryItem.mockReturnValue(
+      historyItemWithStatus(StatusTypes.COMPLETE),
+    );
+
+    resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+    expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+    expect(
+      isQuickBuyTransaction({
+        id: 'tx-1',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any),
+    ).toBe(true);
   });
 
   it('resolves a Solana swap to complete from the multichain controller when bridge status is absent', () => {

@@ -90,6 +90,11 @@ export const PredictEventProperties = {
 
   // Banner properties
   BANNER_TYPE: 'banner_type',
+
+  // Search engagement
+  INTERACTION_TYPE: 'interaction_type',
+  SEARCH_QUERY: 'search_query',
+  RESULTS_COUNT: 'results_count',
 } as const;
 
 /**
@@ -162,6 +167,11 @@ export const PredictEventValues = {
   },
   BANNER_TYPE: {
     WORLD_CUP: 'world_cup',
+  },
+  SEARCH_INTERACTION: {
+    OPENED: 'opened',
+    QUERIED: 'queried',
+    RESULT_CLICKED: 'result_clicked',
   },
 } as const;
 

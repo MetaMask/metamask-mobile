@@ -16,6 +16,8 @@ export const PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
 export const PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
 export const PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT = false;
 export const PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT = false;
+export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT: string | undefined =
+  undefined;
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -60,6 +62,7 @@ export interface MetaMaskPayExtendedFlags {
   enablePredictMoneyAccountTransactions: boolean;
   enableMoneyHomePagePerpsTransaction: boolean;
   enableMoneyHomePagePredictTransaction: boolean;
+  defaultPaySelectedSection?: string;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -142,14 +145,16 @@ export const selectMetaMaskPayFlags = createSelector(
       PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
 
     const enableMoneyHomePagePerpsTransaction =
-      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
-      ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
+      (metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
+      PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT;
 
     const enableMoneyHomePagePredictTransaction =
-      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
-      ((metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT);
+      (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
+      PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT;
+
+    const defaultPaySelectedSection =
+      (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
+      PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
 
     return {
       attemptsMax,
@@ -163,6 +168,7 @@ export const selectMetaMaskPayFlags = createSelector(
       enablePredictMoneyAccountTransactions,
       enableMoneyHomePagePerpsTransaction,
       enableMoneyHomePagePredictTransaction,
+      defaultPaySelectedSection,
     };
   },
 );

@@ -47,9 +47,12 @@ export const createTrackFunction =
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number> = {},
   ) => {
-    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
-    eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
+    trackOnboarding(
+      AnalyticsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+      saveOnboardingEvent,
+    );
   };
 
 /**

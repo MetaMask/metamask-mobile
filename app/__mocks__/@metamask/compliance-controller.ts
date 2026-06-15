@@ -5,10 +5,17 @@
  * Compliance status is populated exclusively via per-address checks.
  */
 
+interface ComplianceServiceOptions {
+  messenger: unknown;
+  fetch: typeof fetch;
+  apiUrl?: string;
+  env?: 'production' | 'development';
+}
+
 export class ComplianceService {
   readonly name = 'ComplianceService';
 
-  constructor(args: Record<string, unknown>) {
+  constructor(args: ComplianceServiceOptions) {
     Object.assign(this, args);
   }
 }
@@ -53,8 +60,14 @@ function findWalletComplianceStatus(
   walletComplianceStatusMap: Record<string, { blocked: boolean } | undefined>,
   address: string,
 ) {
+  const exactMatch = walletComplianceStatusMap[address];
+  if (exactMatch !== undefined) {
+    return exactMatch;
+  }
+
+  // Non-EVM addresses: no case-insensitive fallback (mirrors real package behaviour).
   if (!/^0x[0-9a-fA-F]{40}$/.test(address)) {
-    return walletComplianceStatusMap[address];
+    return undefined;
   }
 
   return Object.entries(walletComplianceStatusMap).find(

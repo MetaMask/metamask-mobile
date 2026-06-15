@@ -217,7 +217,7 @@ const ActivityView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={['left', 'right', 'bottom']}
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
@@ -228,12 +228,14 @@ const ActivityView = () => {
           <HeaderStandard
             title={strings('activity_view.title')}
             onBack={handleBackPress}
+            includesTopInset
             backButtonProps={{ testID: 'activity-view-back-button' }}
             testID={ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD}
           />
         ) : (
           <HeaderRoot
             title={strings('activity_view.title')}
+            includesTopInset
             testID={ActivitiesViewSelectorsIDs.HEADER_ROOT}
           />
         )}

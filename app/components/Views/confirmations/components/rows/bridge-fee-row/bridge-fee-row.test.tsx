@@ -214,6 +214,18 @@ describe('BridgeFeeRow', () => {
       expect(queryByTestId('transaction-fee')).toBeNull();
     });
 
+    it('renders paid by MetaMask label for Money Account Deposit with all-zero fees and quotes', () => {
+      useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
+
+      const { getByText, queryByTestId } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
+      expect(queryByTestId('transaction-fee')).toBeNull();
+    });
+
     it('hides the tooltip icon when paid by MetaMask is shown', () => {
       useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
       useIsPaidByMetaMaskMock.mockReturnValue(true);
