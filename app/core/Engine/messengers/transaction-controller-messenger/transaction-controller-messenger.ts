@@ -14,7 +14,9 @@ import {
 import {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
+  TransactionControllerEstimateGasAction,
   TransactionControllerEstimateGasBatchAction,
+  TransactionControllerGetGasFeeTokensAction,
   TransactionControllerGetStateAction,
   TransactionControllerMessenger,
   TransactionControllerStateChangeEvent,
@@ -130,7 +132,9 @@ type InitMessengerActions =
   | SmartTransactionsControllerSubmitSignedTransactionsAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerEstimateGasAction
   | TransactionControllerEstimateGasBatchAction
+  | TransactionControllerGetGasFeeTokensAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerActions
@@ -197,7 +201,9 @@ export function getTransactionControllerInitMessenger(
       'SmartTransactionsController:submitSignedTransactions',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
+      'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getAmountData',
@@ -207,6 +213,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getStrategy',
       'TransactionPayController:polymarketGetDepositWalletAddress',
       'TransactionPayController:polymarketSubmitDepositWalletBatch',
+      'TransactionPayController:setTransactionConfig',
       'AnalyticsController:trackEvent',
       'PredictController:beforePublish',
       'PredictController:beforeSign',

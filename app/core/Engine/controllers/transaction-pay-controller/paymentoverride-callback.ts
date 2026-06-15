@@ -186,20 +186,71 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
 ): Promise<GetPaymentOverrideDataResponse & { recipient?: Hex }> {
   const { amount, transaction, transactionData } = request;
 
+  // eslint-disable-next-line no-console
+  console.log('OGP- mobile getPaymentOverrideData: entry', {
+    transactionId: transaction.id,
+    amount,
+    paymentOverride: transactionData?.paymentOverride,
+    isPostQuote: transactionData?.isPostQuote,
+    txParamsFrom: transaction.txParams?.from,
+  });
+
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
     if (transactionData?.isPostQuote) {
-      return await getMoneyAccountDepositPaymentOverrideData(messenger, amount);
+      // eslint-disable-next-line no-console
+      console.log('OGP- mobile getPaymentOverrideData: DEPOSIT branch', {
+        transactionId: transaction.id,
+        amount,
+      });
+      const result = await getMoneyAccountDepositPaymentOverrideData(
+        messenger,
+        amount,
+      );
+      // eslint-disable-next-line no-console
+      console.log('OGP- mobile getPaymentOverrideData: DEPOSIT result', {
+        transactionId: transaction.id,
+        callsLength: result.calls.length,
+        recipient: result.recipient,
+        hasAuthorizationList: Boolean(result.authorizationList?.length),
+      });
+      return result;
     }
 
-    if (!transaction.txParams?.from) return { calls: [] };
+    if (!transaction.txParams?.from) {
+      // eslint-disable-next-line no-console
+      console.log(
+        'OGP- mobile getPaymentOverrideData: WITHDRAW branch — missing txParams.from, returning empty',
+        { transactionId: transaction.id },
+      );
+      return { calls: [] };
+    }
 
+    // eslint-disable-next-line no-console
+    console.log('OGP- mobile getPaymentOverrideData: WITHDRAW branch', {
+      transactionId: transaction.id,
+      recipient: transaction.txParams.from,
+      amount,
+    });
     const calls = await getMoneyAccountWithdrawPaymentOverrideData(
       messenger,
       transaction.txParams.from as Hex,
       amount,
     );
+    // eslint-disable-next-line no-console
+    console.log('OGP- mobile getPaymentOverrideData: WITHDRAW result', {
+      transactionId: transaction.id,
+      callsLength: calls.length,
+    });
     return { calls };
   }
 
+  // eslint-disable-next-line no-console
+  console.log(
+    'OGP- mobile getPaymentOverrideData: NO MATCH (paymentOverride !== MoneyAccount), returning empty',
+    {
+      transactionId: transaction.id,
+      paymentOverride: transactionData?.paymentOverride,
+    },
+  );
   return { calls: [] };
 }
