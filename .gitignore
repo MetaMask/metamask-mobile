@@ -6,6 +6,9 @@
 # claude code per-user settings (agent-local, not shipped)
 .claude/settings.local.json
 
+# yarn skills local cache (cloned repo; not part of metamask-mobile)
+.skills-cache/
+
 # osx
 .DS_Store
 # don't save asdf tools-version config as nvm is prioritized.

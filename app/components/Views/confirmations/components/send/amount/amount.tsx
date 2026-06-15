@@ -32,6 +32,10 @@ import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import {
+  NavPerfLabel,
+  useMarkNavEnd,
+} from '../../../../../../util/navigation/navPerf';
 import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
@@ -39,6 +43,7 @@ import { InitSendLocation } from '../../../constants/send';
 
 export const Amount = () => {
   const navigation = useNavigation();
+  useMarkNavEnd(NavPerfLabel.SendAmount);
   const { header: renderAmountHeader } = useSendNavbar().Amount;
   const { location } = useParams<{ location?: string }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);

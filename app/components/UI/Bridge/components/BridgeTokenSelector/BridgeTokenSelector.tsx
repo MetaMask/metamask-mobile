@@ -19,6 +19,11 @@ import {
 } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  markNavStart,
+  NavPerfLabel,
+  useMarkNavEnd,
+} from '../../../../../util/navigation/navPerf';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -104,6 +109,8 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
+
+  useMarkNavEnd(NavPerfLabel.BridgeTokenSelector);
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -504,7 +511,10 @@ export const BridgeTokenSelector: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <HeaderStandard
         title={strings('bridge.select_token')}
-        onBack={() => navigation.goBack()}
+        onBack={() => {
+          markNavStart(NavPerfLabel.BridgeViewBack);
+          navigation.goBack();
+        }}
         includesTopInset
       />
       <Box twClassName="px-4 pb-3">
