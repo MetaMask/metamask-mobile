@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -352,84 +352,88 @@ const OnboardingFundWallet = () => {
   );
 
   return (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
+    <View
+      style={tw.style('flex-1')}
       testID={OnboardingFundWalletTestIds.SCREEN}
     >
-      <HeaderCompactStandard
-        includesTopInset
-        onBack={onBack}
-        backButtonProps={{
-          testID: OnboardingFundWalletTestIds.BACK_BUTTON,
-        }}
-        endAccessory={
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            onPress={onSkip}
-            testID={OnboardingFundWalletTestIds.SKIP_BUTTON}
-          >
-            {strings('onboarding_fund_wallet.skip')}
-          </Text>
-        }
-      />
-
-      <Box twClassName="mx-4 mb-4">
-        <Text
-          variant={TextVariant.DisplayMd}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Bold}
-        >
-          {strings('onboarding_fund_wallet.title')}
-        </Text>
-      </Box>
-
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 pb-4')}
-        showsVerticalScrollIndicator={false}
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
       >
-        {FUND_WALLET_SECTIONS.map((section, sectionIndex) => (
-          <Box
-            key={section.titleKey}
-            twClassName={
-              sectionIndex > 0 ? 'mt-2 border-t border-border-muted pt-4' : ''
-            }
-          >
+        <HeaderCompactStandard
+          includesTopInset
+          onBack={onBack}
+          backButtonProps={{
+            testID: OnboardingFundWalletTestIds.BACK_BUTTON,
+          }}
+          endAccessory={
             <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="uppercase mb-1"
+              color={TextColor.TextDefault}
+              onPress={onSkip}
+              testID={OnboardingFundWalletTestIds.SKIP_BUTTON}
             >
-              {strings(section.titleKey)}
+              {strings('onboarding_fund_wallet.skip')}
             </Text>
-            <Box flexDirection={BoxFlexDirection.Column}>
-              {section.options.map((option) => {
-                const isMoreWaysRow = MORE_WAYS_SHEET_ROW_IDS.includes(
-                  option.id,
-                );
-                const selectedLabel = isMoreWaysRow
-                  ? getSelectedLabelForRow(
-                      option.id as MoreWaysToFundSheetRowId,
-                    )
-                  : undefined;
+          }
+        />
 
-                return (
-                  <FundWalletOptionRow
-                    key={option.id}
-                    option={option}
-                    selectedLabel={selectedLabel}
-                    onPress={handleOptionPress}
-                  />
-                );
-              })}
+        <Box twClassName="mx-4 mb-4">
+          <Text
+            variant={TextVariant.DisplayMd}
+            color={TextColor.TextDefault}
+            fontWeight={FontWeight.Bold}
+          >
+            {strings('onboarding_fund_wallet.title')}
+          </Text>
+        </Box>
+
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('px-4 pb-4')}
+          showsVerticalScrollIndicator={false}
+        >
+          {FUND_WALLET_SECTIONS.map((section, sectionIndex) => (
+            <Box
+              key={section.titleKey}
+              twClassName={
+                sectionIndex > 0 ? 'mt-2 border-t border-border-muted pt-4' : ''
+              }
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+                twClassName="uppercase mb-1"
+              >
+                {strings(section.titleKey)}
+              </Text>
+              <Box flexDirection={BoxFlexDirection.Column}>
+                {section.options.map((option) => {
+                  const isMoreWaysRow = MORE_WAYS_SHEET_ROW_IDS.includes(
+                    option.id,
+                  );
+                  const selectedLabel = isMoreWaysRow
+                    ? getSelectedLabelForRow(
+                        option.id as MoreWaysToFundSheetRowId,
+                      )
+                    : undefined;
+
+                  return (
+                    <FundWalletOptionRow
+                      key={option.id}
+                      option={option}
+                      selectedLabel={selectedLabel}
+                      onPress={handleOptionPress}
+                    />
+                  );
+                })}
+              </Box>
             </Box>
-          </Box>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
 
       {isMoreWaysSheetVisible && moreWaysSheetRow ? (
         <MoreWaysToFundBottomSheet
@@ -438,7 +442,7 @@ const OnboardingFundWallet = () => {
           onSelect={handleMoreWaysSelect}
         />
       ) : null}
-    </SafeAreaView>
+    </View>
   );
 };
 

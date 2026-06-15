@@ -21,13 +21,10 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { MoreWaysToFundBottomSheetTestIds } from './MoreWaysToFundBottomSheet.testIds';
 import {
-  MORE_WAYS_TO_FUND_OPTIONS,
   MORE_WAYS_TO_FUND_SECTIONS,
+  type MoreWaysToFundOption,
 } from './MoreWaysToFundBottomSheet.constants';
-import type {
-  MoreWaysToFundOptionId,
-  MoreWaysToFundSectionId,
-} from './MoreWaysToFundBottomSheet.types';
+import type { MoreWaysToFundOptionId } from './MoreWaysToFundBottomSheet.types';
 
 interface MoreWaysToFundBottomSheetProps {
   selectedOptionId?: MoreWaysToFundOptionId;
@@ -36,31 +33,26 @@ interface MoreWaysToFundBottomSheetProps {
 }
 
 interface MoreWaysOptionRowProps {
-  optionId: MoreWaysToFundOptionId;
+  option: MoreWaysToFundOption;
   isSelected: boolean;
   onPress: (optionId: MoreWaysToFundOptionId) => void;
 }
 
 const MoreWaysOptionRow = ({
-  optionId,
+  option,
   isSelected,
   onPress,
 }: MoreWaysOptionRowProps) => {
   const tw = useTailwind();
-  const option = MORE_WAYS_TO_FUND_OPTIONS.find((item) => item.id === optionId);
-
-  if (!option) {
-    return null;
-  }
 
   return (
     <TouchableOpacity
-      onPress={() => onPress(optionId)}
+      onPress={() => onPress(option.id)}
       style={tw.style(
         'flex-row items-center py-4',
         isSelected && 'bg-muted rounded-xl px-2',
       )}
-      testID={`${MoreWaysToFundBottomSheetTestIds.OPTION_PREFIX}${optionId}`}
+      testID={`${MoreWaysToFundBottomSheetTestIds.OPTION_PREFIX}${option.id}`}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
     >
@@ -117,9 +109,6 @@ const MoreWaysToFundBottomSheet = ({
     [onSelect],
   );
 
-  const getOptionsForSection = (sectionId: MoreWaysToFundSectionId) =>
-    MORE_WAYS_TO_FUND_OPTIONS.filter((option) => option.section === sectionId);
-
   return (
     <BottomSheet
       ref={bottomSheetRef}
@@ -138,37 +127,43 @@ const MoreWaysToFundBottomSheet = ({
       </BottomSheetHeader>
 
       <ScrollView
-        style={tw.style('max-h-[70%]')}
         contentContainerStyle={tw.style('px-4 pb-6')}
         showsVerticalScrollIndicator={false}
       >
-        {MORE_WAYS_TO_FUND_SECTIONS.map((section, sectionIndex) => (
-          <Box
-            key={section.id}
-            twClassName={
-              sectionIndex > 0 ? 'mt-2 border-t border-border-muted pt-4' : ''
-            }
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-              twClassName="uppercase mb-1"
+        {MORE_WAYS_TO_FUND_SECTIONS.map((section, sectionIndex) => {
+          if (section.options.length === 0) {
+            return null;
+          }
+
+          return (
+            <Box
+              key={section.id}
+              testID={`${MoreWaysToFundBottomSheetTestIds.SECTION_PREFIX}${section.id}`}
+              twClassName={
+                sectionIndex > 0 ? 'mt-2 border-t border-border-muted pt-4' : ''
+              }
             >
-              {strings(section.titleKey)}
-            </Text>
-            <Box flexDirection={BoxFlexDirection.Column}>
-              {getOptionsForSection(section.id).map((option) => (
-                <MoreWaysOptionRow
-                  key={option.id}
-                  optionId={option.id}
-                  isSelected={selectedOptionId === option.id}
-                  onPress={handleSelect}
-                />
-              ))}
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+                twClassName="uppercase mb-1"
+              >
+                {strings(section.titleKey)}
+              </Text>
+              <Box flexDirection={BoxFlexDirection.Column}>
+                {section.options.map((option) => (
+                  <MoreWaysOptionRow
+                    key={option.id}
+                    option={option}
+                    isSelected={selectedOptionId === option.id}
+                    onPress={handleSelect}
+                  />
+                ))}
+              </Box>
             </Box>
-          </Box>
-        ))}
+          );
+        })}
       </ScrollView>
     </BottomSheet>
   );
