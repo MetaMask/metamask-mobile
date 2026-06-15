@@ -55,6 +55,14 @@ export {
 } from './EncapsulatedElement.ts';
 
 export { FrameworkDetector, TestFramework } from './FrameworkDetector.ts';
+export {
+  isBrowserStack,
+  isBrowserStackLocal,
+  isBrowserStackProjectName,
+  setBrowserStackMode,
+  resetBrowserStackMode,
+  syncBrowserStackModeFromProvider,
+} from './BrowserStackDetector.ts';
 export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
 export { default as UnifiedGestures } from './UnifiedGestures.ts';

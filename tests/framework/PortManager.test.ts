@@ -10,6 +10,12 @@ import {
 } from './Constants.ts';
 import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
+import { isBrowserStack } from './BrowserStackDetector.ts';
+
+jest.mock('./BrowserStackDetector.ts', () => ({
+  ...jest.requireActual('./BrowserStackDetector.ts'),
+  isBrowserStack: jest.fn(() => false),
+}));
 
 jest.mock('./logger.ts', () => ({
   createLogger: () => ({
@@ -30,7 +36,7 @@ describe('PortManager', () => {
 
   afterEach(() => {
     PortManager.resetInstance();
-    delete process.env.BROWSERSTACK_LOCAL;
+    jest.mocked(isBrowserStack).mockReturnValue(false);
   });
 
   describe('Singleton pattern', () => {
@@ -490,23 +496,13 @@ describe('PortManager', () => {
   });
 
   describe('BrowserStack Mode', () => {
-    let isBrowserStackSpy: jest.SpyInstance;
-
     beforeEach(() => {
-      // Mock isBrowserStack to return true for BrowserStack mode tests
-      isBrowserStackSpy = jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(PortManager.prototype as any, 'isBrowserStack')
-        .mockReturnValue(true);
+      jest.mocked(isBrowserStack).mockReturnValue(true);
       PortManager.resetInstance();
       portManager = PortManager.getInstance();
     });
 
-    afterEach(() => {
-      isBrowserStackSpy.mockRestore();
-    });
-
-    describe('allocatePort with BROWSERSTACK_LOCAL=true', () => {
+    describe('allocatePort on BrowserStack', () => {
       it('should use static fallback port for FIXTURE_SERVER', async () => {
         const allocation = await portManager.allocatePort(
           ResourceType.FIXTURE_SERVER,
@@ -587,7 +583,7 @@ describe('PortManager', () => {
       });
     });
 
-    describe('allocateMultiInstancePort with BROWSERSTACK_LOCAL=true', () => {
+    describe('allocateMultiInstancePort on BrowserStack', () => {
       it('should use static fallback port + offset for first dapp instance', async () => {
         const allocation = await portManager.allocateMultiInstancePort(
           ResourceType.DAPP_SERVER,
@@ -660,7 +656,10 @@ describe('PortManager', () => {
 
     describe('BrowserStack mode behavior', () => {
       it('should use static ports when isBrowserStack returns true', async () => {
-        // Already mocked to return true in parent beforeEach
+        jest.mocked(isBrowserStack).mockReturnValue(true);
+        PortManager.resetInstance();
+        portManager = PortManager.getInstance();
+
         const allocation = await portManager.allocatePort(
           ResourceType.FIXTURE_SERVER,
         );
@@ -669,8 +668,7 @@ describe('PortManager', () => {
       });
 
       it('should use dynamic ports when isBrowserStack returns false', async () => {
-        // Override the spy to return false for this test
-        isBrowserStackSpy.mockReturnValue(false);
+        jest.mocked(isBrowserStack).mockReturnValue(false);
         PortManager.resetInstance();
         portManager = PortManager.getInstance();
 
