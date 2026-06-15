@@ -1,7 +1,6 @@
 import React from 'react';
-import { Text, TouchableHighlight } from 'react-native';
-import ListItem from '../../Base/ListItem';
-import { useTheme } from '../../../util/theme';
+import { Text, View } from 'react-native';
+import { ListItem } from '@metamask/design-system-react-native';
 import type {
   ActivityListItem,
   TokenAmount,
@@ -33,71 +32,66 @@ export function ActivityListItemRowLayout({
   subtitle?: string;
   title: string;
 }) {
-  const { colors } = useTheme();
   const testIdSuffix = item.data.hash ?? index;
+  const titleNode = (
+    <Text
+      numberOfLines={1}
+      style={[styles.listItemTitle, isFailed && styles.listItemTitleFailed]}
+      testID={`activity-title-${testIdSuffix}`}
+    >
+      {title}
+    </Text>
+  );
+  const subtitleNode = subtitle ? (
+    <Text
+      numberOfLines={1}
+      style={styles.subtitleText}
+      testID={`activity-subtitle-${testIdSuffix}`}
+    >
+      {subtitle}
+    </Text>
+  ) : undefined;
+  const primaryAmountNode = primaryAmount ? (
+    <Text
+      numberOfLines={1}
+      ellipsizeMode="tail"
+      style={[
+        styles.listItemAmount,
+        primaryToken?.direction === 'in' && styles.listItemAmountIncoming,
+      ]}
+      testID={`activity-primary-amount-${testIdSuffix}`}
+    >
+      {primaryAmount}
+    </Text>
+  ) : undefined;
+  const secondaryAmountNode = secondaryAmount ? (
+    <Text
+      numberOfLines={1}
+      ellipsizeMode="tail"
+      style={styles.listItemSecondaryAmount}
+      testID={`activity-secondary-amount-${testIdSuffix}`}
+    >
+      {secondaryAmount}
+    </Text>
+  ) : undefined;
+  const amountColumn =
+    primaryAmountNode || secondaryAmountNode ? (
+      <View style={styles.listItemAmounts}>
+        {primaryAmountNode}
+        {secondaryAmountNode}
+      </View>
+    ) : undefined;
 
   return (
-    <TouchableHighlight
-      style={styles.row}
+    <ListItem
+      isInteractive
+      style={[styles.row, styles.listItem]}
       onPress={onPress}
-      underlayColor={colors.background.alternative}
-      activeOpacity={1}
       testID={`activity-item-${index ?? 0}`}
-    >
-      <ListItem style={styles.listItem}>
-        <ListItem.Content style={styles.listItemContent}>
-          <ListItem.Icon>{avatar}</ListItem.Icon>
-          <ListItem.Body style={styles.listItemBody}>
-            <ListItem.Title
-              numberOfLines={1}
-              style={[
-                styles.listItemTitle,
-                isFailed && styles.listItemTitleFailed,
-              ]}
-              testID={`activity-title-${testIdSuffix}`}
-            >
-              {title}
-            </ListItem.Title>
-            {subtitle && (
-              <Text
-                numberOfLines={1}
-                style={styles.subtitleText}
-                testID={`activity-subtitle-${testIdSuffix}`}
-              >
-                {subtitle}
-              </Text>
-            )}
-          </ListItem.Body>
-          {Boolean(primaryAmount || secondaryAmount) && (
-            <ListItem.Amounts style={styles.listItemAmounts}>
-              {Boolean(primaryAmount) && (
-                <ListItem.Amount
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  style={[
-                    styles.listItemAmount,
-                    primaryToken?.direction === 'in' &&
-                      styles.listItemAmountIncoming,
-                  ]}
-                  testID={`activity-primary-amount-${testIdSuffix}`}
-                >
-                  {primaryAmount}
-                </ListItem.Amount>
-              )}
-              {Boolean(secondaryAmount) && (
-                <ListItem.FiatAmount
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  style={styles.listItemSecondaryAmount}
-                  testID={`activity-secondary-amount-${testIdSuffix}`}
-                >
-                  {secondaryAmount}
-                </ListItem.FiatAmount>
-              )}
-            </ListItem.Amounts>
-          )}
-        </ListItem.Content>
-      </ListItem>
-    </TouchableHighlight>
+      avatar={avatar}
+      title={titleNode}
+      description={subtitleNode}
+      endAccessory={amountColumn}
+    />
   );
 }

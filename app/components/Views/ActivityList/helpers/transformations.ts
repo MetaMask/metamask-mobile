@@ -17,6 +17,7 @@ import {
   type ActivityAdapterEnvironment,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
+import { isNftTransferType } from '../../../../util/activity-adapters/adapters/helpers';
 import { equalsIgnoreCase } from '../../../../util/string';
 
 export type { ActivityListItem };
@@ -42,18 +43,21 @@ export const isBridgeHistoryForEvmTransaction = (
     );
   });
 
-function isIncomingTokenTransfer(
+function hasDirectIncomingTokenValueTransfer(
   address: string,
   transaction: V1TransactionByHashResponse,
 ) {
-  const normalizedAddress = address.toLowerCase();
   return (
-    transaction.valueTransfers?.some(
-      (transfer) =>
-        Boolean(transfer.contractAddress) &&
-        transfer.to?.toLowerCase() === normalizedAddress &&
-        transfer.from?.toLowerCase() !== normalizedAddress,
-    ) ?? false
+    transaction.valueTransfers?.some((transfer) => {
+      const isNftTransfer = isNftTransferType(transfer.transferType);
+
+      return (
+        transfer.to?.toLowerCase() === address &&
+        Boolean(transfer.from) &&
+        (Boolean(transfer.contractAddress) || isNftTransfer) &&
+        (transaction.transactionCategory === 'TRANSFER' || isNftTransfer)
+      );
+    }) ?? false
   );
 }
 
@@ -97,12 +101,17 @@ export function shouldSkipTransaction(
   const rawFrom = transaction.from?.toLowerCase();
   const rawTo = transaction.to?.toLowerCase();
   const hash = transaction.hash?.toLowerCase();
+  const hasTopLevelAddressMatch = rawFrom === address || rawTo === address;
+  const hasDirectIncomingTokenTransfer = hasDirectIncomingTokenValueTransfer(
+    address,
+    transaction,
+  );
 
   if (hash && excludedTxHashes?.has(hash)) {
     return true;
   }
 
-  if (rawFrom !== address && rawTo !== address) {
+  if (!hasTopLevelAddressMatch && !hasDirectIncomingTokenTransfer) {
     return true;
   }
 
@@ -117,10 +126,6 @@ export function shouldSkipTransaction(
     !transaction.valueTransfers?.length &&
     (!transaction.methodId || transaction.methodId === '0x')
   ) {
-    return true;
-  }
-
-  if (isIncomingTokenTransfer(address, transaction)) {
     return true;
   }
 

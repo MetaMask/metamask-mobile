@@ -75,6 +75,8 @@ jest.mock('../../../util/theme', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => {
+    const str = selector.toString();
+    if (str.includes('appTheme')) return 'light';
     try {
       return selector(mockState);
     } catch {
@@ -90,6 +92,7 @@ jest.mock('../../../selectors/currencyRateController', () => ({
   ),
   selectConversionRateByChainId: jest.fn(() => 2500),
   selectCurrencyRateForChainId: jest.fn(() => 2500),
+  selectUSDConversionRateByChainId: jest.fn(() => 2500),
 }));
 
 jest.mock('../../../selectors/tokenRatesController', () => ({
@@ -101,6 +104,19 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   selectTokenMarketData: jest.fn(
     (state) => state.engine.backgroundState.TokenRatesController.marketData,
   ),
+}));
+
+jest.mock('../Earn/constants/musd', () => ({
+  MUSD_DECIMALS: 6,
+  MUSD_TOKEN: { symbol: 'mUSD' },
+  MUSD_TOKEN_ADDRESS_BY_CHAIN: {
+    '0x1': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    '0xe708': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN: {
+    '0x1': 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    '0xe708': 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
 }));
 
 jest.mock('react-native', () => {
@@ -386,6 +402,30 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
+  it('renders mUSD fiat using the stablecoin fallback when market rates are missing', () => {
+    const item = makeItem({
+      type: 'receive',
+      chainId: 'eip155:59144',
+      status: 'success',
+      from: '0xabcdef1234',
+      token: {
+        amount: '200340000',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200.34 mUSD',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '+$200.34',
+    );
+  });
+
   it('renders swap title, protocol subtitle, primary and secondary amounts', () => {
     const item = makeItem({
       type: 'swap',
@@ -416,6 +456,8 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
       '-0.123 ETH',
     );
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
   });
 
   it('renders spending cap rows with token subtitle and no empty amount', () => {
@@ -436,6 +478,26 @@ describe('ActivityListItemRow — row content', () => {
     );
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('USDC');
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders spending cap amount without an outgoing sign', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        amount: '100000000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '100 USDC',
+    );
   });
 
   it('renders cross-token bridge as swapped with token pair subtitle', () => {
@@ -461,6 +523,84 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'ETH → USDT',
     );
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('renders bridge route and destination amount from bridge history', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '5100000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const bridgeHistoryItem = {
+      quote: {
+        srcChainId: 1,
+        destChainId: 59144,
+        srcTokenAmount: '5100000',
+        srcAsset: {
+          assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        destTokenAmount: '5090000',
+        destAsset: {
+          assetId:
+            'eip155:59144/erc20:0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    const { getAllByTestId, getByTestId } = render(
+      <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem as never}
+        item={item}
+        index={0}
+      />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Ethereum → Linea',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-5.1 USDC',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '+5.09 USDC',
+    );
+    expect(getAllByTestId('avatar-token-USDC')).toHaveLength(1);
+  });
+
+  it('renders source-only API bridge rows as sends when bridge history is unavailable', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '5000000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent USDC',
+    );
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-5 USDC',
+    );
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
   });
 
   it('does not render technical protocol values as subtitles', () => {
@@ -519,13 +659,18 @@ describe('ActivityListItemRow — row content', () => {
     const item = makeItem({
       type: 'lendingWithdrawal',
       status: 'success',
+      sourceToken: {
+        amount: '200',
+        symbol: 'aLinUSDC',
+        direction: 'out',
+      },
       destinationToken: {
         amount: '200',
         symbol: 'USDC',
         direction: 'in',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
@@ -535,6 +680,27 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
       '+200 USDC',
     );
+    expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
+    expect(queryByTestId('avatar-token-aLinUSDC')).toBeNull();
+  });
+
+  it('renders nameless NFT buys as Bought NFT without a primary amount', () => {
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '1',
+        direction: 'in',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bought NFT',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
   });
 
   it('shortens long crypto decimals in token amounts', () => {

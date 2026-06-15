@@ -22,7 +22,11 @@ import {
   withdrawMethodIds,
   wrapMethodIds,
 } from './constants';
-import { getKnownTokenMetadata, getLocalTransactionStatus } from './helpers';
+import {
+  getKnownTokenMetadata,
+  getLocalTransactionStatus,
+  getTokenApprovalAmountFromData,
+} from './helpers';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
@@ -347,6 +351,10 @@ export function mapLocalTransaction(
         data: {
           hash,
           token: getContractToken({
+            amount: getTokenApprovalAmountFromData(
+              initialTransaction.txParams.data,
+              environment,
+            ),
             transaction: initialTransaction,
             direction: 'out',
             contractAddress: initialTransaction.txParams.to,
@@ -364,6 +372,10 @@ export function mapLocalTransaction(
         data: {
           hash,
           token: getContractToken({
+            amount: getTokenApprovalAmountFromData(
+              initialTransaction.txParams.data,
+              environment,
+            ),
             transaction: initialTransaction,
             direction: 'out',
             contractAddress: initialTransaction.txParams.to,

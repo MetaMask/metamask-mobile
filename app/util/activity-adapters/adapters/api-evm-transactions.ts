@@ -12,6 +12,9 @@ import { supplyMethodIds } from './constants';
 import {
   getTokenMetadataFromKnownToken,
   getTokenAmountFromTransfer,
+  getTokenApprovalAmountFromData,
+  isNftTransferType,
+  isNativeTransferType,
   withFallbackTokenAssetId,
   type ValueTransfer,
 } from './helpers';
@@ -19,6 +22,19 @@ import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
 } from './environment';
+
+function getTransactionCalldata(
+  transaction: V1TransactionByHashResponse,
+): string | undefined {
+  const maybeTransaction = transaction as unknown as Record<string, unknown>;
+  const data =
+    maybeTransaction.input ??
+    maybeTransaction.data ??
+    maybeTransaction.txData ??
+    maybeTransaction.transactionData;
+
+  return typeof data === 'string' && data.length > 10 ? data : undefined;
+}
 
 // Converts indexed API transactions into the shared activity item shape
 export function mapApiEvmTransactions({
@@ -51,17 +67,17 @@ export function mapApiEvmTransactions({
   const sentNftTransfer = valueTransfers?.find(
     ({ from, transferType }) =>
       environment.equalsIgnoreCase(from, subjectAddress) &&
-      (transferType === 'erc721' || transferType === 'erc1155'),
+      isNftTransferType(transferType),
   );
   const receivedNftTransfer = valueTransfers?.find(
     ({ to, transferType }) =>
       environment.equalsIgnoreCase(to, subjectAddress) &&
-      (transferType === 'erc721' || transferType === 'erc1155'),
+      isNftTransferType(transferType),
   );
   const sentNativeTransfer = valueTransfers?.find(
     ({ from, transferType }) =>
       environment.equalsIgnoreCase(from, subjectAddress) &&
-      transferType === 'normal',
+      isNativeTransferType(transferType),
   );
   const hasNativeTransferWithoutMethod =
     transactionCategory === 'CONTRACT_CALL' &&
@@ -111,6 +127,10 @@ export function mapApiEvmTransactions({
         chainId,
         environment,
       );
+    const approveAmount = getTokenApprovalAmountFromData(
+      getTransactionCalldata(transaction),
+      environment,
+    );
 
     return {
       type: 'approveSpendingCap',
@@ -120,7 +140,10 @@ export function mapApiEvmTransactions({
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         hash,
-        token: approveToken,
+        token:
+          approveToken && approveAmount
+            ? { ...approveToken, amount: approveAmount }
+            : approveToken,
       },
     };
   }
@@ -153,6 +176,8 @@ export function mapApiEvmTransactions({
           raw: { type: 'apiEvmTransaction', data: transaction },
           data: {
             hash,
+            from: receivedNftTransfer.from,
+            to: receivedNftTransfer.to,
             token: getToken(receivedNftTransfer, 'in'),
           },
         };
@@ -196,7 +221,7 @@ export function mapApiEvmTransactions({
     hasNativeTransferWithoutMethod
   ) {
     const isReceive =
-      Boolean(receivedTransfer) ||
+      Boolean(receivedTransfer && !sentTransfer) ||
       (environment.equalsIgnoreCase(transaction.to, subjectAddress) &&
         !environment.equalsIgnoreCase(transaction.from, subjectAddress));
 

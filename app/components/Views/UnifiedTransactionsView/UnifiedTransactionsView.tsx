@@ -1,7 +1,11 @@
 import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { numberToHex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -15,6 +19,7 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
@@ -42,6 +47,10 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import {
+  getSwapBridgeTxActivityTitle,
+  handleUnifiedSwapsTxHistoryItemClick,
+} from '../../UI/Bridge/utils/transaction-history';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import TransactionElement from '../../UI/TransactionElement';
@@ -72,6 +81,16 @@ import {
   isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
 } from './helpers/transformations';
+import { normalizeTransaction } from './helpers/adapters';
+import {
+  mapApiEvmTransactions,
+  mapKeyringTransaction,
+  type ActivityListItem,
+} from '../../../util/activity-adapters';
+import {
+  ActivityListItemRow,
+  resolveActivityListItemTitle,
+} from '../../UI/ActivityListItemRow/ActivityListItemRow';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -84,6 +103,36 @@ const isTransactionMetaLike = (
 const getEvmTransactionTime = (tx: EvmTransaction) => tx.time ?? 0;
 
 const getEvmChainId = (tx: EvmTransaction) => tx.chainId;
+
+const noop = () => undefined;
+
+const getActivityValue = (item: ActivityListItem) => {
+  const { data } = item;
+
+  if ('token' in data && data.token?.symbol) {
+    return `${data.token.amount ?? ''} ${data.token.symbol}`.trim();
+  }
+
+  if ('destinationToken' in data && data.destinationToken?.symbol) {
+    return `${data.destinationToken.amount ?? ''} ${
+      data.destinationToken.symbol
+    }`.trim();
+  }
+
+  if ('sourceToken' in data && data.sourceToken?.symbol) {
+    return `${data.sourceToken.amount ?? ''} ${data.sourceToken.symbol}`.trim();
+  }
+
+  return undefined;
+};
+
+const getActivityFromTo = (item: ActivityListItem) => {
+  const { data } = item;
+  return {
+    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
+    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
+  };
+};
 
 const generateKey = (item: UnifiedItem) => {
   if (item.kind === TransactionKind.Evm) {
@@ -102,18 +151,38 @@ interface UnifiedTransactionsViewProps {
   tabLabel?: string;
   chainId?: string; // used by non-EVM list items for explorer links
   location?: TransactionDetailLocation;
+  renderActivityListItemRow?: boolean;
 }
 
 const UnifiedTransactionsView = ({
   header,
   chainId,
   location,
+  renderActivityListItemRow = false,
 }: UnifiedTransactionsViewProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const getBridgeHistoryItemByHash = useCallback(
+    (hash?: string): BridgeHistoryItem | undefined => {
+      if (!hash) {
+        return undefined;
+      }
+
+      const normalizedHash = hash.toLowerCase();
+      return (
+        (bridgeHistoryItemsBySrcTxHash[hash] as
+          | BridgeHistoryItem
+          | undefined) ??
+        (Object.entries(bridgeHistoryItemsBySrcTxHash).find(
+          ([key]) => key.toLowerCase() === normalizedHash,
+        )?.[1] as BridgeHistoryItem | undefined)
+      );
+    },
+    [bridgeHistoryItemsBySrcTxHash],
+  );
 
   const {
     data: evmTransactions,
@@ -317,14 +386,14 @@ const UnifiedTransactionsView = ({
         maliciousTokenKeys,
       );
 
-    const data = mergeTransactionsByTime(
+    const mergedData = mergeTransactionsByTime(
       evmPendingTxs,
       evmConfirmedTxs,
       filteredNonEvmTransactionsForSelectedChain,
     );
 
     return {
-      data,
+      data: mergedData,
       nonEvmTransactionsForSelectedChain:
         filteredNonEvmTransactionsForSelectedChain,
     };
@@ -533,6 +602,111 @@ const UnifiedTransactionsView = ({
     }
   }, [refetch]);
 
+  const handleActivityItemPress = useCallback(
+    (item: ActivityListItem) => {
+      const { raw } = item;
+      if (!raw) return;
+
+      const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
+      const actionKey = resolveActivityListItemTitle(
+        item,
+        itemBridgeHistoryItem
+          ? getSwapBridgeTxActivityTitle(itemBridgeHistoryItem)
+          : undefined,
+      );
+
+      const selectedEvmAddress =
+        selectedAccountGroupEvmAddress ||
+        selectedInternalAccount?.address ||
+        '';
+
+      if (raw.type === 'keyringTransaction') {
+        const { from, to } = getActivityFromTo(item);
+        const value = getActivityValue(item);
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+          params: {
+            transaction: raw.data,
+            displayData: {
+              title: actionKey,
+              from: from
+                ? { address: from, amount: value ?? '', unit: '' }
+                : undefined,
+              to: to
+                ? { address: to, amount: value ?? '', unit: '' }
+                : undefined,
+              isRedeposit: false,
+            },
+          },
+        });
+        return;
+      }
+
+      const tx =
+        raw.type === 'apiEvmTransaction'
+          ? selectedEvmAddress
+            ? normalizeTransaction(selectedEvmAddress, raw.data)
+            : undefined
+          : raw.data.primaryTransaction;
+
+      if (!tx) return;
+
+      if (
+        raw.type === 'localTransaction' &&
+        tx.type === TransactionType.bridge
+      ) {
+        const persistedActionId = (tx as unknown as { actionId?: string })
+          .actionId;
+        const bridgeTxHistoryItem =
+          bridgeHistory[tx.id] ??
+          (persistedActionId ? bridgeHistory[persistedActionId] : undefined) ??
+          Object.values(bridgeHistory).find(
+            (itemValue) =>
+              (itemValue as unknown as { originalTransactionId?: string })
+                .originalTransactionId === tx.id,
+          );
+
+        handleUnifiedSwapsTxHistoryItemClick({
+          navigation,
+          evmTxMeta: tx,
+          bridgeTxHistoryItem,
+        });
+        return;
+      }
+
+      const { from, to } = getActivityFromTo(item);
+      const value = getActivityValue(item);
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.TRANSACTION_DETAILS,
+        params: {
+          tx,
+          transactionElement: {
+            actionKey,
+            value,
+          },
+          transactionDetails: {
+            hash: item.data.hash,
+            renderFrom: from,
+            renderTo: to,
+            renderValue: value,
+            transactionType: item.type,
+            txChainId: tx.chainId,
+          },
+          showSpeedUpModal: noop,
+          showCancelModal: noop,
+        },
+      });
+    },
+    [
+      bridgeHistory,
+      getBridgeHistoryItemByHash,
+      navigation,
+      selectedAccountGroupEvmAddress,
+      selectedInternalAccount?.address,
+    ],
+  );
+
   const lastConfirmedEvmIndex = useMemo(() => {
     for (let index = data.length - 1; index >= 0; index -= 1) {
       if (data[index].kind === TransactionKind.ConfirmedEvm) {
@@ -642,6 +816,32 @@ const UnifiedTransactionsView = ({
     }
 
     if (item.kind === TransactionKind.ConfirmedEvm) {
+      if (renderActivityListItemRow) {
+        const selectedEvmAddress =
+          selectedAccountGroupEvmAddress ||
+          selectedInternalAccount?.address ||
+          '';
+        const activityItem = mapApiEvmTransactions({
+          subjectAddress: selectedEvmAddress.toLowerCase(),
+          transaction: item.tx,
+        });
+        const bridgeHistoryItem = getBridgeHistoryItemByHash(
+          activityItem.data.hash,
+        );
+        const title = bridgeHistoryItem
+          ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
+          : undefined;
+
+        return (
+          <ActivityListItemRow
+            item={activityItem}
+            index={index}
+            onPress={handleActivityItemPress}
+            title={title}
+          />
+        );
+      }
+
       return (
         <TransactionElement
           tx={item.tx.transactionMeta}
@@ -660,7 +860,24 @@ const UnifiedTransactionsView = ({
 
     // Render non-EVM transactions
     const srcTxHash = item.tx.id; // id is unique for multichain tx
-    const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
+    const bridgeHistoryItem = getBridgeHistoryItemByHash(srcTxHash);
+
+    if (renderActivityListItemRow) {
+      const activityItem = mapKeyringTransaction({ transaction: item.tx });
+      const title = bridgeHistoryItem
+        ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
+        : undefined;
+
+      return (
+        <ActivityListItemRow
+          item={activityItem}
+          index={index}
+          onPress={handleActivityItemPress}
+          title={title}
+        />
+      );
+    }
+
     return bridgeHistoryItem ? (
       <MultichainBridgeTransactionListItem
         transaction={item.tx}

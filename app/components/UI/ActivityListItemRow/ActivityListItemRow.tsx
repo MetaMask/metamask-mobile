@@ -22,6 +22,8 @@ import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
+export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
+
 function resolveIconType(type: ActivityKind): string {
   switch (type) {
     case 'send':
@@ -117,6 +119,7 @@ export function resolveActivityListItemTitle(
 }
 
 export function ActivityListItemRow({
+  bridgeHistoryItem,
   item,
   index,
   onPress,
@@ -127,7 +130,11 @@ export function ActivityListItemRow({
   const appTheme = useSelector(
     (state: RootState) => state.user.appTheme as AppThemeKey,
   );
-  const content = useActivityListItemRowContent(item);
+  const content = useActivityListItemRowContent(
+    item,
+    undefined,
+    bridgeHistoryItem,
+  );
   const styles = createStyles(colors, typography);
   const isFailed = item.status === 'failed' || item.status === 'cancelled';
   const icon = getTransactionIcon(

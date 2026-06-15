@@ -17,6 +17,12 @@ const metamaskBonusContract = '0x3ef3d8ba38ebe18db133cec108f4d14ce00dd9ae';
 const polygonRecipientAddress = '0x2cd071562a1688b3e9f31be39c92aa140a1acc94';
 const wethContractAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const zeroAddress = '0x0000000000000000000000000000000000000000';
+const approveFunctionSignature = '0x095ea7b3';
+
+const buildApproveData = (spender: string, amount: bigint) =>
+  `${approveFunctionSignature}${spender
+    .replace('0x', '')
+    .padStart(64, '0')}${amount.toString(16).padStart(64, '0')}`;
 
 const withoutRaw = (item: ReturnType<typeof mapApiEvmTransactions>) => {
   const activity = { ...item };
@@ -89,6 +95,45 @@ describe('mapApiEvmTransactions', () => {
       data: {
         hash: '0x91f89897197afcc09ad98ec4282366fd7938d8a9609e4fc2a0aa2d070664bc27',
         token: {
+          direction: 'out',
+          symbol: 'USDC',
+          decimals: 6,
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+        },
+      },
+    });
+  });
+
+  it('maps an approval amount from full calldata when available', () => {
+    const transaction = {
+      hash: '0x91f89897197afcc09ad98ec4282366fd7938d8a9609e4fc2a0aa2d070664bc27',
+      timestamp: '2026-05-27T13:20:27.000Z',
+      chainId: 8453,
+      accountId: `eip155:8453:${subjectAddress}`,
+      methodId: approveFunctionSignature,
+      input: buildApproveData(baseRecipientAddress, 100000000n),
+      value: '0',
+      to: baseUsdc,
+      from: subjectAddress,
+      isError: false,
+      valueTransfers: [],
+      logs: [],
+      transactionProtocol: 'ERC_20',
+      transactionCategory: 'APPROVE',
+      transactionType: 'ERC_20_APPROVE',
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'approveSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779888027000,
+      data: {
+        hash: '0x91f89897197afcc09ad98ec4282366fd7938d8a9609e4fc2a0aa2d070664bc27',
+        token: {
+          amount: '100000000',
           direction: 'out',
           symbol: 'USDC',
           decimals: 6,
@@ -318,6 +363,54 @@ describe('mapApiEvmTransactions', () => {
         token: {
           amount: '1',
           direction: 'out',
+          symbol: 'BAE',
+        },
+      },
+    });
+  });
+
+  it('maps an NFT buy with transfer addresses for the details sheet', () => {
+    const nftSellerAddress = '0x4f5243ceea96cee1da0fdb89c756d0e999439424';
+    const transaction = {
+      timestamp: '2026-02-23T22:04:23.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: nftSellerAddress,
+      transactionCategory: 'TRANSFER',
+      valueTransfers: [
+        {
+          from: nftSellerAddress,
+          to: subjectAddress,
+          amount: 1,
+          tokenId: '984',
+          symbol: 'BAE',
+          transferType: 'erc721',
+        },
+        {
+          from: subjectAddress,
+          to: nftSellerAddress,
+          amount: '1000000000000000',
+          decimal: 18,
+          symbol: 'ETH',
+          transferType: 'normal',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'buy',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1771884263000,
+      data: {
+        from: nftSellerAddress,
+        hash: undefined,
+        to: subjectAddress,
+        token: {
+          amount: '1',
+          direction: 'in',
           symbol: 'BAE',
         },
       },

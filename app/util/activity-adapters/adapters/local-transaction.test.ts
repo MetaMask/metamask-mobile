@@ -20,6 +20,12 @@ const lineaMusd = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const wethContractAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const erc20TransferTopic =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+const approveFunctionSignature = '0x095ea7b3';
+
+const buildApproveData = (spender: string, amount: bigint) =>
+  `${approveFunctionSignature}${spender
+    .replace('0x', '')
+    .padStart(64, '0')}${amount.toString(16).padStart(64, '0')}`;
 
 const withoutRaw = (item: ReturnType<typeof mapLocalTransaction>) => {
   const activity = { ...item };
@@ -296,6 +302,46 @@ describe('mapLocalTransaction', () => {
           ),
           direction: 'out',
           symbol: 'TDN',
+        },
+      },
+    });
+  });
+
+  it('maps an approval amount from transaction calldata', () => {
+    const transaction = {
+      chainId: base,
+      id: 'approve-id',
+      hash: '0xapprove',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, 100000000n),
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'approveSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      data: {
+        hash: '0xapprove',
+        token: {
+          amount: '100000000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
         },
       },
     });
