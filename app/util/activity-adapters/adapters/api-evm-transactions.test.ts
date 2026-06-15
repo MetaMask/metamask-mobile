@@ -15,6 +15,7 @@ const lineaMusd = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const lineaSenderAddress = '0xf70da97812cb96acdf810712aa562db8dfa3dbef';
 const metamaskBonusContract = '0x3ef3d8ba38ebe18db133cec108f4d14ce00dd9ae';
 const polygonRecipientAddress = '0x2cd071562a1688b3e9f31be39c92aa140a1acc94';
+const wbnbContractAddress = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const wethContractAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 const approveFunctionSignature = '0x095ea7b3';
@@ -645,6 +646,65 @@ describe('mapApiEvmTransactions', () => {
           direction: 'in',
           symbol: 'WETH',
           assetId: toAssetId(wethContractAddress, 'eip155:1'),
+        },
+      },
+    });
+  });
+
+  it('maps a BNB to WBNB direct deposit as Wrap even when the API categorizes it as a swap', () => {
+    const transaction = {
+      hash: '0x6e448f5b8cf55534507770c1cb90ba14e723d03b4a46b4919a5847eb8d13b7b6',
+      timestamp: '2026-05-28T13:42:23.000Z',
+      chainId: 56,
+      from: subjectAddress,
+      to: wbnbContractAddress,
+      methodId: '0xd0e30db0',
+      transactionCategory: 'SWAP',
+      transactionProtocol: 'WBNB',
+      transactionType: 'SWAP',
+      valueTransfers: [
+        {
+          from: subjectAddress,
+          to: wbnbContractAddress,
+          amount: '1000000000000000000',
+          decimal: 18,
+          symbol: 'BNB',
+          transferType: 'normal',
+        },
+        {
+          from: NATIVE_TOKEN_ADDRESS,
+          to: subjectAddress,
+          amount: '1000000000000000000',
+          decimal: 18,
+          contractAddress: wbnbContractAddress,
+          symbol: 'WBNB',
+          transferType: 'erc20',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'wrap',
+      chainId: 'eip155:56',
+      status: 'success',
+      timestamp: 1779975743000,
+      data: {
+        hash: '0x6e448f5b8cf55534507770c1cb90ba14e723d03b4a46b4919a5847eb8d13b7b6',
+        sourceToken: {
+          amount: '1000000000000000000',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'BNB',
+          assetId: toAssetId(NATIVE_TOKEN_ADDRESS, 'eip155:56'),
+        },
+        destinationToken: {
+          amount: '1000000000000000000',
+          decimals: 18,
+          direction: 'in',
+          symbol: 'WBNB',
+          assetId: toAssetId(wbnbContractAddress, 'eip155:56'),
         },
       },
     });

@@ -53,6 +53,7 @@ export function mapApiEvmTransactions({
     KnownCaipNamespace.Eip155,
     transaction.chainId.toString(),
   );
+  const hexChainId = `0x${transaction.chainId.toString(16)}`;
   const getToken = (
     transfer: ValueTransfer | undefined,
     direction: TokenAmount['direction'],
@@ -79,12 +80,71 @@ export function mapApiEvmTransactions({
       environment.equalsIgnoreCase(from, subjectAddress) &&
       isNativeTransferType(transferType),
   );
+  const receivedNativeTransfer = valueTransfers?.find(
+    ({ to, transferType }) =>
+      environment.equalsIgnoreCase(to, subjectAddress) &&
+      isNativeTransferType(transferType),
+  );
+  const wrappedTokenAddress = environment.wrappedTokenAddresses[hexChainId];
+  const isDirectWrappedTokenCall =
+    Boolean(wrappedTokenAddress) &&
+    environment.equalsIgnoreCase(transaction.to, wrappedTokenAddress);
+  const sentWrappedTokenTransfer = valueTransfers?.find(
+    ({ contractAddress, from }) =>
+      environment.equalsIgnoreCase(from, subjectAddress) &&
+      Boolean(wrappedTokenAddress) &&
+      environment.equalsIgnoreCase(contractAddress, wrappedTokenAddress),
+  );
+  const receivedWrappedTokenTransfer = valueTransfers?.find(
+    ({ contractAddress, to }) =>
+      environment.equalsIgnoreCase(to, subjectAddress) &&
+      Boolean(wrappedTokenAddress) &&
+      environment.equalsIgnoreCase(contractAddress, wrappedTokenAddress),
+  );
   const hasNativeTransferWithoutMethod =
     transactionCategory === 'CONTRACT_CALL' &&
     !transaction.methodId &&
     valueTransfers?.some(({ transferType }) => transferType === 'normal');
   const hasSupplyMethodId =
     transaction.methodId && supplyMethodIds.has(transaction.methodId);
+
+  if (
+    isDirectWrappedTokenCall &&
+    sentNativeTransfer &&
+    receivedWrappedTokenTransfer
+  ) {
+    return {
+      type: 'wrap',
+      chainId,
+      status,
+      timestamp,
+      raw: { type: 'apiEvmTransaction', data: transaction },
+      data: {
+        hash,
+        sourceToken: getToken(sentNativeTransfer, 'out'),
+        destinationToken: getToken(receivedWrappedTokenTransfer, 'in'),
+      },
+    };
+  }
+
+  if (
+    isDirectWrappedTokenCall &&
+    sentWrappedTokenTransfer &&
+    receivedNativeTransfer
+  ) {
+    return {
+      type: 'unwrap',
+      chainId,
+      status,
+      timestamp,
+      raw: { type: 'apiEvmTransaction', data: transaction },
+      data: {
+        hash,
+        sourceToken: getToken(sentWrappedTokenTransfer, 'out'),
+        destinationToken: getToken(receivedNativeTransfer, 'in'),
+      },
+    };
+  }
 
   if (transactionCategory === 'SWAP' || transactionCategory === 'EXCHANGE') {
     if (!receivedTransfer?.symbol) {
