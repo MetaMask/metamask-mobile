@@ -44,14 +44,13 @@ import { TextVariant as ComponentLibraryTextVariant } from '../../../../../compo
 import { useTransakController } from '../../hooks/useTransakController';
 import useRampsController from '../../hooks/useRampsController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
+import {
+  getTransakApiMessage,
+  isTransakPhoneRegisteredError,
+  type TransakBuyQuote,
+} from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import {
-  extractRegisteredEmailFromTransakError,
-  isTransakPhoneRegisteredError,
-  parseTransakApiError,
-} from '../../utils/parseTransakApiError';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 
@@ -207,12 +206,11 @@ const V2BasicInfo = (): JSX.Element => {
         ...(headlessSessionId ? { headlessSessionId } : {}),
       });
     } catch (submissionError) {
-      const transakApiError = parseTransakApiError(submissionError);
       const isPhoneError = isTransakPhoneRegisteredError(submissionError);
       setIsPhoneRegisteredError(isPhoneError);
 
       const errorMessageText =
-        transakApiError?.message ??
+        getTransakApiMessage(submissionError) ??
         parseUserFacingError(
           submissionError,
           strings('deposit.basic_info.unexpected_error'),
@@ -220,10 +218,8 @@ const V2BasicInfo = (): JSX.Element => {
 
       let errorMessage = errorMessageText;
       if (isPhoneError && errorMessageText) {
-        const email = extractRegisteredEmailFromTransakError(
-          submissionError,
-          errorMessageText,
-        );
+        const emailMatch = errorMessageText.match(/[\w*]+@[\w*]+(?:\.[\w*]+)*/);
+        const email = emailMatch?.[0] ?? '';
         if (email) {
           errorMessage = strings(
             'deposit.basic_info.phone_already_registered',

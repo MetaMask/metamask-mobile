@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { TransakApiError } from '@metamask/ramps-controller';
 import V2BasicInfo from './BasicInfo';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -77,12 +78,17 @@ jest.mock('../../hooks/useAnalytics', () => ({
   default: () => mockTrackEvent,
 }));
 
-const transakPhoneRegisteredError = {
-  errorCode: '2020',
-  apiMessage: 'Phone registered with t***@test.com',
-  message:
-    'Fetching \'https://api.transak.com/user\' failed with status \'400\': {"error":{"errorCode":2020,"message":"Phone registered with t***@test.com"}}',
-};
+const createTransakPhoneRegisteredError = (apiMessage: string) =>
+  new TransakApiError(
+    400,
+    `Fetching 'https://api.transak.com/api/v2/kyc/user' failed with status '400': {"error":{"errorCode":2020,"message":"${apiMessage}"}}`,
+    '2020',
+    apiMessage,
+  );
+
+const transakPhoneRegisteredError = createTransakPhoneRegisteredError(
+  'Phone registered with t***@test.com',
+);
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
