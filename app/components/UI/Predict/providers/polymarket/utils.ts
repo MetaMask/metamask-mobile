@@ -60,6 +60,7 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
+  SUPPORTED_SPORTS_MARKET_TYPES,
   SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
 import {
@@ -649,6 +650,34 @@ const normalizeSportsMarketType = (type: string): string => {
 const getSportsMarketTypePriority = (type: string): number =>
   SPORTS_MARKET_TYPE_PRIORITIES[type.toLowerCase()] ?? 3;
 
+const toEnabledSportsMarketTypeSet = (
+  enabledSportsMarketTypes: string[] = [],
+): ReadonlySet<string> =>
+  new Set(
+    enabledSportsMarketTypes
+      .map((type) => type.toLowerCase())
+      .filter((type) => SUPPORTED_SPORTS_MARKET_TYPES.has(type)),
+  );
+
+const filterGroupableOutcomes = (
+  outcomes: PredictOutcome[],
+  enabledSportsMarketTypes: string[] | undefined,
+): PredictOutcome[] => {
+  const enabledSportsMarketTypeSet = toEnabledSportsMarketTypeSet(
+    enabledSportsMarketTypes,
+  );
+
+  return outcomes.filter((outcome) => {
+    if (!outcome.sportsMarketType) return false;
+
+    const sportsMarketType = outcome.sportsMarketType.toLowerCase();
+    return (
+      SUPPORTED_SPORTS_MARKET_TYPES.has(sportsMarketType) &&
+      enabledSportsMarketTypeSet.has(sportsMarketType)
+    );
+  });
+};
+
 export function buildOutcomeGroups(
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] {
@@ -1068,6 +1097,7 @@ export interface ParsePolymarketEventsOptions {
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
+  enabledSportsMarketTypes?: string[];
 }
 
 export const parsePolymarketEvents = (
@@ -1080,7 +1110,12 @@ export const parsePolymarketEvents = (
       ? { category: categoryOrOptions, sortMarketsBy }
       : categoryOrOptions;
 
-  const { category, teamLookup, extendedSportsMarketsLeagues } = options;
+  const {
+    category,
+    teamLookup,
+    extendedSportsMarketsLeagues,
+    enabledSportsMarketTypes,
+  } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
   return events.flatMap((event: PolymarketApiEvent) => {
@@ -1134,9 +1169,14 @@ export const parsePolymarketEvents = (
         eventLeague &&
         extendedSportsMarketsLeagues?.includes(eventLeague);
 
-      const outcomeGroups = outcomeGroupingEnabled
-        ? buildOutcomeGroups(outcomes)
-        : undefined;
+      const outcomesForGroups = outcomeGroupingEnabled
+        ? filterGroupableOutcomes(outcomes, enabledSportsMarketTypes)
+        : [];
+
+      const outcomeGroups =
+        outcomesForGroups.length > 0
+          ? buildOutcomeGroups(outcomesForGroups)
+          : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
 
