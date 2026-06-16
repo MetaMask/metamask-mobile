@@ -17,7 +17,11 @@ import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
 import PerpsHomeView from './PerpsHomeView';
 import PerpsMarketListView from './PerpsMarketListView';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
-import { EncapsulatedElementType } from '../../framework';
+import {
+  EncapsulatedElementType,
+  FrameworkDetector,
+  PlaywrightMatchers,
+} from '../../framework';
 
 /** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
@@ -478,6 +482,28 @@ class PerpsView {
 
   /** Perps portfolio home (orders/positions feed), not market details or explore list. */
   async isOnPerpsPortfolioHome(timeout = 2000): Promise<boolean> {
+    if (FrameworkDetector.isAppium()) {
+      const portfolioMarkers = [
+        'perps-home',
+        PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+        PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      ];
+
+      for (const testId of portfolioMarkers) {
+        try {
+          const el = await PlaywrightMatchers.getElementById(testId, {
+            exact: true,
+          });
+          await el.unwrap().waitForDisplayed({ timeout });
+          return true;
+        } catch {
+          // Try next marker.
+        }
+      }
+
+      return false;
+    }
+
     const portfolioMarkers: EncapsulatedElementType[] = [
       this.perpsHomeHeader,
       PerpsHomeView.backHome,
@@ -504,6 +530,17 @@ class PerpsView {
     testId: string,
     timeout = 2000,
   ): Promise<boolean> {
+    if (FrameworkDetector.isAppium()) {
+      try {
+        const el = await PlaywrightMatchers.getElementById(testId, {
+          exact: true,
+        });
+        await el.unwrap().waitForDisplayed({ timeout });
+        return true;
+      } catch {
+        return false;
+      }
+    }
     return Utilities.isElementVisible(Matchers.getElementByID(testId), timeout);
   }
 
