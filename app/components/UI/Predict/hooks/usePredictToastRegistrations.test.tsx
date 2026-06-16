@@ -108,7 +108,7 @@ jest.mock('../selectors/featureFlags', () => ({
 }));
 
 jest.mock('../contexts/PredictPreviewSheetContext', () => ({
-  isPredictSheetProviderMounted: jest.fn(() => mockProviderMounted),
+  shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
 }));
 
 describe('usePredictToastRegistrations', () => {
@@ -918,7 +918,7 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('suppresses the error toast when bottom sheet flag is ON and provider is mounted', () => {
+    it('suppresses the failure toast when bottom sheet flag is ON and provider is mounted (state-based trigger handles it)', () => {
       mockBottomSheetEnabled = true;
       mockProviderMounted = true;
       const handler = getHandler();
@@ -935,7 +935,7 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).not.toHaveBeenCalled();
     });
 
-    it('still shows the error toast when flag is ON but provider is not mounted', () => {
+    it('shows the plain failure toast when bottom sheet flag is ON but provider is not mounted (fallback)', () => {
       mockBottomSheetEnabled = true;
       mockProviderMounted = false;
       const handler = getHandler();
@@ -949,12 +949,16 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
-      expect(showToast).toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
     });
 
-    it('still shows the error toast when flag is OFF even with provider mounted', () => {
+    it('shows the legacy plain failure toast when bottom sheet flag is OFF', () => {
       mockBottomSheetEnabled = false;
-      mockProviderMounted = true;
       const handler = getHandler();
 
       handler(
@@ -966,7 +970,12 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
-      expect(showToast).toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
     });
   });
 });

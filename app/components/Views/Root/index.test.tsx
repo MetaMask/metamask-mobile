@@ -43,10 +43,13 @@ jest.mock('../../Nav/ControllersGate', () => ({
 
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  isTest: true,
+  isTestEnvironment: true,
 }));
 
 describe('Root', () => {
+  /** Must match `testID` on the `View` returned by `jest.mock('../../Nav/App')`. */
+  const mockedAppTestId = 'mock-app';
+
   it('should initialize SecureKeychain', async () => {
     render(<Root foxCode="" />);
 
@@ -56,19 +59,25 @@ describe('Root', () => {
     });
   });
 
-  it('should render children if isTest is false (skips store wait)', () => {
-    Object.defineProperty(testUtils, 'isTest', {
+  it('should render children if isTestEnvironment is false (skips store wait)', () => {
+    Object.defineProperty(testUtils, 'isTestEnvironment', {
       value: false,
       writable: true,
     });
     const { toJSON } = render(<Root foxCode="" />);
     expect(toJSON()).toBeDefined();
-    Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
+    Object.defineProperty(testUtils, 'isTestEnvironment', {
+      value: true,
+      writable: true,
+    });
   });
 
-  it('should render null while isTest is true and store is loading', () => {
-    Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
-    const { toJSON } = render(<Root foxCode="" />);
-    expect(toJSON()).toMatchSnapshot();
+  it('does not mount Nav/App until the store gate clears when isTestEnvironment is true', () => {
+    Object.defineProperty(testUtils, 'isTestEnvironment', {
+      value: true,
+      writable: true,
+    });
+    const { queryByTestId } = render(<Root foxCode="" />);
+    expect(queryByTestId(mockedAppTestId)).toBeNull();
   });
 });

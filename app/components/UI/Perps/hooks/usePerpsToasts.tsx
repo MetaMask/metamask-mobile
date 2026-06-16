@@ -3,8 +3,8 @@ import {
   IconSize as ReactNativeDsIconSize,
   Text,
   TextVariant,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
 import {
   playNotification,
@@ -66,6 +66,7 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
       ) => PerpsToastOptions;
       withdrawalFailed: (error?: string) => PerpsToastOptions;
+      withdrawalStartFailed: (onRetry: () => void) => PerpsToastOptions;
     };
   };
   orderManagement: {
@@ -187,6 +188,10 @@ export interface PerpsToastOptionsConfig {
       shareSuccess: PerpsToastOptions;
       shareFailed: PerpsToastOptions;
     };
+  };
+  watchlist: {
+    addError: PerpsToastOptions;
+    limitReached: PerpsToastOptions;
   };
 }
 
@@ -494,6 +499,20 @@ const usePerpsToasts = (): {
                 fallbackMessage: strings('perps.withdrawal.error_generic'),
               }),
             ),
+          }),
+          withdrawalStartFailed: (onRetry: () => void) => ({
+            ...perpsBaseToastOptions.error,
+            iconName: IconName.Error,
+            iconColor: theme.colors.error.default,
+            backgroundColor: theme.colors.accent04.normal,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.withdrawal.toast_error_title'),
+              strings('perps.withdrawal.toast_start_error_description'),
+            ),
+            linkButtonOptions: {
+              label: strings('perps.withdrawal.try_again'),
+              onPress: onRetry,
+            },
           }),
         },
       },
@@ -988,6 +1007,20 @@ const usePerpsToasts = (): {
           },
         },
       },
+      watchlist: {
+        addError: {
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.add_error'),
+          ),
+        },
+        limitReached: {
+          ...perpsBaseToastOptions.info,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.limit_reached', { limit: 10 }),
+          ),
+        },
+      },
     }),
     [
       navigationHandlers,
@@ -997,6 +1030,7 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.success,
       perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
+      theme.colors.accent04.normal,
       theme.colors.background.muted,
       theme.colors.error.default,
       theme.colors.error.muted,

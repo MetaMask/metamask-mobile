@@ -1,0 +1,33 @@
+/**
+ * Vendored Activity adapters from metamask-extension shared/lib/activity/
+ * Branch: origin/n3ps/activity-v3-prototype
+ * TODO: Replace with shared @metamask/activity-adapters package when published.
+ */
+export type {
+  ActivityListItem,
+  ActivityKind,
+  Status,
+  TokenAmount,
+} from './types';
+export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
+export { mapKeyringTransaction } from './adapters/keyring-transaction';
+export { mapLocalTransaction } from './adapters/local-transaction';
+export {
+  mobileActivityAdapterEnvironment,
+  type ActivityAdapterEnvironment,
+} from './adapters/environment';
+export type { TransactionGroup } from './adapters/transaction-group';
+export { getLabelKeys } from './label-keys';
+export {
+  calculateFiatFromMarketRates,
+  getHumanReadableTokenAmount,
+  getDisplaySignPrefix,
+  applyDisplaySign,
+  toMarketRateLookupToken,
+} from './fiat';
+export {
+  activityMatchesAssetId,
+  groupActivityListItems,
+  shouldShowPlusSign,
+  type GroupedActivityListItem,
+} from './activity-list-helpers';

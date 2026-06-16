@@ -14,7 +14,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
@@ -36,6 +38,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
   selectCardUserLocation,
+  selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
 import {
   CardStatus,
@@ -45,6 +48,9 @@ import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/fea
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
+import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
 import {
   ToastContext,
   ToastVariants,
@@ -55,7 +61,8 @@ import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterren
 import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
-import { isEvmChain, isSpendingLimitSupportedToken } from '../../constants';
+import { CardType } from '../../types';
+import { isSpendingLimitSupportedToken } from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -66,6 +73,7 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -109,6 +117,26 @@ const CardHome = () => {
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
     useCardProvisioning(data);
+
+  // --- Money Account linkage ---
+  const {
+    canLink: canLinkMoneyAccount,
+    startLinkFlow: startMoneyAccountLink,
+    isLinking: isMoneyAccountLinkInProgress,
+  } = useMoneyAccountCardLinkage();
+  const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
+  const hasMetalCard = data?.card?.type === CardType.METAL;
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+  const handleLinkMoneyAccountCard = useCallback(
+    () =>
+      startMoneyAccountLink({
+        screen: Routes.CARD.HOME,
+        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+      }),
+    [startMoneyAccountLink],
+  );
 
   useCardHomeAnalytics({
     data,
@@ -213,7 +241,6 @@ const CardHome = () => {
   const showSpendingLimitProgress =
     isAuthenticated &&
     data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
-    isEvmChain(data?.primaryFundingAsset?.chainId) &&
     isSpendingLimitSupportedToken(data?.primaryFundingAsset?.symbol) &&
     !hasSetupActions;
 
@@ -222,36 +249,45 @@ const CardHome = () => {
 
   const hasPriorityTokenBalance = (primaryToken?.rawTokenBalance ?? 0) > 0;
 
+  const headerHandlers = useCardHeaderHandlers('back');
+
   // --- Error state ---
   if (isError) {
     return (
-      <Box twClassName="flex-1 items-center justify-center bg-background-default gap-2">
-        <Icon
-          name={IconName.Forest}
-          size={IconSize.Xl}
-          color={IconColor.Default}
+      <Box twClassName="flex-1 bg-background-default">
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
         />
-        <Text
-          variant={TextVariant.HeadingSm}
-          twClassName="text-text-alternative"
-        >
-          {strings('card.card_home.error_title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-text-alternative text-center px-12"
-        >
-          {strings('card.card_home.error_description')}
-        </Text>
-        <Box twClassName="pt-2">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Md}
-            onPress={() => refetch()}
-            testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
+        <Box twClassName="flex-1 items-center justify-center gap-2">
+          <Icon
+            name={IconName.Forest}
+            size={IconSize.Xl}
+            color={IconColor.Default}
+          />
+          <Text
+            variant={TextVariant.HeadingSm}
+            twClassName="text-text-alternative"
           >
-            {strings('card.card_home.try_again')}
-          </Button>
+            {strings('card.card_home.error_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-text-alternative text-center px-12"
+          >
+            {strings('card.card_home.error_description')}
+          </Text>
+          <Box twClassName="pt-2">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Md}
+              onPress={() => refetch()}
+              testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
+            >
+              {strings('card.card_home.try_again')}
+            </Button>
+          </Box>
         </Box>
       </Box>
     );
@@ -259,153 +295,204 @@ const CardHome = () => {
 
   // --- Main render ---
   return (
-    <ScrollView
-      style={tw.style('flex-1 bg-background-default')}
-      showsVerticalScrollIndicator={false}
-      alwaysBounceVertical={false}
-      contentContainerStyle={tw.style('flex-grow pb-8')}
-      testID={CardHomeSelectors.CARD_VIEW_TITLE}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          colors={[theme.colors.primary.default]}
-          tintColor={theme.colors.icon.default}
-        />
-      }
-    >
-      <Text style={tw.style('px-4 pt-4')} variant={TextVariant.HeadingLg}>
-        {strings('card.card_home.title')}
-      </Text>
+    <Box twClassName="flex-1 bg-background-default">
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
+      <ScrollView
+        style={tw.style('flex-1 bg-background-default')}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}
+        contentContainerStyle={tw.style('flex-grow pb-8')}
+        testID={CardHomeSelectors.CARD_VIEW_TITLE}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={[theme.colors.primary.default]}
+            tintColor={theme.colors.icon.default}
+          />
+        }
+      >
+        <Text style={tw.style('px-4 pt-4')} variant={TextVariant.HeadingLg}>
+          {strings('card.card_home.title')}
+        </Text>
 
-      <Box twClassName="mx-4 mt-2">
-        <CardAlertSection
-          alerts={(data?.alerts ?? []).filter(
-            (a) =>
-              !(
-                a.type === 'close_to_spending_limit' &&
-                isSpendingLimitWarningDismissed
-              ),
-          )}
-          onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
-          onDismissSpendingLimitWarning={() =>
-            setIsSpendingLimitWarningDismissed(true)
-          }
-        />
-      </Box>
-
-      <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
-        <Box twClassName="w-full relative">
-          <CardImageSection
-            isLoading={isLoading}
-            isCardDetailsLoading={actions.isCardDetailsLoading}
-            cardDetailsImageUrl={actions.cardDetailsImageUrl}
-            isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
-            onImageLoad={actions.onCardDetailsImageLoad}
-            onImageError={actions.onCardDetailsImageError}
-            cardType={data?.card?.type}
-            cardStatus={data?.card?.status}
-            walletAddress={
-              isAuthenticated
-                ? data?.primaryFundingAsset?.walletAddress
-                : undefined
+        <Box twClassName="mx-4 mt-2">
+          <CardAlertSection
+            alerts={(data?.alerts ?? []).filter(
+              (a) =>
+                !(
+                  a.type === 'close_to_spending_limit' &&
+                  isSpendingLimitWarningDismissed
+                ),
+            )}
+            onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
+            onDismissSpendingLimitWarning={() =>
+              setIsSpendingLimitWarningDismissed(true)
             }
           />
         </Box>
 
-        {!hasSetupActions && !hasAlertOnlyState && (
-          <CardBalanceDisplay
-            isLoading={isLoading}
-            balanceAmount={balanceAmount}
-            privacyMode={privacyMode}
-            assetBalance={primaryToken ?? undefined}
-            onTogglePrivacy={handleTogglePrivacy}
-          />
-        )}
-
-        {showSpendingLimitProgress && data?.primaryFundingAsset && (
-          <SpendingLimitProgressBar
-            isLoading={isLoading}
-            decimals={data.primaryFundingAsset.decimals ?? 6}
-            totalAllowance={
-              data.primaryFundingAsset.originalSpendingCap ??
-              data.primaryFundingAsset.spendingCap ??
-              '0'
-            }
-            remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
-            symbol={data.primaryFundingAsset.symbol ?? ''}
-            privacyMode={privacyMode}
-          />
-        )}
-
-        {((data?.actions ?? []).length > 0 || isLoading) && (
-          <Box twClassName="w-full mt-4">
-            <CardActionsButtons
-              actions={data?.actions ?? []}
+        <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
+          <Box twClassName="w-full relative">
+            <CardImageSection
               isLoading={isLoading}
-              isSwapEnabled={isSwapEnabled}
-              onAddFunds={actions.addFundsAction}
-              onEnableCard={actions.enableCardAction}
+              isCardDetailsLoading={actions.isCardDetailsLoading}
+              cardDetailsImageUrl={actions.cardDetailsImageUrl}
+              isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
+              onImageLoad={actions.onCardDetailsImageLoad}
+              onImageError={actions.onCardDetailsImageError}
+              cardType={data?.card?.type}
+              cardStatus={data?.card?.status}
+              walletAddress={
+                isAuthenticated
+                  ? primaryToken?.isMoneyAccountEntry
+                    ? strings('card.card_spending_limit.money_account_label')
+                    : data?.primaryFundingAsset?.walletAddress
+                  : undefined
+              }
             />
           </Box>
-        )}
-      </Box>
 
-      {!isLoading && canAddToWallet && (
-        <Box twClassName="w-full px-4 pt-4 items-center justify-center">
-          {isProvisioning ? (
-            <Box twClassName="py-3">
-              <AnimatedSpinner testID="push-provisioning-spinner" />
-            </Box>
-          ) : (
-            <AddToWalletButton
-              onPress={isProvisioning ? undefined : initiateProvisioning}
-              buttonStyle="blackOutline"
-              buttonType="basic"
-              borderRadius={4}
+          {!hasSetupActions && !hasAlertOnlyState && (
+            <CardBalanceDisplay
+              isLoading={isLoading}
+              balanceAmount={balanceAmount}
+              privacyMode={privacyMode}
+              assetBalance={primaryToken ?? undefined}
+              onTogglePrivacy={handleTogglePrivacy}
             />
           )}
+
+          {showSpendingLimitProgress && data?.primaryFundingAsset && (
+            <SpendingLimitProgressBar
+              isLoading={isLoading}
+              decimals={data.primaryFundingAsset.decimals ?? 6}
+              totalAllowance={
+                data.primaryFundingAsset.originalSpendingCap ??
+                data.primaryFundingAsset.spendingCap ??
+                '0'
+              }
+              remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
+              symbol={
+                primaryToken?.displaySymbol ??
+                data.primaryFundingAsset.symbol ??
+                ''
+              }
+              privacyMode={privacyMode}
+              hasOriginalAllowance={
+                !!data.primaryFundingAsset.originalSpendingCap
+              }
+            />
+          )}
+
+          {((data?.actions ?? []).length > 0 || isLoading) && (
+            <Box twClassName="w-full mt-4">
+              <CardActionsButtons
+                actions={data?.actions ?? []}
+                isLoading={isLoading}
+                isSwapEnabled={isSwapEnabled}
+                isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
+                onAddFunds={actions.addFundsAction}
+                onEnableCard={actions.enableCardAction}
+              />
+            </Box>
+          )}
         </Box>
-      )}
 
-      <ManageCardOptions
-        card={data?.card}
-        account={data?.account}
-        capabilities={capabilities}
-        isSpendingLimitActive={isSpendingLimitActive}
-        isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-        isAuthenticated={isAuthenticated}
-        isLoading={isLoading}
-        hasSetupActions={hasSetupActions}
-        hasAlertOnlyState={hasAlertOnlyState}
-        hasSetupAlerts={hasSetupAlerts}
-        userLocation={userLocation}
-        isFrozen={isFrozen}
-        isFreezeLoading={actions.freeze.isPending || actions.unfreeze.isPending}
-        isPinLoading={actions.isPinLoading}
-        cardDetailsImageUrl={actions.cardDetailsImageUrl}
-        onViewCardDetails={actions.viewCardDetailsAction}
-        onViewPin={actions.viewPinAction}
-        onToggleFreeze={actions.handleToggleFreeze}
-        onManageSpendingLimit={actions.manageSpendingLimitAction}
-        onOrderMetalCard={actions.orderMetalCardAction}
-        onChangeAsset={actions.changeAssetAction}
-        hasPriorityTokenBalance={hasPriorityTokenBalance}
-        onCashback={actions.cashbackAction}
-        onTravel={actions.navigateToTravelPage}
-      />
+        {!isLoading && canAddToWallet && (
+          <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+            {isProvisioning ? (
+              <Box twClassName="py-3">
+                <AnimatedSpinner testID="push-provisioning-spinner" />
+              </Box>
+            ) : (
+              <AddToWalletButton
+                onPress={isProvisioning ? undefined : initiateProvisioning}
+                buttonStyle="blackOutline"
+                buttonType="basic"
+                borderRadius={4}
+              />
+            )}
+          </Box>
+        )}
 
-      <CardHomeFooter
-        isAuthenticated={isAuthenticated}
-        isLoading={isLoading}
-        hasAlerts={hasAlertOnlyState}
-        hasSetupActions={hasSetupActions}
-        onNavigateToCardTos={actions.navigateToCardTosPage}
-        onLogout={actions.logoutAction}
-      />
+        {canLinkMoneyAccount && (
+          <>
+            <Box
+              twClassName="h-px bg-border-muted mt-4"
+              testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP}
+            />
+            <Box twClassName="mb-6 mt-4">
+              <MoneyMetaMaskCard
+                mode="link"
+                hideCardImage
+                apy={moneyAccountApyPercent}
+                showMetalCard={hasMetalCard}
+                isLinkDisabled={isMoneyAccountLinkInProgress}
+                onGetNowPress={handleLinkMoneyAccountCard}
+                onHeaderPress={handleLinkMoneyAccountCard}
+                onLinkPress={handleLinkMoneyAccountCard}
+                analyticsScreen={CardScreens.HOME}
+                analyticsEntryPoint={
+                  CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
+                }
+                analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+                analyticsCardState="unlinked_card"
+                analyticsReady={isCardAnalyticsReady}
+              />
+            </Box>
+            <Box
+              twClassName="h-px bg-border-muted"
+              testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM}
+            />
+          </>
+        )}
 
-      <CardScreenshotDeterrent enabled={!!actions.cardDetailsImageUrl} />
-    </ScrollView>
+        <ManageCardOptions
+          card={data?.card}
+          account={data?.account}
+          capabilities={capabilities}
+          isSpendingLimitActive={isSpendingLimitActive}
+          isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
+          isAuthenticated={isAuthenticated}
+          isLoading={isLoading}
+          hasSetupActions={hasSetupActions}
+          hasAlertOnlyState={hasAlertOnlyState}
+          hasSetupAlerts={hasSetupAlerts}
+          userLocation={userLocation}
+          isFrozen={isFrozen}
+          isFreezeLoading={
+            actions.freeze.isPending || actions.unfreeze.isPending
+          }
+          isPinLoading={actions.isPinLoading}
+          cardDetailsImageUrl={actions.cardDetailsImageUrl}
+          onViewCardDetails={actions.viewCardDetailsAction}
+          onViewPin={actions.viewPinAction}
+          onToggleFreeze={actions.handleToggleFreeze}
+          onManageSpendingLimit={actions.manageSpendingLimitAction}
+          onOrderMetalCard={actions.orderMetalCardAction}
+          onChangeAsset={actions.changeAssetAction}
+          hasPriorityTokenBalance={hasPriorityTokenBalance}
+          onCashback={actions.cashbackAction}
+          onTravel={actions.navigateToTravelPage}
+        />
+
+        <CardHomeFooter
+          isAuthenticated={isAuthenticated}
+          isLoading={isLoading}
+          hasAlerts={hasAlertOnlyState}
+          hasSetupActions={hasSetupActions}
+          onNavigateToCardTos={actions.navigateToCardTosPage}
+          onLogout={actions.logoutAction}
+        />
+
+        <CardScreenshotDeterrent enabled={!!actions.cardDetailsImageUrl} />
+      </ScrollView>
+    </Box>
   );
 };
 

@@ -6,6 +6,7 @@ import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
+import { Utilities } from '../../framework';
 
 /**
  * Get a test element by data-testid
@@ -130,12 +131,17 @@ class SolanaTestDApp {
           }),
         );
       },
-      getSignedMessage: async () =>
-        (
-          await getTestElement(dataTestIds.testPage.signMessage.signedMessage, {
-            tag: 'pre',
-          })
-        ).getText(),
+      getSignedMessage: () =>
+        Utilities.executeWithRetry(
+          async () => {
+            const el = await getTestElement(
+              dataTestIds.testPage.signMessage.signedMessage,
+              { tag: 'pre' },
+            );
+            return el.getText();
+          },
+          { timeout: 30_000, description: 'read signed message from webview' },
+        ),
     };
   }
 

@@ -23,8 +23,6 @@ import BadgeWrapper, {
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import NetworkAssetLogo from '../../NetworkAssetLogo';
 import Text, {
   TextColor,
@@ -53,6 +51,7 @@ import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import StockBadge from '../../shared/StockBadge';
+import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -186,13 +185,7 @@ const Balance = ({
       );
     }
 
-    return (
-      <AvatarToken
-        name={asset.symbol}
-        imageSource={{ uri: asset.image }}
-        size={AvatarSize.Lg}
-      />
-    );
+    return <AssetLogo asset={asset} />;
   }, [asset, styles.ethLogo]);
 
   const isDisabled = useMemo(

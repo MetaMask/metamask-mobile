@@ -500,23 +500,17 @@ class FixtureBuilder {
   }
 
   /**
-   * Seeds ramps unified buy V1/V2 flags in RemoteFeatureFlagController so deeplinks
+   * Seeds the ramps unified buy V2 flag in RemoteFeatureFlagController so deeplinks
    * and early navigation match the intended path before the remote config API responds.
    * Uses minimumVersion 0.0.0 so any E2E app build passes the version gate.
    */
   withRampsUnifiedBuyRemoteFlagsSeededForE2E(options?: {
-    rampsUnifiedBuyV1?: boolean;
     rampsUnifiedBuyV2?: boolean;
   }) {
-    const rampsUnifiedBuyV1 = options?.rampsUnifiedBuyV1 ?? true;
     const rampsUnifiedBuyV2 = options?.rampsUnifiedBuyV2 ?? true;
     merge(this.fixture.state.engine.backgroundState, {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          rampsUnifiedBuyV1: {
-            active: rampsUnifiedBuyV1,
-            minimumVersion: '0.0.0',
-          },
           rampsUnifiedBuyV2: {
             enabled: rampsUnifiedBuyV2,
             minimumVersion: '0.0.0',
@@ -1488,17 +1482,6 @@ class FixtureBuilder {
     return this;
   }
 
-  withDetectedTokens(tokens: Record<string, unknown>[]) {
-    merge(this.fixture.state.engine.backgroundState.TokensController, {
-      allDetectedTokens: {
-        [CHAIN_IDS.MAINNET]: {
-          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
-        },
-      },
-    });
-    return this;
-  }
-
   withIncomingTransactionPreferences(incomingTransactionPreferences: boolean) {
     merge(this.fixture.state.engine.backgroundState.PreferencesController, {
       showIncomingTransactions: incomingTransactionPreferences,
@@ -1994,9 +1977,6 @@ class FixtureBuilder {
     });
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
-    merge(this.fixture.state.fiatOrders, {
-      rampRoutingDecision: 'AGGREGATOR',
-    });
 
     this.withDetectedGeolocation('US');
 
@@ -2154,6 +2134,44 @@ class FixtureBuilder {
             },
           },
         },
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Preloads persisted attribution + marketing consent for E2E coverage of
+   * `Wallet Setup Completed` acquisition properties.
+   * @param attributionFields - Acquisition fields (capturedAt defaults to Date.now()).
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withWalletSetupAttributionForE2e(attributionFields: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    attribution_id?: string;
+    capturedAt?: number;
+  }) {
+    if (!this.fixture.state) {
+      this.fixture.state = {} as Fixture['state'];
+    }
+    const { capturedAt: capturedAtInput, ...restFields } = attributionFields;
+    const capturedAt = capturedAtInput ?? Date.now();
+    merge(this.fixture.state, {
+      security: {
+        allowLoginWithRememberMe: false,
+        dataCollectionForMarketing: true,
+        isNFTAutoDetectionModalViewed: false,
+        osAuthEnabled: true,
+      },
+      attribution: {
+        attribution: {
+          ...restFields,
+          capturedAt,
+        },
+        _persist: { version: -1, rehydrated: true },
       },
     });
     return this;

@@ -1,54 +1,10 @@
 import { useMemo } from 'react';
-import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
-import { constants } from 'ethers';
-import {
-  isNonEvmChainId,
-  formatChainIdToHex,
-} from '@metamask/bridge-controller';
-import { BridgeToken } from '../types';
-import { PopularToken } from './usePopularTokens';
+import { CaipAssetType } from '@metamask/utils';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
+import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { BalancesByAssetId } from './useBalancesByAssetId';
-
-/**
- * Converts API tokens to BridgeTokens with proper address and chainId formatting
- * based on whether the chain is EVM or non-EVM
- */
-const convertAPITokensToBridgeTokens = (
-  apiTokens?: PopularToken[] | null,
-): (BridgeToken & { assetId: CaipAssetType })[] =>
-  (Array.isArray(apiTokens) ? apiTokens : []).map((token) => {
-    const { assetReference, chainId, assetNamespace } = parseCaipAssetType(
-      token.assetId,
-    );
-    const isNonEvm = isNonEvmChainId(chainId);
-    const isNative = assetNamespace === 'slip44';
-
-    // For non-EVM chains, keep the full assetId as the address to properly match balances
-    // For EVM native tokens, use the zero address (required by useLatestBalance)
-    // For EVM ERC20 tokens, use the asset reference (the actual contract address)
-    let address: string;
-    if (isNonEvm) {
-      address = token.assetId;
-    } else if (isNative) {
-      address = constants.AddressZero;
-    } else {
-      address = assetReference;
-    }
-
-    // For EVM chains, convert chainId to Hex format for useLatestBalance to work correctly
-    // For non-EVM chains, keep CAIP format
-    const formattedChainId = isNonEvm ? chainId : formatChainIdToHex(chainId);
-
-    // Destructure to exclude iconUrl from spread, prevents navigation issues
-    const { iconUrl, ...tokenWithoutIconUrl } = token;
-
-    return {
-      ...tokenWithoutIconUrl,
-      address,
-      chainId: formattedChainId,
-      image: iconUrl, // Map API's iconUrl to BridgeToken's image
-    };
-  });
+import { convertAPITokensToBridgeTokens } from '../utils/tokenUtils';
+import { ARC_NATIVE_ASSET_ID } from '../../../hooks/useArcDefaultTokens';
 
 /**
  * Merges API tokens with balance data from the selector
@@ -57,28 +13,30 @@ const convertAPITokensToBridgeTokens = (
  * @returns Tokens with merged balance information
  */
 export const useTokensWithBalances = (
-  apiTokens: PopularToken[] | null | undefined,
+  apiTokens: (PopularToken | IncludeAsset)[] | null | undefined,
   balancesByAssetId: BalancesByAssetId,
 ): BridgeToken[] =>
   useMemo(() => {
     const convertedTokens = convertAPITokensToBridgeTokens(apiTokens);
 
-    return convertedTokens.map((token) => {
-      // Normalize assetId because API returns assetId in lowercase for EVM chains
-      const normalizedAssetId = isNonEvmChainId(token.chainId)
-        ? token.assetId
-        : (token.assetId?.toLowerCase() as CaipAssetType);
-      const balanceData = balancesByAssetId[normalizedAssetId];
-      if (balanceData) {
-        return {
-          ...token,
-          balance: balanceData.balance,
-          balanceFiat: balanceData.balanceFiat,
-          tokenFiatAmount: balanceData.tokenFiatAmount,
-          currencyExchangeRate: balanceData.currencyExchangeRate,
-          accountType: balanceData.accountType,
-        };
-      }
-      return token;
-    });
+    return convertedTokens
+      .map((token) => {
+        // Normalize assetId because API returns assetId in lowercase for EVM chains
+        const normalizedAssetId = isNonEvmChainId(token.chainId)
+          ? token.assetId
+          : (token.assetId?.toLowerCase() as CaipAssetType);
+        const balanceData = balancesByAssetId[normalizedAssetId];
+        if (balanceData) {
+          return {
+            ...token,
+            balance: balanceData.balance,
+            balanceFiat: balanceData.balanceFiat,
+            tokenFiatAmount: balanceData.tokenFiatAmount,
+            currencyExchangeRate: balanceData.currencyExchangeRate,
+            accountType: balanceData.accountType,
+          };
+        }
+        return token;
+      })
+      .filter((token) => token.assetId !== ARC_NATIVE_ASSET_ID);
   }, [apiTokens, balancesByAssetId]);

@@ -5,15 +5,14 @@ import {
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
-import { BridgeToken } from '../types';
+import { BridgeToken, SecurityDataType } from '../types';
 import {
   getNativeAssetForChainId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { getSwapDestToken } from './getSwapDestToken';
 import { createMockToken } from '../testUtils/fixtures';
-import { SecurityDataType } from '../hooks/usePopularTokens';
 
 // Mock dependencies
 jest.mock('@metamask/utils', () => {
@@ -123,14 +122,14 @@ describe('tokenUtils', () => {
     it('returns token for direct hex chainId lookup', () => {
       const result = getDefaultDestToken(CHAIN_IDS.MAINNET);
 
-      expect(result).toEqual(DefaultSwapDestTokens[CHAIN_IDS.MAINNET]);
+      expect(result).toEqual(getSwapDestToken(CHAIN_IDS.MAINNET));
       expect(result?.chainId).toBe(CHAIN_IDS.MAINNET);
     });
 
     it('returns token for another valid hex chainId', () => {
       const result = getDefaultDestToken(CHAIN_IDS.OPTIMISM);
 
-      expect(result).toEqual(DefaultSwapDestTokens[CHAIN_IDS.OPTIMISM]);
+      expect(result).toEqual(getSwapDestToken(CHAIN_IDS.OPTIMISM));
       expect(result?.chainId).toBe(CHAIN_IDS.OPTIMISM);
     });
 
@@ -221,7 +220,7 @@ describe('tokenUtils', () => {
     it('preserves token properties when converting CAIP to hex', () => {
       const caipChainId = 'eip155:1';
       const result = getDefaultDestToken(caipChainId);
-      const originalToken = DefaultSwapDestTokens[CHAIN_IDS.MAINNET];
+      const originalToken = getSwapDestToken(CHAIN_IDS.MAINNET) as BridgeToken;
 
       expect(result).toBeDefined();
       expect(result?.address).toBe(originalToken.address);

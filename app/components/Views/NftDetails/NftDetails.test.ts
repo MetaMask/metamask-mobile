@@ -55,12 +55,11 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
           return builder;
         }),
         enable: jest.fn(),
-        addTraitsToUser: jest.fn(),
+        identify: jest.fn(),
         createDataDeletionTask: jest.fn(),
         checkDataDeleteStatus: jest.fn(),
         getDeleteRegulationCreationDate: jest.fn(),
         getDeleteRegulationId: jest.fn(),
-        isDataRecorded: jest.fn(),
         isEnabled: jest.fn(),
         getAnalyticsId: jest.fn(),
       };
@@ -205,6 +204,7 @@ describe('NftDetails', () => {
     );
 
     expect(getByText(TEST_COLLECTIBLE.name)).toBeOnTheScreen();
+    expect(getByText(TEST_COLLECTIBLE.collection.name)).toBeOnTheScreen();
   });
 
   it('tracks NFT Details Opened event with mobile-nft-list source', () => {

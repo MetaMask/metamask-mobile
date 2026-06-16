@@ -8,6 +8,15 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { mockNetworkState } from '../../../../util/test/network';
 import type { NetworkState } from '@metamask/network-controller';
+import { isHardwareAccount } from '../../../../util/address';
+import { TransactionType } from '@metamask/transaction-controller';
+import { analytics } from '../../../../util/analytics/analytics';
+import { getExternalLinkHostname } from '../../../../util/analytics/externalLinkTracking';
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 const Stack = createStackNavigator();
 const mockEthQuery = {
@@ -69,6 +78,11 @@ const initialState = {
 
 jest.mock('../../../../util/networks/global-network', () => ({
   getGlobalEthQuery: jest.fn(() => mockEthQuery),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: jest.fn(),
 }));
 
 jest.mock('@metamask/controller-utils', () => ({
@@ -302,6 +316,15 @@ describe('TransactionDetails', () => {
 
     fireEvent.press(getByText(props.buttonText));
 
+    expect(analytics.trackEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: 'External Link Clicked',
+        properties: expect.objectContaining({
+          location: 'transaction_details',
+          url_domain: getExternalLinkHostname(props.expectedUrl),
+        }),
+      }),
+    );
     expect(navigationMock.push).toHaveBeenCalledWith('Webview', {
       params: expect.objectContaining({ url: props.expectedUrl }),
       screen: 'SimpleWebview',
@@ -509,6 +532,34 @@ describe('TransactionDetails', () => {
       state: initialState,
     });
 
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" for hardware wallet even when isGasFeeSponsored is true', () => {
+    jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+    renderComponent({
+      state: initialState,
+      transactionObj: {
+        isGasFeeSponsored: true,
+        txParams: { from: '0xHardwareAddress' },
+      },
+    });
+
+    expect(screen.queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" for revoke delegation even when isGasFeeSponsored is true', () => {
+    renderComponent({
+      state: initialState,
+      transactionObj: {
+        isGasFeeSponsored: true,
+        type: TransactionType.revokeDelegation,
+      },
+    });
+
+    expect(screen.queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
     expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
   });
 });

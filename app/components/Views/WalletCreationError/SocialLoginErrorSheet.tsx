@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -22,10 +21,9 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  getSocialAccountType,
+  AccountType,
   WalletCreationErrorCtaType,
 } from '../../../constants/onboarding';
-import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -37,17 +35,16 @@ const FOX_LOGO = require('../../../images/branding/fox.png');
 
 interface SocialLoginErrorSheetProps {
   error?: Error;
+  accountType: AccountType;
 }
 
-const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
+const SocialLoginErrorSheet = ({
+  error,
+  accountType,
+}: SocialLoginErrorSheetProps) => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const oauthProvider = useSelector(selectSeedlessOnboardingAuthConnection);
-  const accountType = useMemo(
-    () => getSocialAccountType(oauthProvider ?? '', false),
-    [oauthProvider],
-  );
 
   useEffect(() => {
     trackEvent(

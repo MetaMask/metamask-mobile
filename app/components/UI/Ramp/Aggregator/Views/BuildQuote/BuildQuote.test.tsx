@@ -1,6 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { Pressable, Text } from 'react-native';
 import type BN4 from 'bnjs4';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
@@ -430,18 +431,6 @@ describe('BuildQuote View', () => {
     expect(mockPop).toBeCalledTimes(1);
   });
 
-  it('calls setOptions when rendering', () => {
-    render(BuildQuote);
-    expect(mockSetOptions).toHaveBeenCalled();
-
-    mockSetOptions.mockReset();
-
-    mockUseRampSDKValues.isBuy = false;
-    mockUseRampSDKValues.isSell = true;
-    render(BuildQuote);
-    expect(mockSetOptions).toHaveBeenCalled();
-  });
-
   it('calls setIntent when params have intent', () => {
     mockUseParamsValues = {
       assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -474,6 +463,14 @@ describe('BuildQuote View', () => {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
+  });
+
+  it('hides back button when showBack is false', () => {
+    mockUseParamsValues = { showBack: false };
+    render(BuildQuote);
+    expect(
+      screen.queryByTestId('deposit-back-navbar-button'),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls endTrace when the conditions are met', () => {
@@ -859,6 +856,48 @@ describe('BuildQuote View', () => {
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();
     });
+
+    it('does not reset the amount when switching assets in the buy flow', () => {
+      const AssetSwitcher = () => {
+        const [, setSelectedAssetVersion] = React.useState(0);
+
+        return (
+          <>
+            <Pressable
+              testID="switch-asset"
+              onPress={() => {
+                mockUseRampSDKValues = {
+                  ...mockUseRampSDKValues,
+                  selectedAsset: mockCryptoCurrenciesData[1],
+                };
+                setSelectedAssetVersion((version) => version + 1);
+              }}
+            >
+              <Text>Switch asset</Text>
+            </Pressable>
+            <BuildQuote />
+          </>
+        );
+      };
+
+      render(AssetSwitcher);
+      const symbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+      const validAmount = VALID_AMOUNT.toString();
+
+      fireEvent.press(getByRoleButton(`${symbol}0`));
+      fireEvent.press(getByRoleButton(validAmount));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${symbol}${validAmount}`);
+
+      fireEvent.press(screen.getByTestId('switch-asset'));
+
+      // The reset is sell-only, so the buy flow keeps the entered fiat amount.
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${symbol}${validAmount}`);
+    });
   });
 
   describe('Amount to sell input', () => {
@@ -1028,6 +1067,85 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
+    });
+
+    it('resets the sell amount when switching assets', () => {
+      const AssetSwitcher = () => {
+        const [, setSelectedAssetVersion] = React.useState(0);
+
+        return (
+          <>
+            <Pressable
+              testID="switch-asset"
+              onPress={() => {
+                mockUseRampSDKValues = {
+                  ...mockUseRampSDKValues,
+                  selectedAsset: mockCryptoCurrenciesData[1],
+                };
+                mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+                  '5.36385',
+                  mockCryptoCurrenciesData[1].decimals || 18,
+                ) as BN4;
+                setSelectedAssetVersion((version) => version + 1);
+              }}
+            >
+              <Text>Switch asset</Text>
+            </Pressable>
+            <BuildQuote />
+          </>
+        );
+      };
+
+      render(AssetSwitcher);
+      const initialSymbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${initialSymbol}`));
+      fireEvent.press(getByRoleButton('50%'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).not.toHaveTextContent(`0 ${initialSymbol}`);
+
+      fireEvent.press(screen.getByTestId('switch-asset'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`0 ${mockCryptoCurrenciesData[1].symbol}`);
+    });
+
+    it('does not reset the sell amount on re-render when the asset is unchanged', () => {
+      const Rerenderer = () => {
+        const [, setVersion] = React.useState(0);
+
+        return (
+          <>
+            <Pressable
+              testID="force-rerender"
+              onPress={() => setVersion((version) => version + 1)}
+            >
+              <Text>Re-render</Text>
+            </Pressable>
+            <BuildQuote />
+          </>
+        );
+      };
+
+      render(Rerenderer);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+      fireEvent.press(getByRoleButton('50%'));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).not.toHaveTextContent(`0 ${symbol}`);
+
+      fireEvent.press(screen.getByTestId('force-rerender'));
+
+      // Same asset key on re-render: the guard prevents a spurious reset, which
+      // is the same mechanism that preserves an intent/deeplink amount on mount.
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).not.toHaveTextContent(`0 ${symbol}`);
     });
 
     it('clears the amount when the keyboard is freshly opened', () => {

@@ -15,6 +15,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
 import AppConstants from '../../../../../core/AppConstants';
+import isUrlFn from 'is-url';
 
 // TODO: @MetaMask/design-system-engineers
 // Use the concrete Box component props here instead of BoxProps.
@@ -39,11 +40,14 @@ export interface SitesSearchFooterProps {
   containerStyle?: BoxComponentProps['style'];
 }
 
+// Note: This regex intentionally does not require a fully valid URL
+const URL_REGEX = /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/;
+
 /**
  * Checks if a string looks like a URL
  */
 function looksLikeUrl(str: string): boolean {
-  return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
+  return isUrlFn(str) || URL_REGEX.test(str);
 }
 
 export const useSearchFooterBrowserNavigation = () => {

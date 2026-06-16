@@ -84,6 +84,7 @@ describe('tokensControllerInit', () => {
       state: undefined,
       chainId: '0x1',
       provider: {},
+      tokenListService: expect.any(Object),
     });
   });
 });

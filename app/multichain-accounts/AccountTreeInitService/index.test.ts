@@ -117,10 +117,5 @@ describe('AccountTreeInitService', () => {
       await service.clearState();
       expect(mockAccountTreeClearState).toHaveBeenCalled();
     });
-
-    it('calls MoneyAccountController.clearState', async () => {
-      await service.clearState();
-      expect(mockMoneyAccountClearState).toHaveBeenCalled();
-    });
   });
 });

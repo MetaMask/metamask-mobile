@@ -1,6 +1,5 @@
 import React from 'react';
 import ManualBackupStep3 from './';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Alert, BackHandler } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
@@ -11,7 +10,7 @@ import Device from '../../../util/device';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('react-native-confetti-cannon', () => {
   const { View } = jest.requireActual('react-native');
@@ -49,8 +48,8 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   ),
 );
 
-jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
       build: jest.fn().mockReturnValue({ event: 'mock-event' }),
     })),
@@ -66,15 +65,20 @@ jest.mock('../../../core/Analytics', () => ({
 jest.mock('../OnboardingSuccess', () => ({
   OnboardingSuccessComponent: ({
     onDone,
-    backedUpSRP,
+    successFlow,
   }: {
     onDone: () => void;
-    backedUpSRP: boolean;
+    successFlow?: string;
   }) => {
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    const { ONBOARDING_SUCCESS_FLOW: Flow } = jest.requireActual(
+      '../../../constants/onboarding',
+    );
     return (
       <TouchableOpacity testID="onboarding-success-done" onPress={onDone}>
-        <Text>{backedUpSRP ? 'backed-up' : 'not-backed-up'}</Text>
+        <Text>
+          {successFlow === Flow.BACKED_UP_SRP ? 'backed-up' : 'not-backed-up'}
+        </Text>
       </TouchableOpacity>
     );
   },
@@ -125,14 +129,6 @@ jest.mock('../AndroidBackHandler', () => {
 });
 
 const mockSetOptions = jest.fn();
-const mockGetTransparentOnboardingNavbarOptions = jest
-  .fn()
-  .mockReturnValue({ headerShown: false });
-
-jest.mock('../../UI/Navbar', () => ({
-  getTransparentOnboardingNavbarOptions: (...args: unknown[]) =>
-    mockGetTransparentOnboardingNavbarOptions(...args),
-}));
 
 describe('ManualBackupStep3', () => {
   it('should render correctly', () => {
@@ -151,11 +147,6 @@ describe('ManualBackupStep3', () => {
   const mockStore = configureMockStore();
   const store = mockStore({});
 
-  const themeValue = {
-    colors: mockTheme.colors,
-    themeAppearance: 'light',
-  };
-
   const createProps = (overrides = {}) => ({
     navigation: {
       setOptions: mockSetOptions,
@@ -172,16 +163,11 @@ describe('ManualBackupStep3', () => {
     ...overrides,
   });
 
-  const renderComponent = (
-    props = createProps(),
-    contextValue: Record<string, unknown> = themeValue,
-  ) => {
+  const renderComponent = (props = createProps()) => {
     const ActualManualBackupStep3 = jest.requireActual('./index').default;
     return render(
       <Provider store={store}>
-        <ThemeContext.Provider value={contextValue}>
-          <ActualManualBackupStep3 {...props} />
-        </ThemeContext.Provider>
+        <ActualManualBackupStep3 {...props} />
       </Provider>,
     );
   };
@@ -233,7 +219,7 @@ describe('ManualBackupStep3', () => {
       });
     });
 
-    it('passes backedUpSRP=true to OnboardingSuccessComponent', async () => {
+    it('passes successFlow BACKED_UP_SRP to OnboardingSuccessComponent', async () => {
       const { getByText } = renderComponent();
 
       await waitFor(() => {
@@ -243,24 +229,11 @@ describe('ManualBackupStep3', () => {
   });
 
   describe('componentDidMount', () => {
-    it('sets navigation options on mount with context colors', async () => {
+    it('does not configure navigation header via setOptions', async () => {
       renderComponent();
 
       await waitFor(() => {
-        expect(mockGetTransparentOnboardingNavbarOptions).toHaveBeenCalledWith(
-          mockTheme.colors,
-        );
-        expect(mockSetOptions).toHaveBeenCalledWith({ headerShown: false });
-      });
-    });
-
-    it('falls back to mockTheme.colors when context has no colors', async () => {
-      renderComponent(createProps(), {});
-
-      await waitFor(() => {
-        expect(mockGetTransparentOnboardingNavbarOptions).toHaveBeenCalledWith(
-          mockTheme.colors,
-        );
+        expect(mockSetOptions).not.toHaveBeenCalled();
       });
     });
 
@@ -317,21 +290,26 @@ describe('ManualBackupStep3', () => {
 
   describe('componentWillUnmount', () => {
     it('removes BackHandler listener on unmount', async () => {
-      const removeSpy = jest.spyOn(BackHandler, 'removeEventListener');
+      const mockRemove = jest.fn();
+      const addSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
+
       const { unmount } = renderComponent();
 
       await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
+        expect(BackHandler.addEventListener).toHaveBeenCalled();
       });
 
       unmount();
 
-      expect(removeSpy).toHaveBeenCalledWith(
+      expect(addSpy).toHaveBeenCalledWith(
         'hardwareBackPress',
         expect.any(Function),
       );
+      expect(mockRemove).toHaveBeenCalled();
 
-      removeSpy.mockRestore();
+      addSpy.mockRestore();
     });
   });
 
@@ -491,7 +469,7 @@ describe('ManualBackupStep3', () => {
       fireEvent.press(getByTestId('hint-confirm'));
 
       await waitFor(() => {
-        expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
         );
         expect(trackOnboarding).toHaveBeenCalledWith(

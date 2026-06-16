@@ -24,6 +24,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import Device from '../../../util/device';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';

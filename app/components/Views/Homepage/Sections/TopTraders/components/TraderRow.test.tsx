@@ -8,6 +8,7 @@ import TraderRow from './TraderRow';
 
 const baseTrader: TopTrader = {
   id: 'trader-1',
+  address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
   username: 'sniperliquid',
@@ -33,7 +34,7 @@ describe('TraderRow', () => {
     expect(screen.getByText('1')).toBeOnTheScreen();
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
     expect(screen.getByText('+43.0%')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
+    expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
   });
 
   it('renders avatar image when avatarUri is present', () => {
@@ -43,7 +44,7 @@ describe('TraderRow', () => {
     expect(screen.getByTestId('trader-row-trader-1')).toBeOnTheScreen();
   });
 
-  it('renders fallback AvatarBase when avatarUri is absent', () => {
+  it('renders Maskicon fallback when avatarUri is absent', () => {
     const traderNoAvatar = { ...baseTrader, avatarUri: undefined };
     renderWithProvider(
       <TraderRow trader={traderNoAvatar} onFollowPress={mockOnFollowPress} />,
@@ -131,7 +132,7 @@ describe('TraderRow', () => {
       <TraderRow trader={negativeTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('-15.3%')).toBeOnTheScreen();
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 
   it('uses custom testID when provided', () => {

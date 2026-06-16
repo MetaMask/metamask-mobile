@@ -11,10 +11,12 @@ import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testId
 import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
 
 const FALLBACK_TYPES = [
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
   TransactionType.musdClaim,
+  TransactionType.revokeDelegation,
 ];
 
 export function TransactionDetailsNetworkFeeRow() {

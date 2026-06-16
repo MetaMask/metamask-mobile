@@ -1,6 +1,21 @@
 import type { PredictMarket } from '../types';
 import { isCryptoUpDown } from './cryptoUpDown';
 
+export function isStandaloneMarket(market: PredictMarket): boolean {
+  const { parentMarketId } = market;
+  return (
+    parentMarketId === undefined ||
+    parentMarketId === null ||
+    String(parentMarketId).trim() === ''
+  );
+}
+
+export function filterStandaloneMarkets(
+  markets: PredictMarket[],
+): PredictMarket[] {
+  return markets.filter(isStandaloneMarket);
+}
+
 /**
  * Keeps only the first occurrence of each Crypto Up/Down series slug.
  * Non-Up/Down markets pass through unchanged.

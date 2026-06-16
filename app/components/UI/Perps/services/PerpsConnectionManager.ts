@@ -1441,16 +1441,16 @@ class PerpsConnectionManagerClass {
   }
 
   /**
-   * Clear DEX abstraction cache for a specific address
+   * Clear unified account cache for a specific address
    * Useful for debugging or allowing user to retry after rejecting signature
-   * Note: This only clears DEX abstraction state, preserving builder fee and referral states
+   * Note: This only clears unified account state, preserving builder fee and referral states
    */
-  clearDexAbstractionCache(
+  clearUnifiedAccountCache(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): void {
-    TradingReadinessCache.clearDexAbstraction(network, userAddress);
-    DevLogger.log('PerpsConnectionManager: DEX abstraction cache cleared', {
+    TradingReadinessCache.clearUnifiedAccount(network, userAddress);
+    DevLogger.log('PerpsConnectionManager: Unified Account cache cleared', {
       network,
       userAddress,
     });

@@ -1,41 +1,67 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { LayoutChangeEvent, TextInput } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
+  AvatarToken,
+  AvatarTokenSize,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import TextField from '../../../../../../component-library/components/Form/TextField';
-import { strings } from '../../../../../../../locales/i18n';
-import { KeyValueRowStubs } from '../../../../../../component-library/components-temp/KeyValueRow';
-import { handleDeeplink } from '../../../../../../core/DeeplinkManager';
-import useFiatFormatter from '../../../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import { BigNumber } from 'bignumber.js';
 import { EthScope } from '@metamask/keyring-api';
+import { CaipAssetType } from '@metamask/utils';
+import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { handleDeeplink } from '../../../../../../core/DeeplinkManager';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeToken } from '../../../../Bridge/types';
+import { getTokenIconUrl } from '../../../../Bridge/utils';
+import { getNativeSourceToken } from '../../../../Bridge/utils/tokenUtils';
 import {
+  MUSD_CONVERSION_APY,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../../Earn/constants/musd';
-import { getTokenIconUrl } from '../../../../Bridge/utils';
-import { CaipAssetType } from '@metamask/utils';
-import { getNativeSourceToken } from '../../../../Bridge/utils/tokenUtils';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { RewardsMetricsButtons } from '../../../utils';
+import { formatCompactUsd, formatUsd } from '../../../utils/formatUtils';
+import {
+  amountToPercent,
+  clampAmount,
+  MAX_AMOUNT as MAX_SLIDER_AMOUNT,
+  MUSD_CALCULATOR_APY,
+  percentToAmount,
+  SNAP_POINTS,
+} from '../../../utils/musdCalculatorSlider';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 
-const ANNUAL_BONUS_RATE = 0.03;
 const BUY_MUSD_URL =
   'https://link.metamask.io/buy?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&amount=100&chainid=1&sig_params=address%2Camount%2Cchainid%2Cutm_source&utm_source=rewards&sig=SdHOoh_QvT1bs8B6g-qCyLH5mUEczYzeOfAv9SNRm4CKjR6uBnUp4e1-Vcojb39fWWScBrui2GLftNlJKQlrAQ';
 
@@ -51,41 +77,199 @@ const MUSD_DEST_TOKEN: BridgeToken = {
   ),
 };
 
+const TRACK_HEIGHT = 12;
+const THUMB_SIZE_REST = 24;
+const THUMB_SIZE_DRAG = 32;
+const THUMB_DRAG_SCALE = THUMB_SIZE_DRAG / THUMB_SIZE_REST;
+const SLIDER_ROW_HEIGHT = 32;
+/** ms between JS amount updates while dragging — keeps labels in sync without a re-render every frame */
+const SLIDER_AMOUNT_THROTTLE_MS = 48;
+const INITIAL_AMOUNT = SNAP_POINTS[1];
+const KEYBOARD_EXTRA_SCROLL_HEIGHT = 20;
+const MAX_DECIMAL_PLACES = 2;
+const MAX_INPUT_AMOUNT = 10_000_000;
+const COMPACT_USD_THRESHOLD = 100_000;
+
+const normalizeAmountInput = (value: string) => {
+  const numeric = value.replace(/[^0-9.]/g, '');
+  const [whole = '', ...decimalParts] = numeric.split('.');
+
+  if (decimalParts.length === 0) {
+    return whole;
+  }
+
+  return `${whole}.${decimalParts.join('').slice(0, MAX_DECIMAL_PLACES)}`;
+};
+
+const getAmountInputState = (value: string) => {
+  const inputValue = normalizeAmountInput(value);
+  const numericAmount = Number(inputValue);
+
+  if (Number.isFinite(numericAmount) && numericAmount > MAX_INPUT_AMOUNT) {
+    return {
+      amount: MAX_INPUT_AMOUNT,
+      inputValue: String(MAX_INPUT_AMOUNT),
+    };
+  }
+
+  return {
+    amount: Number.isFinite(numericAmount) ? numericAmount : 0,
+    inputValue,
+  };
+};
+
+const useMusdSlider = (
+  amount: number,
+  onAmountChange: (nextAmount: number) => void,
+) => {
+  const thumbScale = useSharedValue(1);
+  const trackWidthShared = useSharedValue(0);
+  const thumbLinearPctShared = useSharedValue(amountToPercent(INITIAL_AMOUNT));
+  const lastThrottledAmountSyncRef = useRef(0);
+
+  useEffect(() => {
+    thumbLinearPctShared.value = amountToPercent(
+      Math.min(amount, MAX_SLIDER_AMOUNT),
+    );
+  }, [amount, thumbLinearPctShared]);
+
+  const syncAmountFromLinearPct = useCallback(
+    (linearPct: number, force: boolean) => {
+      const now = globalThis.performance.now();
+      if (
+        !force &&
+        now - lastThrottledAmountSyncRef.current < SLIDER_AMOUNT_THROTTLE_MS
+      ) {
+        return;
+      }
+      lastThrottledAmountSyncRef.current = now;
+      onAmountChange(clampAmount(percentToAmount(linearPct)));
+    },
+    [onAmountChange],
+  );
+
+  const commitSliderAtX = useCallback(
+    (x: number) => {
+      const w = trackWidthShared.value;
+      if (w <= 0) {
+        return;
+      }
+      const clampedX = Math.max(0, Math.min(w, x));
+      const linearPct = (clampedX / w) * 100;
+      thumbLinearPctShared.value = linearPct;
+      const next = clampAmount(percentToAmount(linearPct));
+      onAmountChange(next);
+      thumbLinearPctShared.value = amountToPercent(next);
+      lastThrottledAmountSyncRef.current = 0;
+    },
+    [onAmountChange, thumbLinearPctShared, trackWidthShared],
+  );
+
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .minDistance(2)
+        .onBegin(() => {
+          thumbScale.value = withTiming(THUMB_DRAG_SCALE, { duration: 150 });
+        })
+        .onUpdate((e) => {
+          const w = trackWidthShared.value;
+          if (w <= 0) {
+            return;
+          }
+          const clampedX = Math.max(0, Math.min(w, e.x));
+          const linearPct = (clampedX / w) * 100;
+          thumbLinearPctShared.value = linearPct;
+          runOnJS(syncAmountFromLinearPct)(linearPct, false);
+        })
+        .onEnd((e) => {
+          runOnJS(commitSliderAtX)(e.x);
+        })
+        .onFinalize(() => {
+          thumbScale.value = withTiming(1, { duration: 150 });
+        }),
+    [
+      thumbScale,
+      thumbLinearPctShared,
+      trackWidthShared,
+      syncAmountFromLinearPct,
+      commitSliderAtX,
+    ],
+  );
+
+  const tapGesture = useMemo(
+    () =>
+      Gesture.Tap().onEnd((e) => {
+        runOnJS(commitSliderAtX)(e.x);
+      }),
+    [commitSliderAtX],
+  );
+
+  const sliderGesture = useMemo(
+    () => Gesture.Simultaneous(tapGesture, panGesture),
+    [tapGesture, panGesture],
+  );
+
+  const animatedFillStyle = useAnimatedStyle(() => {
+    const w = trackWidthShared.value;
+    const pct = thumbLinearPctShared.value;
+    return { width: (pct / 100) * w };
+  });
+
+  const animatedThumbStyle = useAnimatedStyle(() => {
+    const w = trackWidthShared.value;
+    const pct = thumbLinearPctShared.value;
+    const filled = (pct / 100) * w;
+    return {
+      transform: [{ scale: thumbScale.value }],
+      left: filled - THUMB_SIZE_REST / 2,
+    };
+  });
+
+  const handleSliderLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      trackWidthShared.value = event.nativeEvent.layout.width;
+    },
+    [trackWidthShared],
+  );
+
+  return {
+    animatedFillStyle,
+    animatedThumbStyle,
+    handleSliderLayout,
+    sliderGesture,
+  };
+};
+
 const MusdCalculatorTab: React.FC = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [musdAmount, setMusdAmount] = useState('1000');
+  const [amount, setAmount] = useState<number>(INITIAL_AMOUNT);
 
   const ethSourceToken = useMemo(
     () => getNativeSourceToken(EthScope.Mainnet),
     [],
   );
 
-  const musdCalculations = useMemo(() => {
-    const amount = parseFloat(musdAmount) || 0;
-    const annualizedBonus = amount * ANNUAL_BONUS_RATE;
-    const dailyBonus = annualizedBonus / 365;
-    return {
-      initialAmount: amount,
-      dailyBonus,
-      annualizedBonus,
-    };
-  }, [musdAmount]);
-
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const formatCurrency = useCallback(
-    (value: number) => formatFiat(new BigNumber(value)),
-    [formatFiat],
+  const [amountInputValue, setAmountInputValue] = useState(() =>
+    String(INITIAL_AMOUNT),
   );
-
-  const handleMusdAmountChange = useCallback((text: string) => {
-    const sanitized = text.replace(/[^0-9.]/g, '');
-    const parts = sanitized.split('.');
-    if (parts.length > 2) {
-      return;
-    }
-    setMusdAmount(sanitized);
+  const handleAmountChange = useCallback((nextAmount: number) => {
+    setAmount(nextAmount);
+    setAmountInputValue(String(nextAmount));
   }, []);
+  const slider = useMusdSlider(amount, handleAmountChange);
+
+  const scaleMinLabel = formatUsd(SNAP_POINTS[0]);
+  const scaleMidLabel = formatUsd(SNAP_POINTS[1]);
+  const scaleMaxLabel = formatUsd(SNAP_POINTS[2]);
+
+  const yearlyEarnings = amount * MUSD_CALCULATOR_APY;
+  const dailyEarnings = yearlyEarnings / 365;
+  const yearlyEarningsLabel =
+    amount >= COMPACT_USD_THRESHOLD
+      ? formatCompactUsd(yearlyEarnings, { maximumFractionDigits: 0 })
+      : formatUsd(yearlyEarnings);
 
   const handleBuyMusd = useCallback(() => {
     trackEvent(
@@ -112,104 +296,241 @@ const MusdCalculatorTab: React.FC = () => {
     goToSwaps();
   }, [goToSwaps, trackEvent, createEventBuilder]);
 
+  const handleAmountInputChange = useCallback((value: string) => {
+    const nextInputState = getAmountInputState(value);
+    setAmountInputValue(nextInputState.inputValue);
+    setAmount(nextInputState.amount);
+  }, []);
+
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={tw.style('flex-1')}
-      contentContainerStyle={tw.style('p-4 gap-4')}
+      contentContainerStyle={tw.style('flex-grow px-4 pb-4 pt-2')}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="none"
+      enableOnAndroid
+      enableAutomaticScroll
+      enableResetScrollToCoords={false}
+      extraScrollHeight={KEYBOARD_EXTRA_SCROLL_HEIGHT}
+      testID="musd-calculator-keyboard-aware-scroll-view"
     >
-      {/* Title and Description */}
-      <Box twClassName="gap-2">
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.musd.title')}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>
-          {strings('rewards.musd.description')}
-        </Text>
-      </Box>
-
-      {/* Amount Input */}
-      <KeyValueRowStubs.Root>
-        <Box twClassName="w-1/2 justify-center">
-          <Text variant={TextVariant.BodyMd}>
-            {strings('rewards.musd.amount_label')}
-          </Text>
-        </Box>
-        <Box twClassName="w-1/2">
-          <TextField
-            testID="musd-amount-input"
-            value={musdAmount}
-            onChangeText={handleMusdAmountChange}
-            keyboardType="decimal-pad"
-            startAccessory={<Text variant={TextVariant.BodyMd}>$</Text>}
-            placeholder="0"
+      <Box twClassName="flex-1 flex-col">
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-1"
+        >
+          <AvatarToken
+            name={MUSD_TOKEN.symbol}
+            src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
+            size={AvatarTokenSize.Xl}
           />
+
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            twClassName="mt-4"
+          >
+            <Text
+              variant={TextVariant.DisplayMd}
+              twClassName="text-center font-semibold"
+            >
+              {strings('rewards.musd.hero_hold')}
+            </Text>
+            <Text
+              variant={TextVariant.DisplayMd}
+              color={TextColor.SuccessDefault}
+              twClassName="text-center font-semibold"
+            >
+              {strings('rewards.musd.hero_earn')}
+            </Text>
+          </Box>
+
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            twClassName="mt-4 mb-6"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Baseline}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="gap-1 overflow-visible"
+            >
+              <Text
+                variant={TextVariant.DisplayLg}
+                color={TextColor.SuccessDefault}
+                twClassName="text-[64px] leading-[72px] font-semibold"
+              >
+                {strings('rewards.musd.yearly_positive_prefix')}
+                {yearlyEarningsLabel}
+              </Text>
+              <Text
+                variant={TextVariant.HeadingMd}
+                color={TextColor.SuccessDefault}
+                twClassName="text-2xl font-semibold"
+              >
+                {strings('rewards.musd.earnings_per_year_suffix')}
+              </Text>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="gap-2"
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+              >
+                {formatUsd(dailyEarnings)}
+                {strings('rewards.musd.earnings_per_day_suffix')}
+              </Text>
+            </Box>
+          </Box>
+
+          <Box twClassName="w-full gap-2">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+            >
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('rewards.musd.slider_amount_label')}
+              </Text>
+              <TextInput
+                keyboardType="numeric"
+                returnKeyType="done"
+                onChangeText={handleAmountInputChange}
+                selectTextOnFocus
+                value={amountInputValue}
+                accessibilityLabel={strings('rewards.musd.slider_amount_label')}
+                testID="musd-slider-amount-display"
+                style={tw.style(
+                  'min-w-[96px] p-0 text-right text-base font-medium text-default',
+                )}
+              />
+            </Box>
+
+            <GestureDetector gesture={slider.sliderGesture}>
+              <Animated.View
+                testID="musd-slider-track"
+                accessibilityRole="adjustable"
+                accessibilityValue={{ text: formatUsd(amount) }}
+                onLayout={slider.handleSliderLayout}
+                style={tw.style('h-8 w-full justify-center')}
+              >
+                <Box
+                  twClassName="absolute left-0 right-0 rounded-full bg-muted"
+                  style={{
+                    height: TRACK_HEIGHT,
+                    top: (SLIDER_ROW_HEIGHT - TRACK_HEIGHT) / 2,
+                  }}
+                />
+                <Animated.View
+                  style={[
+                    tw.style('absolute left-0 rounded-full bg-success-default'),
+                    {
+                      height: TRACK_HEIGHT,
+                      top: (SLIDER_ROW_HEIGHT - TRACK_HEIGHT) / 2,
+                    },
+                    slider.animatedFillStyle,
+                  ]}
+                />
+                <Animated.View
+                  style={[
+                    tw.style(
+                      'absolute rounded-full border-3 border-muted bg-white shadow-md',
+                    ),
+                    {
+                      width: THUMB_SIZE_REST,
+                      height: THUMB_SIZE_REST,
+                      top: (SLIDER_ROW_HEIGHT - THUMB_SIZE_REST) / 2,
+                    },
+                    slider.animatedThumbStyle,
+                  ]}
+                />
+              </Animated.View>
+            </GestureDetector>
+
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="mt-1"
+            >
+              <Box twClassName="min-w-[72px] flex-1 items-start">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  testID="musd-slider-scale-min"
+                >
+                  {scaleMinLabel}
+                </Text>
+              </Box>
+              <Box twClassName="min-w-[72px] flex-1 items-center">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  testID="musd-slider-scale-mid"
+                >
+                  {scaleMidLabel}
+                </Text>
+              </Box>
+              <Box twClassName="min-w-[72px] flex-1 items-end">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  testID="musd-slider-scale-max"
+                >
+                  {scaleMaxLabel}
+                </Text>
+              </Box>
+            </Box>
+          </Box>
         </Box>
-      </KeyValueRowStubs.Root>
 
-      {/* Estimated Bonus Rate */}
-      <Text variant={TextVariant.BodyMd}>
-        {strings('rewards.musd.estimated_bonus')}
-      </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="mb-6 max-w-[361px] self-center text-center leading-[22px]"
+        >
+          {strings('rewards.musd.disclaimer_calculator', {
+            apy: MUSD_CONVERSION_APY,
+          })}
+        </Text>
 
-      {/* Results Card */}
-      <Box twClassName="bg-muted rounded-lg p-4 gap-3">
-        <Box twClassName="flex-row justify-between items-center">
-          <Text variant={TextVariant.BodyMd}>
-            {strings('rewards.musd.initial_amount')}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>
-            {formatCurrency(musdCalculations.initialAmount)}
-          </Text>
-        </Box>
-
-        <Box twClassName="flex-row justify-between items-center">
-          <Text variant={TextVariant.BodyMd}>
-            {strings('rewards.musd.daily_bonus')}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>
-            {formatCurrency(musdCalculations.dailyBonus)}
-          </Text>
-        </Box>
-
-        <Box twClassName="flex-row justify-between items-center">
-          <Text variant={TextVariant.BodyMd}>
-            {strings('rewards.musd.annualized_bonus')}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>
-            {formatCurrency(musdCalculations.annualizedBonus)}
-          </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Stretch}
+          twClassName="gap-4 py-4 mb-2"
+        >
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={handleSwapMusd}
+            twClassName="min-h-12 flex-1"
+            testID="musd-swap-button"
+          >
+            {strings('rewards.musd.swap_button')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={handleBuyMusd}
+            twClassName="min-h-12 flex-1"
+            testID="musd-buy-button"
+          >
+            {strings('rewards.musd.buy_button')}
+          </Button>
         </Box>
       </Box>
-
-      {/* Action Buttons */}
-      <Box twClassName="gap-3">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={handleBuyMusd}
-          twClassName="w-full"
-        >
-          {strings('rewards.musd.buy_button')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          onPress={handleSwapMusd}
-          twClassName="w-full"
-        >
-          {strings('rewards.musd.swap_button')}
-        </Button>
-      </Box>
-
-      {/* Disclaimer */}
-      <Text
-        variant={TextVariant.BodyXs}
-        color={TextColor.TextAlternative}
-        twClassName="text-center"
-      >
-        {strings('rewards.musd.disclaimer_brief')}
-      </Text>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 

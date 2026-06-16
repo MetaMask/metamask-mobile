@@ -30,6 +30,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import {
   decodeBridgeTx,
   decodeSwapsTx,
+  isBridgeTxHistoryItemBridge,
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
@@ -839,15 +840,7 @@ function decodeConfirmTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
-  const chainId = txChainId;
 
-  const tokenList =
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data || [];
-  let symbol;
-  if (renderTo in tokenList) {
-    symbol = tokenList[renderTo].symbol;
-  }
   let transactionType;
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
@@ -876,7 +869,7 @@ function decodeConfirmTx(args) {
   const transactionElement = {
     renderTo,
     renderFrom,
-    actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+    actionKey,
     value: renderTotalEth,
     fiatValue: renderTotalEthFiat,
     transactionType,
@@ -1030,22 +1023,25 @@ export default async function decodeTransaction(args) {
   );
   let transactionElement, transactionDetails;
 
-  if (args.bridgeTxHistoryData?.bridgeTxHistoryItem) {
+  const bridgeTxHistoryItem = args.bridgeTxHistoryData?.bridgeTxHistoryItem;
+  if (bridgeTxHistoryItem) {
     // Unified Swaps, reads tx data from BridgeStatusController
-    if (tx.type === TransactionType.swap) {
-      const [transactionElement, transactionDetails] = decodeSwapsTx({
-        ...args,
-        actionKey,
-      });
-      return [transactionElement, transactionDetails];
-    }
-    if (tx.type === TransactionType.bridge) {
+    if (
+      tx.type === TransactionType.bridge ||
+      isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)
+    ) {
       const [transactionElement, transactionDetails] = decodeBridgeTx({
         ...args,
         actionKey,
       });
       return [transactionElement, transactionDetails];
     }
+
+    const [transactionElement, transactionDetails] = decodeSwapsTx({
+      ...args,
+      actionKey,
+    });
+    return [transactionElement, transactionDetails];
   }
 
   if (isTransfer) {

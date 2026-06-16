@@ -13,6 +13,7 @@ import Rive, {
 import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
+import { hasTestOverrides } from '../../../util/test/utils';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -23,33 +24,36 @@ const SPLASH_STATE_MACHINE = 'Splash_animation';
 const SPLASH_IDLE_STATE = 'Blink and look around (Shorter)';
 // Maximum time to wait for the animation to complete before forcing the app to show.
 // Guards against silent failures: corrupted .riv file, stuck state machine, unsupported renderer.
-const ANIMATION_TIMEOUT_MS = 5_000;
+const ANIMATION_TIMEOUT_MS = 3_000;
 
 // Persist across remounts so animation state is consistent for the app session
 let animationStarted = false;
 let animationComplete = false;
-
-// Use Canvas renderer on Android — the default Rive SurfaceView causes geometry distortion
-if (Platform.OS === 'android') {
-  try {
-    RiveRenderer.defaultRenderer(
-      RiveRendererIOS.Rive,
-      RiveRendererAndroid.Canvas,
-    );
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to set Rive Canvas renderer on Android',
-    );
-  }
-}
 
 interface FoxLoaderProps {
   appServicesReady?: boolean;
   onAnimationComplete?: () => void;
 }
 
-const FoxLoader = ({
+const FoxLoaderE2E = ({
+  onAnimationComplete = () => undefined,
+}: Pick<FoxLoaderProps, 'onAnimationComplete'>) => {
+  const onAnimationCompleteRef = useRef(onAnimationComplete);
+  onAnimationCompleteRef.current = onAnimationComplete;
+
+  useEffect(() => {
+    hideAsync().catch((error: unknown) =>
+      Logger.error(error as Error, 'Failed to hide splash screen in E2E mode'),
+    );
+    // eslint-disable-next-line react-compiler/react-compiler
+    animationComplete = true;
+    onAnimationCompleteRef.current?.();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null;
+};
+
+const FoxLoaderAnimation = ({
   appServicesReady = false,
   onAnimationComplete = () => undefined,
 }: FoxLoaderProps) => {
@@ -122,14 +126,11 @@ const FoxLoader = ({
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!isCompleteRef.current) {
-        // Only log an error if the animation genuinely got stuck globally.
-        // If animationComplete is true, the primary instance finished successfully —
-        // this is a secondary instance (LockScreen, AppFlow) that mounted mid-animation.
+        // Expected on devices where Rive can't play (e.g. unsupported renderer on
+        // low-end Android); the static fox fallback handles it. Log without
+        // raising a Sentry error.
         if (!animationComplete) {
-          Logger.error(
-            new Error('Splash animation timed out'),
-            'FoxLoader: forcing app reveal after timeout',
-          );
+          Logger.log('FoxLoader: forcing app reveal after timeout');
         }
         // Ensure the native splash is hidden even if onLoad never fired on the static fox image.
         hideAsync().catch((error: unknown) =>
@@ -230,6 +231,14 @@ const FoxLoader = ({
       </View>
     </SafeAreaView>
   );
+};
+
+const FoxLoader = (props: FoxLoaderProps) => {
+  if (hasTestOverrides) {
+    return <FoxLoaderE2E onAnimationComplete={props.onAnimationComplete} />;
+  }
+
+  return <FoxLoaderAnimation {...props} />;
 };
 
 export default FoxLoader;

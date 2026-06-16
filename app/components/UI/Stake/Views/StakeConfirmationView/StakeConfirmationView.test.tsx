@@ -1,8 +1,11 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import StakeConfirmationView from './StakeConfirmationView';
+import StakeConfirmationView, {
+  STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID,
+} from './StakeConfirmationView';
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -12,6 +15,8 @@ import { StakeConfirmationViewRouteParams } from './StakeConfirmationView.types'
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -74,13 +79,18 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
-      setOptions: jest.fn(),
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       key: '1',
@@ -96,6 +106,24 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({
+  name: 'STAKE_CONFIRMATION_BACK_CLICKED',
+});
+const mockEventBuilder = {
+  addProperties: mockAddProperties,
+  build: mockBuild,
+};
+const mockCreateEventBuilder = jest.fn().mockReturnValue(mockEventBuilder);
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
@@ -117,13 +145,49 @@ jest.mock('../../hooks/usePooledStakes', () => ({
 }));
 
 describe('StakeConfirmationView', () => {
-  it('renders stake confirmation view', () => {
-    const { getByText } = renderWithProvider(
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const renderView = () =>
+    renderWithProvider(
       <Provider store={store}>
         <StakeConfirmationView />
       </Provider>,
     );
 
+  it('renders stake confirmation view', () => {
+    const { getByText } = renderView();
+
     expect(getByText(strings('stake.staking_from'))).toBeOnTheScreen();
+  });
+
+  it('renders header with the stake title', () => {
+    const { getByText } = renderView();
+
+    expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack on back press', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks STAKE_CONFIRMATION_BACK_CLICKED on back press', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.STAKE_CONFIRMATION_BACK_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      selected_provider: EVENT_PROVIDERS.CONSENSYS,
+      location: EVENT_LOCATIONS.STAKE_CONFIRMATION_VIEW,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 });

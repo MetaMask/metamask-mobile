@@ -67,7 +67,9 @@ import {
   CashbackWithdrawResponse,
   type DelegationChallengeResponse,
   emptyCardHomeData,
+  isCardAuthTokenError,
 } from '../provider-types';
+import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
@@ -315,20 +317,39 @@ export class BaanxProvider implements ICardProvider {
 
   async refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens> {
     if (!tokens.refreshToken) {
-      throw new Error('No refresh token available');
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'No refresh token available',
+        401,
+      );
     }
 
-    const response = await this.service.request<CardExchangeTokenRawResponse>(
-      '/v1/auth/oauth/token',
-      {
-        method: 'POST',
-        body: {
-          grant_type: 'refresh_token',
-          refresh_token: tokens.refreshToken,
+    let response: CardExchangeTokenRawResponse;
+    try {
+      response = await this.service.request<CardExchangeTokenRawResponse>(
+        '/v1/auth/oauth/token',
+        {
+          method: 'POST',
+          body: {
+            grant_type: 'refresh_token',
+            refresh_token: tokens.refreshToken,
+          },
+          headers: { 'x-secret-key': this.service.apiKey },
         },
-        headers: { 'x-secret-key': this.service.apiKey },
-      },
-    );
+      );
+    } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        [400, 401, 403].includes(error.statusCode)
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.InvalidCredentials,
+          'Refresh token rejected',
+          error.statusCode,
+        );
+      }
+      throw mapApiError(error, 'refreshTokens');
+    }
 
     return {
       accessToken: response.access_token,
@@ -370,6 +391,16 @@ export class BaanxProvider implements ICardProvider {
     _address: string,
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
+    const swallowUnlessAuthError =
+      (logContext: string) =>
+      (err: unknown): null => {
+        if (isCardAuthTokenError(err)) {
+          throw mapApiError(err, logContext);
+        }
+        Logger.error(err as Error, getErrorContext(logContext));
+        return null;
+      };
+
     try {
       const [delegationSettings, cardDetailsResponse, user] = await Promise.all(
         [
@@ -378,26 +409,15 @@ export class BaanxProvider implements ICardProvider {
               '/v1/delegation/chain/config',
               tokens,
             )
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.delegationSettings'),
-              );
-              return null;
-            }),
+            .catch(
+              swallowUnlessAuthError('getCardHomeData.delegationSettings'),
+            ),
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.cardDetails'),
-              );
-              return null;
-            }),
-          this.service.get<UserResponse>('/v1/user', tokens).catch((err) => {
-            Logger.error(err as Error, getErrorContext('getCardHomeData.user'));
-            return null;
-          }),
+            .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
+          this.service
+            .get<UserResponse>('/v1/user', tokens)
+            .catch(swallowUnlessAuthError('getCardHomeData.user')),
         ],
       );
 
@@ -468,6 +488,9 @@ export class BaanxProvider implements ICardProvider {
         delegationSettings,
       };
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw error;
+      }
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
     }
@@ -601,6 +624,26 @@ export class BaanxProvider implements ICardProvider {
       nonce: response.nonce,
       expiresAt: response.expiresAt,
     };
+  }
+
+  generateCardDelegationSignatureMessage(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string {
+    const { network, address, nonce, caipChainId } = params;
+    const now = new Date();
+    const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+    const uri = `https://${domain}`;
+
+    if (network === 'solana') {
+      return `${domain} wants you to sign in with your Solana account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: 1\nNonce: ${nonce}\nIssued At: ${now.toISOString()}`;
+    }
+
+    const expirationTime = new Date(now.getTime() + 2 * 60 * 1000);
+    const chainId = caipChainId?.split(':')[1] ?? '59144';
+    return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
   }
 
   // -- Funding Approval --
@@ -1292,7 +1335,10 @@ export class BaanxProvider implements ICardProvider {
           .get<
             CardWalletExternalPriorityResponse[]
           >('/v1/wallet/external/priority', tokens)
-          .catch(() => [] as CardWalletExternalPriorityResponse[]),
+          .catch((err) => {
+            if (isCardAuthTokenError(err)) throw err;
+            return [] as CardWalletExternalPriorityResponse[];
+          }),
       ]);
 
       if (!rawWallets?.length) return [];
@@ -1344,6 +1390,9 @@ export class BaanxProvider implements ICardProvider {
 
       return enriched.sort((a, b) => a.priority - b.priority);
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw mapApiError(error, 'fetchWalletDetails');
+      }
       Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
       return [];
     }
@@ -1431,6 +1480,10 @@ export class BaanxProvider implements ICardProvider {
             country: user.countryOfResidence ?? '',
           }
         : null,
+      countryOfResidence: user.countryOfResidence
+        ? user.countryOfResidence.toUpperCase()
+        : null,
+      usState: user.usState ? user.usState.toUpperCase() : null,
     };
   }
 
@@ -1510,9 +1563,9 @@ export class BaanxProvider implements ICardProvider {
   }
 
   /**
-   * Merges user's delegated assets with all tokens from delegation settings.
-   * Tokens already in `assets` (matched by token contract address + chainId) are kept.
-   * Additional tokens from settings are added as inactive with zero balance.
+   * Enriches funding assets with `delegationContract` from matching networks.
+   * Inactive placeholders are synthesized by `selectCardAvailableTokens` so
+   * they reflect the current wallet without requiring a refetch.
    */
   private buildSupportedTokens(
     fundingAssets: CardFundingAsset[],
@@ -1534,50 +1587,11 @@ export class BaanxProvider implements ICardProvider {
       const info =
         cardNetworkInfos[networkName as keyof typeof cardNetworkInfos];
       const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
-      const isNonProduction = network.environment !== 'production';
 
-      // Enrich existing assets with delegationContract from their matching network
       for (const existing of result) {
         if (existing.chainId === chainId && !existing.delegationContract) {
           existing.delegationContract = network.delegationContract;
         }
-      }
-
-      for (const tokenConfig of Object.values(network.tokens ?? {})) {
-        if (!tokenConfig.address) continue;
-
-        const alreadyExists = result.some(
-          (a) =>
-            a.address?.toLowerCase() === tokenConfig.address.toLowerCase() &&
-            a.chainId === chainId,
-        );
-        if (alreadyExists) continue;
-
-        const chainTokens =
-          this.cardFeatureFlag?.chains?.[chainId]?.tokens ?? [];
-        const sdkToken = chainTokens.find(
-          (t) => t?.symbol?.toLowerCase() === tokenConfig.symbol?.toLowerCase(),
-        );
-
-        result.push({
-          symbol: sdkToken?.symbol ?? tokenConfig.symbol,
-          name: sdkToken?.name ?? tokenConfig.symbol,
-          address:
-            isNonProduction && sdkToken?.address
-              ? sdkToken.address
-              : tokenConfig.address,
-          walletAddress: '',
-          decimals: tokenConfig.decimals,
-          chainId,
-          spendableBalance: '0',
-          spendingCap: '0',
-          priority: Number.MAX_SAFE_INTEGER,
-          status: FundingAssetStatus.Inactive,
-          stagingTokenAddress: isNonProduction
-            ? tokenConfig.address
-            : undefined,
-          delegationContract: network.delegationContract,
-        });
       }
     }
 

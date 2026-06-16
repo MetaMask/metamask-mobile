@@ -17,6 +17,7 @@ import {
   selectOnboardingReferralCode,
 } from '../../../../../../reducers/rewards/selectors';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVipProgramEnabled } from '../../../../../../selectors/featureFlagController/vipProgram';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -210,19 +211,24 @@ jest.mock('@metamask/design-system-react-native', () => {
       onChangeText?: (text: string) => void;
       placeholder?: string;
       isDisabled?: boolean;
+      endAccessory?: React.ReactNode;
+      inputProps?: { testID?: string; [key: string]: unknown };
       [key: string]: unknown;
     }) => {
       const { TextInput: RNTextInput } = jest.requireActual('react-native');
+      const wrapperTestId = props.testID ?? 'text-field';
+      const inputTestId = props.inputProps?.testID ?? `${wrapperTestId}-input`;
       return ReactActual.createElement(
         View,
-        { testID: props.testID || 'text-field' },
+        { testID: wrapperTestId },
         ReactActual.createElement(RNTextInput, {
-          testID: `${props.testID || 'text-field'}-input`,
+          testID: inputTestId,
           value: props.value,
           onChangeText: props.onChangeText,
           placeholder: props.placeholder,
           editable: !props.isDisabled,
         }),
+        props.endAccessory ?? null,
       );
     },
   };
@@ -277,9 +283,11 @@ const mockUseValidateReferralCode = {
   isValid: false,
   isUnknownError: false,
   validateCode: jest.fn(),
+  isVipReferralCode: false,
 };
 
 jest.mock('../../../hooks/useValidateReferralCode', () => ({
+  REFERRAL_CODE_MIN_LENGTH: 3,
   useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
@@ -309,6 +317,16 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
+
+jest.mock('../../RewardsVipReferralTag/RewardsVipReferralTag', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'rewards-vip-referral-tag' }),
+  };
+});
 
 jest.mock('../OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
@@ -379,6 +397,7 @@ const defaultSelectorMap = new Map<unknown, unknown>([
   [selectOptinAllowedForGeoError, false],
   [selectOnboardingReferralCode, null],
   [selectSelectedAccountGroupInternalAccounts, [{ address: '0x123' }]],
+  [selectVipProgramEnabled, true],
 ]);
 
 function setupSelectors(overrides: Map<unknown, unknown> = new Map()) {
@@ -402,6 +421,7 @@ describe('OnboardingMainStep', () => {
     mockUseValidateReferralCode.isValidating = false;
     mockUseValidateReferralCode.isValid = false;
     mockUseValidateReferralCode.isUnknownError = false;
+    mockUseValidateReferralCode.isVipReferralCode = false;
     mockRewardsLegalDisclaimer.mockClear();
     setupSelectors();
   });
@@ -617,6 +637,107 @@ describe('OnboardingMainStep', () => {
         nextButton.props.accessibilityState?.disabled ??
           nextButton.props.disabled,
       ).toBe(true);
+    });
+
+    it('shows error text after validation completes and code is invalid', () => {
+      mockUseValidateReferralCode.referralCode = 'BANKLESS';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isValidating = false;
+      mockUseValidateReferralCode.isUnknownError = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      // Reveal the input so the input + error gating render
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(
+        screen.getByText(
+          'mocked_rewards.onboarding.step4_referral_input_error',
+        ),
+      ).toBeDefined();
+    });
+
+    it('does not show error text while validation is in flight', () => {
+      mockUseValidateReferralCode.referralCode = 'BANKLESS';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isValidating = true;
+      mockUseValidateReferralCode.isUnknownError = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(
+        screen.queryByText(
+          'mocked_rewards.onboarding.step4_referral_input_error',
+        ),
+      ).toBeNull();
+    });
+
+    it('does not show error text when input is empty', () => {
+      mockUseValidateReferralCode.referralCode = '';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isValidating = false;
+      mockUseValidateReferralCode.isUnknownError = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(
+        screen.queryByText(
+          'mocked_rewards.onboarding.step4_referral_input_error',
+        ),
+      ).toBeNull();
+    });
+
+    it('shows VIP tag when referral code is valid and VIP', () => {
+      mockUseValidateReferralCode.referralCode = 'VIPCODE';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = true;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.getByTestId('rewards-vip-referral-tag')).toBeDefined();
+    });
+
+    it('does not show VIP tag when the VIP program flag is off, even for a valid VIP code', () => {
+      mockUseValidateReferralCode.referralCode = 'VIPCODE';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = true;
+      setupSelectors(new Map([[selectVipProgramEnabled, false]]));
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('does not show VIP tag when referral code is valid but not VIP', () => {
+      mockUseValidateReferralCode.referralCode = 'ABCDEF';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('does not show VIP tag when referral code is invalid', () => {
+      mockUseValidateReferralCode.referralCode = 'BADCODE';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isVipReferralCode = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
     });
   });
 

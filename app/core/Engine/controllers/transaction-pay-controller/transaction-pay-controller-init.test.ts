@@ -9,8 +9,10 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionPayControllerInit } from './transaction-pay-controller-init';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
+import { createPolymarketCallbacks } from './polymarket-callbacks';
 
 jest.mock('@metamask/transaction-pay-controller');
+jest.mock('./polymarket-callbacks');
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -98,5 +100,21 @@ describe('Transaction Pay Controller Init', () => {
 
     expect(getStrategy).toBeUndefined();
     expect(getStrategies).toBeUndefined();
+  });
+
+  it('wires Polymarket callbacks into the controller', () => {
+    const polymarketCallbacksMock = { __polymarketCallbacks: true };
+    jest
+      .mocked(createPolymarketCallbacks)
+      .mockReturnValue(
+        polymarketCallbacksMock as unknown as ReturnType<
+          typeof createPolymarketCallbacks
+        >,
+      );
+
+    const polymarket = testConstructorOption('polymarket');
+
+    expect(createPolymarketCallbacks).toHaveBeenCalledTimes(1);
+    expect(polymarket).toBe(polymarketCallbacksMock);
   });
 });

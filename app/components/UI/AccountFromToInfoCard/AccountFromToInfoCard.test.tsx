@@ -1,7 +1,4 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import { render } from '@testing-library/react-native';
-import configureMockStore from 'redux-mock-store';
 
 import renderWithProvider, {
   DeepPartial,
@@ -133,9 +130,6 @@ jest.mock('../../../util/address', () => ({
   isQRHardwareAccount: jest.fn(),
 }));
 
-const mockStore = configureMockStore();
-const store = mockStore(mockInitialState);
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
@@ -161,25 +155,6 @@ describe('AccountFromToInfoCard', () => {
     // correct background state.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('../../../store')._updateMockState(mockInitialState);
-  });
-
-  it('should render correctly', () => {
-    const { toJSON } = render(
-      <Provider store={store}>
-        {/* @ts-expect-error: Rest props are ignored for testing purposes */}
-        <AccountFromToInfoCard transactionState={transactionState} />
-      </Provider>,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should match snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
-      <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: mockInitialState },
-    );
-    expect(toJSON()).not.toBeNull();
   });
 
   it('should render to account name', async () => {

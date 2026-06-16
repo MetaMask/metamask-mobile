@@ -244,6 +244,8 @@ export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 export const isLineaMainnetChainId = (chainId) =>
   chainId === CHAIN_IDS.LINEA_MAINNET;
 
+export const isMonadMainnetChainId = (chainId) => chainId === CHAIN_IDS.MONAD;
+
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
 /**
@@ -356,7 +358,8 @@ export const canDeleteNetwork = (chainId) =>
     chainId &&
       !isTestNet(chainId) &&
       !isMainNet(chainId) &&
-      !isLineaMainnetChainId(chainId),
+      !isLineaMainnetChainId(chainId) &&
+      !isMonadMainnetChainId(chainId),
   );
 
 export function getNetworkTypeById(id) {
@@ -801,9 +804,6 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
-
-export const isPermissionsSettingsV1Enabled =
-  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {

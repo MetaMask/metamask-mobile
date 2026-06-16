@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  selectIsVipReferee,
   selectReferredByCode,
   selectReferralDetailsLoading,
   selectReferralDetailsError,
@@ -19,17 +20,21 @@ import {
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import {
+  REFERRAL_CODE_MIN_LENGTH,
   useValidateReferralCode,
-  REFERRAL_CODE_LENGTH,
 } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useTheme } from '../../../../../util/theme';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
+import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
 const ReferredByCodeSection: React.FC = () => {
   const { colors } = useTheme();
   const referredByCode = useSelector(selectReferredByCode);
+  const isVipReferee = useSelector(selectIsVipReferee);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isLoading = useSelector(selectReferralDetailsLoading);
   const referralDetailsError = useSelector(selectReferralDetailsError);
 
@@ -38,6 +43,7 @@ const ReferredByCodeSection: React.FC = () => {
     setReferralCode: setInputCode,
     isValidating,
     isValid: clientCheckValid,
+    isVipReferralCode,
     isUnknownError,
   } = useValidateReferralCode();
 
@@ -52,6 +58,8 @@ const ReferredByCodeSection: React.FC = () => {
   const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
 
   const hasReferredByCode = Boolean(referredByCode);
+  const inputCodeReadyForValidation =
+    inputCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   const isApplyingRef = useRef(false);
 
@@ -91,6 +99,18 @@ const ReferredByCodeSection: React.FC = () => {
       return <ActivityIndicator color={colors.icon.default} />;
     }
 
+    // A VIP referral code shows the gold VIP tag instead of the success
+    // checkmark — never both. Gate the whole tag on the VIP program flag so a
+    // stale `isVipReferee` (e.g. a fresh referral-details cache hit) can't
+    // surface the pill after the program is disabled locally — consistent with
+    // ReferralActionsSection and the other VIP surfaces.
+    if (
+      isVipProgramEnabled &&
+      (isVipReferralCode || (hasReferredByCode && isVipReferee))
+    ) {
+      return <RewardsVipReferralTag />;
+    }
+
     if (clientCheckValid && applyReferralCodeSuccess) {
       return (
         <Icon
@@ -102,7 +122,7 @@ const ReferredByCodeSection: React.FC = () => {
     }
 
     if (
-      (inputCode.length >= 6 && !clientCheckValid) ||
+      (inputCodeReadyForValidation && !clientCheckValid) ||
       applyReferralCodeError
     ) {
       return (
@@ -118,7 +138,7 @@ const ReferredByCodeSection: React.FC = () => {
   };
 
   const showClientValidationError =
-    inputCode.length >= 6 &&
+    inputCodeReadyForValidation &&
     !clientCheckValid &&
     !isValidating &&
     !isUnknownError &&
@@ -142,30 +162,36 @@ const ReferredByCodeSection: React.FC = () => {
 
   if (referralDetailsError && !referredByCode) {
     return (
-      <Box
-        testID="referred-by-code-section-error"
-        twClassName="gap-4 flex-col py-4 px-4 border-t border-muted"
-      >
-        <Box twClassName="gap-2">
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.referred_by_code.title')}
-          </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.referred_by_code.description_not_linked')}
-          </Text>
+      <>
+        {/* Divider */}
+        <Box twClassName="mt-4 border-b border-border-muted" />
+        <Box
+          testID="referred-by-code-section-error"
+          twClassName="gap-4 flex-col px-4"
+        >
+          <Box twClassName="gap-2 mt-2">
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('rewards.referred_by_code.title')}
+            </Text>
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+              {strings('rewards.referred_by_code.description_not_linked')}
+            </Text>
+          </Box>
+          <RewardsErrorBanner
+            testID="referred-by-code-error-banner"
+            title={strings(
+              'rewards.referral_details_error.error_fetching_title',
+            )}
+            description={strings(
+              'rewards.referral_details_error.error_fetching_description',
+            )}
+            onConfirm={fetchReferralDetails}
+            confirmButtonLabel={strings(
+              'rewards.referral_details_error.retry_button',
+            )}
+          />
         </Box>
-        <RewardsErrorBanner
-          testID="referred-by-code-error-banner"
-          title={strings('rewards.referral_details_error.error_fetching_title')}
-          description={strings(
-            'rewards.referral_details_error.error_fetching_description',
-          )}
-          onConfirm={fetchReferralDetails}
-          confirmButtonLabel={strings(
-            'rewards.referral_details_error.retry_button',
-          )}
-        />
-      </Box>
+      </>
     );
   }
 
@@ -173,8 +199,8 @@ const ReferredByCodeSection: React.FC = () => {
     <>
       {/* Divider */}
       <Box twClassName="mt-4 border-b border-border-muted" />
-      <Box testID="referred-by-code-section" twClassName="gap-4 flex-col p-4">
-        <Box twClassName="gap-2">
+      <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
+        <Box twClassName="gap-2 mt-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.referred_by_code.title')}
           </Text>
@@ -191,7 +217,6 @@ const ReferredByCodeSection: React.FC = () => {
             placeholder={strings('rewards.referred_by_code.input_placeholder')}
             value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
             onChangeText={hasReferredByCode ? undefined : handleInputChange}
-            maxLength={REFERRAL_CODE_LENGTH}
             isDisabled={hasReferredByCode}
             autoCapitalize="characters"
             endAccessory={renderIcon()}
@@ -212,7 +237,7 @@ const ReferredByCodeSection: React.FC = () => {
             !isApplyingReferralCode &&
             !showClientValidationError &&
             !applyReferralCodeSuccess &&
-            inputCode.length >= 6 && (
+            inputCodeReadyForValidation && (
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default mt-1"

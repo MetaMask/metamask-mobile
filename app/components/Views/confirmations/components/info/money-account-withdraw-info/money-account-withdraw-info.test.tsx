@@ -1,11 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   MoneyAccountWithdrawInfo,
   MONEY_ACCOUNT_CURRENCY,
 } from './money-account-withdraw-info';
-import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 
 jest.mock('../../../hooks/ui/useNavbar', () => ({
   __esModule: true,
@@ -27,7 +25,9 @@ jest.mock('../custom-amount-info', () => ({
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    ({ 'confirm.title.money_account_transfer_money': 'Transfer funds' })[key] ??
+    key,
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
@@ -63,9 +63,7 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     render(<MoneyAccountWithdrawInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith(
-      'confirm.title.money_account_withdraw',
-    );
+    expect(useNavbar).toHaveBeenCalledWith('Transfer funds');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -98,19 +96,6 @@ describe('MoneyAccountWithdrawInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.disablePay).toBe(true);
-  });
-
-  it('passes mUSD on Ethereum as preferredToken', () => {
-    render(<MoneyAccountWithdrawInfo />);
-
-    const lastCall =
-      mockCustomAmountInfo.mock.calls[
-        mockCustomAmountInfo.mock.calls.length - 1
-      ][0];
-    expect(lastCall.preferredToken).toEqual({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET,
-    });
   });
 
   it('renders available balance as child of CustomAmountInfo', () => {

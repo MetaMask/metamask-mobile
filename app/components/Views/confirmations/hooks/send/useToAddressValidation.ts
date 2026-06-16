@@ -20,7 +20,6 @@ interface ValidationResult {
   error?: string;
   warning?: string;
   resolvedAddress?: string;
-  allowAcknowledge?: boolean;
 }
 
 export const useToAddressValidation = () => {
@@ -30,7 +29,7 @@ export const useToAddressValidation = () => {
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
-  const prevAddressValidated = useRef<string>();
+  const prevAddressValidated = useRef<string | undefined>(undefined);
   const unmountedRef = useRef(false);
 
   useEffect(
@@ -46,10 +45,9 @@ export const useToAddressValidation = () => {
         return {};
       }
 
-      if (
-        isEvmSendType &&
-        isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
-      ) {
+      // Accept any valid 20-byte hex address regardless of case (parity with
+      // Extension); EIP-55 checksum casing is not enforced for recipients.
+      if (isEvmSendType && isValidHexAddress(toAddress)) {
         return await validateHexAddress(
           toAddress,
           chainId as Hex,
@@ -113,14 +111,12 @@ export const useToAddressValidation = () => {
     error,
     warning: toAddressWarning,
     resolvedAddress,
-    allowAcknowledge,
   } = result ?? {};
 
   return {
     loading,
     resolvedAddress,
     toAddressError: error,
-    toAddressErrorAllowAcknowledge: allowAcknowledge === true,
     toAddressValidated,
     toAddressWarning,
   };

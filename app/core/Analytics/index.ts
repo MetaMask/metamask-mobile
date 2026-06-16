@@ -1,4 +1,3 @@
-import MetaMetrics from './MetaMetrics';
 import { MetaMetricsEvents, EVENT_NAME } from './MetaMetrics.events';
 import {
   DataDeleteStatus,
@@ -7,7 +6,6 @@ import {
 } from './MetaMetrics.types';
 
 export {
-  MetaMetrics,
   MetaMetricsEvents,
   DataDeleteStatus,
   DataDeleteResponseStatus,
@@ -15,6 +13,13 @@ export {
 };
 
 export type { IMetaMetricsEvent };
+
+export {
+  mergeAssetViewedProperties,
+  ASSET_VIEWED_PROPERTY,
+  ASSET_VIEWED_IMPLEMENTATION_TYPE_NATIVE,
+} from './trade-transaction-funnel/assetViewedAnalytics';
+export type { AssetViewedTradeType } from './trade-transaction-funnel/assetViewedAnalytics';
 
 /**
  * ⚠️️ WARNING ⚠️ WARNING ⚠️ WARNING ⚠️ WARNING ⚠️ WARNING ⚠️

@@ -15,18 +15,134 @@ import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import WalletView from '../../page-objects/wallet/WalletView';
-import TokensFullView from '../../page-objects/wallet/HomeSections';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
-const testSpecificMock = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    carouselBanners: false,
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-  });
+interface TokenFixture {
+  address: string;
+  symbol: string;
+  decimals: number;
+  name: string;
+}
+
+const ETH_TOKEN = {
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: 'ETH',
+  decimals: 18,
+  name: 'Ethereum',
 };
+
+const USDC_TOKEN = {
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  symbol: 'USDC',
+  decimals: 6,
+  name: 'USD Coin',
+};
+
+const DAI_TOKEN = {
+  address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+};
+
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+
+function getEvmAssetId(token: TokenFixture) {
+  return token.address === ETH_TOKEN.address
+    ? MAINNET_NATIVE_ASSET_ID
+    : `eip155:1/erc20:${token.address.toLowerCase()}`;
+}
+
+function getTokenAmount(token: TokenFixture) {
+  if (token.symbol === 'ETH') {
+    return '10';
+  }
+  if (token.symbol === 'DAI') {
+    return '5000';
+  }
+  return '10000';
+}
+
+function getTokenPrice(token: TokenFixture) {
+  return token.symbol === 'ETH' ? 3000 : 1;
+}
+
+function seedUnifiedEvmAssets(
+  fixture: ReturnType<FixtureBuilder['build']>,
+  tokens: TokenFixture[],
+) {
+  const backgroundState = fixture.state.engine.backgroundState;
+  const selectedAccountId =
+    backgroundState.AccountsController.internalAccounts.selectedAccount;
+  const existingAssetsController = (backgroundState.AssetsController ??
+    {}) as Partial<AssetsControllerState>;
+  const existingCustomAssets =
+    existingAssetsController.customAssets?.[selectedAccountId] ?? [];
+  const now = Date.now();
+
+  backgroundState.AssetsController = {
+    ...existingAssetsController,
+    selectedCurrency: 'usd',
+    assetsInfo: {
+      ...existingAssetsController.assetsInfo,
+      ...Object.fromEntries(
+        tokens.map((token) => [
+          getEvmAssetId(token),
+          {
+            type:
+              token.address === ETH_TOKEN.address
+                ? ('native' as const)
+                : ('erc20' as const),
+            symbol: token.symbol,
+            name: token.name,
+            decimals: token.decimals,
+          },
+        ]),
+      ),
+    },
+    assetsBalance: {
+      ...existingAssetsController.assetsBalance,
+      [selectedAccountId]: {
+        ...existingAssetsController.assetsBalance?.[selectedAccountId],
+        ...Object.fromEntries(
+          tokens.map((token) => [
+            getEvmAssetId(token),
+            {
+              amount: getTokenAmount(token),
+            },
+          ]),
+        ),
+      },
+    },
+    assetsPrice: {
+      ...existingAssetsController.assetsPrice,
+      ...Object.fromEntries(
+        tokens.map((token) => [
+          getEvmAssetId(token),
+          {
+            assetPriceType: 'fungible' as const,
+            price: getTokenPrice(token),
+            usdPrice: getTokenPrice(token),
+            lastUpdated: now,
+          },
+        ]),
+      ),
+    },
+    customAssets: {
+      ...existingAssetsController.customAssets,
+      [selectedAccountId]: [
+        ...new Set([
+          ...existingCustomAssets,
+          ...tokens
+            .filter((token) => token.address !== ETH_TOKEN.address)
+            .map(getEvmAssetId),
+        ]),
+      ],
+    },
+  };
+}
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {
@@ -43,34 +159,13 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     const solanaTestMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(mockServer, {
         carouselBanners: false,
-        homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-        homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
       });
     };
 
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-              name: 'Ethereum',
-            },
-            {
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-            {
-              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-              symbol: 'DAI',
-              decimals: 18,
-              name: 'Dai Stablecoin',
-            },
-          ])
+          .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN, DAI_TOKEN])
           .withTokens(
             [
               {
@@ -89,11 +184,13 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       async () => {
         await loginToApp();
 
-        // Open network manager directly (old homepage flow, no TokensFullView)
-        await NetworkManager.openNetworkManager();
+        // Navigate to TokensFullView, then open network manager
+        await NetworkManager.openNetworkManagerFromHomepage();
+        await NetworkManager.waitForNetworkManagerToLoad();
+        await NetworkManager.checkPopularNetworksContainerIsVisible();
         await NetworkManager.checkTabIsSelected('Popular');
 
-        // Select Solana network
+        // Select Solana network — sheet closes, lands on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
 
         // Verify SOL is visible in the Solana-filtered view
@@ -111,46 +208,25 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   it('should filter tokens by selected network from list of enabled popular networks', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-              name: 'Ethereum',
-            },
-            {
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-            {
-              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-              symbol: 'DAI',
-              decimals: 18,
-              name: 'Dai Stablecoin',
-            },
-          ])
-          .build(),
+        fixture: (() => {
+          const fixture = new FixtureBuilder()
+            .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN, DAI_TOKEN])
+            .build();
+          seedUnifiedEvmAssets(fixture, [ETH_TOKEN, USDC_TOKEN, DAI_TOKEN]);
+          return fixture;
+        })(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
 
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet homepage should be visible',
-        });
-
-        await WalletView.tapOnNewTokensSection();
-        await TokensFullView.waitForVisible();
-
-        // Open network manager and verify initial state
-        await NetworkManager.openNetworkManager();
+        // Navigate to TokensFullView, then open network manager
+        await NetworkManager.openNetworkManagerFromHomepage();
+        await NetworkManager.waitForNetworkManagerToLoad();
+        await NetworkManager.checkPopularNetworksContainerIsVisible();
         await NetworkManager.checkTabIsSelected('Popular');
 
-        // Select Ethereum network
+        // Select Ethereum network — sheet closes, lands on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
@@ -195,29 +271,34 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
               name: 'LineaETH',
             },
           ])
+          .withTokens(
+            [
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'SepoliaETH',
+                decimals: 18,
+                name: 'SepoliaETH',
+              },
+            ],
+            '0xaa36a7', // Sepolia chain ID
+          )
           .build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
 
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet homepage should be visible',
-        });
-
-        await WalletView.tapOnNewTokensSection();
-        await TokensFullView.waitForVisible();
-
-        // Open network manager and verify initial state
-        await NetworkManager.openNetworkManager();
+        // Navigate to TokensFullView, then open network manager
+        await NetworkManager.openNetworkManagerFromHomepage();
+        await NetworkManager.waitForNetworkManagerToLoad();
+        await NetworkManager.checkPopularNetworksContainerIsVisible();
 
         // Switch to custom networks tab
         await NetworkManager.tapCustomNetworksTab();
         await NetworkManager.checkCustomNetworksContainerIsVisible();
         await NetworkManager.checkTabIsSelected('Custom');
 
-        // Select a custom network (Linea Sepolia)
+        // Select a custom network (Linea Sepolia) — sheet closes, lands on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM_SEPOLIA);
 
         await NetworkManager.checkBaseControlBarText(
@@ -236,15 +317,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   });
 
   it('should preserve existing enabled networks when adding a network via dapp', async () => {
-    // This test uses navigateToBrowserView() which relies on the old tab bar
-    // structure. The homepageSectionsV1 flag changes the tab bar, so it must
-    // be disabled here. This test is about dapp network preservation, not
-    // homepage sections UI.
     const dappTestMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(mockServer, {
         carouselBanners: false,
-        homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-        homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
       });
     };
 
@@ -269,16 +344,20 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       async () => {
         await loginToApp();
 
-        // Step 1: Open the network manager from the wallet homepage directly
-        // (homepageSectionsV1 is disabled for this test — old tab bar is active)
-        await NetworkManager.openNetworkManager();
+        // Step 1: Navigate to TokensFullView, then select Ethereum
+        await NetworkManager.openNetworkManagerFromHomepage();
+        await NetworkManager.waitForNetworkManagerToLoad();
+        await NetworkManager.checkPopularNetworksContainerIsVisible();
         await NetworkManager.checkTabIsSelected('Popular');
 
-        // Select Ethereum as the active network
+        // Select Ethereum as the active network — sheet closes, lands on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
         );
+
+        // Go back to homepage before navigating to browser
+        await NetworkManager.navigateBackFromTokensFullView();
 
         // Step 2: Navigate to dapp and request network addition
         await navigateToBrowserView();
@@ -286,8 +365,11 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         await TestDApp.tapOpenNetworkPicker();
         await TestDApp.tapNetworkByName(POLYGON);
 
-        // Verify the permission request UI
-        const expectedText = `Use your enabled networks Requesting for ${POLYGON} Mainnet`;
+        // Verify the permission request UI.
+        // The button auto-aggregates two text children ("Use your enabled
+        // networks" + "Requesting for <network> Mainnet") into one a11y label.
+        // iOS UIAccessibility joins those with ", " (RN 0.81 behavior change).
+        const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
         await Assertions.expectElementToHaveLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
           expectedText,
@@ -311,7 +393,8 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapWallet();
 
-        // Verify Ethereum is still the active network (preservation)
+        // Navigate to TokensFullView to verify Ethereum is still the active network
+        await NetworkManager.navigateToTokensFullView();
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
         );

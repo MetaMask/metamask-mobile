@@ -34,7 +34,9 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     RAMP: {
       BUY: 'RampBuy',
       TOKEN_SELECTION: 'RampTokenSelection',
+      TOKEN_SELECTION_ROOT: 'RampTokenSelectionRoot',
       HEADLESS_HOST: 'RampHeadlessHost',
+      HEADLESS_ENTRY: 'RampHeadlessEntry',
     },
   },
 }));
@@ -447,8 +449,8 @@ describe('useHeadlessBuy', () => {
       if (!started) {
         throw new Error('startHeadlessBuy did not return a session');
       }
-      expect(mockNavigate).toHaveBeenCalledWith('RampTokenSelection', {
-        screen: 'RampTokenSelection',
+      expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessEntry', {
+        screen: 'RampTokenSelectionRoot',
         params: {
           screen: 'RampHeadlessHost',
           params: { headlessSessionId: started.sessionId },

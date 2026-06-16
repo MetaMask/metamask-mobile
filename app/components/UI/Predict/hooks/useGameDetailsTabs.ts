@@ -43,18 +43,27 @@ export function useGameDetailsTabs({
         key: 'positions',
       });
     }
-    result.push({
-      label: strings('predict.tabs.outcomes'),
-      key: 'outcomes',
-    });
+    if (enabled) {
+      result.push({
+        label: strings('predict.tabs.outcomes'),
+        key: 'outcomes',
+      });
+    }
     return result;
-  }, [hasPositions]);
+  }, [enabled, hasPositions]);
 
   const handleTabPress = useCallback((tabIndex: number) => {
     setActiveTab(tabIndex);
   }, []);
 
   const showTabBar = enabled && hasPositions;
+  const resolvedActiveTab = activeTab >= tabs.length ? 0 : activeTab;
+
+  useEffect(() => {
+    if (activeTab >= tabs.length) {
+      setActiveTab(0);
+    }
+  }, [activeTab, tabs.length]);
 
   const chips = useMemo(() => toChips(outcomeGroups), [outcomeGroups]);
 
@@ -78,7 +87,7 @@ export function useGameDetailsTabs({
   }, []);
 
   const isOutcomesVisible =
-    enabled && (!showTabBar || tabs[activeTab]?.key === 'outcomes');
+    enabled && (!showTabBar || tabs[resolvedActiveTab]?.key === 'outcomes');
 
   const showChips = isOutcomesVisible && chips.length > 0;
 
@@ -86,7 +95,7 @@ export function useGameDetailsTabs({
     enabled,
     showTabBar,
     tabs,
-    activeTab,
+    activeTab: resolvedActiveTab,
     handleTabPress,
     chips,
     groupMap,

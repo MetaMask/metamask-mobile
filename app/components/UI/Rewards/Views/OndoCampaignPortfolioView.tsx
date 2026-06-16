@@ -10,6 +10,7 @@ import {
 
 import {
   Box,
+  HeaderStandard,
   IconName,
   Skeleton,
   Text,
@@ -18,7 +19,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoActivityRow from '../components/Campaigns/OndoActivityRow';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -182,7 +182,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_PORTFOLIO_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.ondo_campaign_portfolio.activity_title')}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}

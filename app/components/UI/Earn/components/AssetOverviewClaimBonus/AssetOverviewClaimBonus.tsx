@@ -129,8 +129,8 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     [balance],
   );
   const formattedAnnualBonus = hasBalance
-    ? `+$${estimatedAnnualBonus.toFixed(2)}`
-    : '+$0.00';
+    ? `$${estimatedAnnualBonus.toFixed(2)}`
+    : '$0.00';
 
   // Lifetime bonus: white $0.00 until first claim, then green +$X.
   const hasLifetimeBonus = Number(lifetimeBonusClaimed) > 0;
@@ -356,7 +356,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         {/* CTA Button */}
         <Button
           testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON}
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           twClassName="w-full mt-4 mb-3"
           onPress={handleClaimPress}

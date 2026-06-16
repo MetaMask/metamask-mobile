@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text as RNText } from 'react-native';
+import { Text as RNText, View } from 'react-native';
 import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
-import { SecurityDataType } from '../hooks/usePopularTokens';
+import { SecurityDataType } from '../types';
 import { ethers } from 'ethers';
 import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
@@ -29,8 +29,8 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../../component-library/hooks', () => ({
-  useStyles: () => ({
+jest.mock('../../../../component-library/hooks', () => {
+  const useStyles = jest.fn(() => ({
     styles: {
       container: {},
       tokenInfo: {},
@@ -46,29 +46,54 @@ jest.mock('../../../../component-library/hooks', () => ({
       tokenSymbol: {},
       verifiedIcon: {},
       childrenWrapper: {},
+      pressTargetContent: { flex: 1 },
+      itemWrapperWithChildren: { alignItems: 'center' },
     },
-  }),
-}));
+  }));
 
-jest.mock('../../../../../wdio/utils/generateTestId', () => ({
-  __esModule: true,
-  default: () => ({}),
-}));
+  return {
+    useStyles,
+    __mockUseStyles: useStyles,
+  };
+});
+
+const { __mockUseStyles: mockUseStyles } = jest.requireMock(
+  '../../../../component-library/hooks',
+) as {
+  __mockUseStyles: jest.Mock;
+};
 
 jest.mock(
   '../../../../component-library/components/Badges/BadgeWrapper',
   () => ({
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    default: ({
+      badgeElement,
+      children,
+    }: {
+      badgeElement: React.ReactNode;
+      children: React.ReactNode;
+    }) => (
+      <>
+        {children}
+        {badgeElement}
+      </>
+    ),
     BadgePosition: { BottomRight: 'BottomRight' },
   }),
 );
 
-jest.mock('../../../../component-library/components/Badges/Badge', () => ({
-  __esModule: true,
-  default: () => null,
-  BadgeVariant: { Network: 'Network' },
-}));
+jest.mock('../../../../component-library/components/Badges/Badge', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({ name }: { name?: string }) =>
+      createElement(Text, { testID: 'token-selector-network-badge' }, name),
+    BadgeVariant: { Network: 'Network' },
+  };
+});
 
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
@@ -236,6 +261,41 @@ describe('TokenSelectorItem', () => {
       expect(UNSAFE_root).toBeTruthy();
     });
 
+    it('applies selected styles when isSelected is true by default', () => {
+      const token = createMockTokenWithBalance();
+
+      render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} isSelected />,
+      );
+
+      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {
+        isSelected: true,
+      });
+    });
+
+    it('does not apply selected styles when shouldChangeSelectedStyle is false', () => {
+      const token = createMockTokenWithBalance();
+
+      render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          isSelected
+          shouldChangeSelectedStyle={false}
+        />,
+      );
+
+      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {
+        isSelected: false,
+      });
+      expect(
+        mockUseStyles.mock.calls.some(
+          ([, vars]) =>
+            (vars as { isSelected?: boolean } | undefined)?.isSelected === true,
+        ),
+      ).toBe(false);
+    });
+
     it('renders no fee badge when isNoFeeAsset is true', () => {
       const token = createMockTokenWithBalance();
 
@@ -308,10 +368,54 @@ describe('TokenSelectorItem', () => {
       expect(UNSAFE_root).toBeTruthy();
     });
 
+    it('routes presses on children through the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      fireEvent.press(getByTestId('token-row-child'));
+
+      expect(mockOnPress).toHaveBeenCalledWith(token);
+    });
+
+    it('uses checkbox accessibility on the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          isSelected
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityRole',
+        'checkbox',
+      );
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: true }),
+      );
+    });
+
     it('renders network badge when networkImageSource is provided', () => {
       const token = createMockTokenWithBalance();
 
-      const { getByText } = render(
+      const { getByTestId, getByText } = render(
         <TokenSelectorItem
           token={token}
           onPress={mockOnPress}
@@ -321,6 +425,23 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText('TEST')).toBeTruthy();
+      expect(getByTestId('token-selector-network-badge')).toBeOnTheScreen();
+    });
+
+    it('hides network badge when shouldShowNetworkIcon is false', () => {
+      const token = createMockTokenWithBalance();
+
+      const { queryByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          networkName="Ethereum"
+          networkImageSource={{ uri: 'https://example.com/network.png' }}
+          shouldShowNetworkIcon={false}
+        />,
+      );
+
+      expect(queryByTestId('token-selector-network-badge')).toBeNull();
     });
 
     it('renders native token when address is zero address', () => {
@@ -581,7 +702,7 @@ describe('TokenSelectorItem', () => {
           color: 'WarningDefault',
           size: 'Sm',
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -598,7 +719,7 @@ describe('TokenSelectorItem', () => {
           color: 'ErrorDefault',
           size: 'Sm',
         }),
-        expect.anything(),
+        undefined,
       );
     });
   });

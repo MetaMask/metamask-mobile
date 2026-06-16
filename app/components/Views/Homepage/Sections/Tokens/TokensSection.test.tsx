@@ -3,6 +3,7 @@ import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokensSection from './TokensSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
@@ -82,14 +83,18 @@ jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
 }));
 
+jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(() => false),
+}));
+
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
 jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
-const mockRefreshTokens = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../../UI/Tokens/util/refreshTokens', () => ({
-  refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
+const mockRefresh = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../UI/Tokens/hooks/useRefreshTokens', () => ({
+  useRefreshTokens: () => ({ refresh: mockRefresh }),
 }));
 
 const mockFetchTrendingTokens = jest.fn().mockResolvedValue(undefined);
@@ -358,6 +363,18 @@ jest.mock('../../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn().mockReturnValue(false),
 }));
 
+jest.mock('../../../../UI/TokenDetails/components/useAssetVisibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    assetId: undefined,
+    isCustomAsset: false,
+    isInAssetsBalance: false,
+    isHidden: false,
+    handleHideToken: jest.fn(),
+    handleAddCustomAsset: jest.fn(),
+  })),
+}));
+
 const mockPopularTokens = [
   {
     assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
@@ -404,7 +421,7 @@ const mockTrendingTokenData = [
 describe('TokensSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRefreshTokens.mockResolvedValue(undefined);
+    mockRefresh.mockResolvedValue(undefined);
     mockUseTrendingRequest.mockReturnValue({
       results: [],
       isLoading: false,
@@ -428,6 +445,9 @@ describe('TokensSection', () => {
     jest
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
@@ -574,11 +594,14 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
-  it('filters out mUSD from displayed tokens (mUSD is shown only in Cash section)', () => {
+  it('filters out mUSD from displayed tokens when Cash section is enabled', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     jest
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(true);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
@@ -601,7 +624,7 @@ describe('TokensSection', () => {
       <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByLabelText('Tokens'));
+    fireEvent.press(screen.getByTestId(homepageSectionTitleTestId('tokens')));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
@@ -646,12 +669,12 @@ describe('TokensSection', () => {
     expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();
   });
 
-  it('renders ErrorState when refreshTokens throws for non-zero balance account', async () => {
+  it('renders ErrorState when refresh hook throws for non-zero balance account', async () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
     ]);
-    mockRefreshTokens.mockRejectedValue(new Error('Network error'));
+    mockRefresh.mockRejectedValue(new Error('Network error'));
 
     const ref = React.createRef<{ refresh: () => Promise<void> }>();
     renderWithProvider(
@@ -673,7 +696,7 @@ describe('TokensSection', () => {
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
     ]);
-    mockRefreshTokens.mockRejectedValueOnce(new Error('Network error'));
+    mockRefresh.mockRejectedValueOnce(new Error('Network error'));
 
     const ref = React.createRef<{ refresh: () => Promise<void> }>();
     renderWithProvider(
@@ -744,7 +767,7 @@ describe('TokensSection', () => {
       fireEvent.press(screen.getByTestId('error-state-retry-button'));
     });
 
-    expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('does not show RemoveTokenBottomSheet by default', () => {
@@ -838,7 +861,7 @@ describe('TokensSection', () => {
     });
   });
 
-  it('calls refreshTokens for non-zero balance pull-to-refresh', async () => {
+  it('invokes the refresh hook for non-zero balance pull-to-refresh', async () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
@@ -853,12 +876,7 @@ describe('TokensSection', () => {
       await ref.current?.refresh();
     });
 
-    expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
-    expect(mockRefreshTokens).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isSolanaSelected: false,
-      }),
-    );
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
   describe('mode="positions-only"', () => {
@@ -902,6 +920,9 @@ describe('TokensSection', () => {
       jest
         .requireMock('../../../../UI/Earn/selectors/featureFlags')
         .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+      jest
+        .requireMock('../../../../UI/Money/selectors/featureFlags')
+        .selectMoneyHubEnabledFlag.mockReturnValue(true);
       mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
       mockSortedTokenKeys.mockReturnValue([
         {
@@ -1047,7 +1068,7 @@ describe('TokensSection', () => {
         />,
       );
 
-      fireEvent.press(screen.getByLabelText('Trending tokens'));
+      fireEvent.press(screen.getByTestId(homepageSectionTitleTestId('tokens')));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,

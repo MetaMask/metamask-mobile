@@ -32,6 +32,8 @@ let mockRouteParams: {
   token?: Record<string, unknown>;
   isPerps?: boolean;
   hasPerpsPosition?: boolean;
+  isAtOICap?: boolean;
+  source?: 'token_details' | 'perps' | 'unknown';
 } = {
   assetSymbol: 'ETH',
   assetIdentifier: 'eip155:1/erc20:0x123',
@@ -241,23 +243,51 @@ jest.mock('../../../TokenDetails/components/TokenDetailsStickyFooter', () => {
     default: ({
       onSwapPress,
       onBuyPress,
+      onQuickBuyPress,
       swapTestID,
       buyTestID,
+      quickBuyTestID,
     }: {
       onSwapPress?: () => void;
       onBuyPress?: () => void;
+      onQuickBuyPress?: () => void;
       swapTestID?: string;
       buyTestID?: string;
+      quickBuyTestID?: string;
     }) => (
       <MockView testID="token-details-sticky-footer">
         {swapTestID && (
           <MockPressable testID={swapTestID} onPress={onSwapPress} />
         )}
         {buyTestID && <MockPressable testID={buyTestID} onPress={onBuyPress} />}
+        {onQuickBuyPress && quickBuyTestID && (
+          <MockPressable testID={quickBuyTestID} onPress={onQuickBuyPress} />
+        )}
       </MockView>
     ),
   };
 });
+
+const mockAssetDetailsQuickBuy = jest.fn((_props: unknown) => null);
+jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockAssetDetailsQuickBuy(props),
+}));
+
+let mockIsQuickBuyEnabled = false;
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { showQuickBuy: mockIsQuickBuyEnabled },
+    variantName: mockIsQuickBuyEnabled ? 'treatment' : 'control',
+    isActive: true,
+  }),
+}));
+
+const mockPlayImpact = jest.fn();
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: (...args: unknown[]) => mockPlayImpact(...args),
+  ImpactMoment: { PrimaryCTA: 'PrimaryCTA' },
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -291,6 +321,7 @@ describe('MarketInsightsView', () => {
     jest.clearAllMocks();
     resetFeedbackCache();
     mockIsEligible = true;
+    mockIsQuickBuyEnabled = false;
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
@@ -480,6 +511,15 @@ describe('MarketInsightsView', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://x.com/user/status/100',
     );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          interaction_type: 'source_click',
+          source_url: 'https://x.com/user/status/100',
+        }),
+      }),
+    );
 
     expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
 
@@ -541,7 +581,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           asset_symbol: 'eth',
           interaction_type: 'source_click',
-          source: 'https://www.coindesk.com/article',
+          source_url: 'https://www.coindesk.com/article',
         }),
       }),
     );
@@ -769,6 +809,64 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId('token-details-sticky-footer')).toBeNull();
   });
 
+  it('hides Long and Short buttons when the perps market is at its open interest cap', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+      isAtOICap: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest at cap',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON)).toBeNull();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON)).toBeNull();
+  });
+
+  it('shows Long and Short buttons when the perps market is below its open interest cap', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+      isAtOICap: false,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest below cap',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('navigates to PerpsOrderRedirect with long direction when Long button is pressed', async () => {
     mockRouteParams = {
       assetSymbol: 'ETH',
@@ -888,6 +986,76 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON)).toBeNull();
     expect(queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON)).toBeNull();
     expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
+  });
+
+  it('does not render the quick buy button or mount AssetDetailsQuickBuy when the flag is disabled', () => {
+    mockIsQuickBuyEnabled = false;
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(
+      queryByTestId(MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON),
+    ).toBeNull();
+    expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
+  });
+
+  it('renders the quick buy button and mounts AssetDetailsQuickBuy hidden when the flag is enabled', () => {
+    mockIsQuickBuyEnabled = true;
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(mockAssetDetailsQuickBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isVisible: false,
+        source: 'market_insights',
+        token: expect.objectContaining({ address: '0x123', symbol: 'ETH' }),
+      }),
+    );
+  });
+
+  it('opens AssetDetailsQuickBuy and tracks a quick_buy interaction when the quick buy button is pressed', async () => {
+    mockIsQuickBuyEnabled = true;
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport({ digestId: 'digest-123' }),
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON));
+    });
+
+    expect(mockPlayImpact).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          interaction_type: 'quick_buy',
+          source: 'unknown',
+        }),
+      }),
+    );
+    expect(mockAssetDetailsQuickBuy).toHaveBeenLastCalledWith(
+      expect.objectContaining({ isVisible: true, source: 'market_insights' }),
+    );
   });
 
   it('sends perps_market analytics property (not caip19) in perps context', async () => {

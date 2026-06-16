@@ -2,17 +2,16 @@ import {
   CTF_COLLATERAL_ADAPTER_ADDRESS,
   DEFAULT_CLOB_BASE_URL,
   HASH_ZERO_BYTES32,
-  LEGACY_V2_CLOB_BASE_URL,
+  MATIC_CONTRACTS_V2,
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
+  USDC_E_ADDRESS,
 } from '../constants';
 import Logger from '../../../../../../util/Logger';
 import {
-  POLYMARKET_V1_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   getClobV2BuilderCode,
   getProtocolDepositTokenAddress,
   getProtocolWithdrawTokenAddress,
-  resolvePolymarketProtocol,
 } from './definitions';
 
 describe('polymarket protocol definitions', () => {
@@ -37,38 +36,35 @@ describe('polymarket protocol definitions', () => {
     process.env.MM_PREDICT_BUILDER_CODE = originalBuilderCode;
   });
 
-  it('resolves v1 when predictClobV2 is disabled', () => {
-    expect(resolvePolymarketProtocol({ predictClobV2Enabled: false })).toBe(
-      POLYMARKET_V1_PROTOCOL,
-    );
-  });
-
-  it('resolves v2 when predictClobV2 is enabled', () => {
-    expect(resolvePolymarketProtocol({ predictClobV2Enabled: true })).toBe(
-      POLYMARKET_V2_PROTOCOL,
-    );
-  });
-
-  it('defaults the v2 protocol to the canonical CLOB host', () => {
-    expect(POLYMARKET_V2_PROTOCOL.transport.clobBaseUrl).toBe(
-      DEFAULT_CLOB_BASE_URL,
-    );
-  });
-
-  it('resolves a temporary v2 CLOB host override from feature flags', () => {
-    expect(
-      resolvePolymarketProtocol({
-        predictClobV2Enabled: true,
-        predictClobV2ClobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
-      }),
-    ).toEqual(
+  it('defines CLOB v2 as the only protocol', () => {
+    expect(POLYMARKET_V2_PROTOCOL).toEqual(
       expect.objectContaining({
         key: 'v2',
-        transport: expect.objectContaining({
-          clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+        contracts: MATIC_CONTRACTS_V2,
+        transport: {
+          clobBaseUrl: DEFAULT_CLOB_BASE_URL,
           clobVersionHeader: '2',
-        }),
+        },
+        workflow: {
+          depositMode: 'pusd-transfer',
+          withdrawMode: 'pusd-transfer',
+        },
       }),
+    );
+  });
+
+  it('keeps legacy USDC.e only as sweep collateral state', () => {
+    expect(POLYMARKET_V2_PROTOCOL.collateral.legacyUsdceToken).toBe(
+      USDC_E_ADDRESS,
+    );
+    expect(POLYMARKET_V2_PROTOCOL.collateral.tradingToken).toBe(
+      MATIC_CONTRACTS_V2.collateral,
+    );
+    expect(POLYMARKET_V2_PROTOCOL.collateral.claimToken).toBe(
+      MATIC_CONTRACTS_V2.collateral,
+    );
+    expect(POLYMARKET_V2_PROTOCOL.collateral.feeAuthorizationToken).toBe(
+      MATIC_CONTRACTS_V2.collateral,
     );
   });
 
@@ -100,28 +96,19 @@ describe('polymarket protocol definitions', () => {
     );
   });
 
-  it('routes v2 claims through the collateral adapters', () => {
+  it('routes claims through the collateral adapters', () => {
     expect(POLYMARKET_V2_PROTOCOL.claim).toEqual({
       standardTarget: CTF_COLLATERAL_ADAPTER_ADDRESS,
       negRiskTarget: NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
     });
   });
 
-  it('returns the configured deposit token address for each protocol', () => {
-    expect(getProtocolDepositTokenAddress(POLYMARKET_V1_PROTOCOL)).toBe(
-      POLYMARKET_V1_PROTOCOL.collateral.legacyUsdceToken,
-    );
+  it('returns pUSD for deposit and withdraw token addresses', () => {
     expect(getProtocolDepositTokenAddress(POLYMARKET_V2_PROTOCOL)).toBe(
-      POLYMARKET_V2_PROTOCOL.collateral.legacyUsdceToken,
-    );
-  });
-
-  it('returns the configured withdraw token address for each protocol', () => {
-    expect(getProtocolWithdrawTokenAddress(POLYMARKET_V1_PROTOCOL)).toBe(
-      POLYMARKET_V1_PROTOCOL.collateral.legacyUsdceToken,
+      MATIC_CONTRACTS_V2.collateral,
     );
     expect(getProtocolWithdrawTokenAddress(POLYMARKET_V2_PROTOCOL)).toBe(
-      POLYMARKET_V2_PROTOCOL.collateral.legacyUsdceToken,
+      MATIC_CONTRACTS_V2.collateral,
     );
   });
 });

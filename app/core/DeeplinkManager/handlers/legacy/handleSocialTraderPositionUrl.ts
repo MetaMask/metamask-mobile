@@ -1,6 +1,11 @@
-import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
+import NavigationService from '../../../NavigationService';
+import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -62,9 +67,40 @@ export const handleSocialTraderPositionUrl = ({
       return;
     }
 
+    // Defense-in-depth: invalidate cached positions for this trader so the
+    // profile view fetches fresh data the next time it mounts. Failures
+    // here must not block navigation.
+    try {
+      const fetchOptions = { addressOrId: traderId };
+      ReactQueryService.queryClient.invalidateQueries({
+        queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
+      });
+      ReactQueryService.queryClient.invalidateQueries({
+        queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
+      });
+    } catch (invalidationError) {
+      DevLogger.log(
+        '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
+        invalidationError,
+      );
+    }
+
+    if (notificationEvent !== undefined) {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
+      )
+        .addProperties({
+          [SocialLeaderboardEventProperties.NOTIFICATION_TYPE]:
+            notificationEvent,
+        })
+        .build();
+      analytics.trackEvent(event);
+    }
+
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
       positionId,
       traderId,
+      source: 'notification',
     });
   } catch (error) {
     DevLogger.log(

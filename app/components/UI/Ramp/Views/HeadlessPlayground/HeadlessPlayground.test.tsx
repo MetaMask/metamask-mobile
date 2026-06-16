@@ -26,6 +26,7 @@ import HeadlessPlayground, {
   HEADLESS_PLAYGROUND_RESET_ASSET_TEST_ID,
   HEADLESS_PLAYGROUND_RESET_PAYMENT_METHOD_TEST_ID,
   HEADLESS_PLAYGROUND_RESET_PROVIDER_TEST_ID,
+  HEADLESS_PLAYGROUND_START_BUTTON_SPINNER_TEST_ID,
   HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID,
   HEADLESS_PLAYGROUND_SUMMARY_DIVIDER_TEST_ID,
   HEADLESS_PLAYGROUND_SUMMARY_TEST_ID,
@@ -1134,6 +1135,23 @@ describe('HeadlessPlayground', () => {
       expect(
         screen.getByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
       ).toBeOnTheScreen();
+    });
+
+    it('shows a loading spinner inside the quote button that started the session', async () => {
+      await renderWithQuotes();
+      fireEvent.press(
+        screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+      );
+      expect(
+        screen.getByTestId(
+          `${HEADLESS_PLAYGROUND_START_BUTTON_SPINNER_TEST_ID}-0`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          `${HEADLESS_PLAYGROUND_START_BUTTON_SPINNER_TEST_ID}-1`,
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('appends a started entry to the event log including the session id', async () => {

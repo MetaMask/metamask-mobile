@@ -1,5 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import {
+  HeaderStandard,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -7,7 +12,6 @@ import Text, {
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../Box/Box';
 import { FlexDirection, AlignItems } from '../../../Box/box.types';
-import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import {
   TransactionMeta,
@@ -25,7 +29,6 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
 import {
@@ -45,6 +48,9 @@ import TagColored, {
 } from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -90,6 +96,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 2,
   },
+  paidByMetaMask: {
+    height: undefined,
+    paddingVertical: 2,
+  },
 });
 
 interface BridgeTransactionDetailsProps {
@@ -104,12 +114,12 @@ interface BridgeTransactionDetailsProps {
 const PaidByMetaMask = () => (
   <TagColored
     color={TagColor.Success}
+    style={styles.paidByMetaMask}
     labelProps={{
       variant: TextVariant.BodySM,
       style: {
         textTransform: 'none',
         textAlign: 'center',
-        bottom: 1,
         fontWeight: 'normal',
       },
       testID: 'paid-by-metamask',
@@ -176,6 +186,7 @@ export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
@@ -204,13 +215,23 @@ export const BridgeTransactionDetails = (
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
 
-  useEffect(() => {
-    navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
+  const headerTitle = strings('bridge_transaction_details.transaction_details');
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
   }, [navigation]);
 
+  const bridgeTransactionDetailsHeader = (
+    <HeaderStandard
+      title={headerTitle}
+      onBack={handleHeaderBack}
+      backButtonProps={{ testID: 'bridge-transaction-details-back-button' }}
+      includesTopInset
+    />
+  );
+
   if (!bridgeTxHistoryItem) {
-    // TODO: display error page
-    return null;
+    return <ScreenView>{bridgeTransactionDetailsHeader}</ScreenView>;
   }
 
   const { quote, status: bridgeStatus, startTime } = bridgeTxHistoryItem;
@@ -305,6 +326,7 @@ export const BridgeTransactionDetails = (
 
   return (
     <ScreenView>
+      {bridgeTransactionDetailsHeader}
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
           <TransactionAsset
@@ -401,7 +423,8 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {evmTxMeta?.isGasFeeSponsored && !isHardwareWallet ? (
+          {isTransactionMarkedAsGasFeeSponsored(evmTxMeta) &&
+          !isHardwareWallet ? (
             <PaidByMetaMask />
           ) : (
             <>
@@ -430,6 +453,13 @@ export const BridgeTransactionDetails = (
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+                trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+                  location: 'bridge_transaction_details',
+                  text: strings(
+                    'bridge_transaction_details.view_on_block_explorer',
+                  ),
+                  url: swapSrcExplorerData.explorerTxUrl,
+                });
                 navigation.navigate(Routes.WEBVIEW.MAIN, {
                   screen: Routes.WEBVIEW.SIMPLE,
                   params: {

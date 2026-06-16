@@ -8,7 +8,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import {
   formatPositionSize,
   formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol, type Order } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
@@ -49,7 +49,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
   const formattedPrice =
     priceValue !== null
       ? formatPerpsFiat(priceValue, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
+          ranges: PRICE_RANGES_UNIVERSAL,
         })
       : strings('perps.order.market');
 

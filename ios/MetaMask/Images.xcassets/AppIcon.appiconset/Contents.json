@@ -57,7 +57,7 @@
       "size" : "40x40"
     },
     {
-      "filename" : "120 1_light.png",
+      "filename" : "120_1_light.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -71,18 +71,21 @@
       "size" : "60x60"
     },
     {
+      "filename" : "128_light.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "64x64"
     },
     {
+      "filename" : "192_light.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
       "size" : "64x64"
     },
     {
+      "filename" : "136_light.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -115,7 +118,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "40.png",
+      "filename" : "40_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -128,7 +131,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "60.png",
+      "filename" : "60_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -141,7 +144,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "58.png",
+      "filename" : "58_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -154,7 +157,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "87.png",
+      "filename" : "87_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -167,7 +170,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "76.png",
+      "filename" : "76_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -180,7 +183,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "114.png",
+      "filename" : "114_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -193,7 +196,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "80.png",
+      "filename" : "80_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -206,7 +209,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "120.png",
+      "filename" : "120_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -219,7 +222,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "120 1.png",
+      "filename" : "120_1_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -232,7 +235,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "180.png",
+      "filename" : "180_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -245,6 +248,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "128_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -257,6 +261,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "192_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -269,6 +274,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "136_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -281,7 +287,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "152.png",
+      "filename" : "152_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -294,7 +300,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "167.png",
+      "filename" : "167_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -307,7 +313,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "1024.png",
+      "filename" : "1024_dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -319,7 +325,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "40.png",
+      "filename" : "40_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -332,7 +338,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "60.png",
+      "filename" : "60_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -345,7 +351,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "58.png",
+      "filename" : "58_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -358,7 +364,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "87.png",
+      "filename" : "87_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -371,7 +377,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "76.png",
+      "filename" : "76_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -384,7 +390,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "114.png",
+      "filename" : "114_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -397,7 +403,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "80.png",
+      "filename" : "80_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -410,7 +416,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "120.png",
+      "filename" : "120_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -423,7 +429,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "120 1.png",
+      "filename" : "120_1_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -436,7 +442,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "180.png",
+      "filename" : "180_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -449,6 +455,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "128_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -461,6 +468,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "192_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -473,6 +481,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "136_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -485,7 +494,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "152.png",
+      "filename" : "152_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -498,7 +507,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "167.png",
+      "filename" : "167_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -511,7 +520,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "1024.png",
+      "filename" : "1024_tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "1x",

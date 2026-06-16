@@ -128,6 +128,12 @@ export interface HeadlessBuyParams {
    * the way it does today.
    */
   redirectUrl?: string;
+  /**
+   * Override the destination wallet address the on-ramp order will be
+   * created for. When omitted, the Host falls back to
+   * `useRampAccountAddress(chainId)` — same EOA the BuildQuote screen uses.
+   */
+  walletAddress?: string;
 }
 
 /**
@@ -149,15 +155,17 @@ export interface HeadlessBuyCallbacks {
  * the UI normally renders. Phase 3 only uses `UNKNOWN`; later phases route
  * limit/auth/etc. errors through it.
  */
+export type HeadlessBuyErrorCode =
+  | 'NO_QUOTES'
+  | 'LIMIT_EXCEEDED'
+  | 'KYC_REQUIRED'
+  | 'AUTH_FAILED'
+  | 'QUOTE_FAILED'
+  | 'USER_CANCELLED'
+  | 'UNKNOWN';
+
 export interface HeadlessBuyError {
-  code:
-    | 'NO_QUOTES'
-    | 'LIMIT_EXCEEDED'
-    | 'KYC_REQUIRED'
-    | 'AUTH_FAILED'
-    | 'QUOTE_FAILED'
-    | 'USER_CANCELLED'
-    | 'UNKNOWN';
+  code: HeadlessBuyErrorCode;
   message?: string;
   details?: Record<string, unknown>;
 }

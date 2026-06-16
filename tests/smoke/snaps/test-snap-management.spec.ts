@@ -10,6 +10,28 @@ import SnapSettingsView from '../../page-objects/Settings/SnapSettingsView';
 import { Assertions } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
 import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
+import WalletView from '../../page-objects/wallet/WalletView';
+
+/**
+ * Navigate from the browser to Snap Settings.
+ * With disableSynchronization the tab bar may not be immediately available
+ * after closing the browser, so we navigate step-by-step with explicit waits.
+ */
+async function navigateFromBrowserToSnapSettings() {
+  await BrowserView.tapCloseBrowserButton();
+  await TabBarComponent.tapWallet();
+  await WalletView.tapHamburgerMenu();
+  await Assertions.expectElementToBeVisible(AccountMenu.container, {
+    timeout: 10000,
+    description: 'Account menu should be visible',
+  });
+  await AccountMenu.tapSettings();
+  await Assertions.expectElementToBeVisible(SettingsView.title, {
+    timeout: 10000,
+    description: 'Settings view title should be visible',
+  });
+  await SettingsView.tapSnaps();
+}
 
 jest.setTimeout(150_000);
 
@@ -20,6 +42,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -36,17 +59,16 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
-        await BrowserView.tapCloseBrowserButton();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapSnaps();
+        await navigateFromBrowserToSnapSettings();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
 
         await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapListBackButton();
         // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
         await AccountMenu.tapBack();
@@ -68,17 +90,16 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
-        await BrowserView.tapCloseBrowserButton();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapSnaps();
+        await navigateFromBrowserToSnapSettings();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
 
         await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapListBackButton();
         // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
         await AccountMenu.tapBack();
@@ -101,11 +122,10 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
-        await BrowserView.tapCloseBrowserButton();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapSnaps();
+        await navigateFromBrowserToSnapSettings();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.removeSnap();

@@ -1,12 +1,30 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
 import { useSlippageConfig } from './index';
 import AppConstants from '../../../../../core/AppConstants';
+import { selectIsRwaSwap } from '../../../../../core/redux/slices/bridge';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual<typeof import('react-redux')>('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+let mockIsRwaSwapFromStore = false;
 
 describe('useSlippageConfig', () => {
   const defaultConfig = AppConstants.BRIDGE.SLIPPAGE_CONFIG.__default__;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsRwaSwapFromStore = false;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsRwaSwap) {
+        return mockIsRwaSwapFromStore;
+      }
+      return undefined;
+    });
   });
 
   describe('returns default config', () => {
@@ -209,6 +227,36 @@ describe('useSlippageConfig', () => {
       );
 
       expect(result.current.default_slippage_options[0]).toBe('auto');
+    });
+
+    it('includes auto presets for same-chain EVM when selectIsRwaSwap is true', () => {
+      mockIsRwaSwapFromStore = true;
+      const { result } = renderHook(() =>
+        useSlippageConfig({
+          sourceChainId: 'eip155:1',
+          destChainId: 'eip155:1',
+        }),
+      );
+
+      expect(result.current.default_slippage_options).toEqual([
+        'auto',
+        '0.5',
+        '2',
+      ]);
+    });
+
+    it('does not add auto for same-chain EVM when selectIsRwaSwap is false', () => {
+      mockIsRwaSwapFromStore = false;
+      const { result } = renderHook(() =>
+        useSlippageConfig({
+          sourceChainId: 'eip155:1',
+          destChainId: 'eip155:1',
+        }),
+      );
+
+      expect(result.current.default_slippage_options).toEqual(
+        defaultConfig.default_slippage_options,
+      );
     });
 
     it('preserves all other config values for Solana-to-Solana', () => {

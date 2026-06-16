@@ -10,7 +10,6 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/account
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
-import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
@@ -26,15 +25,14 @@ import {
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
-import EarnWithdrawInputView from './EarnWithdrawInputView';
+import EarnWithdrawInputView, {
+  EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID,
+  EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID,
+} from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { TokenI } from '../../../Tokens/types';
 import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
-
-jest.mock('../../../Navbar', () => ({
-  getStakingNavbar: jest.fn().mockReturnValue({}),
-}));
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -65,6 +63,7 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
+const mockGoBack = jest.fn();
 
 let mockRouteToken: TokenI | undefined;
 
@@ -74,6 +73,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
       setOptions: mockSetOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
@@ -431,13 +431,13 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 describe('EarnWithdrawInputView', () => {
-  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
   const mockTrace = jest.mocked(trace);
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockGoBack.mockClear();
 
     // Reset route.param.token
     mockRouteToken = undefined;
@@ -589,15 +589,10 @@ describe('EarnWithdrawInputView', () => {
     it('renders "Unstake <token name>" for pooled-staking withdrawals', () => {
       render(EarnWithdrawInputView);
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Unstake ETH',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
-      );
+      expect(screen.getByText('Unstake ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
     });
 
     it('renders "Withdraw <token name>" for supported stablecoin lending assets', () => {
@@ -635,15 +630,80 @@ describe('EarnWithdrawInputView', () => {
 
       render(EarnWithdrawInputView, mockLendingToken);
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Withdraw USDC',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
+      expect(screen.getByText('Withdraw USDC')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('emits UNSTAKE_CANCEL_CLICKED and calls navigation.goBack when Cancel is pressed', () => {
+      render(EarnWithdrawInputView);
+      mockTrackEvent.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID),
       );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Unstake Cancel Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+          }),
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('emits EARN_INPUT_BACK_BUTTON_CLICKED and calls navigation.goBack when back is pressed for lending tokens', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValueOnce(true);
+
+      const mockLendingToken: EarnTokenDetails = {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        ],
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+        },
+      };
+
+      mockTrackEvent.mockClear();
+      render(EarnWithdrawInputView, mockLendingToken);
+
+      fireEvent.press(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Input Back Button Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+          }),
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 

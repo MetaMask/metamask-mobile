@@ -23,6 +23,7 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
@@ -66,6 +67,55 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
     },
   },
+};
+
+const createMockSelectedAccountGroupState = (
+  addresses: string[],
+  selectedAddress: string,
+) => {
+  const accountsControllerState = createMockAccountsControllerState(
+    addresses,
+    selectedAddress,
+  );
+  const accountIds = addresses.map(
+    (address) =>
+      accountsControllerState.accountIdByAddress[address.toLowerCase()],
+  );
+  const walletId = 'entropy:wallet1' as const;
+  const groupId = 'entropy:wallet1/0' as const;
+
+  return {
+    AccountsController: accountsControllerState,
+    AccountTreeController: {
+      accountTree: {
+        wallets: {
+          [walletId]: {
+            id: walletId,
+            type: AccountWalletType.Entropy as AccountWalletType.Entropy,
+            metadata: {
+              name: 'Wallet 1',
+              entropy: { id: 'wallet1' },
+            },
+            groups: {
+              [groupId]: {
+                id: groupId,
+                type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                accounts: accountIds,
+                metadata: {
+                  name: 'Account 1',
+                  entropy: { groupIndex: 0 },
+                  pinned: false,
+                  hidden: false,
+                  lastSelected: 0,
+                },
+              },
+            },
+          },
+        },
+      },
+      selectedAccountGroup: groupId,
+    },
+  };
 };
 
 const mockTransactions = [
@@ -739,16 +789,17 @@ describe('PerpsTransactionsView', () => {
     });
 
     it('computes and passes accountId when address and chainId are available', async () => {
+      const accountState = createMockSelectedAccountGroupState(
+        [mockSelectedAddress],
+        mockSelectedAddress,
+      );
       const stateWithAccount = {
         ...mockInitialState,
         engine: {
           ...mockInitialState.engine,
           backgroundState: {
             ...backgroundState,
-            AccountsController: createMockAccountsControllerState(
-              [mockSelectedAddress],
-              mockSelectedAddress,
-            ),
+            ...accountState,
             NetworkController: mockNetworkState({
               chainId: mockChainId,
               id: 'arbitrum',
@@ -867,6 +918,10 @@ describe('PerpsTransactionsView', () => {
       const secondAddress = '0x9876543210987654321098765432109876543210';
       const secondAccountId =
         'eip155:42161:0x9876543210987654321098765432109876543210' as CaipAccountId;
+      const accountState = createMockSelectedAccountGroupState(
+        [secondAddress],
+        secondAddress,
+      );
 
       const stateWithSecondAddress = {
         ...mockInitialState,
@@ -874,10 +929,7 @@ describe('PerpsTransactionsView', () => {
           ...mockInitialState.engine,
           backgroundState: {
             ...backgroundState,
-            AccountsController: createMockAccountsControllerState(
-              [secondAddress],
-              secondAddress,
-            ),
+            ...accountState,
             NetworkController: mockNetworkState({
               chainId: mockChainId,
               id: 'arbitrum',
@@ -913,6 +965,10 @@ describe('PerpsTransactionsView', () => {
       const secondChainId = '0x1'; // Ethereum mainnet (1)
       const secondAccountId =
         'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      const accountState = createMockSelectedAccountGroupState(
+        [mockSelectedAddress],
+        mockSelectedAddress,
+      );
 
       const stateWithSecondChainId = {
         ...mockInitialState,
@@ -920,10 +976,7 @@ describe('PerpsTransactionsView', () => {
           ...mockInitialState.engine,
           backgroundState: {
             ...backgroundState,
-            AccountsController: createMockAccountsControllerState(
-              [mockSelectedAddress],
-              mockSelectedAddress,
-            ),
+            ...accountState,
             NetworkController: mockNetworkState({
               chainId: secondChainId,
               id: 'mainnet',

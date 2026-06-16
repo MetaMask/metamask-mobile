@@ -308,6 +308,7 @@ export const submitEvmTransaction = async ({
 
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
+    isInternal: true,
     networkClientId,
     type: transactionType,
     securityAlertResponse,

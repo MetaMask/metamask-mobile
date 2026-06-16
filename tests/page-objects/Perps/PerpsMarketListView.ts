@@ -1,17 +1,24 @@
 import {
+  PerpsHomeViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsMarketRowItemSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
+  PerpsWatchlistSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import {
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction, PlaywrightGestures } from '../../framework';
+import Utilities from '../../framework/Utilities';
+import PerpsMarketDetailsView from './PerpsMarketDetailsView';
+
+export type PerpsOrderSide = 'long' | 'short';
 
 class PerpsMarketListView {
   // Main container
@@ -33,7 +40,7 @@ class PerpsMarketListView {
    * HeaderCompactStandard back on explore market list (see PerpsMarketListView.tsx).
    * Navigates from the market list back to Perps portfolio home.
    */
-  get headerBackButton(): DetoxElement {
+  get headerBackButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
     );
@@ -71,21 +78,42 @@ class PerpsMarketListView {
 
   get header(): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        // TODO: Create a testIds.ts const with this selector
-        PlaywrightMatchers.getElementById('perps-home', { exact: true }),
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketListViewSelectorsIDs.MARKET_LIST,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            PerpsMarketListViewSelectorsIDs.MARKET_LIST,
+          ),
+      },
     });
   }
 
-  get marketRowItemBTC() {
-    return Matchers.getElementByID(
-      getPerpsMarketRowItemSelector.rowItem('BTC'),
-    );
+  get marketRowItemBTC(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(getPerpsMarketRowItemSelector.rowItem('BTC')),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            getPerpsMarketRowItemSelector.rowItem('BTC'),
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            getPerpsMarketRowItemSelector.rowItem('BTC'),
+          ),
+      },
+    });
   }
 
   // Generic selector for first market row item (regardless of coin)
   get firstMarketRowItem() {
-    // Match any element with testID that starts with 'perps-market-row-item-' and get the first one
     return Matchers.getElementByID(/^perps-market-row-item-.*/, 0);
   }
 
@@ -107,18 +135,12 @@ class PerpsMarketListView {
 
   // Actions
   async tapMarketRowItemBTC() {
-    await Gestures.scrollToElement(
-      this.marketRowItemBTC,
-      this.scrollableContainer,
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Perps Market Row BTC',
+    await encapsulatedAction({
+      appium: async () => {
+        const marketElement = await asPlaywrightElement(this.marketRowItemBTC);
+        await PlaywrightGestures.scrollIntoView(marketElement);
+        await PlaywrightGestures.waitAndTap(marketElement);
       },
-    );
-    await Gestures.waitAndTap(this.marketRowItemBTC, {
-      elemDescription: 'Perps Market Row BTC',
-      checkStability: true,
     });
   }
 
@@ -150,25 +172,130 @@ class PerpsMarketListView {
     await Gestures.waitAndTap(this.container);
   }
 
-  // Helper method to select a specific market by text
+  private getMarketRowElement(marketName: string) {
+    return Matchers.getElementByID(
+      `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`,
+    );
+  }
+
+  private get perpsHomeScrollView(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT);
+  }
+
+  /**
+   * Scrolls the Perps home feed (or full market list) until the market row is visible.
+   * Avoids tapping Explore crypto, which is flaky when clipped on CI.
+   */
+  async scrollToMarketRow(marketName: string): Promise<void> {
+    const marketElement = this.getMarketRowElement(marketName);
+
+    if (await Utilities.isElementVisible(marketElement, 1500)) {
+      return;
+    }
+
+    const watchlistSection = Matchers.getElementByID(
+      PerpsWatchlistSelectorsIDs.SECTION,
+    );
+    const perpsHomeScrollVisible = await Utilities.isElementVisible(
+      Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+      1000,
+    );
+
+    if (perpsHomeScrollVisible) {
+      if (await Utilities.isElementVisible(watchlistSection, 1000)) {
+        await Gestures.scrollToElement(
+          watchlistSection,
+          this.perpsHomeScrollView,
+          {
+            direction: 'down',
+            scrollAmount: 200,
+            timeout: 10000,
+            elemDescription: 'Perps home watchlist section',
+          },
+        );
+      }
+
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return;
+      }
+
+      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
+        direction: 'down',
+        scrollAmount: 200,
+        timeout: 10000,
+        elemDescription: `${marketName} market row on Perps home`,
+      });
+
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return;
+      }
+
+      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
+        direction: 'up',
+        scrollAmount: 200,
+        timeout: 10000,
+        elemDescription: `${marketName} market row on Perps home (scroll up)`,
+      });
+
+      return;
+    }
+
+    const marketListVisible = await Utilities.isElementVisible(
+      this.container,
+      1000,
+    );
+    if (marketListVisible) {
+      await Gestures.scrollToElement(marketElement, this.scrollableContainer, {
+        direction: 'down',
+        scrollAmount: 200,
+        timeout: 10000,
+        elemDescription: `${marketName} market row in market list`,
+      });
+    }
+  }
+
   async selectMarket(marketName: string) {
     await encapsulatedAction({
       detox: async () => {
-        const marketElement = Matchers.getElementByID(
-          `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`,
-        );
-        await Gestures.waitAndTap(marketElement);
+        const marketElement = this.getMarketRowElement(marketName);
+        await this.scrollToMarketRow(marketName);
+        await Gestures.waitAndTap(marketElement, {
+          elemDescription: `${marketName} market row`,
+        });
       },
       appium: async () => {
-        // TODO: Create a testIds.ts const with this selector
         const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
         const marketElement = await PlaywrightMatchers.getElementById(
           marketSelector,
           { exact: true },
         );
+        await PlaywrightGestures.scrollIntoView(marketElement);
         await PlaywrightGestures.waitAndTap(marketElement);
       },
     });
+  }
+
+  /**
+   * Selects a market from the Perps home watchlist and taps Long or Short on
+   * market details. Scrolls the home feed when needed; retries until both steps succeed.
+   */
+  async selectMarketAndTapOrderSide(
+    marketName: string,
+    side: PerpsOrderSide,
+    options: { interval?: number; timeout?: number } = {},
+  ): Promise<void> {
+    const { interval = 1000, timeout = 30000 } = options;
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.selectMarket(marketName);
+        if (side === 'long') {
+          await PerpsMarketDetailsView.tapLongButton();
+        } else {
+          await PerpsMarketDetailsView.tapShortButton();
+        }
+      },
+      { interval, timeout },
+    );
   }
 }
 

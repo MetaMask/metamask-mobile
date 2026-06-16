@@ -60,7 +60,7 @@ jest.mock('../../../../../util/theme', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'card.cashback_screen.available_cashback': 'Available cashback',
+      'card.cashback_screen.available_cashback': 'Available mUSD',
       'card.cashback_screen.network_fee': 'Network fee',
       'card.cashback_screen.expected_to_receive': 'Expected to receive',
       'card.cashback_screen.withdraw': 'Withdraw',
@@ -146,6 +146,26 @@ const mockLineaUsdcFundingAsset = {
   status: FundingAssetStatus.Active,
 };
 
+const mockLineaUsdcDelegationSettings = {
+  networks: [
+    {
+      network: 'linea',
+      environment: 'production',
+      chainId: '59144',
+      delegationContract: '0xdeleg000000000000000000000000000000000004',
+      tokens: {
+        USDC: {
+          address: '0xusdc000000000000000000000000000000000001',
+          symbol: 'USDC',
+          decimals: 6,
+        },
+      },
+    },
+  ],
+  count: 1,
+  _links: { self: '/v1/delegation/chain/config' },
+};
+
 const mockCardHomeData = {
   primaryFundingAsset: mockLineaUsdcFundingAsset,
   fundingAssets: [mockLineaUsdcFundingAsset],
@@ -154,7 +174,7 @@ const mockCardHomeData = {
   account: null,
   alerts: [],
   actions: [],
-  delegationSettings: null,
+  delegationSettings: mockLineaUsdcDelegationSettings,
 };
 
 const CashbackWithToast = () => (
@@ -175,6 +195,9 @@ function render(cardControllerOverrides = {}) {
           backgroundState: {
             PreferencesController: {
               isIpfsGatewayEnabled: true,
+            },
+            MoneyAccountController: {
+              moneyAccounts: {},
             },
             CardController: {
               selectedCountry: null,
@@ -221,7 +244,7 @@ describe('Cashback Component', () => {
       render();
 
       expect(screen.getByTestId(CashbackSelectors.CONTAINER)).toBeOnTheScreen();
-      expect(screen.queryByText('Available cashback')).toBeOnTheScreen();
+      expect(screen.queryByText('Available mUSD')).toBeOnTheScreen();
     });
   });
 
@@ -377,6 +400,25 @@ describe('Cashback Component', () => {
 
       expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
     });
+
+    it('shows unavailable label when net amount floors to zero', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '0.50005',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render();
+
+      expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
+    });
   });
 
   describe('Linea funding requirement', () => {
@@ -481,7 +523,7 @@ describe('Cashback Component', () => {
   });
 
   describe('withdraw action', () => {
-    it('calls withdraw with balance on button press', () => {
+    it('calls withdraw with net amount on button press', () => {
       mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
@@ -499,7 +541,7 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
     });
 
     it('tracks analytics event on withdraw', () => {

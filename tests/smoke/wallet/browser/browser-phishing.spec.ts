@@ -72,9 +72,17 @@ describe(SmokeBrowser('Browser Phishing Detection'), () => {
 
         // Navigate to a local page that redirects to the phishing domain.
         // The redirect triggers dapp-scanning which returns BLOCK.
+        //
+        // Skip the URL editor dismissal that `navigateToURL` normally does:
+        // phishing detection writes to AsyncStorage v2 immediately after
+        // navigation, and a Cancel-button tap landing on top of those writes
+        // races with Detox's `AsyncStorageIdlingResource` and stalls the
+        // test. The phishing modal that follows pre-empts the URL editor
+        // overlay anyway.
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL(
           `${getDappUrl(0)}/redirect-to-phishing.html`,
+          { skipUrlEditorDismissal: true },
         );
         await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
           description: 'Phishing warning back to safety button is visible',
@@ -102,7 +110,10 @@ describe(SmokeBrowser('Browser Phishing Detection'), () => {
         await loginToApp();
         await navigateToBrowserView();
         await Browser.tapUrlInputBox();
-        await Browser.navigateToURL(`${getDappUrl(0)}/iframe-test.html`);
+        // Skip URL editor dismissal — see comment on the redirect test above.
+        await Browser.navigateToURL(`${getDappUrl(0)}/iframe-test.html`, {
+          skipUrlEditorDismissal: true,
+        });
         await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
           description:
             'Phishing warning back to safety button is visible for iframe',

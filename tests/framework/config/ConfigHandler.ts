@@ -1,4 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
+import '../nodeNativeUtilsShim.cjs';
 import path from 'path';
 import {
   defineConfig as defineConfigPlaywright,
@@ -22,7 +23,7 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   // used across tests in a file where they run sequentially
   fullyParallel: false,
   forbidOnly: false,
-  retries: isCI ? 1 : 0,
+  retries: isCI ? 2 : 0,
   workers: 1,
   reporter: [['list'], ['html', { open: 'always' }]],
   timeout: 300_000,

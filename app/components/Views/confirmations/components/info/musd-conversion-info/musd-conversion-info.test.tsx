@@ -11,6 +11,7 @@ jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
+  createNavigationDetails: jest.fn(() => jest.fn()),
 }));
 jest.mock('../../../../../../util/trace', () => ({
   endTrace: jest.fn(),
@@ -53,7 +54,7 @@ describe('MusdConversionInfo', () => {
       chainId: '0x1' as Hex,
     };
     mockUseParams.mockReturnValue(mockParams);
-    mockUseMusdConversionNavbar.mockReturnValue(undefined);
+    mockUseMusdConversionNavbar.mockReturnValue({ TooltipNode: <></> });
   });
 
   afterEach(() => {
@@ -153,7 +154,7 @@ describe('MusdConversionInfo', () => {
         expect.objectContaining({
           preferredToken: preferredPaymentToken,
         }),
-        {},
+        undefined,
       );
     });
   });
@@ -168,7 +169,7 @@ describe('MusdConversionInfo', () => {
         expect.objectContaining({
           hidePayTokenAmount: true,
         }),
-        {},
+        undefined,
       );
     });
   });

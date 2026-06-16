@@ -8,6 +8,7 @@ import { ButtonIconSizes } from '../../../../../component-library/components/But
 import { useStyles } from '../../../../hooks/useStyles';
 import Tooltip from '../UI/Tooltip';
 import styleSheet from './status-icon.styles';
+import { STATUS_ICON_TOOLTIP_TEST_ID } from './status-icon.testIds';
 
 export type Severity = 'success' | 'error' | 'warning';
 
@@ -29,7 +30,7 @@ export function StatusIcon({
         iconName={iconName}
         iconSize={ButtonIconSizes.Md}
         iconStyle={styles.tooltipIcon}
-        tooltipTestId="status-tooltip"
+        tooltipTestId={STATUS_ICON_TOOLTIP_TEST_ID}
         content={tooltip}
       />
     );

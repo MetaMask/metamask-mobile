@@ -106,6 +106,9 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         claimableAmount={claimableAmount}
         isLoading={isLoading}
         isClaimPending={isClaimPending}
+        buttonLayout="inlineNoSeparator"
+        buttonGapClassName="w-full gap-2"
+        buttonContainerClassName="w-full mt-2"
         testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.ACTION_BUTTONS}`}
       />
     </Box>

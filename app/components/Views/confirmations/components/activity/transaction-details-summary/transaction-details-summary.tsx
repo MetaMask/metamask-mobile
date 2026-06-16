@@ -23,6 +23,7 @@ import { DepositSummaryLine } from './deposit-summary-line';
 import { ApprovalSummaryLine } from './approval-summary-line';
 import { ReceiveSummaryLine } from './receive-summary-line';
 import { DefaultSummaryLine } from './default-summary-line';
+import { FiatOrderSummaryLine } from './fiat-order-summary-line';
 
 export function TransactionDetailsSummary() {
   const { transactionMeta } = useTransactionDetails();
@@ -67,13 +68,19 @@ export function TransactionDetailsSummary() {
   const hasDepositTransactions =
     (requiredTransactionIds?.length ?? 0) > 0 || batchTransactionIds.length > 0;
 
-  const { sourceHash } = metamaskPay ?? {};
+  const { sourceHash, fiat } = metamaskPay ?? {};
+  const { orderId: fiatOrderId } = fiat ?? {};
+
+  const showSourceHash = !hasDepositTransactions && sourceHash;
 
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>Summary</Text>
-      <ProgressList>
-        {!hasDepositTransactions && sourceHash ? (
+      <ProgressList showConnectors={false}>
+        {fiatOrderId ? (
+          <FiatOrderSummaryLine parentTransaction={transactionMeta} />
+        ) : null}
+        {showSourceHash ? (
           <SourceHashSummaryLine
             parentTransaction={transactionMeta}
             sourceHash={sourceHash}
@@ -98,7 +105,6 @@ function SummaryLine({
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
 }) {
-  // Relay deposit types render as send lines
   if (hasTransactionType(transactionMeta, RELAY_DEPOSIT_TYPES)) {
     return (
       <DepositSummaryLine
@@ -114,9 +120,11 @@ function SummaryLine({
 
   if (
     hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.musdConversion,
+      TransactionType.predictWithdraw,
     ])
   ) {
     return <ReceiveSummaryLine transactionMeta={transactionMeta} />;

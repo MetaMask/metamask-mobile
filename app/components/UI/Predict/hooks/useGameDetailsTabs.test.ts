@@ -74,7 +74,7 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.enabled).toBe(false);
     });
 
-    it('returns showTabBar false even with positions', () => {
+    it('returns showTabBar false when disabled sports details have positions', () => {
       const { result } = renderHook(() =>
         useGameDetailsTabs({
           ...defaultParams,
@@ -83,6 +83,9 @@ describe('useGameDetailsTabs', () => {
       );
 
       expect(result.current.showTabBar).toBe(false);
+      expect(result.current.tabs).toEqual([
+        { label: 'predict.tabs.positions', key: 'positions' },
+      ]);
     });
 
     it('defaults activeTab to 0', () => {
@@ -145,7 +148,7 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.activeTab).toBe(0);
     });
 
-    it('preserves activeTab when tabs change', () => {
+    it('resets activeTab when the selected index no longer exists', () => {
       const { result, rerender } = renderHook(
         (props) => useGameDetailsTabs(props),
         {
@@ -162,7 +165,33 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.activeTab).toBe(1);
 
       rerender({ ...defaultParams, activePositions: [] });
+      expect(result.current.activeTab).toBe(0);
+    });
+
+    it('does not expose an out-of-bounds activeTab while tabs shrink', () => {
+      const { result, rerender } = renderHook(
+        (props) => useGameDetailsTabs(props),
+        {
+          initialProps: {
+            ...defaultParams,
+            activePositions: [createMockPosition()],
+          },
+        },
+      );
+
+      act(() => {
+        result.current.handleTabPress(1);
+      });
       expect(result.current.activeTab).toBe(1);
+
+      mockUseSelector.mockReturnValue([]);
+      rerender({
+        ...defaultParams,
+        activePositions: [createMockPosition()],
+      });
+
+      expect(result.current.tabs).toHaveLength(1);
+      expect(result.current.activeTab).toBe(0);
     });
   });
 

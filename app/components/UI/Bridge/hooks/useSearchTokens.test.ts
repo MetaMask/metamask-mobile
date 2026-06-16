@@ -6,6 +6,7 @@ import {
   createMockPaginatedResponse,
   MOCK_CHAIN_IDS,
 } from '../testUtils/fixtures';
+import { PopularToken } from '../types';
 
 global.fetch = jest.fn();
 
@@ -29,7 +30,7 @@ describe('useSearchTokens', () => {
 
   const defaultParams = {
     chainIds: [MOCK_CHAIN_IDS.ethereum],
-    includeAssets: '[]',
+    includeAssets: [],
   };
 
   describe('initial state', () => {
@@ -61,7 +62,9 @@ describe('useSearchTokens', () => {
       await waitFor(() => expect(result.current.isSearchLoading).toBe(false));
 
       expect(result.current.searchResults).toEqual(mockResponse.data);
-      expect(result.current.searchResults[0].isVerified).toBe(true);
+      expect((result.current.searchResults[0] as PopularToken).isVerified).toBe(
+        true,
+      );
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/getTokens/search'),
         expect.objectContaining({
@@ -106,14 +109,14 @@ describe('useSearchTokens', () => {
         json: async () => mockResponse,
       });
 
-      const includeAssets = JSON.stringify([
+      const includeAssets = [
         {
-          assetId: 'eip155:1/erc20:0xincluded',
+          assetId: 'eip155:1/erc20:0xincluded' as const,
           name: 'Included Token',
           symbol: 'INC',
           decimals: 18,
         },
-      ]);
+      ];
 
       const { result } = renderHook(() =>
         useSearchTokens({ ...defaultParams, includeAssets }),
@@ -231,7 +234,9 @@ describe('useSearchTokens', () => {
 
       expect(result.current.searchResults[0].symbol).toBe('FIRST');
       expect(result.current.searchResults[1].symbol).toBe('SECOND');
-      expect(result.current.searchResults[0].isVerified).toBe(true);
+      expect((result.current.searchResults[0] as PopularToken).isVerified).toBe(
+        true,
+      );
     });
 
     it('sets isLoadingMore for pagination requests', async () => {

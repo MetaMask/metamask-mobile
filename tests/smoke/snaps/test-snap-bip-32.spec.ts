@@ -15,6 +15,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +32,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('getPublicKeyBip32Button');
@@ -47,6 +49,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageSecp256k1Input', 'foo bar');
@@ -66,6 +69,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageEd25519Input', 'foo bar');
@@ -85,6 +89,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageEd25519Bip32Input', 'foo bar');
@@ -104,6 +109,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 1');
@@ -124,6 +130,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 2');
@@ -144,25 +151,17 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
         await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
-        // iOS shows the error as a native alert; Android renders it in the
-        // web-view result span as JSON with escaped quotes.
-        if (device.getPlatform() === 'ios') {
-          await Assertions.expectTextDisplayed(
-            'Entropy source with ID "invalid" not found.',
-            { timeout: 30000 },
-          );
-        } else {
-          await TestSnaps.checkResultSpanIncludes(
-            'bip32MessageResultSecp256k1Span',
-            'Entropy source with ID',
-            { timeout: 30000 },
-          );
-        }
+        await Assertions.expectTextDisplayed(
+          'Entropy source with ID "invalid" not found.',
+          { timeout: 30000 },
+        );
+        await TestSnaps.dismissAlert();
       },
     );
   });

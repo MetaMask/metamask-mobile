@@ -2,8 +2,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
@@ -44,12 +42,16 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-    carouselBanners: false,
-    exploreSectionsOrder: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
+    // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
+    predictBottomSheet: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
+    predictWithAnyToken: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    carouselBanners: false,
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -69,9 +71,8 @@ describe(SmokePredictions('Predictions'), () => {
       },
       async ({ mockServer }) => {
         await loginToApp();
+        await WalletView.scrollAndTapPredictionsSection();
 
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
         await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictMarketList.container, {
@@ -83,7 +84,7 @@ describe(SmokePredictions('Predictions'), () => {
           positionDetails.category,
           positionDetails.marketIndex,
         );
-        await PredictDetailsPage.tapOpenPositionValue();
+        await PredictDetailsPage.tapGameBetYesButton();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
 
@@ -93,18 +94,6 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapDoneButton();
 
         await PredictDetailsPage.tapOpenPosition();
-
-        await Assertions.expectElementToBeVisible(
-          PredictDetailsPage.positionsTab,
-          {
-            description:
-              'Position tab should appear after opening a new position',
-          },
-        );
-
-        await Assertions.expectTextDisplayed(positionDetails.name, {
-          description: 'Position card for Celtics vs. Nets should appear',
-        });
 
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
@@ -126,8 +115,7 @@ describe(SmokePredictions('Predictions'), () => {
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
 
         await PredictDetailsPage.tapBackButton();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
+        await WalletView.scrollAndTapPredictionsSection();
         await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );

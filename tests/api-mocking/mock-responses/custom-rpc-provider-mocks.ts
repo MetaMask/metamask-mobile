@@ -16,11 +16,9 @@ const MOCK_BLOCK = {
   transactions: [],
 };
 
-// Method-specific mock responses for Ethereum mainnet RPC calls
-const MOCK_RESPONSES: Record<string, unknown> = {
+// Shared method-specific mock responses applied to all proxied RPC hosts
+const SHARED_MOCK_RESPONSES: Record<string, unknown> = {
   eth_blockNumber: '0x178a60b',
-  net_version: '1',
-  eth_chainId: '0x1',
   eth_getBlockByNumber: MOCK_BLOCK,
   eth_call:
     '0x0000000000000000000000000000000000000000000000000000000000000000',
@@ -30,11 +28,28 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   eth_estimateGas: '0x5208',
 };
 
-const LLAMARPC_URL = 'https://eth.llamarpc.com';
+// Per-host overrides ensure each mocked RPC reports the correct chain identity
+// (returning Ethereum mainnet values for non-mainnet hosts can mask chain-switch bugs).
+const PROXIED_RPC_CONFIGS: {
+  url: string;
+  chainId: string;
+  netVersion: string;
+}[] = [
+  { url: 'https://eth.llamarpc.com', chainId: '0x1', netVersion: '1' },
+  {
+    url: 'https://rpc.atlantischain.network',
+    chainId: '0x53a',
+    netVersion: '1338',
+  },
+];
+
+const findRpcConfig = (urlParam: string | null) =>
+  PROXIED_RPC_CONFIGS.find((config) => urlParam?.startsWith(config.url));
 
 /**
- * TestSpecificMock that intercepts eth.llamarpc.com RPC calls
- * through the mobile proxy, returning static responses per JSON-RPC method.
+ * TestSpecificMock that intercepts custom-RPC provider calls
+ * (eth.llamarpc.com, rpc.atlantischain.network) through the mobile
+ * proxy, returning static responses per JSON-RPC method.
  */
 export const CUSTOM_RPC_PROVIDER_MOCKS: TestSpecificMock = async (
   mockServer: Mockttp,
@@ -43,15 +58,26 @@ export const CUSTOM_RPC_PROVIDER_MOCKS: TestSpecificMock = async (
     .forPost('/proxy')
     .matching((request) => {
       const urlParam = new URL(request.url).searchParams.get('url');
-      return Boolean(urlParam?.startsWith(LLAMARPC_URL));
+      return Boolean(findRpcConfig(urlParam));
     })
     .asPriority(1000)
     .thenCallback(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const rpcConfig = findRpcConfig(urlParam);
+
       try {
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : undefined;
         const method = body?.method as string | undefined;
-        const result = method ? (MOCK_RESPONSES[method] ?? '0x') : '0x';
+
+        let result: unknown = '0x';
+        if (method === 'eth_chainId') {
+          result = rpcConfig?.chainId ?? '0x1';
+        } else if (method === 'net_version') {
+          result = rpcConfig?.netVersion ?? '1';
+        } else if (method) {
+          result = SHARED_MOCK_RESPONSES[method] ?? '0x';
+        }
 
         return {
           statusCode: 200,

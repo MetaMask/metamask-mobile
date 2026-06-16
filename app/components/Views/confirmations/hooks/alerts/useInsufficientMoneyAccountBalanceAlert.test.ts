@@ -39,7 +39,7 @@ describe('useInsufficientMoneyAccountBalanceAlert', () => {
     } as unknown as TransactionMeta);
 
     useMoneyAccountBalanceMock.mockReturnValue({
-      tokenTotal: new BigNumber('100'),
+      withdrawableMusd: new BigNumber('100'),
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
@@ -71,9 +71,9 @@ describe('useInsufficientMoneyAccountBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns no alert when tokenTotal is undefined', () => {
+  it('returns no alert when withdrawableMusd is undefined', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      tokenTotal: undefined,
+      withdrawableMusd: undefined,
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     const { result } = runHook({ pendingAmount: '150' });

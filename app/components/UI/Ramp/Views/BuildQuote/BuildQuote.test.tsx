@@ -124,11 +124,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getRampRoutingDecision: () => 'AGGREGATOR',
-  UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
-}));
-
 jest.mock('../../hooks/useRampAccountAddress', () => ({
   __esModule: true,
   default: () => '0x1234567890123456789012345678901234567890',
@@ -246,6 +241,9 @@ const USER_REGION = {
   regionCode: 'us-ca',
 };
 
+const CIRCUIT_BREAKER_MESSAGE =
+  'This service is temporarily unavailable. Please try again in about 30 minutes.';
+
 const buildProviderWithLimits = (limits: {
   minAmount: number;
   maxAmount: number;
@@ -303,7 +301,7 @@ describe('createBuildQuoteNavDetails', () => {
   it('returns token selection route with amount input screen', () => {
     const result = createBuildQuoteNavDetails();
     expect(result[0]).toBe(Routes.RAMP.TOKEN_SELECTION);
-    expect(result[1].screen).toBe(Routes.RAMP.TOKEN_SELECTION);
+    expect(result[1].screen).toBe(Routes.RAMP.TOKEN_SELECTION_ROOT);
     expect(result[1].params.screen).toBe(Routes.RAMP.AMOUNT_INPUT);
     expect(result[1].params.params).toBeUndefined();
   });
@@ -316,19 +314,6 @@ describe('createBuildQuoteNavDetails', () => {
     expect(result[1].params.params).toEqual({
       assetId: 'eip155:1/slip44:60',
       nativeFlowError: 'error',
-    });
-  });
-
-  it('forwards headlessSessionId for headless buy attempts', () => {
-    const result = createBuildQuoteNavDetails({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
-    });
-    expect(result[1].params.params).toEqual({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
     });
   });
 });
@@ -981,6 +966,61 @@ describe('BuildQuote', () => {
       expect(
         getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('shows the localized circuit breaker fallback for quote fetch errors', () => {
+      const circuitBreakerError = Object.assign(
+        new Error('Execution prevented because the circuit breaker is open'),
+        { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+      );
+      mockUseRampsQuotes.mockReturnValue({
+        data: null,
+        loading: false,
+        error: circuitBreakerError,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText(CIRCUIT_BREAKER_MESSAGE)).toBeOnTheScreen();
+      expect(
+        queryByText('Execution prevented because the circuit breaker is open'),
+      ).not.toBeOnTheScreen();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_message: CIRCUIT_BREAKER_MESSAGE,
+        }),
+      );
+    });
+
+    it('removes the quote fetch banner after quote fetching recovers', () => {
+      const quoteFetchError = new Error('Quote fetch failed');
+      let quotesHookResult: {
+        data: { success: (typeof WIDGET_PROVIDER_QUOTE)[] } | null;
+        loading: boolean;
+        error: Error | null;
+      } = {
+        data: null,
+        loading: false,
+        error: quoteFetchError,
+      };
+      mockUseRampsQuotes.mockImplementation(() => quotesHookResult);
+
+      const { queryByText, rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText('Quote fetch failed')).toBeOnTheScreen();
+
+      quotesHookResult = {
+        data: { success: [WIDGET_PROVIDER_QUOTE] },
+        loading: false,
+        error: null,
+      };
+      rerender(<BuildQuote />);
+
+      expect(queryByText('Quote fetch failed')).not.toBeOnTheScreen();
     });
   });
 

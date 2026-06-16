@@ -174,6 +174,18 @@ describe('PredictBetButton', () => {
       expect(screen.getByText('DRAW · 20¢')).toBeOnTheScreen();
     });
 
+    it('renders inline with no separator', () => {
+      const props = createDefaultProps({
+        label: 'SEA',
+        price: 70,
+        layout: 'inlineNoSeparator',
+      });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('SEA 70¢')).toBeOnTheScreen();
+    });
+
     it('defaults to stacked layout when layout prop is omitted', () => {
       const props = createDefaultProps({ label: 'Yes', price: 65 });
 

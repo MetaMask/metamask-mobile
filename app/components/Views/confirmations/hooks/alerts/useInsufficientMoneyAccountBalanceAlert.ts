@@ -18,7 +18,7 @@ export function useInsufficientMoneyAccountBalanceAlert({
   pendingAmount?: string;
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { tokenTotal } = useMoneyAccountBalance();
+  const { withdrawableMusd } = useMoneyAccountBalance();
   const { amountPrecise } = useTokenAmount();
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
 
@@ -28,10 +28,10 @@ export function useInsufficientMoneyAccountBalanceAlert({
 
   const isInsufficient = useMemo(() => {
     if (!isMoneyAccountWithdraw) return false;
-    if (tokenTotal === undefined) return false;
+    if (withdrawableMusd === undefined) return false;
 
-    return tokenTotal.isLessThan(amountHuman);
-  }, [isMoneyAccountWithdraw, amountHuman, tokenTotal]);
+    return withdrawableMusd.isLessThan(amountHuman);
+  }, [isMoneyAccountWithdraw, amountHuman, withdrawableMusd]);
 
   return useMemo(() => {
     if (!isInsufficient) {

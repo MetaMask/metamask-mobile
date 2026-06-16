@@ -6,6 +6,6 @@ export interface PerpsAdjustMarginActionSheetProps {
   isVisible?: boolean;
   onClose: () => void;
   onSelectAction: (action: AdjustMarginAction) => void;
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   testID?: string;
 }

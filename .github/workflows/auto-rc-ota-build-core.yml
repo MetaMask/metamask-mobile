@@ -1,0 +1,95 @@
+##############################################################################################
+#
+# Auto RC OTA / build core (reusable)
+#
+# Shared logic for the Auto RC flow (build-rc-auto.yml): detect whether the push is an
+# OTA_VERSION bump and, if so, skip the native build (OTA-only changes are published
+# separately). Otherwise fall through to a native build.yml build (and TestFlight for iOS).
+#
+# This workflow does not push OTA updates — OTA publishing is handled outside this flow.
+#
+# Runway's manual entry workflows do not use this file — they call the dedicated OTA-only or
+# build-only workflows (runway-ota-*.yml, runway-*-builds.yml) directly.
+#
+##############################################################################################
+name: Auto RC OTA Build Core
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        description: 'Target platform passed to build.yml (android or ios)'
+        required: true
+        type: string
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA (Build workflow source_branch).
+          Empty uses the branch selected in the caller workflow_dispatch "Use workflow from" UI.
+        required: false
+        type: string
+        default: ''
+      build_name:
+        description: 'build.yml build_name (e.g. main-rc, main-prod)'
+        required: false
+        type: string
+        default: main-rc
+      environment:
+        description: 'Build environment / track passed to upload-to-testflight (e.g. rc, prod)'
+        required: false
+        type: string
+        default: 'rc'
+      distribute_external:
+        description: 'Whether to distribute the iOS build to external TestFlight testers'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      semantic_version:
+        description: 'package.json version at the built commit (empty when OTA bump skips the build)'
+        value: ${{ jobs.trigger-build.outputs.semantic_version }}
+      ios_version_code:
+        description: 'iOS CURRENT_PROJECT_VERSION at the built commit (empty when OTA bump skips the build)'
+        value: ${{ jobs.trigger-build.outputs.ios_version_code }}
+      android_version_code:
+        description: 'Android versionCode at the built commit (empty when OTA bump skips the build)'
+        value: ${{ jobs.trigger-build.outputs.android_version_code }}
+
+permissions:
+  contents: read
+  pull-requests: read # required by runway-ota-resolve-context.yml
+  id-token: write # required by build.yml
+
+jobs:
+  resolve-context:
+    name: Resolve OTA context
+    uses: ./.github/workflows/runway-ota-resolve-context.yml
+    with:
+      source_branch: ${{ inputs.source_branch }}
+    secrets: inherit
+
+  trigger-build:
+    name: Trigger build mobile app
+    needs: resolve-context
+    if: needs.resolve-context.outputs.ota_bump != 'true'
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: ${{ inputs.build_name }}
+      platform: ${{ inputs.platform }}
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      upload_to_sentry: true
+    secrets: inherit
+
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: [trigger-build]
+    if: ${{ inputs.platform == 'ios' }}
+    uses: ./.github/workflows/upload-to-testflight.yml
+    with:
+      environment: ${{ inputs.environment }}
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_name: ${{ inputs.build_name }}
+      build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
+      build_version: ${{ needs.trigger-build.outputs.semantic_version }}
+      build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
+      distribute_external: ${{ inputs.distribute_external }}
+    secrets: inherit

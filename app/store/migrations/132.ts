@@ -65,7 +65,10 @@ const migration = (state: unknown): unknown => {
       ) {
         return;
       }
-      const balancesForThisTempoChain = balancesPerChain[chainId] as Object;
+      const balancesForThisTempoChain = balancesPerChain[chainId] as Record<
+        string,
+        string
+      >;
       if (
         !hasProperty(balancesForThisTempoChain, ZERO_ADDRESS) ||
         balancesForThisTempoChain[ZERO_ADDRESS] === ZERO_BALANCE

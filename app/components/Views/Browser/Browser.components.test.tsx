@@ -19,6 +19,7 @@ import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;
@@ -211,7 +212,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromTrending: true,
         }),
-        {},
+        undefined,
       );
     });
 
@@ -257,7 +258,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromPerps: true,
         }),
-        {},
+        undefined,
       );
     });
 
@@ -303,7 +304,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromBenefit: true,
         }),
-        {},
+        undefined,
       );
     });
 
@@ -349,7 +350,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromCard: true,
         }),
-        {},
+        undefined,
       );
     });
 
@@ -401,7 +402,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           linkType: 'deeplink',
         }),
-        {},
+        undefined,
       );
     });
   });

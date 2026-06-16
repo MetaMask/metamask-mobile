@@ -48,23 +48,27 @@ function buildErc1155OperatorRequirements({
   }));
 }
 
-export function getCanonicalV2AllowanceRequirements(
+export function getLegacySweepAllowanceRequirements(
   protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
 ): V2AllowanceRequirement[] {
-  const { collateral, contracts } = protocol;
-
-  if (!collateral.onrampAddress || !collateral.offrampAddress) {
-    throw new Error(
-      'Polymarket CLOB v2 collateral ramp addresses are required',
-    );
-  }
+  const { collateral } = protocol;
 
   return [
+    // Temporary legacy Safe USDC.e -> pUSD sweep support. TODO: remove after one release.
     {
       type: 'erc20-allowance',
       tokenAddress: collateral.legacyUsdceToken,
       spender: collateral.onrampAddress,
     },
+  ];
+}
+
+export function getActiveV2AllowanceRequirements(
+  protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
+): V2AllowanceRequirement[] {
+  const { collateral, contracts } = protocol;
+
+  return [
     ...buildErc20AllowanceRequirements({
       tokenAddress: collateral.tradingToken,
       spenders: [
@@ -73,7 +77,6 @@ export function getCanonicalV2AllowanceRequirements(
         contracts.negRiskExchange,
         contracts.negRiskAdapter,
         PERMIT2_ADDRESS,
-        collateral.offrampAddress,
       ],
     }),
     ...buildErc1155OperatorRequirements({
@@ -84,5 +87,29 @@ export function getCanonicalV2AllowanceRequirements(
         contracts.negRiskAdapter,
       ],
     }),
+  ];
+}
+
+export function filterDepositWalletUnsupportedRequirements(
+  requirements: V2AllowanceRequirement[],
+): V2AllowanceRequirement[] {
+  return requirements.filter((requirement) => {
+    if (requirement.type !== 'erc20-allowance') {
+      return true;
+    }
+
+    // Polymarket's deposit-wallet relayer allow-list blocks Permit2 approvals
+    // (`approve spender 0x000000000022D473030F116dDEE9F6B43aC78BA3 is not in the allowed list`).
+    // Skip this for deposit-wallet setup/claims; fees use a different flow.
+    return requirement.spender.toLowerCase() !== PERMIT2_ADDRESS.toLowerCase();
+  });
+}
+
+export function getCanonicalV2AllowanceRequirements(
+  protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
+): V2AllowanceRequirement[] {
+  return [
+    ...getLegacySweepAllowanceRequirements(protocol),
+    ...getActiveV2AllowanceRequirements(protocol),
   ];
 }

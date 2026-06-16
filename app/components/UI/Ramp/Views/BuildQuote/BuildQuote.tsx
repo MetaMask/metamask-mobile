@@ -29,11 +29,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
@@ -61,12 +61,6 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useSelector } from 'react-redux';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
@@ -96,22 +90,14 @@ export interface BuildQuoteParams {
   buyFlowOrigin?: BuyFlowOrigin;
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
-  /**
-   * Legacy param from Phase 3. The headless flow now navigates straight
-   * to `Routes.RAMP.HEADLESS_HOST` and never lands on BuildQuote, so the
-   * field is unused. Kept as `optional` for backward compatibility with
-   * any in-flight deeplinks; safe to remove once we're sure no callers
-   * pass it.
-   *
-   * @deprecated Use `Routes.RAMP.HEADLESS_HOST` instead.
-   */
-  headlessSessionId?: string;
 }
 
 /**
  * Creates navigation details for the BuildQuote screen (RampAmountInput).
  * This screen is nested inside TokenListRoutes, so navigation must go through
- * the parent route Routes.RAMP.TOKEN_SELECTION.
+ * the parent route Routes.RAMP.TOKEN_SELECTION, then the intermediate
+ * RootStack wrapper Routes.RAMP.TOKEN_SELECTION_ROOT, before reaching the
+ * AMOUNT_INPUT leaf screen.
  */
 export const createBuildQuoteNavDetails = (
   params?: BuildQuoteParams,
@@ -128,7 +114,7 @@ export const createBuildQuoteNavDetails = (
   [
     Routes.RAMP.TOKEN_SELECTION,
     {
-      screen: Routes.RAMP.TOKEN_SELECTION,
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
       params: {
         screen: Routes.RAMP.AMOUNT_INPUT,
         params,
@@ -179,7 +165,6 @@ function BuildQuote() {
   const { continueWithQuote } = useContinueWithQuote();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -353,19 +338,16 @@ function BuildQuote() {
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
-    if (rampRoutingDecision != null) {
-      hasTrackedScreenViewRef.current = true;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-          .addProperties({
-            location: 'Amount Input',
-            ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision,
-          })
-          .build(),
-      );
-    }
-  }, [rampRoutingDecision, trackEvent, createEventBuilder]);
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   /*
    * Sets the default amount for the user's region.
@@ -443,6 +425,7 @@ function BuildQuote() {
     loading: selectedQuoteLoading,
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
+  const hasQuoteFetchError = quoteFetchError !== null;
 
   /*
    * Tracks RAMPS_QUOTE_ERROR
@@ -450,7 +433,7 @@ function BuildQuote() {
   const lastTrackedQuoteErrorRef = useRef<unknown>(null);
   useEffect(() => {
     if (
-      quoteFetchError &&
+      hasQuoteFetchError &&
       quoteFetchError !== lastTrackedQuoteErrorRef.current
     ) {
       lastTrackedQuoteErrorRef.current = quoteFetchError;
@@ -467,22 +450,21 @@ function BuildQuote() {
             payment_method_id: selectedPaymentMethod?.id,
             chain_id: selectedToken?.chainId,
             ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision ?? undefined,
           })
           .build(),
       );
     }
-    if (!quoteFetchError) {
+    if (!hasQuoteFetchError) {
       lastTrackedQuoteErrorRef.current = null;
     }
   }, [
+    hasQuoteFetchError,
     quoteFetchError,
     amountAsNumber,
     currency,
     selectedToken?.assetId,
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
-    rampRoutingDecision,
     trackEvent,
     createEventBuilder,
   ]);
@@ -605,8 +587,6 @@ function BuildQuote() {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
         .addProperties({
-          ramp_routing:
-            rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
           ramp_type: 'UNIFIED_BUY_2',
           amount_source: amountAsNumber,
           payment_method_id: selectedPaymentMethod?.id ?? '',
@@ -640,7 +620,6 @@ function BuildQuote() {
     amountAsNumber,
     currency,
     selectedPaymentMethod?.id,
-    rampRoutingDecision,
     userRegion?.regionCode,
     trackEvent,
     createEventBuilder,
@@ -657,7 +636,7 @@ function BuildQuote() {
     hasAmount &&
     hasSettledQuoteAmount &&
     !selectedQuoteLoading &&
-    !quoteFetchError &&
+    !hasQuoteFetchError &&
     quotesResponse !== null &&
     selectedQuote === null;
 
@@ -737,7 +716,7 @@ function BuildQuote() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={
             selectedToken?.symbol
               ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
@@ -810,12 +789,12 @@ function BuildQuote() {
                 onPress={
                   isTokenUnavailable ? undefined : handlePaymentPillPress
                 }
-                testID="build-quote-payment-pill"
+                testID={BUILD_QUOTE_TEST_IDS.PAYMENT_PILL}
               />
             </View>
           </View>
 
-          {quoteFetchError && (
+          {hasQuoteFetchError ? (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               description={parseUserFacingError(
@@ -823,7 +802,7 @@ function BuildQuote() {
                 strings('deposit.buildQuote.quoteFetchError'),
               )}
             />
-          )}
+          ) : null}
 
           <View style={styles.actionSection}>
             {hasAmount ? (

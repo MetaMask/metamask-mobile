@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
 import {
   selectPaymentMethods,
   selectProviders,
@@ -10,6 +11,7 @@ import {
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
+import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
 export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -153,8 +155,11 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     status,
     isSuccess: status === 'success',
     error:
-      paymentMethodsQuery.error instanceof Error
-        ? paymentMethodsQuery.error.message
+      paymentMethodsQuery.error != null
+        ? parseUserFacingError(
+            paymentMethodsQuery.error,
+            strings('fiat_on_ramp.payment_error'),
+          )
         : null,
   };
 }

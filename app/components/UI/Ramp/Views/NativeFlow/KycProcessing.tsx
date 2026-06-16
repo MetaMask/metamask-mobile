@@ -5,7 +5,6 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
@@ -18,6 +17,7 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import { KycStatus } from '../../Deposit/constants';
@@ -171,7 +171,7 @@ const V2KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('deposit.kyc_processing.navbar_title')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -216,7 +216,7 @@ const V2KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('deposit.kyc_processing.navbar_title')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -266,7 +266,7 @@ const V2KycProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.kyc_processing.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

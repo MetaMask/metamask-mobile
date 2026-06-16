@@ -332,6 +332,7 @@ const ConfirmPhoneNumber = () => {
       formFields={renderFormFields()}
       actions={renderActions()}
       stickyActions
+      headerMode="close-with-confirmation"
     />
   );
 };

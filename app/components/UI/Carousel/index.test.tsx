@@ -25,6 +25,11 @@ import { SolScope } from '@metamask/keyring-api';
 import { setContentPreviewToken } from '../../../actions/notification/helpers';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
+import type { UseAnalyticsHook } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 
 const makeMockState = () =>
   ({
@@ -108,6 +113,22 @@ const mockReduxHooks = (state?: RootState) => {
   jest
     .mocked(useSelector)
     .mockImplementation((selector) => selector(state ?? makeMockState()));
+};
+
+const mockAnalyticsTracking = () => {
+  const mockTrackEvent = jest.fn<
+    ReturnType<UseAnalyticsHook['trackEvent']>,
+    Parameters<UseAnalyticsHook['trackEvent']>
+  >();
+
+  jest.mocked(useAnalytics).mockReturnValue(
+    createMockUseAnalyticsHook({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    }),
+  );
+
+  return mockTrackEvent;
 };
 
 beforeEach(() => {
@@ -195,7 +216,7 @@ describe('Carousel Data Fetching', () => {
 describe('Carousel Slide Filtering', () => {
   const setupFilteringTests = (dismissedBanners: string[] = []) => {
     const mockState = makeMockState();
-    mockState.banners = { dismissedBanners };
+    mockState.banners = { dismissedBanners, lastDismissedBrazeBanner: null };
     mockReduxHooks(mockState);
   };
 
@@ -289,6 +310,93 @@ describe('Carousel Navigation', () => {
     const slide = await findByTestId('carousel-slide-route-slide');
     fireEvent.press(slide);
     expect(mockNavigate).toHaveBeenCalledWith('Settings');
+  });
+});
+
+describe('Carousel Analytics', () => {
+  it('tracks Banner Display with the Contentful id when variableName is blank', async () => {
+    const mockTrackEvent = mockAnalyticsTracking();
+    const slide = createMockSlide({
+      id: 'contentful-empty-variable-name',
+      variableName: '',
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [slide],
+    });
+
+    render(<Carousel />);
+
+    await waitFor(() => {
+      const displayEvents = mockTrackEvent.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event.name === 'Banner Display');
+
+      expect(displayEvents).toEqual([
+        expect.objectContaining<Partial<AnalyticsTrackingEvent>>({
+          name: 'Banner Display',
+          properties: { name: 'contentful-empty-variable-name' },
+        }),
+      ]);
+    });
+  });
+
+  it('tracks Banner Display only for the current displayed slide', async () => {
+    const mockTrackEvent = mockAnalyticsTracking();
+    const slides = [
+      createMockSlide({
+        id: 'current-slide',
+        variableName: 'current',
+      }),
+      createMockSlide({
+        id: 'stacked-slide',
+        variableName: 'stacked',
+      }),
+    ];
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: slides,
+    });
+
+    render(<Carousel />);
+
+    await waitFor(() => {
+      const displayEvents = mockTrackEvent.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event.name === 'Banner Display');
+
+      expect(displayEvents).toEqual([
+        expect.objectContaining<Partial<AnalyticsTrackingEvent>>({
+          name: 'Banner Display',
+          properties: { name: 'current' },
+        }),
+      ]);
+    });
+  });
+
+  it('tracks Banner Select with the variableName', async () => {
+    const mockTrackEvent = mockAnalyticsTracking();
+    const slide = createMockSlide({
+      id: 'contentful-card-banner',
+      variableName: 'card',
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [slide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    fireEvent.press(
+      await findByTestId('carousel-slide-contentful-card-banner'),
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining<Partial<AnalyticsTrackingEvent>>({
+        name: 'Banner Select',
+        properties: { name: 'card' },
+      }),
+    );
   });
 });
 

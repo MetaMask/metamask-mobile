@@ -29,7 +29,10 @@ import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useOptin } from '../../hooks/useOptIn';
-import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
+import {
+  REFERRAL_CODE_MIN_LENGTH,
+  useValidateReferralCode,
+} from '../../hooks/useValidateReferralCode';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
@@ -40,6 +43,8 @@ import storageWrapper from '../../../../../store/storage-wrapper';
 import OnboardingStepComponent from './OnboardingStep';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
+import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
+import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
@@ -58,6 +63,7 @@ const OnboardingMainStep: React.FC = () => {
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   // Opt-in hook
   const { optin, optinError, optinLoading } = useOptin();
@@ -69,6 +75,7 @@ const OnboardingMainStep: React.FC = () => {
     isValidating: isValidatingReferralCode,
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
+    isVipReferralCode,
   } = useValidateReferralCode(
     onboardingReferralCode
       ? onboardingReferralCode.trim().toUpperCase()
@@ -78,6 +85,8 @@ const OnboardingMainStep: React.FC = () => {
   const isPrefilledReferral = Boolean(onboardingReferralCode);
   const [showReferralInput, setShowReferralInput] =
     useState(isPrefilledReferral);
+  const referralCodeReadyForValidation =
+    referralCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   // Candidate subscription ID state
   const candidateSubscriptionIdLoading =
@@ -268,6 +277,13 @@ const OnboardingMainStep: React.FC = () => {
       return <ActivityIndicator />;
     }
     if (referralCodeIsValid) {
+      // A VIP referral code shows the gold VIP tag instead of the success
+      // checkmark — never both. Gated on the VIP program flag so a stale
+      // `isVipReferralCode` (validated before the flag was turned off) can't
+      // leak the pill onto onboarding.
+      if (isVipProgramEnabled && isVipReferralCode) {
+        return <RewardsVipReferralTag />;
+      }
       return (
         <Icon
           name={IconName.Confirmation}
@@ -276,7 +292,11 @@ const OnboardingMainStep: React.FC = () => {
         />
       );
     }
-    if (referralCode.length >= 6) {
+    if (
+      referralCodeReadyForValidation &&
+      !isValidatingReferralCode &&
+      !referralCodeIsValid
+    ) {
       return (
         <Icon
           name={IconName.Error}
@@ -328,20 +348,21 @@ const OnboardingMainStep: React.FC = () => {
           <TextField
             placeholder={strings('rewards.onboarding.referral_placeholder')}
             value={referralCode}
-            autoCapitalize="characters"
-            maxLength={6}
             onChangeText={handleReferralCodeChange}
             isDisabled={optinLoading}
             endAccessory={renderReferralIcon()}
-            testID="referral-input"
             isError={
-              referralCode.length >= 6 &&
+              referralCodeReadyForValidation &&
               !referralCodeIsValid &&
               !isValidatingReferralCode &&
               !isUnknownErrorReferralCode
             }
+            inputProps={{
+              autoCapitalize: 'characters',
+              testID: 'referral-input',
+            }}
           />
-          {referralCode.length >= 6 &&
+          {referralCodeReadyForValidation &&
             !referralCodeIsValid &&
             !isValidatingReferralCode &&
             !isUnknownErrorReferralCode && (

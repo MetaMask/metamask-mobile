@@ -254,6 +254,9 @@ function handleMessage(event) {
       case 'TOGGLE_VOLUME':
         handleToggleVolume(message.payload);
         break;
+      case 'SET_THEME_COLORS':
+        handleSetThemeColors(message.payload);
+        break;
     }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
@@ -724,7 +727,8 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  var color = window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -740,6 +744,82 @@ function applySeriesColors() {
       bottomLineWidth: 2,
     });
   } catch (e) {}
+}
+
+/**
+ * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
+ * WebView.  Updates CONFIG, TradingView overrides, volume study, and custom
+ * DOM pills in a single synchronous pass.
+ */
+function handleSetThemeColors(payload) {
+  if (!payload) return;
+  var theme = window.CONFIG.theme;
+  if (payload.lineColor != null) theme.lineColor = payload.lineColor;
+  if (payload.successColor != null) theme.successColor = payload.successColor;
+  if (payload.errorColor != null) theme.errorColor = payload.errorColor;
+
+  if (!window.chartWidget || !window.isChartReady) return;
+
+  try {
+    window.chartWidget.applyOverrides({
+      'mainSeriesProperties.candleStyle.upColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+    });
+  } catch (e) {}
+
+  applySeriesColors();
+
+  var chart = window.chartWidget.activeChart();
+  var lineColor = theme.lineColor || theme.successColor;
+
+  // Update volume study colors if present
+  if (window.volumeStudyId) {
+    try {
+      chart.getStudyById(window.volumeStudyId).applyOverrides({
+        'volume.color.0': theme.errorColor,
+        'volume.color.1': theme.successColor,
+      });
+    } catch (e) {}
+  }
+
+  // Update custom DOM pill colors
+  var elLast = document.getElementById('last-close-price-label');
+  if (elLast) {
+    elLast.style.background = lineColor;
+  }
+
+  // Update Drawing API shapes in-place via setProperties (synchronous, no
+  // remove/recreate needed — avoids the async gap from createShape promises).
+  if (window.lineEndDotShapeId && window.currentChartType === 2) {
+    try {
+      chart.getShapeById(window.lineEndDotShapeId).setProperties({
+        color: lineColor,
+      });
+    } catch (e) {}
+  }
+
+  if (window.lastPriceShapeId) {
+    try {
+      chart.getShapeById(window.lastPriceShapeId).setProperties({
+        linecolor: theme.successColor,
+      });
+    } catch (e) {}
+  }
+
+  if (window.lineLastPriceShapeId) {
+    try {
+      chart.getShapeById(window.lineLastPriceShapeId).setProperties({
+        linecolor: lineColor,
+      });
+    } catch (e) {}
+  }
+
+  // Outline pill + visible-edge re-derive color from theme on next frame
+  scheduleLastCloseLabelUpdate();
 }
 
 /**
@@ -1213,8 +1293,9 @@ function updateVisibleEdgeOutlinePriceLabel() {
 
   const theme = (w.CONFIG && w.CONFIG.theme) || {};
   const upColor = theme.successColor || '#0C9F76';
+  const lineColor = theme.lineColor || upColor;
   const downColor = theme.errorColor || '#E06470';
-  let outlineColor = upColor;
+  let outlineColor = ct === 2 ? lineColor : upColor;
   if (ct === 1) {
     const o = Number(edgeBar.open);
     const c = Number(edgeBar.close);
@@ -1960,7 +2041,8 @@ function handleSetChartType(payload) {
     var ac = window.chartWidget.activeChart();
     ac.setChartType(type);
 
-    var color = window.CONFIG.theme.successColor;
+    const color =
+      window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
     var series = ac.getSeries();
     if (type === 2) {
       series.setChartStyleProperties(2, {
@@ -2255,7 +2337,8 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  var color = window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3037,7 +3120,8 @@ function refreshLineEndDot() {
     return;
   }
 
-  var color = window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
@@ -3588,6 +3672,125 @@ function initChart() {
           }
         : undefined;
 
+    // TradingView only supports a fixed set of IANA timezone IDs.
+    // If the device returns an unsupported ID we fall back to Etc/UTC.
+    // List of supported timezones:  https://www.tradingview.com/charting-library-docs/latest/ui_elements/timezones#supported-time-zones
+    var TV_SUPPORTED_TIMEZONES = [
+      'Etc/UTC',
+      'Africa/Cairo',
+      'Africa/Casablanca',
+      'Africa/Johannesburg',
+      'Africa/Lagos',
+      'Africa/Nairobi',
+      'Africa/Tunis',
+      'America/Anchorage',
+      'America/Argentina/Buenos_Aires',
+      'America/Bogota',
+      'America/Caracas',
+      'America/Chicago',
+      'America/El_Salvador',
+      'America/Halifax',
+      'America/Juneau',
+      'America/Lima',
+      'America/Los_Angeles',
+      'America/Mexico_City',
+      'America/New_York',
+      'America/Phoenix',
+      'America/Santiago',
+      'America/Sao_Paulo',
+      'America/Toronto',
+      'America/Vancouver',
+      'Asia/Astana',
+      'Asia/Ashkhabad',
+      'Asia/Bahrain',
+      'Asia/Bangkok',
+      'Asia/Chongqing',
+      'Asia/Colombo',
+      'Asia/Dhaka',
+      'Asia/Dubai',
+      'Asia/Ho_Chi_Minh',
+      'Asia/Hong_Kong',
+      'Asia/Jakarta',
+      'Asia/Jerusalem',
+      'Asia/Karachi',
+      'Asia/Kabul',
+      'Asia/Kathmandu',
+      'Asia/Kolkata',
+      'Asia/Kuala_Lumpur',
+      'Asia/Kuwait',
+      'Asia/Manila',
+      'Asia/Muscat',
+      'Asia/Nicosia',
+      'Asia/Qatar',
+      'Asia/Riyadh',
+      'Asia/Seoul',
+      'Asia/Shanghai',
+      'Asia/Singapore',
+      'Asia/Taipei',
+      'Asia/Tehran',
+      'Asia/Tokyo',
+      'Asia/Yangon',
+      'Atlantic/Azores',
+      'Atlantic/Reykjavik',
+      'Australia/Adelaide',
+      'Australia/Brisbane',
+      'Australia/Perth',
+      'Australia/Sydney',
+      'Europe/Amsterdam',
+      'Europe/Athens',
+      'Europe/Belgrade',
+      'Europe/Berlin',
+      'Europe/Bratislava',
+      'Europe/Brussels',
+      'Europe/Bucharest',
+      'Europe/Budapest',
+      'Europe/Copenhagen',
+      'Europe/Dublin',
+      'Europe/Helsinki',
+      'Europe/Istanbul',
+      'Europe/Lisbon',
+      'Europe/London',
+      'Europe/Luxembourg',
+      'Europe/Madrid',
+      'Europe/Malta',
+      'Europe/Moscow',
+      'Europe/Oslo',
+      'Europe/Paris',
+      'Europe/Prague',
+      'Europe/Riga',
+      'Europe/Rome',
+      'Europe/Stockholm',
+      'Europe/Tallinn',
+      'Europe/Vienna',
+      'Europe/Vilnius',
+      'Europe/Warsaw',
+      'Europe/Zurich',
+      'Pacific/Auckland',
+      'Pacific/Chatham',
+      'Pacific/Fakaofo',
+      'Pacific/Honolulu',
+      'Pacific/Norfolk',
+      'US/Mountain',
+    ];
+
+    // Intl returns canonical IANA names, but TradingView uses some legacy aliases.
+    var CANONICAL_TO_TV = {
+      'America/Denver': 'US/Mountain',
+      'Asia/Ashgabat': 'Asia/Ashkhabad',
+      'Asia/Almaty': 'Asia/Astana',
+    };
+
+    var userTimezone = (function () {
+      try {
+        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
+        var mapped = CANONICAL_TO_TV[tz] || tz;
+        return TV_SUPPORTED_TIMEZONES.indexOf(mapped) !== -1
+          ? mapped
+          : 'Etc/UTC';
+      } catch (_e) {
+        return 'Etc/UTC';
+      }
+    })();
     window.chartWidget = new TradingView.widget({
       symbol: window.currentSymbol,
       interval: window.currentResolution || '5',
@@ -3596,6 +3799,7 @@ function initChart() {
       datafeed: customDatafeed,
       library_path: window.CONFIG.libraryUrl,
       locale: 'en',
+      timezone: userTimezone,
       fullscreen: false,
       autosize: true,
       theme: 'Dark',
@@ -3643,7 +3847,7 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesColorOverrides(theme.successColor),
+        getSeriesColorOverrides(theme.lineColor || theme.successColor),
       ),
 
       loading_screen: {

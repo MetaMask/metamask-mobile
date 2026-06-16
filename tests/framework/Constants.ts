@@ -12,8 +12,22 @@ export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
 // Kept low to enable fast retries in polling loops; use withImplicitWait() for longer waits.
 export const DEFAULT_IMPLICIT_WAIT_MS = 3_500;
 
+// Default WDA snapshot settings — must match the values in the Appium capability configs.
+export const DEFAULT_SNAPSHOT_MAX_DEPTH = 62;
+export const DEFAULT_SNAPSHOT_MAX_CHILDREN = 50;
+export const DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT = 15;
+
 // Default action timeout for Playwright/WebDriverIO actions (tap, click, type, etc.) in ms.
 export const DEFAULT_ACTION_TIMEOUT_MS = 5_000;
+
+/** WebDriver HTTP timeout for BrowserStack session creation (grid can take several minutes). */
+export const DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS = 300_000;
+
+/** BrowserStack maximum allowed idle timeout between WebDriver commands, in seconds. */
+export const DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS = 300;
+
+/** Appium new command timeout for BrowserStack sessions, in seconds. */
+export const DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS = 300;
 
 // Port Constants
 // Fallback ports - used in fixture data (app's persisted state)

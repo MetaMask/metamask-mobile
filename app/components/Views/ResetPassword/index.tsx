@@ -6,6 +6,7 @@ import {
   Alert,
   InteractionManager,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -16,6 +17,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -36,7 +38,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import AppConstants from '../../../core/AppConstants';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -57,6 +58,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
@@ -68,10 +70,8 @@ import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
 } from '../../../selectors/seedlessOnboardingController';
-import {
-  AuthConnection,
-  SeedlessOnboardingControllerErrorMessage,
-} from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';
@@ -142,9 +142,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     string | undefined
   >(undefined);
 
-  const confirmPasswordInput = useRef<React.ElementRef<
-    typeof TextField
-  > | null>(null);
+  const confirmPasswordInput = useRef<TextInput | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -573,12 +571,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
             <TextField
               placeholder={strings('password_reset.password_title')}
               onChangeText={onPasswordChange}
-              secureTextEntry
               value={password}
-              onSubmitEditing={reauthenticateWithPassword}
-              testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-              keyboardAppearance={themeAppearance}
-              autoComplete="password"
+              inputProps={{
+                secureTextEntry: true,
+                onSubmitEditing: reauthenticateWithPassword,
+                testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                keyboardAppearance: themeAppearance,
+                autoComplete: 'password',
+              }}
             />
             {renderWarningText(warningIncorrectPassword)}
           </Box>
@@ -603,7 +603,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     const isSrp =
       authConnection !== AuthConnection.Apple &&
-      authConnection !== AuthConnection.Google;
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Telegram;
 
     return (
       <Box
@@ -648,16 +649,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
-                    secureTextEntry={showPasswordIndex.includes(0)}
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
                     )}
-                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-                    onSubmitEditing={jumpToConfirmPassword}
-                    returnKeyType="next"
-                    autoComplete="password-new"
-                    autoCapitalize="none"
-                    keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort()}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
@@ -675,6 +669,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                         />
                       </TouchableOpacity>
                     }
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(0),
+                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      onSubmitEditing: jumpToConfirmPassword,
+                      returnKeyType: 'next',
+                      autoComplete: 'password-new',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
                   />
                   {renderPasswordHelperText()}
                 </Box>
@@ -689,20 +692,12 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     {strings('reset_password.confirm_password')}
                   </Label>
                   <TextField
-                    ref={confirmPasswordInput}
+                    inputRef={confirmPasswordInput}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    secureTextEntry={showPasswordIndex.includes(1)}
                     placeholder={strings(
                       'reset_password.confirm_password_placeholder',
                     )}
-                    testID={
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                    }
-                    returnKeyType={'done'}
-                    autoComplete="password-new"
-                    autoCapitalize="none"
-                    keyboardAppearance={themeAppearance}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon
@@ -719,6 +714,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                         />
                       </TouchableOpacity>
                     }
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(1),
+                      testID:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      returnKeyType: 'done',
+                      autoComplete: 'password-new',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
                   />
                   {renderErrorText()}
                 </Box>
@@ -799,7 +803,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
+        testID="header"
         title={strings('password_reset.change_password')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ isDisabled: loading }}

@@ -6,6 +6,7 @@ import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import Routes from '../../../../constants/navigation/Routes';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 import {
@@ -31,7 +32,7 @@ export const usePredictDeposit = () => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
+  const selectedInternalAccountAddress = evmAccount?.address ?? '';
 
   const { deposit: depositWithConfirmation } = usePredictTrading();
 
@@ -46,6 +47,7 @@ export const usePredictDeposit = () => {
       try {
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
+          stack: Routes.PREDICT.ROOT,
         });
 
         depositWithConfirmation({}).catch((err) => {

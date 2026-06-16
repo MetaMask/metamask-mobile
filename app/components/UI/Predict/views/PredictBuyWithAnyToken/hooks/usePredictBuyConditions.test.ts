@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { usePredictBuyConditions } from './usePredictBuyConditions';
 import { ActiveOrderState, OrderPreview } from '../../../types';
+import {
+  PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS,
+  PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS,
+} from '../../../constants/transactions';
 
 let mockIsBalanceLoading = false;
 let mockAvailableBalance = 100;
@@ -24,6 +28,29 @@ let mockAvailableTokens: {
 let mockPredictBalance = 0;
 let mockQuotes: unknown[] = [];
 const mockResetSelectedPaymentToken = jest.fn();
+const mockNavigationListeners: Record<string, Set<() => void>> = {};
+const mockAddListener = jest.fn((eventName: string, callback: () => void) => {
+  if (!mockNavigationListeners[eventName]) {
+    mockNavigationListeners[eventName] = new Set();
+  }
+
+  mockNavigationListeners[eventName].add(callback);
+
+  return () => {
+    mockNavigationListeners[eventName]?.delete(callback);
+  };
+});
+const mockEmitNavigationEvent = (eventName: string) => {
+  mockNavigationListeners[eventName]?.forEach((callback) => callback());
+};
+const mockNavigation = {
+  addListener: mockAddListener,
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
@@ -91,14 +118,16 @@ const defaultParams = {
   isPreviewCalculating: false,
   isUserInputChange: false,
   isConfirming: false,
-  totalPayForPredictBalance: 0,
-  isInputFocused: false,
+  totalPayForPredictBalance: 10.5,
   hasBlockingPayAlerts: false,
 };
 
 describe('usePredictBuyConditions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.keys(mockNavigationListeners).forEach((eventName) => {
+      delete mockNavigationListeners[eventName];
+    });
     mockIsBalanceLoading = false;
     mockAvailableBalance = 100;
     mockActiveOrder = null;
@@ -115,7 +144,78 @@ describe('usePredictBuyConditions', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
+  });
+
+  describe('payment selector navigation lock', () => {
+    it('locks immediately and unlocks one second after focus returns from the selector', () => {
+      jest.useFakeTimers();
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+
+      act(() => {
+        result.current.lockPaymentSelectorNavigation();
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+
+      act(() => {
+        mockEmitNavigationEvent('blur');
+        mockEmitNavigationEvent('focus');
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(
+          PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS - 1,
+        );
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('unlocks after the safety timeout when navigation events do not fire', () => {
+      jest.useFakeTimers();
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      act(() => {
+        result.current.lockPaymentSelectorNavigation();
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(
+          PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS - 1,
+        );
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+    });
   });
 
   describe('isBelowMinimum', () => {
@@ -153,7 +253,7 @@ describe('usePredictBuyConditions', () => {
   });
 
   describe('isInsufficientBalance', () => {
-    it('returns true when currentValue exceeds maxBetAmount', () => {
+    it('returns true when available balance is below all-in cost', () => {
       mockAvailableBalance = 5;
 
       const { result } = renderHook(() =>
@@ -166,7 +266,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isInsufficientBalance).toBe(true);
     });
 
-    it('returns false when currentValue is within maxBetAmount', () => {
+    it('returns false when available balance covers all-in cost', () => {
       mockAvailableBalance = 100;
 
       const { result } = renderHook(() =>
@@ -179,18 +279,14 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isInsufficientBalance).toBe(false);
     });
 
-    it('returns false when currentValue equals maxBetAmount', () => {
+    it('returns false when available balance equals all-in cost', () => {
       mockAvailableBalance = 10.5;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          preview: {
-            rateLimited: false,
-            maxAmountSpent: 10,
-            fees: { totalFee: 0.5, totalFeePercentage: 5 },
-          } as OrderPreview,
+          totalPayForPredictBalance: 10.5,
         }),
       );
 
@@ -204,54 +300,11 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 0,
+          totalPayForPredictBalance: 0,
         }),
       );
 
       expect(result.current.isInsufficientBalance).toBe(false);
-    });
-  });
-
-  describe('maxBetAmount', () => {
-    it('returns balance divided by (1 + feeRate) when fees apply', () => {
-      mockAvailableBalance = 104;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 4 },
-          } as OrderPreview,
-        }),
-      );
-
-      expect(result.current.maxBetAmount).toBe(100);
-    });
-
-    it('returns full available balance when fee rate is 0', () => {
-      mockAvailableBalance = 50;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 0 },
-          } as OrderPreview,
-        }),
-      );
-
-      expect(result.current.maxBetAmount).toBe(50);
-    });
-
-    it('returns full available balance when preview has no fees', () => {
-      mockAvailableBalance = 50;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions(defaultParams),
-      );
-
-      expect(result.current.maxBetAmount).toBe(50);
     });
   });
 
@@ -334,7 +387,11 @@ describe('usePredictBuyConditions', () => {
       mockAvailableBalance = 5;
 
       const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 10.5 }),
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          totalPayForPredictBalance: 10.5,
+        }),
       );
 
       expect(result.current.canPlaceBet).toBe(false);
@@ -579,13 +636,17 @@ describe('usePredictBuyConditions', () => {
       ];
 
       const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 0 }),
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 0,
+          totalPayForPredictBalance: 0,
+        }),
       );
 
       expect(result.current.hasAlternativeBalance).toBe(false);
     });
 
-    it('is true when Predict balance selected and an ERC20 token covers the bet', () => {
+    it('is true when Predict balance selected and an ERC20 token covers the all-in cost', () => {
       mockIsPredictBalanceSelected = true;
       mockAvailableTokens = [
         { isSelected: false, disabled: false, fiat: { balance: 50 } },
@@ -598,7 +659,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.hasAlternativeBalance).toBe(true);
     });
 
-    it('is false when Predict balance selected and no ERC20 token has sufficient USD balance', () => {
+    it('is false when Predict balance selected and no ERC20 token has sufficient USD balance for all-in cost', () => {
       mockIsPredictBalanceSelected = true;
       mockAvailableTokens = [
         { isSelected: false, disabled: false, fiat: { balance: 5 } },
@@ -611,7 +672,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.hasAlternativeBalance).toBe(false);
     });
 
-    it('is true when external token selected and fee-adjusted Predict balance covers the bet', () => {
+    it('is true when external token selected and Predict balance covers the all-in cost', () => {
       mockIsPredictBalanceSelected = false;
       mockPredictBalance = 50;
       mockAvailableTokens = [];
@@ -623,9 +684,8 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.hasAlternativeBalance).toBe(true);
     });
 
-    it('is true when external token selected and fee-adjusted Predict balance covers the bet with fees applied', () => {
+    it('is true when external token selected and Predict balance equals the all-in cost', () => {
       mockIsPredictBalanceSelected = false;
-      // predictBalance = 10.5, feeRate = 5%, predictMaxBetAmount = floor(10.5 / 1.05 * 100) / 100 = 10
       mockPredictBalance = 10.5;
       mockAvailableTokens = [];
 
@@ -633,19 +693,15 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 5 },
-          } as OrderPreview,
+          totalPayForPredictBalance: 10.5,
         }),
       );
 
       expect(result.current.hasAlternativeBalance).toBe(true);
     });
 
-    it('is false when external token selected and fee-adjusted Predict balance is insufficient', () => {
+    it('is false when external token selected and Predict balance is below the all-in cost', () => {
       mockIsPredictBalanceSelected = false;
-      // predictBalance = 10, feeRate = 5%, predictMaxBetAmount = floor(10 / 1.05 * 100) / 100 = 9.52
       mockPredictBalance = 10;
       mockAvailableTokens = [];
 
@@ -653,10 +709,7 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 5 },
-          } as OrderPreview,
+          totalPayForPredictBalance: 10.5,
         }),
       );
 
@@ -704,7 +757,7 @@ describe('usePredictBuyConditions', () => {
     });
 
     it('is true immediately after an ERC20 token is selected (synchronous — no 1-frame gap)', () => {
-      // isPaySystemSettling is derived synchronously from lastSettledTokenAddress,
+      // isPaySystemSettling is derived synchronously from lastSettledTokenKey,
       // so it is true from the very first render after the token identity changes.
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
@@ -899,6 +952,35 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPaySystemSettling).toBe(true);
     });
 
+    it('resets to true when the same ERC20 address is selected on a different chain', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '0x1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender({});
+      expect(result.current.isPaySystemSettling).toBe(false);
+
+      act(() => {
+        mockSelectedPaymentToken = { address: '0xUSDC', chainId: '0x2' };
+        mockQuotes = [];
+      });
+      rerender({});
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+    });
+
     it('keeps canPlaceBet false while settling, even if all other conditions are met', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
@@ -913,7 +995,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.canPlaceBet).toBe(false);
     });
 
-    it('resets settling when switching back to Predict balance', () => {
+    it('keeps the same token settled when switching through Predict balance without changing amount', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
       mockIsPayQuoteLoading = true;
@@ -933,7 +1015,7 @@ describe('usePredictBuyConditions', () => {
       rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
-      // Switch back to Predict balance — resets lastSettledTokenAddress
+      // Switch back to Predict balance — keeps the settled payment key.
       act(() => {
         mockIsPredictBalanceSelected = true;
         mockSelectedPaymentToken = null;
@@ -941,13 +1023,59 @@ describe('usePredictBuyConditions', () => {
       rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
-      // Re-select USDC — must settle again (quotes may need re-fetching)
+      // Re-select USDC for the same amount — can reuse the existing quote state.
       act(() => {
         mockIsPredictBalanceSelected = false;
         mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
       });
       rerender({});
+      expect(result.current.isPaySystemSettling).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('settles again when the same token is re-selected after the amount changes', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(
+        ({
+          totalPayForPredictBalance,
+        }: {
+          totalPayForPredictBalance: number;
+        }) =>
+          usePredictBuyConditions({
+            ...defaultParams,
+            currentValue: 1,
+            totalPayForPredictBalance,
+          }),
+        { initialProps: { totalPayForPredictBalance: 10.5 } },
+      );
+
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender({ totalPayForPredictBalance: 10.5 });
+      expect(result.current.isPaySystemSettling).toBe(false);
+
+      act(() => {
+        mockIsPredictBalanceSelected = true;
+        mockSelectedPaymentToken = null;
+      });
+      rerender({ totalPayForPredictBalance: 10.5 });
+
+      act(() => {
+        mockIsPredictBalanceSelected = false;
+        mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      });
+      rerender({ totalPayForPredictBalance: 11 });
+
       expect(result.current.isPaySystemSettling).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
     });
   });
 
@@ -989,8 +1117,8 @@ describe('usePredictBuyConditions', () => {
     });
   });
 
-  describe('selected payment token reset effect', () => {
-    it('resets the selected token when predict balance covers the total and input is not focused', () => {
+  describe('manual payment token selection', () => {
+    it('does not reset the selected token after initialization, even when Predict balance covers the total', () => {
       mockPredictBalance = 20;
       mockIsPredictBalanceSelected = false;
 
@@ -998,37 +1126,6 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           totalPayForPredictBalance: 20,
-          isInputFocused: false,
-        }),
-      );
-
-      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not reset the selected token while the input is focused', () => {
-      mockPredictBalance = 20;
-      mockIsPredictBalanceSelected = false;
-
-      renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 20,
-          isInputFocused: true,
-        }),
-      );
-
-      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
-    });
-
-    it('does not reset the selected token when predict balance is already selected', () => {
-      mockPredictBalance = 20;
-      mockIsPredictBalanceSelected = true;
-
-      renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 20,
-          isInputFocused: false,
         }),
       );
 
@@ -1043,7 +1140,6 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           totalPayForPredictBalance: 20,
-          isInputFocused: false,
         }),
       );
 
@@ -1058,7 +1154,6 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           totalPayForPredictBalance: 0,
-          isInputFocused: false,
         }),
       );
 

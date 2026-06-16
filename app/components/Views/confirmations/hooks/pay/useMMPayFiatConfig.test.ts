@@ -8,11 +8,17 @@ describe('useMMPayFiatConfig', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay_fiat: { enabled: true },
+        confirmations_pay_fiat: {
+          enabledTransactionTypes: ['simpleSend', 'swap'],
+          maxDelayMinutesForPaymentMethods: 15,
+        },
       };
 
     const { result } = renderHookWithProvider(useMMPayFiatConfig, { state });
 
-    expect(result.current).toEqual({ enabled: true });
+    expect(result.current).toEqual({
+      enabledTransactionTypes: ['simpleSend', 'swap'],
+      maxDelayMinutesForPaymentMethods: 15,
+    });
   });
 });

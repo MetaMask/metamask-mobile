@@ -12,6 +12,8 @@ import { generateTransferData } from '../../../../util/transactions';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
+import { store } from '../../../../store';
 
 interface PayTokenSelection {
   address: Hex;
@@ -115,6 +117,7 @@ function buildMusdConversionTx(params: {
     networkClientId: string;
     origin: typeof ORIGIN_METAMASK;
     type: TransactionType.musdConversion;
+    isInternal: true;
   };
 } {
   const { chainId, fromAddress, recipientAddress, amountHex, networkClientId } =
@@ -140,6 +143,7 @@ function buildMusdConversionTx(params: {
       networkClientId,
       origin: ORIGIN_METAMASK,
       type: TransactionType.musdConversion,
+      isInternal: true,
     },
   };
 }
@@ -167,7 +171,7 @@ export async function ensureMusdTokenRegistered({
     return;
   }
 
-  const { allTokens } = Engine.context.TokensController.state;
+  const allTokens = getTokensControllerAllTokens(store.getState());
   const accountTokens = Object.values(allTokens[chainId] ?? {}).flat();
   const hasMusdToken = accountTokens.some(
     (t) => t.address.toLowerCase() === musdTokenAddress.toLowerCase(),

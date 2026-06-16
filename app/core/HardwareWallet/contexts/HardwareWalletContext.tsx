@@ -41,6 +41,8 @@ export interface HardwareWalletContextValue {
   setPendingOperationAddress: (address: string | null) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
+  /** Register a retry handler for QR scan errors outside the provider-managed flows. */
+  setQrScanRetryHandler?: (handler: (() => void) | null) => void;
   /** Show "awaiting confirmation" bottom sheet. */
   showAwaitingConfirmation: (
     operationType: 'transaction' | 'message',
@@ -48,6 +50,12 @@ export interface HardwareWalletContextValue {
   ) => void;
   /** Hide the "awaiting confirmation" bottom sheet. */
   hideAwaitingConfirmation: () => void;
+  /**
+   * When set to `true`, forces the hardware wallet bottom sheet to remain hidden
+   * (returns `null` regardless of connection state). Used by flows that manage
+   * their own inline confirmation UI (e.g. QR wallet swaps in the bridge).
+   */
+  setForceHideBottomSheet?: (hide: boolean) => void;
   /** QR-specific signing request state. */
   qr: HardwareWalletQRState;
 }

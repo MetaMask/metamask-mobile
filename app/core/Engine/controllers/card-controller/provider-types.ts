@@ -38,6 +38,20 @@ export class CardProviderError extends Error {
   }
 }
 
+export function isCardAuthTokenError(error: unknown): boolean {
+  const statusCode = (error as { statusCode?: unknown }).statusCode;
+  return error instanceof Error && (statusCode === 401 || statusCode === 403);
+}
+
+export class CardLinkageInProgressError extends Error {
+  constructor(
+    message = 'A Money Account to Card linkage is already in progress',
+  ) {
+    super(message);
+    this.name = 'CardLinkageInProgressError';
+  }
+}
+
 // -- Provider Identity --
 
 export type CardProviderId = string;
@@ -170,6 +184,8 @@ export interface CardAccountStatus {
   provisioningEligible: boolean;
   holderName: string | null;
   shippingAddress: CardShippingAddress | null;
+  countryOfResidence: string | null;
+  usState: string | null;
 }
 
 // -- Alerts & Actions --
@@ -337,7 +353,6 @@ export interface ICardProvider {
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
   logout(tokens: CardAuthTokens): Promise<void>;
-
   getCardHomeData(
     address: string,
     tokens: CardAuthTokens,
@@ -361,15 +376,16 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<void>;
   getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
-
-  /**
-   * Fetches a short-lived delegation session (nonce + JWT) before SIWE + on-chain approve.
-   */
   fetchDelegationChallenge?(
     params: { network: string; address: string; faucet?: boolean },
     tokens: CardAuthTokens,
   ): Promise<DelegationChallengeResponse>;
-
+  generateCardDelegationSignatureMessage?(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string;
   approveFunding?(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,

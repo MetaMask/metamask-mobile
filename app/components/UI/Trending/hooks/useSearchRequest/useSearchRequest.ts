@@ -66,9 +66,16 @@ export const useSearchRequest = (options: {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [endCursor, setEndCursor] = useState<string | undefined>();
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | undefined>();
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
+  // Ref-based guard ensures only one loadMore fetch runs at a time even if
+  // FlashList fires onEndReached multiple times before the state update lands
+  const isLoadingMoreRef = useRef(false);
 
   // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
@@ -78,6 +85,9 @@ export const useSearchRequest = (options: {
       setResults([]);
       setError(null);
       setIsFetching(false);
+      setEndCursor(undefined);
+      setHasNextPage(false);
+      setTotalCount(undefined);
       return;
     }
 
@@ -85,6 +95,9 @@ export const useSearchRequest = (options: {
     const currentRequestId = ++requestIdRef.current;
     setIsFetching(true);
     setError(null);
+    setEndCursor(undefined);
+    setHasNextPage(false);
+    setTotalCount(undefined);
 
     try {
       const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
@@ -95,6 +108,13 @@ export const useSearchRequest = (options: {
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults((searchResults?.data as SearchResult[]) || []);
+        setEndCursor(searchResults?.pageInfo?.endCursor ?? undefined);
+        setHasNextPage(searchResults?.pageInfo?.hasNextPage ?? false);
+        setTotalCount(
+          typeof searchResults?.totalCount === 'number'
+            ? searchResults.totalCount
+            : undefined,
+        );
         if (searchResults?.error) {
           setError({ message: searchResults.error, name: 'SearchError' });
         }
@@ -112,6 +132,40 @@ export const useSearchRequest = (options: {
       }
     }
   }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || !endCursor || isLoadingMoreRef.current || isFetching)
+      return;
+
+    isLoadingMoreRef.current = true;
+    setIsLoadingMore(true);
+    try {
+      const more = await searchTokens(stableChainIds, debouncedQuery, {
+        limit,
+        includeMarketData,
+        includeTokenSecurityData: true,
+        after: endCursor,
+      });
+      if (more?.data) {
+        setResults((prev) => [...prev, ...(more.data as SearchResult[])]);
+      }
+      setEndCursor(more?.pageInfo?.endCursor ?? undefined);
+      setHasNextPage(more?.pageInfo?.hasNextPage ?? false);
+    } catch {
+      // Pagination errors are silent; existing results stay intact
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [
+    hasNextPage,
+    endCursor,
+    isFetching,
+    stableChainIds,
+    debouncedQuery,
+    limit,
+    includeMarketData,
+  ]);
 
   // Automatically trigger search when debounced query changes
   useEffect(() => {
@@ -137,5 +191,9 @@ export const useSearchRequest = (options: {
     isLoading,
     error,
     search: searchTokensRequest,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount,
   };
 };

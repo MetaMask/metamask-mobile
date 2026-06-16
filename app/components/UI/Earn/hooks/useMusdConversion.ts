@@ -22,11 +22,7 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  MusdNavigationTarget,
-} from '../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
+import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
 
 type MusdInitiationResult = { transactionId: string } | void;
@@ -126,10 +122,6 @@ export interface MusdConversionConfig {
    */
   skipEducationCheck?: boolean;
   /**
-   * Optional navigation mode override for this initiation.
-   */
-  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
-  /**
    * When the education screen is shown for a first-time user, and this config has
    * `returnTo`, the education screen's primary button routes to `returnTo` instead of
    * continuing the conversion. Use this for navigation-only entry points (e.g.,
@@ -190,10 +182,6 @@ export const useMusdConversion = () => {
   const selectedAddress = selectedAccount?.address;
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
-  );
-
-  const isMusdQuickConvertEnabledFlag = useSelector(
-    selectMusdQuickConvertEnabledFlag,
   );
 
   /**
@@ -377,16 +365,6 @@ export const useMusdConversion = () => {
     [navigation, pendingTransactionMetas, selectedAddress],
   );
 
-  const navigateToQuickConvertScreen = useCallback(
-    (config: MusdConversionConfig) => {
-      const { navigationStack = Routes.EARN.ROOT } = config;
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.QUICK_CONVERT,
-      });
-    },
-    [navigation],
-  );
-
   /**
    * Navigates to the custom amount conversion screen.
    */
@@ -432,7 +410,6 @@ export const useMusdConversion = () => {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
-          navigationOverride: config.navigationOverride,
           returnTo: config.returnTo,
         },
       });
@@ -456,10 +433,7 @@ export const useMusdConversion = () => {
         return;
       }
 
-      const {
-        preferredPaymentToken,
-        navigationOverride = MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
-      } = config;
+      const { preferredPaymentToken } = config;
 
       try {
         setError(null);
@@ -470,15 +444,6 @@ export const useMusdConversion = () => {
 
         if (!selectedAddress) {
           throw new Error('No account selected');
-        }
-
-        if (
-          navigationOverride ===
-            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT &&
-          isMusdQuickConvertEnabledFlag
-        ) {
-          navigateToQuickConvertScreen(config);
-          return;
         }
 
         const existingPendingMusdConversion = findExistingPendingMusdConversion(
@@ -577,9 +542,7 @@ export const useMusdConversion = () => {
     },
     [
       handleEducationRedirectIfNeeded,
-      isMusdQuickConvertEnabledFlag,
       navigateToCustomConversionScreen,
-      navigateToQuickConvertScreen,
       navigation,
       pendingTransactionMetas,
       selectedAddress,

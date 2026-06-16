@@ -4,34 +4,34 @@ import type { PredictPosition } from '../../../types';
 import type { Signer } from '../../types';
 import {
   HASH_ZERO_BYTES32,
-  MIN_COLLATERAL_BALANCE_FOR_CLAIM,
+  MIN_PUSD_BALANCE_FOR_CLAIM_GAS,
 } from '../constants';
 import {
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
+import { toDepositWalletCalls, type DepositWalletCall } from '../depositWallet';
 import { OperationType, type SafeTransaction } from '../safe/types';
-import { encodeRedeemPositions } from '../utils';
+import { encodeErc20Transfer, encodeRedeemPositions } from '../utils';
 import {
   buildSignedSafeExecution,
-  buildUnwrapTransaction,
   compileAllowanceMaintenanceTransactions,
   getRawTokenBalance,
 } from './core';
+import { compileRequirementTransactions } from './compileRequirementTransactions';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
-  getCanonicalV2AllowanceRequirements,
+  filterDepositWalletUnsupportedRequirements,
+  getActiveV2AllowanceRequirements,
+  getLegacySweepAllowanceRequirements,
   type V2AllowanceRequirement,
 } from './v2AllowanceRequirements';
 
-const MIN_GAS_STATION_USDCE_BALANCE_RAW = BigInt(
-  parseUnits(MIN_COLLATERAL_BALANCE_FOR_CLAIM.toString(), 6).toString(),
+const MIN_PUSD_BALANCE_FOR_CLAIM_GAS_RAW = BigInt(
+  parseUnits(MIN_PUSD_BALANCE_FOR_CLAIM_GAS.toString(), 6).toString(),
 );
 
-type PolymarketV2ProtocolDefinition = Extract<
-  PolymarketProtocolDefinition,
-  { key: 'v2' }
->;
+type PolymarketV2ProtocolDefinition = PolymarketProtocolDefinition;
 
 function buildClaimSubtransactions({
   positions,
@@ -58,9 +58,11 @@ function buildClaimSubtransactions({
 export function getClaimRequirements({
   positions,
   protocol = POLYMARKET_V2_PROTOCOL,
+  includeLegacySweep = true,
 }: {
   positions: PredictPosition[];
   protocol?: PolymarketV2ProtocolDefinition;
+  includeLegacySweep?: boolean;
 }): V2AllowanceRequirement[] {
   const requiresStandardAdapter = positions.some(
     (position) => !position.negRisk,
@@ -68,7 +70,10 @@ export function getClaimRequirements({
   const requiresNegRiskAdapter = positions.some((position) => position.negRisk);
 
   return [
-    ...getCanonicalV2AllowanceRequirements(protocol),
+    ...(includeLegacySweep
+      ? getLegacySweepAllowanceRequirements(protocol)
+      : []),
+    ...getActiveV2AllowanceRequirements(protocol),
     ...(requiresStandardAdapter
       ? [
           {
@@ -91,9 +96,9 @@ export function getClaimRequirements({
 }
 
 export interface ClaimPlan {
-  gasStationDeficit: bigint;
-  safeUsdceBalance: bigint;
-  eoaUsdceBalance: bigint;
+  gasTokenDeficit: bigint;
+  safeLegacyUsdceBalance: bigint;
+  eoaPusdBalance: bigint;
   missingRequirements: V2AllowanceRequirement[];
   transactions: SafeTransaction[];
 }
@@ -103,32 +108,40 @@ export async function planClaim({
   positions,
   safeAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  safeLegacyUsdceBalance: providedSafeLegacyUsdceBalance,
 }: {
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
   protocol?: PolymarketV2ProtocolDefinition;
+  safeLegacyUsdceBalance?: bigint;
 }): Promise<ClaimPlan> {
-  const [missingRequirements, safeUsdceBalance, eoaUsdceBalance] =
-    await Promise.all([
-      inspectMissingRequirements({
-        address: safeAddress,
-        requirements: getClaimRequirements({ positions, protocol }),
-      }),
-      getRawTokenBalance({
-        address: safeAddress,
-        tokenAddress: protocol.collateral.legacyUsdceToken,
-      }),
-      getRawTokenBalance({
-        address: signer.address,
-        tokenAddress: protocol.collateral.legacyUsdceToken,
-      }),
-    ]);
+  const safeLegacyUsdceBalance =
+    providedSafeLegacyUsdceBalance ??
+    (await getRawTokenBalance({
+      address: safeAddress,
+      tokenAddress: protocol.collateral.legacyUsdceToken,
+    }));
 
-  const gasStationDeficit =
-    eoaUsdceBalance >= MIN_GAS_STATION_USDCE_BALANCE_RAW
+  const [missingRequirements, eoaPusdBalance] = await Promise.all([
+    inspectMissingRequirements({
+      address: safeAddress,
+      requirements: getClaimRequirements({
+        positions,
+        protocol,
+        includeLegacySweep: safeLegacyUsdceBalance > 0n,
+      }),
+    }),
+    getRawTokenBalance({
+      address: signer.address,
+      tokenAddress: protocol.collateral.tradingToken,
+    }),
+  ]);
+
+  const gasTokenDeficit =
+    eoaPusdBalance >= MIN_PUSD_BALANCE_FOR_CLAIM_GAS_RAW
       ? 0n
-      : MIN_GAS_STATION_USDCE_BALANCE_RAW - eoaUsdceBalance;
+      : MIN_PUSD_BALANCE_FOR_CLAIM_GAS_RAW - eoaPusdBalance;
 
   const transactions = compileClaimTransactions({
     protocol,
@@ -136,14 +149,14 @@ export async function planClaim({
     positions,
     safeAddress,
     missingRequirements,
-    safeUsdceBalance,
-    gasStationDeficit,
+    safeLegacyUsdceBalance,
+    gasTokenDeficit,
   });
 
   return {
-    gasStationDeficit,
-    safeUsdceBalance,
-    eoaUsdceBalance,
+    gasTokenDeficit,
+    safeLegacyUsdceBalance,
+    eoaPusdBalance,
     missingRequirements,
     transactions,
   };
@@ -155,22 +168,22 @@ function compileClaimTransactions({
   positions,
   safeAddress,
   missingRequirements,
-  safeUsdceBalance,
-  gasStationDeficit,
+  safeLegacyUsdceBalance,
+  gasTokenDeficit,
 }: {
   protocol?: PolymarketV2ProtocolDefinition;
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
   missingRequirements: V2AllowanceRequirement[];
-  safeUsdceBalance: bigint;
-  gasStationDeficit: bigint;
+  safeLegacyUsdceBalance: bigint;
+  gasTokenDeficit: bigint;
 }): SafeTransaction[] {
   const transactions = compileAllowanceMaintenanceTransactions({
     protocol,
     safeAddress,
     missingRequirements,
-    usdceBalance: safeUsdceBalance,
+    usdceBalance: safeLegacyUsdceBalance,
   });
 
   transactions.push(
@@ -180,17 +193,57 @@ function compileClaimTransactions({
     }),
   );
 
-  const unwrapTransaction = buildUnwrapTransaction({
-    recipientAddress: signer.address,
-    amount: gasStationDeficit,
-    protocol,
-  });
-
-  if (unwrapTransaction) {
-    transactions.push(unwrapTransaction);
+  if (gasTokenDeficit > 0n) {
+    transactions.push({
+      to: protocol.collateral.tradingToken,
+      data: encodeErc20Transfer({
+        to: signer.address,
+        value: gasTokenDeficit,
+      }),
+      operation: OperationType.Call,
+      value: '0',
+    });
   }
 
   return transactions;
+}
+
+export async function planDepositWalletClaim({
+  positions,
+  walletAddress,
+  protocol = POLYMARKET_V2_PROTOCOL,
+}: {
+  positions: PredictPosition[];
+  walletAddress: string;
+  protocol?: PolymarketV2ProtocolDefinition;
+}): Promise<DepositWalletCall[]> {
+  if (!positions || positions.length === 0) {
+    throw new Error('No positions provided for deposit wallet claim');
+  }
+
+  const requirements = filterDepositWalletUnsupportedRequirements(
+    getClaimRequirements({
+      positions,
+      protocol,
+      includeLegacySweep: false,
+    }),
+  );
+
+  const missingRequirements = await inspectMissingRequirements({
+    address: walletAddress,
+    requirements,
+  });
+
+  const transactions = [
+    ...compileRequirementTransactions(missingRequirements),
+    ...buildClaimSubtransactions({ positions, protocol }),
+  ];
+
+  if (transactions.length === 0) {
+    throw new Error('No deposit wallet claim calls generated');
+  }
+
+  return toDepositWalletCalls(transactions);
 }
 
 export async function buildClaimTransaction({
@@ -198,17 +251,20 @@ export async function buildClaimTransaction({
   positions,
   safeAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  safeLegacyUsdceBalance,
 }: {
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
   protocol?: PolymarketV2ProtocolDefinition;
+  safeLegacyUsdceBalance?: bigint;
 }) {
   const plan = await planClaim({
     signer,
     positions,
     safeAddress,
     protocol,
+    safeLegacyUsdceBalance,
   });
 
   return buildSignedSafeExecution({

@@ -65,6 +65,8 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'go_to_date',
   'show_zoom_and_move_buttons_on_touch',
   'shift_visible_range_on_new_bar',
+  // Disable vertical touch drag in chart so webpage can scroll vertically
+  'vert_touch_drag_scroll',
 ];
 
 /**
@@ -175,7 +177,8 @@ export type RNToWebViewMessageType =
   | 'SET_LINE_CHROME'
   | 'SET_POSITION_LINES'
   | 'REALTIME_UPDATE'
-  | 'TOGGLE_VOLUME';
+  | 'TOGGLE_VOLUME'
+  | 'SET_THEME_COLORS';
 
 export type WebViewToRNMessageType =
   | 'CHART_READY'
@@ -242,6 +245,12 @@ export interface ToggleVolumePayload {
 
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
+export interface SetThemeColorsPayload {
+  lineColor: string;
+  successColor: string;
+  errorColor: string;
+}
+
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
@@ -250,7 +259,8 @@ export type RNToWebViewMessage =
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
-  | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload };
+  | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
+  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload };
 
 export interface IndicatorAddedPayload {
   name: IndicatorType;
@@ -450,6 +460,11 @@ export interface AdvancedChartProps {
 
   /** Callback when chart is ready */
   onChartReady?: () => void;
+  /**
+   * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
+   * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
+   */
+  onSkeletonHidden?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
@@ -485,6 +500,13 @@ export interface AdvancedChartProps {
    * which can be ahead of the last candle and push the left edge off-screen.
    */
   visibleToMs?: number;
+
+  /** Override the chart line color baked into the HTML template (A/B test). */
+  lineColorOverride?: string;
+  /** Override the candlestick up/success color baked into the HTML template (A/B test). */
+  successColorOverride?: string;
+  /** Override the candlestick down/error color baked into the HTML template (A/B test). */
+  errorColorOverride?: string;
 }
 
 /**

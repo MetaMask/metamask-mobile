@@ -11,13 +11,21 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-const mockSetIsChartBeingTouched = jest.fn();
-jest.mock('../PriceChart/PriceChart.context', () => ({
-  usePriceChart: () => ({
-    isChartBeingTouched: false,
-    setIsChartBeingTouched: mockSetIsChartBeingTouched,
-  }),
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration',
+  () => ({
+    selectTokenDetailsOhlcvWsEnabled: jest.fn(() => false),
+  }),
+);
 
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
@@ -78,6 +86,10 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
   useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
+}));
+
+jest.mock('../../Charts/AdvancedChart/useOHLCVRealtime', () => ({
+  useOHLCVRealtime: () => ({ latestBar: null }),
 }));
 
 jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
@@ -298,6 +310,7 @@ describe('PriceAdvanced', () => {
         properties: expect.objectContaining({
           interaction_type: 'timeframe_changed',
           chart_timeframe: '1W',
+          chart_type: expect.stringMatching(/^(candlestick|line)$/),
         }),
       }),
     );
@@ -359,7 +372,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('calculates percentage from OHLCV close price of the reference candle', () => {
-    // Reference candle close = 100, current price = 105
+    // prevBar close = 100, current price = 105
     // Expected: (105 - 100) / 100 * 100 = 5.00%
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
@@ -385,7 +398,7 @@ describe('PriceAdvanced', () => {
         open: 1,
         high: 1,
         low: 1,
-        close: 1,
+        close: 100,
         volume: 1,
       },
     ];
@@ -442,7 +455,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('updates percentage when time range changes and new OHLCV data loads', () => {
-    // Initial: reference candle close = 100, current price = 105
+    // Initial: prevBar close = 100, current price = 105
     // Expected: (105 - 100) / 100 * 100 = 5.00%
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
@@ -468,7 +481,7 @@ describe('PriceAdvanced', () => {
         open: 1,
         high: 1,
         low: 1,
-        close: 1,
+        close: 100,
         volume: 1,
       },
     ];
@@ -506,11 +519,12 @@ describe('PriceAdvanced', () => {
 
     expect(getByText(/5\.00%/)).toBeOnTheScreen();
 
-    // After time range change: reference candle close = 103, current = 105
+    // After time range change: prevBar close = 103, current = 105
     // Expected: (105 - 103) / 103 * 100 = 1.94%
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
-        ...ohlcvPadBefore,
+        ...ohlcvPadBefore.slice(0, -1),
+        { ...ohlcvPadBefore[2], close: 103 },
         {
           time: oneDayAgo,
           open: 102,
@@ -541,7 +555,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('displays price diff when dynamicComparePrice is 0', () => {
-    // Edge case: reference candle close is 0 — should still render, not hide
+    // Edge case: prevBar close is 0 — should still render, not hide
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
     const ohlcvPadBefore = [
@@ -566,7 +580,7 @@ describe('PriceAdvanced', () => {
         open: 1,
         high: 1,
         low: 1,
-        close: 1,
+        close: 0,
         volume: 1,
       },
     ];
@@ -635,13 +649,13 @@ describe('PriceAdvanced', () => {
           close: 200,
           volume: 1,
         },
-        // 2 days ago — still before visible range, should be skipped
+        // 2 days ago — prevBar (last candle before visible range)
         {
           time: lastBarTime - 2 * oneDayMs,
           open: 190,
           high: 195,
           low: 185,
-          close: 190,
+          close: 100,
           volume: 1,
         },
         // ~24h ago — first candle in visible range (close = 100)
@@ -781,53 +795,496 @@ describe('PriceAdvanced', () => {
     });
   });
 
-  describe('touch gesture handling', () => {
-    it('sets isChartBeingTouched to true on touch start', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
-
-      fireEvent(chartContainer, 'touchStart');
-
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+  describe('performance tracing', () => {
+    beforeEach(() => {
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
     });
 
-    it('sets isChartBeingTouched to false on touch end', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
+    it('starts initial visibility trace when component mounts with advanced chart', () => {
+      render(<PriceAdvanced {...baseProps} />);
 
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
-
-      fireEvent(chartContainer, 'touchEnd');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+          op: expect.stringContaining('token_overview.advanced_chart'),
+        }),
+      );
     });
 
-    it('sets isChartBeingTouched to false on touch cancel', () => {
+    it('ends trace when onSkeletonHidden is called with matching series key', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
+      const advancedChart = getByTestId('mock-advanced-chart');
 
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+      mockEndTrace.mockClear();
 
-      fireEvent(chartContainer, 'touchCancel');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+      act(() => {
+        advancedChart.props.onSkeletonHidden?.();
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+        }),
+      );
     });
 
-    it('handles multiple touch start/end cycles', () => {
+    it('ends trace with error data when onError is called', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
+      const advancedChart = getByTestId('mock-advanced-chart');
 
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+      mockEndTrace.mockClear();
 
-      fireEvent(chartContainer, 'touchEnd');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+      act(() => {
+        advancedChart.props.onError?.('WebView failed to load');
+      });
 
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+          data: expect.objectContaining({
+            errorMessage: 'WebView failed to load',
+          }),
+        }),
+      );
+    });
 
-      fireEvent(chartContainer, 'touchEnd');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    it('starts time range visibility trace when time range changes', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      mockTrace.mockClear();
+
+      act(() => {
+        fireEvent.press(getByTestId('select-1W'));
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Time Range Visible'),
+          op: expect.stringContaining('time_range'),
+        }),
+      );
+    });
+
+    it('supersedes previous trace when series key changes before skeleton hidden', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      mockEndTrace.mockClear();
+
+      act(() => {
+        fireEvent.press(getByTestId('select-1W'));
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            superseded: true,
+          }),
+        }),
+      );
+    });
+
+    it('ends trace with fallbackToLegacy when switching to legacy chart', () => {
+      const { rerender } = render(<PriceAdvanced {...baseProps} />);
+
+      mockEndTrace.mockClear();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      rerender(<PriceAdvanced {...baseProps} />);
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            fallbackToLegacy: true,
+          }),
+        }),
+      );
+    });
+
+    it('includes assetId in trace data when available', () => {
+      mockTrace.mockClear();
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            assetId: expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('does not start trace when falling back to legacy chart immediately', () => {
+      mockTrace.mockClear();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockTrace).not.toHaveBeenCalled();
+    });
+
+    it('ends trace with unmounted flag when component unmounts with open trace', () => {
+      const { unmount } = render(<PriceAdvanced {...baseProps} />);
+
+      mockEndTrace.mockClear();
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+          data: expect.objectContaining({
+            unmounted: true,
+          }),
+        }),
+      );
+    });
+
+    it('does not end trace on unmount when trace was already completed', () => {
+      const { getByTestId, unmount } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      act(() => {
+        advancedChart.props.onSkeletonHidden?.();
+      });
+
+      mockEndTrace.mockClear();
+
+      unmount();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('truncates error message to 200 characters', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      mockEndTrace.mockClear();
+
+      const longError = 'A'.repeat(300);
+
+      act(() => {
+        advancedChart.props.onError?.(longError);
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            errorMessage: 'A'.repeat(200),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('ambient color logic', () => {
+    it('returns undefined when useAmbientColor is false', () => {
+      const { queryByTestId } = render(
+        <PriceAdvanced {...baseProps} useAmbientColor={false} />,
+      );
+
+      // When useAmbientColor is false, ambientColor should be undefined
+      // This means we won't render the skeleton and will render the chart directly
+      expect(queryByTestId('mock-advanced-chart')).toBeOnTheScreen();
+    });
+
+    it('returns success green when displayDiff is null (no data)', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree,
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: true, // Still loading, so displayDiff will be null
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} useAmbientColor />,
+      );
+
+      // When displayDiff is null, should default to positive (success green)
+      // The chart should still render because we default to success green
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+    });
+
+    it('returns success green when displayDiff is positive', () => {
+      // OHLCV data: reference close = 100, current price = 105
+      // displayDiff = 105 - 100 = 5 (positive)
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} currentPrice={105} useAmbientColor />,
+      );
+
+      // Should render chart with success green color
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+      const chart = getByTestId('mock-advanced-chart');
+      expect(chart.props.lineColorOverride).toBeTruthy();
+      // In light mode, should use LIGHT_MODE_SUCCESS_GREEN
+    });
+
+    it('returns AMBIENT_NEGATIVE_COLOR when displayDiff is negative', () => {
+      // Mock OHLCV data with negative price movement
+      // For 1D range: visibleFromMs = lastBarTime - 86400000ms (24 hours)
+      // lastBarTime = 100000000, visibleFromMs = 13600000
+      // First visible candle at time 20000000 has close=100
+      // Last candle has close=95
+      // prevBar.close = 100, displayPrice = 95, diff = -5 (negative)
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+          { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+          {
+            time: 3000000,
+            open: 91,
+            high: 101,
+            low: 90,
+            close: 100,
+            volume: 1,
+          },
+          {
+            time: 20000000,
+            open: 100,
+            high: 101,
+            low: 99,
+            close: 100,
+            volume: 1,
+          }, // First in visible range
+          {
+            time: 100000000,
+            open: 100,
+            high: 100,
+            low: 95,
+            close: 95,
+            volume: 1,
+          }, // Last bar
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} currentPrice={95} useAmbientColor />,
+      );
+
+      // Should render chart with negative color (#FF5C16)
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+      const chart = getByTestId('mock-advanced-chart');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+      expect(chart.props.lineColorOverride).toBe('#FF5C16');
+    });
+
+    it('calls onPriceDirectionChange with true for positive displayDiff', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={105}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should call callback with true for positive price diff
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(true);
+    });
+
+    it('calls onPriceDirectionChange with false for negative displayDiff', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Mock OHLCV data with negative price movement
+      // prevBar.close = 100, lastBar.close = 95 → negative diff
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+          { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+          {
+            time: 3000000,
+            open: 91,
+            high: 101,
+            low: 90,
+            close: 100,
+            volume: 1,
+          },
+          {
+            time: 20000000,
+            open: 100,
+            high: 101,
+            low: 99,
+            close: 100,
+            volume: 1,
+          }, // First in visible range
+          {
+            time: 100000000,
+            open: 100,
+            high: 100,
+            low: 95,
+            close: 95,
+            volume: 1,
+          }, // Last bar
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={95}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should call callback with false for negative price diff
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(false);
+    });
+
+    it('does not call onPriceDirectionChange when falling back to legacy', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should not call callback when falling back to legacy (insufficient data)
+      expect(mockOnPriceDirectionChange).not.toHaveBeenCalled();
+    });
+
+    it('calls onPriceDirectionChange exactly once when OHLCV data is sufficient (>= 5 bars)', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Sufficient OHLCV data (5 bars total)
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree, // 3 bars
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={105}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should call callback exactly once with OHLCV-based direction
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledTimes(1);
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(true); // positive price
+    });
+
+    it('does not call onPriceDirectionChange when OHLCV data is insufficient (< 5 bars) - legacy handles it', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Insufficient OHLCV data (4 bars total) - should fallback to legacy
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 100, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+          { time: 200, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={105}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+          priceDiff={5} // Legacy will use this
+        />,
+      );
+
+      // PriceAdvanced should NOT call callback (guarded by shouldFallbackToLegacy)
+      // PriceLegacy will call it instead when !isLoading
+      expect(mockOnPriceDirectionChange).not.toHaveBeenCalled();
+    });
+
+    it('prevents stale OHLCV callback from overriding legacy when falling back', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Single OHLCV bar (would compute initialPriceDiff = 0, always positive)
+      // But priceDiff is negative
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={95}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+          priceDiff={-5} // Negative - should be used by legacy
+        />,
+      );
+
+      // PriceAdvanced should NOT call with stale OHLCV-based value
+      // This test would FAIL if we remove the !shouldFallbackToLegacy guard
+      expect(mockOnPriceDirectionChange).not.toHaveBeenCalled();
     });
   });
 });

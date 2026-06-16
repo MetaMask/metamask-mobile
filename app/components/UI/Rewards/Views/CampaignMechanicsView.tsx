@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import ContentfulRichText, {
@@ -54,7 +53,7 @@ const CampaignMechanicsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_MECHANICS_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.campaign_mechanics.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-mechanics-back-button' }}

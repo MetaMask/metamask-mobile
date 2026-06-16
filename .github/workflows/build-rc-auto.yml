@@ -4,13 +4,19 @@
 # It runs automatically on every commit pushed to a release branch that has an open PR.
 #
 # Rolling builds: when a new run starts for the same release branch, any queued or
-# in-progress run of this workflow for that branch is cancelled (same behavior as
-# Bitrise "Rolling builds" / "Abort running builds" for one branch + one workflow).
+# in-progress run of this workflow for that branch is cancelled (one branch + one
+# workflow at a time).
 #
-# Version bump runs once (update-latest-build-version.yml), then iOS and Android
-# builds are triggered in parallel via runway-ota-build-core.yml (skip_version_bump).
+# Version bump: generate-build-version → commit-build-version, then iOS and Android
+# builds are triggered in parallel via auto-rc-ota-build-core.yml (bump commit passed as source_branch).
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
+#
+# Freezing auto RC builds:
+#   Add the 'rc-freeze' label to the release PR to stop auto RC builds.
+#   This is intended for the final stage of a release cycle — when QA has given the
+#   thumbs-up, the last cherry-pick has landed, and the branch is being prepared to
+#   merge into stable. Removing the label resumes normal auto RC builds.
 #
 ##############################################################################################
 name: Auto RC builds
@@ -39,6 +45,7 @@ jobs:
       has-pr: ${{ steps.find-pr.outputs.has-pr }}
       branch-name: ${{ steps.extract-version.outputs.branch-name }}
       pr-number: ${{ steps.find-pr.outputs.pr-number }}
+      rc-frozen: ${{ steps.find-pr.outputs.rc-frozen }}
     permissions:
       pull-requests: read
     steps:
@@ -75,57 +82,76 @@ jobs:
           echo "Looking for PR with head branch: $BRANCH_NAME"
 
           # Find PRs where the head branch matches our release branch
-          PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' || echo "")
+          PR_JSON=$(gh pr list --head "$BRANCH_NAME" --json number,labels --jq '.[0]' || echo "")
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number // empty')
 
           if [[ -z "$PR_NUMBER" ]]; then
             echo "No PR found for branch $BRANCH_NAME. Skipping."
             echo "has-pr=false" >> "$GITHUB_OUTPUT"
+            echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "Found PR #$PR_NUMBER - proceeding with RC build"
+          # Check for the rc-freeze label — when present, auto RC builds are skipped.
+          # Add the label to the PR when QA has signed off and you are preparing
+          # the release branch to merge into stable. Remove it to resume auto RC builds.
+          RC_FROZEN=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "rc-freeze")) | length > 0')
+
+          if [[ "$RC_FROZEN" == "true" ]]; then
+            echo "::notice::PR #$PR_NUMBER has the 'rc-freeze' label — auto RC build skipped."
+            echo "rc-frozen=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Found PR #$PR_NUMBER - proceeding with RC build"
+            echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
+          fi
+
           echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "has-pr=true" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  update_rc_build_version:
-    name: Update RC build version
-    uses: ./.github/workflows/update-latest-build-version.yml
+  generate_rc_build_version:
+    name: Generate RC build version
+    uses: ./.github/workflows/generate-build-version.yml
     needs: validate-and-find-pr
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true'
+    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+
+  update_rc_build_version:
+    name: Commit RC build version
+    uses: ./.github/workflows/commit-build-version.yml
+    needs: [validate-and-find-pr, generate_rc_build_version]
+    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     permissions:
       contents: write
-      id-token: write
     with:
       base-branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
-    uses: ./.github/workflows/runway-ota-build-core.yml
+    uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
       - update_rc_build_version
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true'
+    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     with:
       platform: ios
       source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
-      skip_version_bump: true
+      distribute_external: true
     secrets: inherit
 
   trigger-android-rc-build:
     name: Trigger Android RC Build
-    uses: ./.github/workflows/runway-ota-build-core.yml
+    uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
       - update_rc_build_version
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true'
+    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     with:
       platform: android
       source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
-      skip_version_bump: true
     secrets: inherit
 
   post-rc-build-comment:
@@ -144,13 +170,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
-          fetch-depth: 50
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Download build environment artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-env-main-rc-*
+          path: build-env-artifacts
+          merge-multiple: false
+
       - name: Post RC Build Comment with Test Plan
         run: node -r esbuild-register scripts/build-announce/index.ts
         timeout-minutes: 8
@@ -190,4 +225,5 @@ jobs:
       semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version }}
       ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
       android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
+      pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
     secrets: inherit

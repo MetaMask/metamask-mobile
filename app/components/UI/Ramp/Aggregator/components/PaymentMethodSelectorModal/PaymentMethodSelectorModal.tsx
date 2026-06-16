@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, useWindowDimensions } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Payment } from '@consensys/on-ramp-sdk';
@@ -9,8 +10,6 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-
 import PaymentMethod from '../PaymentMethod';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { ScreenLocation } from '../../types';
@@ -101,7 +100,7 @@ function PaymentMethodSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

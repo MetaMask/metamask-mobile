@@ -15,6 +15,7 @@ interface PriceSharedProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
+  hasInsufficientCoverage?: boolean;
 }
 
 /**
@@ -28,6 +29,8 @@ export type PriceProps = PriceSharedProps & {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
 };
 
 const Price = (props: PriceProps) => {

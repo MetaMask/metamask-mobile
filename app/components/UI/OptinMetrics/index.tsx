@@ -32,7 +32,6 @@ import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
@@ -60,6 +59,11 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import Logger from '../../../util/Logger';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -101,6 +105,9 @@ const OptinMetrics = () => {
     [isMediumDevice],
   );
 
+  const getShouldShowQuestionnaire =
+    useOnboardingInterestQuestionnaireEligibility();
+
   /**
    * Temporary disabling the back button so users can't go back
    */
@@ -114,10 +121,13 @@ const OptinMetrics = () => {
 
   // Component lifecycle effects
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
   }, [handleBackPress]);
 
@@ -207,27 +217,40 @@ const OptinMetrics = () => {
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.
-    if (events?.length) {
-      let delay = 0; // Initialize delay
-      const eventTrackingDelay = 200; // ms delay between each event
-      events.forEach((eventArgs) => {
-        // delay each event to prevent them from
-        // being tracked with the same timestamp
-        // which would cause them to be grouped together
-        // by sentAt time in the Segment dashboard
-        // as precision is only to the milisecond
-        // and loop seems to runs faster than that
-        setTimeout(() => {
-          const event = AnalyticsEventBuilder.createEventBuilder(
-            eventArgs[0],
-          ).build();
-          metrics.trackEvent(event);
-        }, delay);
-        delay += eventTrackingDelay;
+    if (events?.length && isBasicUsageChecked) {
+      const attributionProps =
+        getWalletSetupAttributionPropsFromStore(isMarketingChecked);
+      scheduleBufferedOnboardingEventReplay({
+        events,
+        attributionProps,
+        trackEvent: (event) => metrics.trackEvent(event),
       });
     }
+
+    dispatch(clearAttribution());
+
     dispatch(clearOnboardingEvents());
-    continueNavigation();
+
+    let shouldShowInterestQuestionnaire = false;
+    if (isBasicUsageChecked) {
+      try {
+        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      }
+    }
+
+    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+      navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+        onComplete: continueNavigation,
+        ...(accountType && { accountType }),
+      });
+    } else {
+      continueNavigation();
+    }
   }, [
     isBasicUsageChecked,
     isMarketingChecked,
@@ -236,6 +259,8 @@ const OptinMetrics = () => {
     dispatch,
     continueNavigation,
     accountType,
+    getShouldShowQuestionnaire,
+    navigation,
   ]);
 
   /**
@@ -459,6 +484,9 @@ const OptinMetrics = () => {
               }
               onPress={handleMarketingToggle}
               disabled={isMarketingDisabled}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
+              }
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}

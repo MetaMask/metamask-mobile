@@ -10,8 +10,10 @@ import {
   MISSING_TOKENS_URL,
   MM_ANDROID_BUNDLE_ID,
   MM_UNIVERSAL_LINK_HOST,
+  MONEY_LANDING_URL,
   MULTICHAIN_ACCOUNTS_URL,
   MUSD_LEARN_MORE_URL,
+  MUSD_PRICE_URL,
   PRIVACY_BEST_PRACTICES_URL,
   PROFILE_SYNC_URL,
   SMART_ACCOUNTS_URL,
@@ -24,13 +26,16 @@ import {
 
 const DEVELOPMENT = 'development';
 
-// Server APIs: GH Actions use builds.yml (apply-build-config.js sets PORTFOLIO_API_URL, etc.). Local can use .js.env or same keys.
-const PORTFOLIO_URL =
-  process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+// Keep portfolio navigation pinned to the website host (not API hosts).
+const PORTFOLIO_URL = 'https://portfolio.metamask.io';
 
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
+
+const PRICE_ALERTS_API_URL =
+  process.env.PRICE_ALERTS_API_URL ??
+  'https://price-alerts.dev-api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -46,6 +51,9 @@ export default {
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
   SECURITY_ALERTS_API: {
     URL: SECURITY_ALERTS_API_URL,
+  },
+  PRICE_ALERTS_API: {
+    URL: PRICE_ALERTS_API_URL,
   },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
@@ -177,6 +185,7 @@ export default {
     DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
     DEFAULT_SLIPPAGE_BRIDGE: 2,
     DEFAULT_SLIPPAGE_SOLANA: undefined,
+    DEFAULT_SLIPPAGE_RWA: undefined,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
@@ -222,6 +231,8 @@ export default {
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
     MUSD_LEARN_MORE: MUSD_LEARN_MORE_URL,
+    MONEY_LANDING: MONEY_LANDING_URL,
+    MUSD_PRICE: MUSD_PRICE_URL,
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
@@ -298,7 +309,6 @@ export default {
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   NETWORK_DID_CHANGE_EVENT: 'NetworkController:networkDidChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
-  TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',

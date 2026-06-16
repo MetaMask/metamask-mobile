@@ -28,12 +28,14 @@ import {
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
+import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
 
 const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
   [TabBarIconKey.Activity]: IconName.ClockFilled,
   [TabBarIconKey.Trending]: IconName.Search,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
+  [TabBarIconKey.Money]: IconName.MusdFilled,
 };
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
@@ -43,6 +45,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const tabBarRef = useRef(null);
   const previousTabIndexRef = useRef<number>(state.index);
   const tw = useTailwind();
+  const { navigateToMoneyHome } = useMoneyNavigation();
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
@@ -110,6 +113,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           case Routes.TRENDING_VIEW:
             navigation.navigate(Routes.TRENDING_VIEW);
             break;
+          case Routes.MONEY.HOME: {
+            navigateToMoneyHome();
+            break;
+          }
         }
       };
 
@@ -134,13 +141,16 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       );
     },
     [
-      state,
       descriptors,
+      state.routeNames,
+      state.index,
+      state.routes,
+      tw,
       navigation,
-      chainId,
       trackEvent,
       createEventBuilder,
-      tw,
+      chainId,
+      navigateToMoneyHome,
     ],
   );
 

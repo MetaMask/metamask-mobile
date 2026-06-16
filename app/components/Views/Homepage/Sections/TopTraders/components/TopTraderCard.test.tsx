@@ -6,6 +6,7 @@ import type { TopTrader } from '../types';
 
 const baseTrader: TopTrader = {
   id: 'trader-1',
+  address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
   username: 'sniperliquid',
@@ -29,7 +30,7 @@ describe('TopTraderCard', () => {
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
+    expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
     expect(screen.getByText(/30D/)).toBeOnTheScreen();
   });
 
@@ -65,7 +66,7 @@ describe('TopTraderCard', () => {
     expect(screen.getByTestId('top-trader-avatar-trader-1')).toBeOnTheScreen();
   });
 
-  it('renders fallback AvatarBase when avatarUri is absent', () => {
+  it('renders Maskicon fallback when avatarUri is absent', () => {
     const traderNoAvatar = { ...baseTrader, avatarUri: undefined };
     renderWithProvider(
       <TopTraderCard
@@ -73,7 +74,10 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(screen.getByText('S')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`top-trader-card-${traderNoAvatar.id}`),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('S')).toBeNull();
   });
 
   it('shows Follow when not following', () => {
@@ -182,6 +186,6 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 });

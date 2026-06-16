@@ -87,6 +87,7 @@ import {
 import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
+import { useStickyQuickBuy } from '../../../TokenDetails/hooks/useStickyQuickBuy';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -160,6 +161,18 @@ interface MarketInsightsRouteParams {
   isPerps?: boolean;
   /** When true, the user has an existing perps position for this asset */
   hasPerpsPosition?: boolean;
+  /**
+   * When true, the perps market is at its open interest cap. Mirrors the market
+   * detail screen by hiding the Long/Short action buttons. Computed upstream via
+   * usePerpsOICap (which requires PerpsStreamProvider, unavailable on this route).
+   */
+  isAtOICap?: boolean;
+  /** Surface from which Market Insights was accessed */
+  source?: 'token_details' | 'perps' | 'unknown';
+  /** Whether the price trend is positive on the parent Token Details screen. */
+  isPricePositive?: boolean;
+  /** Whether the ambient price color A/B test treatment is active. */
+  useAmbientColor?: boolean;
 }
 
 /**
@@ -187,6 +200,10 @@ const MarketInsightsView: React.FC = () => {
     token: stickyFooterToken,
     isPerps = false,
     hasPerpsPosition = false,
+    isAtOICap = false,
+    source: routeSource = 'unknown',
+    isPricePositive,
+    useAmbientColor,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
@@ -278,6 +295,7 @@ const MarketInsightsView: React.FC = () => {
       .addProperties({
         ...assetIdProperty,
         ...assetSymbolProperty,
+        source: routeSource,
       })
       .build();
     trackEvent(event);
@@ -288,13 +306,8 @@ const MarketInsightsView: React.FC = () => {
     createEventBuilder,
     assetIdProperty,
     assetSymbolProperty,
+    routeSource,
   ]);
-
-  const handleTweetPress = useCallback((url: string) => {
-    if (isSafeUrl(url)) {
-      Linking.openURL(url);
-    }
-  }, []);
 
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
@@ -321,6 +334,7 @@ const MarketInsightsView: React.FC = () => {
             ...assetIdProperty,
             ...assetSymbolProperty,
             interaction_type: direction,
+            source: routeSource,
           })
           .build();
         trackEvent(event);
@@ -340,6 +354,7 @@ const MarketInsightsView: React.FC = () => {
       assetIdProperty,
       assetSymbolProperty,
       assetSymbol,
+      routeSource,
     ],
   );
 
@@ -351,10 +366,17 @@ const MarketInsightsView: React.FC = () => {
         ...assetIdProperty,
         ...assetSymbolProperty,
         interaction_type: 'swap',
+        source: routeSource,
       })
       .build();
     trackEvent(event);
-  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    routeSource,
+  ]);
 
   const handleStickyBuyPress = useCallback(() => {
     const event = createEventBuilder(
@@ -364,10 +386,43 @@ const MarketInsightsView: React.FC = () => {
         ...assetIdProperty,
         ...assetSymbolProperty,
         interaction_type: 'buy',
+        source: routeSource,
       })
       .build();
     trackEvent(event);
-  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    routeSource,
+  ]);
+
+  const handleStickyQuickBuyPress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: 'quick_buy',
+        source: routeSource,
+      })
+      .build();
+    trackEvent(event);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    routeSource,
+  ]);
+
+  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+    token: stickyFooterToken ?? null,
+    source: 'market_insights',
+    onPress: handleStickyQuickBuyPress,
+  });
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -410,7 +465,7 @@ const MarketInsightsView: React.FC = () => {
     (
       interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
       options?: {
-        source?: string;
+        source_url?: string;
         feedbackReason?: MarketInsightsFeedbackReason;
         feedbackText?: string;
       },
@@ -419,7 +474,8 @@ const MarketInsightsView: React.FC = () => {
         ...assetIdProperty,
         ...assetSymbolProperty,
         interaction_type: interactionType,
-        ...(options?.source ? { source: options.source } : {}),
+        source: routeSource,
+        ...(options?.source_url ? { source_url: options.source_url } : {}),
         ...(options?.feedbackReason
           ? { feedback_reason: options.feedbackReason }
           : {}),
@@ -434,7 +490,24 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
     },
-    [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
+    [
+      trackEvent,
+      createEventBuilder,
+      assetIdProperty,
+      assetSymbolProperty,
+      routeSource,
+    ],
+  );
+
+  const handleTweetPress = useCallback(
+    (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
+      trackMarketInsightsInteraction('source_click', { source_url: url });
+      Linking.openURL(url);
+    },
+    [trackMarketInsightsInteraction],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -512,7 +585,7 @@ const MarketInsightsView: React.FC = () => {
       if (!isSafeUrl(url)) {
         return;
       }
-      trackMarketInsightsInteraction('source_click', { source: url });
+      trackMarketInsightsInteraction('source_click', { source_url: url });
       setSelectedTrend(null);
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
@@ -541,6 +614,7 @@ const MarketInsightsView: React.FC = () => {
       .addProperties({
         ...assetIdProperty,
         ...assetSymbolProperty,
+        source: routeSource,
       })
       .build();
     trackEvent(event);
@@ -553,6 +627,7 @@ const MarketInsightsView: React.FC = () => {
     assetIdentifier,
     trackEvent,
     createEventBuilder,
+    routeSource,
   ]);
 
   if (showLoadingSkeleton && !report && !error) {
@@ -635,6 +710,17 @@ const MarketInsightsView: React.FC = () => {
             ))}
           </Box>
         </AnimatedSection>
+
+        {!isPerps && Boolean(stickyFooterToken) && (
+          <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
+          </Box>
+        )}
 
         {/* "What's being said" section */}
         {allTweets.length > 0 && (
@@ -743,38 +829,42 @@ const MarketInsightsView: React.FC = () => {
 
       {!(isPerps && hasPerpsPosition) &&
         (isPerps ? (
-          <Box
-            twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-          >
-            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                twClassName="flex-1"
-                onPress={() => handlePerpsDirectionPress('long')}
-                testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                twClassName="flex-1"
-                onPress={() => handlePerpsDirectionPress('short')}
-                testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </Button>
+          // Mirror the market detail screen: hide the Long/Short action buttons
+          // when the market is at its open interest cap.
+          isAtOICap ? null : (
+            <Box
+              twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+            >
+              <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  twClassName="flex-1"
+                  onPress={() => handlePerpsDirectionPress('long')}
+                  testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </Button>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  twClassName="flex-1"
+                  onPress={() => handlePerpsDirectionPress('short')}
+                  testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </Button>
+              </Box>
+              <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('market_insights.footer_disclaimer')}
+                </Text>
+              </Box>
             </Box>
-            <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('market_insights.footer_disclaimer')}
-              </Text>
-            </Box>
-          </Box>
+          )
         ) : stickyFooterToken ? (
           <Box
             twClassName="bg-default"
@@ -787,16 +877,12 @@ const MarketInsightsView: React.FC = () => {
               buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
               onSwapPress={handleStickySwapPress}
               onBuyPress={handleStickyBuyPress}
+              onQuickBuyPress={onQuickBuyPress}
+              quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
               sourcePage="MarketInsightsView"
+              isPricePositive={isPricePositive}
+              useAmbientColor={useAmbientColor}
             />
-            <Box alignItems={BoxAlignItems.Center}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('market_insights.footer_disclaimer')}
-              </Text>
-            </Box>
           </Box>
         ) : null)}
 
@@ -817,6 +903,8 @@ const MarketInsightsView: React.FC = () => {
           onSubmit={handleFeedbackSubmit}
         />
       ) : null}
+
+      {quickBuySheet}
 
       {isEligibilityModalVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.

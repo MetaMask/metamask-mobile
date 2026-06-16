@@ -4,15 +4,18 @@ import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderBase from '../../../../../component-library/components/HeaderBase';
-import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
+import {
+  FontWeight,
+  HeaderBase,
+  ButtonIconSize,
+  Icon,
+  IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { WalletDetailsIds } from '../WalletDetails.testIds';
 import {
   AlignItems,
@@ -36,7 +39,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell';
 import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import AddAccountItem from './components/AddAccountItem';
+import { AddAccountItem } from './components/AddAccountItem';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
@@ -51,8 +54,7 @@ export const BaseWalletDetails = ({
   children,
 }: BaseWalletDetailsProps) => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
   const [isLoading, setIsLoading] = useState(false);
   const accountGroupsFlashListRef =
     useRef<FlashListRef<AccountGroupListItem> | null>(null);
@@ -169,14 +171,13 @@ export const BaseWalletDetails = ({
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
         style={styles.header}
-        startAccessory={
-          <ButtonLink
-            testID={WalletDetailsIds.BACK_BUTTON}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => navigation.goBack()}
-          />
-        }
+        startButtonIconProps={{
+          testID: WalletDetailsIds.BACK_BUTTON,
+          iconName: IconName.ArrowLeft,
+          size: ButtonIconSize.Md,
+          onPress: () => navigation.goBack(),
+          accessibilityLabel: strings('navigation.back'),
+        }}
       >
         {wallet.metadata.name}
       </HeaderBase>
@@ -185,7 +186,7 @@ export const BaseWalletDetails = ({
         testID={WalletDetailsIds.WALLET_DETAILS_CONTAINER}
       >
         <View style={styles.walletName}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('multichain_accounts.wallet_details.wallet_name')}
           </Text>
           <Box
@@ -194,13 +195,17 @@ export const BaseWalletDetails = ({
             alignItems={AlignItems.center}
             gap={8}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+            <Text
+              style={styles.text}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+            >
               {wallet.metadata.name}
             </Text>
           </Box>
         </View>
         <View testID={WalletDetailsIds.WALLET_BALANCE} style={styles.balance}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('multichain_accounts.wallet_details.balance')}
           </Text>
           <Box
@@ -211,7 +216,11 @@ export const BaseWalletDetails = ({
             {formattedWalletTotalBalance === undefined ? (
               <AnimatedSpinner size={SpinnerSize.SM} />
             ) : (
-              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              <Text
+                style={styles.text}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+              >
                 {formattedWalletTotalBalance}
               </Text>
             )}
@@ -223,7 +232,7 @@ export const BaseWalletDetails = ({
             onPress={handleRevealSRP}
             style={styles.srpSection}
           >
-            <Text variant={TextVariant.BodyMDMedium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('accounts.secret_recovery_phrase')}
             </Text>
             <Box
@@ -239,8 +248,9 @@ export const BaseWalletDetails = ({
                 {isSRPBackedUp === false && (
                   <TouchableOpacity onPress={handleBackupPressed}>
                     <Text
-                      variant={TextVariant.BodyMDMedium}
-                      style={{ color: colors.error.default }}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.ErrorDefault}
                     >
                       {strings('multichain_accounts.wallet_details.back_up')}
                     </Text>
@@ -249,7 +259,7 @@ export const BaseWalletDetails = ({
                 <Icon
                   name={IconName.ArrowRight}
                   size={IconSize.Md}
-                  color={colors.text.alternative}
+                  color={IconColor.IconAlternative}
                 />
               </Box>
             </Box>

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   setting: {
-    marginVertical: 16,
+    marginTop: 0,
   },
   heading: {
     flexDirection: 'row',

@@ -85,6 +85,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
+      onSkeletonHidden,
       onError,
       onCrosshairMove,
       onChartInteracted,
@@ -93,6 +94,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       visibleFromMs,
       visibleToMs,
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
     },
     ref,
   ) => {
@@ -116,6 +120,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
     const [webViewLoaded, setWebViewLoaded] = useState(false);
+    const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
@@ -123,6 +128,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     /** When non-null, `ohlcvData` is still the previous series' array; skip sync until the hook replaces it. */
     const ohlcvSeriesStaleSnapshotRef = useRef<OHLCVBar[] | null>(null);
     const tradingViewOpenInterceptRef = useRef(0);
+    const skeletonHiddenReportedRef = useRef(false);
+
+    // Capture the color overrides baked into the HTML template so the
+    // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
+    const initialLineColorRef = useRef(lineColorOverride);
+    const initialSuccessColorRef = useRef(successColorOverride);
+    const initialErrorColorRef = useRef(errorColorOverride);
+    const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(
       () =>
@@ -130,20 +143,32 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           enableDrawingTools,
           disabledFeatures,
           lineChrome,
+          lineColorOverride: initialLineColorRef.current,
+          successColorOverride: initialSuccessColorRef.current,
+          errorColorOverride: initialErrorColorRef.current,
         }),
+      // Color overrides intentionally excluded — hot-swapped via SET_THEME_COLORS.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [theme, enableDrawingTools, disabledFeatures, lineChrome],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
     useEffect(() => {
+      skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
+      webViewLoadedRef.current = false;
+      setWebViewError(null);
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
+      themeColorsSentRef.current = false;
+      initialLineColorRef.current = lineColorOverride;
+      initialSuccessColorRef.current = successColorOverride;
+      initialErrorColorRef.current = errorColorOverride;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -180,6 +205,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (ohlcvSeriesKey === undefined) {
         return;
       }
+      skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
       setLayoutSettling(false);
@@ -342,7 +368,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           }
 
           case 'ERROR':
-            if (!isChartReady) {
+            if (!isChartReady && webViewLoadedRef.current) {
               setWebViewError(message.payload.message);
             }
             onError?.(message.payload.message);
@@ -382,6 +408,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const handleLoadEnd = useCallback(() => {
       setWebViewLoaded(true);
+      webViewLoadedRef.current = true;
     }, []);
 
     // ---- Ref API ----
@@ -397,6 +424,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           setLayoutSettling(false);
           setChartReadyCount(0);
           setWebViewLoaded(false);
+          webViewLoadedRef.current = false;
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
@@ -565,6 +593,71 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [lineChrome, chartReadyCount, postMessage]);
 
+    // Hot-swap chart colors via postMessage whenever overrides change.
+    // Gates on webViewLoaded (not chartReady) so messages sent during chart
+    // init get queued in pendingMessages and drained inside onChartReady —
+    // before the first overlay paint — eliminating stale-color flashes.
+    // Skips only the very first invocation (mount) when colors already match
+    // the HTML template; all subsequent changes always send.
+    useEffect(() => {
+      if (!webViewLoaded) return;
+      if (!themeColorsSentRef.current) {
+        // First run after webViewLoaded: skip only if colors still match template
+        const colorsMatch =
+          lineColorOverride === initialLineColorRef.current &&
+          successColorOverride === initialSuccessColorRef.current &&
+          errorColorOverride === initialErrorColorRef.current;
+        themeColorsSentRef.current = true;
+        if (colorsMatch) return;
+      }
+      const effectiveSuccessColor =
+        successColorOverride ?? theme.colors.success.default;
+      const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
+      const effectiveErrorColor =
+        errorColorOverride ?? theme.colors.error.default;
+      postMessage({
+        type: 'SET_THEME_COLORS',
+        payload: {
+          lineColor: effectiveLineColor,
+          successColor: effectiveSuccessColor,
+          errorColor: effectiveErrorColor,
+        },
+      });
+    }, [
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
+      webViewLoaded,
+      postMessage,
+      theme.colors.success.default,
+      theme.colors.error.default,
+    ]);
+
+    const showSkeleton = isLoading || !isChartReady || layoutSettling;
+
+    useEffect(() => {
+      if (webViewError) {
+        return;
+      }
+      if (!onSkeletonHidden) {
+        return;
+      }
+      if (isLoading || !isChartReady || layoutSettling) {
+        return;
+      }
+      if (skeletonHiddenReportedRef.current) {
+        return;
+      }
+      skeletonHiddenReportedRef.current = true;
+      onSkeletonHidden();
+    }, [
+      isLoading,
+      isChartReady,
+      layoutSettling,
+      webViewError,
+      onSkeletonHidden,
+    ]);
+
     // ---- Render ----
 
     if (webViewError) {
@@ -601,7 +694,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {(isLoading || !isChartReady || layoutSettling) && (
+          {showSkeleton && (
             <Skeleton
               height={height}
               width="100%"

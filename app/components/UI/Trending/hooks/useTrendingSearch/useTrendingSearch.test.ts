@@ -9,6 +9,7 @@ import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import {
   PriceChangeOption,
   SortDirection,
+  TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 
 // Mock dependencies
@@ -73,6 +74,10 @@ describe('useTrendingSearch', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     mockUseTrendingRequest.mockReturnValue({
@@ -104,6 +109,7 @@ describe('useTrendingSearch', () => {
       mockTrendingResults,
       PriceChangeOption.PriceChange,
       SortDirection.Descending,
+      undefined,
     );
     expect(result.current.isLoading).toBe(false);
   });
@@ -129,6 +135,33 @@ describe('useTrendingSearch', () => {
       mockTrendingResults,
       PriceChangeOption.MarketCap,
       SortDirection.Ascending,
+      undefined,
+    );
+  });
+
+  it('passes custom time option to sortTrendingTokens', async () => {
+    const sortedResults = [mockTrendingResults[1], mockTrendingResults[0]];
+    mockSortTrendingTokens.mockReturnValue(sortedResults);
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.PriceChange,
+          direction: SortDirection.Descending,
+          timeOption: TimeOption.OneHour,
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(sortedResults);
+    });
+
+    expect(mockSortTrendingTokens).toHaveBeenCalledWith(
+      mockTrendingResults,
+      PriceChangeOption.PriceChange,
+      SortDirection.Descending,
+      TimeOption.OneHour,
     );
   });
 
@@ -139,6 +172,10 @@ describe('useTrendingSearch', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -176,6 +213,10 @@ describe('useTrendingSearch', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -220,6 +261,10 @@ describe('useTrendingSearch', () => {
       isLoading: true,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -336,6 +381,10 @@ describe('useTrendingSearch', () => {
         isLoading: false,
         error: null,
         search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHookWithProvider(() =>
@@ -360,6 +409,10 @@ describe('useTrendingSearch', () => {
         isLoading: false,
         error: null,
         search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHookWithProvider(() =>
@@ -385,6 +438,10 @@ describe('useTrendingSearch', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>

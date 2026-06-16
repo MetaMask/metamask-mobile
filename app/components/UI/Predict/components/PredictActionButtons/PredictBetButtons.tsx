@@ -26,8 +26,10 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   disabled = false,
   testID = BASE_PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON,
   isCarousel,
+  layout,
+  gapClassName = 'w-full gap-3',
 }) => (
-  <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3">
+  <Box flexDirection={BoxFlexDirection.Row} twClassName={gapClassName}>
     <Box twClassName="flex-1">
       <PredictBetButton
         label={yesLabel}
@@ -38,6 +40,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         disabled={disabled}
         testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_YES}`}
         size={isCarousel ? ButtonBaseSize.Md : undefined}
+        layout={layout}
       />
     </Box>
     {drawLabel !== undefined && drawPrice !== undefined && onDrawPress && (
@@ -50,6 +53,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
           disabled={disabled}
           testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_DRAW}`}
           size={isCarousel ? ButtonBaseSize.Md : undefined}
+          layout={layout}
         />
       </Box>
     )}
@@ -63,6 +67,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         disabled={disabled}
         testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_NO}`}
         size={isCarousel ? ButtonBaseSize.Md : undefined}
+        layout={layout}
       />
     </Box>
   </Box>

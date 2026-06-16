@@ -21,7 +21,6 @@ critical:
     - android/settings.gradle
     - android/gradle.properties
     - android/app/build.gradle
-    - bitrise.yml
     - builds.yml
     - .github/workflows/ci.yml
     - .github/workflows/build.yml
@@ -130,8 +129,8 @@ searchDirs:
   - .github/
 
 models:
-  default: azure/grok-4-fast-reasoning
-  escalation: anthropic/claude-sonnet-4-6
+  default: grok-4-20-reasoning
+  escalation: claude-sonnet-4.6
   escalationThreshold: 2
 
   escalationPatterns:                                                                                                                                                                         

@@ -69,13 +69,13 @@ const BridgeTrendingTokensSection = ({
     handleNetworkSelect,
   } = useTokenListFilters();
 
-  const sortBy = useMemo(
+  const sort = useMemo(
     () => mapTimeOptionToSortBy(selectedTimeOption),
     [selectedTimeOption],
   );
 
   const { results, isLoading } = useTrendingRequest({
-    sortBy,
+    sort,
     chainIds: selectedNetwork ?? undefined,
   });
 
@@ -146,9 +146,9 @@ const BridgeTrendingTokensSection = ({
         testID={BridgeTrendingTokensSectionTestIds.SECTION}
       >
         <Text
-          variant={TextVariant.HeadingLg}
+          variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
-          twClassName="mb-3"
+          twClassName="mt-1 mb-3"
         >
           {strings('trending.trending_tokens')}
         </Text>

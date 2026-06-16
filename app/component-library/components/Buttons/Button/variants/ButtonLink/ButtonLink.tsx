@@ -97,7 +97,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
           onPressOut={triggerOnPressedOut}
           accessibilityRole="link"
           accessible
-          {...props}
+          {...(props as object)}
         >
           {renderLabel()}
         </Text>

@@ -27,7 +27,7 @@ interface UseHomeViewedEventParams {
    * render — once `isLoading` is false, the hook may fire immediately (see
    * `fireImmediateWhenNoView`) or not, depending on product rules.
    */
-  sectionRef: RefObject<View> | null;
+  sectionRef: RefObject<View | null> | null;
   /** Whether the section data is still being fetched. */
   isLoading: boolean;
   sectionName: HomeSectionName;

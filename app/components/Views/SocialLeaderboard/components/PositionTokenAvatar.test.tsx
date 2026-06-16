@@ -50,7 +50,7 @@ jest.mock('../../../../util/networks', () => ({
 }));
 
 const MockAvatarToken = AvatarToken as jest.Mock;
-const MockBadgeWrapper = BadgeWrapper as jest.Mock;
+const MockBadgeWrapper = BadgeWrapper as unknown as jest.Mock;
 const MockBadgeNetwork = BadgeNetwork as jest.Mock;
 
 const lastAvatarTokenProps = () =>

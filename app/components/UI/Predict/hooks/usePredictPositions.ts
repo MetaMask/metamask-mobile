@@ -3,11 +3,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type { PredictPosition } from '../types';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
+import { usePredictLivePositions } from './usePredictLivePositions';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const OPTIMISTIC_POLL_INTERVAL = 2_000;
+const EMPTY_POSITIONS: PredictPosition[] = [];
 
 interface UsePredictPositionsOptions {
   enabled?: boolean;
@@ -15,12 +17,16 @@ interface UsePredictPositionsOptions {
   claimable?: boolean;
   marketId?: string;
   childMarketIds?: string[];
+  /** When non-empty, takes precedence over `marketId` / `childMarketIds`. */
+  marketIds?: string[];
+  livePriceUpdates?: boolean;
 }
 
 function buildSelect(
   claimable?: boolean,
   marketId?: string,
   childMarketIds?: string[],
+  marketIds?: string[],
 ) {
   return (data: PredictPosition[]) => {
     let result = data;
@@ -31,7 +37,10 @@ function buildSelect(
       result = result.filter((p) => !p.claimable);
     }
 
-    if (marketId) {
+    if (marketIds && marketIds.length > 0) {
+      const validIds = new Set(marketIds);
+      result = result.filter((p) => validIds.has(p.marketId));
+    } else if (marketId) {
       if (childMarketIds && childMarketIds.length > 0) {
         const validIds = new Set(childMarketIds);
         result = result.filter((p) => validIds.has(p.marketId));
@@ -51,13 +60,15 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     claimable,
     marketId,
     childMarketIds,
+    marketIds,
+    livePriceUpdates = false,
   } = options;
 
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const address = evmAccount?.address ?? '0x0';
+  const address = evmAccount?.address;
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -65,7 +76,9 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     ensurePolygonNetworkExists().catch(() => undefined);
   }, [enabled, ensurePolygonNetworkExists]);
 
-  const queryOpts = predictQueries.positions.options({ address });
+  const queryOpts = predictQueries.positions.options({
+    address: address ?? '',
+  });
 
   const cachedData = queryClient.getQueryData<PredictPosition[]>(
     queryOpts.queryKey,
@@ -74,12 +87,19 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     (p: PredictPosition) => p.optimistic,
   );
 
-  return useQuery({
+  const query = useQuery({
     ...queryOpts,
-    enabled,
+    enabled: enabled && Boolean(address),
     refetchInterval: hasOptimistic
       ? OPTIMISTIC_POLL_INTERVAL
       : (refetchInterval ?? false),
-    select: buildSelect(claimable, marketId, childMarketIds),
+    select: buildSelect(claimable, marketId, childMarketIds, marketIds),
   });
+
+  usePredictLivePositions(query.data ?? EMPTY_POSITIONS, {
+    enabled: enabled && livePriceUpdates && Boolean(address),
+    cacheAddress: address ?? '',
+  });
+
+  return query;
 }

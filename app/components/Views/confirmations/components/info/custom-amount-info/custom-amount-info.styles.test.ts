@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { mockTheme } from '../../../../../../util/theme';
 import { Theme } from '../../../../../../util/theme/models';
 import styleSheet from './custom-amount-info.styles';
 
@@ -12,16 +13,16 @@ describe('custom-amount-info.styles', () => {
     });
   });
 
-  describe('extraBottomPadding', () => {
-    it('applies 56dp paddingBottom on Android', () => {
+  describe('bottomBlock', () => {
+    it('applies 16dp paddingBottom on Android', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
       });
 
-      const styles = styleSheet({ theme: {} as Theme });
+      const styles = styleSheet({ theme: mockTheme as Theme });
 
-      expect(styles.extraBottomPadding.paddingBottom).toBe(56);
+      expect(styles.bottomBlock.paddingBottom).toBe(16);
     });
 
     it('applies 0 paddingBottom on iOS so the iOS layout is unchanged', () => {
@@ -30,9 +31,9 @@ describe('custom-amount-info.styles', () => {
         writable: true,
       });
 
-      const styles = styleSheet({ theme: {} as Theme });
+      const styles = styleSheet({ theme: mockTheme as Theme });
 
-      expect(styles.extraBottomPadding.paddingBottom).toBe(0);
+      expect(styles.bottomBlock.paddingBottom).toBe(0);
     });
   });
 });

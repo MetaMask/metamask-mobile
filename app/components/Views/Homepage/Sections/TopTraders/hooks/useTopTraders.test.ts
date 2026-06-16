@@ -1,12 +1,18 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { addBreadcrumb } from '@sentry/react-native';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { useTopTraders } from './useTopTraders';
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn().mockReturnValue([]),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/socialController', () => ({
@@ -29,6 +35,7 @@ const mockTraders = [
   {
     rank: 1,
     profileId: 'trader-1',
+    addresses: ['0x0000000000000000000000000000000000000001'],
     name: 'sniperliquid.hl',
     imageUrl: 'https://example.com/avatar1.png',
     pnl30d: 963146.8,
@@ -38,6 +45,7 @@ const mockTraders = [
   {
     rank: 2,
     profileId: 'trader-2',
+    addresses: ['0x0000000000000000000000000000000000000002'],
     name: 'nervousdegen',
     imageUrl: 'https://example.com/avatar2.png',
     pnl30d: 474751.45,
@@ -47,6 +55,7 @@ const mockTraders = [
   {
     rank: 3,
     profileId: 'trader-3',
+    addresses: ['0x0000000000000000000000000000000000000003'],
     name: 'baznocap',
     imageUrl: 'https://example.com/avatar3.png',
     pnl30d: 374735.16,
@@ -59,6 +68,12 @@ const mockLeaderboardResponse = { traders: mockTraders };
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+}));
+
+const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
+
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -69,6 +84,7 @@ const makeQueryResult = (
   ({
     data: undefined,
     isLoading: false,
+    isFetching: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -78,7 +94,11 @@ describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
-    mockUseSelector.mockReturnValue([]);
+    mockAddBreadcrumb.mockClear();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) return true;
+      return []; // default for other selectors (e.g. selectFollowingProfileIds)
+    });
   });
 
   describe('data mapping', () => {
@@ -110,6 +130,7 @@ describe('useTopTraders', () => {
       const first = mockTraders[0];
       expect(result.current.traders[0]).toEqual({
         id: first.profileId,
+        address: first.addresses[0],
         rank: first.rank,
         overallRank: first.rank,
         username: first.name,
@@ -138,6 +159,24 @@ describe('useTopTraders', () => {
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.traders[0].avatarUri).toBeUndefined();
     });
+
+    it('defaults address to empty string when addresses is empty', () => {
+      const entry = { ...mockTraders[0], addresses: [] };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].address).toBe('');
+    });
+
+    it('defaults pnlPerChain to empty object when pnlPerChain is null', () => {
+      const entry = { ...mockTraders[0], pnlPerChain: null };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].pnlPerChain).toEqual({});
+    });
   });
 
   describe('loading and error states', () => {
@@ -155,13 +194,24 @@ describe('useTopTraders', () => {
       expect(result.current.error).toBe('Network error');
     });
 
-    it('logs the full error object via Logger.error', () => {
+    it('logs the full error object via Logger.error with feature:social tags', () => {
       const err = new Error('Network error');
       mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
       renderHook(() => useTopTraders());
       expect(Logger.error).toHaveBeenCalledWith(
         err,
-        'useTopTraders: leaderboard fetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'top_traders',
+            operation: 'fetch_leaderboard',
+            endpoint: 'leaderboard',
+          }),
+          extras: expect.objectContaining({
+            message: 'Top traders leaderboard fetch failed at useTopTraders',
+            endpoint: 'leaderboard',
+          }),
+        }),
       );
     });
 
@@ -181,7 +231,10 @@ describe('useTopTraders', () => {
 
   describe('isFollowing seeding from controller state', () => {
     it('seeds isFollowing true for traders present in followingProfileIds', () => {
-      mockUseSelector.mockReturnValue([mockTraders[0].profileId]);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return true;
+        return [mockTraders[0].profileId];
+      });
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: mockLeaderboardResponse as never }),
       );
@@ -216,7 +269,10 @@ describe('useTopTraders', () => {
     });
 
     it('calls unfollowTrader when trader is already followed', async () => {
-      mockUseSelector.mockReturnValue([mockTraders[0].profileId]);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return true;
+        return [mockTraders[0].profileId];
+      });
       const { result } = renderHook(() => useTopTraders());
 
       await act(async () => {
@@ -316,8 +372,52 @@ describe('useTopTraders', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         err,
-        'useTopTraders: refresh failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'top_traders',
+            operation: 'refresh',
+          }),
+          extras: expect.objectContaining({
+            message: 'Top traders leaderboard refresh failed at useTopTraders',
+            endpoint: 'leaderboard',
+          }),
+        }),
       );
+    });
+  });
+
+  describe('breadcrumbs', () => {
+    it('emits a failure breadcrumb when an error is set', () => {
+      const err = new Error('fetch failed');
+      mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
+      renderHook(() => useTopTraders());
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'social_service',
+          level: 'error',
+          message: expect.stringContaining(
+            'social_service.leaderboard.failure',
+          ),
+        }),
+      );
+    });
+
+    it('includes httpStatus in the failure breadcrumb for HttpError', () => {
+      const err = Object.assign(new Error('Unauthorized'), { httpStatus: 401 });
+      mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
+      renderHook(() => useTopTraders());
+      expect(mockAddBreadcrumb.mock.calls[0][0].message).toContain(
+        'status=401',
+      );
+    });
+
+    it('does not emit a breadcrumb when there is no error', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: mockLeaderboardResponse as never }),
+      );
+      renderHook(() => useTopTraders());
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
     });
   });
 
@@ -332,7 +432,7 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('passes null fetch options in the query key when no limit is given', () => {
+    it('passes null fetch options in the query key when neither limit nor chains are given', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
@@ -342,11 +442,62 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('defaults enabled to true when the option is not provided', () => {
+    it('includes chains in the query key when provided', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['base'] },
+          ],
+        }),
+      );
+    });
+
+    it('builds distinct query keys per chain so each tab caches independently', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['solana'] }));
+      renderHook(() => useTopTraders({ limit: 50, chains: ['ethereum'] }));
+
+      const keys = mockUseQuery.mock.calls.map((c) => c[0].queryKey);
+      expect(keys).toEqual(
+        expect.arrayContaining([
+          ['SocialService:fetchLeaderboard', { limit: 50, chains: ['solana'] }],
+          [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['ethereum'] },
+          ],
+        ]),
+      );
+    });
+
+    it('includes chains alone in the query key when no limit is given', () => {
+      renderHook(() => useTopTraders({ chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['SocialService:fetchLeaderboard', { chains: ['base'] }],
+        }),
+      );
+    });
+
+    it('defaults enabled to true when the option is not provided and wallet is unlocked', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('is disabled when wallet is locked even if enabled option is true', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return false;
+        return [];
+      });
+      renderHook(() => useTopTraders({ enabled: true }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
       );
     });
 
@@ -358,7 +509,7 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('forwards enabled: true to useQuery when explicitly set', () => {
+    it('forwards enabled: true to useQuery when explicitly set and wallet is unlocked', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(

@@ -1,11 +1,8 @@
 import type { ContractConfig } from '../types';
-import type { PredictFeatureFlags } from '../../../types/flags';
 import {
   HASH_ZERO_BYTES32,
-  MATIC_CONTRACTS,
   MATIC_CONTRACTS_V2,
   DEFAULT_CLOB_BASE_URL,
-  COLLATERAL_OFFRAMP_ADDRESS,
   COLLATERAL_ONRAMP_ADDRESS,
   CTF_COLLATERAL_ADAPTER_ADDRESS,
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
@@ -13,32 +10,31 @@ import {
 } from '../constants';
 import Logger from '../../../../../../util/Logger';
 
-export type PolymarketProtocolKey = 'v1' | 'v2';
-export type DepositExecutionMode = 'usdce-transfer' | 'pusd-transfer';
-export type WithdrawExecutionMode =
-  | 'usdce-transfer'
-  | 'usdce-deficit-unwrap'
-  | 'pusd-transfer';
+export type PolymarketProtocolKey = 'v2';
+export type DepositExecutionMode = 'pusd-transfer';
+export type WithdrawExecutionMode = 'pusd-transfer';
 
 interface BasePolymarketProtocolDefinition {
   key: PolymarketProtocolKey;
   contracts: ContractConfig;
   collateral: {
+    /**
+     * Legacy Safe USDC.e is hidden from user-facing flows and only used for the
+     * one-release opportunistic sweep into pUSD. TODO: remove after sweep window.
+     */
     legacyUsdceToken: string;
     tradingToken: string;
     claimToken: string;
     feeAuthorizationToken: string;
-    balanceTokens: string[];
-    onrampAddress?: string;
-    offrampAddress?: string;
+    onrampAddress: string;
   };
   order: {
-    domainVersion: '1' | '2';
+    domainVersion: '2';
     metadata: string;
-    getBuilderCode?: () => string;
+    getBuilderCode: () => string;
   };
   transport: {
-    clobVersionHeader?: '2';
+    clobVersionHeader: '2';
     clobBaseUrl: string;
   };
   workflow: {
@@ -71,37 +67,6 @@ export function getClobV2BuilderCode(): string {
   return HASH_ZERO_BYTES32;
 }
 
-export const POLYMARKET_V1_PROTOCOL = {
-  key: 'v1',
-  contracts: MATIC_CONTRACTS,
-  collateral: {
-    legacyUsdceToken: MATIC_CONTRACTS.collateral,
-    tradingToken: MATIC_CONTRACTS.collateral,
-    claimToken: MATIC_CONTRACTS.collateral,
-    feeAuthorizationToken: MATIC_CONTRACTS.collateral,
-    balanceTokens: [MATIC_CONTRACTS.collateral],
-    onrampAddress: undefined,
-    offrampAddress: undefined,
-  },
-  order: {
-    domainVersion: '1',
-    metadata: HASH_ZERO_BYTES32,
-    getBuilderCode: undefined,
-  },
-  transport: {
-    clobVersionHeader: undefined,
-    clobBaseUrl: DEFAULT_CLOB_BASE_URL,
-  },
-  workflow: {
-    depositMode: 'usdce-transfer',
-    withdrawMode: 'usdce-transfer',
-  },
-  claim: {
-    standardTarget: MATIC_CONTRACTS.conditionalTokens,
-    negRiskTarget: MATIC_CONTRACTS.negRiskAdapter,
-  },
-} satisfies BasePolymarketProtocolDefinition;
-
 export const POLYMARKET_V2_PROTOCOL = {
   key: 'v2',
   contracts: MATIC_CONTRACTS_V2,
@@ -110,9 +75,7 @@ export const POLYMARKET_V2_PROTOCOL = {
     tradingToken: MATIC_CONTRACTS_V2.collateral,
     claimToken: MATIC_CONTRACTS_V2.collateral,
     feeAuthorizationToken: MATIC_CONTRACTS_V2.collateral,
-    balanceTokens: [USDC_E_ADDRESS, MATIC_CONTRACTS_V2.collateral],
     onrampAddress: COLLATERAL_ONRAMP_ADDRESS,
-    offrampAddress: COLLATERAL_OFFRAMP_ADDRESS,
   },
   order: {
     domainVersion: '2',
@@ -124,8 +87,8 @@ export const POLYMARKET_V2_PROTOCOL = {
     clobBaseUrl: DEFAULT_CLOB_BASE_URL,
   },
   workflow: {
-    depositMode: 'usdce-transfer',
-    withdrawMode: 'usdce-deficit-unwrap',
+    depositMode: 'pusd-transfer',
+    withdrawMode: 'pusd-transfer',
   },
   claim: {
     standardTarget: CTF_COLLATERAL_ADAPTER_ADDRESS,
@@ -133,61 +96,16 @@ export const POLYMARKET_V2_PROTOCOL = {
   },
 } satisfies BasePolymarketProtocolDefinition;
 
-export type PolymarketProtocolDefinition =
-  | typeof POLYMARKET_V1_PROTOCOL
-  | typeof POLYMARKET_V2_PROTOCOL;
+export type PolymarketProtocolDefinition = typeof POLYMARKET_V2_PROTOCOL;
 
 export function getProtocolDepositTokenAddress(
   protocol: PolymarketProtocolDefinition,
 ): string {
-  const depositMode = protocol.workflow.depositMode as DepositExecutionMode;
-
-  switch (depositMode) {
-    case 'pusd-transfer':
-      return protocol.collateral.tradingToken;
-    case 'usdce-transfer':
-    default:
-      return protocol.collateral.legacyUsdceToken;
-  }
+  return protocol.collateral.tradingToken;
 }
 
 export function getProtocolWithdrawTokenAddress(
   protocol: PolymarketProtocolDefinition,
 ): string {
-  const withdrawMode = protocol.workflow.withdrawMode as WithdrawExecutionMode;
-
-  switch (withdrawMode) {
-    case 'pusd-transfer':
-      return protocol.collateral.tradingToken;
-    case 'usdce-transfer':
-    case 'usdce-deficit-unwrap':
-    default:
-      return protocol.collateral.legacyUsdceToken;
-  }
-}
-
-export function resolvePolymarketProtocol(
-  featureFlags: Pick<
-    PredictFeatureFlags,
-    'predictClobV2Enabled' | 'predictClobV2ClobBaseUrl'
-  >,
-): PolymarketProtocolDefinition {
-  if (!featureFlags.predictClobV2Enabled) {
-    return POLYMARKET_V1_PROTOCOL;
-  }
-
-  const clobBaseUrl =
-    featureFlags.predictClobV2ClobBaseUrl ?? DEFAULT_CLOB_BASE_URL;
-
-  if (clobBaseUrl === POLYMARKET_V2_PROTOCOL.transport.clobBaseUrl) {
-    return POLYMARKET_V2_PROTOCOL;
-  }
-
-  return {
-    ...POLYMARKET_V2_PROTOCOL,
-    transport: {
-      ...POLYMARKET_V2_PROTOCOL.transport,
-      clobBaseUrl,
-    },
-  };
+  return protocol.collateral.tradingToken;
 }

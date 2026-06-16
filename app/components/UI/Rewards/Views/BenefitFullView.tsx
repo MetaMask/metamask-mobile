@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo } from 'react';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -18,18 +17,22 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BenefitFullViewRouteProp } from './BenefitFullView.types.ts';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { formatDateRemaining } from '../utils/formatUtils.ts';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import Engine from '../../../../core/Engine';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+
+const BENEFIT_CLAIM_BUTTON_TYPE = 'claim';
 
 const BenefitFullView = () => {
   const tw = useTailwind();
@@ -37,8 +40,19 @@ const BenefitFullView = () => {
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  useTrackRewardsPageView({ page_type: 'benefit_detail' });
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_BENEFIT_DETAIL_VIEWED)
+        .addProperties({
+          benefit_id: benefit.id.toString(),
+          benefit_name: benefit.longTitle,
+          ...(benefit.type?.name ? { benefit_type: benefit.type.name } : {}),
+        })
+        .build(),
+    );
+  }, [benefit, createEventBuilder, trackEvent]);
 
   useEffect(() => {
     if (!subscriptionId) return;
@@ -53,6 +67,17 @@ const BenefitFullView = () => {
   }, [benefit, subscriptionId]);
 
   const handleClaim = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_BENEFIT_BUTTON_CLICKED)
+        .addProperties({
+          button_type: BENEFIT_CLAIM_BUTTON_TYPE,
+          benefit_id: benefit.id.toString(),
+          benefit_name: benefit.longTitle,
+          ...(benefit.type?.name ? { benefit_type: benefit.type.name } : {}),
+        })
+        .build(),
+    );
+
     if (benefit.url) {
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
@@ -80,7 +105,7 @@ const BenefitFullView = () => {
         style={tw.style('flex-1')}
         testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_VIEW}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.benefits.title_claim')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

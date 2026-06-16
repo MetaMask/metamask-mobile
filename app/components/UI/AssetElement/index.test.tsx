@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
-import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import {
   BALANCE_TEST_ID,
   SECONDARY_BALANCE_BUTTON_TEST_ID,
@@ -34,9 +34,10 @@ describe('AssetElement', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = render(<AssetElement asset={erc20Token} />);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders the asset row with the expected test id when no balance is shown', () => {
+    const { getByTestId } = render(<AssetElement asset={erc20Token} />);
+
+    expect(getByTestId(getAssetTestId(erc20Token.symbol))).toBeOnTheScreen();
   });
 
   it('renders the main balance if provided', () => {

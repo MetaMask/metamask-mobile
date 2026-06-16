@@ -25,6 +25,7 @@ import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
 import ReferredByCodeSection from './ReferredByCodeSection';
+import OptOutSection from './OptOutSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
@@ -87,7 +88,10 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
     }
 
     return (
-      <Box testID="rewards-settings-bulk-link-progress" twClassName="gap-2">
+      <Box
+        testID="rewards-settings-bulk-link-progress"
+        twClassName="p-4 rounded-xl bg-background-muted gap-2 my-4"
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
@@ -97,38 +101,37 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
             <>
               <Text
                 testID="rewards-settings-account-status"
-                variant={TextVariant.BodySm}
-                twClassName="text-alternative"
+                variant={TextVariant.HeadingSm}
               >
                 {strings('rewards.settings.linking_progress', {
                   current: bulkLinkLinkedAccounts,
                   total: bulkLinkTotalAccounts,
                 })}
               </Text>
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {progressPercent}%
-              </Text>
+              <Text variant={TextVariant.HeadingSm}>{progressPercent}%</Text>
             </>
           ) : (
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {strings('rewards.settings.accounts_linked_count', {
-                linked: linkedAccounts,
-                total: totalAccounts,
-              })}
-            </Text>
+            <>
+              <Text variant={TextVariant.HeadingSm}>
+                {strings('rewards.settings.accounts_added')}
+              </Text>
+              <Text variant={TextVariant.HeadingSm}>
+                {linkedAccounts}/{totalAccounts}
+              </Text>
+            </>
           )}
         </Box>
         {/* Progress bar */}
         <Box
           testID="rewards-settings-progress-bar"
-          twClassName="w-full h-2 rounded-full overflow-hidden"
+          twClassName="w-full h-3 rounded-full overflow-hidden"
           style={{ backgroundColor: colors.background.alternative }}
         >
           <Box
             twClassName="h-full rounded-full"
             style={{
               width: `${progressPercent}%`,
-              backgroundColor: colors.primary.default,
+              backgroundColor: colors.success.default,
             }}
           />
         </Box>
@@ -136,9 +139,10 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
         {showAddAllButton && (
           <Button
             testID="rewards-settings-add-all-button"
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariant.Secondary}
             onPress={startBulkLink}
             style={tw.style('mt-2')}
+            twClassName="w-full"
           >
             {strings('rewards.settings.add_all_accounts')}
           </Button>
@@ -148,7 +152,13 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
   },
 );
 
-const RewardSettingsAccountGroupList: React.FC = () => {
+interface RewardSettingsAccountGroupListProps {
+  onRequestOptOut?: () => void;
+}
+
+const RewardSettingsAccountGroupList: React.FC<
+  RewardSettingsAccountGroupListProps
+> = ({ onRequestOptOut }) => {
   const tw = useTailwind();
 
   // State to track which wallets are expanded
@@ -229,7 +239,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
                   item.walletItem?.wallet?.id?.replace('keyring:', '') ||
                   'unknown'
                 }`}
-                twClassName="flex-row items-center justify-between py-2 px-4"
+                twClassName="flex-row items-center justify-between px-4"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -324,7 +334,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListHeaderComponent = useCallback(
     () => (
-      <Box testID="rewards-settings-header" twClassName="gap-4 px-4 py-2">
+      <Box testID="rewards-settings-header" twClassName="gap-4 px-4">
         <Box twClassName="gap-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
@@ -349,10 +359,11 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     () => (
       <Box twClassName="gap-4">
         <ReferredByCodeSection />
+        {onRequestOptOut && <OptOutSection onErasePress={onRequestOptOut} />}
         <RewardsEnvironmentToggle />
       </Box>
     ),
-    [],
+    [onRequestOptOut],
   );
 
   // Flatten data for FlatList with collapse/expand support

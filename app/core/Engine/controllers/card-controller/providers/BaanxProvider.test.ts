@@ -1,12 +1,15 @@
 import axios, { isAxiosError } from 'axios';
-import { BaanxService } from '../services/BaanxService';
+import { BaanxService, CardApiError } from '../services/BaanxService';
 import { CardStatus, CardType } from '../../../../../components/UI/Card/types';
 import {
   CardAccountStatus,
   CardAction,
   CardDetails,
   CardFundingAsset,
+  CardProviderErrorCode,
   FundingAssetStatus,
+  isCardAuthTokenError,
+  type CardAuthTokens,
 } from '../provider-types';
 import { BaanxProvider } from './BaanxProvider';
 
@@ -306,8 +309,10 @@ describe('BaanxProvider', () => {
     const account: CardAccountStatus = {
       verificationStatus: 'VERIFIED',
       provisioningEligible: true,
+      countryOfResidence: 'US',
       holderName: 'Test User',
       shippingAddress: null,
+      usState: 'CA',
     };
 
     const card: CardDetails = {
@@ -328,6 +333,397 @@ describe('BaanxProvider', () => {
       expect(
         buildActions(asset, { ...card, status: CardStatus.BLOCKED }, account),
       ).toStrictEqual([]);
+    });
+  });
+
+  describe('generateCardDelegationSignatureMessage', () => {
+    const provider = new BaanxProvider({ service: {} as BaanxService });
+    const ADDRESS = '0x000000000000000000000000000000000000dEaD';
+    const NONCE = 'nonce-xyz';
+
+    it('builds the EVM SIWE message with chain id parsed from CAIP and an Expiration Time', () => {
+      const message = provider.generateCardDelegationSignatureMessage({
+        network: 'monad',
+        address: ADDRESS,
+        nonce: NONCE,
+        caipChainId: 'eip155:143',
+      });
+
+      expect(message).toContain('sign in with your Ethereum account');
+      expect(message).toContain(ADDRESS);
+      expect(message).toContain('Chain ID: 143');
+      expect(message).toContain(`Nonce: ${NONCE}`);
+      expect(message).toMatch(/Issued At: \S+/);
+      expect(message).toMatch(/Expiration Time: \S+/);
+    });
+
+    it('falls back to Linea (59144) when caipChainId has no numeric segment for EVM', () => {
+      const message = provider.generateCardDelegationSignatureMessage({
+        network: 'linea',
+        address: ADDRESS,
+        nonce: NONCE,
+        caipChainId: 'eip155',
+      });
+
+      expect(message).toContain('Chain ID: 59144');
+    });
+
+    it('builds the Solana SIWE message with chain id 1, no Expiration Time, and Solana wording', () => {
+      const message = provider.generateCardDelegationSignatureMessage({
+        network: 'solana',
+        address: ADDRESS,
+        nonce: NONCE,
+      });
+
+      expect(message).toContain('sign in with your Solana account');
+      expect(message).toContain(ADDRESS);
+      expect(message).toContain('Chain ID: 1');
+      expect(message).toContain(`Nonce: ${NONCE}`);
+      expect(message).toMatch(/Issued At: \S+/);
+      expect(message).not.toContain('Expiration Time');
+    });
+  });
+
+  describe('buildSupportedTokens', () => {
+    const LINEA_CHAIN_ID = 'eip155:59144';
+    const USDC_LINEA_ADDRESS = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff';
+    const WETH_LINEA_ADDRESS = '0xweth';
+    const DELEGATION_CONTRACT = '0xdelegation';
+
+    const delegationSettings = {
+      networks: [
+        {
+          network: 'linea',
+          chainId: '0xe708',
+          environment: 'production',
+          delegationContract: DELEGATION_CONTRACT,
+          tokens: {
+            usdc: {
+              symbol: 'USDC',
+              address: USDC_LINEA_ADDRESS,
+              decimals: 6,
+            },
+          },
+        },
+      ],
+    };
+
+    const buildSupportedTokens = (
+      provider: BaanxProvider,
+      fundingAssets: CardFundingAsset[],
+      settings: typeof delegationSettings | null,
+    ) =>
+      (
+        provider as unknown as {
+          buildSupportedTokens: (
+            assets: CardFundingAsset[],
+            settings: typeof delegationSettings | null,
+          ) => CardFundingAsset[];
+        }
+      ).buildSupportedTokens(fundingAssets, settings);
+
+    it('does not synthesize Inactive placeholders (handled by selectCardAvailableTokens)', () => {
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(provider, [], delegationSettings);
+      expect(result).toHaveLength(0);
+    });
+
+    it('preserves Active funding assets and does not duplicate them', () => {
+      const activeAsset: CardFundingAsset = {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: USDC_LINEA_ADDRESS,
+        walletAddress: '0xwalletA',
+        decimals: 6,
+        chainId: LINEA_CHAIN_ID,
+        spendableBalance: '100',
+        spendingCap: '1000',
+        priority: 1,
+        status: FundingAssetStatus.Active,
+      };
+
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(
+        provider,
+        [activeAsset],
+        delegationSettings,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].status).toBe(FundingAssetStatus.Active);
+    });
+
+    it('returns fundingAssets unchanged when delegationSettings is null', () => {
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const asset: CardFundingAsset = {
+        symbol: 'WETH',
+        name: 'Wrapped Ether',
+        address: WETH_LINEA_ADDRESS,
+        walletAddress: '0xwalletA',
+        decimals: 18,
+        chainId: LINEA_CHAIN_ID,
+        spendableBalance: '1',
+        spendingCap: '10',
+        priority: 1,
+        status: FundingAssetStatus.Active,
+      };
+
+      const result = buildSupportedTokens(provider, [asset], null);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toStrictEqual(asset);
+    });
+
+    it('returns empty array when delegationSettings has no networks and no fundingAssets', () => {
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(provider, [], { networks: [] });
+      expect(result).toHaveLength(0);
+    });
+
+    it('enriches existing assets with delegationContract from matching network', () => {
+      const assetWithoutContract: CardFundingAsset = {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: USDC_LINEA_ADDRESS,
+        walletAddress: '0xwalletA',
+        decimals: 6,
+        chainId: LINEA_CHAIN_ID,
+        spendableBalance: '100',
+        spendingCap: '1000',
+        priority: 1,
+        status: FundingAssetStatus.Active,
+      };
+
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(
+        provider,
+        [assetWithoutContract],
+        delegationSettings,
+      );
+
+      const usdc = result.find((a) => a.walletAddress === '0xwalletA');
+      expect(usdc?.delegationContract).toBe(DELEGATION_CONTRACT);
+    });
+  });
+
+  describe('refreshTokens', () => {
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      accessTokenExpiresAt: 1,
+      refreshTokenExpiresAt: 2,
+      location: 'international',
+    };
+
+    const buildProvider = (request: jest.Mock) =>
+      new BaanxProvider({
+        service: { request, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+    it.each([400, 401, 403])(
+      'maps a %i refresh rejection to InvalidCredentials',
+      async (status) => {
+        const request = jest
+          .fn()
+          .mockRejectedValue(
+            new CardApiError(status, '/v1/auth/oauth/token', 'invalid_grant'),
+          );
+
+        await expect(
+          buildProvider(request).refreshTokens(tokens),
+        ).rejects.toMatchObject({
+          name: 'CardProviderError',
+          code: CardProviderErrorCode.InvalidCredentials,
+          statusCode: status,
+        });
+      },
+    );
+
+    it('maps a network failure to a transient error, not InvalidCredentials', async () => {
+      const request = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(0, '/v1/auth/oauth/token', ''));
+
+      await expect(
+        buildProvider(request).refreshTokens(tokens),
+      ).rejects.toMatchObject({
+        name: 'CardProviderError',
+        code: CardProviderErrorCode.Network,
+      });
+    });
+
+    it('maps a 500 to a transient ServerError', async () => {
+      const request = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(500, '/v1/auth/oauth/token', ''));
+
+      await expect(
+        buildProvider(request).refreshTokens(tokens),
+      ).rejects.toMatchObject({
+        name: 'CardProviderError',
+        code: CardProviderErrorCode.ServerError,
+      });
+    });
+
+    it('throws InvalidCredentials without a request when there is no refresh token', async () => {
+      const request = jest.fn();
+
+      await expect(
+        buildProvider(request).refreshTokens({
+          ...tokens,
+          refreshToken: undefined,
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+        statusCode: 401,
+      });
+      expect(request).not.toHaveBeenCalled();
+    });
+
+    it('returns a mapped token set on success', async () => {
+      const request = jest.fn().mockResolvedValue({
+        access_token: 'new-at',
+        refresh_token: 'new-rt',
+        expires_in: 60,
+        refresh_token_expires_in: 120,
+      });
+
+      const result = await buildProvider(request).refreshTokens(tokens);
+
+      expect(result).toMatchObject({
+        accessToken: 'new-at',
+        refreshToken: 'new-rt',
+        location: 'international',
+      });
+      expect(result.accessTokenExpiresAt).toBeGreaterThan(Date.now());
+    });
+  });
+
+  describe('getCardHomeData auth propagation', () => {
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      accessTokenExpiresAt: 1,
+      refreshTokenExpiresAt: 2,
+      location: 'international',
+    };
+
+    const buildProvider = (get: jest.Mock) =>
+      new BaanxProvider({
+        service: { get, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+    it('propagates a 401 from a sub-request as an auth token error', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
+          return Promise.reject(new CardApiError(401, path, ''));
+        }
+        return Promise.resolve(null);
+      });
+
+      const promise = buildProvider(get).getCardHomeData('0xabc', tokens);
+
+      await expect(promise).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+        statusCode: 401,
+      });
+      await expect(promise.catch((e) => isCardAuthTokenError(e))).resolves.toBe(
+        true,
+      );
+    });
+
+    it('propagates a 403 from a sub-request as an auth token error', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
+          return Promise.reject(new CardApiError(403, path, ''));
+        }
+        return Promise.resolve(null);
+      });
+
+      const promise = buildProvider(get).getCardHomeData('0xabc', tokens);
+
+      await expect(promise).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+        statusCode: 403,
+      });
+      await expect(promise.catch((e) => isCardAuthTokenError(e))).resolves.toBe(
+        true,
+      );
+    });
+
+    it('degrades to a partial payload when a sub-request fails transiently', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
+          return Promise.reject(new CardApiError(500, path, ''));
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await buildProvider(get).getCardHomeData('0xabc', tokens);
+
+      expect(result.account).toBeNull();
+      expect(result.card).toBeNull();
+    });
+
+    it('maps countryOfResidence from the user payload onto account status', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            verificationState: 'VERIFIED',
+            firstName: 'Jane',
+            countryOfResidence: 'gb',
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await buildProvider(get).getCardHomeData('0xabc', tokens);
+
+      expect(result.account).toMatchObject({
+        countryOfResidence: 'GB',
+        usState: null,
+        verificationStatus: 'VERIFIED',
+        holderName: 'Jane',
+      } satisfies Partial<CardAccountStatus>);
+    });
+
+    it('maps usState from the user payload onto account status', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            verificationState: 'VERIFIED',
+            countryOfResidence: 'US',
+            usState: 'ca',
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await buildProvider(get).getCardHomeData('0xabc', tokens);
+
+      expect(result.account).toMatchObject({
+        countryOfResidence: 'US',
+        usState: 'CA',
+      } satisfies Partial<CardAccountStatus>);
+    });
+
+    it('propagates a 401 from the wallet details fetch', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.reject(new CardApiError(401, path, ''));
+        }
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        buildProvider(get).getCardHomeData('0xabc', tokens),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+        statusCode: 401,
+      });
     });
   });
 });

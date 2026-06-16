@@ -28,11 +28,11 @@ import {
   FontWeight,
   Icon,
   IconName,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
 import styleSheet from './RegionSelector.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
@@ -630,7 +630,7 @@ function RegionSelector() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={headerTitle}
         onBack={handleHeaderBack}
         backButtonProps={{ testID: headerBackTestId }}

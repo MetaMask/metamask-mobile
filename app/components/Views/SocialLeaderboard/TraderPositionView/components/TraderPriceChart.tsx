@@ -1,4 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
+import { Box } from '@metamask/design-system-react-native';
+import type { Trade } from '@metamask/social-controllers';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
@@ -6,24 +8,20 @@ import {
   PanResponder,
   View,
 } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import type { Trade } from '@metamask/social-controllers';
-import { Box } from '@metamask/design-system-react-native';
-import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
+import NoDataOverlay from '../../../../UI/AssetOverview/NoDataOverlay/NoDataOverlay';
 import {
   CHART_DATA_THRESHOLD,
   TOKEN_OVERVIEW_CHART_HEIGHT,
 } from '../../../../UI/AssetOverview/Price/tokenOverviewChart.constants';
-import styleSheet from '../../../../UI/AssetOverview/PriceChart/PriceChart.styles';
 import PriceChartContext from '../../../../UI/AssetOverview/PriceChart/PriceChart.context';
-import NoDataOverlay from '../../../../UI/AssetOverview/NoDataOverlay/NoDataOverlay';
+import styleSheet from '../../../../UI/AssetOverview/PriceChart/PriceChart.styles';
 import { mapTradesToMarkers } from '../utils/tradeMarkers';
 
 interface LineProps {
@@ -41,7 +39,16 @@ interface TooltipProps {
 
 /** Smaller than TRADE_MARKER_RADIUS so the end-dot doesn't look like a trade marker. */
 const END_DOT_DIAMETER = 5;
-const TRADE_MARKER_RADIUS = 7;
+/**
+ * Trade marker geometry — the inner colored disk is 16x16 with a 4px ring
+ * matching the chart background. SVG strokes are centered on the circumference,
+ * so we set r = innerRadius + strokeWidth/2 (8 + 2 = 10) to make the ring
+ * sit fully outside the visible inner disk.
+ */
+const TRADE_MARKER_INNER_RADIUS = 8;
+const TRADE_MARKER_BORDER_WIDTH = 4;
+const TRADE_MARKER_RADIUS =
+  TRADE_MARKER_INNER_RADIUS + TRADE_MARKER_BORDER_WIDTH / 2;
 
 interface TraderPriceChartProps {
   prices: TokenPrice[];
@@ -55,7 +62,6 @@ interface TraderPriceChartProps {
 
 const TraderPriceChart = ({
   prices,
-  priceDiff,
   isLoading,
   onChartIndexChange,
   trades,
@@ -68,11 +74,7 @@ const TraderPriceChart = ({
   const [positionX, setPositionX] = useState(-1);
   const [chartRowWidth, setChartRowWidth] = useState(0);
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
-  const { themeAppearance } = useTheme();
-  const chartColor =
-    themeAppearance === AppThemeKey.light
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
+  const chartColor = theme.colors.success.default;
 
   useEffect(() => {
     setPositionX(-1);
@@ -284,12 +286,10 @@ const TraderPriceChart = ({
           const cy = y(priceList[m.index]);
           if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
           const isBuy = m.intent === 'enter';
-          // Buy: white fill + green stroke — clearly distinct from the green
-          //   chart line while still reading as a "buy" action.
-          // Sell: red fill + dark background halo — high contrast, matches the
-          //   red values shown in the trades list.
-          // The background-colored strokeWidth halos both markers so they
-          // visually punch through the chart line.
+          // Inner disk uses the same green/red as the rest of the UI; the
+          // ring matches the chart background so the marker reads as a
+          // punched-through dot on the line. background.default adapts to
+          // light/dark automatically.
           return (
             <Circle
               key={m.transactionHash}
@@ -297,9 +297,13 @@ const TraderPriceChart = ({
               cx={cx}
               cy={cy}
               r={TRADE_MARKER_RADIUS}
-              fill={isBuy ? 'lightgreen' : theme.colors.error.default}
-              stroke={isBuy ? 'black' : theme.colors.background.default}
-              strokeWidth={Math.max(2, apx(2))}
+              fill={
+                isBuy
+                  ? theme.colors.success.default
+                  : theme.colors.error.default
+              }
+              stroke={theme.colors.background.default}
+              strokeWidth={TRADE_MARKER_BORDER_WIDTH}
             />
           );
         })}

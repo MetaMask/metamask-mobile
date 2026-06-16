@@ -4,6 +4,7 @@ import {
 } from '../../../app/components/Views/Settings/AdvancedSettings/AdvancedView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { EncapsulatedElementType } from '../../framework';
 
 class AdvancedSettingsView {
   get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
@@ -12,25 +13,27 @@ class AdvancedSettingsView {
     );
   }
 
-  get showFiatOnTestnetsToggle(): DetoxElement {
+  get showFiatOnTestnetsToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
     );
   }
 
-  get smartTransactionsToggle(): DetoxElement {
+  get smartTransactionsToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH);
   }
 
-  get resetAccountButton(): DetoxElement {
+  get resetAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       AdvancedViewSelectorsText.RESET_ACCOUNT,
       1,
     );
   }
 
-  get resetConfirmButton(): DetoxElement {
-    return Matchers.getElementByText(AdvancedViewSelectorsText.RESET_CONFIRMED);
+  get resetConfirmButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
+    );
   }
 
   async tapShowFiatOnTestnetsSwitch(): Promise<void> {

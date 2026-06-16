@@ -6,7 +6,6 @@ import {
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 import type { RootState } from '../../../../reducers';
 import {
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
@@ -36,7 +35,13 @@ export const usePerpsDepositStatus = () => {
 
   // Track if we're expecting a deposit
   const expectingDepositRef = useRef(false);
-  const prevAvailableBalanceRef = useRef<string>('0');
+  const prevSpendableBalanceRef = useRef<string>('0');
+  const liveAccountRef = useRef(liveAccount);
+
+  // Keep ref in sync without re-subscribing the transaction handler.
+  useEffect(() => {
+    liveAccountRef.current = liveAccount;
+  }, [liveAccount]);
 
   // Get deposit state from controller
   const depositInProgress = useSelector(
@@ -47,18 +52,6 @@ export const usePerpsDepositStatus = () => {
   const lastDepositResult = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.lastDepositResult ?? null,
-  );
-
-  // Get the internal transaction ID from the controller. Needed to get bridge quotes.
-  const lastDepositTransactionId = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.PerpsController?.lastDepositTransactionId ??
-      null,
-  );
-
-  // For Perps deposits this array typically contains only one element.
-  const bridgeQuotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
   );
 
   // Listen for PerpsDeposit approval - Used to display deposit in progress toast
@@ -79,7 +72,8 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.status === TransactionStatus.approved
       ) {
         expectingDepositRef.current = true;
-        prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
+        prevSpendableBalanceRef.current =
+          liveAccountRef.current?.spendableBalance || '0';
 
         const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
@@ -103,37 +97,31 @@ export const usePerpsDepositStatus = () => {
         handleTransactionApproved,
       );
     };
-  }, [
-    PerpsToastOptions.accountManagement.deposit,
-    bridgeQuotes,
-    liveAccount?.availableBalance,
-    showToast,
-  ]);
+    // liveAccount.spendableBalance is read via ref to avoid rebinding the
+    // messenger listener on every balance fluctuation.
+  }, [PerpsToastOptions.accountManagement.deposit, showToast]);
 
-  // Watch for balance increases when expecting a deposit
+  // Watch for spendable-balance increases when expecting a deposit. Using
+  // totalBalance here is incorrect because unrealized PnL can move it without
+  // any deposit settling.
+  const liveSpendable = liveAccount?.spendableBalance;
   useEffect(() => {
-    if (!expectingDepositRef.current || !liveAccount) {
+    if (!expectingDepositRef.current || liveSpendable == null) {
       return;
     }
 
-    const currentBalance = Number.parseFloat(
-      liveAccount.availableBalance || '0',
-    );
-    const previousBalance = Number.parseFloat(prevAvailableBalanceRef.current);
-    // Check if balance increased
+    const currentBalance = Number.parseFloat(liveSpendable || '0');
+    const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
+
     if (currentBalance > previousBalance) {
-      // Show success toast
       showToast(
-        PerpsToastOptions.accountManagement.deposit.success(
-          liveAccount?.availableBalance,
-        ),
+        PerpsToastOptions.accountManagement.deposit.success(liveSpendable),
       );
 
-      // Reset state
       expectingDepositRef.current = false;
-      prevAvailableBalanceRef.current = liveAccount.availableBalance;
+      prevSpendableBalanceRef.current = liveSpendable;
     }
-  }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
+  }, [liveSpendable, showToast, PerpsToastOptions.accountManagement.deposit]);
 
   // Handle deposit errors from controller state
   useEffect(() => {

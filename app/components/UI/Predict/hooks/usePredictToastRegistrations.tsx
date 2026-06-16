@@ -2,8 +2,8 @@ import {
   Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
@@ -27,7 +27,7 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
-import { isPredictSheetProviderMounted } from '../contexts/PredictPreviewSheetContext';
+import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
 
 const showPendingToast = ({
   showToast,
@@ -142,9 +142,8 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
-  const selectedAddress =
-    getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
-  const normalizedSelectedAddress = selectedAddress.toLowerCase();
+  const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
+  const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =
@@ -367,10 +366,11 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          // When the BottomSheet flow is on AND the provider is mounted,
-          // the provider auto-reopens the buy sheet with an inline error
-          // banner so we suppress the toast to avoid duplicate UI.
-          if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
+          // When the bottom-sheet flow is on and the provider is mounted,
+          // the provider's state-based trigger (in PredictPreviewSheetContext)
+          // surfaces a persistent Retry toast for the same error. Skip here
+          // to avoid double-firing.
+          if (bottomSheetEnabled && shouldSuppressLegacyOrderFailureToast()) {
             return;
           }
           showErrorToast({

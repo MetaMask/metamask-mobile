@@ -14,7 +14,7 @@ import {
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
-import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
 import AppConstants from '../../../../../core/AppConstants';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
 import { TokenI } from '../../../Tokens/types';
@@ -197,7 +197,7 @@ describe('AssetOverviewClaimBonus', () => {
       ).not.toBeDisabled();
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$30.00');
+      ).toHaveTextContent('$30.00');
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE),
       ).toHaveTextContent('+$221.59');
@@ -239,7 +239,7 @@ describe('AssetOverviewClaimBonus', () => {
       ).toBeDisabled();
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$15.00');
+      ).toHaveTextContent('$15.00');
     });
   });
 
@@ -279,7 +279,7 @@ describe('AssetOverviewClaimBonus', () => {
       ).not.toBeDisabled();
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$0.00');
+      ).toHaveTextContent('$0.00');
     });
   });
 
@@ -318,7 +318,7 @@ describe('AssetOverviewClaimBonus', () => {
       ).toBeDisabled();
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$0.00');
+      ).toHaveTextContent('$0.00');
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE),
       ).toHaveTextContent('$0.00');
@@ -560,7 +560,7 @@ describe('AssetOverviewClaimBonus', () => {
       // (700 + 300) * 3% = 30.00
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$30.00');
+      ).toHaveTextContent('$30.00');
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
       ).toHaveTextContent('Claim $5.00 bonus');
@@ -586,7 +586,7 @@ describe('AssetOverviewClaimBonus', () => {
       // 500 * 3% = 15.00, "Accruing next bonus" because balance > 0 & no claim
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$15.00');
+      ).toHaveTextContent('$15.00');
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
       ).toHaveTextContent('Accruing next bonus');
@@ -614,7 +614,7 @@ describe('AssetOverviewClaimBonus', () => {
       // on Linea and always returned undefined, dropping Linea balances.
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$6.00');
+      ).toHaveTextContent('$6.00');
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
       ).toHaveTextContent('Accruing next bonus');
@@ -642,7 +642,7 @@ describe('AssetOverviewClaimBonus', () => {
 
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$0.00');
+      ).toHaveTextContent('$0.00');
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON),
       ).toHaveTextContent('No accruing bonus');
@@ -683,7 +683,7 @@ describe('AssetOverviewClaimBonus', () => {
 
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE),
-      ).toHaveTextContent('+$4.50');
+      ).toHaveTextContent('$4.50');
     });
 
     it('looks up mUSD on each chain using checksummed addresses', () => {
@@ -776,7 +776,8 @@ describe('AssetOverviewClaimBonus', () => {
 
   describe('location prop', () => {
     it('passes location prop to useMerklBonusClaim', () => {
-      const customLocation = MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB;
+      const customLocation =
+        MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB;
 
       renderWithProvider(
         <AssetOverviewClaimBonus

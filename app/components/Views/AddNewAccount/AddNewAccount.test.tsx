@@ -21,7 +21,6 @@ import Logger from '../../../util/Logger';
 import { SolAccountType, TrxScope } from '@metamask/keyring-api';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
-const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -29,11 +28,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
-}));
-
-jest.mock('../../../actions/multiSrp', () => ({
-  addNewHdAccount: (keyringId?: string, name?: string) =>
-    mockAddNewHdAccount(keyringId, name),
 }));
 
 const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
@@ -150,13 +144,18 @@ const render = (
 ): ReturnType<typeof renderWithProvider> =>
   renderWithProvider(<AddNewAccount {...params} />, { state });
 
+const defaultMultichainParams: AddNewAccountProps = {
+  scope: MultichainNetwork.Solana,
+  clientType: WalletClientType.Solana,
+};
+
 describe('AddNewAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('shows SRP list when selector is clicked', () => {
-    const { getByText } = render(initialState, {});
+    const { getByText } = render(initialState, defaultMultichainParams);
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -169,7 +168,10 @@ describe('AddNewAccount', () => {
   });
 
   it('handles SRP selection', () => {
-    const { getByText, queryByText } = render(initialState, {});
+    const { getByText, queryByText } = render(
+      initialState,
+      defaultMultichainParams,
+    );
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -188,53 +190,13 @@ describe('AddNewAccount', () => {
     expect(queryByText('Secret Recovery Phrase 1')).toBeNull();
   });
 
-  it('handles account creation', () => {
-    const { getByText } = render(initialState, {});
-
-    const addButton = getByText(strings('accounts.add'));
-    fireEvent.press(addButton);
-
-    expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyring2.metadata.id,
-      '',
-    );
-  });
-
   it('handles cancellation', () => {
-    const { getByText } = render(initialState, {});
+    const { getByText } = render(initialState, defaultMultichainParams);
 
     const cancelButton = getByText(strings('accounts.cancel'));
     fireEvent.press(cancelButton);
 
     expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  it('handles back navigation from SRP list', () => {
-    const { getByText } = render(initialState, {});
-
-    const srpSelector = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
-    fireEvent.press(srpSelector);
-
-    const backButton = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
-    fireEvent.press(backButton);
-
-    expect(getByText(strings('account_actions.add_account'))).toBeDefined();
-  });
-
-  it('handles error during account creation', async () => {
-    const mockError = new Error('Failed to create account');
-    mockAddNewHdAccount.mockRejectedValueOnce(mockError);
-
-    const { getByText } = render(initialState, {});
-
-    const addButton = getByText(strings('accounts.add'));
-    await fireEvent.press(addButton);
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   describe('multichain', () => {
@@ -426,7 +388,10 @@ describe('AddNewAccount', () => {
           },
         },
       } as unknown as RootState;
-      const { getByText } = render(stateWithSnapAccount, {});
+      const { getByText } = render(
+        stateWithSnapAccount,
+        defaultMultichainParams,
+      );
 
       // 2 accounts are associated with the primary srp. 1 hd and 1 solana
       expect(getByText('Show 2 accounts')).toBeDefined();

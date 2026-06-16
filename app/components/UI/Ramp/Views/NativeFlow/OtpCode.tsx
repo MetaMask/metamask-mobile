@@ -17,6 +17,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
@@ -34,7 +35,6 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
@@ -48,7 +48,7 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
-import { isE2E } from '../../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../../util/test/utils';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -172,7 +172,7 @@ const V2OtpCode = () => {
   useEffect(() => {
     // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS
     // thread non-idle and causes Detox synchronization to stall indefinitely.
-    if (isE2E) return;
+    if (hasTestOverrides) return;
 
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
       timerRef.current = setTimeout(() => {
@@ -294,8 +294,14 @@ const V2OtpCode = () => {
             }
           }
         } else if (headlessSessionId) {
+          // Successful auth with no amount/currency/assetId: route back to the
+          // still-mounted Host. This is a programmatic refocus, not a user
+          // back-out, so flag it to disable the host's focus-dismissal
+          // heuristic — otherwise the regained focus would be misread as
+          // `user_dismissed` and kill the live session.
           navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
             headlessSessionId,
+            suppressFocusDismissal: true,
           });
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
@@ -369,7 +375,7 @@ const V2OtpCode = () => {
   return (
     <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.otp_code.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -415,7 +421,8 @@ const V2OtpCode = () => {
                 <Text style={styles.cellText}>
                   {/* Cursor uses setInterval which keeps the JS thread non-idle,
                       stalling Detox synchronization. Omit it in E2E builds. */}
-                  {symbol || (isFocused && !isE2E ? <Cursor /> : null)}
+                  {symbol ||
+                    (isFocused && !hasTestOverrides ? <Cursor /> : null)}
                 </Text>
               </View>
             )}

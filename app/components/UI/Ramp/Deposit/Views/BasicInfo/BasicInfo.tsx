@@ -298,7 +298,7 @@ const BasicInfo = (): JSX.Element => {
   }, [logoutFromProvider, navigation]);
 
   const focusNextField = useCallback(
-    (nextRef: React.RefObject<TextInput>) => () => {
+    (nextRef: React.RefObject<TextInput | null>) => () => {
       nextRef.current?.focus();
     },
     [],

@@ -45,13 +45,6 @@ jest.mock('../../hooks/usePredictCashOut', () => ({
   usePredictCashOut: () => ({ onCashOut: mockOnCashOut }),
 }));
 
-jest.mock('../../hooks/usePredictLivePositions', () => ({
-  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
-    livePositions: positions ?? [],
-    isConnected: false,
-    lastUpdateTime: null,
-  })),
-}));
 jest.mock('../../utils/format');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;

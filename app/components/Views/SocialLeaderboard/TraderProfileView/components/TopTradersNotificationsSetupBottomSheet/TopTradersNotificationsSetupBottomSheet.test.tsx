@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { screen, fireEvent, act } from '@testing-library/react-native';
+import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TopTradersNotificationsSetupBottomSheet, {
   type TopTradersNotificationsSetupBottomSheetRef,
@@ -9,9 +10,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import type {
   SocialAIPreference,
   TxAmountThreshold,
-} from '../../../NotificationPreferencesView/hooks';
+} from '../../../NotificationPreferences/hooks';
 
-const mockSetEnabled = jest.fn();
+const mockSetPushNotificationsEnabled = jest.fn();
 const mockSetTxAmountLimit = jest.fn();
 
 jest.mock('../../../../../../selectors/currencyRateController', () => ({
@@ -59,9 +60,10 @@ jest.mock(
 const makePreferences = (
   overrides: Partial<SocialAIPreference> = {},
 ): SocialAIPreference => ({
-  enabled: false,
-  txAmountLimit: 500 as TxAmountThreshold,
-  mutedTraderProfileIds: [],
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
   ...overrides,
 });
 
@@ -84,7 +86,7 @@ const OpenedSheet: React.FC<OpenedSheetProps> = ({
     <TopTradersNotificationsSetupBottomSheet
       ref={ref}
       preferences={preferences}
-      setEnabled={mockSetEnabled}
+      setPushNotificationsEnabled={mockSetPushNotificationsEnabled}
       setTxAmountLimit={mockSetTxAmountLimit}
       onDismiss={onDismiss}
     />
@@ -103,7 +105,7 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
         <TopTradersNotificationsSetupBottomSheet
           ref={ref}
           preferences={makePreferences()}
-          setEnabled={mockSetEnabled}
+          setPushNotificationsEnabled={mockSetPushNotificationsEnabled}
           setTxAmountLimit={mockSetTxAmountLimit}
         />,
       );
@@ -167,7 +169,9 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
 
     it('renders the threshold options', () => {
       renderWithProvider(
-        <OpenedSheet preferences={makePreferences({ enabled: true })} />,
+        <OpenedSheet
+          preferences={makePreferences({ pushNotificationsEnabled: true })}
+        />,
       );
 
       expect(
@@ -181,9 +185,11 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
   });
 
   describe('toggle', () => {
-    it('renders the toggle as off by default when global notifications are disabled', () => {
+    it('renders the toggle as off when push notifications are disabled', () => {
       renderWithProvider(
-        <OpenedSheet preferences={makePreferences({ enabled: false })} />,
+        <OpenedSheet
+          preferences={makePreferences({ pushNotificationsEnabled: false })}
+        />,
       );
 
       const toggle = screen.getByTestId(
@@ -193,9 +199,11 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
       expect(toggle.props.value).toBe(false);
     });
 
-    it('renders the toggle as on when global notifications are enabled', () => {
+    it('renders the toggle as on when push notifications are enabled', () => {
       renderWithProvider(
-        <OpenedSheet preferences={makePreferences({ enabled: true })} />,
+        <OpenedSheet
+          preferences={makePreferences({ pushNotificationsEnabled: true })}
+        />,
       );
 
       const toggle = screen.getByTestId(
@@ -205,8 +213,12 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
       expect(toggle.props.value).toBe(true);
     });
 
-    it('calls setEnabled with true when the toggle is turned on', () => {
-      renderWithProvider(<OpenedSheet />);
+    it('calls setPushNotificationsEnabled with true when the toggle is turned on', () => {
+      renderWithProvider(
+        <OpenedSheet
+          preferences={makePreferences({ pushNotificationsEnabled: false })}
+        />,
+      );
 
       fireEvent(
         screen.getByTestId(
@@ -216,12 +228,14 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
         true,
       );
 
-      expect(mockSetEnabled).toHaveBeenCalledWith(true);
+      expect(mockSetPushNotificationsEnabled).toHaveBeenCalledWith(true);
     });
 
-    it('calls setEnabled with false when the toggle is turned off', () => {
+    it('calls setPushNotificationsEnabled with false when the toggle is turned off', () => {
       renderWithProvider(
-        <OpenedSheet preferences={makePreferences({ enabled: true })} />,
+        <OpenedSheet
+          preferences={makePreferences({ pushNotificationsEnabled: true })}
+        />,
       );
 
       fireEvent(
@@ -232,14 +246,16 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
         false,
       );
 
-      expect(mockSetEnabled).toHaveBeenCalledWith(false);
+      expect(mockSetPushNotificationsEnabled).toHaveBeenCalledWith(false);
     });
   });
 
   describe('threshold selection', () => {
     it('calls setTxAmountLimit when a threshold option is pressed', () => {
       renderWithProvider(
-        <OpenedSheet preferences={makePreferences({ enabled: true })} />,
+        <OpenedSheet
+          preferences={makePreferences({ pushNotificationsEnabled: true })}
+        />,
       );
 
       fireEvent.press(
@@ -253,9 +269,11 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
       expect(mockSetTxAmountLimit).toHaveBeenCalledWith(100);
     });
 
-    it('disables threshold options when global notifications are off', () => {
+    it('disables threshold options when push notifications are off', () => {
       renderWithProvider(
-        <OpenedSheet preferences={makePreferences({ enabled: false })} />,
+        <OpenedSheet
+          preferences={makePreferences({ pushNotificationsEnabled: false })}
+        />,
       );
 
       const option = screen.getByTestId(
@@ -285,7 +303,7 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
       expect(mockOnDismiss).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call setEnabled when save is pressed', () => {
+    it('does not call setPushNotificationsEnabled when save is pressed', () => {
       renderWithProvider(<OpenedSheet />);
 
       act(() => {
@@ -296,7 +314,7 @@ describe('TopTradersNotificationsSetupBottomSheet', () => {
         );
       });
 
-      expect(mockSetEnabled).not.toHaveBeenCalled();
+      expect(mockSetPushNotificationsEnabled).not.toHaveBeenCalled();
     });
   });
 });

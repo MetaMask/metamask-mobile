@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetCampaignParticipantStatus } from './useGetCampaignParticipantStatus';
 import Engine from '../../../../core/Engine';
@@ -111,11 +111,12 @@ describe('useGetCampaignParticipantStatus', () => {
     setupSelectors(SUB_ID);
     mockCall.mockResolvedValueOnce(STATUS as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetCampaignParticipantStatus(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(mockCall).toHaveBeenCalledWith(
@@ -131,7 +132,6 @@ describe('useGetCampaignParticipantStatus', () => {
       }),
     );
     expect(result.current.status).toEqual(STATUS);
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
   });
 
@@ -139,11 +139,12 @@ describe('useGetCampaignParticipantStatus', () => {
     setupSelectors(SUB_ID);
     mockCall.mockRejectedValueOnce(new Error('fail') as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetCampaignParticipantStatus(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.hasError).toBe(true);
@@ -172,19 +173,21 @@ describe('useGetCampaignParticipantStatus', () => {
       .mockResolvedValueOnce(INITIAL_STATUS as never)
       .mockResolvedValueOnce(STATUS as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetCampaignParticipantStatus(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-    expect(result.current.status).toEqual(INITIAL_STATUS);
 
-    await act(async () => {
-      result.current.refetch();
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.status).toEqual(INITIAL_STATUS);
     });
-    expect(result.current.status).toEqual(STATUS);
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toEqual(STATUS);
+    });
   });
 
   it('skips fetch when subscriptionId is missing', async () => {

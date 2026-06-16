@@ -19,6 +19,7 @@ import {
   BottomSheet,
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export const PriceImpactModal = () => {
   const { goBack } = useNavigation();
@@ -32,15 +33,17 @@ export const PriceImpactModal = () => {
     chainId: token?.chainId,
   });
 
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteData({
+    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
+  });
   const confirmBridge = useBridgeConfirm({
-    latestSourceBalance: tokenBalance,
+    activeQuote,
     location,
   });
-
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact,
   );
+  const surfaceClass = useElevatedSurface();
 
   const isDangerousPriceImpact = useMemo(
     () =>
@@ -61,7 +64,7 @@ export const PriceImpactModal = () => {
   }, [confirmBridge]);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={goBack}>
+    <BottomSheet ref={sheetRef} goBack={goBack} twClassName={surfaceClass}>
       <PriceImpactHeader
         onClose={handleClose}
         iconName={priceImpactViewData.icon?.name}

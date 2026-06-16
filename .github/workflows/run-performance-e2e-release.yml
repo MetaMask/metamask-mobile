@@ -16,9 +16,10 @@ on:
     branches:
       - 'release/*'
 
-# Required so the reusable workflow run-performance-e2e.yml can use id-token and actions
+# Must be at least as permissive as the called reusable workflow (run-performance-e2e.yml),
+# which transitively requires contents: write via build-{android,ios}-upload-to-browserstack.yml.
 permissions:
-  contents: read
+  contents: write
   id-token: write
   actions: write
 
@@ -90,4 +91,5 @@ jobs:
     if: needs.check-release-trigger.outputs.should-run == 'true'
     with:
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: 'rc'
     secrets: inherit

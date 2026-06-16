@@ -14,10 +14,11 @@ import {
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface CopyableFieldProps {
-  label: string;
+  label?: string;
   value?: string | null;
   onCopy?: () => void;
   valueLoading?: boolean;
+  trailingAccessory?: React.ReactNode;
 }
 
 const CopyableField: React.FC<CopyableFieldProps> = ({
@@ -25,6 +26,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
   value,
   onCopy,
   valueLoading,
+  trailingAccessory,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -40,11 +42,13 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
 
   return (
     <Box twClassName="flex-col gap-1">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {label}
-      </Text>
+      {label && (
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {label}
+        </Text>
+      )}
       <Box
-        twClassName="flex-1 bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
+        twClassName="w-full min-h-12 bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
@@ -61,6 +65,9 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
             </Text>
           )}
         </Box>
+        {trailingAccessory ? (
+          <Box twClassName="ml-2">{trailingAccessory}</Box>
+        ) : null}
         <ButtonIcon
           iconName={isCopied ? IconName.Confirmation : IconName.Copy}
           size={ButtonIconSize.Md}

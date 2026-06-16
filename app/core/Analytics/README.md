@@ -7,7 +7,7 @@ The Analytics module provides a comprehensive tracking system for MetaMask Mobil
 The Analytics module consists of several key components:
 
 - **MetaMetrics**: Main analytics service class that wraps Segment SDK
-- **MetricsEventBuilder**: Builder pattern for constructing tracking events
+- **AnalyticsEventBuilder**: Builder pattern for constructing tracking events
 - **MetaMetricsPrivacySegmentPlugin**: Privacy plugin for anonymous event handling
 - **Event Definitions**: Comprehensive event catalog in `MetaMetrics.events.ts`
 
@@ -18,7 +18,7 @@ Analytics/
 ├── MetaMetrics.ts                    # Main analytics service
 ├── MetaMetrics.types.ts             # TypeScript interfaces and types
 ├── MetaMetrics.events.ts            # Event definitions and constants
-├── MetricsEventBuilder.ts           # Event builder utility
+├── MetricsEventBuilder.ts           # Legacy event builder (use AnalyticsEventBuilder instead)
 ├── MetaMetricsPrivacySegmentPlugin.ts # Privacy plugin for Segment
 ├── MetaMetrics.constants.ts         # Constants (anonymous ID)
 ├── MetaMetricsTestUtils.ts          # Testing utilities
@@ -99,7 +99,7 @@ function MyComponent() {
 
 ### 2. Event Builder Pattern
 
-Always use the `MetricsEventBuilder` to construct events. This ensures proper event structure and type safety. The builder pattern allows you to create the event builder early and add properties throughout the component lifecycle, preventing direct modification of event objects and reducing the risk of unintended side effects.
+Always use the `AnalyticsEventBuilder` to construct events. This ensures proper event structure and type safety. The builder pattern allows you to create the event builder early and add properties throughout the component lifecycle, preventing direct modification of event objects and reducing the risk of unintended side effects.
 
 #### Basic Usage
 
@@ -249,7 +249,7 @@ Use the Higher-Order Component (HOC) for class components:
 ```typescript
 import { withMetricsAwareness } from '@/components/hooks/useMetrics/withMetricsAwareness';
 import { MetaMetricsEvents } from '@/core/Analytics';
-import { MetricsEventBuilder } from '@/core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '@/util/analytics/AnalyticsEventBuilder';
 
 class LegacyComponent extends React.Component {
   static propTypes = {
@@ -259,7 +259,7 @@ class LegacyComponent extends React.Component {
   handleTransaction = () => {
     const { metrics } = this.props;
     metrics.trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       )
         .addProperties({ network: 'ethereum' })
@@ -400,7 +400,7 @@ MetaMetricsTestUtils.cleanup();
 The module respects the following environment configurations:
 
 - `__DEV__` - Development mode logging
-- `isE2E` - End-to-end testing mode
+- `hasTestOverrides` - End-to-end testing mode
 - Segment configuration from app settings
 
 ### Storage Keys
@@ -444,7 +444,7 @@ The module uses the following storage keys:
 ### Common Issues
 
 1. **Events Not Tracking**: Check if analytics is enabled with `isEnabled()` from the `useMetrics` hook (though `trackEvent()` is safe to call regardless)
-2. **Events Not Appearing in Analytics**: If `IS_TEST=true` environment variable is set, the Segment client is replaced with a mock that does nothing - check your environment variables
+2. **Events Not Appearing in Analytics**: If `HAS_TEST_OVERRIDES=true` environment variable is set, the Segment client is replaced with a mock that does nothing - check your environment variables
 3. **Anonymous Events**: Verify sensitive properties are set correctly using `addSensitiveProperties()`
 4. **Event Builder Errors**: Always use `createEventBuilder()` and call `.build()` to finalize events
 

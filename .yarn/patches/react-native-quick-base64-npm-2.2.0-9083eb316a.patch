@@ -1,0 +1,13 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index b8fc42d47a70159fc0affb88bc062050578d2b2a..6a104e7cef7e5b5aba9c95961c3919a9e12edfc1 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -50,7 +50,7 @@ android {
+     externalNativeBuild {
+       cmake {
+         cppFlags "-O2 -frtti -fexceptions -Wall -Wno-unused-variable -fstack-protector-all"
+-        arguments "-DANDROID_STL=c++_shared"
++        arguments "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+         abiFilters (*reactNativeArchitectures())
+       }
+     }

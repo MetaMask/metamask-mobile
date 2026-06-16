@@ -1,19 +1,18 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import {
-  Text,
-  ButtonIcon,
-  Checkbox,
-  TextVariant,
-  IconName,
-  TextColor,
+  BottomSheet,
   Button,
-  ButtonVariant,
   ButtonBaseSize,
+  ButtonIcon,
+  ButtonVariant,
+  Checkbox,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -23,6 +22,7 @@ import { RootState } from '../../../../reducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
+import { useElevatedSurface } from '../../../../util/theme/themeUtils';
 
 interface LearnMoreBottomSheetProps {
   onClose?: () => void;
@@ -40,6 +40,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
+  const surfaceClass = useElevatedSurface();
 
   const handleBack = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -63,7 +64,12 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   }, [isCheckboxChecked, navigation, isBasicFunctionalityEnabled, dispatch]);
 
   return (
-    <BottomSheet ref={sheetRef} onClose={onClose}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={onClose}
+      testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BOTTOM_SHEET}
+      twClassName={surfaceClass}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon

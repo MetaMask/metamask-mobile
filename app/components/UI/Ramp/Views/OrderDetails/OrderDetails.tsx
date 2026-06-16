@@ -13,6 +13,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import {
   normalizeProviderCode,
@@ -26,7 +27,6 @@ import {
 } from '../../utils/rampsNavigation';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
@@ -245,7 +245,7 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -268,7 +268,7 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -313,7 +313,7 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -329,7 +329,7 @@ const OrderDetails = () => {
   return (
     <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('ramps_order_details.title')}
           onBack={handleHeaderBack}
           backButtonProps={{

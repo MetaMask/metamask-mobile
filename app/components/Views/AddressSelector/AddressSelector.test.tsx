@@ -142,6 +142,7 @@ describe('AccountSelector', () => {
       ARBITRUM_DISPLAY_NAME,
       BASE_DISPLAY_NAME,
       BNB_DISPLAY_NAME,
+      'Monad',
       OPTIMISM_DISPLAY_NAME,
       POLYGON_DISPLAY_NAME,
     ]);

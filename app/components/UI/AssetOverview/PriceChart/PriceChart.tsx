@@ -48,6 +48,14 @@ interface PriceChartProps {
   onChartIndexChange: (index: number) => void;
   /** Match token overview AdvancedChart height. */
   chartHeight?: number;
+  /** Override line color (A/B test). */
+  chartColorOverride?: string;
+  /**
+   * When true, the historical-prices API returned data covering less than
+   * 75% of the requested time period. The chart shows a "no data" overlay
+   * instead of rendering a misleading partial chart.
+   */
+  hasInsufficientCoverage?: boolean;
 }
 
 const PriceChart = ({
@@ -56,6 +64,8 @@ const PriceChart = ({
   isLoading,
   onChartIndexChange,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
+  chartColorOverride,
+  hasInsufficientCoverage = false,
 }: PriceChartProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const emptyDisplayTrackedRef = useRef(false);
@@ -67,9 +77,10 @@ const PriceChart = ({
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
   const { themeAppearance } = useTheme();
   const chartColor =
-    themeAppearance === AppThemeKey.light
+    chartColorOverride ??
+    (themeAppearance === AppThemeKey.light
       ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
+      : theme.colors.success.default);
 
   useEffect(() => {
     setPositionX(-1);
@@ -124,9 +135,11 @@ const PriceChart = ({
     };
   }, [priceList]);
 
-  const chartHasData = priceList.length >= CHART_DATA_THRESHOLD;
+  const chartHasData =
+    priceList.length >= CHART_DATA_THRESHOLD && !hasInsufficientCoverage;
   const hasInsufficientData =
-    priceList.length > 0 && priceList.length < CHART_DATA_THRESHOLD;
+    (priceList.length > 0 && priceList.length < CHART_DATA_THRESHOLD) ||
+    hasInsufficientCoverage;
 
   useEffect(() => {
     if (chartHasData || isLoading) {

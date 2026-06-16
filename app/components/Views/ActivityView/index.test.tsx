@@ -1,14 +1,22 @@
 import React from 'react';
 import ActivityView from '.';
+import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent } from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
+import Routes from '../../../constants/navigation/Routes';
+
+let mockMoneyAccountEnabled = false;
+jest.mock('../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
+}));
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = false;
@@ -131,12 +139,22 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+let mockAreAllEvmPopularNetworksEnabled = false;
+/** Must mirror controller: label uses totalEnabledNetworksCount > 1 */
+let mockTotalEnabledNetworksCount = 2;
+
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
     networks: [],
+    areAllNetworksSelected: false,
     selectNetwork: jest.fn(),
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
+  }),
+  useNetworksByCustomNamespace: () => ({
+    networks: [],
+    areAllNetworksSelected: mockAreAllEvmPopularNetworksEnabled,
+    totalEnabledNetworksCount: mockTotalEnabledNetworksCount,
   }),
   NetworkType: {
     Popular: 'popular',
@@ -229,6 +247,8 @@ describe('ActivityView', () => {
   const mockUseCurrentNetworkInfo =
     useCurrentNetworkInfo as jest.MockedFunction<typeof useCurrentNetworkInfo>;
 
+  let backHandlerSpy: jest.SpyInstance;
+
   const defaultNetworkInfo = {
     enabledNetworks: [
       { chainId: '0x1', enabled: true },
@@ -259,12 +279,25 @@ describe('ActivityView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    backHandlerSpy = jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockReturnValue({ remove: jest.fn() } as unknown as ReturnType<
+        typeof BackHandler.addEventListener
+      >);
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
     mockIsEvmSelected = true;
+    mockMoneyAccountEnabled = false;
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
+    mockAreAllEvmPopularNetworksEnabled = false;
+    mockTotalEnabledNetworksCount = 2;
     clearRenderedTabs();
     mockRoute.params = {};
+  });
+
+  afterEach(() => {
+    cleanup();
+    backHandlerSpy.mockRestore();
   });
 
   describe('Network Manager Integration', () => {
@@ -273,12 +306,26 @@ describe('ActivityView', () => {
     });
 
     it('displays "Popular networks" text when multiple networks are enabled', () => {
+      mockTotalEnabledNetworksCount = 2;
+      mockAreAllEvmPopularNetworksEnabled = false;
+
       const { getByText } = renderComponent(mockInitialState);
 
       expect(getByText('Popular networks')).toBeOnTheScreen();
     });
 
+    it('does not render network avatar beside Popular networks when multiple networks enabled', () => {
+      mockTotalEnabledNetworksCount = 2;
+      mockAreAllEvmPopularNetworksEnabled = false;
+
+      const { getByText, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(getByText('Popular networks')).toBeOnTheScreen();
+      expect(queryByTestId('network-avatar-image')).toBeNull();
+    });
+
     it('displays network name when single network is enabled', () => {
+      mockTotalEnabledNetworksCount = 1;
       const singleNetworkInfo = {
         enabledNetworks: [{ chainId: '0x1', enabled: true }],
         getNetworkInfo: jest.fn(() => ({
@@ -395,6 +442,80 @@ describe('ActivityView', () => {
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
+
+    it('displays back button when Money account flag is enabled without showBackButton param', () => {
+      mockMoneyAccountEnabled = true;
+      mockRoute.params = {};
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('activity-view-back-button')).toBeOnTheScreen();
+    });
+
+    it('calls navigation.navigate with HOME_TABS on back button press when Money account flag is enabled', () => {
+      mockMoneyAccountEnabled = true;
+      mockRoute.params = {};
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      fireEvent.press(getByTestId('activity-view-back-button'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('calls navigation.navigate with HOME_TABS and not goBack when both flag and showBackButton param are true', () => {
+      mockMoneyAccountEnabled = true;
+      mockRoute.params = { showBackButton: true };
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      fireEvent.press(getByTestId('activity-view-back-button'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('registers hardwareBackPress handler when Money flag is enabled', () => {
+      mockMoneyAccountEnabled = true;
+      mockRoute.params = {};
+
+      renderComponent(mockInitialState);
+
+      expect(BackHandler.addEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('navigates to HOME_TABS when hardwareBackPress fires with Money flag enabled', () => {
+      mockMoneyAccountEnabled = true;
+      mockRoute.params = {};
+      renderComponent(mockInitialState);
+      const [[, handler]] = (BackHandler.addEventListener as jest.Mock).mock
+        .calls;
+
+      const result = handler();
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(result).toBe(true);
+    });
+
+    it('does not navigate to HOME_TABS on hardwareBackPress when Money flag is disabled', () => {
+      mockMoneyAccountEnabled = false;
+      mockRoute.params = {};
+
+      renderComponent(mockInitialState);
+
+      const hardwareBackPressCalls = (
+        BackHandler.addEventListener as jest.Mock
+      ).mock.calls.filter(([event]: [string]) => event === 'hardwareBackPress');
+      hardwareBackPressCalls.forEach(([, handler]: [string, () => boolean]) =>
+        handler(),
+      );
+
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+      );
+    });
   });
 
   describe('header and SafeAreaView', () => {
@@ -412,6 +533,16 @@ describe('ActivityView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders SafeAreaView with left, right, and bottom edges only', () => {
+      mockRoute.params = {};
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW).props.edges,
+      ).toEqual(['left', 'right', 'bottom']);
+    });
+
     it('renders HeaderRoot with Activity title when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 
@@ -427,7 +558,7 @@ describe('ActivityView', () => {
       expect(getByText('Activity')).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with back button when showBackButton is true', () => {
+    it('renders HeaderStandard with back button when showBackButton is true', () => {
       mockRoute.params = { showBackButton: true };
 
       const { getByTestId } = renderComponent(mockInitialState);
@@ -446,7 +577,7 @@ describe('ActivityView', () => {
       expect(queryByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT)).toBeNull();
     });
 
-    it('does not render HeaderCompactStandard when showBackButton is false', () => {
+    it('does not render HeaderStandard when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 
       const { queryByTestId } = renderComponent(mockInitialState);
@@ -454,6 +585,18 @@ describe('ActivityView', () => {
       expect(
         queryByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
       ).toBeNull();
+    });
+
+    it('renders HeaderCompactStandard when Money account flag is enabled', () => {
+      mockMoneyAccountEnabled = true;
+      mockRoute.params = {};
+
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT)).toBeNull();
     });
   });
 
@@ -474,6 +617,18 @@ describe('ActivityView', () => {
       expect(getRenderedTabs()).toContain('perps');
     });
 
+    it('includes Perps tab when all popular EVM networks are enabled while on non-EVM', () => {
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = false;
+      mockAreAllEvmPopularNetworksEnabled = true;
+
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('tab-perps')).toBeOnTheScreen();
+      expect(queryByTestId('perps-transactions-view')).toBeNull();
+      expect(getRenderedTabs()).toContain('perps');
+    });
+
     it('excludes Perps tab when feature flag is disabled', () => {
       mockPerpsEnabled = false;
       mockIsEvmSelected = true;
@@ -486,6 +641,7 @@ describe('ActivityView', () => {
     it('excludes Perps tab on non-EVM network even with feature flag enabled', () => {
       mockPerpsEnabled = true;
       mockIsEvmSelected = false;
+      mockAreAllEvmPopularNetworksEnabled = false;
 
       renderComponent(mockInitialState);
 
