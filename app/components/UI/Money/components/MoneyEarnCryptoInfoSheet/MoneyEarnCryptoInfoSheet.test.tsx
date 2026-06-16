@@ -5,6 +5,14 @@ import MoneyEarnCryptoInfoSheet from './MoneyEarnCryptoInfoSheet';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+
+const mockTrackBottomSheetViewed = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
@@ -87,6 +95,9 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyEarnCryptoInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+    });
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
@@ -149,5 +160,21 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     const { getByTestId } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
 
     expect(getByTestId(MoneyEarnCryptoInfoSheetTestIds.BODY)).toBeOnTheScreen();
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_EARN_CRYPTO_INFO_SHEET bottom_sheet_name', () => {
+      renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
+      });
+    });
+
+    it('calls trackBottomSheetViewed on mount', () => {
+      renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -210,76 +210,80 @@ function NetworkFeeRow({
     : TextColor.TextDefault;
 
   return (
-    <Box
-      testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      paddingHorizontal={4}
-      paddingVertical={3}
-      twClassName="border-t border-muted"
-    >
+    <>
+      <Box twClassName="border-t border-muted mx-4" />
       <Box
+        testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={1}
+        paddingHorizontal={4}
+        paddingVertical={3}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={textColor}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
         >
-          {strings('bridge.network_fee')}
-        </Text>
-        <Pressable
-          onPress={onInfoPress}
-          testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON}
-          accessibilityRole="button"
-        >
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Pressable>
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.End}
-        gap={2}
-        twClassName="min-w-0 flex-1"
-      >
-        {isLoading ? (
-          <Skeleton
-            width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
-            height={NETWORK_FEE_SKELETON_HEIGHT}
-            twClassName="rounded-lg"
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={textColor}
+          >
+            {strings('bridge.network_fee')}
+          </Text>
+          <Pressable
+            onPress={onInfoPress}
             testID={
-              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON
             }
-          />
-        ) : (
-          <>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={textColor}
-              numberOfLines={1}
-            >
-              {networkFee.formatted}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={fiatTextColor}
-              numberOfLines={1}
-            >
-              {networkFee.formattedFiat}
-            </Text>
-          </>
-        )}
+            accessibilityRole="button"
+          >
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.End}
+          gap={2}
+          twClassName="min-w-0 flex-1"
+        >
+          {isLoading ? (
+            <Skeleton
+              width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
+              height={NETWORK_FEE_SKELETON_HEIGHT}
+              twClassName="rounded-lg"
+              testID={
+                BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+              }
+            />
+          ) : (
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={textColor}
+                numberOfLines={1}
+              >
+                {networkFee.formatted}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={fiatTextColor}
+                numberOfLines={1}
+              >
+                {networkFee.formattedFiat}
+              </Text>
+            </>
+          )}
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 }
 
@@ -299,7 +303,7 @@ export function BatchSellFinalReviewModal() {
     networkFee: batchSellQuoteData.networkFee,
   });
   const surfaceClass = useElevatedSurface();
-  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
+  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
   const finalReviewQuoteData = useMemo(
     () =>
       getFinalReviewQuoteData({
@@ -314,12 +318,15 @@ export function BatchSellFinalReviewModal() {
     ],
   );
   const isBatchSellTradesLoading = batchSellQuoteData.isBatchSellTradesLoading;
+  const isNetworkFeeUnavailable = batchSellQuoteData.isNetworkFeeUnavailable;
   const hasInsufficientGaslessDestinationToken =
     batchSellQuoteData.isGasless &&
     !isBatchSellTradesLoading &&
     !batchSellQuoteData.isBatchSellTradeAvailable;
   const hasInsufficientGas =
-    hasSufficientGas === false || hasInsufficientGaslessDestinationToken;
+    !isNetworkFeeUnavailable &&
+    (hasSufficientGas === false || hasInsufficientGaslessDestinationToken);
+  const hasNetworkFeeError = hasInsufficientGas || isNetworkFeeUnavailable;
   const isSellAllDisabled =
     batchSellQuoteData.isLoading ||
     isBatchSellTradesLoading ||
@@ -327,6 +334,7 @@ export function BatchSellFinalReviewModal() {
     !batchSellQuoteData.hasAnyQuote ||
     batchSellQuoteData.hasPendingQuoteRows ||
     isSubmittingTx ||
+    isNetworkFeeUnavailable ||
     hasInsufficientGas;
   const isButtonDisabled = batchSellQuoteData.needsNewQuote
     ? false
@@ -341,6 +349,10 @@ export function BatchSellFinalReviewModal() {
   const actionButtonLabel = (() => {
     if (batchSellQuoteData.needsNewQuote) {
       return strings('quote_expired_modal.get_new_quote');
+    }
+
+    if (isNetworkFeeUnavailable) {
+      return strings('bridge.insufficient_balance');
     }
 
     if (hasInsufficientGas) {
@@ -427,7 +439,7 @@ export function BatchSellFinalReviewModal() {
       />
       <NetworkFeeRow
         networkFee={batchSellQuoteData.networkFee}
-        hasInsufficientGas={hasInsufficientGas}
+        hasInsufficientGas={hasNetworkFeeError}
         isLoading={isBatchSellTradesLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />

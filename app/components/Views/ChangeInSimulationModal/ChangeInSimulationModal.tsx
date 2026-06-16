@@ -17,7 +17,7 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 
 export const PROCEED_BUTTON_TEST_ID = 'proceed-button';
 export const REJECT_BUTTON_TEST_ID = 'reject-button';

@@ -132,7 +132,8 @@ export const PopularList = [
   {
     chainId: toHex('324'),
     nickname: 'zkSync Era',
-    rpcUrl: `https://mainnet.era.zksync.io`,
+    rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -201,7 +202,7 @@ export const PopularList = [
     ticker: 'USDC',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.arc.io/',
+      blockExplorerUrl: 'https://explorer.arc.io',
       imageUrl: 'ARC',
       imageSource: require('../../images/arc-network-logo.png'),
     },

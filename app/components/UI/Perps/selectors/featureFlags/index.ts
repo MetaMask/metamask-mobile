@@ -280,6 +280,22 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Products section feature flag
+ * Controls visibility of the category pills grid on Perps home screen
+ *
+ * @returns boolean - true if Products section should be shown, false otherwise
+ */
+export const selectPerpsProductsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProductsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Perps Competition Banner feature flag
  * Controls visibility of the competition promotion banner on Perps home screen
  *
@@ -307,6 +323,24 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsTopMoversEnabled as unknown as VersionGatedFeatureFlag;
 
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Watchlist redesign feature flag
+ * Controls whether the redesigned Watchlist UI (empty state, suggested markets,
+ * show-more/less, tappable header, animations, 10-asset limit) and the
+ * watchlist filter pill in the markets list are shown.
+ * When disabled, falls back to the pre-redesign plain watchlist list.
+ *
+ * @returns boolean - true if redesigned watchlist should be shown, false otherwise
+ */
+export const selectPerpsWatchlistEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsWatchlistV2Enabled as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

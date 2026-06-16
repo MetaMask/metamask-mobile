@@ -8759,7 +8759,7 @@
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} (na) puntos pa hanggang sa susunod na tier",
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Mga Swap",
       "perps_label": "Perps",
       "points_label": "Mga Point",
@@ -9217,11 +9217,44 @@
       "stats_qualify_for_rank_description": "Mag-trade ng {{notionalRemaining}} pang notional na dami para maging kwalipikado.",
       "stats_error_title": "Hindi nai-load ang mga stat",
       "stats_error_description": "Nagkaproblema kami sa pag-load ng mga stat mo. Subukan ulit.",
+      "stats_retry": "Subukang muli"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "Predict The Pitch",
+      "stats_title": "Estadistika",
+      "label_rank": "Rank",
+      "label_your_rank": "Rank mo",
+      "label_roi": "ROI",
+      "label_total_volume": "Kabuuang dami",
+      "label_pnl": "PnL",
+      "predict_now_cta": "Predict now",
+      "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
+      "positions_error": "Failed to load predictions",
+      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_retry": "Subukang muli",
+      "positions_last_updated": "Huling na-update: {{time}}",
+      "positions_empty": "Wala pang mga hula",
+      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_total_participants": "{{count}} (na) kalahok",
+      "last_updated": "Huling na-update: {{time}}",
+      "leaderboard_error_loading": "Hindi nai-load ang leaderboard",
+      "leaderboard_error_loading_description": "Nagkaproblema habang nilo-load ang leaderboard. Pakisubukan muli.",
+      "leaderboard_not_yet_computed": "Hindi pa na-compute ang leaderboard. Bumalik na lang agad.",
+      "stats_error_title": "Hindi nai-load ang mga stat",
+      "stats_error_description": "Nagkaproblema kami sa pag-load ng mga stat mo. Subukan ulit.",
+      "label_markets_traded": "Markets traded",
       "stats_retry": "Subukang muli",
-      "completed_label_total_participants": "Kabuuang bilang ng mga kalahok",
-      "completed_label_total_volume": "Kabuuang dami",
-      "completed_label_top_pnl": "Nangungunang PnL",
-      "completed_label_winners": "Mga nanalo"
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
@@ -9323,7 +9356,7 @@
       "non_winner": {
         "title": "Lumabas na ang resulta 🏅",
         "description": "Tingnan ang ranking mo sa {{campaignName}}.",
-        "cta": "Tingnan"
+        "cta": "Tingnan ang mga detalye"
       }
     }
   },

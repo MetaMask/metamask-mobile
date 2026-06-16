@@ -3,10 +3,6 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, Linking, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import TagColored from '../../../component-library/components-temp/TagColored/TagColored';
 import { TagColor } from '../../../component-library/components-temp/TagColored/TagColored.types';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
@@ -42,6 +38,12 @@ import { convertHexToDecimal } from '@metamask/controller-utils';
 import { isValidASCIIURL, toPunycodeURL } from '../../../util/url';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { MISSMATCH_RPC_URL_TEST_ID } from './NetworkVerificationInfo.constants';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 interface Alert {
   alertError: string;
@@ -128,7 +130,7 @@ const NetworkVerificationInfo = ({
 
   const renderCurrencySymbol = () => (
     <>
-      <Text variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('add_custom_network.currency_symbol')}
       </Text>
       <Text style={styles.textSection}>{customNetworkInformation.ticker}</Text>
@@ -137,7 +139,7 @@ const NetworkVerificationInfo = ({
 
   const renderChainId = () => (
     <>
-      <Text variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('add_custom_network.chain_id')}
       </Text>
       <Text style={styles.textSection}>
@@ -148,7 +150,7 @@ const NetworkVerificationInfo = ({
 
   const renderNetworkDisplayName = () => (
     <>
-      <Text variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('add_custom_network.display_name')}
       </Text>
       <Text style={styles.textSection}>
@@ -160,8 +162,11 @@ const NetworkVerificationInfo = ({
   const renderNetworkRpcUrlLabel = () => (
     <View style={styles.networkUrlLabelRow}>
       <Text
-        color={hasRpcMismatch ? TextColor.Primary : TextColor.Default}
-        variant={TextVariant.BodyMDMedium}
+        color={
+          hasRpcMismatch ? TextColor.PrimaryDefault : TextColor.TextDefault
+        }
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
       >
         {strings('networks.network_rpc_url_label')}
       </Text>
@@ -178,7 +183,10 @@ const NetworkVerificationInfo = ({
                 name={IconName.Info}
                 color={IconColor.Primary}
               />
-              <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+              >
                 {strings('networks.review')}
               </Text>
               <Icon
@@ -206,7 +214,7 @@ const NetworkVerificationInfo = ({
       </Text>
       {renderChainId()}
       {renderNetworkDisplayName()}
-      <Text variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('add_custom_network.block_explorer_url')}
       </Text>
       <Text>{customNetworkInformation.blockExplorerUrl}</Text>
@@ -293,7 +301,7 @@ const NetworkVerificationInfo = ({
 
       <View style={styles.defautlUrlChangedContainer}>
         <View style={styles.titleDefaultUrl}>
-          <Text variant={TextVariant.HeadingMD}>
+          <Text variant={TextVariant.HeadingMd}>
             {strings('networks.new_default_network_url')}
           </Text>
         </View>
@@ -303,13 +311,13 @@ const NetworkVerificationInfo = ({
               dapp_origin: dappOrigin,
             })}
           </Text>
-          <Text variant={TextVariant.BodyMDBold}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
             {strings('networks.current_label')}
           </Text>
           <Text style={styles.textSection}>
             {hideKeyFromUrl(matchingPopularNetwork?.rpcUrl)}
           </Text>
-          <Text variant={TextVariant.BodyMDBold}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
             {strings('networks.new_label')}
           </Text>
           <Text style={styles.textSection}>{hideKeyFromUrl(customRpcUrl)}</Text>
@@ -397,7 +405,7 @@ const NetworkVerificationInfo = ({
   ) : (
     <View testID={NetworkApprovalBottomSheetSelectorsIDs.CONTAINER}>
       <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {isCustomNetwork
             ? strings('networks.add_custom_network')
             : strings(

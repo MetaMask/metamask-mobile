@@ -16,6 +16,8 @@ import {
   selectMusdConversionMinAssetBalanceRequired,
   selectMusdTokenRegistrationChainIds,
   MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK,
+  selectMusdBalanceChainIds,
+  MUSD_BALANCE_CHAIN_IDS_FALLBACK,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -2200,6 +2202,56 @@ describe('Earn Feature Flag Selectors', () => {
       );
 
       expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+    });
+  });
+
+  describe('selectMusdBalanceChainIds', () => {
+    it('returns chain IDs from remote flag when the flag is a non-empty array', () => {
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: ['0x1', '0xe708'] },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('returns fallback chain IDs when remote flag is absent', () => {
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdBalanceChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns an empty array when remote flag chainIds is an empty array', () => {
+      const stateWithEmptyRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: [] },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithEmptyRemote);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns fallback chain IDs when remote flag chainIds is not an array', () => {
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: 'not-an-array' },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithInvalidRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns fallback chain IDs when remote flag is present but has no chainIds property', () => {
+      const stateWithMissingChainIds = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: {},
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithMissingChainIds);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
     });
   });
 });

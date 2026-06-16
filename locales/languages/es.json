@@ -8759,7 +8759,7 @@
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} puntos para el siguiente nivel",
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Canjes",
       "perps_label": "Perps",
       "points_label": "Puntos",
@@ -9217,11 +9217,44 @@
       "stats_qualify_for_rank_description": "Opera {{notionalRemaining}} más en volumen nocional para poder participar.",
       "stats_error_title": "No se pueden cargar las estadísticas",
       "stats_error_description": "Hubo un problema al cargar tus estadísticas. Inténtalo de nuevo.",
+      "stats_retry": "Reintentar"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "Predict The Pitch",
+      "stats_title": "Estadísticas",
+      "label_rank": "Rango",
+      "label_your_rank": "Tu rango",
+      "label_roi": "ROI",
+      "label_total_volume": "Volumen total",
+      "label_pnl": "P&L",
+      "predict_now_cta": "Predict now",
+      "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
+      "positions_error": "Failed to load predictions",
+      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_retry": "Reintentar",
+      "positions_last_updated": "Última actualización: {{time}}",
+      "positions_empty": "Aún no hay predicciones",
+      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "leaderboard_title": "Clasificación",
+      "leaderboard_total_participants": "{{count}} participantes",
+      "last_updated": "Última actualización: {{time}}",
+      "leaderboard_error_loading": "Error al cargar la clasificación",
+      "leaderboard_error_loading_description": "Se produjo un error al cargar la clasificación. Inténtalo de nuevo.",
+      "leaderboard_not_yet_computed": "La clasificación aún no se ha calculado. Vuelve pronto.",
+      "stats_error_title": "No se pueden cargar las estadísticas",
+      "stats_error_description": "Hubo un problema al cargar tus estadísticas. Inténtalo de nuevo.",
+      "label_markets_traded": "Markets traded",
       "stats_retry": "Reintentar",
-      "completed_label_total_participants": "Participantes totales",
-      "completed_label_total_volume": "Volumen total",
-      "completed_label_top_pnl": "Mejor P&L",
-      "completed_label_winners": "Ganadores"
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
@@ -9323,7 +9356,7 @@
       "non_winner": {
         "title": "Ya tenemos los resultados 🏅",
         "description": "Consulta tu clasificación en {{campaignName}}.",
-        "cta": "Ver"
+        "cta": "Ver detalles"
       }
     }
   },

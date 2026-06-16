@@ -100,7 +100,6 @@ export interface UseSpendingLimitReturn {
   canShowMoneyAccountCta: boolean;
   selectMoneyAccountAsSource: () => void;
   moneyAccountTotalFiatFormatted: string | undefined;
-  isMoneyAccountBalanceLoading: boolean;
   canLinkMoneyAccount: boolean;
   moneyAccountApyPercent: number | undefined;
   hasMetalCard: boolean;
@@ -180,12 +179,9 @@ const useSpendingLimit = ({
     canLink: canLinkMoneyAccount,
   } = useMoneyAccountCardLinkage();
   const {
-    tokenTotal: moneyAccountTokenTotal,
     totalFiatFormatted: moneyAccountTotalFiatFormatted,
-    isAggregatedBalanceLoading: isMoneyAccountBalanceLoading,
     apyPercent: moneyAccountApyPercent,
   } = useMoneyAccountBalance();
-  const isMoneyAccountFunded = Boolean(moneyAccountTokenTotal?.gt(0));
 
   const { data: cardHomeData } = useCardHomeData();
   const hasMetalCard = cardHomeData?.card?.type === CardType.METAL;
@@ -362,17 +358,13 @@ const useSpendingLimit = ({
     if (
       isMoneyAccountPreselectAllowed &&
       canLinkMoneyAccount &&
-      !hasUserExitedMoneyAccountSourceRef.current
+      !hasUserExitedMoneyAccountSourceRef.current &&
+      moneyAccountCardToken
     ) {
-      if (isMoneyAccountBalanceLoading) {
-        return;
-      }
-      if (isMoneyAccountFunded && moneyAccountCardToken) {
-        setIsMoneyAccountSource(true);
-        applySelectedToken(moneyAccountCardToken);
-        setHasInitialized(true);
-        return;
-      }
+      setIsMoneyAccountSource(true);
+      applySelectedToken(moneyAccountCardToken);
+      setHasInitialized(true);
+      return;
     }
 
     if (!selectedToken && priorityToken) {
@@ -416,15 +408,7 @@ const useSpendingLimit = ({
           return { token, fiat: walletToken?.tokenFiatAmount ?? 0 };
         })
         .sort((a, b) => b.fiat - a.fiat);
-      const topEntry = sorted[0];
-      const defaultToken =
-        topEntry.fiat > 0
-          ? topEntry.token
-          : (tokensToSearch.find(
-              (t) =>
-                t.symbol?.toUpperCase() === 'MUSD' &&
-                t.caipChainId === LINEA_CAIP_CHAIN_ID,
-            ) ?? topEntry.token);
+      const defaultToken = sorted[0]?.token;
       if (defaultToken) {
         applySelectedToken(defaultToken);
         setHasInitialized(true);
@@ -443,8 +427,6 @@ const useSpendingLimit = ({
     isManageFlow,
     isMoneyAccountPreselectAllowed,
     canLinkMoneyAccount,
-    isMoneyAccountBalanceLoading,
-    isMoneyAccountFunded,
     moneyAccountCardToken,
   ]);
 
@@ -554,7 +536,6 @@ const useSpendingLimit = ({
   const canShowMoneyAccountCta =
     (isOnboardingLikeFlow || isEnablingNotEnabledToken) &&
     !isMoneyAccountSource &&
-    isMoneyAccountFunded &&
     canLinkMoneyAccount;
 
   const isMoneyAccountLocked = Boolean(
@@ -787,7 +768,6 @@ const useSpendingLimit = ({
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
     canLinkMoneyAccount,
     moneyAccountApyPercent,
     hasMetalCard,

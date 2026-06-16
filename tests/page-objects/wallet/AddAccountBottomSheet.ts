@@ -13,7 +13,7 @@ const AddAccountBottomSheetSelectorsIDs = {
 };
 
 class AddAccountBottomSheet {
-  get importAccountButton(): DetoxElement {
+  get importAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
     );

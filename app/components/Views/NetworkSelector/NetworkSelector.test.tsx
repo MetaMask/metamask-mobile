@@ -678,6 +678,15 @@ describe('Network Selector', () => {
       expect(getAllByText('No network fee').length).toBe(1);
     });
 
+    it('renders network name Text with numberOfLines=1 in non-send flow', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+      const { getByText } = renderComponent(initialState);
+
+      const nameText = getByText('Avalanche Mainnet C-Chain');
+      expect(nameText.props.numberOfLines).toBe(1);
+    });
+
     it('renders "No network fee" as tertiary text in send flow', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
       const navModule = jest.requireMock('@react-navigation/native');

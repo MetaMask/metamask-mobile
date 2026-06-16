@@ -26,18 +26,6 @@ jest.mock('../../hooks/useCheckNftAutoDetectionModal', () =>
   }),
 );
 
-// Mock PerpsTabView
-jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
-}));
-
-// Mock PredictTabView
-jest.mock('../../UI/Predict/views/PredictTabView', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
-}));
-
 jest.mock('../../UI/Assets/components/Balance/AccountGroupBalance', () => ({
   __esModule: true,
   default: jest.fn(() => null),
@@ -848,6 +836,7 @@ describe('Wallet', () => {
         expect.objectContaining({
           groupId: expect.any(String),
           title: expect.any(String),
+          source: 'receive_button',
         }),
       );
     });

@@ -11,7 +11,11 @@ import {
  * Section identifiers for home screen tracking
  * Maps to PERPS_EVENT_VALUE.SOURCE values for consistency
  */
-export type HomeSectionId = 'explore_crypto' | 'explore_stocks' | 'activity';
+export type HomeSectionId =
+  | 'products'
+  | 'explore_crypto'
+  | 'explore_stocks'
+  | 'activity';
 
 interface SectionPosition {
   top: number;
@@ -54,6 +58,8 @@ export function usePerpsHomeSectionTracking() {
    */
   const getSectionSource = (sectionId: HomeSectionId): string => {
     switch (sectionId) {
+      case 'products':
+        return 'perps_home_products';
       case 'explore_crypto':
         return PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_CRYPTO;
       case 'explore_stocks':

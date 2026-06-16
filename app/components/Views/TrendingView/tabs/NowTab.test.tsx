@@ -54,6 +54,10 @@ jest.mock('../feeds/perps/usePerpsFeed', () => ({
   usePerpsFeed: () => mockUsePerpsFeed(),
 }));
 
+jest.mock('../../../UI/Perps/hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
 jest.mock('../feeds/perps/PerpsPillItem', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createElement } = require('react');

@@ -14,7 +14,7 @@ import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import Routes from '../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   endTrace,
@@ -113,7 +113,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   const track = useCallback(
     (event: IMetaMetricsEvent, properties: JsonMap = {}) => {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(event)
+        AnalyticsEventBuilder.createEventBuilder(event)
           .addProperties(properties)
           .build(),
         saveOnboardingEvent,

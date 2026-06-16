@@ -121,7 +121,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
           tx.type === TransactionType.moneyAccountDeposit ||
           tx.type === TransactionType.moneyAccountWithdraw
         ) {
-          return true;
+          return hasVisibleStatus(tx);
         }
         // EIP-7702 batch where a Money account call is a nested call.
         if (
@@ -131,7 +131,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
               nested.type === TransactionType.moneyAccountWithdraw,
           )
         ) {
-          return true;
+          return hasVisibleStatus(tx);
         }
         if (moneyAddress === undefined) return false;
         // The inbound-mUSD and locally-signed mUSD branches below must skip

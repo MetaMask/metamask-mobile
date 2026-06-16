@@ -322,42 +322,29 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring gets or creates a snap keyring', async () => {
+  it('getSnapKeyring delegates to SnapAccountService.getLegacySnapKeyring', async () => {
     const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
     const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementation(() => [mockSnapKeyring]);
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+    jest
+      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
+      .mockResolvedValue(mockSnapKeyring as never);
 
     const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
+
     expect(result).toEqual(mockSnapKeyring);
   });
 
-  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
+  it('getSnapKeyring propagates errors from SnapAccountService.getLegacySnapKeyring', async () => {
     const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
 
     jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementationOnce(() => [])
-      .mockImplementationOnce(() => [mockSnapKeyring]);
+      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
+      .mockRejectedValue(new Error('keyring unavailable'));
 
-    jest
-      .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
-
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
-
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
+    await expect(engine.getSnapKeyring()).rejects.toThrow(
+      'keyring unavailable',
+    );
   });
 
   it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {

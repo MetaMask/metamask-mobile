@@ -15,3 +15,6 @@ export const VIP_GOLD_TIER_GRADIENT_COLORS = [
   'rgba(234, 215, 151, 0)',
 ];
 export const VIP_GOLD_PROGRESS_GRADIENT_COLORS = ['#CBAE69FF', '#EDDCA4FF'];
+// Animated VIP-tag border: dim gold tail → bright gold highlight.
+export const VIP_GOLD_BORDER_GRADIENT_TAIL = '#8A7A45';
+export const VIP_GOLD_BORDER_GRADIENT_HEAD = '#FFE9A8';

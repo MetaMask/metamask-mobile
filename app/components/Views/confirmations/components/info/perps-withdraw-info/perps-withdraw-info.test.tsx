@@ -80,13 +80,4 @@ describe('PerpsWithdrawInfo', () => {
       undefined,
     );
   });
-
-  it('passes hasExtraBottomPadding=true to CustomAmountInfo to clear the Android gesture bar', () => {
-    render(<PerpsWithdrawInfo />);
-
-    expect(mockCustomAmountInfo).toHaveBeenCalledWith(
-      expect.objectContaining({ hasExtraBottomPadding: true }),
-      undefined,
-    );
-  });
 });

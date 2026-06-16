@@ -137,7 +137,7 @@ describe('MoneyActivityItem', () => {
     fireEvent.press(getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`));
 
     expect(onPress).toHaveBeenCalledTimes(1);
-    expect(onPress).toHaveBeenCalledWith('tx-row-1');
+    expect(onPress).toHaveBeenCalledWith(baseTx);
   });
 
   it('shows "Failed" in the description slot for a failed transaction', () => {

@@ -8,9 +8,6 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -18,6 +15,7 @@ import BottomSheet, {
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PermittedNetworksInfoSheet.styles';
 import { PermittedNetworksInfoSheetTestIds } from './PermittedNetworksInfoSheet.constants';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const PermittedNetworksInfoSheet = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -41,7 +39,7 @@ const PermittedNetworksInfoSheet = () => {
           style={styles.descriptionContainer}
           testID={PermittedNetworksInfoSheetTestIds.DESCRIPTION_CONTAINER}
         >
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('permissions.permitted_networks_info_sheet_description')}
           </Text>
         </View>

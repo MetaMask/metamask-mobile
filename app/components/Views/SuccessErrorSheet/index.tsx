@@ -1,10 +1,5 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
-import Text from '../../../component-library/components/Texts/Text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
 import { useTheme } from '../../../util/theme';
 import styles from './index.styles';
 import Button, {
@@ -21,6 +16,12 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from './interface';
+
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export interface SuccessErrorSheetProps {
   route: { params: SuccessErrorSheetParams };
@@ -88,8 +89,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
 
         {typeof title === 'string' ? (
           <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
+            variant={TextVariant.HeadingMd}
+            color={TextColor.TextDefault}
             style={styles.title}
           >
             {title}
@@ -100,8 +101,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
 
         {typeof description === 'string' ? (
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             style={
               descriptionAlign === 'center'
                 ? styles.descriptionCenter

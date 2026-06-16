@@ -22,6 +22,7 @@ import CampaignsGroup from '../components/Campaigns/CampaignsGroup';
 import { strings } from '../../../../../locales/i18n';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 
 /**
  * CampaignsView displays all campaigns organized by status:
@@ -36,6 +37,7 @@ const CampaignsView: React.FC = () => {
     useRewardCampaigns();
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
+  useGetPredictThePitchOutcomeToast();
 
   useTrackRewardsPageView({ page_type: 'campaigns_overview' });
 

@@ -9217,11 +9217,44 @@
       "stats_qualify_for_rank_description": "Κάντε συναλλαγές επιπλέον {{notionalRemaining}} σε ονομαστικό όγκο για να πληροίτε τα κριτήρια.",
       "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
       "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Προσπαθήστε ξανά.",
+      "stats_retry": "Επανάληψη"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "Predict The Pitch",
+      "stats_title": "Στατιστικά",
+      "label_rank": "Κατάταξη",
+      "label_your_rank": "Η κατάταξή σας",
+      "label_roi": "ROI",
+      "label_total_volume": "Συνολικός όγκος συναλλαγών",
+      "label_pnl": "Κέρδη & Ζημιές",
+      "predict_now_cta": "Predict now",
+      "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
+      "positions_error": "Failed to load predictions",
+      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_retry": "Επανάληψη",
+      "positions_last_updated": "Τελευταία ενημέρωση: {{time}}",
+      "positions_empty": "Δεν υπάρχουν ακόμη προβλέψεις",
+      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "leaderboard_title": "Πίνακας κατάταξης",
+      "leaderboard_total_participants": "{{count}} συμμετέχοντες",
+      "last_updated": "Τελευταία ενημέρωση: {{time}}",
+      "leaderboard_error_loading": "Δεν ήταν δυνατή η φόρτωση του πίνακα κατάταξης",
+      "leaderboard_error_loading_description": "Κάτι πήγε στραβά κατά τη φόρτωση του πίνακα κατάταξης. Παρακαλούμε προσπαθήστε πάλι.",
+      "leaderboard_not_yet_computed": "Ο πίνακας κατάταξης δεν έχει υπολογιστεί ακόμη. Ελέγξτε ξανά σύντομα.",
+      "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
+      "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Προσπαθήστε ξανά.",
+      "label_markets_traded": "Markets traded",
       "stats_retry": "Επανάληψη",
-      "completed_label_total_participants": "Συνολικοί συμμετέχοντες",
-      "completed_label_total_volume": "Συνολικός όγκος συναλλαγών",
-      "completed_label_top_pnl": "Κορυφαία Κ&Ζ",
-      "completed_label_winners": "Νικητές"
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
@@ -9323,7 +9356,7 @@
       "non_winner": {
         "title": "Τα αποτελέσματα είναι έτοιμα 🏅",
         "description": "Δείτε την κατάταξή σας στην {{campaignName}}.",
-        "cta": "Προβολή"
+        "cta": "Δείτε λεπτομέρειες"
       }
     }
   },

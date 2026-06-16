@@ -12,6 +12,7 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
 import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 
 interface SearchFeedRowProps {
   feedId: SearchFeedId;
@@ -19,13 +20,20 @@ interface SearchFeedRowProps {
   index: number;
   searchQuery: string;
   tabName: SearchFeedPill;
+  resultCount?: number;
 }
 
 const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
   switch (feedId) {
     case 'tokens':
     case 'stocks':
-      return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
+      return (
+        <TokenSearchRowItem
+          token={item as TrendingAsset}
+          index={index}
+          tokenDetailsSource={TokenDetailsSource.ExploreSearch}
+        />
+      );
     case 'perps':
       return <PerpsRowItem market={item as PerpsMarketData} />;
     case 'predictions':
@@ -56,9 +64,12 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   index,
   searchQuery,
   tabName,
+  resultCount,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+  const resultCountRef = useRef(resultCount);
+  resultCountRef.current = resultCount;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
@@ -68,6 +79,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,
+      result_count: resultCountRef.current,
     });
   }, [feedId, tabName, item, index]);
 

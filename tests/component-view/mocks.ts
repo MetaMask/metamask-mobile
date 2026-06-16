@@ -333,6 +333,11 @@ jest.mock('../../app/core/Engine', () => {
           markets: [],
           nextCursor: null,
         }),
+        listMarkets: jest.fn().mockResolvedValue({
+          markets: [],
+          nextCursor: null,
+        }),
+        listFilterOptions: jest.fn().mockResolvedValue([]),
         searchMarkets: jest
           .fn()
           .mockResolvedValue({ markets: [], totalResults: 0 }),
@@ -357,13 +362,18 @@ jest.mock('../../app/core/Engine', () => {
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
+        trackSearchInteracted: jest.fn(),
+        trackPortfolioPositionsButtonTapped: jest.fn(),
+        trackPortfolioTransactionInitiated: jest.fn(),
+        trackPositionsScreenViewed: jest.fn(),
+        trackPositionsTabViewed: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
         claimWithConfirmation: jest.fn().mockResolvedValue(undefined),
         depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
         prepareWithdraw: jest.fn().mockResolvedValue(undefined),
       },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
-      // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
+      // getMarkets returns one market so explore sections render "See all perps"
       PerpsController: {
         state: { isTestnet: false },
         init: jest.fn().mockResolvedValue({ success: true }),
