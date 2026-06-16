@@ -645,7 +645,6 @@
         }
       ],
       "orders": [],
-      "rampRoutingDecision": null,
       "selectedCryptoCurrencyDeposit": null,
       "selectedPaymentMethodAgg": null,
       "selectedPaymentMethodDeposit": null,

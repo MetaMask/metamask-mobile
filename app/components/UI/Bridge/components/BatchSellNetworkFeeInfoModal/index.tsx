@@ -47,7 +47,7 @@ export function BatchSellNetworkFeeInfoModal() {
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={BatchSellNetworkFeeInfoModalSelectorsIDs.DESCRIPTION}
         >

@@ -178,7 +178,8 @@ export type RNToWebViewMessageType =
   | 'SET_POSITION_LINES'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
-  | 'SET_MA_VISIBILITY';
+  | 'SET_MA_VISIBILITY'
+  | 'SET_THEME_COLORS';
 
 export type WebViewToRNMessageType =
   | 'CHART_READY'
@@ -249,6 +250,12 @@ export interface SetMAVisibilityPayload {
   visible: string[];
 }
 
+export interface SetThemeColorsPayload {
+  lineColor: string;
+  successColor: string;
+  errorColor: string;
+}
+
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
@@ -258,7 +265,8 @@ export type RNToWebViewMessage =
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
-  | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload };
+  | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
+  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload };
 
 export interface IndicatorAddedPayload {
   name: IndicatorType;

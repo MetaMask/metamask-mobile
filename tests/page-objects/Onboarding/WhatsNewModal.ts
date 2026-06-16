@@ -1,13 +1,14 @@
 import { WhatsNewModalSelectorsIDs } from '../../../app/components/UI/WhatsNewModal/WhatsNewModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class WhatsNewModal {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(WhatsNewModalSelectorsIDs.CONTAINER);
   }
 
-  get closeButton(): DetoxElement {
+  get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
   }
 

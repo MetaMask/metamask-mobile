@@ -14,12 +14,14 @@ import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
+import { getBlockExplorerName } from '../../../util/networks';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
@@ -91,6 +93,7 @@ const MultichainTransactionsView = ({
   const style = styles();
   const defaultNavigation = useNavigation();
   const nav = navigation ?? defaultNavigation;
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { namespace } = parseCaipChainId(chainId as CaipChainId);
   const isBitcoinNetwork = namespace === KnownCaipNamespace.Bip122;
 
@@ -125,15 +128,8 @@ const MultichainTransactionsView = ({
 
   const onRefresh = React.useCallback(async () => {
     if (!enableRefresh) return;
-
     setRefreshing(true);
-    try {
-      await updateIncomingTransactions();
-    } catch (error) {
-      console.warn('Error refreshing transactions:', error);
-    } finally {
-      setRefreshing(false);
-    }
+    setRefreshing(false);
   }, [enableRefresh]);
 
   const renderEmptyList = () => (
@@ -153,6 +149,14 @@ const MultichainTransactionsView = ({
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
+        if (!url) {
+          return;
+        }
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'multichain_activity_tab',
+          text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,
+          url,
+        });
         nav.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url },

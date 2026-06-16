@@ -263,6 +263,9 @@ function handleMessage(event) {
       case 'SET_MA_VISIBILITY':
         handleSetMAVisibility(message.payload);
         break;
+      case 'SET_THEME_COLORS':
+        handleSetThemeColors(message.payload);
+        break;
     }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
@@ -855,6 +858,82 @@ function applySeriesColors() {
       bottomLineWidth: 2,
     });
   } catch (e) {}
+}
+
+/**
+ * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
+ * WebView.  Updates CONFIG, TradingView overrides, volume study, and custom
+ * DOM pills in a single synchronous pass.
+ */
+function handleSetThemeColors(payload) {
+  if (!payload) return;
+  var theme = window.CONFIG.theme;
+  if (payload.lineColor != null) theme.lineColor = payload.lineColor;
+  if (payload.successColor != null) theme.successColor = payload.successColor;
+  if (payload.errorColor != null) theme.errorColor = payload.errorColor;
+
+  if (!window.chartWidget || !window.isChartReady) return;
+
+  try {
+    window.chartWidget.applyOverrides({
+      'mainSeriesProperties.candleStyle.upColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+    });
+  } catch (e) {}
+
+  applySeriesColors();
+
+  var chart = window.chartWidget.activeChart();
+  var lineColor = theme.lineColor || theme.successColor;
+
+  // Update volume study colors if present
+  if (window.volumeStudyId) {
+    try {
+      chart.getStudyById(window.volumeStudyId).applyOverrides({
+        'volume.color.0': theme.errorColor,
+        'volume.color.1': theme.successColor,
+      });
+    } catch (e) {}
+  }
+
+  // Update custom DOM pill colors
+  var elLast = document.getElementById('last-close-price-label');
+  if (elLast) {
+    elLast.style.background = lineColor;
+  }
+
+  // Update Drawing API shapes in-place via setProperties (synchronous, no
+  // remove/recreate needed — avoids the async gap from createShape promises).
+  if (window.lineEndDotShapeId && window.currentChartType === 2) {
+    try {
+      chart.getShapeById(window.lineEndDotShapeId).setProperties({
+        color: lineColor,
+      });
+    } catch (e) {}
+  }
+
+  if (window.lastPriceShapeId) {
+    try {
+      chart.getShapeById(window.lastPriceShapeId).setProperties({
+        linecolor: theme.successColor,
+      });
+    } catch (e) {}
+  }
+
+  if (window.lineLastPriceShapeId) {
+    try {
+      chart.getShapeById(window.lineLastPriceShapeId).setProperties({
+        linecolor: lineColor,
+      });
+    } catch (e) {}
+  }
+
+  // Outline pill + visible-edge re-derive color from theme on next frame
+  scheduleLastCloseLabelUpdate();
 }
 
 /**

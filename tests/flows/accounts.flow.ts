@@ -10,8 +10,41 @@ import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import SettingsView from '../page-objects/Settings/SettingsView';
 import SecurityAndPrivacyView from '../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
+import { PlatformDetector } from '../framework/PlatformLocator';
+import { FrameworkDetector } from '../framework/FrameworkDetector';
+import PlaywrightAssertions from '../framework/PlaywrightAssertions';
+import {
+  asPlaywrightElement,
+  EncapsulatedElementType,
+} from '../framework/EncapsulatedElement';
+import { AssertionOptions } from '../framework/types';
 
 const PASSWORD = '123123123';
+
+async function expectElementVisible(
+  target: EncapsulatedElementType | DetoxElement,
+  options: AssertionOptions = {},
+): Promise<void> {
+  if (FrameworkDetector.isAppium()) {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(target as EncapsulatedElementType),
+      options,
+    );
+    return;
+  }
+  await Assertions.expectElementToBeVisible(target as DetoxElement, options);
+}
+
+async function expectTextVisible(
+  text: string,
+  options: AssertionOptions = {},
+): Promise<void> {
+  if (FrameworkDetector.isAppium()) {
+    await PlaywrightAssertions.expectTextDisplayed(text, options);
+    return;
+  }
+  await Assertions.expectTextDisplayed(text, options);
+}
 
 export const goToImportSrp = async () => {
   await WalletView.tapIdenticon();
@@ -48,19 +81,20 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
 
   // Tap the blur overlay to reveal the SRP
   await RevealSecretRecoveryPhrase.tapToReveal();
-  await Assertions.expectElementToBeVisible(
-    RevealSecretRecoveryPhrase.container,
-  );
+  await expectElementVisible(RevealSecretRecoveryPhrase.container);
   // SRP is now displayed in grid format - verify first word is displayed
   const srpWords = expectedSrp.split(' ');
-  await Assertions.expectTextDisplayed(srpWords[0]);
+  await expectTextVisible(srpWords[0]);
   await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
 
-  if (device.getPlatform() === 'ios') {
+  if (
+    PlatformDetector.isIOS() ||
+    (PlatformDetector.isAndroid() && FrameworkDetector.isAppium())
+  ) {
     // For some reason, the QR code is visible on Android but detox cannot find it
-    await Assertions.expectElementToBeVisible(
+    await expectElementVisible(
       RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
     );
   }
@@ -72,7 +106,7 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
 export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
-  await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
+  await AccountListBottomSheet.tapAccountEllipsisButtonV2(accountIndex);
   await AccountDetails.tapAccountSrpLink();
 };
 

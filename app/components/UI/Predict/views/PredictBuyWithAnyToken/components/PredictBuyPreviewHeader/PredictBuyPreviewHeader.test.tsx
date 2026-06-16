@@ -325,6 +325,42 @@ describe('PredictBuyPreviewHeader', () => {
       expect(screen.getByText(/Yes at 0\.75¢/)).toBeOnTheScreen();
     });
 
+    it('renders provider-normalized moneyline team picks', () => {
+      const market = createMockMarket({
+        title: 'Korea Republic vs. Czechia',
+      });
+      const outcome = createMockOutcome({
+        title: 'Korea Republic vs. Czechia',
+        groupItemTitle: 'Korea Republic',
+        image: 'https://example.com/korea.png',
+        sportsMarketType: 'moneyline',
+        tokens: [
+          {
+            id: 'token-1',
+            title: 'Yes',
+            shortTitle: 'KOR',
+            price: 0.65,
+          },
+        ],
+      });
+
+      renderWithProvider(
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-1',
+            title: 'Yes',
+            shortTitle: 'KOR',
+            price: 0.65,
+          })}
+        />,
+      );
+
+      expect(screen.getAllByText(/Korea Republic/).length).toBeGreaterThan(0);
+      expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
+    });
+
     it('applies success color for Yes outcome', () => {
       const market = createMockMarket();
       const outcome = createMockOutcome({

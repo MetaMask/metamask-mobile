@@ -15,7 +15,7 @@ interface SocialTraderPositionNavigationParams {
   positionId?: string;
   traderId?: string;
   deduplicationId?: string;
-  notificationEvent?: string;
+  notificationSubtype?: string;
 }
 
 const parseSocialTraderPositionNavigationParams = (
@@ -29,7 +29,8 @@ const parseSocialTraderPositionNavigationParams = (
     positionId: urlParams.get('positionId')?.trim() || undefined,
     traderId: urlParams.get('traderId')?.trim() || undefined,
     deduplicationId: urlParams.get('deduplication_id')?.trim() || undefined,
-    notificationEvent: urlParams.get('notification_event')?.trim() || undefined,
+    notificationSubtype:
+      urlParams.get('notification_subtype')?.trim() || undefined,
   };
 };
 
@@ -41,7 +42,7 @@ const navigateToFallback = () => {
  * Handles notification-approved TraderPosition deeplinks.
  *
  * Supported URL format:
- * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_event=<notificationEvent>
+ * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>
  */
 export const handleSocialTraderPositionUrl = ({
   actionPath,
@@ -52,11 +53,11 @@ export const handleSocialTraderPositionUrl = ({
   );
 
   try {
-    const { positionId, traderId, deduplicationId, notificationEvent } =
+    const { positionId, traderId, deduplicationId, notificationSubtype } =
       parseSocialTraderPositionNavigationParams(actionPath);
     DevLogger.log(
       '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
-      { positionId, traderId, deduplicationId, notificationEvent },
+      { positionId, traderId, deduplicationId, notificationSubtype },
     );
 
     if (!positionId || !traderId) {
@@ -85,13 +86,13 @@ export const handleSocialTraderPositionUrl = ({
       );
     }
 
-    if (notificationEvent !== undefined) {
+    if (notificationSubtype !== undefined) {
       const event = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
       )
         .addProperties({
-          [SocialLeaderboardEventProperties.NOTIFICATION_TYPE]:
-            notificationEvent,
+          [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
+            notificationSubtype,
         })
         .build();
       analytics.trackEvent(event);
@@ -101,6 +102,7 @@ export const handleSocialTraderPositionUrl = ({
       positionId,
       traderId,
       source: 'notification',
+      notificationSubtype,
     });
   } catch (error) {
     DevLogger.log(

@@ -1,5 +1,7 @@
 import {
   formatUsd,
+  formatSignedUsd,
+  formatSignedAbbreviatedUsd,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -24,6 +26,67 @@ describe('formatUsd', () => {
 
   it('returns an em dash for undefined', () => {
     expect(formatUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatSignedUsd', () => {
+  it('prefixes positive values with +', () => {
+    expect(formatSignedUsd(1234.5)).toBe('+$1,234.50');
+  });
+
+  it('prefixes negative values with -', () => {
+    expect(formatSignedUsd(-150.5)).toBe('-$150.50');
+  });
+
+  it('renders zero without a sign', () => {
+    expect(formatSignedUsd(0)).toBe('$0.00');
+  });
+
+  it('formats small fractional amounts with two decimal places', () => {
+    expect(formatSignedUsd(0.12)).toBe('+$0.12');
+  });
+
+  it('returns an em dash for null and undefined', () => {
+    expect(formatSignedUsd(null)).toBe('\u2014');
+    expect(formatSignedUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatSignedAbbreviatedUsd', () => {
+  it.each([
+    [123, '+$123.00'],
+    [999, '+$999.00'],
+    [1_000, '+$1K'],
+    [5_123, '+$5.1K'],
+    [5_000, '+$5K'],
+    [20_610, '+$20.6K'],
+    [117_166, '+$117.2K'],
+    [999_999, '+$1M'],
+    [1_170_000, '+$1.2M'],
+    [3_200_000_000, '+$3.2B'],
+    [1.5e12, '+$1.5T'],
+  ])('formats %d as %s', (input, expected) => {
+    expect(formatSignedAbbreviatedUsd(input)).toBe(expected);
+  });
+
+  it('prefixes negative values with -', () => {
+    expect(formatSignedAbbreviatedUsd(-5_000)).toBe('-$5K');
+    expect(formatSignedAbbreviatedUsd(-1_170_000)).toBe('-$1.2M');
+    expect(formatSignedAbbreviatedUsd(-500.24)).toBe('-$500.24');
+  });
+
+  it('renders zero without a sign', () => {
+    expect(formatSignedAbbreviatedUsd(0)).toBe('$0.00');
+  });
+
+  it('shows two decimal places for sub-$1K values', () => {
+    expect(formatSignedAbbreviatedUsd(500.236)).toBe('+$500.24');
+    expect(formatSignedAbbreviatedUsd(0.5)).toBe('+$0.50');
+  });
+
+  it('returns an em dash for null and undefined', () => {
+    expect(formatSignedAbbreviatedUsd(null)).toBe('\u2014');
+    expect(formatSignedAbbreviatedUsd(undefined)).toBe('\u2014');
   });
 });
 

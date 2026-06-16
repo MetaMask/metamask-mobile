@@ -7,12 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Logger from '../../../util/Logger';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import HeaderBase from '../../../component-library/components/HeaderBase';
 import {
   IconColor,
   IconName,
@@ -23,7 +18,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  HeaderBase,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
@@ -132,12 +133,13 @@ const UpdateNeeded = () => {
       </ScrollView>
       <View style={styles.actionButtonWrapper}>
         <Button
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-          label={strings('update_needed.primary_action')}
+          variant={ButtonVariant.Primary}
+          isFullWidth
           onPress={onUpdatePressed}
           style={styles.actionButton}
-        />
+        >
+          {strings('update_needed.primary_action')}
+        </Button>
       </View>
     </ReusableModal>
   );

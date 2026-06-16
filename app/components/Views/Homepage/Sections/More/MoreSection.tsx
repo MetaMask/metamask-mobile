@@ -8,11 +8,13 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SectionDivider,
+  Box,
+  SectionHeader,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
@@ -121,10 +123,8 @@ const MoreSection = () => {
   }, [createEventBuilder, navigation, trackEvent]);
 
   return (
-    <View
-      style={styles.sectionGap}
-      testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}
-    >
+    <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>
+      <SectionDivider />
       <SectionHeader title={strings('homepage.sections.more.title')} />
       <SectionRow>
         <MoreActionRow

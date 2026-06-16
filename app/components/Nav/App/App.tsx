@@ -115,13 +115,7 @@ import TooltipModal from '../../../components/Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../util/trace';
-import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { endTrace, TraceName } from '../../../util/trace';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
@@ -1268,7 +1262,6 @@ const AppFlow = () => {
 
 const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
-  const isFirstRender = useRef(true);
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1285,16 +1278,6 @@ const App: React.FC = () => {
     ],
     [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
   );
-
-  if (isFirstRender.current) {
-    trace({
-      name: TraceName.NavInit,
-      parentContext: getUIStartupSpan(),
-      op: TraceOperation.NavInit,
-    });
-
-    isFirstRender.current = false;
-  }
 
   useEffect(() => {
     // End trace when first render is complete
@@ -1352,7 +1335,7 @@ const App: React.FC = () => {
       Logger.error(error, 'Error starting app');
     });
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
   }, []);
 
   return (
