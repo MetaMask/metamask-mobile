@@ -1,4 +1,5 @@
 import { IconName } from '@metamask/design-system-react-native';
+import { IconName as LocalIconName } from '../../../../../../../component-library/components/Icons/Icon';
 import type { PredictFeedId } from '../../../../constants/feedConfig';
 
 /**
@@ -7,16 +8,15 @@ import type { PredictFeedId } from '../../../../constants/feedConfig';
  * `id` is the stable, analytics-friendly identifier for the tile. `feedId`
  * targets the generic `PredictFeedView` route (must be a valid
  * {@link PredictFeedId} registered in `feedConfig.ts`). `titleKey` is the i18n
- * key for the tile label. `iconName` is the design-system icon shown above the
- * label — the Figma trophy (Sports) and gem (Crypto) glyphs have no exact DS
- * equivalent yet, so these are the closest built-in icons; swap them for exact
- * assets later without touching the section component.
+ * key for the tile label. `iconName` is the design-system icon for standard
+ * DS icons, or a local component-library icon for custom additions (e.g.
+ * Trophy) not yet published in a DS package release.
  */
 export interface PredictHomeCategory {
   id: string;
   feedId: PredictFeedId;
   titleKey: string;
-  iconName: IconName;
+  iconName: IconName | LocalIconName;
 }
 
 /**
@@ -35,7 +35,7 @@ export const PREDICT_HOME_CATEGORIES: readonly PredictHomeCategory[] = [
     id: 'sports',
     feedId: 'sports',
     titleKey: 'predict.category.sports',
-    iconName: IconName.Speedometer,
+    iconName: LocalIconName.Trophy,
   },
   {
     id: 'crypto',

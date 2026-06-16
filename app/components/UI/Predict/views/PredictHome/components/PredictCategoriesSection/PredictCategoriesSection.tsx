@@ -3,13 +3,16 @@ import { TouchableOpacity } from 'react-native';
 import {
   Box,
   FontWeight,
-  Icon,
-  IconColor,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import {
+  default as Icon,
+  IconColor,
+  IconName as LocalIconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -81,9 +84,9 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
           >
             <Box twClassName="items-center justify-center gap-2 rounded-xl bg-muted py-4 px-2">
               <Icon
-                name={category.iconName}
+                name={category.iconName as LocalIconName}
                 size={IconSize.Lg}
-                color={IconColor.IconDefault}
+                color={IconColor.Default}
               />
               <Text
                 variant={TextVariant.BodyMd}
