@@ -126,7 +126,6 @@ import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
-import { selectWalletHomeOnboardingStepsEnabled } from '../../../selectors/featureFlagController/homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -337,15 +336,11 @@ const Wallet = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
-  const isWalletHomeOnboardingStepsEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
 
-  const inWalletHomePostOnboardingFlow =
-    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
+  const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
   const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
 
