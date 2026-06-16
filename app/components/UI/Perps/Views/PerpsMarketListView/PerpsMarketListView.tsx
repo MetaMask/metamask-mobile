@@ -48,6 +48,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
+import {
+  PERPS_DISCOVERY_INTERACTION_TYPE,
+  PERPS_DISCOVERY_BUTTON_CLICKED,
+  PERPS_DISCOVERY_PROPERTY,
+  PERPS_DISCOVERY_SOURCE_SECTION,
+} from '../../constants/discoveryAnalytics';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -121,6 +127,22 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
+        // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED
+        let source_section: string;
+        const trimmedQuery = searchQuery.trim();
+        if (trimmedQuery) {
+          source_section = PERPS_DISCOVERY_SOURCE_SECTION.ACTIVE_SEARCH;
+        } else if (showFavoritesOnly) {
+          source_section = PERPS_DISCOVERY_SOURCE_SECTION.WATCHLIST;
+        } else if (marketTypeFilter !== 'all') {
+          source_section =
+            PERPS_DISCOVERY_SOURCE_SECTION[
+              marketTypeFilter.toUpperCase() as keyof typeof PERPS_DISCOVERY_SOURCE_SECTION
+            ] ?? marketTypeFilter;
+        } else {
+          source_section = PERPS_DISCOVERY_SOURCE_SECTION.ALL_MARKETS;
+        }
+
         // Use push instead of navigate so that MARKET_LIST is always beneath
         // MARKET_DETAILS in the stack. navigate() can jump to an existing
         // MARKET_DETAILS entry (e.g. one opened from PerpsHome via the watchlist
@@ -130,6 +152,7 @@ const PerpsMarketListView = ({
           StackActions.push(Routes.PERPS.MARKET_DETAILS, {
             market,
             source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+            source_section,
             ...(transactionActiveAbTests?.length
               ? { transactionActiveAbTests }
               : {}),
@@ -137,7 +160,14 @@ const PerpsMarketListView = ({
         );
       }
     },
-    [onMarketSelect, navigation, transactionActiveAbTests],
+    [
+      onMarketSelect,
+      navigation,
+      transactionActiveAbTests,
+      searchQuery,
+      showFavoritesOnly,
+      marketTypeFilter,
+    ],
   );
 
   const { track } = usePerpsEventTracking();
@@ -145,15 +175,13 @@ const PerpsMarketListView = ({
   // Handle category badge selection — clears watchlist filter (mutual exclusivity)
   const handleCategorySelect = useCallback(
     (category: MarketTypeFilter) => {
-      if (category !== 'all') {
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
-          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-            PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
-        });
-      }
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_DISCOVERY_INTERACTION_TYPE.MARKET_LIST_FILTER,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
+      });
       setMarketTypeFilter(category);
       // Deactivate the watchlist filter whenever a category badge is activated
       if (category !== 'all') {
@@ -166,11 +194,19 @@ const PerpsMarketListView = ({
   // Toggle watchlist-only filter — clears category filter (mutual exclusivity)
   const handleWatchlistToggle = useCallback(() => {
     const willActivate = !showFavoritesOnly;
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_DISCOVERY_INTERACTION_TYPE.MARKET_LIST_FILTER,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
+    });
     setShowFavoritesOnly(willActivate);
     if (willActivate) {
       setMarketTypeFilter('all');
     }
-  }, [showFavoritesOnly, setShowFavoritesOnly, setMarketTypeFilter]);
+  }, [showFavoritesOnly, setShowFavoritesOnly, setMarketTypeFilter, track]);
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
@@ -183,6 +219,34 @@ const PerpsMarketListView = ({
   }, [filteredMarkets.length, fadeAnimation]);
 
   const handleBackPressed = perpsNavigation.navigateBack;
+
+  // Debounced search result_count tracking — fires ~600ms after the query/result
+  // count stabilises. Includes zero-result searches so analysts can measure failure.
+  const searchResultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  useEffect(() => {
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) return;
+
+    if (searchResultTimerRef.current) {
+      clearTimeout(searchResultTimerRef.current);
+    }
+
+    searchResultTimerRef.current = setTimeout(() => {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SEARCH_CLICKED,
+        [PERPS_DISCOVERY_PROPERTY.RESULT_COUNT]: filteredMarkets.length,
+      });
+    }, 600);
+
+    return () => {
+      if (searchResultTimerRef.current) {
+        clearTimeout(searchResultTimerRef.current);
+      }
+    };
+  }, [searchQuery, filteredMarkets.length, track]);
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
@@ -213,7 +277,9 @@ const PerpsMarketListView = ({
         PERPS_EVENT_VALUE.SCREEN_TYPE.MARKET_LIST,
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
-      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: marketTypeFilter,
+      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: showFavoritesOnly
+        ? PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST
+        : marketTypeFilter,
       ...(marketTypeFilter !== 'all' && {
         product_filter: normalizeFilterKey(marketTypeFilter),
       }),

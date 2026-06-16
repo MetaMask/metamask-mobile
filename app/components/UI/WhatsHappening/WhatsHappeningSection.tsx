@@ -56,12 +56,14 @@ const SKELETON_KEYS = Array.from(
 
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
+  /** Optional callback fired when the section header is pressed, before navigation. */
+  onHeaderPress?: () => void;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ source }, ref) => {
+>(({ source, onHeaderPress }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -87,8 +89,9 @@ const WhatsHappeningSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
+    onHeaderPress?.();
     navigateToDetail(0);
-  }, [navigateToDetail]);
+  }, [onHeaderPress, navigateToDetail]);
 
   const handleCardPress = useCallback(
     (index: number) => {

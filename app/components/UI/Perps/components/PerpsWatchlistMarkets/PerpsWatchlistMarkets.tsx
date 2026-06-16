@@ -22,6 +22,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
   type Position,
   type Order,
@@ -30,12 +31,15 @@ import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePerpsWatchlistActions } from '../../hooks/usePerpsWatchlistActions';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsWatchlistSelectorsIDs } from '../../Perps.testIds';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { PERPS_DISCOVERY_BUTTON_CLICKED } from '../../constants/discoveryAnalytics';
 
 const ANIMATION_DURATION = 250;
 
@@ -192,10 +196,23 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   const navigation = useNavigation();
   const [expanded, setExpanded] = useState(false);
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+  const { track } = usePerpsEventTracking();
 
   const { addToWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
   );
+
+  const handleSeeAllPress = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    });
+    onSeeAllPress?.();
+  }, [track, onSeeAllPress]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
@@ -242,7 +259,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
       <SectionHeader
         title={strings('perps.home.watchlist')}
         isInteractive={Boolean(onSeeAllPress)}
-        onPress={onSeeAllPress}
+        onPress={handleSeeAllPress}
         testID={PerpsWatchlistSelectorsIDs.HEADER}
         style={headerStyle}
       />

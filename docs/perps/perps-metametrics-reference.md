@@ -81,6 +81,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Entry points:** `'banner'` | `'notification'` | `'main_action_button'` | `'deeplink'` | `'push_notification'`
   - **Navigation sources:** `'perp_markets'` | `'perp_market'` | `'perp_market_search'` | `'perp_asset_screen'` | `'position_tab'` | `'perps_tab'`
   - **Home section sources:** `'perps_home'` | `'perps_home_position'` | `'perps_home_orders'` | `'perps_home_watchlist'` | `'perps_home_explore_crypto'` | `'perps_home_explore_stocks'` | `'perps_home_activity'` | `'perps_home_empty_state'`
+  - **Discovery home sources** _(local constants, pending upstream)_: `'perps_home_explore_commodities'` | `'perps_home_explore_forex'` | `'perps_home_whats_happening'` | `'perps_home_top_gainers'` | `'perps_home_top_losers'`
   - **Market list sources:** `'perps_market_list_all'` | `'perps_market_list_crypto'` | `'perps_market_list_stocks'`
   - **Trade/Position sources:** `'trade_screen'` | `'position_screen'` | `'tp_sl_view'` | `'trade_menu_action'` | `'open_position'` | `'trade_details'`
   - **Explore source:** `'explore'` (from Explore/Trending page)
@@ -89,7 +90,15 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Geo-block sources:** `'deposit_button'` | `'withdraw_button'` | `'trade_action'` | `'add_funds_action'` | `'cancel_order'` | `'asset_detail_screen'` | `'close_position_action'` | `'modify_position_action'` | `'order_book_long_button'` | `'order_book_short_button'` | `'order_book_close_button'` | `'order_book_modify_button'` | `'auto_close_action'` | `'adjust_margin_action'` | `'stop_loss_prompt_add_margin'` | `'stop_loss_prompt_set_sl'` | `'close_all_positions_button'` | `'cancel_all_orders_button'`
 - `open_position` (optional): Number of open positions (used for homepage_perps_tab, perps_home, asset_details, order_book, trading, close_all_positions screens; number)
 - `open_order` (optional): Number of open orders (used for wallet_home_perps_tab, perps_home, asset_details screens; number)
-- `market_category` (optional): Currently active market filter tab (e.g., `'All'`, `'Crypto'`, `'Stocks'`, `'Commodities'`, `'Forex'`; used for market_list screen)
+- `market_category` (optional): Currently active market filter tab or watchlist state (used for `market_list` screen)
+  - Filter values: `'all'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'new'`
+  - Watchlist: `'watchlist'` — emitted instead of the filter when the watchlist toggle is active
+- `source_section` (optional): Sub-section within the originating screen (used for `asset_details` when `source = perp_markets`). Populated from `PerpsMarketListView` when the user taps a market row:
+  - `'all_markets'` — no filter active
+  - `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'new'` — category filter active
+  - `'watchlist'` — watchlist toggle active
+  - `'active_search'` — user tapped a result while a search query was present
+  - _Values are mobile-local constants in `discoveryAnalytics.ts`, pending upstream._
 - `error_type` (optional): Type of error for error screen views (e.g., `'network'`, `'backend'`; used when screen_type is `'error'`)
 - `has_perp_balance` (optional): Whether user has a perps balance or positions (boolean)
 - `has_take_profit` (optional): Whether take profit is set (boolean, used for TP/SL screens)
@@ -119,6 +128,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'` | `'cancel_trade_with_token'`
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
   - **Discovery interactions:** `'related_market_clicked'`
+  - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(local constant, pending upstream)_
 - `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -137,7 +147,11 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `category` (optional): Collection/List identifier for Related markets tile taps.
 - `position` (optional): 1-based tile position in the Related markets rail.
 - `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'` | `'competition_banner_engage'` | `'competition_banner_close'`
+  - **Discovery section header values** _(local constants, pending upstream)_: `'watchlist'` | `'top_movers'` | `'whats_happening'`
+  - **Market list filter values:** `'all'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'watchlist'` (used with `interaction_type = market_list_filter`)
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
+  - **Discovery value** _(local constant, pending upstream)_: `'asset_details'` — magnifying glass button on the asset details screen
+- `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(Local property key `PERPS_DISCOVERY_PROPERTY.RESULT_COUNT`, pending upstream.)_
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `max_slippage_pct` (optional): Current max slippage percentage (number, used with slippage interactions)
@@ -505,24 +519,28 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 | `'give_feedback'`             | Give feedback button                                                                                                  |
 | `'competition_banner_engage'` | User tapped the competition banner to navigate to rewards _(local constant, pending addition to `PERPS_EVENT_VALUE`)_ |
 | `'competition_banner_close'`  | User dismissed the competition banner _(local constant, pending addition to `PERPS_EVENT_VALUE`)_                     |
+| `'watchlist'`                 | Watchlist section "See all" header tap (home) or watchlist toggle in market list _(local constant)_                   |
+| `'top_movers'`                | Top Movers section "View All" header tap _(local constant)_                                                           |
+| `'whats_happening'`           | What's Happening section header tap _(local constant)_                                                                |
 
 ### Button Location Values
 
-| Value                      | Description                         |
-| -------------------------- | ----------------------------------- |
-| `'perps_home'`             | Perps home screen                   |
-| `'perps_tutorial'`         | Tutorial screen                     |
-| `'perps_home_empty_state'` | Perps home empty state (no balance) |
-| `'perps_asset_screen'`     | Asset details screen                |
-| `'perps_tab'`              | Positions tab                       |
-| `'trade_menu_action'`      | Trade menu action button            |
-| `'wallet_home'`            | Wallet home screen                  |
-| `'market_list'`            | Market list screen                  |
-| `'screen'`                 | Generic screen location             |
-| `'tooltip'`                | Tooltip bottom sheet                |
-| `'perp_market_details'`    | Market details screen               |
-| `'order_book'`             | Order book screen                   |
-| `'full_screen_chart'`      | Full screen chart view              |
+| Value                      | Description                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------- |
+| `'perps_home'`             | Perps home screen                                                                   |
+| `'perps_tutorial'`         | Tutorial screen                                                                     |
+| `'perps_home_empty_state'` | Perps home empty state (no balance)                                                 |
+| `'perps_asset_screen'`     | Asset details screen                                                                |
+| `'perps_tab'`              | Positions tab                                                                       |
+| `'trade_menu_action'`      | Trade menu action button                                                            |
+| `'wallet_home'`            | Wallet home screen                                                                  |
+| `'market_list'`            | Market list screen                                                                  |
+| `'screen'`                 | Generic screen location                                                             |
+| `'tooltip'`                | Tooltip bottom sheet                                                                |
+| `'perp_market_details'`    | Market details screen                                                               |
+| `'order_book'`             | Order book screen                                                                   |
+| `'full_screen_chart'`      | Full screen chart view                                                              |
+| `'asset_details'`          | Asset details screen — magnifying glass button _(local constant, pending upstream)_ |
 
 ### Usage Example
 
@@ -644,6 +662,47 @@ const showAccessRestrictedModal = useCallback(() => {
 | Tracked per action | Yes — each handler tracks `source` | No — tracked once in context                   |
 | Source property    | Identifies the blocked action      | Not included (all routes share the same modal) |
 | Feature flag       | Geo eligibility                    | `complianceEnabled`                            |
+
+---
+
+---
+
+## Section Identity Mapping (Discovery System)
+
+The Perps Discovery System uses two complementary strategies to identify which section a market tap came from:
+
+### 1. Encoded `source` — home screen sections
+
+When navigating from `PerpsHomeView` → `PerpsMarketDetailsView`, the `source` route param encodes both the screen and the section:
+
+| Home section          | `source` value                   | Constants                                                         |
+| --------------------- | -------------------------------- | ----------------------------------------------------------------- |
+| Position card         | `perps_home_position`            | `PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_POSITION`                    |
+| Order card            | `perps_home_orders`              | `PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_ORDERS`                      |
+| Watchlist             | `perps_home_watchlist`           | `PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST`                   |
+| Explore › Crypto      | `perps_home_explore_crypto`      | `PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_CRYPTO`              |
+| Explore › Stocks      | `perps_home_explore_stocks`      | `PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_STOCKS`              |
+| Explore › Commodities | `perps_home_explore_commodities` | `PERPS_DISCOVERY_SOURCE.PERPS_HOME_EXPLORE_COMMODITIES` _(local)_ |
+| Explore › Forex       | `perps_home_explore_forex`       | `PERPS_DISCOVERY_SOURCE.PERPS_HOME_EXPLORE_FOREX` _(local)_       |
+| Top Gainers pill      | `perps_home_top_gainers`         | `PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_GAINERS` _(local)_         |
+| Top Losers pill       | `perps_home_top_losers`          | `PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_LOSERS` _(local)_          |
+| What's Happening      | `perps_home_whats_happening`     | `PERPS_DISCOVERY_SOURCE.PERPS_HOME_WHATS_HAPPENING` _(local)_     |
+
+### 2. `source_section` — market list subsections
+
+When navigating from `PerpsMarketListView` → `PerpsMarketDetailsView`, `source = perp_markets` (always) and `source_section` carries the active subsection at the time of tap:
+
+| Active state in market list | `source_section` value |
+| --------------------------- | ---------------------- |
+| No filter, no search        | `'all_markets'`        |
+| Crypto filter active        | `'crypto'`             |
+| Stock filter active         | `'stock'`              |
+| Commodity filter active     | `'commodity'`          |
+| Forex filter active         | `'forex'`              |
+| Watchlist toggle active     | `'watchlist'`          |
+| Search query present        | `'active_search'`      |
+
+> **Why two strategies?** Home sections have unique `source` values that are already used for cross-screen attribution (including Explore feeds). Market list sections are all behind one `source = perp_markets` screen, so a separate `source_section` dimension is the cleanest addition without breaking existing attribution.
 
 ---
 

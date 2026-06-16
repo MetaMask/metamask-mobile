@@ -88,6 +88,10 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
+  PERPS_DISCOVERY_BUTTON_CLICKED,
+  PERPS_DISCOVERY_SOURCE,
+} from '../../constants/discoveryAnalytics';
+import {
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
 } from '../../Perps.testIds';
@@ -366,6 +370,17 @@ const PerpsHomeView = ({
     createEventBuilder,
     transactionActiveAbTests,
   ]);
+
+  const handleWhatsHappeningHeaderPress = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_DISCOVERY_BUTTON_CLICKED.WHATS_HAPPENING,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    });
+  }, [track]);
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -708,7 +723,7 @@ const PerpsHomeView = ({
               <PerpsCard
                 key={`${position.symbol}-${index}`}
                 position={position}
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_POSITION}
                 testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
               />
             ))}
@@ -729,7 +744,7 @@ const PerpsHomeView = ({
               <PerpsCard
                 key={order.orderId}
                 order={order}
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_ORDERS}
                 testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
               />
             ))}
@@ -738,7 +753,10 @@ const PerpsHomeView = ({
 
         {/* What's Happening Section */}
         {isWhatsHappeningEnabled && (
-          <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          <WhatsHappeningSection
+            source={WhatsHappeningSource.Perps}
+            onHeaderPress={handleWhatsHappeningHeaderPress}
+          />
         )}
 
         {/* Watchlist Section */}
@@ -748,14 +766,14 @@ const PerpsHomeView = ({
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST}
           transactionActiveAbTests={transactionActiveAbTests}
           onSeeAllPress={
             watchlistMarkets.length > 0
               ? () =>
                   perpsNavigation.navigateToMarketList({
                     showWatchlistOnly: true,
-                    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
                   })
               : undefined
           }
@@ -780,7 +798,7 @@ const PerpsHomeView = ({
             marketType="crypto"
             sortBy={sortBy}
             isLoading={isLoading.markets}
-            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_CRYPTO}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
@@ -792,7 +810,7 @@ const PerpsHomeView = ({
           marketType="commodity"
           sortBy={sortBy}
           isLoading={isLoading.markets}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          source={PERPS_DISCOVERY_SOURCE.PERPS_HOME_EXPLORE_COMMODITIES}
           transactionActiveAbTests={transactionActiveAbTests}
         />
 
@@ -804,7 +822,7 @@ const PerpsHomeView = ({
             marketType="stock"
             sortBy={sortBy}
             isLoading={isLoading.markets}
-            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_STOCKS}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
@@ -815,7 +833,7 @@ const PerpsHomeView = ({
           markets={forexMarkets}
           marketType="forex"
           isLoading={isLoading.markets}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          source={PERPS_DISCOVERY_SOURCE.PERPS_HOME_EXPLORE_FOREX}
           transactionActiveAbTests={transactionActiveAbTests}
         />
 

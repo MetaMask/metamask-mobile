@@ -15,7 +15,8 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 const LOGO_SIZE = 24;
 
 type PerpsMarketDetailsSource =
-  (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
+  | (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE]
+  | string;
 
 interface PerpsPillItemProps {
   item: PerpsFeedItem;
