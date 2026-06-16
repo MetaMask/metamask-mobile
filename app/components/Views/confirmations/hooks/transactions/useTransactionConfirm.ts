@@ -27,7 +27,6 @@ import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
-import { useMoneyConfirmNavigation } from '../../../../UI/Money/hooks/useMoneyConfirmNavigation';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -52,8 +51,6 @@ export function useTransactionConfirm() {
   const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
-  const { handleDepositConfirm: handleMoneyDepositConfirm } =
-    useMoneyConfirmNavigation();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
   const { payWithOption } = useParams<ConfirmationParams>({});
@@ -149,7 +146,6 @@ export function useTransactionConfirm() {
         options?.onError?.(error);
       }
 
-      console.log('[useTransactionConfirm] type: ', type);
       // Perps deposit-and-order: caller handles navigation (e.g. order flow)
       if (type === TransactionType.perpsDepositAndOrder) {
         return;
@@ -176,12 +172,6 @@ export function useTransactionConfirm() {
       } else if (type === TransactionType.musdConversion) {
         musdConversionNavigateOnConfirm();
       } else if (
-        hasTransactionType(transactionMetadata, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
-        handleMoneyDepositConfirm(transactionMetadata);
-      } else if (
         isFullScreenConfirmation &&
         !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
       ) {
@@ -193,26 +183,25 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork(chainId);
     },
     [
+      chainId,
+      handleGasless7702,
+      handleSmartTransaction,
       isFiatPaymentSelected,
-      orderId,
-      transactionMetadata,
+      isFullScreenConfirmation,
       isGaslessSupported,
       isGaslessSupportedSTX,
-      selectedGasFeeToken,
-      isHardwareWallet,
-      waitForResult,
-      type,
-      isFullScreenConfirmation,
-      tryEnableEvmNetwork,
-      chainId,
-      onFiatConfirm,
-      handleSmartTransaction,
-      handleGasless7702,
-      onRequestConfirm,
-      payWithOption,
       navigation,
       musdConversionNavigateOnConfirm,
-      handleMoneyDepositConfirm,
+      onFiatConfirm,
+      onRequestConfirm,
+      orderId,
+      payWithOption,
+      selectedGasFeeToken,
+      transactionMetadata,
+      tryEnableEvmNetwork,
+      type,
+      waitForResult,
+      isHardwareWallet,
     ],
   );
 
