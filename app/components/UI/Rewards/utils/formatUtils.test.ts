@@ -24,6 +24,7 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatSignedAbbreviatedUsd,
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
@@ -1700,6 +1701,44 @@ describe('formatUtils', () => {
           thousandSuffix: 'K',
         }),
       ).toBe('123K');
+    });
+  });
+
+  describe('formatSignedAbbreviatedUsd', () => {
+    it.each([
+      [123, '+$123.00'],
+      [999, '+$999.00'],
+      [1_000, '+$1K'],
+      [5_123, '+$5.1K'],
+      [5_000, '+$5K'],
+      [20_610, '+$20.6K'],
+      [117_166, '+$117.2K'],
+      [999_999, '+$1M'],
+      [1_170_000, '+$1.2M'],
+      [3_200_000_000, '+$3.2B'],
+      [1.5e12, '+$1.5T'],
+    ])('formats %d as %s', (input, expected) => {
+      expect(formatSignedAbbreviatedUsd(input)).toBe(expected);
+    });
+
+    it('prefixes negative values with -', () => {
+      expect(formatSignedAbbreviatedUsd(-5_000)).toBe('-$5K');
+      expect(formatSignedAbbreviatedUsd(-1_170_000)).toBe('-$1.2M');
+      expect(formatSignedAbbreviatedUsd(-500.24)).toBe('-$500.24');
+    });
+
+    it('renders zero without a sign', () => {
+      expect(formatSignedAbbreviatedUsd(0)).toBe('$0.00');
+    });
+
+    it('shows two decimal places for sub-$1K values', () => {
+      expect(formatSignedAbbreviatedUsd(500.236)).toBe('+$500.24');
+      expect(formatSignedAbbreviatedUsd(0.5)).toBe('+$0.50');
+    });
+
+    it('returns an em dash for null and undefined', () => {
+      expect(formatSignedAbbreviatedUsd(null)).toBe('\u2014');
+      expect(formatSignedAbbreviatedUsd(undefined)).toBe('\u2014');
     });
   });
 });

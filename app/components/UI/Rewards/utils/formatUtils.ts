@@ -377,6 +377,58 @@ export const formatCompactValue = (
   return `${sign}${abs}`;
 };
 
+// Ordered largest → smallest. Walk down and promote when rounding pushes a
+// value past the bucket boundary (e.g. `999_999` rounds to `1000K`, which
+// we want as `$1M`, not `$1000K`).
+const CURRENCY_BUCKETS: readonly (readonly [number, string])[] = [
+  [1e12, 'T'],
+  [1e9, 'B'],
+  [1e6, 'M'],
+  [1e3, 'K'],
+];
+
+function renderBucket(value: number, suffix: string): string {
+  const str = value % 1 === 0 ? value.toFixed(0) : value.toFixed(1);
+  return `$${str}${suffix}`;
+}
+
+function shortenAbsCurrency(abs: number): string {
+  if (abs < 1e3) return `$${abs.toFixed(2)}`;
+  for (let i = 0; i < CURRENCY_BUCKETS.length; i++) {
+    const [divisor, suffix] = CURRENCY_BUCKETS[i];
+    if (abs < divisor) continue;
+    const value = Math.round((abs / divisor) * 10) / 10;
+    if (value >= 1_000 && i > 0) {
+      const [nextDivisor, nextSuffix] = CURRENCY_BUCKETS[i - 1];
+      const promoted = Math.round((abs / nextDivisor) * 10) / 10;
+      return renderBucket(promoted, nextSuffix);
+    }
+    return renderBucket(value, suffix);
+  }
+  return `$${abs.toFixed(2)}`;
+}
+
+/**
+ * Signed USD with K/M/B/T abbreviation for ≥$1K values. Used for compact
+ * PnL displays (`+$117.2K`, `+$1.2M`, `-$500`). Zero is rendered without a
+ * sign. Returns an em dash for null/undefined.
+ *
+ * @example formatSignedAbbreviatedUsd(117166)      // '+$117.2K'
+ * @example formatSignedAbbreviatedUsd(1170000)     // '+$1.2M'
+ * @example formatSignedAbbreviatedUsd(-5000)       // '-$5K'
+ * @example formatSignedAbbreviatedUsd(500)         // '+$500.00'
+ * @example formatSignedAbbreviatedUsd(0)           // '$0.00'
+ * @example formatSignedAbbreviatedUsd(null)        // '—'
+ */
+export function formatSignedAbbreviatedUsd(
+  value: number | null | undefined,
+): string {
+  if (value == null) return '\u2014';
+  if (value === 0) return shortenAbsCurrency(0);
+  const sign = value > 0 ? '+' : '-';
+  return sign + shortenAbsCurrency(Math.abs(value));
+}
+
 /**
  * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
  * Implemented manually because Hermes does not support `notation: 'compact'`.
