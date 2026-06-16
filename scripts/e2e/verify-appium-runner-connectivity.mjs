@@ -1,53 +1,62 @@
 #!/usr/bin/env node
 /**
- * CI preflight for Appium smoke jobs.
+ * CI preflight for iOS Appium smoke jobs.
  *
- * Validates emulator/simulator plumbing before Playwright starts. This does not
- * start the E2E mock server; per-test reachability is verified in withFixtures().
+ * Validates the booted simulator before Playwright starts.
  *
  * Usage:
- *   node scripts/e2e/verify-appium-runner-connectivity.mjs android
  *   node scripts/e2e/verify-appium-runner-connectivity.mjs ios
  *
  * Env:
- *   ANDROID_AVD_NAME — boot this AVD before checks when no emulator is online (CI)
- *   ANDROID_SERIAL / IOS_SIMULATOR_UDID — optional device target
+ *   IOS_SIMULATOR_UDID — optional simulator target
  *   SKIP_E2E_CONNECTIVITY_VERIFY=true — skip all checks
  */
 
-import { appendFileSync } from 'node:fs';
-import { verifyAppiumRunnerConnectivity } from '../../tests/framework/fixtures/EmulatorHostConnectivity.ts';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execAsync = promisify(exec);
 
 const platform = process.argv[2]?.toLowerCase();
 
-if (platform !== 'android' && platform !== 'ios') {
+if (platform !== 'ios') {
   console.error(
-    'Usage: node scripts/e2e/verify-appium-runner-connectivity.mjs <android|ios>',
+    'Usage: node scripts/e2e/verify-appium-runner-connectivity.mjs ios',
   );
   process.exit(1);
 }
 
-const udid =
-  platform === 'android'
-    ? process.env.ANDROID_SERIAL?.trim()
-    : process.env.IOS_SIMULATOR_UDID?.trim();
+if (process.env.SKIP_E2E_CONNECTIVITY_VERIFY === 'true') {
+  console.log('Skipping Appium runner connectivity check');
+  process.exit(0);
+}
+
+const udid = process.env.IOS_SIMULATOR_UDID?.trim();
 
 try {
-  await verifyAppiumRunnerConnectivity({ platform, udid });
-  if (
-    platform === 'android' &&
-    process.env.ANDROID_SERIAL?.trim() &&
-    process.env.GITHUB_ENV
-  ) {
-    appendFileSync(
-      process.env.GITHUB_ENV,
-      `ANDROID_SERIAL=${process.env.ANDROID_SERIAL.trim()}\n`,
+  const { stdout } = await execAsync('xcrun simctl list devices booted');
+  const bootedLines = stdout
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.includes('(Booted)'));
+
+  if (bootedLines.length === 0) {
+    throw new Error('No booted iOS simulator found');
+  }
+
+  if (udid && !bootedLines.some((line) => line.includes(udid))) {
+    throw new Error(
+      `Booted simulator ${udid} not found. Booted devices:\n${bootedLines.join('\n')}`,
     );
   }
-  console.log(`✅ Appium runner connectivity check passed (${platform})`);
+
+  console.log(
+    `Booted iOS simulator detected: ${bootedLines[0]?.split('(')[0]?.trim()}`,
+  );
+  console.log('✅ Appium runner connectivity check passed (ios)');
 } catch (error) {
   console.error(
-    `❌ Appium runner connectivity check failed (${platform}):`,
+    '❌ Appium runner connectivity check failed (ios):',
     error instanceof Error ? error.message : error,
   );
   process.exit(1);

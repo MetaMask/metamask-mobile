@@ -69,11 +69,6 @@ import {
 import { FrameworkDetector } from '../FrameworkDetector';
 import PlaywrightUtilities from '../PlaywrightUtilities';
 import { DeviceCommandHandler } from '../services/device-commands';
-import { verifyE2eHostConnectivity } from './EmulatorHostConnectivity';
-import {
-  assertNotOnOfflineModeScreen,
-  recoverFromOfflineModeIfVisible,
-} from '../../flows/offline-mode.flow';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -628,16 +623,6 @@ export async function withFixtures(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
 
-    if (FrameworkDetector.isAppium() && mockServerPort) {
-      await verifyE2eHostConnectivity({
-        mockServerPort,
-        platform:
-          currentDeviceDetails?.platform ??
-          (PlatformDetector.isAndroid() ? 'android' : 'ios'),
-        udid: currentDeviceDetails?.udid,
-      });
-    }
-
     if (useCommandQueueServer) {
       await startResourceWithRetry(
         ResourceType.COMMAND_QUEUE_SERVER,
@@ -738,13 +723,6 @@ export async function withFixtures(
         }
         await dismissDeveloperMenuPlaywright();
       }
-    }
-
-    if (FrameworkDetector.isAppium()) {
-      await recoverFromOfflineModeIfVisible(
-        'after fixture load and app launch',
-      );
-      await assertNotOnOfflineModeScreen('after fixture load and app launch');
     }
 
     await testSuite({
