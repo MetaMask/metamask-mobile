@@ -1292,8 +1292,7 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
+    if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
     permissions:
       contents: read
       id-token: write
