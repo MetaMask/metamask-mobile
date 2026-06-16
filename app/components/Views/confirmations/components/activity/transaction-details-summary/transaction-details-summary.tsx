@@ -71,14 +71,16 @@ export function TransactionDetailsSummary() {
   const { sourceHash, fiat } = metamaskPay ?? {};
   const { orderId: fiatOrderId } = fiat ?? {};
 
+  const showSourceHash = !hasDepositTransactions && sourceHash;
+
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>Summary</Text>
-      <ProgressList>
+      <ProgressList showConnectors={false}>
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}
-        {!hasDepositTransactions && sourceHash ? (
+        {showSourceHash ? (
           <SourceHashSummaryLine
             parentTransaction={transactionMeta}
             sourceHash={sourceHash}
@@ -103,7 +105,6 @@ function SummaryLine({
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
 }) {
-  // Relay deposit types render as send lines
   if (hasTransactionType(transactionMeta, RELAY_DEPOSIT_TYPES)) {
     return (
       <DepositSummaryLine

@@ -9,6 +9,7 @@ import {
   selectDestAddress,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSlippage,
@@ -194,6 +195,7 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectIsEvmNonEvmBridge: jest.fn(),
   selectIsNonEvmNonEvmBridge: jest.fn(),
   selectIsSolanaSourced: jest.fn(),
+  selectIsNonEvmSourced: jest.fn(),
   selectBridgeFeatureFlags: jest.fn(),
 }));
 
@@ -359,6 +361,7 @@ const setupDefaultMocks = () => {
   (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(false);
+  (selectIsNonEvmSourced as unknown as jest.Mock).mockReturnValue(false);
   (selectBridgeFeatureFlags as unknown as jest.Mock).mockReturnValue({
     priceImpactThreshold: { warning: 0.05, error: 0.25 },
   });
@@ -2926,6 +2929,7 @@ describe('useQuickBuyController', () => {
       it('tracks a same-chain Solana swap with isNonEvmSwap true and the signature', async () => {
         mockUsableQuote();
         (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (selectIsNonEvmSourced as unknown as jest.Mock).mockReturnValue(true);
         (
           Engine.context.BridgeStatusController.submitTx as jest.Mock
         ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
@@ -2944,9 +2948,58 @@ describe('useQuickBuyController', () => {
         );
       });
 
-      it('tracks a cross-chain Solana bridge with isNonEvmSwap false', async () => {
+      it('tracks a same-chain Tron swap with isNonEvmSwap true and the signature', async () => {
+        mockUsableQuote();
+        (selectIsNonEvmSourced as unknown as jest.Mock).mockReturnValue(true);
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'trx-sig', hash: 'trx-sig' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'trx-sig',
+          expect.objectContaining({
+            isNonEvmSwap: true,
+            txSignature: 'trx-sig',
+          }),
+        );
+      });
+
+      it('tracks a same-chain Bitcoin swap with isNonEvmSwap true and the signature', async () => {
+        mockUsableQuote();
+        (selectIsNonEvmSourced as unknown as jest.Mock).mockReturnValue(true);
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'btc-sig', hash: 'btc-sig' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'btc-sig',
+          expect.objectContaining({
+            isNonEvmSwap: true,
+            txSignature: 'btc-sig',
+          }),
+        );
+      });
+
+      it('tracks a cross-chain non-EVM bridge with isNonEvmSwap false', async () => {
         mockUsableQuote();
         (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (selectIsNonEvmSourced as unknown as jest.Mock).mockReturnValue(true);
         (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(
           true,
         );

@@ -70,6 +70,7 @@ import {
   selectDestAddress,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSlippage,
@@ -297,6 +298,7 @@ export function useQuickBuyController(
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isNonEvmSourced = useSelector(selectIsNonEvmSourced);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -1217,13 +1219,13 @@ export function useQuickBuyController(
     }
     markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
-    // Same-chain Solana swaps never reach a terminal `BridgeStatusController`
-    // status, so the terminal toast must resolve from
+    // Same-chain non-EVM swaps (Solana, Tron, Bitcoin) never reach a terminal
+    // `BridgeStatusController` status, so the terminal toast must resolve from
     // `MultichainTransactionsController` instead. Cross-chain bridges (incl.
-    // Solana → EVM) still settle via the bridge status path, so they are
+    // non-EVM → EVM) still settle via the bridge status path, so they are
     // excluded here.
     const isNonEvmSwap =
-      Boolean(isSolanaSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
+      Boolean(isNonEvmSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
     // Captures the copy data for every swap-lifecycle toast so the pending,
     // complete and failed states read consistently — and so the app-root
     // watcher can render the terminal toast after the sheet has unmounted.
@@ -1343,7 +1345,7 @@ export function useQuickBuyController(
     onClose,
     toastRef,
     theme,
-    isSolanaSourced,
+    isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
     sourceToken?.chainId,

@@ -14,6 +14,8 @@ import {
   MetaMaskPayTokensFlags,
   selectMetaMaskPayTokensFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
+import { WildcardTokenList } from '../../../../UI/Earn/utils/wildcardTokenList';
 import {
   isHardwareAccount,
   isQRHardwareAccount,
@@ -64,6 +66,9 @@ jest.mock(
     selectMetaMaskPayTokensFlags: jest.fn(),
   }),
 );
+jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyNoFeeTokens: jest.fn(),
+}));
 
 const TOKEN_ADDRESS_1_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const TOKEN_ADDRESS_2_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
@@ -124,6 +129,7 @@ describe('useAutomaticTransactionPayToken', () => {
   const selectMetaMaskPayTokensFlagsMock = jest.mocked(
     selectMetaMaskPayTokensFlags,
   );
+  const selectMoneyNoFeeTokensMock = jest.mocked(selectMoneyNoFeeTokens);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -164,6 +170,8 @@ describe('useAutomaticTransactionPayToken', () => {
         overrides: {},
       },
     } as MetaMaskPayTokensFlags);
+
+    selectMoneyNoFeeTokensMock.mockReturnValue({});
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -1300,6 +1308,188 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: MUSD_TOKEN_ADDRESS,
       chainId: CHAIN_IDS.MONAD,
+    });
+  });
+
+  describe('no-fee token preference', () => {
+    it('selects no-fee token over first available when no preferred tokens match', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: { default: [], overrides: {} },
+        minimumRequiredTokenBalance: 5,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectMoneyNoFeeTokensMock.mockReturnValue({
+        '*': ['USDC'],
+      } as WildcardTokenList);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            symbol: 'ETH',
+            fiat: { balance: 10 },
+          },
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            symbol: 'USDC',
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      });
+    });
+
+    it('does not select no-fee token when balance below minimum', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: { default: [], overrides: {} },
+        minimumRequiredTokenBalance: 15,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectMoneyNoFeeTokensMock.mockReturnValue({
+        '*': ['USDC'],
+      } as WildcardTokenList);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            symbol: 'ETH',
+            fiat: { balance: 10 },
+          },
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            symbol: 'USDC',
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      });
+    });
+
+    it('selects preferred flag tokens over no-fee tokens', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: {
+          default: [],
+          overrides: {
+            perpsDeposit: [
+              {
+                address: TOKEN_ADDRESS_1_MOCK,
+                chainId: CHAIN_ID_1_MOCK,
+                successRate: 0.95,
+              },
+            ],
+          },
+        },
+        minimumRequiredTokenBalance: 5,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectMoneyNoFeeTokensMock.mockReturnValue({
+        '*': ['USDC'],
+      } as WildcardTokenList);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            symbol: 'ETH',
+            fiat: { balance: 10 },
+          },
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            symbol: 'USDC',
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      });
+    });
+
+    it('does not select no-fee token for withdraw flows', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: { default: [], overrides: {} },
+        minimumRequiredTokenBalance: 5,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectMoneyNoFeeTokensMock.mockReturnValue({
+        '*': ['USDC'],
+      } as WildcardTokenList);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsWithdraw,
+        txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            symbol: 'USDC',
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
     });
   });
 });

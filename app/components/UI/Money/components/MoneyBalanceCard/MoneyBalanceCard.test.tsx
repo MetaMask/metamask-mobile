@@ -96,7 +96,7 @@ const createBalanceMock = (
     totalFiatFormatted: '$1,000.00',
     totalFiatRaw: '1000',
     tokenTotal: undefined,
-    isAggregatedBalanceLoading: false,
+    isBalanceLoading: false,
     isBalanceFetchError: false,
     isBalanceFetching: false,
     refetchBalance: jest.fn(),
@@ -107,20 +107,14 @@ const createBalanceMock = (
       data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
       isLoading: false,
     },
-    musdBalanceQuery: {
-      data: { balance: '1000000000' },
-      isLoading: false,
-    },
-    musdEquivalentBalanceQuery: {
+    moneyBalanceQuery: {
       data: {
-        musdEquivalentValue: '0',
-        musdSHFvdBalance: '0',
-        exchangeRate: '1000000',
+        musdBalance: '1000000000',
+        vmusdValueInMusd: '0',
+        totalBalance: '1000000000',
       },
       isLoading: false,
     },
-    musdFiatFormatted: '$1,000.00',
-    musdSHFvdFiatFormatted: '$0.00',
     ...overrides,
   }) as ReturnType<typeof useMoneyAccountBalance>;
 
@@ -536,7 +530,7 @@ describe('MoneyBalanceCard', () => {
   describe('loading states', () => {
     it('renders balance skeleton when balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({ isAggregatedBalanceLoading: true }),
+        createBalanceMock({ isBalanceLoading: true }),
       );
 
       const { getByTestId, queryByTestId } = renderWithProvider(
