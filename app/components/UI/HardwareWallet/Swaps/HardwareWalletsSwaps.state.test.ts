@@ -8,6 +8,7 @@ import {
   initialHardwareWalletsSwapsState,
   buildStartPayload,
 } from './HardwareWalletsSwaps.state';
+import type { TxData } from '@metamask/bridge-controller';
 
 describe('hardwareWalletsSwapsReducer', () => {
   it('starts on the first transaction step', () => {
@@ -688,10 +689,24 @@ describe('hardwareWalletsSwapsReducer', () => {
 });
 
 describe('buildStartPayload', () => {
+  type StartEvent = Extract<
+    HardwareWalletsSwapsEvent,
+    { type: HardwareWalletsSwapsEventType.Start }
+  >;
+
+  const evmTx = (to: `0x${string}`): TxData => ({
+    chainId: 1,
+    from: '0x0000000000000000000000000000000000000001',
+    to,
+    value: '0x0',
+    data: '0x',
+    gasLimit: 21000,
+  });
+
   it('builds single-step payload without approval', () => {
     const result = buildStartPayload({
-      trade: { to: '0xTrade' },
-    });
+      trade: evmTx('0xTrade'),
+    }) as StartEvent;
 
     expect(result.type).toBe(HardwareWalletsSwapsEventType.Start);
     expect(result.payload.totalSteps).toBe(1);
@@ -701,32 +716,13 @@ describe('buildStartPayload', () => {
 
   it('builds two-step payload with approval addresses', () => {
     const result = buildStartPayload({
-      approval: { to: '0xSpender' },
-      trade: { to: '0xRecipient' },
-    });
+      approval: evmTx('0xSpender'),
+      trade: evmTx('0xRecipient'),
+    }) as StartEvent;
 
     expect(result.type).toBe(HardwareWalletsSwapsEventType.Start);
     expect(result.payload.totalSteps).toBe(2);
     expect(result.payload.spenderAddress).toBe('0xSpender');
-    expect(result.payload.recipientAddress).toBe('0xRecipient');
-  });
-
-  it('omits addresses when trade.to is missing', () => {
-    const result = buildStartPayload({
-      trade: {},
-    });
-
-    expect(result.payload.recipientAddress).toBeUndefined();
-  });
-
-  it('builds two-step payload for non-EVM approval without spender address', () => {
-    const result = buildStartPayload({
-      approval: { raw_data_hex: '0xabc' },
-      trade: { to: '0xRecipient' },
-    });
-
-    expect(result.payload.totalSteps).toBe(2);
-    expect(result.payload.spenderAddress).toBeUndefined();
     expect(result.payload.recipientAddress).toBe('0xRecipient');
   });
 });

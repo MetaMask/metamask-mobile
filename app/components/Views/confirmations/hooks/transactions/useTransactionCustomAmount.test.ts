@@ -732,7 +732,7 @@ describe('useTransactionCustomAmount', () => {
     it('does NOT set isMaxAmount=true for money account withdraw when Max is pressed', async () => {
       // Same class of bug as perps: isMaxAmount=true makes TPC use on-chain
       // token.balanceRaw (mUSD only) instead of the typed aggregate (mUSD +
-      // musdSHFvd).
+      // vmUSD).
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableMusd: new BigNumber(500),
