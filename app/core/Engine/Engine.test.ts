@@ -1232,13 +1232,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
@@ -1248,7 +1241,6 @@ describe('Engine', () => {
       expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
       expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
       expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
 
     it('does not refresh anything for non-EVM destination chains', () => {
@@ -1263,13 +1255,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         NON_EVM_CAIP_ASSET,
@@ -1278,10 +1263,9 @@ describe('Engine', () => {
       expect(detectTokensSpy).not.toHaveBeenCalled();
       expect(updateBalancesSpy).not.toHaveBeenCalled();
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).not.toHaveBeenCalled();
     });
 
-    it('still updates incoming transactions when findNetworkClientIdByChainId throws', () => {
+    it('does not refresh balance when findNetworkClientIdByChainId throws', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       jest
@@ -1298,20 +1282,12 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
       );
 
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
   });
 

@@ -1,17 +1,6 @@
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
 import { KeyringClient, Sender } from '@metamask/keyring-snap-client';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  BtcScope,
-  ///: END:ONLY_INCLUDE_IF
-  EntropySourceId,
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  SolScope,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/keyring-api';
+import { EntropySourceId } from '@metamask/keyring-api';
 import {
   BITCOIN_WALLET_SNAP_ID,
   BITCOIN_WALLET_NAME,
