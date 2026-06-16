@@ -11,34 +11,6 @@ the `DESIGNER_MODE=true` environment variable.
 
 ---
 
-## How it works
-
-```
-App (🎨 inspector panel)
-    │  POST /api/message  (the tapped component + your edits + message)
-    ▼
-Relay server  (bundled with the designer-mode skill, on the dev machine, port 3334)
-    ▲  the agent blocks on GET /api/wait until a request arrives
-    │
-AI agent (Claude Code)
-    │  reads the request → edits the source files → hot reload
-    │  POST /api/response  ("Done — …")  → app polls GET /api/poll
-    ▼
-App panel shows the agent's reply
-```
-
-There are three pieces:
-
-1. **The inspector** — built into the app, behind the `DESIGNER_MODE` flag.
-2. **The relay server** — a small Node script **bundled with the `designer-mode`
-   skill** (synced in via `yarn skills`; the agent starts it for you).
-3. **The agent skill** — `.claude/skills/designer-mode/SKILL.md`, which tells the
-   agent to run the relay and **block on `/api/wait`** for each request. This is a
-   pull loop (no stdout-watching/"monitor" tool needed), so it works with any
-   agent that can run a shell command — Claude Code, Cursor, Codex, Aider, Gemini.
-
----
-
 ## For designers — enable & use
 
 ### 1. Run the app with Designer Mode enabled
@@ -46,17 +18,29 @@ There are three pieces:
 The flag is inlined when Metro bundles the JS, so it must be set on the Metro
 (watch) process, and Metro's cache must be cleared when you toggle it.
 
-```bash
-# Terminal 1 — Metro bundler with Designer Mode on (note: clean clears the cache)
-DESIGNER_MODE=true yarn watch:clean
+**Add the flag to your local `.js.env`** (it's gitignored and per-developer, the
+same place other dev flags live):
 
-# Terminal 2 — build & launch the app (ask a dev which platform you have set up)
-yarn start:ios       # or: yarn start:android
+```bash
+# .js.env
+export DESIGNER_MODE=true
 ```
 
-> If you already had Metro running, you **must** restart it with
-> `DESIGNER_MODE=true yarn watch:clean` — a normal `yarn watch` (cached) will not
-> pick up the flag and the 🎨 button won't appear.
+Then **get the app running by following the [README "Getting started"](../README.md#getting-started)**
+(Expo dev build — recommended — or the native flow). Designer Mode adds just one
+requirement on top: the bundler must run with a **clean cache** so the flag is
+re-inlined — use `yarn watch:clean` in place of `yarn watch`:
+
+```bash
+yarn watch:clean
+```
+
+> **Cache clear is required on toggle.** Metro's transform cache doesn't track
+> env-var values, so you **must** run `yarn watch:clean` the first time after
+> adding (or removing) the flag — a normal `yarn watch` (cached) won't pick up
+> the change and the 🎨 button won't appear. Once it's enabled, subsequent plain
+> `yarn watch` runs are fine. The flag stays on for **all** local builds until
+> you remove the line.
 
 ### 2. Ask your developer/agent to "enter design mode"
 
@@ -86,6 +70,34 @@ mode), checking = still probing.
 
 > **Tip:** No relay handy? Tap **Copy for AI** to copy a full, structured
 > description of the component + your edits and paste it into any chat.
+
+---
+
+## How it works
+
+```
+App (🎨 inspector panel)
+    │  POST /api/message  (the tapped component + your edits + message)
+    ▼
+Relay server  (bundled with the designer-mode skill, on the dev machine, port 3334)
+    ▲  the agent blocks on GET /api/wait until a request arrives
+    │
+AI agent (Claude Code)
+    │  reads the request → edits the source files → hot reload
+    │  POST /api/response  ("Done — …")  → app polls GET /api/poll
+    ▼
+App panel shows the agent's reply
+```
+
+There are three pieces:
+
+1. **The inspector** — built into the app, behind the `DESIGNER_MODE` flag.
+2. **The relay server** — a small Node script **bundled with the `designer-mode`
+   skill** (synced in via `yarn skills`; the agent starts it for you).
+3. **The agent skill** — `.claude/skills/designer-mode/SKILL.md`, which tells the
+   agent to run the relay and **block on `/api/wait`** for each request. This is a
+   pull loop (no stdout-watching/"monitor" tool needed), so it works with any
+   agent that can run a shell command — Claude Code, Cursor, Codex, Aider, Gemini.
 
 ---
 
@@ -178,12 +190,12 @@ edit the named `StyleSheet` entries).
 
 ## Configuration
 
-| Variable           | Where          | Default   | Purpose                                                                                             |
-| ------------------ | -------------- | --------- | --------------------------------------------------------------------------------------------------- |
-| `DESIGNER_MODE`    | Metro / bundle | _(off)_   | `true` enables the in-app inspector                                                                 |
-| `DESIGNER_PORT`    | relay server   | `3334`    | Relay server port                                                                                   |
-| `DESIGNER_HOST`    | relay server   | `0.0.0.0` | Relay bind host (LAN-reachable for device)                                                          |
-| `DESIGNER_WAIT_MS` | relay server   | `580000`  | How long `/api/wait` blocks before re-arming (~10 min; kept just under agents' max command timeout) |
+| Variable           | Where                                       | Default   | Purpose                                                                                             |
+| ------------------ | ------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
+| `DESIGNER_MODE`    | Metro / bundle (inline prefix or `.js.env`) | _(off)_   | `true` enables the in-app inspector (cache-clear required when toggled)                             |
+| `DESIGNER_PORT`    | relay server                                | `3334`    | Relay server port                                                                                   |
+| `DESIGNER_HOST`    | relay server                                | `0.0.0.0` | Relay bind host (LAN-reachable for device)                                                          |
+| `DESIGNER_WAIT_MS` | relay server                                | `580000`  | How long `/api/wait` blocks before re-arming (~10 min; kept just under agents' max command timeout) |
 
 The app auto-detects the relay URL from Metro's bundle host, so it works on the
 iOS simulator (`localhost`), Android emulator (`10.0.2.2`), and physical devices
