@@ -663,26 +663,30 @@ export async function importLedgerAccount(): Promise<void> {
   await TestHelpers.delay(5000);
   await device.takeScreenshot('14_after_unlock');
 
-  logger.debug(
-    '[importLedger] Step 15: dismissAccountListSheet + waitForWalletView',
-  );
-  // The "Accounts" bottom sheet opened in Step 3 (tapIdenticon) reliably stays
-  // open after the Ledger import completes — it covers the wallet's bottom tab
-  // bar (Explore), making downstream browser navigation unreachable. Dismiss it
-  // by swiping down. The V2 account list can stack layers, so repeat the swipe.
-  // (No visibility pre-check: under sync-disabled the toBeVisible check is
-  // flaky; the swipe itself targets the "Accounts" title and no-ops once the
-  // sheet is gone.)
+  logger.debug('[importLedger] Step 15: returnToWalletHome');
+  // After unlock the app is NOT on the wallet home — it's left on the "Accounts"
+  // bottom sheet (opened by tapIdenticon in Step 3), covering the bottom tab bar
+  // (Explore) so all browser/dapp navigation fails. The Android back button
+  // dismisses this sheet → wallet home. IMPORTANT: after a press the dismissed
+  // sheet's title lingers in the element tree for a few seconds; re-checking too
+  // soon causes a spurious extra press (from the wallet home) that backgrounds
+  // the app. So wait generously after each press before re-checking.
   for (let i = 0; i < 3; i++) {
+    let sheetOpen = false;
     try {
-      await AccountListBottomSheet.swipeToDismissAccountsModal();
-      logger.debug(
-        `[importLedger] Step 15: swiped down to dismiss account sheet (${i + 1}/3)`,
-      );
-      await TestHelpers.delay(1500);
+      const title =
+        (await AccountListBottomSheet.title) as Detox.IndexableNativeElement;
+      await waitFor(title).toExist().withTimeout(3000);
+      sheetOpen = true;
     } catch {
-      break; // swipe target missing -> sheet already dismissed
+      sheetOpen = false;
     }
+    if (!sheetOpen) break;
+    logger.debug(
+      `[importLedger] Step 15: account sheet open, pressing back to dismiss (${i + 1}/3)`,
+    );
+    await device.pressBack();
+    await TestHelpers.delay(4000); // let the dismissed title leave the tree
   }
 
   await Assertions.expectElementToBeVisible(WalletView.container, {

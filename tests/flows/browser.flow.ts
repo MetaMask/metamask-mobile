@@ -126,3 +126,68 @@ export const navigateToBrowserView = async (): Promise<void> => {
     description: 'Browser URL bar should be visible after navigation',
   });
 };
+
+/**
+ * Sync-disabled variant of {@link navigateToBrowserView} for Speculos/Ledger
+ * tests, where Detox synchronization is disabled because the BLE bridge keeps
+ * the JS thread busy. Under sync-disabled the first Explore tap is often
+ * absorbed (tab doesn't switch) and the standard 75%-visibility assertions are
+ * flaky, so this retries the Explore tap and uses `toExist` (no coverage).
+ *
+ * Callers must ensure the wallet home is the active screen first (e.g.
+ * `importLedgerAccount` returns to the wallet home via the identicon toggle).
+ */
+export const navigateToBrowserViewSyncDisabled = async (): Promise<void> => {
+  const sleep = (ms: number): Promise<void> =>
+    new Promise((r) => setTimeout(r, ms));
+  const exists = async (
+    getter: () => Promise<unknown> | unknown,
+  ): Promise<boolean> => {
+    try {
+      const el = (await getter()) as Detox.IndexableNativeElement;
+      await waitFor(el).toExist().withTimeout(2500);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  await sleep(2000);
+
+  // 1. Retry tapping Explore until the Trending browser button exists.
+  let onTrending = false;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    try {
+      const exploreTab =
+        (await TabBarComponent.tabBarExploreButton) as Detox.IndexableNativeElement;
+      await exploreTab.tap();
+    } catch {
+      // ignore — retry
+    }
+    await sleep(2500);
+    if (await exists(() => TrendingView.browserButton)) {
+      onTrending = true;
+      break;
+    }
+  }
+  if (!onTrending) {
+    throw new Error(
+      'navigateToBrowserViewSyncDisabled: Trending browser button never appeared',
+    );
+  }
+
+  // 2. Tap the Browser button on the Trending screen.
+  const browserBtn =
+    (await TrendingView.browserButton) as Detox.IndexableNativeElement;
+  await sleep(1000);
+  await browserBtn.tap();
+  await sleep(3000); // let the browser view render
+
+  // 3. If the "Opened tabs" grid is shown, select the first tab.
+  await ensureSingleBrowserTabView();
+
+  // 4. Wait for the URL bar to exist.
+  const urlBar =
+    (await BrowserView.urlInputBoxID) as Detox.IndexableNativeElement;
+  await waitFor(urlBar).toExist().withTimeout(60000);
+  await sleep(1000);
+};

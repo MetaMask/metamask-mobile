@@ -7,12 +7,13 @@ import {
 } from '../../framework/fixtures/SpeculosFixtureHelper';
 import Browser from '../../page-objects/Browser/BrowserView';
 import TestDApp from '../../page-objects/Browser/TestDApp';
+import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import HardwareWalletBottomSheet from '../../page-objects/Ledger/HardwareWalletBottomSheet';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 import {
-  navigateToBrowserView,
+  navigateToBrowserViewSyncDisabled,
   waitForTestDappToLoad,
 } from '../../flows/browser.flow';
 import { DappVariants } from '../../framework/Constants';
@@ -47,9 +48,17 @@ describeIf(SmokeLedger('Sign dApp transaction via Ledger'), () => {
         // EIP-1559 transactions require blind signing on the Ethereum app.
         await speculos.enableBlindSigning();
 
-        await navigateToBrowserView();
+        await navigateToBrowserViewSyncDisabled();
         await Browser.navigateToTestDApp();
         await waitForTestDappToLoad();
+
+        // Connect the dapp. The standard dapp-tx test pre-connects via the
+        // fixture (withPermissionControllerConnectedToTestDapp); that fixture
+        // option crashes the Ledger setup, so connect via the UI here. The Send
+        // EIP1559 button is not tappable until the dapp is connected.
+        await TestDApp.connect();
+        await ConnectBottomSheet.tapConnectButton();
+        await TestHelpers.delay(3000);
 
         await TestDApp.tapSendEIP1559Button();
         await TestHelpers.delay(3000);
