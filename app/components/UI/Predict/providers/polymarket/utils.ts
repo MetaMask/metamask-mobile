@@ -30,8 +30,11 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
+  getNegRiskMoneylineTeamLogo,
+  hasNegRiskMoneylineGroupItem,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
+  resolveNegRiskMoneylineShortTitles,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import type {
@@ -861,49 +864,6 @@ const sortOutcomeTokens = (
   return outcomeTokens;
 };
 
-const getNegRiskYesTokenTitle = (
-  market: PolymarketApiMarket,
-): string | undefined => {
-  if (
-    !market.negRisk ||
-    !isMoneylineLikeMarket(market) ||
-    !market.groupItemTitle
-  ) {
-    return undefined;
-  }
-  return market.groupItemTitle.toLowerCase().startsWith('draw')
-    ? 'Draw'
-    : market.groupItemTitle;
-};
-
-const resolveNegRiskShortTitles = (
-  market: PolymarketApiMarket,
-  game: PredictMarketGame,
-): { yesShort?: string; noShort?: string } => {
-  if (
-    !market.negRisk ||
-    !isMoneylineLikeMarket(market) ||
-    !market.groupItemTitle
-  ) {
-    return {};
-  }
-
-  if (market.groupItemTitle.toLowerCase().startsWith('draw')) {
-    return {};
-  }
-
-  const nameToAbbr = buildNameToAbbreviation(game);
-  const yesAbbr = nameToAbbr[market.groupItemTitle];
-  if (!yesAbbr) return {};
-
-  const isHome = yesAbbr === game.homeTeam.abbreviation;
-  const noAbbr = isHome
-    ? game.awayTeam.abbreviation
-    : game.homeTeam.abbreviation;
-
-  return { yesShort: yesAbbr, noShort: noAbbr };
-};
-
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -918,29 +878,26 @@ const parsePolymarketMarketOutcomes = (
     ? JSON.parse(market.outcomePrices)
     : [];
 
-  const negRiskYesTitle = getNegRiskYesTokenTitle(market);
-  const negRiskShort = game ? resolveNegRiskShortTitles(market, game) : {};
+  const isNegRiskMoneyline = hasNegRiskMoneylineGroupItem(market);
+  const negRiskShort = game
+    ? resolveNegRiskMoneylineShortTitles(market, game)
+    : {};
 
   const outcomeTokens = outcomeTokensIds.map(
     (tokenId: string, index: number) => {
       const isYes = outcomes[index] === 'Yes';
       const isNo = outcomes[index] === 'No';
 
-      let title = outcomes[index];
-      if (negRiskYesTitle && isYes) {
-        title = negRiskYesTitle;
-      }
-
       let shortTitle: string | undefined = shortTitles[index];
-      if (negRiskYesTitle && isYes && negRiskShort.yesShort) {
+      if (isNegRiskMoneyline && isYes && negRiskShort.yesShort) {
         shortTitle = negRiskShort.yesShort;
-      } else if (negRiskYesTitle && isNo && negRiskShort.noShort) {
+      } else if (isNegRiskMoneyline && isNo && negRiskShort.noShort) {
         shortTitle = negRiskShort.noShort;
       }
 
       return {
         id: tokenId,
-        title,
+        title: outcomes[index],
         ...(shortTitle && { shortTitle }),
         price: parseFloat(outcomePrices[index]),
       };
@@ -1082,7 +1039,8 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image: market.icon ?? market.image,
+  image:
+    getNegRiskMoneylineTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null

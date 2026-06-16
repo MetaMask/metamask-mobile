@@ -44,7 +44,7 @@ import {
   setInfuraAvailabilityNotBlocked,
 } from '../../../actions/infuraAvailability';
 
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
@@ -92,8 +92,12 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { shouldShowNetworkListToast } from './utils';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator();
+const NativeStack = createNativeStackNavigator();
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -145,7 +149,10 @@ const Main = (props) => {
     }
   }, [props.chainId]);
 
-  const checkInfuraAvailability = useCallback(async () => {
+  // Plain function (not useCallback): it is only invoked, never used as a
+  // dependency, so letting the React Compiler memoize it avoids the "could not
+  // preserve existing manual memoization" bailout while keeping behavior intact.
+  const checkInfuraAvailability = async () => {
     if (props.providerType !== 'rpc') {
       try {
         const ethQuery = getGlobalEthQuery();
@@ -160,13 +167,7 @@ const Main = (props) => {
     } else {
       props.setInfuraAvailabilityNotBlocked();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    props.navigation,
-    props.providerType,
-    props.setInfuraAvailabilityBlocked,
-    props.setInfuraAvailabilityNotBlocked,
-  ]);
+  };
 
   const handleAppStateChange = useCallback(
     (appState) => {
@@ -363,7 +364,7 @@ const Main = (props) => {
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {
@@ -494,20 +495,23 @@ const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 const MainFlow = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={Routes.MAIN_FLOW}
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
-      <Stack.Screen
+      <NativeStack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
+      <NativeStack.Screen
         name={'ReviewModal'}
         component={ReviewModal}
-        options={{ animationEnabled: false, presentation: 'modal' }}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 

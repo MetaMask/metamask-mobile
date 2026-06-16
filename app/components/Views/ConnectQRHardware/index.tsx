@@ -31,7 +31,7 @@ import ExtendedKeyringTypes, {
 import { ThemeColors } from '@metamask/design-tokens';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
-import { getChecksumAddress } from '@metamask/utils';
+import { getChecksumAddress, Hex } from '@metamask/utils';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/HardwareWalletContext';
@@ -230,10 +230,20 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
       try {
         const accountToSelect = await withQrKeyring(async ({ keyring }) => {
           let lastAccount: string | undefined;
+          const isAccountMode = keyring.getMode() === 'account';
           for (const index of accountIndexs) {
-            keyring.setAccountToUnlock(index);
-            const [newAccount] = await keyring.addAccounts(1);
-            lastAccount = newAccount;
+            const [newAccount] = isAccountMode
+              ? await keyring.createAccounts({
+                  type: 'custom',
+                  entropySource: keyring.entropySource,
+                  addressIndex: index,
+                })
+              : await keyring.createAccounts({
+                  type: 'bip44:derive-index',
+                  entropySource: keyring.entropySource,
+                  groupIndex: index,
+                });
+            lastAccount = newAccount?.address;
           }
           return lastAccount;
         });
@@ -290,9 +300,12 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
       // back into CAIP Account Id. Hex addresses are used in
       // `removeAccountsFromPermissions` because too many places in the UI still
       // operate on hex addresses rather than CAIP Account Id.
-      removeAccountsFromPermissions(existingQrAccounts.map(getChecksumAddress));
+      removeAccountsFromPermissions(
+        existingQrAccounts.map(({ address }) =>
+          getChecksumAddress(address as Hex),
+        ),
+      );
       await keyring.forgetDevice();
-      return existingQrAccounts;
     });
     navigation.dispatch(
       CommonActions.reset({
