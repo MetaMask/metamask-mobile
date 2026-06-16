@@ -6,7 +6,7 @@ import type { TraderStats } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 const baseStats: TraderStats = {
-  pnl30d: 20610,
+  pnl7d: 20610,
   winRate30d: 0.92,
   roiPercent30d: 1.5,
   tradeCount30d: 48,
@@ -39,32 +39,35 @@ describe('StatsRow', () => {
     expect(screen.getByText('0%')).toBeOnTheScreen();
   });
 
-  it('renders formatted PnL when pnl30d is non-null and positive', () => {
+  it('renders formatted PnL when pnl7d is non-null and positive', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
     expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
   });
 
-  it('renders dash when pnl30d is null', () => {
-    const stats = { ...baseStats, pnl30d: null } as unknown as TraderStats;
+  it('renders dash when pnl7d is null', () => {
+    const stats = {
+      ...baseStats,
+      pnl7d: null,
+    } as unknown as TraderStats;
     renderWithProvider(<StatsRow stats={stats} />);
     const dashes = screen.getAllByText('\u2014');
     expect(dashes.length).toBeGreaterThanOrEqual(2);
   });
 
   it('renders negative PnL correctly', () => {
-    const stats = { ...baseStats, pnl30d: -5000 };
+    const stats = { ...baseStats, pnl7d: -5000 };
     renderWithProvider(<StatsRow stats={stats} />);
     expect(screen.getByText('-$5,000.00')).toBeOnTheScreen();
   });
 
   it('renders PnL for small values without K suffix', () => {
-    const stats = { ...baseStats, pnl30d: 500 };
+    const stats = { ...baseStats, pnl7d: 500 };
     renderWithProvider(<StatsRow stats={stats} />);
     expect(screen.getByText('+$500.00')).toBeOnTheScreen();
   });
 
   it('rounds decimal PnL values to two places', () => {
-    const stats = { ...baseStats, pnl30d: 500.236 };
+    const stats = { ...baseStats, pnl7d: 500.236 };
     renderWithProvider(<StatsRow stats={stats} />);
     expect(screen.getByText('+$500.24')).toBeOnTheScreen();
   });
@@ -73,7 +76,7 @@ describe('StatsRow', () => {
     const stats = {
       ...baseStats,
       winRate30d: null,
-      pnl30d: null,
+      pnl7d: null,
     } as unknown as TraderStats;
 
     renderWithProvider(<StatsRow stats={stats} />);
@@ -112,18 +115,18 @@ describe('StatsRow', () => {
   it('renders win rate label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('win rate')).toBeOnTheScreen();
+    expect(screen.getByText('Win rate')).toBeOnTheScreen();
   });
 
-  it('renders 30D Return label', () => {
+  it('renders 7D Return label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('30D Return')).toBeOnTheScreen();
+    expect(screen.getByText('7D Return')).toBeOnTheScreen();
   });
 
   it('renders hold time label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('hold time')).toBeOnTheScreen();
+    expect(screen.getByText('Hold time')).toBeOnTheScreen();
   });
 });

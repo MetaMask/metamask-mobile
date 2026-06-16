@@ -159,11 +159,11 @@ const TraderProfileView = () => {
     if (!perChainPnl || Object.keys(perChainPnl).length === 0) {
       return profile.stats;
     }
-    const spotPnl30d = SPOT_CHAINS.reduce(
+    const spotPnl7d = SPOT_CHAINS.reduce(
       (sum, chain) => sum + (perChainPnl[chain] ?? 0),
       0,
     );
-    return { ...profile.stats, pnl30d: spotPnl30d };
+    return { ...profile.stats, pnl7d: spotPnl7d };
   }, [profile]);
   // Fire Trader Profile Screen Viewed once profile resolves so we have an
   // accurate trader_address / is_following at the point the user lands.
@@ -381,7 +381,6 @@ const TraderProfileView = () => {
                 profile={profile.profile}
                 followerCount={profile.followerCount}
                 twitterHandle={profile.socialHandles?.twitter}
-                rank={traderRank}
               />
             )}
 

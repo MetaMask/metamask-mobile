@@ -72,7 +72,7 @@ describe('PositionRow', () => {
 
   it('renders unrealized $ PnL alongside the percent on the bottom-right', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    expect(screen.getByText('+$1,059.96 (+182%)')).toBeOnTheScreen();
+    expect(screen.getByText('+$1,059.96 (+182.00%)')).toBeOnTheScreen();
   });
 
   it('renders negative unrealized $ PnL with the percent', () => {
@@ -83,7 +83,7 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('-$250.00 (-25%)')).toBeOnTheScreen();
+    expect(screen.getByText('-$250.00 (-25.00%)')).toBeOnTheScreen();
   });
 
   it('falls back to just the percent when pnlValueUsd is missing', () => {
@@ -93,7 +93,7 @@ describe('PositionRow', () => {
     } as unknown as Position;
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('+182%')).toBeOnTheScreen();
+    expect(screen.getByText('+182.00%')).toBeOnTheScreen();
   });
 
   it('renders dash when pnlPercent is null', () => {
@@ -127,7 +127,7 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('$0.00 (+0%)')).toBeOnTheScreen();
+    expect(screen.getByText('$0.00 (+0.00%)')).toBeOnTheScreen();
   });
 
   it('renders negative USD value', () => {
@@ -224,8 +224,8 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
       // realizedPnl (300) / boughtUsd (1200) * 100 = 25%
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.queryByText('+25%')).toBeNull();
+      expect(screen.getByText('25.00%')).toBeOnTheScreen();
+      expect(screen.queryByText('+25.00%')).toBeNull();
     });
 
     it('renders dash for PnL when boughtUsd is zero', () => {
@@ -242,8 +242,8 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={position} />);
 
       // -300 / 1200 * 100 = -25%
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.queryByText('-25%')).toBeNull();
+      expect(screen.getByText('25.00%')).toBeOnTheScreen();
+      expect(screen.queryByText('-25.00%')).toBeNull();
     });
 
     it('uses realized PnL percent even when pnlPercent is 0', () => {
@@ -251,7 +251,7 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.getByText('25.00%')).toBeOnTheScreen();
     });
 
     it('renders break-even realized PnL with a neutral minus and 0% percent', () => {
@@ -262,7 +262,7 @@ describe('PositionRow', () => {
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
       // U+2212 minus glyph, not a hyphen
       expect(screen.getByText('−')).toBeOnTheScreen();
-      expect(screen.getByText('0%')).toBeOnTheScreen();
+      expect(screen.getByText('0.00%')).toBeOnTheScreen();
     });
 
     it('renders realized PnL value when boughtUsd is zero (percent null)', () => {

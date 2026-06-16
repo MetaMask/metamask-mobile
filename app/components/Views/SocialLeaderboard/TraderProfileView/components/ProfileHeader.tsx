@@ -21,8 +21,6 @@ import { strings } from '../../../../../../locales/i18n';
 import type { TraderProfile } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { TopRankAvatar } from '../../../Homepage/Sections/TopTraders/topRank';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { hasRealAvatar } from '../../../Homepage/Sections/TopTraders/utils/avatarFallback';
 
 const AVATAR_SIZE = 40;
@@ -31,18 +29,12 @@ export interface ProfileHeaderProps {
   profile: TraderProfile;
   followerCount: number;
   twitterHandle?: string | null;
-  /**
-   * Optional leaderboard rank used to render the top-rank decoration
-   * (gradient ring + crown emoji) around the avatar for ranks 1-3.
-   */
-  rank?: number;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
   followerCount,
   twitterHandle,
-  rank,
 }) => {
   const tw = useTailwind();
 
@@ -60,24 +52,22 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       gap={4}
       testID={TraderProfileViewSelectorsIDs.HEADER}
     >
-      <TopRankAvatar rank={rank ?? 0}>
-        {hasRealAvatar(profile.imageUrl) ? (
-          <Image
-            source={{ uri: profile.imageUrl }}
-            style={tw.style(
-              `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-            )}
-            resizeMode="cover"
-          />
-        ) : (
-          <AvatarAccount
-            variant={AvatarAccountVariant.Maskicon}
-            address={profile.address}
-            size={AvatarAccountSize.Lg}
-            twClassName="rounded-full"
-          />
-        )}
-      </TopRankAvatar>
+      {hasRealAvatar(profile.imageUrl) ? (
+        <Image
+          source={{ uri: profile.imageUrl }}
+          style={tw.style(
+            `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
+          )}
+          resizeMode="cover"
+        />
+      ) : (
+        <AvatarAccount
+          variant={AvatarAccountVariant.Maskicon}
+          address={profile.address}
+          size={AvatarAccountSize.Lg}
+          twClassName="rounded-full"
+        />
+      )}
 
       <Box twClassName="flex-1 min-w-0">
         <Box

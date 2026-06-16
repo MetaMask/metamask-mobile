@@ -1,70 +1,57 @@
-import { formatPnl } from './formatPnl';
+import { formatFullPnl } from './formatPnl';
 
-describe('formatPnl', () => {
+describe('formatFullPnl', () => {
   describe('positive values', () => {
-    it('formats a sub-thousand value with no comma', () => {
-      expect(formatPnl(500)).toBe('+$500');
+    it('formats a sub-thousand value with two decimals', () => {
+      expect(formatFullPnl(500)).toBe('+$500.00');
     });
 
-    it('formats a sub-thousand value with rounding', () => {
-      expect(formatPnl(499.7)).toBe('+$500');
+    it('formats a value with fractional cents rounded to two decimals', () => {
+      expect(formatFullPnl(963_146.8)).toBe('+$963,146.80');
     });
 
-    it('formats a thousands value with K suffix', () => {
-      expect(formatPnl(963_000)).toBe('+$963K');
+    it('formats a thousands value with a comma', () => {
+      expect(formatFullPnl(1_200)).toBe('+$1,200.00');
     });
 
-    it('formats a thousands value that needs a comma with K suffix', () => {
-      expect(formatPnl(1_200_000)).toBe('+$1,200K');
-    });
-
-    it('formats a millions value with K suffix and comma', () => {
-      expect(formatPnl(1_500_000)).toBe('+$1,500K');
+    it('formats a millions value with commas', () => {
+      expect(formatFullPnl(1_500_000)).toBe('+$1,500,000.00');
     });
 
     it('formats zero as positive', () => {
-      expect(formatPnl(0)).toBe('+$0');
+      expect(formatFullPnl(0)).toBe('+$0.00');
+    });
+
+    it('rounds to two decimals', () => {
+      expect(formatFullPnl(499.999)).toBe('+$500.00');
     });
   });
 
   describe('negative values', () => {
     it('formats a sub-thousand negative value', () => {
-      expect(formatPnl(-500)).toBe('-$500');
+      expect(formatFullPnl(-500)).toBe('-$500.00');
     });
 
-    it('formats a negative thousands value with K suffix', () => {
-      expect(formatPnl(-963_000)).toBe('-$963K');
-    });
-
-    it('formats a negative value that needs a comma', () => {
-      expect(formatPnl(-1_200_000)).toBe('-$1,200K');
+    it('formats a negative millions value with commas', () => {
+      expect(formatFullPnl(-1_200_000)).toBe('-$1,200,000.00');
     });
   });
 
-  describe('boundary values', () => {
-    it('formats exactly 1,000', () => {
-      expect(formatPnl(1_000)).toBe('+$1K');
+  describe('missing / invalid values', () => {
+    it('returns an em-dash for null', () => {
+      expect(formatFullPnl(null)).toBe('—');
     });
 
-    it('formats just below 1,000', () => {
-      expect(formatPnl(999)).toBe('+$999');
+    it('returns an em-dash for undefined', () => {
+      expect(formatFullPnl(undefined)).toBe('—');
     });
 
-    it('formats 999.5 as +$1K (rounds up to 1000 before branching)', () => {
-      expect(formatPnl(999.5)).toBe('+$1K');
+    it('returns an em-dash for NaN', () => {
+      expect(formatFullPnl(NaN)).toBe('—');
     });
 
-    it('formats -999.7 as -$1K (rounds up to 1000 before branching)', () => {
-      expect(formatPnl(-999.7)).toBe('-$1K');
-    });
-
-    it('formats exactly 1,000,000', () => {
-      expect(formatPnl(1_000_000)).toBe('+$1,000K');
-    });
-
-    it('rounds fractional values correctly', () => {
-      expect(formatPnl(1_499)).toBe('+$1K');
-      expect(formatPnl(1_500)).toBe('+$2K');
+    it('returns an em-dash for Infinity', () => {
+      expect(formatFullPnl(Infinity)).toBe('—');
     });
   });
 });

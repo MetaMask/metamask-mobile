@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -19,6 +19,10 @@ import {
   formatPercent,
   formatTradeDate,
 } from '../../utils/formatters';
+
+const styles = StyleSheet.create({
+  caret: { fontSize: 8 },
+});
 
 export interface PositionRowProps {
   position: Position;
@@ -79,7 +83,11 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
           {'−'}
         </Text>
       ) : (
-        <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
+        <Text
+          variant={TextVariant.BodyXs}
+          twClassName={pnlColorClass}
+          style={styles.caret}
+        >
           {isPnlPositive ? '▲' : '▼'}
         </Text>
       )}
