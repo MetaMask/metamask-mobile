@@ -128,20 +128,4 @@ describe('PredictResolvedOutcomesSection', () => {
     expect(getByText('Yes')).toBeOnTheScreen();
     expect(getByText('No')).toBeOnTheScreen();
   });
-
-  it('renders resolved outcomes directly when not collapsible', () => {
-    const { getByText, queryByText } = render(
-      <PredictResolvedOutcomesSection
-        closedOutcomes={[
-          createMockOutcome({ id: 'resolved-1', groupItemTitle: 'June 9' }),
-        ]}
-        isExpanded={false}
-        onToggle={jest.fn()}
-        collapsible={false}
-      />,
-    );
-
-    expect(queryByText('Resolved outcomes')).toBeNull();
-    expect(getByText('June 9')).toBeOnTheScreen();
-  });
 });

@@ -1,10 +1,12 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import PredictGameOutcomeCard, {
+import PredictGameOutcomeCard from './PredictGameOutcomeCard';
+import {
+  formatOutcomeCardTitle,
   type LineCardModel,
   type MoneylineCardModel,
   type SimpleCardModel,
-} from './PredictGameOutcomeCard';
+} from './outcomeCardModel';
 import type {
   PredictMarketGame,
   PredictOutcome,
@@ -195,10 +197,6 @@ describe('PredictGameOutcomeCard', () => {
           volume: 2500000,
         }),
         sportsMarketType: 'soccer_exact_score',
-        pricing: {
-          kind: 'shared',
-          tokenIds: ['token-a', 'token-b'],
-        },
       };
 
       renderCard(cardModel);
@@ -229,10 +227,6 @@ describe('PredictGameOutcomeCard', () => {
         testID: 'exact_score-soccer_exact_score-0',
         outcome,
         sportsMarketType: 'soccer_exact_score',
-        pricing: {
-          kind: 'shared',
-          tokenIds: ['tok-press', 'tok-b'],
-        },
       };
 
       mockParentGetPrice.mockImplementation((tokenId: string) =>
@@ -285,9 +279,6 @@ describe('PredictGameOutcomeCard', () => {
       testID: 'corners-total_corners',
       outcomes: lineOutcomes,
       sportsMarketType: 'total_corners',
-      pricing: {
-        kind: 'selected-line',
-      },
     };
 
     it('sorts lines ascending and defaults to the highest-volume line', () => {
@@ -389,10 +380,6 @@ describe('PredictGameOutcomeCard', () => {
       title: 'Moneyline',
       testID: 'game_lines-moneyline',
       outcomes: moneylineOutcomes,
-      pricing: {
-        kind: 'shared',
-        tokenIds: ['t-hom', 't-draw', 't-awy'],
-      },
     };
 
     it('renders an inline card with the summed volume subtitle', () => {
@@ -470,10 +457,6 @@ describe('PredictGameOutcomeCard', () => {
             tokens: [createToken({ id: 'r', shortTitle: 'RSA', price: 0.24 })],
           }),
         ],
-        pricing: {
-          kind: 'shared',
-          tokenIds: ['m', 'n', 'r'],
-        },
       };
 
       renderCard(cardModel);
@@ -484,6 +467,19 @@ describe('PredictGameOutcomeCard', () => {
       expect(
         mockCapturedCards[0].buttons.map((button) => button.variant),
       ).toEqual(['yes', 'draw', 'no']);
+    });
+  });
+
+  describe('formatOutcomeCardTitle', () => {
+    it.each([
+      ['Victor Wembanyama: Points O/U 27.5', 'Victor Wembanyama'],
+      ['Alexis Vega: Shots on Target O/U 1.5', 'Alexis Vega'],
+      ['Team A vs Team B: O/U 2.5', 'Team A vs Team B'],
+      ['Mexico', 'Mexico'],
+    ])('formats %s as %s', (groupItemTitle, expected) => {
+      expect(formatOutcomeCardTitle(createOutcome({ groupItemTitle }))).toBe(
+        expected,
+      );
     });
   });
 });

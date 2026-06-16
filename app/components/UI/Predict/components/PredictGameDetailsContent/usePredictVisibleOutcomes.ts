@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { PredictOutcome, PriceQuery } from '../../types';
-import type { OutcomeCardModel } from './PredictGameOutcomeCard';
+import type { PriceQuery } from '../../types';
+import {
+  getSelectedLineOutcome,
+  toPriceQuery,
+  type OutcomeCardModel,
+} from './outcomeCardModel';
 
 const DEFAULT_SETTLE_DELAY_MS = 200;
 
@@ -53,61 +57,6 @@ const areSetsEqual = <T>(first: Set<T>, second: Set<T>): boolean => {
   }
 
   return true;
-};
-
-const toPriceQuery = (
-  outcome: PredictOutcome,
-  outcomeTokenId: string,
-): PriceQuery => ({
-  marketId: outcome.marketId,
-  outcomeId: outcome.id,
-  outcomeTokenId,
-  sportsMarketType: outcome.sportsMarketType,
-});
-
-const getLineIndices = (outcomes: PredictOutcome[]): number[] =>
-  outcomes
-    .map((outcome, index) => (outcome.line != null ? index : -1))
-    .filter((index) => index !== -1)
-    .sort((a, b) => {
-      const lineA = outcomes[a].line ?? 0;
-      const lineB = outcomes[b].line ?? 0;
-      return lineA - lineB;
-    });
-
-const getDefaultSelectedLineIndex = (
-  outcomes: PredictOutcome[],
-  lineIndices: number[],
-): number => {
-  if (lineIndices.length === 0) {
-    return 0;
-  }
-
-  return lineIndices.reduce((bestIndex, outcomeIndex, currentIndex) => {
-    const bestVolume = outcomes[lineIndices[bestIndex]]?.volume ?? 0;
-    const currentVolume = outcomes[outcomeIndex]?.volume ?? 0;
-
-    return currentVolume > bestVolume ? currentIndex : bestIndex;
-  }, 0);
-};
-
-const getSelectedLineOutcome = (
-  cardModel: Extract<OutcomeCardModel, { kind: 'line' }>,
-  selectedLineIndex: number | undefined,
-): PredictOutcome | undefined => {
-  const lineIndices = getLineIndices(cardModel.outcomes);
-  const defaultSelectedLineIndex = getDefaultSelectedLineIndex(
-    cardModel.outcomes,
-    lineIndices,
-  );
-  const resolvedSelectedLineIndex =
-    selectedLineIndex ?? defaultSelectedLineIndex;
-  const safeSelectedLineIndex =
-    lineIndices[resolvedSelectedLineIndex] === undefined
-      ? defaultSelectedLineIndex
-      : resolvedSelectedLineIndex;
-
-  return cardModel.outcomes[lineIndices[safeSelectedLineIndex]];
 };
 
 const getCardPriceQueries = (

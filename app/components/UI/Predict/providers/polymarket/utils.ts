@@ -31,10 +31,10 @@ import {
 } from '../../utils/gameParser';
 import {
   getSportsMarketTypeGroupKey,
+  getSportsMarketTypeCardSplit,
   GROUP_ORDER,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
-  isPlayerPropMarketType,
   isSupportedSportsMarketType,
   SPORTS_MARKET_TYPE_PRIORITIES,
   SPORTS_MARKET_TYPE_TO_GROUP,
@@ -658,11 +658,6 @@ const getSportsMarketTypePriority = (type: string): number =>
 const isSpreadType = (type: string): boolean =>
   type.toLowerCase().includes('spread');
 
-// Team markets ("Mexico O/U 0.5", "Mexico Corners: O/U 4.5") split into one card
-// per team.
-const isTeamMarketType = (type: string): boolean =>
-  type.toLowerCase().includes('team_total');
-
 // Goal team totals ("Mexico O/U 0.5") get a "Totals" suffix; corner team totals
 // ("Mexico Corners: O/U 4.5") already name their market, so they are excluded.
 const isTeamTotalsType = (type: string): boolean => {
@@ -788,10 +783,12 @@ const buildCardsForType = (
     return [{ outcomes: typeOutcomes }];
   }
 
+  const cardSplit = getSportsMarketTypeCardSplit(type);
+
   // Per-entity markets split into one card per team or player. Only these split
   // — game-level markets (game totals, corners) stay a single card even when
   // their title embeds the matchup (e.g. "Team A vs Team B: O/U 4.5").
-  if (isTeamMarketType(type) || isPlayerPropMarketType(type)) {
+  if (cardSplit === 'team' || cardSplit === 'player') {
     const bySubject = new Map<string, PredictOutcome[]>();
     for (const outcome of typeOutcomes) {
       const subject =

@@ -4,6 +4,7 @@ import {
   SUPPORTED_SPORTS_MARKET_TYPES,
   filterSupportedLeagues,
   getPrimaryMoneylineOutcomes,
+  getSportsMarketTypeGroupKey,
   isMoneylineLikeMarketType,
   isPlayerPropMarketType,
   isSupportedSportsMarketType,
@@ -21,27 +22,6 @@ describe('MONEYLINE_MARKET_TYPES', () => {
         'tennis_first_set_winner',
       ].sort(),
     );
-  });
-
-  it('contains moneyline', () => {
-    expect(MONEYLINE_MARKET_TYPES.has('moneyline')).toBe(true);
-  });
-
-  it('contains first_half_moneyline', () => {
-    expect(MONEYLINE_MARKET_TYPES.has('first_half_moneyline')).toBe(true);
-  });
-
-  it('contains soccer_halftime_result', () => {
-    expect(MONEYLINE_MARKET_TYPES.has('soccer_halftime_result')).toBe(true);
-  });
-
-  it('contains first to score and second half result', () => {
-    expect(MONEYLINE_MARKET_TYPES.has('soccer_first_to_score')).toBe(true);
-    expect(MONEYLINE_MARKET_TYPES.has('soccer_second_half_result')).toBe(true);
-  });
-
-  it('contains tennis_first_set_winner', () => {
-    expect(MONEYLINE_MARKET_TYPES.has('tennis_first_set_winner')).toBe(true);
   });
 });
 
@@ -90,47 +70,33 @@ describe('isSupportedSportsMarketType', () => {
 });
 
 describe('isMoneylineLikeMarketType', () => {
-  it('returns true for moneyline', () => {
-    const result = isMoneylineLikeMarketType('moneyline');
-
-    expect(result).toBe(true);
+  it.each([
+    'moneyline',
+    'first_half_moneyline',
+    'soccer_halftime_result',
+    'soccer_second_half_result',
+    'soccer_first_to_score',
+    'tennis_first_set_winner',
+    'Moneyline',
+    'FIRST_HALF_MONEYLINE',
+  ])('returns true for %s', (marketType) => {
+    expect(isMoneylineLikeMarketType(marketType)).toBe(true);
   });
 
-  it('returns true for first_half_moneyline', () => {
-    const result = isMoneylineLikeMarketType('first_half_moneyline');
-
-    expect(result).toBe(true);
+  it.each(['spreads', undefined])('returns false for %s', (marketType) => {
+    expect(isMoneylineLikeMarketType(marketType)).toBe(false);
   });
+});
 
-  it('returns true for soccer_halftime_result', () => {
-    const result = isMoneylineLikeMarketType('soccer_halftime_result');
-
-    expect(result).toBe(true);
-  });
-
-  it('returns true for tennis_first_set_winner', () => {
-    const result = isMoneylineLikeMarketType('tennis_first_set_winner');
-
-    expect(result).toBe(true);
-  });
-
-  it('returns true for mixed-case moneyline values', () => {
-    expect(isMoneylineLikeMarketType('Moneyline')).toBe(true);
-    expect(isMoneylineLikeMarketType('FIRST_HALF_MONEYLINE')).toBe(true);
-    expect(isMoneylineLikeMarketType('Soccer_Halftime_Result')).toBe(true);
-    expect(isMoneylineLikeMarketType('Tennis_First_Set_Winner')).toBe(true);
-  });
-
-  it('returns false for spreads', () => {
-    const result = isMoneylineLikeMarketType('spreads');
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false for undefined', () => {
-    const result = isMoneylineLikeMarketType(undefined);
-
-    expect(result).toBe(false);
+describe('getSportsMarketTypeGroupKey', () => {
+  it.each([
+    ['soccer_player_goals', 'goals'],
+    ['soccer_player_shots_on_target', 'shots_on_target'],
+    ['soccer_player_goals_plus_assists', 'goals_plus_assists'],
+    ['soccer_player_goalkeeper_saves', 'goalkeeper_saves'],
+    ['totals', 'game_lines'],
+  ])('groups %s as %s', (marketType, expectedGroup) => {
+    expect(getSportsMarketTypeGroupKey(marketType)).toBe(expectedGroup);
   });
 });
 

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import type { PredictOutcome } from '../../types';
-import type { OutcomeCardModel } from './PredictGameOutcomeCard';
+import type { OutcomeCardModel } from './outcomeCardModel';
 import {
   PREDICT_OUTCOME_VIEWABILITY_CONFIG,
   resolveVisibleOutcomePriceQueries,
@@ -53,10 +53,6 @@ const createSimpleCard = (
     title: key,
     testID: key,
     outcome,
-    pricing: {
-      kind: 'shared',
-      tokenIds,
-    },
   };
 };
 
@@ -70,17 +66,6 @@ const createMoneylineCard = (): OutcomeCardModel => ({
     createOutcome('draw', ['draw-yes', 'draw-no']),
     createOutcome('away', ['away-yes', 'away-no']),
   ],
-  pricing: {
-    kind: 'shared',
-    tokenIds: [
-      'home-yes',
-      'home-no',
-      'draw-yes',
-      'draw-no',
-      'away-yes',
-      'away-no',
-    ],
-  },
 });
 
 const createLineCard = (): OutcomeCardModel => ({
@@ -99,9 +84,6 @@ const createLineCard = (): OutcomeCardModel => ({
       volume: 1000,
     }),
   ],
-  pricing: {
-    kind: 'selected-line',
-  },
 });
 
 const createOutcomeItem = (cardModel: OutcomeCardModel): TestListItem => ({

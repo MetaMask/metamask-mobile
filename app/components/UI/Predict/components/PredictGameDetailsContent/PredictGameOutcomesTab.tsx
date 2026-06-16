@@ -8,11 +8,9 @@ import type {
   PriceQuery,
   PriceUpdate,
 } from '../../types';
-import PredictResolvedOutcomesSection from '../PredictResolvedOutcomesSection';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
-import PredictGameOutcomeCard, {
-  type BuyHandler,
-} from './PredictGameOutcomeCard';
+import type { BuyHandler } from './PredictGameOutcomeCard';
+import PredictGameOutcomesContent from './PredictGameOutcomesContent';
 import { usePredictGameGroupOutcomes } from './usePredictGameGroupOutcomes';
 import { resolveVisibleOutcomePriceQueries } from './usePredictVisibleOutcomes';
 
@@ -82,28 +80,18 @@ const OutcomesContent = memo(
     );
 
     return (
-      <>
-        {openCardModels.map((cardModel) => (
-          <PredictGameOutcomeCard
-            key={cardModel.key}
-            cardModel={cardModel}
-            onBuyPress={onBuyPress}
-            game={game}
-            getPrice={getPrice}
-            selectedLineIndex={selectedLineIndices[cardModel.key]}
-            onSelectedLineIndexChange={(nextIndex) =>
-              handleSelectedLineIndexChange(cardModel.key, nextIndex)
-            }
-          />
-        ))}
-        {showResolvedSection && (
-          <PredictResolvedOutcomesSection
-            closedOutcomes={closedOutcomes}
-            isExpanded={isResolvedExpanded}
-            onToggle={onResolvedExpandedToggle}
-          />
-        )}
-      </>
+      <PredictGameOutcomesContent
+        cardModels={openCardModels}
+        closedOutcomes={closedOutcomes}
+        showResolvedSection={showResolvedSection}
+        onBuyPress={onBuyPress}
+        game={game}
+        getPrice={getPrice}
+        isResolvedExpanded={isResolvedExpanded}
+        onResolvedExpandedToggle={onResolvedExpandedToggle}
+        selectedLineIndices={selectedLineIndices}
+        onSelectedLineIndexChange={handleSelectedLineIndexChange}
+      />
     );
   },
 );

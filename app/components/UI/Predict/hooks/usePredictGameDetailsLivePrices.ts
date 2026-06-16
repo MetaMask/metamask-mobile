@@ -4,11 +4,11 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PriceQuery, PriceResult, PriceUpdate } from '../types';
 import { useLiveMarketPrices } from './useLiveMarketPrices';
 
-export interface UsePredictLivePricesOptions {
+export interface UsePredictGameDetailsLivePricesOptions {
   enabled?: boolean;
 }
 
-export interface UsePredictLivePricesResult {
+export interface UsePredictGameDetailsLivePricesResult {
   prices: Map<string, PriceUpdate>;
   getPrice: (tokenId: string) => PriceUpdate | undefined;
   isConnected: boolean;
@@ -20,12 +20,6 @@ const normalizePriceResult = (result: PriceResult): PriceUpdate => ({
   price: result.entry.buy,
   bestBid: result.entry.sell,
   bestAsk: result.entry.buy,
-});
-
-const toPriceRequestQuery = (query: PriceQuery): PriceQuery => ({
-  marketId: query.marketId,
-  outcomeId: query.outcomeId,
-  outcomeTokenId: query.outcomeTokenId,
 });
 
 const getNormalizedQueries = (queries: PriceQuery[]): PriceQuery[] => {
@@ -55,13 +49,13 @@ const getNormalizedQueries = (queries: PriceQuery[]): PriceQuery[] => {
 };
 
 /**
- * Subscribes to live Predict market prices for the currently visible price
- * queries, with a one-shot REST warm-up for newly visible tokens.
+ * Owns game-detail live pricing orchestration: REST warmup for newly visible
+ * queries plus WebSocket updates from the shared live market price hook.
  */
-export const usePredictLivePrices = (
+export const usePredictGameDetailsLivePrices = (
   queries: PriceQuery[],
-  options: UsePredictLivePricesOptions = {},
-): UsePredictLivePricesResult => {
+  options: UsePredictGameDetailsLivePricesOptions = {},
+): UsePredictGameDetailsLivePricesResult => {
   const { enabled = true } = options;
   const [warmupPrices, setWarmupPrices] = useState<Map<string, PriceUpdate>>(
     () => new Map(),
@@ -127,7 +121,7 @@ export const usePredictLivePrices = (
 
       try {
         const response = await Engine.context.PredictController.getPrices({
-          queries: newlyVisibleQueries.map(toPriceRequestQuery),
+          queries: newlyVisibleQueries,
         });
 
         const updates = response.results
@@ -148,7 +142,10 @@ export const usePredictLivePrices = (
 
         commitWarmupPriceUpdates(updates);
       } catch (error) {
-        DevLogger.log('usePredictLivePrices: Error fetching prices', error);
+        DevLogger.log(
+          'usePredictGameDetailsLivePrices: Error fetching prices',
+          error,
+        );
       }
     },
     [commitWarmupPriceUpdates],
@@ -184,20 +181,41 @@ export const usePredictLivePrices = (
   });
 
   const prices = useMemo(() => {
-    const nextPrices = new Map(warmupPrices);
-    livePrices.forEach((price, tokenId) => {
-      nextPrices.set(tokenId, price);
+    const activeTokenIds = new Set(currentTokenIds);
+    const nextPrices = new Map<string, PriceUpdate>();
+
+    warmupPrices.forEach((price, tokenId) => {
+      if (activeTokenIds.has(tokenId)) {
+        nextPrices.set(tokenId, price);
+      }
     });
+    livePrices.forEach((price, tokenId) => {
+      if (activeTokenIds.has(tokenId)) {
+        nextPrices.set(tokenId, price);
+      }
+    });
+
     return nextPrices;
-  }, [livePrices, warmupPrices]);
+  }, [currentTokenIds, livePrices, warmupPrices]);
 
   useEffect(() => {
     const currentTokenIdSet = new Set(currentTokenIds);
     const previousTokenIdSet = activeTokenIdsRef.current;
 
+    setWarmupPrices((previousPrices) => {
+      const nextPrices = new Map<string, PriceUpdate>();
+      previousPrices.forEach((price, tokenId) => {
+        if (currentTokenIdSet.has(tokenId)) {
+          nextPrices.set(tokenId, price);
+        }
+      });
+      return nextPrices;
+    });
+
     previousTokenIdSet.forEach((tokenId) => {
       if (!currentTokenIdSet.has(tokenId)) {
         activeTokenEpochsRef.current.delete(tokenId);
+        websocketTokenGenerationsRef.current.delete(tokenId);
       }
     });
 

@@ -21,7 +21,7 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
-import { usePredictLivePrices } from '../../hooks/usePredictLivePrices';
+import { usePredictGameDetailsLivePrices } from '../../hooks/usePredictGameDetailsLivePrices';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictChipList from '../PredictChipList';
 import PredictGameChart, {
@@ -125,7 +125,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     () => [...chartLivePriceQueries, ...visibleOutcomePriceQueries],
     [chartLivePriceQueries, visibleOutcomePriceQueries],
   );
-  const { prices, getPrice, priceVersion } = usePredictLivePrices(
+  const { prices, getPrice, priceVersion } = usePredictGameDetailsLivePrices(
     combinedPriceQueries,
     {
       enabled: combinedPriceQueries.length > 0,

@@ -4,7 +4,7 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus, PriceQuery } from '../../types';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
-import { usePredictLivePrices } from '../../hooks/usePredictLivePrices';
+import { usePredictGameDetailsLivePrices } from '../../hooks/usePredictGameDetailsLivePrices';
 import { getPredictGameChartPriceQueries } from '../PredictGameChart';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
@@ -199,8 +199,8 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
-jest.mock('../../hooks/usePredictLivePrices', () => ({
-  usePredictLivePrices: jest.fn(() => ({
+jest.mock('../../hooks/usePredictGameDetailsLivePrices', () => ({
+  usePredictGameDetailsLivePrices: jest.fn(() => ({
     prices: new Map(),
     getPrice: jest.fn(),
     isConnected: true,
@@ -239,7 +239,8 @@ jest.mock(
   },
 );
 
-const mockUsePredictLivePrices = usePredictLivePrices as jest.Mock;
+const mockUsePredictGameDetailsLivePrices =
+  usePredictGameDetailsLivePrices as jest.Mock;
 const mockGetPredictGameChartPriceQueries =
   getPredictGameChartPriceQueries as jest.Mock;
 
@@ -316,7 +317,7 @@ describe('PredictGameDetailsContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetPredictGameChartPriceQueries.mockReturnValue([]);
-    mockUsePredictLivePrices.mockReturnValue({
+    mockUsePredictGameDetailsLivePrices.mockReturnValue({
       prices: new Map(),
       getPrice: jest.fn(),
       isConnected: true,
@@ -875,9 +876,12 @@ describe('PredictGameDetailsContent', () => {
       );
       expect(getByTestId('game-scoreboard')).toBeOnTheScreen();
       expect(getByTestId('game-chart')).toBeOnTheScreen();
-      expect(mockUsePredictLivePrices).toHaveBeenCalledWith(chartQueries, {
-        enabled: true,
-      });
+      expect(mockUsePredictGameDetailsLivePrices).toHaveBeenCalledWith(
+        chartQueries,
+        {
+          enabled: true,
+        },
+      );
     });
 
     it('keeps the ScrollView path when extended sports has no outcome groups', () => {

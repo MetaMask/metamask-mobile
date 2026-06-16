@@ -23,7 +23,6 @@ export interface PredictResolvedOutcomesSectionProps {
   closedOutcomes: PredictOutcome[];
   isExpanded: boolean;
   onToggle: () => void;
-  collapsible?: boolean;
 }
 
 const PredictResolvedOutcomesSection = memo(
@@ -31,23 +30,12 @@ const PredictResolvedOutcomesSection = memo(
     closedOutcomes,
     isExpanded,
     onToggle,
-    collapsible = true,
   }: PredictResolvedOutcomesSectionProps) => {
     const tw = useTailwind();
     const { colors } = useTheme();
 
     if (closedOutcomes.length === 0) {
       return null;
-    }
-
-    if (!collapsible) {
-      return (
-        <Box>
-          {closedOutcomes.map((outcome) => (
-            <PredictMarketOutcomeResolved key={outcome.id} outcome={outcome} />
-          ))}
-        </Box>
-      );
     }
 
     return (

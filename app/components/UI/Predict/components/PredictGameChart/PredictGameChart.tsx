@@ -8,7 +8,6 @@ import React, {
 import {
   PredictGameStatus,
   PredictMarket,
-  PredictOutcome,
   PredictPriceHistoryInterval,
   PriceQuery,
   PriceUpdate,
@@ -27,6 +26,7 @@ import {
   ChartTimeframe,
   GameChartSeriesConfig,
 } from './PredictGameChart.types';
+import { toPriceQuery } from '../PredictGameDetailsContent/outcomeCardModel';
 
 const TIMEFRAME_TO_INTERVAL: Record<
   Exclude<ChartTimeframe, 'live'>,
@@ -57,16 +57,6 @@ const toMilliseconds = (timestamp: number): number =>
 
 const toUnixSeconds = (isoString: string): number =>
   Math.floor(new Date(isoString).getTime() / 1000);
-
-const toPriceQuery = (
-  outcome: PredictOutcome,
-  outcomeTokenId: string,
-): PriceQuery => ({
-  marketId: outcome.marketId,
-  outcomeId: outcome.id,
-  outcomeTokenId,
-  sportsMarketType: outcome.sportsMarketType,
-});
 
 export const getPredictGameChartPriceQueries = (
   market: PredictMarket,

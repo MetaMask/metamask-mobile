@@ -13,7 +13,6 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 import PredictGameDetailsOutcomesList from './PredictGameDetailsOutcomesList';
 
 let mockVisibleItemKeys: string[] | null = null;
-let mockLatestFlashListExtraData: unknown;
 let mockFlashListMountCount = 0;
 
 jest.mock('@shopify/flash-list', () => {
@@ -24,14 +23,12 @@ jest.mock('@shopify/flash-list', () => {
     __esModule: true,
     FlashList: ({
       data = [],
-      extraData,
       keyExtractor,
       onViewableItemsChanged,
       renderItem,
       testID,
     }: {
       data?: unknown[];
-      extraData?: unknown;
       keyExtractor?: (item: unknown, index: number) => string;
       onViewableItemsChanged?: (params: {
         viewableItems: { item: unknown; key: string; index: number }[];
@@ -39,8 +36,6 @@ jest.mock('@shopify/flash-list', () => {
       renderItem: (params: { item: unknown; index: number }) => React.ReactNode;
       testID?: string;
     }) => {
-      mockLatestFlashListExtraData = extraData;
-
       ReactActual.useEffect(() => {
         mockFlashListMountCount += 1;
       }, []);
@@ -206,41 +201,6 @@ const createSingleOutcomeGroup = ({
   ],
 });
 
-const createLineGroup = (): PredictOutcomeGroup => ({
-  key: 'game_lines',
-  outcomes: [],
-  subgroups: [
-    {
-      key: 'total_corners',
-      title: 'Corners',
-      outcomes: [
-        createOutcome({
-          id: 'line-85',
-          groupItemTitle: 'Total Corners: O/U 8.5',
-          sportsMarketType: 'total_corners',
-          line: 8.5,
-          volume: 1000,
-          tokens: [
-            createToken({ id: 'over-85', shortTitle: 'O 8.5' }),
-            createToken({ id: 'under-85', shortTitle: 'U 8.5' }),
-          ],
-        }),
-        createOutcome({
-          id: 'line-95',
-          groupItemTitle: 'Total Corners: O/U 9.5',
-          sportsMarketType: 'total_corners',
-          line: 9.5,
-          volume: 5000,
-          tokens: [
-            createToken({ id: 'over-95', shortTitle: 'O 9.5' }),
-            createToken({ id: 'under-95', shortTitle: 'U 9.5' }),
-          ],
-        }),
-      ],
-    },
-  ],
-});
-
 const createDefaultProps = (
   overrides: Partial<
     React.ComponentProps<typeof PredictGameDetailsOutcomesList>
@@ -292,7 +252,6 @@ describe('PredictGameDetailsOutcomesList', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockVisibleItemKeys = null;
-    mockLatestFlashListExtraData = undefined;
     mockFlashListMountCount = 0;
   });
 
@@ -388,49 +347,6 @@ describe('PredictGameDetailsOutcomesList', () => {
         ]),
       );
     });
-  });
-
-  it('reports selected visible line price queries for line cards', async () => {
-    const lineGroup = createLineGroup();
-    mockVisibleItemKeys = ['game-details-outcome-total_corners'];
-
-    const onVisiblePriceQueriesChange = jest.fn();
-    render(
-      <PredictGameDetailsOutcomesList
-        {...createDefaultProps({
-          groupMap: new Map([[lineGroup.key, lineGroup]]),
-          activeChipKey: lineGroup.key,
-          chips: [{ key: lineGroup.key, label: 'Game Lines' }],
-          onVisiblePriceQueriesChange,
-        })}
-      />,
-    );
-    settleVisibility();
-
-    await waitFor(() => {
-      expect(onVisiblePriceQueriesChange).toHaveBeenLastCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ outcomeTokenId: 'over-95' }),
-          expect.objectContaining({ outcomeTokenId: 'under-95' }),
-        ]),
-      );
-    });
-  });
-
-  it('passes price version through FlashList extraData', async () => {
-    mockVisibleItemKeys = ['game-details-outcome-visible-outcome'];
-    render(
-      <PredictGameDetailsOutcomesList
-        {...createDefaultProps({ priceVersion: 3 })}
-      />,
-    );
-    settleVisibility();
-
-    expect(mockLatestFlashListExtraData).toEqual(
-      expect.objectContaining({
-        priceVersion: 3,
-      }),
-    );
   });
 
   it('does not remount FlashList when tab scope changes', () => {

@@ -122,46 +122,6 @@ export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>
 export const isSoccerLeague = (league: PredictSportsLeague): boolean =>
   isDrawCapableLeague(league);
 
-export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
-  // First half
-  first_half_moneyline: 'first_half',
-  first_half_spreads: 'first_half',
-  first_half_totals: 'first_half',
-  soccer_first_half_team_totals: 'first_half',
-  both_teams_to_score_first_half: 'first_half',
-  // Second half
-  second_half_totals: 'second_half',
-  soccer_second_half_team_totals: 'second_half',
-  both_teams_to_score_second_half: 'second_half',
-  soccer_second_half_result: 'second_half',
-  // NFL
-  team_totals: 'team_totals',
-  anytime_touchdowns: 'touchdowns',
-  first_touchdowns: 'touchdowns',
-  rushing_yards: 'rushing',
-  receiving_yards: 'receiving',
-  // NBA
-  points: 'points',
-  assists: 'assists',
-  rebounds: 'rebounds',
-  // Soccer
-  soccer_anytime_goalscorer: 'goalscorers',
-  soccer_player_goals: 'goals',
-  soccer_player_assists: 'assists',
-  soccer_player_shots: 'shots',
-  soccer_exact_score: 'exact_score',
-  soccer_halftime_result: 'halftime',
-  total_corners: 'corners',
-  soccer_team_total_corners: 'corners',
-  soccer_first_half_total_corners: 'corners',
-  soccer_second_half_total_corners: 'corners',
-  soccer_first_corner: 'corners',
-  soccer_game_corners_odd_even: 'corners',
-  // Tennis
-  tennis_first_set_winner: 'first_set',
-  tennis_first_set_totals: 'first_set',
-};
-
 export const GROUP_ORDER: string[] = [
   'game_lines',
   'first_half',
@@ -187,6 +147,211 @@ export const GROUP_ORDER: string[] = [
 
 export const DEFAULT_GROUP_KEY = 'game_lines';
 
+type SportsMarketCardSplit =
+  | 'aggregate'
+  | 'team'
+  | 'player'
+  | 'line'
+  | 'single';
+
+interface SportsMarketTypeDescriptor {
+  type: string;
+  group?: string;
+  priority?: number;
+  moneyline?: boolean;
+  cardSplit?: SportsMarketCardSplit;
+}
+
+export const SPORTS_MARKET_TYPE_DESCRIPTORS: readonly SportsMarketTypeDescriptor[] =
+  [
+    { type: 'moneyline', priority: 0, moneyline: true, cardSplit: 'aggregate' },
+    { type: 'spreads', priority: 1, cardSplit: 'aggregate' },
+    { type: 'totals', priority: 2, cardSplit: 'line' },
+    { type: 'nrfi', cardSplit: 'single' },
+    {
+      type: 'both_teams_to_score',
+      priority: 3,
+      cardSplit: 'single',
+    },
+    {
+      type: 'first_half_moneyline',
+      group: 'first_half',
+      priority: 0,
+      moneyline: true,
+      cardSplit: 'aggregate',
+    },
+    { type: 'first_half_spreads', group: 'first_half', cardSplit: 'aggregate' },
+    {
+      type: 'first_half_totals',
+      group: 'first_half',
+      cardSplit: 'line',
+    },
+    {
+      type: 'second_half_totals',
+      group: 'second_half',
+      priority: 2,
+      cardSplit: 'line',
+    },
+    { type: 'points', group: 'points', cardSplit: 'player' },
+    { type: 'assists', group: 'assists', cardSplit: 'player' },
+    { type: 'rebounds', group: 'rebounds', cardSplit: 'player' },
+    { type: 'basketball_total_points', cardSplit: 'single' },
+    { type: 'basketball_odd_even', cardSplit: 'single' },
+    { type: 'basketball_team_to_score_first', cardSplit: 'single' },
+    { type: 'goalscorers', cardSplit: 'player' },
+    { type: 'exact_score', cardSplit: 'single' },
+    { type: 'halftime_result', cardSplit: 'single' },
+    { type: 'corners', cardSplit: 'line' },
+    {
+      type: 'team_totals',
+      group: 'team_totals',
+      priority: 5,
+      cardSplit: 'team',
+    },
+    {
+      type: 'anytime_touchdowns',
+      group: 'touchdowns',
+      cardSplit: 'player',
+    },
+    {
+      type: 'first_touchdowns',
+      group: 'touchdowns',
+      cardSplit: 'player',
+    },
+    { type: 'rushing_yards', group: 'rushing', cardSplit: 'player' },
+    { type: 'receiving_yards', group: 'receiving', cardSplit: 'player' },
+    {
+      type: 'soccer_anytime_goalscorer',
+      group: 'goalscorers',
+      cardSplit: 'player',
+    },
+    { type: 'soccer_exact_score', group: 'exact_score', cardSplit: 'single' },
+    {
+      type: 'soccer_halftime_result',
+      group: 'halftime',
+      priority: 0,
+      moneyline: true,
+      cardSplit: 'aggregate',
+    },
+    {
+      type: 'soccer_first_half_team_totals',
+      group: 'first_half',
+      priority: 5,
+      cardSplit: 'team',
+    },
+    {
+      type: 'both_teams_to_score_first_half',
+      group: 'first_half',
+      priority: 3,
+      cardSplit: 'single',
+    },
+    {
+      type: 'soccer_second_half_result',
+      group: 'second_half',
+      priority: 0,
+      moneyline: true,
+      cardSplit: 'aggregate',
+    },
+    {
+      type: 'soccer_second_half_team_totals',
+      group: 'second_half',
+      priority: 5,
+      cardSplit: 'team',
+    },
+    {
+      type: 'both_teams_to_score_second_half',
+      group: 'second_half',
+      priority: 3,
+      cardSplit: 'single',
+    },
+    {
+      type: 'soccer_first_to_score',
+      priority: 4,
+      moneyline: true,
+      cardSplit: 'aggregate',
+    },
+    {
+      type: 'soccer_team_totals',
+      priority: 5,
+      cardSplit: 'team',
+    },
+    { type: 'total_corners', group: 'corners', cardSplit: 'line' },
+    {
+      type: 'soccer_team_total_corners',
+      group: 'corners',
+      cardSplit: 'team',
+    },
+    { type: 'soccer_first_corner', group: 'corners', cardSplit: 'single' },
+    {
+      type: 'soccer_first_half_total_corners',
+      group: 'corners',
+      cardSplit: 'line',
+    },
+    {
+      type: 'soccer_second_half_total_corners',
+      group: 'corners',
+      cardSplit: 'line',
+    },
+    {
+      type: 'soccer_game_corners_odd_even',
+      group: 'corners',
+      cardSplit: 'single',
+    },
+    { type: 'soccer_player_goals', group: 'goals', cardSplit: 'player' },
+    {
+      type: 'soccer_player_assists',
+      group: 'assists',
+      cardSplit: 'player',
+    },
+    { type: 'soccer_player_shots', group: 'shots', cardSplit: 'player' },
+    {
+      type: 'soccer_player_goals_plus_assists',
+      group: 'goals_plus_assists',
+      cardSplit: 'player',
+    },
+    {
+      type: 'soccer_player_shots_on_target',
+      group: 'shots_on_target',
+      cardSplit: 'player',
+    },
+    {
+      type: 'soccer_player_goalkeeper_saves',
+      group: 'goalkeeper_saves',
+      cardSplit: 'player',
+    },
+    { type: 'tennis_set_totals', priority: 2, cardSplit: 'line' },
+    { type: 'tennis_set_handicap', cardSplit: 'aggregate' },
+    { type: 'tennis_match_totals', priority: 3, cardSplit: 'line' },
+    {
+      type: 'tennis_first_set_totals',
+      group: 'first_set',
+      priority: 2,
+      cardSplit: 'line',
+    },
+    {
+      type: 'tennis_first_set_winner',
+      group: 'first_set',
+      priority: 0,
+      moneyline: true,
+      cardSplit: 'aggregate',
+    },
+    { type: 'tennis_completed_match', priority: 6, cardSplit: 'single' },
+  ];
+
+const SPORTS_MARKET_TYPE_DESCRIPTOR_BY_TYPE = new Map(
+  SPORTS_MARKET_TYPE_DESCRIPTORS.map((descriptor) => [
+    descriptor.type,
+    descriptor,
+  ]),
+);
+
+export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> =
+  Object.fromEntries(
+    SPORTS_MARKET_TYPE_DESCRIPTORS.flatMap(({ type, group }) =>
+      group && group !== DEFAULT_GROUP_KEY ? [[type, group]] : [],
+    ),
+  );
+
 const PLAYER_PROP_GROUP_PATTERN = /^[a-z0-9]+_player_(.+)$/;
 
 const derivePlayerPropGroupKey = (type: string): string | null =>
@@ -207,92 +372,25 @@ export const getSportsMarketTypeGroupKey = (type?: string): string => {
 };
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
-  moneyline: 0,
-  tennis_first_set_winner: 0,
-  soccer_second_half_result: 0,
-  spreads: 1,
-  totals: 2,
-  second_half_totals: 2,
-  tennis_set_totals: 2,
-  tennis_first_set_totals: 2,
-  both_teams_to_score: 3,
-  both_teams_to_score_first_half: 3,
-  both_teams_to_score_second_half: 3,
-  tennis_match_totals: 3,
-  soccer_first_to_score: 4,
-  team_totals: 5,
-  soccer_team_totals: 5,
-  soccer_first_half_team_totals: 5,
-  soccer_second_half_team_totals: 5,
-  tennis_completed_match: 6,
+  ...Object.fromEntries(
+    SPORTS_MARKET_TYPE_DESCRIPTORS.flatMap(({ type, priority }) =>
+      priority === undefined ? [] : [[type, priority]],
+    ),
+  ),
 };
 
-export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
-  'moneyline',
-  'spreads',
-  'totals',
-  'nrfi',
-  'both_teams_to_score',
-  'first_half_moneyline',
-  'first_half_spreads',
-  'first_half_totals',
-  'second_half_totals',
-  'points',
-  'assists',
-  'rebounds',
-  'basketball_total_points',
-  'basketball_odd_even',
-  'basketball_team_to_score_first',
-  'goalscorers',
-  'exact_score',
-  'halftime_result',
-  'corners',
-  'team_totals',
-  'anytime_touchdowns',
-  'first_touchdowns',
-  'rushing_yards',
-  'receiving_yards',
-  'soccer_anytime_goalscorer',
-  'soccer_exact_score',
-  'soccer_halftime_result',
-  'soccer_first_half_team_totals',
-  'both_teams_to_score_first_half',
-  'soccer_second_half_result',
-  'soccer_second_half_team_totals',
-  'both_teams_to_score_second_half',
-  'soccer_first_to_score',
-  'soccer_team_totals',
-  'total_corners',
-  'soccer_team_total_corners',
-  'soccer_first_corner',
-  'soccer_first_half_total_corners',
-  'soccer_second_half_total_corners',
-  'soccer_game_corners_odd_even',
-  'soccer_player_goals',
-  'soccer_player_assists',
-  'soccer_player_shots',
-  'soccer_player_goals_plus_assists',
-  'soccer_player_shots_on_target',
-  'soccer_player_goalkeeper_saves',
-  'tennis_set_totals',
-  'tennis_set_handicap',
-  'tennis_match_totals',
-  'tennis_first_set_totals',
-  'tennis_first_set_winner',
-  'tennis_completed_match',
-]);
+export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set(
+  SPORTS_MARKET_TYPE_DESCRIPTORS.map(({ type }) => type),
+);
 
 export const isSupportedSportsMarketType = (type?: string): boolean =>
   type === undefined || SUPPORTED_SPORTS_MARKET_TYPES.has(type.toLowerCase());
 
-export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
-  'moneyline',
-  'first_half_moneyline',
-  'soccer_halftime_result',
-  'soccer_second_half_result',
-  'soccer_first_to_score',
-  'tennis_first_set_winner',
-]);
+export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set(
+  SPORTS_MARKET_TYPE_DESCRIPTORS.flatMap(({ type, moneyline }) =>
+    moneyline ? [type] : [],
+  ),
+);
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
@@ -302,19 +400,11 @@ export const isMoneylineLikeMarketType = (type?: string): boolean =>
  * one card per player. Soccer types follow the `*_player_*` naming; the rest
  * are listed explicitly.
  */
-export const PLAYER_PROP_MARKET_TYPES: ReadonlySet<string> = new Set([
-  'points',
-  'assists',
-  'rebounds',
-  'rushing_yards',
-  'receiving_yards',
-  'anytime_touchdowns',
-  'first_touchdowns',
-  'soccer_anytime_goalscorer',
-  'soccer_player_goals',
-  'soccer_player_assists',
-  'soccer_player_shots',
-]);
+export const PLAYER_PROP_MARKET_TYPES: ReadonlySet<string> = new Set(
+  SPORTS_MARKET_TYPE_DESCRIPTORS.flatMap(({ type, cardSplit }) =>
+    cardSplit === 'player' ? [type] : [],
+  ),
+);
 
 export const isPlayerPropMarketType = (type?: string): boolean => {
   if (type === undefined) {
@@ -323,6 +413,13 @@ export const isPlayerPropMarketType = (type?: string): boolean => {
   const lower = type.toLowerCase();
   return PLAYER_PROP_MARKET_TYPES.has(lower) || lower.includes('player');
 };
+
+export const getSportsMarketTypeCardSplit = (
+  type?: string,
+): SportsMarketCardSplit | undefined =>
+  type
+    ? SPORTS_MARKET_TYPE_DESCRIPTOR_BY_TYPE.get(type.toLowerCase())?.cardSplit
+    : undefined;
 
 export const getPrimaryMoneylineOutcomes = <
   T extends { sportsMarketType?: string },

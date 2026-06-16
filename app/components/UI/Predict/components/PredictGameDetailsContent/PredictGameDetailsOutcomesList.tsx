@@ -18,10 +18,9 @@ import { useTheme } from '../../../../../util/theme';
 import PredictChipList, { type PredictChipItem } from '../PredictChipList';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictPicks from '../PredictPicks/PredictPicks';
-import PredictGameOutcomeCard, {
-  type BuyHandler,
-  type OutcomeCardModel,
-} from './PredictGameOutcomeCard';
+import type { BuyHandler } from './PredictGameOutcomeCard';
+import { PredictGameOutcomeCardItem } from './PredictGameOutcomesContent';
+import type { OutcomeCardModel } from './outcomeCardModel';
 import PredictResolvedOutcomesSection from '../PredictResolvedOutcomesSection';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { usePredictGameGroupOutcomes } from './usePredictGameGroupOutcomes';
@@ -51,7 +50,6 @@ type PredictGameDetailsListItem =
       type: 'resolved-outcomes';
       key: string;
       closedOutcomes: PredictOutcome[];
-      collapsible: boolean;
     };
 
 export interface PredictGameDetailsOutcomesListProps {
@@ -74,7 +72,6 @@ export interface PredictGameDetailsOutcomesListProps {
   getPrice: (tokenId: string) => PriceUpdate | undefined;
   priceVersion: number;
   onVisiblePriceQueriesChange: (queries: PriceQuery[]) => void;
-  onChartVisibilityChange?: (visible: boolean) => void;
   listHeaderComponent?: React.ReactElement;
 }
 
@@ -106,7 +103,6 @@ const PredictGameDetailsOutcomesList = memo(
     getPrice,
     priceVersion,
     onVisiblePriceQueriesChange,
-    onChartVisibilityChange,
     listHeaderComponent,
   }: PredictGameDetailsOutcomesListProps) => {
     const tw = useTailwind();
@@ -168,21 +164,8 @@ const PredictGameDetailsOutcomesList = memo(
     useEffect(
       () => () => {
         onVisiblePriceQueriesChange([]);
-        onChartVisibilityChange?.(false);
       },
-      [onChartVisibilityChange, onVisiblePriceQueriesChange],
-    );
-
-    const handleViewableItemsChanged = useCallback(
-      (info: Parameters<typeof onViewableItemsChanged>[0]) => {
-        onViewableItemsChanged(info);
-        onChartVisibilityChange?.(
-          info.viewableItems.some(
-            (viewableItem) => viewableItem.item?.type === 'header',
-          ),
-        );
-      },
-      [onChartVisibilityChange, onViewableItemsChanged],
+      [onVisiblePriceQueriesChange],
     );
 
     const listData = useMemo<PredictGameDetailsListItem[]>(() => {
@@ -225,7 +208,6 @@ const PredictGameDetailsOutcomesList = memo(
             type: 'resolved-outcomes',
             key: 'game-details-resolved-outcomes',
             closedOutcomes,
-            collapsible: true,
           });
         }
       }
@@ -334,18 +316,17 @@ const PredictGameDetailsOutcomesList = memo(
             );
           case 'outcome-card':
             return (
-              <Box twClassName="px-4">
-                <PredictGameOutcomeCard
-                  cardModel={item.cardModel}
-                  onBuyPress={handleBuyPress}
-                  game={market.game}
-                  getPrice={getPrice}
-                  selectedLineIndex={selectedLineIndices[item.cardModel.key]}
-                  onSelectedLineIndexChange={(nextIndex) =>
-                    onSelectedLineIndexChange(item.cardModel.key, nextIndex)
-                  }
-                />
-              </Box>
+              <PredictGameOutcomeCardItem
+                cardModel={item.cardModel}
+                onBuyPress={handleBuyPress}
+                game={market.game}
+                getPrice={getPrice}
+                selectedLineIndex={selectedLineIndices[item.cardModel.key]}
+                onSelectedLineIndexChange={(nextIndex) =>
+                  onSelectedLineIndexChange(item.cardModel.key, nextIndex)
+                }
+                twClassName="px-4"
+              />
             );
           case 'resolved-outcomes':
             return (
@@ -354,7 +335,6 @@ const PredictGameDetailsOutcomesList = memo(
                   closedOutcomes={item.closedOutcomes}
                   isExpanded={isResolvedExpanded}
                   onToggle={toggleResolvedExpanded}
-                  collapsible={item.collapsible}
                 />
               </Box>
             );
@@ -408,7 +388,7 @@ const PredictGameDetailsOutcomesList = memo(
           onScroll={onScroll}
           onScrollBeginDrag={onScrollBeginDrag}
           onScrollEndDrag={onScrollEndDrag}
-          onViewableItemsChanged={handleViewableItemsChanged}
+          onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
         />
       </Box>

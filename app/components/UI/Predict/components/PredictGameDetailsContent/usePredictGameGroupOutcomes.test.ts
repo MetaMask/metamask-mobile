@@ -4,10 +4,8 @@ import type {
   PredictOutcomeGroup,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  buildOutcomeCardModels,
-  usePredictGameGroupOutcomes,
-} from './usePredictGameGroupOutcomes';
+import { usePredictGameGroupOutcomes } from './usePredictGameGroupOutcomes';
+import { buildOutcomeCardModels } from './outcomeCardModel';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -93,10 +91,7 @@ describe('usePredictGameGroupOutcomes', () => {
     expect(result.current).toEqual({
       openCardModels: [],
       closedOutcomes: [],
-      activeGroupTokenIds: [],
-      activeGroupPriceQueries: [],
       showResolvedSection: false,
-      hasPartialResolution: false,
     });
   });
 
@@ -169,18 +164,7 @@ describe('usePredictGameGroupOutcomes', () => {
       'moneyline-away',
       'corners-closed',
     ]);
-    expect(result.current.activeGroupTokenIds).toEqual([
-      'ml-home',
-      'corners-over-85',
-      'corners-under-85',
-    ]);
-    expect(
-      result.current.activeGroupPriceQueries.map(
-        (query) => query.outcomeTokenId,
-      ),
-    ).toEqual(['ml-home', 'corners-over-85', 'corners-under-85']);
     expect(result.current.showResolvedSection).toBe(true);
-    expect(result.current.hasPartialResolution).toBe(true);
   });
 
   it('returns only closed outcomes when the entire group is settled', () => {
@@ -205,10 +189,7 @@ describe('usePredictGameGroupOutcomes', () => {
 
     expect(result.current.openCardModels).toEqual([]);
     expect(result.current.closedOutcomes).toHaveLength(1);
-    expect(result.current.activeGroupTokenIds).toEqual([]);
-    expect(result.current.activeGroupPriceQueries).toEqual([]);
     expect(result.current.showResolvedSection).toBe(true);
-    expect(result.current.hasPartialResolution).toBe(false);
   });
 
   it('treats resolved outcomes with open status but resolved resolutionStatus as closed', () => {
@@ -238,7 +219,6 @@ describe('usePredictGameGroupOutcomes', () => {
       'set-1-winner',
     ]);
     expect(result.current.showResolvedSection).toBe(true);
-    expect(result.current.hasPartialResolution).toBe(false);
   });
 
   it('groups all settled first-set tennis outcomes into the resolved section', () => {
@@ -306,7 +286,6 @@ describe('usePredictGameGroupOutcomes', () => {
     expect(result.current.openCardModels).toEqual([]);
     expect(result.current.closedOutcomes).toHaveLength(4);
     expect(result.current.showResolvedSection).toBe(true);
-    expect(result.current.hasPartialResolution).toBe(false);
   });
 
   it('builds open card models and de-duplicated token ids for subgrouped outcomes', () => {
@@ -413,17 +392,6 @@ describe('usePredictGameGroupOutcomes', () => {
         testID: 'game_lines-duplicate-token-card',
       }),
     ]);
-
-    expect(result.current.activeGroupTokenIds).toEqual([
-      'ml-home',
-      'ml-away',
-      'player-over',
-      'player-under',
-      'corners-over-85',
-      'corners-under-85',
-      'corners-over-95',
-      'corners-under-95',
-    ]);
   });
 
   it('keeps memoized references stable when the same group instance is rerendered', () => {
@@ -452,12 +420,10 @@ describe('usePredictGameGroupOutcomes', () => {
     );
 
     const firstCardModels = result.current.openCardModels;
-    const firstTokenIds = result.current.activeGroupTokenIds;
 
     rerender({ currentGroup: group });
 
     expect(result.current.openCardModels).toBe(firstCardModels);
-    expect(result.current.activeGroupTokenIds).toBe(firstTokenIds);
   });
 
   it('recomputes derived values when the group changes', () => {
@@ -521,12 +487,6 @@ describe('usePredictGameGroupOutcomes', () => {
         title: 'Corners',
         testID: 'corners-total_corners',
       }),
-    ]);
-    expect(result.current.activeGroupTokenIds).toEqual([
-      'corners-over-85',
-      'corners-under-85',
-      'corners-over-95',
-      'corners-under-95',
     ]);
   });
 });

@@ -5,7 +5,6 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
-import { getSportsMarketTypeGroupKey } from '../../constants/sports';
 import {
   DEFAULT_CLOB_BASE_URL,
   MATIC_CONTRACTS_V2,
@@ -243,20 +242,6 @@ describe('polymarket utils', () => {
       mkOutcome('soccer_team_totals', 'South Africa O/U 0.5', { line: 0.5 }),
       mkOutcome('soccer_team_totals', 'South Africa O/U 1.5', { line: 1.5 }),
     ];
-
-    it('derives group keys for new player stat market types', () => {
-      expect(getSportsMarketTypeGroupKey('soccer_player_goals')).toBe('goals');
-      expect(getSportsMarketTypeGroupKey('soccer_player_shots_on_target')).toBe(
-        'shots_on_target',
-      );
-      expect(
-        getSportsMarketTypeGroupKey('soccer_player_goals_plus_assists'),
-      ).toBe('goals_plus_assists');
-      expect(
-        getSportsMarketTypeGroupKey('soccer_player_goalkeeper_saves'),
-      ).toBe('goalkeeper_saves');
-      expect(getSportsMarketTypeGroupKey('totals')).toBe('game_lines');
-    });
 
     it('assigns soccer market types to the expected tabs in order', () => {
       const groups = buildOutcomeGroups([

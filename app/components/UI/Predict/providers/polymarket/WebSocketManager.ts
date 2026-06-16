@@ -470,23 +470,13 @@ export class WebSocketManager {
       if (subscriptionCallbacks) {
         subscriptionCallbacks.delete(callback);
         if (subscriptionCallbacks.size === 0) {
-          this.priceSubscriptions.delete(subscriptionKey);
-          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
-          const tokenIdsToUnsubscribe = tokenIds.filter(
-            (tokenId) =>
-              !remainingPriceTokenIds.has(tokenId) &&
-              !this.orderbookSubscriptions.has(tokenId),
-          );
-          const remainingTokenIds =
+          const previousTokenIds =
             this.getSubscribedMarketTokenIdsWithOrderbook();
-          if (tokenIdsToUnsubscribe.length > 0) {
-            if (remainingTokenIds.length === 0) {
-              this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
-            }
-          }
-          if (remainingTokenIds.length > 0) {
-            this.sendMarketSubscribe(remainingTokenIds);
-          }
+          this.priceSubscriptions.delete(subscriptionKey);
+          this.syncMarketSubscriptions(
+            previousTokenIds,
+            this.getSubscribedMarketTokenIdsWithOrderbook(),
+          );
         }
       }
 
@@ -539,17 +529,10 @@ export class WebSocketManager {
             clearTimeout(pendingTimer);
             this.orderbookEmitTimers.delete(tokenId);
           }
-          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
-          const remainingTokenIds =
-            this.getSubscribedMarketTokenIdsWithOrderbook();
-          if (!remainingPriceTokenIds.has(tokenId)) {
-            if (remainingTokenIds.length === 0) {
-              this.sendMarketUnsubscribe([tokenId]);
-            }
-          }
-          if (remainingTokenIds.length > 0) {
-            this.sendMarketSubscribe(remainingTokenIds);
-          }
+          this.syncMarketSubscriptions(
+            [tokenId, ...this.getSubscribedMarketTokenIdsWithOrderbook()],
+            this.getSubscribedMarketTokenIdsWithOrderbook(),
+          );
         }
       }
 
@@ -940,6 +923,20 @@ export class WebSocketManager {
         assets_ids: tokenIds,
       }),
     );
+  }
+
+  private syncMarketSubscriptions(
+    previousTokenIds: Iterable<string>,
+    nextTokenIds: Iterable<string>,
+  ): void {
+    const nextTokenIdSet = new Set(nextTokenIds);
+    const tokenIdsToUnsubscribe = [...new Set(previousTokenIds)].filter(
+      (tokenId) => !nextTokenIdSet.has(tokenId),
+    );
+
+    if (tokenIdsToUnsubscribe.length > 0) {
+      this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
+    }
   }
 
   private getSubscribedMarketTokenIds(): Set<string> {
