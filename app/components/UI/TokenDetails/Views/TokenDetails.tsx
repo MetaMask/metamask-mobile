@@ -216,6 +216,7 @@ const TokenDetails: React.FC<{
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
+    hasInsufficientCoverage,
   } = useTokenPrice({ token });
 
   const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
@@ -316,6 +317,7 @@ const TokenDetails: React.FC<{
         comparePrice={comparePrice}
         prices={prices}
         isLoading={isLoading}
+        hasInsufficientCoverage={hasInsufficientCoverage}
         timePeriod={timePeriod}
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
