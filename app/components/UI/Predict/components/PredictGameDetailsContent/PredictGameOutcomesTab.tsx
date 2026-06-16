@@ -1,19 +1,30 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type {
+  GetPriceResponse,
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
+  PriceQuery,
 } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictPrices } from '../../hooks/usePredictPrices';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
-import { isValidPrice } from '../../utils/prices';
+import { getPredictBuyPrice, isValidPrice } from '../../utils/prices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
+import { usePredictPreviewSheet } from '../../contexts';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
@@ -21,6 +32,91 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 const I18N_PREFIX = 'predict.sports_market_types';
 const MISSING_TRANSLATION_PREFIX = '[missing';
 const loggedMissingTranslationKeys = new Set<string>();
+const PRICE_POLL_INTERVAL_MS = 2000;
+const EMPTY_PRICE_QUERIES: PriceQuery[] = [];
+
+const flattenGroupOutcomes = (group: PredictOutcomeGroup): PredictOutcome[] => [
+  ...group.outcomes,
+  ...(group.subgroups?.flatMap((subgroup) => subgroup.outcomes) ?? []),
+];
+
+const buildPriceQueries = (outcomes: PredictOutcome[]): PriceQuery[] =>
+  outcomes.flatMap((outcome) =>
+    outcome.tokens.map((token) => ({
+      marketId: outcome.marketId,
+      outcomeId: outcome.id,
+      outcomeTokenId: token.id,
+    })),
+  );
+
+const getOutcomeBuyPrice = (
+  token: PredictOutcomeToken,
+  prices: GetPriceResponse,
+): number => {
+  const restEntry = prices.results.find(
+    (result) => result.outcomeTokenId === token.id,
+  );
+  if (isValidPrice(restEntry?.entry.sell)) {
+    return restEntry.entry.sell;
+  }
+
+  return getPredictBuyPrice(token, undefined, prices) ?? token.price;
+};
+
+const applyPricesToOutcomes = (
+  outcomes: PredictOutcome[],
+  prices: GetPriceResponse,
+  previousById?: Map<string, PredictOutcome>,
+): PredictOutcome[] =>
+  outcomes.map((outcome) => {
+    const previousOutcome = previousById?.get(outcome.id);
+    let changed = !previousOutcome;
+
+    const tokens = outcome.tokens.map((token) => {
+      const price = getOutcomeBuyPrice(token, prices);
+      const previousToken = previousOutcome?.tokens.find(
+        (t) => t.id === token.id,
+      );
+      if (previousToken && previousToken.price === price) {
+        return previousToken;
+      }
+      changed = true;
+      return { ...token, price };
+    });
+
+    if (previousOutcome && !changed) {
+      return previousOutcome;
+    }
+    return { ...outcome, tokens };
+  });
+
+const applyPricesToGroup = (
+  group: PredictOutcomeGroup,
+  prices: GetPriceResponse,
+  previousGroup: PredictOutcomeGroup | null,
+  previousPricedOutcomes: PredictOutcome[],
+): PredictOutcomeGroup => {
+  const canReusePreviousPrices = previousGroup === group;
+  const previousById = canReusePreviousPrices
+    ? new Map(previousPricedOutcomes.map((outcome) => [outcome.id, outcome]))
+    : undefined;
+
+  const pricedOutcomes = applyPricesToOutcomes(
+    group.outcomes,
+    prices,
+    previousById,
+  );
+  const pricedSubgroups = group.subgroups?.map((subgroup) => ({
+    ...subgroup,
+    outcomes: applyPricesToOutcomes(subgroup.outcomes, prices, previousById),
+  }));
+
+  return {
+    ...group,
+    outcomes: pricedOutcomes,
+    ...(pricedSubgroups && { subgroups: pricedSubgroups }),
+  };
+};
 
 const toTitleCase = (str: string): string =>
   str
@@ -149,10 +245,9 @@ const getDefaultLineIndex = (
   return lineIndices.reduce((bestIndex, outcomeIndex, lineIndex) => {
     const bestOutcome = outcomes[lineIndices[bestIndex]];
     const outcome = outcomes[outcomeIndex];
-    const bestScore =
-      (bestOutcome?.volume ?? 0) + (bestOutcome?.liquidity ?? 0);
-    const score = (outcome?.volume ?? 0) + (outcome?.liquidity ?? 0);
-    return score > bestScore ? lineIndex : bestIndex;
+    return (outcome?.volume ?? 0) > (bestOutcome?.volume ?? 0)
+      ? lineIndex
+      : bestIndex;
   }, 0);
 };
 
@@ -510,14 +605,56 @@ export interface OutcomesTabProps {
 
 const PredictGameOutcomesTab = memo(
   ({ groupMap, game, activeChipKey, onBuyPress }: OutcomesTabProps) => {
+    const { isBuySheetOpen } = usePredictPreviewSheet();
     const selectedGroup = groupMap.get(activeChipKey);
+
+    const flatOutcomes = useMemo(
+      () => (selectedGroup ? flattenGroupOutcomes(selectedGroup) : []),
+      [selectedGroup],
+    );
+
+    const priceQueries = useMemo(
+      () => buildPriceQueries(flatOutcomes),
+      [flatOutcomes],
+    );
+
+    const shouldFetchPrices = priceQueries.length > 0 && !isBuySheetOpen;
+    const activePriceQueries = shouldFetchPrices
+      ? priceQueries
+      : EMPTY_PRICE_QUERIES;
+
+    const { prices } = usePredictPrices({
+      queries: activePriceQueries,
+      enabled: shouldFetchPrices,
+      pollingInterval: shouldFetchPrices ? PRICE_POLL_INTERVAL_MS : undefined,
+    });
+
+    const previousSelectedGroupRef = useRef<PredictOutcomeGroup | null>(null);
+    const previousPricedOutcomesRef = useRef<PredictOutcome[]>([]);
+
+    const pricedGroup = useMemo(() => {
+      if (!selectedGroup) {
+        return undefined;
+      }
+
+      const nextGroup = applyPricesToGroup(
+        selectedGroup,
+        prices,
+        previousSelectedGroupRef.current,
+        previousPricedOutcomesRef.current,
+      );
+
+      previousSelectedGroupRef.current = selectedGroup;
+      previousPricedOutcomesRef.current = flattenGroupOutcomes(nextGroup);
+      return nextGroup;
+    }, [selectedGroup, prices]);
 
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
-        {selectedGroup && (
+        {pricedGroup && (
           <Box twClassName="px-4">
             <OutcomesContent
-              group={selectedGroup}
+              group={pricedGroup}
               onBuyPress={onBuyPress}
               game={game}
             />

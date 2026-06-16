@@ -1,13 +1,16 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
 import PredictGameOutcomesTab, {
   getSportsMarketTypeLabel,
 } from './PredictGameOutcomesTab';
 import type {
+  GetPriceResponse,
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
+  PriceQuery,
 } from '../../types';
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
@@ -44,6 +47,57 @@ jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
+
+jest.mock('../../../../../core/Engine', () => {
+  const mockContext = {
+    PredictController: {
+      getPrices: jest.fn(),
+    },
+  };
+
+  return {
+    context: mockContext,
+  };
+});
+
+const mockGetPrices = jest.mocked(Engine.context.PredictController.getPrices);
+
+const mockUsePredictPreviewSheet = jest.fn(() => ({
+  isBuySheetOpen: false,
+}));
+
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => mockUsePredictPreviewSheet(),
+}));
+
+const createPriceResult = ({
+  outcomeId,
+  outcomeTokenId,
+  buy,
+  sell = 0,
+  marketId = 'market-1',
+}: {
+  outcomeId: string;
+  outcomeTokenId: string;
+  buy: number;
+  sell?: number;
+  marketId?: string;
+}): GetPriceResponse['results'][number] => ({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  entry: { buy, sell },
+});
+
+const createPriceResponse = (
+  results: GetPriceResponse['results'] = [],
+  providerId = 'polymarket',
+): GetPriceResponse => ({
+  providerId,
+  results,
+});
+
+const emptyPriceResponse = createPriceResponse([], '');
 
 const mockGetLivePrice = jest.fn();
 
@@ -217,7 +271,11 @@ const mockGame: PredictMarketGame = {
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePredictPreviewSheet.mockReturnValue({
+      isBuySheetOpen: false,
+    });
     mockGetLivePrice.mockReturnValue(undefined);
+    mockGetPrices.mockResolvedValue(emptyPriceResponse);
     mockCapturedCards = [];
   });
 
@@ -978,13 +1036,23 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].lines).toEqual([7.5, 3.5, 10.5]);
     });
 
-    it('defaults selected line to the highest volume and liquidity outcome', () => {
+    it('defaults selected line to the highest volume outcome', () => {
       const subgroups: PredictOutcomeGroup[] = [
         createGroup({
           key: 'spreads',
           outcomes: [
-            createOutcome({ id: 's1', line: 7.5, volume: 1000, liquidity: 50 }),
-            createOutcome({ id: 's2', line: 3.5, volume: 5000, liquidity: 50 }),
+            createOutcome({
+              id: 's1',
+              line: 7.5,
+              volume: 1000,
+              liquidity: 10000,
+            }),
+            createOutcome({
+              id: 's2',
+              line: 3.5,
+              volume: 5000,
+              liquidity: 50,
+            }),
           ],
         }),
       ];
@@ -1605,6 +1673,238 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards[0].title).toBe('Total');
+    });
+  });
+
+  describe('REST price polling', () => {
+    it('does not fetch prices while the buy sheet is open', async () => {
+      mockUsePredictPreviewSheet.mockReturnValue({
+        isBuySheetOpen: true,
+      });
+
+      const outcome = createOutcome({
+        id: 'o-points',
+        sportsMarketType: 'points',
+        tokens: [createToken({ id: 'tok-points', price: 0.65 })],
+      });
+      const groups = [createGroup({ key: 'points', outcomes: [outcome] })];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="points"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockGetPrices).not.toHaveBeenCalled();
+      });
+    });
+
+    it('renders polled buy prices for the selected group outcomes', async () => {
+      const token = createToken({ id: 'tok-points', price: 0.65 });
+      const outcome = createOutcome({
+        id: 'o-points',
+        sportsMarketType: 'points',
+        tokens: [token],
+      });
+      const groups = [createGroup({ key: 'points', outcomes: [outcome] })];
+
+      mockGetPrices.mockResolvedValue(
+        createPriceResponse([
+          createPriceResult({
+            outcomeId: 'o-points',
+            outcomeTokenId: 'tok-points',
+            buy: 0.71,
+            sell: 0.72,
+          }),
+        ]),
+      );
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="points"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId('points-outcome-0-btn-0').props.accessibilityHint,
+        ).toBe('TA|72|draw|none');
+      });
+
+      expect(mockGetPrices).toHaveBeenCalledWith({
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'o-points',
+            outcomeTokenId: 'tok-points',
+          },
+        ],
+      });
+    });
+
+    it('re-targets price queries when activeChipKey changes', async () => {
+      const pointsOutcome = createOutcome({
+        id: 'o-points',
+        sportsMarketType: 'points',
+        tokens: [createToken({ id: 'tok-points', price: 0.65 })],
+      });
+      const touchdownsOutcome = createOutcome({
+        id: 'o-td',
+        sportsMarketType: 'touchdowns',
+        tokens: [createToken({ id: 'tok-td', price: 0.4 })],
+      });
+      const groups = [
+        createGroup({ key: 'points', outcomes: [pointsOutcome] }),
+        createGroup({ key: 'touchdowns', outcomes: [touchdownsOutcome] }),
+      ];
+
+      const getAskPrice = (outcomeTokenId: string): number => {
+        switch (outcomeTokenId) {
+          case 'tok-points':
+            return 0.72;
+          case 'tok-td':
+            return 0.55;
+          default:
+            return 0;
+        }
+      };
+
+      mockGetPrices.mockImplementation(
+        async ({ queries }: { queries: PriceQuery[] }) =>
+          createPriceResponse(
+            queries.map((query) =>
+              createPriceResult({
+                outcomeId: query.outcomeId,
+                outcomeTokenId: query.outcomeTokenId,
+                buy: getAskPrice(query.outcomeTokenId) - 0.01,
+                sell: getAskPrice(query.outcomeTokenId),
+                marketId: query.marketId,
+              }),
+            ),
+          ),
+      );
+
+      const { rerender, getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="points"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockGetPrices).toHaveBeenCalledWith({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'o-points',
+              outcomeTokenId: 'tok-points',
+            },
+          ],
+        });
+      });
+
+      rerender(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="touchdowns"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockGetPrices).toHaveBeenCalledWith({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'o-td',
+              outcomeTokenId: 'tok-td',
+            },
+          ],
+        });
+        expect(
+          getByTestId('touchdowns-outcome-0-btn-0').props.accessibilityHint,
+        ).toBe('TA|55|draw|none');
+      });
+    });
+
+    it('polls prices for outcomes inside subgroups of the selected group', async () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'spreads',
+          outcomes: [
+            createOutcome({
+              id: 'sp-1',
+              line: 3.5,
+              tokens: [
+                createToken({ id: 'tok-sp-a', shortTitle: 'TA', price: 0.6 }),
+                createToken({ id: 'tok-sp-b', shortTitle: 'TB', price: 0.4 }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      mockGetPrices.mockResolvedValue(
+        createPriceResponse([
+          createPriceResult({
+            outcomeId: 'sp-1',
+            outcomeTokenId: 'tok-sp-a',
+            buy: 0.67,
+            sell: 0.68,
+          }),
+          createPriceResult({
+            outcomeId: 'sp-1',
+            outcomeTokenId: 'tok-sp-b',
+            buy: 0.31,
+            sell: 0.32,
+          }),
+        ]),
+      );
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockGetPrices).toHaveBeenCalledWith({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'sp-1',
+              outcomeTokenId: 'tok-sp-a',
+            },
+            {
+              marketId: 'market-1',
+              outcomeId: 'sp-1',
+              outcomeTokenId: 'tok-sp-b',
+            },
+          ],
+        });
+        expect(
+          getByTestId('game_lines-spreads-0-btn-0').props.accessibilityHint,
+        ).toBe('TA|68|draw|none');
+        expect(
+          getByTestId('game_lines-spreads-0-btn-1').props.accessibilityHint,
+        ).toBe('TB|32|draw|none');
+      });
     });
   });
 });
