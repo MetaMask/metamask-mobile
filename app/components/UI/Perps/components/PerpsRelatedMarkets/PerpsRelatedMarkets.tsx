@@ -19,7 +19,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
-import { PerpsPillItem } from '../PerpsPillItem';
+import { PerpsPillItemWithLiveData } from '../PerpsPillItem';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
@@ -121,7 +121,7 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
 
   const renderPill = useCallback(
     (item: PerpsFeedItem, index: number) => (
-      <PerpsPillItem
+      <PerpsPillItemWithLiveData
         item={item}
         onNavigateToMarketDetails={() => handleMarketPress(item.market, index)}
       />

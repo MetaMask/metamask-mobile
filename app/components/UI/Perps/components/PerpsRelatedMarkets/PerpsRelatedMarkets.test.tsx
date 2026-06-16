@@ -85,24 +85,24 @@ jest.mock('../../../Trending/components/SectionPillsSkeleton', () => ({
 
 jest.mock('../PerpsPillItem', () => {
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
+  const MockPill = ({
+    item,
+    onNavigateToMarketDetails,
+  }: {
+    item: { market: PerpsMarketData };
+    onNavigateToMarketDetails?: (market: PerpsMarketData) => void;
+  }) => (
+    <TouchableOpacity
+      testID={`perps-market-tile-card-${item.market.symbol}`}
+      onPress={() => onNavigateToMarketDetails?.(item.market)}
+    >
+      <Text>{item.market.symbol}</Text>
+      <Text>{item.market.change24hPercent}</Text>
+    </TouchableOpacity>
+  );
   return {
-    PerpsPillItem: function MockPerpsPillItem({
-      item,
-      onNavigateToMarketDetails,
-    }: {
-      item: { market: PerpsMarketData };
-      onNavigateToMarketDetails?: (market: PerpsMarketData) => void;
-    }) {
-      return (
-        <TouchableOpacity
-          testID={`perps-market-tile-card-${item.market.symbol}`}
-          onPress={() => onNavigateToMarketDetails?.(item.market)}
-        >
-          <Text>{item.market.symbol}</Text>
-          <Text>{item.market.change24hPercent}</Text>
-        </TouchableOpacity>
-      );
-    },
+    PerpsPillItem: MockPill,
+    PerpsPillItemWithLiveData: MockPill,
   };
 });
 
