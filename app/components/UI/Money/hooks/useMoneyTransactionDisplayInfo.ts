@@ -261,8 +261,9 @@ export function useMoneyTransactionDisplayInfo(
     }
 
     // Perps/Predict ↔ Money transfers carry no `requiredAssets` and aren't token
-    // transfers, so neither amount path above resolves.
-    if (isPerpsPredictMoneyActivity(tx)) {
+    // transfers, so neither amount path above resolves. Skip when failed so the
+    // signed-zero amount set above is preserved (as for every other failed row).
+    if (status !== 'failed' && isPerpsPredictMoneyActivity(tx)) {
       const fiatStr = isPerpsPredictMoneyWithdraw(tx)
         ? tx.metamaskPay?.targetFiat
         : tx.metamaskPay?.totalFiat;

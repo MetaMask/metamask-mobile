@@ -1033,4 +1033,41 @@ describe('useMoneyTransactionDisplayInfo — Perps/Predict ↔ Money', () => {
     expect(result.current.primaryAmount).toBe('+0.10 mUSD');
     expect(result.current.fiatAmount).toBe('+$0.10');
   });
+
+  it('shows signed-zero (not the real amount) for a failed money-funded Perps deposit', () => {
+    // Failed rows must show signed-zero like every other kind; the perps amount
+    // block must not clobber it.
+    const tx = makeTx(TransactionType.perpsDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: payOnMonad({ totalFiat: '0.67157', targetFiat: '0.64' }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.send_failed');
+    expect(result.current.isIncoming).toBe(false);
+    expect(result.current.primaryAmount).toBe('-0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.00');
+  });
+
+  it('shows signed-zero for a failed Predict withdraw into the Money account', () => {
+    const tx = makeTx(TransactionType.batch, {
+      status: TransactionStatus.failed,
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      metamaskPay: payOnMonad({
+        totalFiat: '0.158879',
+        targetFiat: '0.099965',
+      }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.isIncoming).toBe(true);
+    expect(result.current.primaryAmount).toBe('+0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.00');
+  });
 });
