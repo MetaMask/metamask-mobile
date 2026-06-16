@@ -766,6 +766,7 @@ function handleSetThemeColors(payload) {
 
   var chart = window.chartWidget.activeChart();
   var lineColor = theme.lineColor || theme.successColor;
+  var currentPriceColor = theme.currentPriceColor || lineColor;
 
   // Update volume study colors if present
   if (window.volumeStudyId) {
@@ -796,7 +797,7 @@ function handleSetThemeColors(payload) {
   if (window.lastPriceShapeId) {
     try {
       chart.getShapeById(window.lastPriceShapeId).setProperties({
-        linecolor: theme.successColor,
+        linecolor: theme.currentPriceColor || theme.successColor,
       });
     } catch (e) {}
   }
@@ -804,7 +805,7 @@ function handleSetThemeColors(payload) {
   if (window.lineLastPriceShapeId) {
     try {
       chart.getShapeById(window.lineLastPriceShapeId).setProperties({
-        linecolor: lineColor,
+        linecolor: currentPriceColor,
       });
     } catch (e) {}
   }
