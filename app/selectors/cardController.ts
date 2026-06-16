@@ -137,6 +137,16 @@ export const selectCardHomeData = createSelector(
     (cardState?.cardHomeData as unknown as CardHomeData | null) ?? null,
 );
 
+export const selectCardVerificationStatus = createSelector(
+  selectCardHomeData,
+  (data): string | null => data?.account?.verificationStatus ?? null,
+);
+
+export const selectIsCardVerified = createSelector(
+  selectCardVerificationStatus,
+  (status) => status === 'VERIFIED',
+);
+
 export const selectCardHomeDataStatus = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeDataStatus =>
