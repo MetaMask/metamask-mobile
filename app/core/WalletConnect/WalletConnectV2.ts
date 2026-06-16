@@ -14,7 +14,6 @@ import { getSdkError } from '@walletconnect/utils';
 import {
   removeWC2SessionMetadata,
   setWC2SessionMetadata,
-  updateWC2SessionMetadata,
 } from '../../../app/actions/sdk';
 import {
   WC2VerifyContext,
@@ -641,13 +640,7 @@ export class WC2Manager {
     // Save per-connection metadata for the approval UI, keyed by pairing
     // topic so concurrent proposals don't clobber each other.
     store.dispatch(
-      setWC2SessionMetadata(channelId, {
-        url,
-        name,
-        icon,
-        verifyContext,
-        proposalId: `${id}`,
-      }),
+      setWC2SessionMetadata(channelId, { url, name, icon, verifyContext }),
     );
 
     const doesProposalIncludeEip155 = doesProposalOrSessionIncludeNamespace({
@@ -827,10 +820,8 @@ export class WC2Manager {
       if (deeplink) {
         session.redirect('onSessionProposal');
       }
-      // Proposal phase is complete; metadata now belongs to the live session.
-      store.dispatch(
-        updateWC2SessionMetadata(channelId, { proposalId: undefined }),
-      );
+      // Proposal phase complete; the entry persists unchanged into the live
+      // session, where handleRequest will enrich it with lastVerifiedUrl.
     } catch (err) {
       console.error(`invalid wallet status`, err);
       // Drop the entry so a failed approve doesn't leave orphan metadata.

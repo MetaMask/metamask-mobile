@@ -2013,8 +2013,7 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) =>
-          call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
@@ -2054,8 +2053,7 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) =>
-          call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
@@ -2086,8 +2084,7 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) =>
-          call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
@@ -2112,8 +2109,7 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) =>
-          call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
@@ -2147,8 +2143,7 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) =>
-          call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
@@ -2158,32 +2153,6 @@ describe('WC2Manager', () => {
         validation: 'UNKNOWN',
         verifiedOrigin: 'https://example.com',
       });
-    });
-
-    it('dispatches setWC2SessionMetadata with the proposalId', async () => {
-      mockApproveSession.mockResolvedValue({
-        topic: 'verify-test-topic-6',
-        pairingTopic: 'verify-test-pairing',
-        peer: {
-          metadata: {
-            url: 'https://example.com',
-            name: 'Verify Test App',
-            icons: [],
-          },
-        },
-      });
-
-      const proposal = createProposal(undefined, { id: 4242 });
-
-      await manager.onSessionProposal(proposal);
-
-      const setCalls = dispatchSpy.mock.calls.filter(
-        (call: any) =>
-          call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
-      );
-      expect(setCalls.length).toBeGreaterThan(0);
-      expect(setCalls[0][0].channelId).toBe('verify-test-pairing');
-      expect(setCalls[0][0].metadata.proposalId).toBe('4242');
     });
 
     it('dispatches removeWC2SessionMetadata when requestPermissions throws', async () => {
@@ -2201,8 +2170,7 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const removeCalls = dispatchSpy.mock.calls.filter(
-        (call: any) =>
-          call[0]?.type === ActionType.REMOVE_WC2_SESSION_METADATA,
+        (call: any) => call[0]?.type === ActionType.REMOVE_WC2_SESSION_METADATA,
       );
       expect(removeCalls.length).toBeGreaterThan(0);
       expect(removeCalls[0][0].channelId).toBe('verify-test-pairing');

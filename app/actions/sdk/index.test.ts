@@ -35,7 +35,6 @@ describe('SDK Actions', () => {
       name: 'test',
       url: 'https://test.com',
       icon: 'https://test.com/icon.png',
-      proposalId: 'test-id',
     };
     const action = setWC2SessionMetadata(channelId, metadata);
 

@@ -33,8 +33,6 @@ export interface WC2SessionMetadata {
   verifyContext?: WC2VerifyContext;
   /** Most recent unverified origin observed in an RPC request on this session. */
   lastVerifiedUrl?: string;
-  /** Present only during the proposal window; cleared once the session is approved. */
-  proposalId?: string;
 }
 
 export interface SDKState {
