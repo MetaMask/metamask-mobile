@@ -35,6 +35,7 @@ import {
 } from '../headless/sessionRegistry';
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
+import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -512,6 +513,19 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         const confirmSession = getSession(headlessSessionId);
         const wasHeadless = Boolean(confirmSession);
         const rampSurface = confirmSession?.params?.rampSurface;
+        // Carry the headless context (surface + region) to the controller-side
+        // terminal-failed subscriber (TRAM-3623 §1/§5). GUARD: this write MUST
+        // stay inside the headless gate (`if (wasHeadless)`); this hook also
+        // serves non-headless UB2-native, and an unconditional write at the
+        // `addOrder(...)` above would make those orders wrongly emit a HEADLESS
+        // RAMPS_TRANSACTION_FAILED. Keyed by providerOrderId (the same id the
+        // subscriber receives), normalized via extractOrderCode on both sides.
+        if (wasHeadless) {
+          setHeadlessOrderContext(rampsOrder.providerOrderId, {
+            rampSurface,
+            region: regionIsoCode,
+          });
+        }
         if (!wasHeadless) {
           showV2OrderToast({
             orderId: rampsOrder.providerOrderId,
@@ -714,6 +728,15 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 const manualBankSession = getSession(headlessSessionId);
                 if (manualBankSession) {
                   const rampSurface = manualBankSession.params?.rampSurface;
+                  // Carry the headless context to the terminal-failed
+                  // subscriber (TRAM-3623 §1/§5). GUARD: inside the
+                  // `if (manualBankSession)` headless gate only - never at the
+                  // unconditional `addOrder(...)` above - so non-headless
+                  // UB2-native manual-bank orders never get an entry.
+                  setHeadlessOrderContext(rampsOrder.providerOrderId, {
+                    rampSurface,
+                    region: regionIsoCode,
+                  });
                   navigateToOrderProcessingCallback({
                     orderId: rampsOrder.providerOrderId,
                   });

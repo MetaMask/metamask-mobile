@@ -9,6 +9,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeature
 import { RAMPS_UNIFIED_BUY_V2_FLAG_KEY } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import { handleOrderStatusChangedForHeadlessRampsFunnel } from './event-handlers/headlessRampsFunnel';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -75,6 +76,13 @@ export const rampsControllerInit: MessengerClientInitFunction<
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
+    );
+    // Headless terminal-failed funnel event (TRAM-3623 AC5). Sibling subscriber
+    // (not an extension of the metrics handler) so it emits the headless
+    // RAMPS_TRANSACTION_FAILED vocabulary without disturbing the existing one.
+    initMessenger.subscribe(
+      'RampsController:orderStatusChanged',
+      handleOrderStatusChangedForHeadlessRampsFunnel,
     );
   };
 

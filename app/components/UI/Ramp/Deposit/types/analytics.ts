@@ -229,6 +229,7 @@ interface RampsTransactionFailed {
   total_fee: number;
   payment_method_id: string;
   country: string;
+  region?: string;
   chain_id: string;
   currency_destination: string;
   currency_destination_symbol?: string;

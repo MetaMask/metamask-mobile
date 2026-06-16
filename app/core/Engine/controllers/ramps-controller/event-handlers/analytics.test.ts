@@ -209,6 +209,32 @@ describe('handleOrderStatusChangedForMetrics', () => {
     });
   });
 
+  describe('DEPOSIT orders (headless Transak)', () => {
+    // Headless Transak orders are stamped orderType: 'DEPOSIT', so isBuy is
+    // false and this handler classifies them as off-ramp. This documents the
+    // current (unchanged) behavior: the new headless RAMPS_TRANSACTION_FAILED
+    // funnel is emitted by a separate sibling subscriber, not this handler.
+    it('still fires OFFRAMP_PURCHASE_FAILED for a Failed DEPOSIT order', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Failed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Off-ramp Purchase Failed',
+          properties: expect.objectContaining({ order_type: 'DEPOSIT' }),
+        }),
+      );
+    });
+  });
+
   it('does not track for non-terminal statuses', () => {
     const nonTerminalStatuses = [
       Status.Pending,
