@@ -257,10 +257,32 @@ describe('polymarket utils', () => {
           status: 'open',
           volumeNum: 100,
           liquidity: 100,
-          negRisk: false,
+          negRisk: true,
           clobTokenIds: '["token-yes","token-no"]',
           outcomes: '["Yes","No"]',
           outcomePrices: '["0.5","0.5"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+        {
+          conditionId: 'condition-draw',
+          question: 'United States vs Canada',
+          description: 'Draw market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: 'Draw',
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: true,
+          clobTokenIds: '["token-draw-yes","token-draw-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.25","0.75"]',
           closed: false,
           active: true,
           acceptingOrders: true,
@@ -301,6 +323,124 @@ describe('polymarket utils', () => {
       expect.objectContaining({
         active: true,
         acceptingOrders: true,
+        image: 'usa.png',
+        tokens: [
+          expect.objectContaining({
+            id: 'token-yes',
+            title: 'Yes',
+            shortTitle: 'usa',
+          }),
+          expect.objectContaining({
+            id: 'token-no',
+            title: 'No',
+            shortTitle: 'can',
+          }),
+        ],
+      }),
+    );
+    expect(market.outcomes[1]).toEqual(
+      expect.objectContaining({
+        image: 'icon.png',
+        tokens: [
+          expect.objectContaining({
+            id: 'token-draw-yes',
+            title: 'Yes',
+            shortTitle: 'Draw',
+          }),
+          expect.objectContaining({
+            id: 'token-draw-no',
+            title: 'No',
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('does not apply team logo and short title normalization to non-moneyline markets', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      usa: {
+        id: 'team-usa',
+        name: 'United States',
+        logo: 'usa.png',
+        abbreviation: 'usa',
+        color: 'red',
+        alias: 'USA',
+        league: 'fifwc',
+      },
+      can: {
+        id: 'team-can',
+        name: 'Canada',
+        logo: 'can.png',
+        abbreviation: 'can',
+        color: 'white',
+        alias: 'CAN',
+        league: 'fifwc',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: 'event-non-moneyline',
+      slug: 'fifwc-usa-can-2026-06-12',
+      title: 'United States vs Canada',
+      description: 'World Cup match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '11433',
+          slug: 'world-cup',
+          title: 'World Cup',
+          recurrence: 'none',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-non-moneyline',
+          question: 'United States vs Canada',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: 'United States',
+          sportsMarketType: 'custom_market',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: true,
+          clobTokenIds: '["token-yes","token-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.5","0.5"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'games', label: 'Games', slug: 'games' },
+        { id: 'world-cup', label: 'World Cup', slug: 'fifa-world-cup' },
+      ],
+      liquidity: 100,
+      volume: 100,
+      gameId: 'game-1',
+      startTime: '2026-06-12T20:00:00.000Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+    });
+
+    expect(market.outcomes[0]).toEqual(
+      expect.objectContaining({
+        image: 'icon.png',
+        tokens: [
+          { id: 'token-yes', title: 'Yes', price: 0.5 },
+          { id: 'token-no', title: 'No', price: 0.5 },
+        ],
       }),
     );
   });
