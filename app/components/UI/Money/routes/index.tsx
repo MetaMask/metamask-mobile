@@ -9,7 +9,6 @@ import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
-import MoneyPotentialEarningsView from '../Views/MoneyPotentialEarningsView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
@@ -48,10 +47,6 @@ const MoneyTabScreenStack = () => {
       <Stack.Screen
         name={Routes.MONEY.HOW_IT_WORKS}
         component={MoneyHowItWorksView}
-      />
-      <Stack.Screen
-        name={Routes.MONEY.POTENTIAL_EARNINGS}
-        component={MoneyPotentialEarningsView}
       />
     </Stack.Navigator>
   );

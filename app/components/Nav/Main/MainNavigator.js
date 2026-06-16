@@ -126,6 +126,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -1213,6 +1214,11 @@ const MainNavigator = () => {
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
             options={{ headerShown: false, ...fadeNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.POTENTIAL_EARNINGS}
+            component={MoneyPotentialEarningsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.MODALS.ROOT}

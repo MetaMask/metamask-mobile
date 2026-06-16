@@ -5,7 +5,7 @@ import QuickBuyAmountSection from './QuickBuyAmountSection';
 
 const defaultProps = {
   amountDisplayMode: 'fiat' as const,
-  usdAmount: '',
+  fiatAmountLabel: '$0',
   destSymbol: 'ETH',
   estimatedReceiveAmount: undefined,
   isQuoteLoading: false,
@@ -24,14 +24,25 @@ describe('QuickBuyAmountSection', () => {
       <QuickBuyAmountSection
         {...defaultProps}
         amountDisplayMode="fiat"
-        usdAmount="50"
+        fiatAmountLabel="$50"
       />,
     );
     expect(screen.getByText('$50')).toBeOnTheScreen();
   });
 
-  it('shows $0 placeholder when usdAmount is empty', () => {
-    render(<QuickBuyAmountSection {...defaultProps} usdAmount="" />);
+  it('renders a non-USD preformatted fiat label as primary in fiat mode', () => {
+    render(
+      <QuickBuyAmountSection
+        {...defaultProps}
+        amountDisplayMode="fiat"
+        fiatAmountLabel="50 €"
+      />,
+    );
+    expect(screen.getByText('50 €')).toBeOnTheScreen();
+  });
+
+  it('shows the zero placeholder label when no amount is entered', () => {
+    render(<QuickBuyAmountSection {...defaultProps} fiatAmountLabel="$0" />);
     expect(screen.getByText('$0')).toBeOnTheScreen();
   });
 
@@ -72,7 +83,11 @@ describe('QuickBuyAmountSection', () => {
 
   it('replaces the secondary label with an ActivityIndicator when isQuoteLoading', () => {
     render(
-      <QuickBuyAmountSection {...defaultProps} isQuoteLoading usdAmount="20" />,
+      <QuickBuyAmountSection
+        {...defaultProps}
+        isQuoteLoading
+        fiatAmountLabel="$20"
+      />,
     );
     expect(screen.getByTestId('quick-buy-amount-area')).toBeOnTheScreen();
     // Secondary label is replaced by spinner — crypto label should NOT be present
