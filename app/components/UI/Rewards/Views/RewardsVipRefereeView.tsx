@@ -1,11 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   HeaderStandard,
+  IconName,
   Skeleton,
   Text,
   TextColor,
@@ -16,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { buildVipPrioritySupportUrl } from '../../../../constants/urls';
 import VipSplashFox from '../../../../images/rewards/vip_splash.png';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
 import {
@@ -23,6 +28,7 @@ import {
   selectIsVipReferee,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
@@ -50,6 +56,8 @@ export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   SWAPS_VOLUME: 'rewards-vip-referee-view-swaps-volume',
   PERPS_VOLUME: 'rewards-vip-referee-view-perps-volume',
   LAST_UPDATED: 'rewards-vip-referee-view-last-updated',
+  CONTACT_SUPPORT_BUTTON: 'rewards-vip-referee-view-contact-support-button',
+  SUPPORT_DISCLAIMER: 'rewards-vip-referee-view-support-disclaimer',
 } as const;
 
 const referredByCardStyle = {
@@ -63,6 +71,9 @@ const RewardsVipRefereeViewContent: React.FC = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const accountAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipReferee = useSelector(selectIsVipReferee);
   const canViewReferee = Boolean(
@@ -100,6 +111,23 @@ const RewardsVipRefereeViewContent: React.FC = () => {
 
     dispatch(acceptVipRefereeInvite({ subscriptionId }));
   }, [canViewReferee, dispatch, hasAcceptedVipRefereeInvite, subscriptionId]);
+
+  // Opens the help center in the in-app WebView, tagging the request as VIP priority
+  // and passing the user's account address so the support-side automation can verify
+  // enrollment (via the existing GET /support/subscriptions/check?account= endpoint).
+  const handleContactPrioritySupport = useCallback(() => {
+    if (!accountAddress) {
+      return;
+    }
+
+    navigation.navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: buildVipPrioritySupportUrl(accountAddress),
+        title: strings('rewards.vip.referee_contact_support'),
+      },
+    });
+  }, [navigation, accountAddress]);
 
   if (!canViewReferee) {
     return null;
@@ -259,6 +287,29 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                   })}
                 </Text>
               ) : null}
+
+              <Box twClassName="gap-2 mt-2">
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={handleContactPrioritySupport}
+                  startIconName={IconName.MessageQuestion}
+                  endIconName={IconName.Export}
+                  twClassName="w-full"
+                  testID={
+                    REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON
+                  }
+                >
+                  {strings('rewards.vip.referee_contact_support')}
+                </Button>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SUPPORT_DISCLAIMER}
+                >
+                  {strings('rewards.vip.referee_priority_support_disclaimer')}
+                </Text>
+              </Box>
             </>
           ) : null}
         </ScrollView>
