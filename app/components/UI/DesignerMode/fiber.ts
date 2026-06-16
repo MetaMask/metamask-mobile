@@ -1,12 +1,11 @@
 // React Native fiber traversal
 // Walks the fiber tree to discover all user components with native views.
 //
-// Traversing React's internal fiber tree and the DevTools global hook is
-// inherently untyped, so `any` is unavoidable here. This file is dev/QA-only
-// tooling (Designer Mode) and is excluded from normal builds.
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-deprecated -- traverses React-internal fibers (untyped) and uses RN's findNodeHandle/UIManager.measure (deprecated but needed for hit-testing); dev-only tooling. */
+// This file is dev/QA-only tooling (Designer Mode) and is excluded from normal
+// builds. React's internal fiber tree and the DevTools global hook are untyped,
+// so we model the minimal shapes we actually touch with local interfaces.
 
-import { findNodeHandle, UIManager, StyleSheet } from 'react-native';
+import { findNodeHandle, StyleSheet, UIManager } from 'react-native';
 import type { RNComponentInfo } from './types';
 
 /* ── Style Name Registry ──
@@ -17,9 +16,7 @@ const styleIdToName = new Map<number, string>();
 const styleObjToName = new WeakMap<object, string>();
 
 const _originalCreate = StyleSheet.create;
-(StyleSheet as any).create = function patchedCreate<
-  T extends StyleSheet.NamedStyles<T>,
->(styles: T): T {
+const patchedCreate: typeof StyleSheet.create = (styles) => {
   const result = _originalCreate(styles);
   for (const [name, value] of Object.entries(result)) {
     if (typeof value === 'number') {
@@ -32,6 +29,7 @@ const _originalCreate = StyleSheet.create;
   }
   return result;
 };
+(StyleSheet as { create: typeof StyleSheet.create }).create = patchedCreate;
 
 /** Resolve a single style entry (from the raw style prop) to its name. */
 export function resolveStyleName(entry: unknown): string | null {
@@ -64,15 +62,30 @@ function extractStyleNames(rawStyle: unknown): string[] {
 }
 
 interface Fiber {
-  type: any;
-  memoizedProps: Record<string, any> | null;
-  memoizedState: any;
+  // `type` is a string (host), a component function, or a forwardRef object.
+  type: unknown;
+  memoizedProps: Record<string, unknown> | null;
+  memoizedState: unknown;
   return: Fiber | null;
   child: Fiber | null;
   sibling: Fiber | null;
-  stateNode: any;
+  // Native host instance (or tag); shape varies by RN architecture.
+  stateNode: unknown;
   _debugSource?: { fileName: string; lineNumber: number } | null;
   tag: number;
+}
+
+interface FiberRoot {
+  current: Fiber;
+}
+
+interface ReactRenderer {
+  getFiberRoots?: (id: unknown) => Iterable<FiberRoot> | undefined;
+}
+
+interface DevToolsHook {
+  renderers?: Map<unknown, ReactRenderer>;
+  getFiberRoots?: (id: unknown) => Iterable<FiberRoot> | undefined;
 }
 
 // Fiber tags for host (native) components
@@ -140,7 +153,8 @@ function isInternalName(name: string): boolean {
 function getFiberRoots(): Fiber[] {
   const roots: Fiber[] = [];
   try {
-    const hook = (global as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
+    const hook = (global as { __REACT_DEVTOOLS_GLOBAL_HOOK__?: DevToolsHook })
+      .__REACT_DEVTOOLS_GLOBAL_HOOK__;
     if (!hook) return roots;
 
     // Method 1: getFiberRoots on renderers
@@ -177,22 +191,25 @@ function getFiberRoots(): Fiber[] {
 /**
  * Walk up from a host fiber to find the nearest user component.
  */
-function getComponentName(type: any): string | null {
+function getComponentName(type: unknown): string | null {
   if (!type) return null;
   if (typeof type === 'string') return null;
-  if (type.displayName) return type.displayName;
-  if (type.name) return type.name;
+  if (typeof type !== 'function' && typeof type !== 'object') return null;
+  const t = type as {
+    displayName?: string;
+    name?: string;
+    render?: { displayName?: string; name?: string };
+  };
+  if (t.displayName) return t.displayName;
+  if (t.name) return t.name;
   // ForwardRef
-  if (type.render) {
-    const render = type.render;
-    return render?.displayName || render?.name || null;
+  if (t.render) {
+    return t.render.displayName || t.render.name || null;
   }
   return null;
 }
 
-function findUserComponent(
-  hostFiber: Fiber,
-): {
+function findUserComponent(hostFiber: Fiber): {
   name: string;
   fiber: Fiber;
   source: { fileName: string; lineNumber: number } | null;
@@ -219,9 +236,7 @@ function findUserComponent(
 /**
  * Find the nearest named component (including builtins like Text, View).
  */
-function findDirectComponent(
-  hostFiber: Fiber,
-): {
+function findDirectComponent(hostFiber: Fiber): {
   name: string;
   source: { fileName: string; lineNumber: number } | null;
 } | null {
@@ -259,18 +274,26 @@ function collectAllHostFibers(fiber: Fiber | null, results: Fiber[]) {
 
 /**
  * Measure a native view's layout on screen.
+ *
+ * `findNodeHandle` + `UIManager.measure` are deprecated, but remain the reliable
+ * way to measure an arbitrary fiber's native view for hit-testing. The host
+ * instance's own `measure()` is not consistently available across RN
+ * architectures, so we keep this path. Dev-only tooling.
  */
 function measureNativeView(
   hostFiber: Fiber,
 ): Promise<RNComponentInfo['layout']> {
   return new Promise((resolve) => {
     try {
-      const handle = findNodeHandle(hostFiber.stateNode);
-      if (!handle) {
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- node-handle hit-testing for dev-only tooling
+      const handle = findNodeHandle(
+        hostFiber.stateNode as Parameters<typeof findNodeHandle>[0],
+      );
+      if (handle == null) {
         resolve(null);
         return;
       }
-
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- node-handle hit-testing for dev-only tooling
       UIManager.measure(
         handle,
         (
@@ -381,7 +404,9 @@ export async function hitTestFromFiberTree(
     best.fiber.memoizedProps?.style ?? userComp?.fiber.memoizedProps?.style;
   if (styleProp) {
     try {
-      resolvedStyle = StyleSheet.flatten(styleProp) as Record<string, unknown>;
+      resolvedStyle = StyleSheet.flatten(
+        styleProp as Parameters<typeof StyleSheet.flatten>[0],
+      ) as Record<string, unknown>;
     } catch {
       /* ignore */
     }

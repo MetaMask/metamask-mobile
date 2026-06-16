@@ -1,5 +1,10 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex, react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-use-before-define, @typescript-eslint/consistent-type-definitions, react-hooks/exhaustive-deps, no-empty-function, dot-notation, @typescript-eslint/no-non-null-assertion -- Vendored Designer Mode inspector: DESIGNER_MODE-gated dev tooling, never shipped to production; kept faithful to upstream @designer-mode/react-native (hardcoded panel palette, bottom-defined StyleSheet). */
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -29,23 +34,41 @@ import {
   checkRelayHealth,
 } from './relay-client';
 
-/* ── Design Tokens (matching web panel) ── */
+/* ── Fixed dark inspector palette (matches the web Designer panel) ──
+ * This dev-tooling overlay intentionally uses its own theme-independent dark
+ * chrome rather than app design tokens. Colors are expressed as rgb()/rgba()
+ * (not hex) and centralized here so styles never embed color literals. */
 const C = {
-  bg: '#2c2c2c',
-  surface: '#383838',
-  surfaceHover: '#404040',
-  input: '#1e1e1e',
-  text: '#ffffff',
-  textSecondary: '#adadad',
-  textTertiary: '#777777',
-  accent: '#0d99ff',
+  bg: 'rgb(44, 44, 44)',
+  surface: 'rgb(56, 56, 56)',
+  surfaceHover: 'rgb(64, 64, 64)',
+  input: 'rgb(30, 30, 30)',
+  text: 'rgb(255, 255, 255)',
+  textSecondary: 'rgb(173, 173, 173)',
+  textTertiary: 'rgb(119, 119, 119)',
+  accent: 'rgb(13, 153, 255)',
   accentDim: 'rgba(13, 153, 255, 0.15)',
-  success: '#30d158',
-  error: '#ff453a',
-  divider: '#404040',
-  chevron: '#888888',
-  footerBg: '#1a1a1a',
+  success: 'rgb(48, 209, 88)',
+  successDim: 'rgba(48, 209, 88, 0.15)',
+  error: 'rgb(255, 69, 58)',
+  errorDim: 'rgba(255, 69, 58, 0.12)',
+  warning: 'rgb(255, 179, 71)',
+  warningDim: 'rgba(255, 165, 0, 0.12)',
+  divider: 'rgb(64, 64, 64)',
+  chevron: 'rgb(136, 136, 136)',
+  footerBg: 'rgb(26, 26, 26)',
+  dark: 'rgb(26, 26, 26)',
+  shadow: 'rgb(0, 0, 0)',
+  backdrop: 'rgba(0, 0, 0, 0.4)',
+  whiteA20: 'rgba(255, 255, 255, 0.2)',
+  whiteA10: 'rgba(255, 255, 255, 0.1)',
+  transparent: 'transparent',
 };
+
+// Stylesheet is built via a hoisted factory so `s` is defined before the
+// components below use it, while the (large) style definitions stay at the
+// bottom of the file for readability.
+const s = createDesignerStyles();
 
 interface Props extends DesignerModeRNOptions {
   active: boolean;
@@ -53,7 +76,10 @@ interface Props extends DesignerModeRNOptions {
 }
 
 type RelayStatus = 'connected' | 'disconnected' | 'checking';
-type ChatMessage = { type: 'sent' | 'agent'; text: string };
+interface ChatMessage {
+  type: 'sent' | 'agent';
+  text: string;
+}
 
 function shortenPath(filePath: string): string {
   const parts = filePath.split('/');
@@ -220,7 +246,8 @@ function AddStyleNameInput({ onAdd }: { onAdd: (name: string) => void }) {
 
 /* ── Color Swatch ── */
 function ColorSwatch({ color }: { color: string }) {
-  return <View style={[s.colorSwatch, { backgroundColor: color }]} />;
+  const swatchStyle = useMemo(() => ({ backgroundColor: color }), [color]);
+  return <View style={[s.colorSwatch, swatchStyle]} />;
 }
 
 /* ── Pulse Orb ── */
@@ -244,7 +271,8 @@ function PulseOrb() {
     loop.start();
     return () => loop.stop();
   }, [anim]);
-  return <Animated.View style={[s.pulseOrb, { opacity: anim }]} />;
+  const orbStyle = useMemo(() => ({ opacity: anim }), [anim]);
+  return <Animated.View style={[s.pulseOrb, orbStyle]} />;
 }
 
 /* ── Style categorization helpers ── */
@@ -403,6 +431,10 @@ export function DesignerModeRN({
 
   // Bottom sheet drag
   const translateY = useRef(new Animated.Value(0)).current;
+  const panelTransformStyle = useMemo(
+    () => ({ transform: [{ translateY }] }),
+    [translateY],
+  );
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -488,23 +520,26 @@ export function DesignerModeRN({
     [],
   );
 
-  const changeset: ChangesetEntry[] = [
-    ...Object.entries(edits).map(([property, { original, current }]) => ({
-      property,
-      original,
-      current,
-    })),
-    ...addedStyleNames.map((name) => ({
-      property: `style:add(${name})`,
-      original: '(none)',
-      current: name,
-    })),
-    ...removedStyleNames.map((name) => ({
-      property: `style:remove(${name})`,
-      original: name,
-      current: '(removed)',
-    })),
-  ];
+  const changeset: ChangesetEntry[] = useMemo(
+    () => [
+      ...Object.entries(edits).map(([property, { original, current }]) => ({
+        property,
+        original,
+        current,
+      })),
+      ...addedStyleNames.map((name) => ({
+        property: `style:add(${name})`,
+        original: '(none)',
+        current: name,
+      })),
+      ...removedStyleNames.map((name) => ({
+        property: `style:remove(${name})`,
+        original: name,
+        current: '(removed)',
+      })),
+    ],
+    [edits, addedStyleNames, removedStyleNames],
+  );
 
   const handleTouch = useCallback(async (touchX: number, touchY: number) => {
     const info = await hitTestFromFiberTree(touchX, touchY);
@@ -553,7 +588,9 @@ export function DesignerModeRN({
     try {
       // Abort any previous poll and flush stale responses
       abortRef.current?.abort();
-      await fetch(`${relayUrl}/api/flush`, { method: 'POST' }).catch(() => {});
+      await fetch(`${relayUrl}/api/flush`, { method: 'POST' }).catch(() => {
+        // best-effort flush; ignore network errors
+      });
       await sendToRelay(relayUrl, prompt);
       abortRef.current = new AbortController();
       const response = await pollForResponse(relayUrl, abortRef.current.signal);
@@ -611,7 +648,7 @@ export function DesignerModeRN({
 
       {/* Inspector panel */}
       {selected && (
-        <Animated.View style={[s.panel, { transform: [{ translateY }] }]}>
+        <Animated.View style={[s.panel, panelTransformStyle]}>
           {/* Drag handle */}
           <View style={s.handleBar} {...panResponder.panHandlers}>
             <View style={s.handle} />
@@ -682,10 +719,10 @@ export function DesignerModeRN({
                 <TextInput
                   style={s.textContentInput}
                   defaultValue={
-                    edits['__textContent']?.current ?? selected.textContent
+                    edits.__textContent?.current ?? selected.textContent
                   }
                   onChangeText={(val) =>
-                    recordEdit('__textContent', selected.textContent!, val)
+                    recordEdit('__textContent', selected.textContent ?? '', val)
                   }
                   multiline
                   placeholderTextColor={C.textTertiary}
@@ -719,7 +756,7 @@ export function DesignerModeRN({
                   />
                 </View>
                 {categories?.layout && categories.layout.length > 0 && (
-                  <View style={[s.twoCol, { marginTop: 6 }]}>
+                  <View style={[s.twoCol, s.twoColSpaced]}>
                     {categories.layout.map(([key, val]) => (
                       <PropRow
                         half
@@ -1020,11 +1057,12 @@ function SpacingVal({
 }) {
   const [editing, setEditing] = useState(false);
   const [editVal, setEditVal] = useState(value);
+  const colorStyle = useMemo(() => ({ color }), [color]);
 
   if (editing) {
     return (
       <TextInput
-        style={[s.spacingValInput, { color }]}
+        style={[s.spacingValInput, colorStyle]}
         value={editVal}
         onChangeText={setEditVal}
         onBlur={() => {
@@ -1049,7 +1087,7 @@ function SpacingVal({
         setEditing(true);
       }}
     >
-      <Text style={[s.spacingVal, { color }]}>{value}</Text>
+      <Text style={[s.spacingVal, colorStyle]}>{value}</Text>
     </Pressable>
   );
 }
@@ -1110,7 +1148,7 @@ function renderSpacingCross(
     <View>
       {hasMargin && (
         <View style={s.spacingEditor}>
-          <Text style={[s.spacingLabel, { color: C.accent }]}>Margin</Text>
+          <Text style={[s.spacingLabel, s.spacingLabelMargin]}>Margin</Text>
           <View style={s.spacingCrossWrap}>
             <SpacingVal
               value={marginTop}
@@ -1127,9 +1165,7 @@ function renderSpacingCross(
                 original={marginOrig('marginLeft')}
                 onEdit={recordEdit}
               />
-              <View
-                style={[s.spacingCenter, { backgroundColor: C.accentDim }]}
-              />
+              <View style={[s.spacingCenter, s.spacingCenterMargin]} />
               <SpacingVal
                 value={marginRight}
                 color={C.accent}
@@ -1150,7 +1186,7 @@ function renderSpacingCross(
       )}
       {hasPadding && (
         <View style={s.spacingEditor}>
-          <Text style={[s.spacingLabel, { color: C.success }]}>Padding</Text>
+          <Text style={[s.spacingLabel, s.spacingLabelPadding]}>Padding</Text>
           <View style={s.spacingCrossWrap}>
             <SpacingVal
               value={paddingTop}
@@ -1167,12 +1203,7 @@ function renderSpacingCross(
                 original={paddingOrig('paddingLeft')}
                 onEdit={recordEdit}
               />
-              <View
-                style={[
-                  s.spacingCenter,
-                  { backgroundColor: 'rgba(48, 209, 88, 0.15)' },
-                ]}
-              />
+              <View style={[s.spacingCenter, s.spacingCenterPadding]} />
               <SpacingVal
                 value={paddingRight}
                 color={C.success}
@@ -1196,627 +1227,644 @@ function renderSpacingCross(
 }
 
 /* ── Styles ── */
-const s = StyleSheet.create({
-  // Overlay / empty state
-  overlay: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  } as ViewStyle,
-  bottomBar: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: C.accent,
-    borderRadius: 28,
-    paddingVertical: 14,
-    paddingLeft: 20,
-    paddingRight: 14,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  } as ViewStyle,
-  bottomBarText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  } as TextStyle,
-  bottomBarClose: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  } as ViewStyle,
-  bottomBarCloseText: {
-    color: '#fff',
-    fontSize: 16,
-    lineHeight: 18,
-  } as TextStyle,
+function createDesignerStyles() {
+  return StyleSheet.create({
+    // Overlay / empty state
+    overlay: {
+      flex: 1,
+      backgroundColor: C.transparent,
+    } as ViewStyle,
+    bottomBar: {
+      position: 'absolute',
+      bottom: 30,
+      right: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: C.accent,
+      borderRadius: 28,
+      paddingVertical: 14,
+      paddingLeft: 20,
+      paddingRight: 14,
+      gap: 10,
+      shadowColor: C.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    } as ViewStyle,
+    bottomBarText: {
+      color: C.text,
+      fontSize: 14,
+      fontWeight: '600',
+    } as TextStyle,
+    bottomBarClose: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: C.whiteA20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    } as ViewStyle,
+    bottomBarCloseText: {
+      color: C.text,
+      fontSize: 16,
+      lineHeight: 18,
+    } as TextStyle,
 
-  // Backdrop
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  } as ViewStyle,
+    // Backdrop
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: C.backdrop,
+    } as ViewStyle,
 
-  // Panel
-  panel: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    maxHeight: '80%',
-    backgroundColor: C.bg,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.55,
-    shadowRadius: 32,
-    elevation: 24,
-  } as ViewStyle,
+    // Panel
+    panel: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      maxHeight: '80%',
+      backgroundColor: C.bg,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      shadowColor: C.shadow,
+      shadowOffset: { width: 0, height: -8 },
+      shadowOpacity: 0.55,
+      shadowRadius: 32,
+      elevation: 24,
+    } as ViewStyle,
 
-  // Drag handle
-  handleBar: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
+    // Drag handle
+    handleBar: {
+      alignItems: 'center',
+      paddingTop: 10,
+      paddingBottom: 6,
+    },
+    handle: {
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: C.whiteA20,
+    },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: C.divider,
-  },
-  headerTitle: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-    fontWeight: '600',
-    fontSize: 13,
-    color: C.textSecondary,
-  } as TextStyle,
-  headerActions: {
-    flexDirection: 'row',
-    gap: 4,
-    zIndex: 1,
-  },
-  iconBtn: {
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  iconBtnText: {
-    color: C.textSecondary,
-    fontSize: 14,
-    lineHeight: 16,
-  } as TextStyle,
+    // Header
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderBottomWidth: 1,
+      borderBottomColor: C.divider,
+    },
+    headerTitle: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      textAlign: 'center',
+      fontWeight: '600',
+      fontSize: 13,
+      color: C.textSecondary,
+    } as TextStyle,
+    headerActions: {
+      flexDirection: 'row',
+      gap: 4,
+      zIndex: 1,
+    },
+    iconBtn: {
+      paddingHorizontal: 6,
+      paddingVertical: 3,
+      borderRadius: 4,
+    },
+    iconBtnText: {
+      color: C.textSecondary,
+      fontSize: 14,
+      lineHeight: 16,
+    } as TextStyle,
 
-  // Element header
-  elHeader: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: C.divider,
-  },
-  elNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  copyBtn: {
-    backgroundColor: C.surface,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    zIndex: 1,
-  },
-  copyBtnCopied: {
-    backgroundColor: 'rgba(48, 209, 88, 0.15)',
-  },
-  copyBtnText: {
-    fontSize: 10,
-    color: C.textSecondary,
-    fontWeight: '500',
-  } as TextStyle,
-  copyBtnTextCopied: {
-    color: C.success,
-  } as TextStyle,
-  elName: {
-    fontWeight: '700',
-    fontSize: 13,
-    color: C.text,
-  } as TextStyle,
-  elParent: {
-    fontSize: 11,
-    color: C.textTertiary,
-  } as TextStyle,
-  testIdPill: {
-    backgroundColor: C.accentDim,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 8,
-  },
-  testIdPillText: {
-    fontSize: 9,
-    color: C.accent,
-    fontWeight: '500',
-    fontFamily: 'Menlo',
-  } as TextStyle,
-  elFilePath: {
-    fontSize: 10,
-    color: C.textTertiary,
-    fontFamily: 'Menlo',
-    marginTop: 2,
-  } as TextStyle,
+    // Element header
+    elHeader: {
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: C.divider,
+    },
+    elNameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    copyBtn: {
+      backgroundColor: C.surface,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      zIndex: 1,
+    },
+    copyBtnCopied: {
+      backgroundColor: C.successDim,
+    },
+    copyBtnText: {
+      fontSize: 10,
+      color: C.textSecondary,
+      fontWeight: '500',
+    } as TextStyle,
+    copyBtnTextCopied: {
+      color: C.success,
+    } as TextStyle,
+    elName: {
+      fontWeight: '700',
+      fontSize: 13,
+      color: C.text,
+    } as TextStyle,
+    elParent: {
+      fontSize: 11,
+      color: C.textTertiary,
+    } as TextStyle,
+    testIdPill: {
+      backgroundColor: C.accentDim,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      borderRadius: 8,
+    },
+    testIdPillText: {
+      fontSize: 9,
+      color: C.accent,
+      fontWeight: '500',
+      fontFamily: 'Menlo',
+    } as TextStyle,
+    elFilePath: {
+      fontSize: 10,
+      color: C.textTertiary,
+      fontFamily: 'Menlo',
+      marginTop: 2,
+    } as TextStyle,
 
-  // Body
-  body: {
-    flexShrink: 1,
-  },
+    // Body
+    body: {
+      flexShrink: 1,
+    },
 
-  // Sections
-  section: {
-    borderBottomWidth: 1,
-    borderBottomColor: C.divider,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  sectionIcon: {
-    fontSize: 11,
-    width: 18,
-    textAlign: 'left',
-    color: C.textSecondary,
-  } as TextStyle,
-  sectionTitle: {
-    flex: 1,
-    color: C.textSecondary,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  } as TextStyle,
-  chevron: {
-    fontSize: 8,
-    color: C.chevron,
-  } as TextStyle,
-  chevronOpen: {
-    transform: [{ rotate: '90deg' }],
-  },
-  sectionBody: {
-    paddingHorizontal: 12,
-    paddingBottom: 10,
-    paddingTop: 2,
-  },
+    // Sections
+    section: {
+      borderBottomWidth: 1,
+      borderBottomColor: C.divider,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+    },
+    sectionIcon: {
+      fontSize: 11,
+      width: 18,
+      textAlign: 'left',
+      color: C.textSecondary,
+    } as TextStyle,
+    sectionTitle: {
+      flex: 1,
+      color: C.textSecondary,
+      fontSize: 10,
+      fontWeight: '600',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+    } as TextStyle,
+    chevron: {
+      fontSize: 8,
+      color: C.chevron,
+    } as TextStyle,
+    chevronOpen: {
+      transform: [{ rotate: '90deg' }],
+    },
+    sectionBody: {
+      paddingHorizontal: 12,
+      paddingBottom: 10,
+      paddingTop: 2,
+    },
 
-  // Property rows
-  propRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 24,
-    gap: 6,
-    marginVertical: 1,
-  },
-  propRowHalf: {
-    width: '50%',
-  } as ViewStyle,
-  propLabel: {
-    fontSize: 10,
-    color: C.textTertiary,
-    width: 72,
-    flexShrink: 0,
-  } as TextStyle,
-  propValue: {
-    flex: 1,
-    fontSize: 11,
-    color: C.text,
-  } as TextStyle,
-  propValueEditable: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-    borderStyle: 'dashed',
-  } as TextStyle,
-  propEditInput: {
-    flex: 1,
-    fontSize: 11,
-    color: C.text,
-    backgroundColor: C.input,
-    borderWidth: 1,
-    borderColor: C.accent,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    minHeight: 22,
-  } as TextStyle,
-  propValueRow: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  mono: {
-    fontFamily: 'Menlo',
-  } as TextStyle,
+    // Property rows
+    propRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 24,
+      gap: 6,
+      marginVertical: 1,
+    },
+    propRowHalf: {
+      width: '50%',
+    } as ViewStyle,
+    propLabel: {
+      fontSize: 10,
+      color: C.textTertiary,
+      width: 72,
+      flexShrink: 0,
+    } as TextStyle,
+    propValue: {
+      flex: 1,
+      fontSize: 11,
+      color: C.text,
+    } as TextStyle,
+    propValueEditable: {
+      borderBottomWidth: 1,
+      borderBottomColor: C.whiteA10,
+      borderStyle: 'dashed',
+    } as TextStyle,
+    propEditInput: {
+      flex: 1,
+      fontSize: 11,
+      color: C.text,
+      backgroundColor: C.input,
+      borderWidth: 1,
+      borderColor: C.accent,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      minHeight: 22,
+    } as TextStyle,
+    propValueRow: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    mono: {
+      fontFamily: 'Menlo',
+    } as TextStyle,
 
-  // Style names
-  styleNamesWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    alignItems: 'center',
-  },
-  styleNamePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: C.accentDim,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  styleNamePillText: {
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    color: C.accent,
-    fontWeight: '500',
-  } as TextStyle,
-  styleNamePillRemove: {
-    fontSize: 12,
-    color: C.accent,
-    lineHeight: 14,
-  } as TextStyle,
-  styleNamePillRemoved: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255, 69, 58, 0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  styleNamePillRemovedText: {
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    color: C.error,
-    fontWeight: '500',
-    textDecorationLine: 'line-through',
-  } as TextStyle,
-  styleNamePillUndoText: {
-    fontSize: 9,
-    color: C.error,
-  } as TextStyle,
-  styleNamePillAdded: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(48, 209, 88, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  styleNamePillAddedText: {
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    color: C.success,
-    fontWeight: '500',
-  } as TextStyle,
-  addStyleNameBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: C.divider,
-    borderStyle: 'dashed',
-  } as ViewStyle,
-  addStyleNameBtnText: {
-    fontSize: 10,
-    color: C.textTertiary,
-  } as TextStyle,
-  addStyleNameInput: {
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    color: C.text,
-    backgroundColor: C.input,
-    borderWidth: 1,
-    borderColor: C.accent,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    minWidth: 80,
-  } as TextStyle,
+    // Style names
+    styleNamesWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      alignItems: 'center',
+    },
+    styleNamePill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: C.accentDim,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+    },
+    styleNamePillText: {
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      color: C.accent,
+      fontWeight: '500',
+    } as TextStyle,
+    styleNamePillRemove: {
+      fontSize: 12,
+      color: C.accent,
+      lineHeight: 14,
+    } as TextStyle,
+    styleNamePillRemoved: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: C.errorDim,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+    },
+    styleNamePillRemovedText: {
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      color: C.error,
+      fontWeight: '500',
+      textDecorationLine: 'line-through',
+    } as TextStyle,
+    styleNamePillUndoText: {
+      fontSize: 9,
+      color: C.error,
+    } as TextStyle,
+    styleNamePillAdded: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: C.successDim,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+    },
+    styleNamePillAddedText: {
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      color: C.success,
+      fontWeight: '500',
+    } as TextStyle,
+    addStyleNameBtn: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: C.divider,
+      borderStyle: 'dashed',
+    } as ViewStyle,
+    addStyleNameBtnText: {
+      fontSize: 10,
+      color: C.textTertiary,
+    } as TextStyle,
+    addStyleNameInput: {
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      color: C.text,
+      backgroundColor: C.input,
+      borderWidth: 1,
+      borderColor: C.accent,
+      borderRadius: 10,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      minWidth: 80,
+    } as TextStyle,
 
-  // Two-column grid
-  twoCol: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
+    // Two-column grid
+    twoCol: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    twoColSpaced: {
+      marginTop: 6,
+    },
 
-  // Color swatch
-  colorSwatch: {
-    width: 14,
-    height: 14,
-    borderRadius: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
+    // Color swatch
+    colorSwatch: {
+      width: 14,
+      height: 14,
+      borderRadius: 3,
+      borderWidth: 1,
+      borderColor: C.whiteA20,
+    },
 
-  // Text content (editable)
-  textContentInput: {
-    fontSize: 13,
-    color: C.text,
-    lineHeight: 18,
-    backgroundColor: C.input,
-    borderWidth: 1,
-    borderColor: C.divider,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    minHeight: 40,
-    textAlignVertical: 'top',
-  } as TextStyle,
+    // Text content (editable)
+    textContentInput: {
+      fontSize: 13,
+      color: C.text,
+      lineHeight: 18,
+      backgroundColor: C.input,
+      borderWidth: 1,
+      borderColor: C.divider,
+      borderRadius: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      minHeight: 40,
+      textAlignVertical: 'top',
+    } as TextStyle,
 
-  // Props JSON
-  propsJson: {
-    backgroundColor: C.input,
-    borderRadius: 4,
-    padding: 6,
-    marginTop: 6,
-  },
-  propsJsonText: {
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    color: C.textTertiary,
-    lineHeight: 14,
-  } as TextStyle,
+    // Props JSON
+    propsJson: {
+      backgroundColor: C.input,
+      borderRadius: 4,
+      padding: 6,
+      marginTop: 6,
+    },
+    propsJsonText: {
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      color: C.textTertiary,
+      lineHeight: 14,
+    } as TextStyle,
 
-  // Spacing editor
-  spacingEditor: {
-    marginBottom: 8,
-  },
-  spacingLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-    marginBottom: 4,
-  } as TextStyle,
-  spacingCrossWrap: {
-    alignItems: 'center',
-    gap: 2,
-    padding: 4,
-    paddingHorizontal: 8,
-    backgroundColor: C.input,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: C.divider,
-  },
-  spacingMidRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    justifyContent: 'center',
-    width: '100%',
-  } as ViewStyle,
-  spacingCenter: {
-    width: 36,
-    height: 18,
-    borderRadius: 3,
-  },
-  spacingVal: {
-    width: 40,
-    textAlign: 'center',
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-    borderStyle: 'dashed',
-    paddingVertical: 2,
-  } as TextStyle,
-  spacingValInput: {
-    width: 48,
-    textAlign: 'center',
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    backgroundColor: C.input,
-    borderWidth: 1,
-    borderColor: C.accent,
-    borderRadius: 3,
-    paddingVertical: 2,
-    paddingHorizontal: 2,
-  } as TextStyle,
+    // Spacing editor
+    spacingEditor: {
+      marginBottom: 8,
+    },
+    spacingLabel: {
+      fontSize: 10,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.3,
+      marginBottom: 4,
+    } as TextStyle,
+    spacingLabelMargin: {
+      color: C.accent,
+    } as TextStyle,
+    spacingLabelPadding: {
+      color: C.success,
+    } as TextStyle,
+    spacingCrossWrap: {
+      alignItems: 'center',
+      gap: 2,
+      padding: 4,
+      paddingHorizontal: 8,
+      backgroundColor: C.input,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: C.divider,
+    },
+    spacingMidRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      justifyContent: 'center',
+      width: '100%',
+    } as ViewStyle,
+    spacingCenter: {
+      width: 36,
+      height: 18,
+      borderRadius: 3,
+    },
+    spacingCenterMargin: {
+      backgroundColor: C.accentDim,
+    },
+    spacingCenterPadding: {
+      backgroundColor: C.successDim,
+    },
+    spacingVal: {
+      width: 40,
+      textAlign: 'center',
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      borderBottomWidth: 1,
+      borderBottomColor: C.whiteA10,
+      borderStyle: 'dashed',
+      paddingVertical: 2,
+    } as TextStyle,
+    spacingValInput: {
+      width: 48,
+      textAlign: 'center',
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      backgroundColor: C.input,
+      borderWidth: 1,
+      borderColor: C.accent,
+      borderRadius: 3,
+      paddingVertical: 2,
+      paddingHorizontal: 2,
+    } as TextStyle,
 
-  // Message thread
-  messageThread: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 4,
-  },
-  msgSent: {
-    alignSelf: 'flex-end',
-    backgroundColor: C.accent,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 2,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    maxWidth: '85%',
-  } as ViewStyle,
-  msgSentText: {
-    color: '#fff',
-    fontSize: 11,
-    lineHeight: 15,
-  } as TextStyle,
-  msgAgent: {
-    alignSelf: 'flex-start',
-    backgroundColor: C.surface,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderBottomLeftRadius: 2,
-    borderBottomRightRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    maxWidth: '85%',
-  } as ViewStyle,
-  msgAgentText: {
-    color: C.textSecondary,
-    fontSize: 11,
-    lineHeight: 15,
-  } as TextStyle,
+    // Message thread
+    messageThread: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      gap: 4,
+    },
+    msgSent: {
+      alignSelf: 'flex-end',
+      backgroundColor: C.accent,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 2,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      maxWidth: '85%',
+    } as ViewStyle,
+    msgSentText: {
+      color: C.text,
+      fontSize: 11,
+      lineHeight: 15,
+    } as TextStyle,
+    msgAgent: {
+      alignSelf: 'flex-start',
+      backgroundColor: C.surface,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+      borderBottomLeftRadius: 2,
+      borderBottomRightRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      maxWidth: '85%',
+    } as ViewStyle,
+    msgAgentText: {
+      color: C.textSecondary,
+      fontSize: 11,
+      lineHeight: 15,
+    } as TextStyle,
 
-  // Agent working
-  agentWorking: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  pulseOrb: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: C.accent,
-  },
-  agentWorkingText: {
-    color: C.textTertiary,
-    fontSize: 10,
-  } as TextStyle,
+    // Agent working
+    agentWorking: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+    },
+    pulseOrb: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: C.accent,
+    },
+    agentWorkingText: {
+      color: C.textTertiary,
+      fontSize: 10,
+    } as TextStyle,
 
-  // Edits banner
-  editsBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(255, 165, 0, 0.12)',
-  },
-  editsBannerText: {
-    flex: 1,
-    fontSize: 10,
-    color: '#ffb347',
-  } as TextStyle,
-  applyBtn: {
-    backgroundColor: '#ffb347',
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  applyBtnText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#1a1a1a',
-  } as TextStyle,
+    // Edits banner
+    editsBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      backgroundColor: C.warningDim,
+    },
+    editsBannerText: {
+      flex: 1,
+      fontSize: 10,
+      color: C.warning,
+    } as TextStyle,
+    applyBtn: {
+      backgroundColor: C.warning,
+      borderRadius: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+    },
+    applyBtnText: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: C.dark,
+    } as TextStyle,
 
-  // Footer
-  footer: {
-    flexShrink: 0,
-    backgroundColor: C.footerBg,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  footerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderTopWidth: 1,
-    borderTopColor: C.divider,
-  },
-  statusDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: C.textTertiary,
-  },
-  statusConnected: {
-    backgroundColor: C.success,
-  },
-  statusDisconnected: {
-    backgroundColor: C.error,
-  },
-  footerStatusText: {
-    fontSize: 10,
-    color: C.textSecondary,
-    flex: 1,
-  } as TextStyle,
-  componentPill: {
-    backgroundColor: C.surface,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 8,
-  },
-  componentPillText: {
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    color: C.textSecondary,
-  } as TextStyle,
+    // Footer
+    footer: {
+      flexShrink: 0,
+      backgroundColor: C.footerBg,
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
+    footerTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderTopWidth: 1,
+      borderTopColor: C.divider,
+    },
+    statusDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: C.textTertiary,
+    },
+    statusConnected: {
+      backgroundColor: C.success,
+    },
+    statusDisconnected: {
+      backgroundColor: C.error,
+    },
+    footerStatusText: {
+      fontSize: 10,
+      color: C.textSecondary,
+      flex: 1,
+    } as TextStyle,
+    componentPill: {
+      backgroundColor: C.surface,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      borderRadius: 8,
+    },
+    componentPillText: {
+      fontSize: 10,
+      fontFamily: 'Menlo',
+      color: C.textSecondary,
+    } as TextStyle,
 
-  // Composer
-  composer: {
-    paddingHorizontal: 12,
-    paddingBottom: 34,
-    paddingTop: 6,
-  },
-  composerWrap: {
-    position: 'relative',
-  } as ViewStyle,
-  chatInput: {
-    backgroundColor: C.input,
-    color: C.text,
-    borderWidth: 1,
-    borderColor: C.divider,
-    borderRadius: 10,
-    paddingLeft: 12,
-    paddingRight: 42,
-    paddingVertical: 10,
-    fontSize: 13,
-    minHeight: 80,
-    maxHeight: 150,
-  } as TextStyle,
-  sendBtn: {
-    position: 'absolute',
-    right: 5,
-    bottom: 5,
-    backgroundColor: C.accent,
-    borderRadius: 6,
-    width: 26,
-    height: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
-  } as ViewStyle,
-  sendBtnDisabled: {
-    opacity: 0.3,
-  },
-  sendBtnText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 16,
-  } as TextStyle,
-});
+    // Composer
+    composer: {
+      paddingHorizontal: 12,
+      paddingBottom: 34,
+      paddingTop: 6,
+    },
+    composerWrap: {
+      position: 'relative',
+    } as ViewStyle,
+    chatInput: {
+      backgroundColor: C.input,
+      color: C.text,
+      borderWidth: 1,
+      borderColor: C.divider,
+      borderRadius: 10,
+      paddingLeft: 12,
+      paddingRight: 42,
+      paddingVertical: 10,
+      fontSize: 13,
+      minHeight: 80,
+      maxHeight: 150,
+    } as TextStyle,
+    sendBtn: {
+      position: 'absolute',
+      right: 5,
+      bottom: 5,
+      backgroundColor: C.accent,
+      borderRadius: 6,
+      width: 26,
+      height: 26,
+      justifyContent: 'center',
+      alignItems: 'center',
+    } as ViewStyle,
+    sendBtnDisabled: {
+      opacity: 0.3,
+    },
+    sendBtnText: {
+      color: C.text,
+      fontSize: 14,
+      fontWeight: '700',
+      lineHeight: 16,
+    } as TextStyle,
+  });
+}
