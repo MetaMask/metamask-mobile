@@ -672,21 +672,23 @@ const PerpsHomeView = ({
           />
         </Box>
 
-        {/* Service Interruption Banner */}
-        <PerpsServiceInterruptionBanner
-          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-        />
+        <Box paddingBottom={3}>
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
 
-        {/* Balance Actions Component */}
-        <PerpsMarketBalanceActions
-          showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
-          hideBalanceSection
-        />
+          {/* Balance Actions Component */}
+          <PerpsMarketBalanceActions
+            showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
+            hideBalanceSection
+          />
 
-        {/* Competition Banner */}
-        <PerpsCompetitionBanner
-          testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
-        />
+          {/* Competition Banner */}
+          <PerpsCompetitionBanner
+            testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
+          />
+        </Box>
 
         {/* Positions Section */}
         <PerpsHomeSection
@@ -736,9 +738,7 @@ const PerpsHomeView = ({
 
         {/* What's Happening Section */}
         {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
+          <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
         )}
 
         {/* Watchlist Section */}
