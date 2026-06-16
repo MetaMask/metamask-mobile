@@ -209,8 +209,11 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const updateIncomingTransactions = Engine.context.TransactionController
-  .updateIncomingTransactions as jest.Mock;
+const updateIncomingTransactions = (
+  Engine.context.TransactionController as unknown as {
+    updateIncomingTransactions: jest.Mock;
+  }
+).updateIncomingTransactions;
 
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   ActivityListItemRow: ({
