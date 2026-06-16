@@ -8,6 +8,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
 } from '../Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
+import { startAndroidEmulator } from '../services/appium/EmulatorHelpers.ts';
 
 const execAsync = promisify(exec);
 
@@ -223,8 +224,15 @@ export async function verifyAppiumRunnerConnectivity(
   }
 
   if (options.platform === 'android') {
-    await verifyAndroidDeviceReady(options.udid);
-    await verifyAndroidAdbReverseRoundTrip(options.udid);
+    let udid = options.udid?.trim() || process.env.ANDROID_SERIAL?.trim();
+    const avdName = process.env.ANDROID_AVD_NAME?.trim();
+    if (avdName) {
+      const serial = await startAndroidEmulator(avdName);
+      udid = serial;
+      process.env.ANDROID_SERIAL = serial;
+    }
+    await verifyAndroidDeviceReady(udid);
+    await verifyAndroidAdbReverseRoundTrip(udid);
     return;
   }
 

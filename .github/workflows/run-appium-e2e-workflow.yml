@@ -262,6 +262,8 @@ jobs:
         if: ${{ inputs.platform == 'android' }}
         run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs android
         env:
+          ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_EMULATOR_CI_CORES: '4'
           ANDROID_SERIAL: ${{ env.ANDROID_SERIAL }}
 
       - name: Verify Appium runner connectivity (iOS)

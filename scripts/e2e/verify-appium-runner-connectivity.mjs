@@ -10,10 +10,12 @@
  *   node scripts/e2e/verify-appium-runner-connectivity.mjs ios
  *
  * Env:
+ *   ANDROID_AVD_NAME — boot this AVD before checks when no emulator is online (CI)
  *   ANDROID_SERIAL / IOS_SIMULATOR_UDID — optional device target
  *   SKIP_E2E_CONNECTIVITY_VERIFY=true — skip all checks
  */
 
+import { appendFileSync } from 'node:fs';
 import { verifyAppiumRunnerConnectivity } from '../../tests/framework/fixtures/EmulatorHostConnectivity.ts';
 
 const platform = process.argv[2]?.toLowerCase();
@@ -32,6 +34,16 @@ const udid =
 
 try {
   await verifyAppiumRunnerConnectivity({ platform, udid });
+  if (
+    platform === 'android' &&
+    process.env.ANDROID_SERIAL?.trim() &&
+    process.env.GITHUB_ENV
+  ) {
+    appendFileSync(
+      process.env.GITHUB_ENV,
+      `ANDROID_SERIAL=${process.env.ANDROID_SERIAL.trim()}\n`,
+    );
+  }
   console.log(`✅ Appium runner connectivity check passed (${platform})`);
 } catch (error) {
   console.error(
