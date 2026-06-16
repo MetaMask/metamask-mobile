@@ -84,12 +84,66 @@ async function fetchHostHealthCheck(port: number): Promise<void> {
   }
 }
 
+async function adbShellTcpConnect(
+  host: string,
+  port: number,
+  udid?: string,
+): Promise<void> {
+  const deviceFlag = buildAdbDeviceFlag(udid);
+  const commands = [
+    `adb ${deviceFlag} shell nc -z -w 5 ${host} ${port}`,
+    `adb ${deviceFlag} shell toybox nc -z -w 5 ${host} ${port}`,
+    `adb ${deviceFlag} shell busybox nc -z -w 5 ${host} ${port}`,
+  ];
+
+  let lastError: Error | undefined;
+  for (const command of commands) {
+    try {
+      await execAsync(command);
+      return;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  throw new Error(
+    `Emulator TCP probe failed for ${host}:${port}: ${lastError?.message ?? 'unknown error'}`,
+  );
+}
+
+function extractHttpResponseBody(raw: string): string {
+  const crlfSeparator = raw.indexOf('\r\n\r\n');
+  if (crlfSeparator !== -1) {
+    return raw.slice(crlfSeparator + 4).trim();
+  }
+  const lfSeparator = raw.indexOf('\n\n');
+  if (lfSeparator !== -1) {
+    return raw.slice(lfSeparator + 2).trim();
+  }
+  return raw.trim();
+}
+
+function buildNcHttpGetCommands(url: string, deviceFlag: string): string[] {
+  const parsed = new URL(url);
+  const host = parsed.hostname;
+  const port = parsed.port || '80';
+  const path = `${parsed.pathname}${parsed.search}`;
+  const request = `GET ${path} HTTP/1.0\\r\\nHost: ${host}\\r\\n\\r\\n`;
+  const ncClients = ['nc', 'toybox nc', 'busybox nc'];
+
+  return ncClients.map(
+    (client) =>
+      `adb ${deviceFlag} shell "printf '${request}' | ${client} -w 5 ${host} ${port}"`,
+  );
+}
+
 async function adbShellHttpGet(url: string, udid?: string): Promise<string> {
   const deviceFlag = buildAdbDeviceFlag(udid);
   const escapedUrl = url.replace(/"/g, '\\"');
   const commands = [
     `adb ${deviceFlag} shell curl -sSf --max-time 5 "${escapedUrl}"`,
     `adb ${deviceFlag} shell wget -qO- --timeout=5 "${escapedUrl}"`,
+    ...buildNcHttpGetCommands(url, deviceFlag),
   ];
 
   let lastError: Error | undefined;
@@ -99,7 +153,13 @@ async function adbShellHttpGet(url: string, udid?: string): Promise<string> {
       if (stderr?.trim()) {
         logger.debug(`adb shell stderr for ${url}: ${stderr.trim()}`);
       }
-      return stdout;
+      const body =
+        command.includes('| nc') ||
+        command.includes('| toybox nc') ||
+        command.includes('| busybox nc')
+          ? extractHttpResponseBody(stdout)
+          : stdout;
+      return body;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
@@ -242,16 +302,10 @@ export async function verifyAppiumRunnerConnectivity(
 async function verifyAndroidAdbReverseRoundTrip(udid?: string): Promise<void> {
   const deviceFlag = buildAdbDeviceFlag(udid);
   const probePort = 18_765;
-  const probePath = '/appium-connectivity-probe';
   const server = await new Promise<http.Server>((resolve, reject) => {
-    const created = http.createServer((req, res) => {
-      if (req.url === probePath) {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('ok');
-        return;
-      }
-      res.writeHead(404);
-      res.end('not found');
+    const created = http.createServer((_req, res) => {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('ok');
     });
     created.once('error', reject);
     created.listen(probePort, '127.0.0.1', () => resolve(created));
@@ -261,13 +315,14 @@ async function verifyAndroidAdbReverseRoundTrip(udid?: string): Promise<void> {
     await execAsync(
       `adb ${deviceFlag} reverse tcp:${probePort} tcp:${probePort}`,
     );
-    const body = await adbShellHttpGet(
-      `http://127.0.0.1:${probePort}${probePath}`,
-      udid,
-    );
-    if (!isSuccessfulHealthCheckBody(body)) {
-      throw new Error(`Unexpected probe response: ${body}`);
+    const reverseList = await execAsync(`adb ${deviceFlag} reverse --list`);
+    const expectedMapping = `tcp:${probePort} tcp:${probePort}`;
+    if (!reverseList.stdout.includes(expectedMapping)) {
+      throw new Error(
+        `adb reverse mapping missing (${expectedMapping}). Current mappings:\n${reverseList.stdout || '(none)'}`,
+      );
     }
+    await adbShellTcpConnect('127.0.0.1', probePort, udid);
     logger.info('Android adb reverse round-trip probe succeeded');
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
