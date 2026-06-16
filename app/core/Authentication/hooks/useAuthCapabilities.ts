@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { UseAuthCapabilitiesResult } from './useAuthCapabilities.types';
 import { RootState } from '../../../reducers';
-import useAuthentication from './useAuthentication';
+import { Authentication } from '../Authentication';
 
 /**
  * Hook that detects device authentication capabilities using expo-local-authentication.
@@ -10,7 +10,6 @@ import useAuthentication from './useAuthentication';
  * Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD
  */
 const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
-  const { getAuthCapabilities } = useAuthentication();
   const [isLoading, setIsLoading] = useState(true);
   const [capabilities, setCapabilities] = useState<
     UseAuthCapabilitiesResult['capabilities'] | null
@@ -22,23 +21,23 @@ const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
     (state: RootState) => state.security.allowLoginWithRememberMe,
   );
 
-  const fetchAuthCapabilities = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // No need to catch error as it will return default capabilities
-      const result = await getAuthCapabilities({
-        osAuthEnabled,
-        allowLoginWithRememberMe,
-      });
-      setCapabilities(result);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [osAuthEnabled, allowLoginWithRememberMe, getAuthCapabilities]);
-
   useEffect(() => {
+    const fetchAuthCapabilities = async () => {
+      setIsLoading(true);
+      try {
+        // No need to catch error as it will return default capabilities
+        const result = await Authentication.getAuthCapabilities({
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        });
+        setCapabilities(result);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchAuthCapabilities();
-  }, [fetchAuthCapabilities, osAuthEnabled, allowLoginWithRememberMe]);
+  }, [osAuthEnabled, allowLoginWithRememberMe]);
 
   return {
     isLoading,

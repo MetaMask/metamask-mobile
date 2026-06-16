@@ -14,6 +14,7 @@ import { ModalFooterBlockExplorer } from '../../../../../util/notifications/noti
 import useStyles from '../useStyles';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
 import {
   INotification,
@@ -56,6 +57,11 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const txHashUrl = `${url}/tx/${props.txHash}`;
 
   const onPress = () => {
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'notification_detail',
+      text: strings('asset_details.options.view_on_block'),
+      url: txHashUrl,
+    });
     Linking.openURL(txHashUrl);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)

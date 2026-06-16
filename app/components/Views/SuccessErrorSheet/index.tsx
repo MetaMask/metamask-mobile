@@ -2,11 +2,6 @@ import React, { useRef } from 'react';
 import { View } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import styles from './index.styles';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,6 +16,9 @@ import {
   Text,
   TextVariant,
   TextColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 export interface SuccessErrorSheetProps {
@@ -124,9 +122,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
           >
             {secondaryButtonLabel && (
               <Button
-                variant={ButtonVariants.Secondary}
-                label={secondaryButtonLabel}
-                width={ButtonWidthTypes.Full}
+                variant={ButtonVariant.Secondary}
+                isFullWidth
                 style={
                   primaryButtonLabel && secondaryButtonLabel
                     ? styles.statusButton
@@ -134,13 +131,14 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
                 }
                 onPress={handleSecondaryButtonPress}
                 size={ButtonSize.Lg}
-              />
+              >
+                {secondaryButtonLabel}
+              </Button>
             )}
             {primaryButtonLabel && (
               <Button
-                variant={ButtonVariants.Primary}
-                label={primaryButtonLabel}
-                width={ButtonWidthTypes.Full}
+                variant={ButtonVariant.Primary}
+                isFullWidth
                 style={
                   primaryButtonLabel && secondaryButtonLabel
                     ? styles.statusButton
@@ -148,7 +146,9 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
                 }
                 onPress={handlePrimaryButtonPress}
                 size={ButtonSize.Lg}
-              />
+              >
+                {primaryButtonLabel}
+              </Button>
             )}
           </View>
         ) : (

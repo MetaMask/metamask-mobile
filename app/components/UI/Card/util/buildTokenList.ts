@@ -24,6 +24,7 @@ interface SupportedToken {
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
   getSupportedTokensByChainId: (chainId: CaipChainId) => SupportedToken[];
+  enforceSupportList?: boolean;
 }
 
 function getCaipChainId(
@@ -61,6 +62,7 @@ function shouldProcessNetwork(
 export function buildDelegationTokenList({
   delegationSettings,
   getSupportedTokensByChainId,
+  enforceSupportList = false,
 }: BuildTokenListParams): CardFundingToken[] {
   if (!delegationSettings?.networks) {
     return [];
@@ -89,6 +91,20 @@ export function buildDelegationTokenList({
       );
       if (isDuplicate) continue;
 
+      const sdkTokens = getSupportedTokensByChainId?.(caipChainId) ?? [];
+      const sdkToken = sdkTokens.find(
+        (t) =>
+          (!!t.address &&
+            t.address.toLowerCase() === tokenConfig.address.toLowerCase()) ||
+          (!!t.symbol &&
+            !!tokenConfig.symbol &&
+            t.symbol.toLowerCase() === tokenConfig.symbol.toLowerCase()),
+      );
+
+      if (enforceSupportList && !sdkToken) {
+        continue;
+      }
+
       const isVedaEntry = tokenKey === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY;
 
       if (isVedaEntry) {
@@ -108,12 +124,6 @@ export function buildDelegationTokenList({
         });
         continue;
       }
-
-      // Get metadata from SDK if available
-      const sdkTokens = getSupportedTokensByChainId?.(caipChainId) ?? [];
-      const sdkToken = sdkTokens.find(
-        (t) => t.symbol?.toLowerCase() === tokenConfig.symbol.toLowerCase(),
-      );
 
       const symbol = sdkToken?.symbol ?? tokenConfig.symbol;
 

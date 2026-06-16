@@ -155,4 +155,50 @@ describe('PaymentMethodRow', () => {
       JSON.stringify(unselectedStyle),
     );
   });
+
+  it('renders No fee tag when isNoFee is true', () => {
+    const { getByTestId } = render(<PaymentMethodRow {...baseProps} isNoFee />);
+
+    expect(getByTestId('payment-method-row-usdc-no-fee-tag')).toBeOnTheScreen();
+  });
+
+  it('does not render No fee tag when isNoFee is false', () => {
+    const { queryByTestId } = render(<PaymentMethodRow {...baseProps} />);
+
+    expect(
+      queryByTestId('payment-method-row-usdc-no-fee-tag'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders No fee tag with localised string', () => {
+    const { getByTestId } = render(<PaymentMethodRow {...baseProps} isNoFee />);
+
+    expect(getByTestId('payment-method-row-usdc-no-fee-tag')).toHaveTextContent(
+      'money.potential_earnings.no_fee',
+    );
+  });
+
+  it('renders No fee tag instead of Last used tag when both isNoFee and isLastUsed are true', () => {
+    const { getByTestId, queryByTestId } = render(
+      <PaymentMethodRow {...baseProps} isNoFee isLastUsed />,
+    );
+
+    expect(getByTestId('payment-method-row-usdc-no-fee-tag')).toBeOnTheScreen();
+    expect(
+      queryByTestId('payment-method-row-usdc-last-used-tag'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders Last used tag when only isLastUsed is true', () => {
+    const { getByTestId, queryByTestId } = render(
+      <PaymentMethodRow {...baseProps} isLastUsed />,
+    );
+
+    expect(
+      getByTestId('payment-method-row-usdc-last-used-tag'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId('payment-method-row-usdc-no-fee-tag'),
+    ).not.toBeOnTheScreen();
+  });
 });

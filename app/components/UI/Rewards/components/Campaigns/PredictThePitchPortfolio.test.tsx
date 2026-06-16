@@ -22,10 +22,35 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
+jest.mock('../../../Predict/hooks/usePredictNavigation', () => ({
+  usePredictNavigation: () => ({
+    navigateToMarketDetails: jest.fn(),
+    navigateToBuyPreview: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
       return `${vars.initialValue} on ${vars.outcome} to win ${vars.shares}`;
+    }
+    if (key === 'predict.market_details.amount_on_outcome' && vars) {
+      return `${vars.amount} on ${vars.outcome}`;
+    }
+    if (
+      key === 'rewards.predict_the_pitch_campaign.position_sold_at' &&
+      vars?.time
+    ) {
+      return `Sold ${vars.time}`;
+    }
+    if (key === 'predict.market_details.won') {
+      return 'Won';
+    }
+    if (key === 'predict.market_details.lost') {
+      return 'Lost';
+    }
+    if (key === 'predict.market_details.ended') {
+      return 'Ended';
     }
     return key;
   }),
@@ -55,7 +80,7 @@ const TEST_IDS = PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS;
 
 const positions: PredictThePitchPositionsDto = {
   computedAt: '2025-01-01T00:00:00.000Z',
-  positions: [
+  openPositions: [
     {
       outcomeAssetId: 'token-1',
       outcomeAsset: 'Yes',
@@ -95,6 +120,7 @@ const positions: PredictThePitchPositionsDto = {
       fillDate: '2025-01-02T00:00:00.000Z',
     },
   ],
+  resolvedPositions: [],
 };
 
 describe('PredictThePitchPortfolio', () => {
@@ -133,7 +159,11 @@ describe('PredictThePitchPortfolio', () => {
   it('shows empty and error states', () => {
     const { getByTestId, rerender } = render(
       <PredictThePitchPortfolio
-        positions={{ positions: [], computedAt: null }}
+        positions={{
+          openPositions: [],
+          resolvedPositions: [],
+          computedAt: null,
+        }}
         isLoading={false}
         hasError={false}
         refetch={jest.fn()}
@@ -151,5 +181,82 @@ describe('PredictThePitchPortfolio', () => {
       />,
     );
     expect(getByTestId(TEST_IDS.ERROR)).toBeDefined();
+  });
+
+  it('renders sold positions with realized PnL instead of settlement Won/Lost copy', () => {
+    const { getByText, queryByText } = render(
+      <PredictThePitchPortfolio
+        positions={{
+          computedAt: '2025-01-01T00:00:00.000Z',
+          openPositions: [],
+          resolvedPositions: [
+            {
+              outcomeAssetId: 'token-sold',
+              outcomeAsset: 'Yes',
+              conditionId: 'condition-sold',
+              conditionName: 'Early exit market',
+              conditionSlug: null,
+              eventId: null,
+              eventSlug: null,
+              iconUrl: null,
+              capitalDeployed: 10,
+              pnl: 2,
+              roi: 0.2,
+              status: 'sold',
+              fillShares: 0,
+              fillSharesBought: 10,
+              fillSharesSold: 10,
+              fillPrice: 1,
+              fillDate: '2025-01-01T00:00:00.000Z',
+            },
+          ],
+        }}
+        isLoading={false}
+        hasError={false}
+        refetch={jest.fn()}
+      />,
+    );
+
+    expect(getByText('Early exit market')).toBeDefined();
+    expect(getByText('$12')).toBeDefined();
+    expect(getByText('20%')).toBeDefined();
+    expect(queryByText(/^Won /)).toBeNull();
+  });
+
+  it('renders resolved positions with settlement Won/Lost copy', () => {
+    const { getByText } = render(
+      <PredictThePitchPortfolio
+        positions={{
+          computedAt: '2025-01-01T00:00:00.000Z',
+          openPositions: [],
+          resolvedPositions: [
+            {
+              outcomeAssetId: 'token-resolved',
+              outcomeAsset: 'Brazil',
+              conditionId: 'condition-resolved',
+              conditionName: 'Brazil to win',
+              conditionSlug: null,
+              eventId: null,
+              eventSlug: null,
+              iconUrl: null,
+              capitalDeployed: 10,
+              pnl: 5,
+              roi: 0.5,
+              status: 'resolved',
+              fillShares: 0,
+              fillSharesBought: 10,
+              fillSharesSold: 0,
+              fillPrice: 1,
+              fillDate: '2025-01-01T00:00:00.000Z',
+            },
+          ],
+        }}
+        isLoading={false}
+        hasError={false}
+        refetch={jest.fn()}
+      />,
+    );
+
+    expect(getByText('Won $15')).toBeDefined();
   });
 });

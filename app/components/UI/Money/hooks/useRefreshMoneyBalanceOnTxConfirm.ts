@@ -3,6 +3,7 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { useEffect } from 'react';
+import type { MoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
@@ -18,45 +19,30 @@ const MAX_RETRIES = 4;
 const BASE_DELAY_MS = 500;
 const MAX_DELAY_MS = 4000;
 
-type MusdBalanceSnapshot = { balance: string } | undefined;
-type MusdEquivalentSnapshot = { balanceOfInAssets: string } | undefined;
+type MoneyBalanceSnapshot = MoneyAccountBalanceResponse | undefined;
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-const readBalanceSnapshot = (address: string) => ({
-  musd: ReactQueryService.queryClient.getQueryData<MusdBalanceSnapshot>([
-    MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
+const readBalanceSnapshot = (address: string) =>
+  ReactQueryService.queryClient.getQueryData<MoneyBalanceSnapshot>([
+    MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
     address,
-  ]),
-  equivalent:
-    ReactQueryService.queryClient.getQueryData<MusdEquivalentSnapshot>([
-      MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
-      address,
-    ]),
-});
+  ]);
 
 const didBalanceChange = (
-  before: ReturnType<typeof readBalanceSnapshot>,
-  after: ReturnType<typeof readBalanceSnapshot>,
-) =>
-  before.musd?.balance !== after.musd?.balance ||
-  before.equivalent?.balanceOfInAssets !== after.equivalent?.balanceOfInAssets;
+  before: MoneyBalanceSnapshot,
+  after: MoneyBalanceSnapshot,
+) => before?.totalBalance !== after?.totalBalance;
 
 const invalidateBalanceQueries = async (address: string) =>
-  Promise.all([
-    ReactQueryService.queryClient.invalidateQueries({
-      queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE, address],
-      refetchType: 'all',
-    }),
-    ReactQueryService.queryClient.invalidateQueries({
-      queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
-        address,
-      ],
-      refetchType: 'all',
-    }),
-  ]);
+  ReactQueryService.queryClient.invalidateQueries({
+    queryKey: [
+      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+      address,
+    ],
+    refetchType: 'all',
+  });
 
 /**
  * Capture the pre-invalidation cached snapshot as a baseline, then invalidate +

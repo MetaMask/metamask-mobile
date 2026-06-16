@@ -48,6 +48,8 @@ import {
 } from '../../../../util/haptics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
@@ -150,6 +152,19 @@ const TraderProfileView = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
+
+  const spotScopedStats = useMemo(() => {
+    if (!profile) return null;
+    const perChainPnl = profile.perChainBreakdown?.perChainPnl;
+    if (!perChainPnl || Object.keys(perChainPnl).length === 0) {
+      return profile.stats;
+    }
+    const spotPnl30d = SPOT_CHAINS.reduce(
+      (sum, chain) => sum + (perChainPnl[chain] ?? 0),
+      0,
+    );
+    return { ...profile.stats, pnl30d: spotPnl30d };
+  }, [profile]);
   // Fire Trader Profile Screen Viewed once profile resolves so we have an
   // accurate trader_address / is_following at the point the user lands.
   const hasFiredScreenViewedRef = useRef(false);
@@ -370,11 +385,11 @@ const TraderProfileView = () => {
               />
             )}
 
-            {isLoading || !profile ? (
+            {isLoading || !profile || !spotScopedStats ? (
               <StatsRowSkeleton />
             ) : (
               <StatsRow
-                stats={profile.stats}
+                stats={spotScopedStats}
                 holdTimeMinutes={profile.stats.medianHoldMinutes}
               />
             )}

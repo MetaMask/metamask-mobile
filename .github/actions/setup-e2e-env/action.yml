@@ -109,6 +109,12 @@ inputs:
       — Detox does not require the Pods directory to run tests.
     required: false
     default: 'false'
+  install-applesimutils:
+    description: >-
+      Whether to install applesimutils (iOS only). Required by Detox but not
+      by Appium — set to 'false' for Appium test jobs
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -176,7 +182,9 @@ runs:
       run: |
         set -euo pipefail
         sudo mkdir -p "$CACHE_PATH" /opt/android-sdk/.temp
-        sudo chown -R "$(id -u):$(id -g)" "$CACHE_PATH" /opt/android-sdk/.temp
+        # chown the parent dir too so sdkmanager can create x86_64.backup
+        # next to x86_64 during installation (requires write on the parent).
+        sudo chown -R "$(id -u):$(id -g)" "$(dirname "$CACHE_PATH")" /opt/android-sdk/.temp
       shell: bash
 
     # Restore exact system image from cache (GitHub only — Namespace uses nscloud-cache-action in callers)
@@ -444,7 +452,7 @@ runs:
         COCOAPODS_DISABLE_STATS: 'true'
 
     - name: Install applesimutils
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.install-applesimutils == 'true' }}
       run: |
         if ! brew list applesimutils &>/dev/null; then
           brew tap wix/brew
@@ -455,6 +463,6 @@ runs:
       shell: bash
 
     - name: Check simutils
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.install-applesimutils == 'true' }}
       run: xcrun simctl list devices
       shell: bash

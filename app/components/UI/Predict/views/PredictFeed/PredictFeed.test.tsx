@@ -21,7 +21,23 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
+const mockTrackSearchInteracted = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackSearchInteracted: (
+          ...args: Parameters<typeof mockTrackSearchInteracted>
+        ) => mockTrackSearchInteracted(...args),
+      },
+    },
+  },
+}));
+
 import PredictFeed from './PredictFeed';
+import { PredictBalance } from '../../components/PredictBalance';
 
 jest.mock('../../hooks/useFeaturedCarouselData', () => ({
   useFeaturedCarouselData: () => ({
@@ -93,6 +109,7 @@ let mockIsWorldCupMainFeedTabEnabled = false;
 let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
 let mockIsFeaturedCarouselEnabled = false;
 let mockIsUpDownEnabled = false;
+let mockIsPredictPortfolioEnabled = false;
 
 jest.mock('react-redux', () => {
   const actualReactRedux = jest.requireActual('react-redux');
@@ -106,6 +123,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictFeaturedCarouselEnabledFlag:
     'selectPredictFeaturedCarouselEnabledFlag',
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',
+  selectPredictPortfolioEnabledFlag: 'selectPredictPortfolioEnabledFlag',
   selectPredictUpDownEnabledFlag: 'selectPredictUpDownEnabledFlag',
   selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
   selectPredictWorldCupMainFeedTabEnabledFlag:
@@ -260,6 +278,7 @@ const mockSessionManager = {
   trackTabChange: jest.fn(),
   enableAppStateListener: jest.fn(),
   disableAppStateListener: jest.fn(),
+  setPortfolioModuleEnabled: jest.fn(),
 };
 
 jest.mock('../../hooks/usePredictMeasurement', () => ({
@@ -311,12 +330,15 @@ describe('PredictFeed', () => {
     mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
     mockIsFeaturedCarouselEnabled = false;
     mockIsUpDownEnabled = false;
+    mockIsPredictPortfolioEnabled = false;
     mockUseSelector.mockImplementation((selector: string) => {
       switch (selector) {
         case 'selectPredictFeaturedCarouselEnabledFlag':
           return mockIsFeaturedCarouselEnabled;
         case 'selectPredictHotTabFlag':
           return mockHotTabFlag;
+        case 'selectPredictPortfolioEnabledFlag':
+          return mockIsPredictPortfolioEnabled;
         case 'selectPredictUpDownEnabledFlag':
           return mockIsUpDownEnabled;
         case 'selectPredictWorldCupConfig':
@@ -455,10 +477,23 @@ describe('PredictFeed', () => {
     it('starts session and enables app state listener on mount', () => {
       render(<PredictFeed />);
 
+      expect(mockSessionManager.setPortfolioModuleEnabled).toHaveBeenCalledWith(
+        false,
+      );
       expect(mockSessionManager.enableAppStateListener).toHaveBeenCalled();
       expect(mockSessionManager.startSession).toHaveBeenCalledWith(
         'homepage_new_prediction',
         'trending',
+      );
+    });
+
+    it('passes portfolio module enabled state into the session manager', () => {
+      mockIsPredictPortfolioEnabled = true;
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.setPortfolioModuleEnabled).toHaveBeenCalledWith(
+        true,
       );
     });
 
@@ -1284,6 +1319,15 @@ describe('PredictFeed', () => {
       expect(
         getByTestId(PredictFeedMockSelectorsIDs.PAGER_VIEW),
       ).toBeOnTheScreen();
+    });
+
+    it('passes hideTitle to PredictBalance when hideHeader is true', () => {
+      render(<PredictFeed hideHeader />);
+
+      expect(PredictBalance).toHaveBeenCalledWith(
+        expect.objectContaining({ hideTitle: true }),
+        undefined,
+      );
     });
   });
 

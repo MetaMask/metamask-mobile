@@ -322,42 +322,29 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring gets or creates a snap keyring', async () => {
+  it('getSnapKeyring delegates to SnapAccountService.getLegacySnapKeyring', async () => {
     const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
     const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementation(() => [mockSnapKeyring]);
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+    jest
+      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
+      .mockResolvedValue(mockSnapKeyring as never);
 
     const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
+
     expect(result).toEqual(mockSnapKeyring);
   });
 
-  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
+  it('getSnapKeyring propagates errors from SnapAccountService.getLegacySnapKeyring', async () => {
     const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
 
     jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementationOnce(() => [])
-      .mockImplementationOnce(() => [mockSnapKeyring]);
+      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
+      .mockRejectedValue(new Error('keyring unavailable'));
 
-    jest
-      .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
-
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
-
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
+    await expect(engine.getSnapKeyring()).rejects.toThrow(
+      'keyring unavailable',
+    );
   });
 
   it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
@@ -1271,13 +1258,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
@@ -1287,7 +1267,6 @@ describe('Engine', () => {
       expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
       expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
       expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
 
     it('does not refresh anything for non-EVM destination chains', () => {
@@ -1302,13 +1281,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         NON_EVM_CAIP_ASSET,
@@ -1317,10 +1289,9 @@ describe('Engine', () => {
       expect(detectTokensSpy).not.toHaveBeenCalled();
       expect(updateBalancesSpy).not.toHaveBeenCalled();
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).not.toHaveBeenCalled();
     });
 
-    it('still updates incoming transactions when findNetworkClientIdByChainId throws', () => {
+    it('does not refresh balance when findNetworkClientIdByChainId throws', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       jest
@@ -1337,20 +1308,12 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
       );
 
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
   });
 
