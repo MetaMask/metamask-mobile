@@ -285,8 +285,7 @@ const MoneyFirstTimeDepositView = () => {
       source={MoneyFirstTimeDepositAnimationWithParallax}
       artboardName={RIVE_ARTBOARD_NAME}
       dataBinding={AutoBind(true)}
-      fit={Fit.Layout}
-      layoutScaleFactor={PixelRatio.get()}
+      fit={Fit.FitWidth}
       onError={(riveError: RNRiveError) => {
         log(`Rive error: ${riveError.message}`);
         goHome();
