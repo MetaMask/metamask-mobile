@@ -852,7 +852,7 @@ const PriceAdvanced = ({
         </View>
       </Box>
       {isTechnicalIndicatorsEnabled && chartType === ChartType.Candles ? (
-        <Box twClassName="w-full mb-3">
+        <Box twClassName="w-full mb-6">
           <IndicatorBar
             maLabel={maLabel}
             onMAPress={handleMAPress}

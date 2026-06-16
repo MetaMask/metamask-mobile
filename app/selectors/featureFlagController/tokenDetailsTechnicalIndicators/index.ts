@@ -7,7 +7,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
  * Note: LD keys use kebab-case; the client-config registry stores the camelCase variant.
  */
 export const TOKEN_DETAILS_TECHNICAL_INDICATORS_FLAG_KEY =
-  'token-details-technical-indicators' as const;
+  'tokenDetailsTechnicalIndicators' as const;
 
 /**
  * Whether the token details screen should show technical indicators
@@ -22,7 +22,6 @@ export const TOKEN_DETAILS_TECHNICAL_INDICATORS_FLAG_KEY =
 export const selectTokenDetailsTechnicalIndicatorsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    return true;
     const remoteFlag =
       remoteFeatureFlags?.[TOKEN_DETAILS_TECHNICAL_INDICATORS_FLAG_KEY];
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
