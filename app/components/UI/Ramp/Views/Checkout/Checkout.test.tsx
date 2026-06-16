@@ -729,6 +729,33 @@ describe('Checkout', () => {
       expect(showV2OrderToastMock).not.toHaveBeenCalled();
     });
 
+    it('emits HEADLESS RAMPS_ORDER_FAILED with quote context when a live session is failed', async () => {
+      mockUseParams.mockReturnValue({
+        ...callbackFlowParams,
+        network: 'eip155:1',
+        currency: 'USD',
+        cryptocurrency: 'ETH',
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        params: {
+          rampSurface: 'money_account',
+          amount: 100,
+          quote: { quote: { amountIn: 120, amountOut: 0.04, paymentMethod: 'card' } },
+        },
+      });
+      mockFailSession.mockReturnValue({ code: 'UNKNOWN', message: 'boom' });
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ ramp_type: 'HEADLESS' }),
+      );
+    });
+
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
       const Logger = jest.requireMock('../../../../../util/Logger') as {
         error: jest.Mock;

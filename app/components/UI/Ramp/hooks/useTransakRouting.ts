@@ -181,16 +181,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const regionIsoCode = userRegion?.regionCode || '';
 
   /**
-   * Emits a HEADLESS `RAMPS_ORDER_FAILED` for headless buy failures (TRAM-3623
-   * §7). These events were previously unwired on the headless path - the
-   * non-React `failSession` registry helper can't read region or fire
-   * analytics, so the React host (this hook) emits here right before/around the
-   * `failSession` call. No-op when there is no live headless session, so the
-   * regular (non-headless) flow is unaffected and stays additive.
-   *
-   * `quote` is passed when the caller has one in scope (KYC/limits path); the
-   * amount falls back to it, while token / payment-method / region come from
-   * the already-resolved controller selections.
+   * Emits HEADLESS `RAMPS_ORDER_FAILED` for headless buy failures (TRAM-3623 §7):
+   * `failSession` (non-React) can't emit, so this host does, around that call.
+   * No-op without a live headless session; `quote` (when in scope) seeds the amount.
    */
   const emitHeadlessOrderFailed = useCallback(
     (error: unknown, quote?: TransakBuyQuote) => {
@@ -603,9 +596,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           baseEntry,
           {
             name: Routes.RAMP.KYC_PROCESSING,
-            // Thread the headless session id so KycProcessing can flip its
-            // KYC analytics to `ramp_type: 'HEADLESS'` (TRAM-3623). The screen
-            // has no params of its own, so we forward it here.
+            // Thread the headless session id so KycProcessing (no params of its
+            // own) can flip its KYC analytics to `ramp_type: 'HEADLESS'` (TRAM-3623).
             params: headlessSessionId ? { headlessSessionId } : undefined,
           },
         ],
@@ -639,8 +631,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           buildBaseRouteEntry({ amount }),
           {
             name: Routes.RAMP.KYC_PROCESSING,
-            // Thread the headless session id (TRAM-3623) - see
-            // navigateToKycProcessingCallback.
+            // Thread the headless session id (TRAM-3623) - see the reset above.
             params: headlessSessionId ? { headlessSessionId } : undefined,
           },
           { name: routeName, params: routeParams },
@@ -705,12 +696,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   paymentDetails: depositOrder.paymentDetails,
                 });
 
-                // Manual-bank-transfer headless branch (TRAM-3623 §4): this
-                // path historically fired NO confirmed event because headless
-                // diverts to navigateToOrderProcessingCallback and returns.
-                // Snapshot the surface BEFORE that call closes the session,
-                // then emit a HEADLESS terminal RAMPS_TRANSACTION_CONFIRMED so
-                // the funnel sees the same terminal signal as the webview path.
+                // Manual-bank-transfer headless branch (TRAM-3623 §4): emits no
+                // confirmed event natively, so snapshot the surface before
+                // navigateToOrderProcessingCallback closes the session, then emit it.
                 const manualBankSession = getSession(headlessSessionId);
                 if (manualBankSession) {
                   const rampSurface = manualBankSession.params?.rampSurface;
