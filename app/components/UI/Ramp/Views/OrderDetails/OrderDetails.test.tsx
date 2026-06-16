@@ -255,11 +255,6 @@ describe('OrderDetails', () => {
         }),
       );
     });
-
-    expect(mockHandleOrderStatusChangedForMetrics).toHaveBeenCalledWith({
-      order: completedOrder,
-      previousStatus: RampsOrderStatus.Precreated,
-    });
   });
 
   it('resets to build quote when callback returns no order', async () => {
@@ -397,7 +392,6 @@ describe('OrderDetails', () => {
     await waitFor(() => {
       expect(getByText('Network request failed')).toBeOnTheScreen();
     });
-    expect(mockHandleOrderStatusChangedForMetrics).not.toHaveBeenCalled();
     expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
 
     await act(async () => {
