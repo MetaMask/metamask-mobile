@@ -78,7 +78,13 @@ import TradingViewChart, {
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
 import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvancedChart';
-import { selectPerpsAdvancedChartEnabledFlag } from '../../../../../selectors/featureFlagController/perpsAdvancedChart';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsButtonColorTestVariant,
+  selectPerpsOrderBookEnabledFlag,
+  selectPerpsRelatedMarketsEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
 import {
@@ -112,12 +118,6 @@ import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import {
-  selectPerpsButtonColorTestVariant,
-  selectPerpsOrderBookEnabledFlag,
-  selectPerpsRelatedMarketsEnabledFlag,
-  selectPerpsServiceInterruptionBannerEnabledFlag,
-} from '../../selectors/featureFlags';
 import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,

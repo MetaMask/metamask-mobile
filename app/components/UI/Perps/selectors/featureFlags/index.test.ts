@@ -3,6 +3,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsAdvancedChartEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsButtonColorTestVariant,
   selectHip3ConfigVersion,
@@ -717,6 +718,172 @@ describe('Perps Feature Flag Selectors', () => {
 
         const result = selectPerpsOrderBookEnabledFlag(
           stateWithUndefinedController,
+        );
+        expect(result).toBe(false);
+      });
+    });
+  });
+
+  describe('selectPerpsAdvancedChartEnabledFlag', () => {
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    describe('default behavior (disabled by default)', () => {
+      it('returns false when remote flag is not set and local env var is not set', () => {
+        delete process.env.MM_PERPS_ADVANCED_CHART_ENABLED;
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns true when local env var is explicitly true', () => {
+        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(true);
+      });
+
+      it('returns false when local env var is explicitly false', () => {
+        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'false';
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('hybrid flag behavior', () => {
+      it('uses remote flag when valid and enabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'false';
+
+        const stateWithEnabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabled: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithEnabledRemoteFlag,
+        );
+        expect(result).toBe(true);
+      });
+
+      it('uses remote flag when valid but disabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabled: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithDisabledRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when version requirement is not met', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
+
+        const stateWithVersionCheckFailure = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabled: {
+                    enabled: true,
+                    minimumVersion: '99.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithVersionCheckFailure,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('falls back to local flag when remote flag is invalid', () => {
+        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
+
+        const stateWithInvalidRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabled: {
+                    enabled: 'invalid',
+                    minimumVersion: 123,
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithInvalidRemoteFlag,
+        );
+        expect(result).toBe(true);
+      });
+
+      it('falls back to local flag when remote flag is null', () => {
+        delete process.env.MM_PERPS_ADVANCED_CHART_ENABLED;
+
+        const stateWithNullRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabled: null,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithNullRemoteFlag,
         );
         expect(result).toBe(false);
       });
