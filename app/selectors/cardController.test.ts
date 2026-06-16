@@ -10,6 +10,8 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardVerificationStatus,
+  selectIsCardVerified,
   selectHasMetalCard,
   selectCardPrimaryToken,
   selectCardAvailableTokens,
@@ -372,6 +374,62 @@ describe('selectCardHomeData', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeData(state)).toBeNull();
+  });
+});
+
+describe('selectCardVerificationStatus', () => {
+  it('returns null when cardHomeData is missing', () => {
+    const state = createMockRootState();
+    expect(selectCardVerificationStatus(state)).toBeNull();
+  });
+
+  it('returns null when account is missing', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardVerificationStatus(state)).toBeNull();
+  });
+
+  it('returns the account verification status when present', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        account: { verificationStatus: 'PENDING' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardVerificationStatus(state)).toBe('PENDING');
+  });
+});
+
+describe('selectIsCardVerified', () => {
+  it('returns true only when verification status is VERIFIED', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardVerified(state)).toBe(true);
+  });
+
+  it.each(['PENDING', 'UNVERIFIED', 'REJECTED', null] as const)(
+    'returns false when verification status is %s',
+    (verificationStatus) => {
+      const state = createMockRootState({
+        cardHomeData: {
+          account: verificationStatus ? { verificationStatus } : null,
+        } as unknown as CardControllerState['cardHomeData'],
+      });
+      expect(selectIsCardVerified(state)).toBe(false);
+    },
+  );
+
+  it('returns false when cardHomeData is missing even if user is a cardholder', () => {
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:1:0xabc'],
+      cardHomeData: null,
+    });
+    expect(selectIsCardVerified(state)).toBe(false);
   });
 });
 

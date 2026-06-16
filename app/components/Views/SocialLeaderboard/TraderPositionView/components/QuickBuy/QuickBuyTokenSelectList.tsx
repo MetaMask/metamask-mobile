@@ -32,6 +32,12 @@ export interface QuickBuyTokenSelectListProps {
   onBack: () => void;
   /** Chain to pre-select in the chain filter (null = "All"). */
   defaultChainId?: string | null;
+  /**
+   * Chain to surface first in the filter pills (right after "All"). Used to
+   * promote the currently viewed token's network. Ignored when no token is held
+   * on that chain.
+   */
+  priorityChainId?: string | null;
 }
 
 /**
@@ -48,16 +54,20 @@ const QuickBuyTokenSelectList: React.FC<QuickBuyTokenSelectListProps> = ({
   onSelect,
   onBack,
   defaultChainId = null,
+  priorityChainId = null,
 }) => {
   const tw = useTailwind();
   const [selectedChainId, setSelectedChainId] = useState<string | null>(
     defaultChainId,
   );
 
-  const uniqueChainIds = useMemo(
-    () => [...new Set(tokens.map((token) => token.chainId))],
-    [tokens],
-  );
+  const uniqueChainIds = useMemo(() => {
+    const ids: string[] = [...new Set(tokens.map((token) => token.chainId))];
+    if (priorityChainId === null || !ids.includes(priorityChainId)) {
+      return ids;
+    }
+    return [priorityChainId, ...ids.filter((id) => id !== priorityChainId)];
+  }, [tokens, priorityChainId]);
 
   const chainDisplayInfos = useChainDisplayInfos(uniqueChainIds);
 

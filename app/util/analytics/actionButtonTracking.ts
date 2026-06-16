@@ -44,12 +44,11 @@ export interface ActionButtonProperties extends JsonMap {
 
 /**
  * Track action button click with new consolidated event.
- * Generic over the event type so callers using either MetricsEventBuilder
- * (ITrackingEvent) or AnalyticsEventBuilder (AnalyticsTrackingEvent) are
- * both accepted without a lossy union parameter.
+ * Generic over the event type so callers using AnalyticsEventBuilder
+ * (AnalyticsTrackingEvent) are accepted without a lossy union parameter.
  *
- * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
- * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
+ * @param trackEvent - trackEvent function from useAnalytics
+ * @param createEventBuilder - createEventBuilder function from AnalyticsEventBuilder
  * @param properties - Button properties
  */
 export const trackActionButtonClick = <TEvent>(
