@@ -554,7 +554,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [indicators, chartReadyCount, addIndicator, removeIndicator]);
 
-    // Sync selectedMAs prop — toggles individual MA plots
     useEffect(() => {
       if (chartReadyCount === 0) return;
       postMessage({

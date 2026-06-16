@@ -246,7 +246,6 @@ export interface ToggleVolumePayload {
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
 export interface SetMAVisibilityPayload {
-  /** MA names to show (e.g. ['MA5', 'MA25']). Empty array hides all / removes study. */
   visible: string[];
 }
 
@@ -429,7 +428,7 @@ export interface AdvancedChartProps {
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
-  /** Selected MA names (e.g. ['MA5', 'MA25']). Sent as SET_MA_VISIBILITY to toggle individual MA plots. */
+  /** Selected MA names (e.g. ['MA5', 'MA25']). Sent as a single SET_MA_VISIBILITY batch message. */
   selectedMAs?: string[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;

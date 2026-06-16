@@ -216,10 +216,19 @@ const PriceAdvanced = ({
     new Set(),
   );
 
+  const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
+
   const indicatorsArray = useMemo(
     () =>
-      ([...activeIndicators] as IndicatorType[]).filter((i) => i !== 'Volume'),
-    [activeIndicators],
+      ([...activeIndicators] as IndicatorType[]).filter(
+        (i) => i !== 'Volume' && !isMAIndicator(i),
+      ),
+    [activeIndicators, isMAIndicator],
+  );
+
+  const selectedMAs = useMemo(
+    () => [...activeIndicators].filter(isMAIndicator),
+    [activeIndicators, isMAIndicator],
   );
 
   const handleChartTypeSelect = useCallback(
@@ -365,8 +374,6 @@ const PriceAdvanced = ({
     setDisplayInterval(interval);
   }, []);
 
-  const [selectedMAs, setSelectedMAs] = useState<string[]>([]);
-
   const maLabel = useMemo(() => {
     if (selectedMAs.length === 0) return 'MA';
     if (selectedMAs.length === 1) return selectedMAs[0];
@@ -378,7 +385,11 @@ const PriceAdvanced = ({
       ...createMAPickerNavDetails({
         selectedMAs,
         onDone: (selected: string[]) => {
-          setSelectedMAs(selected);
+          setActiveIndicators((prev) => {
+            const next = new Set([...prev].filter((i) => !/^MA\d+$/.test(i)));
+            selected.forEach((ma) => next.add(ma));
+            return next;
+          });
         },
       }),
     );

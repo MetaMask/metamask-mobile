@@ -22,7 +22,6 @@ window.ohlcvData = [];
 window.currentSymbol = 'ASSET';
 window.activeStudies = new Map();
 window.maStudies = new Map();
-window.visibleMAs = [];
 window.positionShapeIds = [];
 window.isChartReady = false;
 window.pendingMessages = [];
@@ -516,7 +515,6 @@ function handleSetOHLCVData(payload) {
       window.isChartReady = false;
       window.activeStudies = new Map();
       window.maStudies = new Map();
-      window.visibleMAs = [];
       window.volumeStudyId = null;
       window.volumeIsOverlay = null;
       window.lastPriceShapeId = null;
@@ -728,7 +726,6 @@ function handleSetMAVisibility(payload) {
   if (!payload) return;
 
   var visible = payload.visible || [];
-  window.visibleMAs = visible;
   var chart = window.chartWidget.activeChart();
 
   var visibleSet = {};
@@ -745,12 +742,13 @@ function handleSetMAVisibility(payload) {
     }
   });
 
+  var promises = [];
   for (var j = 0; j < visible.length; j++) {
     var name = visible[j];
     if (window.maStudies.has(name)) continue;
     if (!MA_LENGTHS[name]) continue;
     (function (maName) {
-      chart
+      var p = chart
         .createStudy(
           'Moving Average',
           false,
@@ -764,13 +762,19 @@ function handleSetMAVisibility(payload) {
         .then(function (studyId) {
           window.maStudies.set(maName, studyId);
           subscribeStudyDataLoaded(studyId);
-          scheduleStudyLegendRefresh();
         })
         .catch(function () {});
+      promises.push(p);
     })(name);
   }
 
-  scheduleStudyLegendRefresh();
+  if (promises.length > 0) {
+    Promise.all(promises).then(function () {
+      scheduleStudyLegendRefresh();
+    });
+  } else {
+    scheduleStudyLegendRefresh();
+  }
 }
 
 // ============================================
@@ -3490,6 +3494,11 @@ function formatLegendValue(num) {
   return num.toPrecision(4);
 }
 
+var _legendExportGeneration = 0;
+var _legendRetryCount = 0;
+var MAX_LEGEND_RETRIES = 5;
+var LEGEND_RETRY_DELAY_MS = 100;
+
 function refreshStudyLegendFromExport() {
   if (!window.chartWidget || !window.isChartReady) return;
   var overlay = document.getElementById('study-legend-overlay');
@@ -3505,9 +3514,11 @@ function refreshStudyLegendFromExport() {
 
   if (studyIds.length === 0) {
     overlay.innerHTML = '';
+    _legendRetryCount = 0;
     return;
   }
 
+  var gen = ++_legendExportGeneration;
   try {
     chart
       .exportData({
@@ -3515,10 +3526,16 @@ function refreshStudyLegendFromExport() {
         includedStudies: studyIds,
       })
       .then(function (data) {
-        if (!data || !data.schema || !data.data) return;
-        var lastRow =
-          data.data.length > 0 ? data.data[data.data.length - 1] : null;
-        if (!lastRow) return;
+        if (gen !== _legendExportGeneration) return;
+        if (!data || !data.schema || !data.data || data.data.length === 0) {
+          scheduleRetryIfNeeded(gen);
+          return;
+        }
+        var lastRow = data.data[data.data.length - 1];
+        if (!lastRow) {
+          scheduleRetryIfNeeded(gen);
+          return;
+        }
 
         var byStudy = {};
         for (var s = 0; s < data.schema.length; s++) {
@@ -3552,10 +3569,56 @@ function refreshStudyLegendFromExport() {
           studyDataList.push({ name: name, values: byStudy[studyKey] });
         }
 
+        var hasEmpty = hasEmptyStudyValues(studyDataList);
+        if (hasEmpty && _legendRetryCount < MAX_LEGEND_RETRIES) {
+          scheduleRetryIfNeeded(gen);
+          return;
+        }
+
+        _legendRetryCount = 0;
         overlay.innerHTML = buildLegendHTML(studyDataList);
       })
-      .catch(function () {});
+      .catch(function () {
+        scheduleRetryIfNeeded(gen);
+      });
   } catch (e) {}
+}
+
+function hasEmptyStudyValues(studyDataList) {
+  for (var i = 0; i < studyDataList.length; i++) {
+    var cfg = INDICATOR_LEGEND_CONFIG[studyDataList[i].name];
+    if (!cfg) continue;
+    if (cfg.isMA) {
+      var v0 = studyDataList[i].values[0];
+      if (!v0 || !v0.value || v0.value === 'n/a' || v0.value === '∅') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function scheduleRetryIfNeeded(gen) {
+  if (_legendRetryCount >= MAX_LEGEND_RETRIES) {
+    _legendRetryCount = 0;
+    var overlay = document.getElementById('study-legend-overlay');
+    if (overlay) {
+      var studyIdMap = collectStudyIdMap();
+      var fallbackList = [];
+      var fKeys = Object.keys(studyIdMap);
+      for (var f = 0; f < fKeys.length; f++) {
+        fallbackList.push({ name: studyIdMap[fKeys[f]], values: [] });
+      }
+      overlay.innerHTML = buildLegendHTML(fallbackList);
+    }
+    return;
+  }
+  _legendRetryCount++;
+  setTimeout(function () {
+    if (gen === _legendExportGeneration) {
+      refreshStudyLegendFromExport();
+    }
+  }, LEGEND_RETRY_DELAY_MS);
 }
 
 function injectHideLegendButtonsCSS() {
