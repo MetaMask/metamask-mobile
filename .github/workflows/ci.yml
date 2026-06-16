@@ -264,6 +264,7 @@ jobs:
           - audit:ci
           - test:depcheck
           - test:tgz-check
+          - constraints
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1001,22 +1002,29 @@ jobs:
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Only run on pull_request events unless AI explicitly found no relevant changes.
+    # Run when:
+    # - run-performance-tests label is on the PR (forced run, all tests), OR
+    # - smart-e2e-selection ran and AI selected performance tags.
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
-    # ai_performance_test_tags == ''    → conservative fallback (AI failed): run all tests.
+    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
         !cancelled() &&
-        needs.smart-e2e-selection.result != 'skipped' &&
-        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+        (
+          needs.get_requirements.outputs.run_performance == 'true' ||
+          (
+            needs.smart-e2e-selection.result == 'success' &&
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+          )
+        )
       }}
-    needs: [smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
-      performance_tags_reasoning: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
@@ -1050,13 +1058,69 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  prepare-e2e-timings:
+    name: 'Prepare E2E Timings'
+    # Run in parallel with the build jobs — it is a lightweight API call (~30s).
+    # Fetches qa-stats timings once (merge-base preferred, latest-main fallback)
+    # and uploads them as a run-scoped artifact so every shard and every re-run
+    # uses the exact same frozen snapshot, keeping the bin-pack stable.
+    runs-on: ubuntu-latest
+    if: >-
+      ${{
+        !cancelled() &&
+        (needs.get_requirements.outputs.android_e2e_needed == 'true' || needs.get_requirements.outputs.ios_e2e_needed == 'true') &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
+    needs: [get_requirements, smart-e2e-selection]
+    outputs:
+      available: ${{ steps.fetch.outputs.available }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Fetch and freeze E2E timings
+        id: fetch
+        continue-on-error: true
+        run: node .github/scripts/e2e-freeze-timings.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          OUTPUT_PATH: ./e2e-timings.json
+
+      - name: Upload frozen timings artifact
+        # continue-on-error so the job does not fail if the artifact already
+        # exists for this run (i.e. on re-runs). First-write wins — the artifact
+        # uploaded by the earliest attempt is always the one shards will use.
+        if: ${{ steps.fetch.outputs.available == 'true' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./e2e-timings.json
+          # Needed so re-runs of old PRs can still download the frozen snapshot
+          # and keep the same bin-pack, avoiding failed tests landing on a different
+          # shard that was not re-run, which would make them appear as passed.
+          # See: https://github.com/MetaMask/metamask-mobile/pull/31217
+          retention-days: 30
+
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [get_requirements, build-android-apks, smart-e2e-selection]
+    needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
@@ -1100,11 +1164,16 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.ios-tests-ready.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
@@ -1114,6 +1183,59 @@ jobs:
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-smoke-tests-android:
+    name: 'Appium Smoke Tests (Android)'
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.build-android-apks.result == 'success'
+      }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+    needs: [build-android-apks, smart-e2e-selection]
+    uses: ./.github/workflows/run-appium-smoke-tests-android.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
+      runner_provider: current
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  appium-smoke-tests-ios:
+    name: 'Appium Smoke Tests (iOS)'
+    if: >-
+      ${{
+        !cancelled() &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' || github.event_name == 'schedule') &&
+        needs.ios-tests-ready.result == 'success'
+      }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+    needs: [ios-tests-ready, smart-e2e-selection]
+    uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      runner_provider: current
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -1370,6 +1492,8 @@ jobs:
       - build-ios-apps
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
+      - appium-smoke-tests-android
+      - appium-smoke-tests-ios
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1390,7 +1514,7 @@ jobs:
         with:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
-          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios)$'
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android|appium-smoke-tests-ios)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 

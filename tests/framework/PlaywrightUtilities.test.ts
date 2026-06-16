@@ -44,9 +44,10 @@ describe('PlaywrightUtilities.launchApp', () => {
       },
     });
 
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(2500);
     await launchPromise;
 
+    expect(terminateAppMock).toHaveBeenCalledWith('io.metamask');
     expect(executeMock).toHaveBeenCalledWith(
       'mobile: startActivity',
       expect.objectContaining({
@@ -87,7 +88,7 @@ describe('PlaywrightUtilities.launchApp', () => {
       },
     });
 
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(2500);
     await launchPromise;
 
     const startActivityCall = executeMock.mock.calls.find(

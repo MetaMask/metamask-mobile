@@ -232,4 +232,165 @@ describe('enrichTokenBalance', () => {
       });
     });
   });
+
+  describe('Tron and Bitcoin', () => {
+    const trxAssetId = 'tron:728126428/slip44:195';
+    const tronScope = 'tron:728126428';
+    const btcAssetId = 'bip122:000000000019d6689c085ae165831e93/slip44:0';
+    const bitcoinScope = 'bip122:000000000019d6689c085ae165831e93';
+    const tronAccount = { id: 'tron-account-id' };
+    const bitcoinAccount = { id: 'bitcoin-account-id' };
+
+    it('prices a held TRX balance using the Tron account multichain data', () => {
+      const deps = baseDeps({
+        tronAccount,
+        multichainBalances: {
+          [tronAccount.id]: { [trxAssetId]: { amount: '100' } },
+        },
+        multichainRates: { [trxAssetId]: { rate: '0.25' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: trxAssetId, chainId: tronScope, symbol: 'TRX' }),
+        deps,
+      );
+
+      expect(result).toEqual({
+        balance: '100',
+        balanceFiat: '$25.00',
+        tokenFiatAmount: 25,
+        currencyExchangeRate: 0.25,
+      });
+    });
+
+    it('prices a held BTC balance using the Bitcoin account multichain data', () => {
+      const deps = baseDeps({
+        bitcoinAccount,
+        multichainBalances: {
+          [bitcoinAccount.id]: { [btcAssetId]: { amount: '0.5' } },
+        },
+        multichainRates: { [btcAssetId]: { rate: '100000' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: btcAssetId, chainId: bitcoinScope, symbol: 'BTC' }),
+        deps,
+      );
+
+      expect(result).toEqual({
+        balance: '0.5',
+        balanceFiat: '$50000.00',
+        tokenFiatAmount: 50000,
+        currencyExchangeRate: 100000,
+      });
+    });
+
+    it('returns null when there is no account for the candidate chain (strict)', () => {
+      const result = enrichTokenBalance(
+        token({ address: trxAssetId, chainId: tronScope, symbol: 'TRX' }),
+        baseDeps(),
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('returns a zero enrichment when there is no account for the chain and lenient', () => {
+      const result = enrichTokenBalance(
+        token({ address: btcAssetId, chainId: bitcoinScope, symbol: 'BTC' }),
+        baseDeps(),
+        { includeZeroBalance: true },
+      );
+
+      expect(result).toEqual({
+        balance: '0',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
+    });
+
+    it('does not read another chain account for a non-EVM candidate (Solana account does not price TRX)', () => {
+      const solanaAccount = { id: 'solana-account-id' };
+      const deps = baseDeps({
+        solanaAccount,
+        multichainBalances: {
+          [solanaAccount.id]: { [trxAssetId]: { amount: '100' } },
+        },
+        multichainRates: { [trxAssetId]: { rate: '0.25' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: trxAssetId, chainId: tronScope, symbol: 'TRX' }),
+        deps,
+      );
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('fiatCurrency', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    const solanaScope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const solanaAccount = { id: 'solana-account-id' };
+
+    it('formats the fiat string with the provided currency symbol (numeric value stays USD)', () => {
+      const deps = baseDeps({
+        fiatCurrency: 'eur',
+        solanaAccount,
+        multichainBalances: {
+          [solanaAccount.id]: { [solAssetId]: { amount: '12.5' } },
+        },
+        multichainRates: { [solAssetId]: { rate: '200' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({
+          address: solAssetId,
+          chainId: solanaScope,
+          symbol: 'SOL',
+          decimals: 9,
+        }),
+        deps,
+      );
+
+      expect(result).toEqual({
+        balance: '12.5',
+        balanceFiat: '€2500',
+        tokenFiatAmount: 2500,
+        currencyExchangeRate: 200,
+      });
+    });
+
+    it('defaults to USD when no fiatCurrency is provided', () => {
+      const deps = baseDeps({
+        solanaAccount,
+        multichainBalances: {
+          [solanaAccount.id]: { [solAssetId]: { amount: '12.5' } },
+        },
+        multichainRates: { [solAssetId]: { rate: '200' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: solAssetId, chainId: solanaScope, symbol: 'SOL' }),
+        deps,
+      );
+
+      expect(result?.balanceFiat).toBe('$2500.00');
+    });
+
+    it('uses the provided currency symbol for a lenient zero enrichment', () => {
+      const result = enrichTokenBalance(
+        token({ address: solAssetId, chainId: solanaScope, symbol: 'SOL' }),
+        baseDeps({ fiatCurrency: 'eur' }),
+        { includeZeroBalance: true },
+      );
+
+      expect(result).toEqual({
+        balance: '0',
+        balanceFiat: '€0',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
+    });
+  });
 });

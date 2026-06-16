@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import moneyOnboardingStepperStep1 from '../../../../../images/money-onboarding-stepper-step-1.png';
 import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
@@ -11,6 +11,19 @@ import StepperCard, {
 } from '../../../../../component-library/components-temp/StepperCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  deriveCardState,
+} from '../../../Card/util/metrics';
+import { useSelector } from 'react-redux';
+import {
+  selectIsCardholder,
+  selectCardHomeDataStatus,
+} from '../../../../../selectors/cardController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -18,11 +31,13 @@ import {
   SCREEN_NAMES,
   BOTTOM_SHEET_NAMES,
 } from '../../constants/moneyEvents';
-
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
 
 const MoneyOnboardingCard = () => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedCardStepViewRef = useRef(false);
+
   const {
     currentStep,
     incrementStep,
@@ -33,7 +48,7 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { tokenTotal, isAggregatedBalanceLoading } = useMoneyAccountBalance();
+  const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
@@ -42,9 +57,32 @@ const MoneyOnboardingCard = () => {
   const {
     startLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
     isLinking,
+    isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
+  const isCardholder = useSelector(selectIsCardholder);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+
+  const isMoneyAccountFunded = Boolean(
+    !isBalanceLoading && tokenTotal?.isGreaterThan(0),
+  );
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+
+  const cardState = deriveCardState({
+    isCardholder,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+  });
+
+  const isCardStepBlocked = isResidencyBlocked && !isCardLinkedToMoneyAccount;
+
+  const shouldShowLinkCardAction =
+    !isCardStepBlocked &&
+    (isCardholder ||
+      (isCardAuthenticated && isCardVerified && !isCardLinkedToMoneyAccount));
 
   const handleRedirectToCryptoDeposit = useCallback(async () => {
     await initiateDeposit().catch(() => undefined);
@@ -58,7 +96,7 @@ const MoneyOnboardingCard = () => {
         total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
       } as const;
 
-      if (isCardAuthenticated && !isCardLinkedToMoneyAccount) {
+      if (shouldShowLinkCardAction) {
         trackOnboardingEvent({
           ...baseProperties,
           step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
@@ -72,14 +110,27 @@ const MoneyOnboardingCard = () => {
         });
       }
 
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
+            card_state: cardState,
+          })
+          .build(),
+      );
+
       startLinkFlow(MONEY_HOME_CARD_ORIGIN);
     },
     [
       currentStep,
-      isCardAuthenticated,
-      isCardLinkedToMoneyAccount,
+      shouldShowLinkCardAction,
       startLinkFlow,
       trackOnboardingEvent,
+      trackEvent,
+      createEventBuilder,
+      cardState,
     ],
   );
 
@@ -93,16 +144,32 @@ const MoneyOnboardingCard = () => {
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.SKIPPED,
       });
 
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
+            card_state: cardState,
+          })
+          .build(),
+      );
+
       incrementStep();
     },
-    [currentStep, incrementStep, trackOnboardingEvent],
+    [
+      currentStep,
+      incrementStep,
+      trackOnboardingEvent,
+      trackEvent,
+      createEventBuilder,
+      cardState,
+    ],
   );
 
   const targetStepFromCompletion = useMemo(() => {
     // Step 1 completion is based on having a non-zero balance (after loading).
-    const isStep1Complete = Boolean(
-      !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
-    );
+    const isStep1Complete = isMoneyAccountFunded;
 
     // Step 2 completion can be evaluated if either:
     // - persisted progress is already at step index ≥ 1 (auto-advanced on a
@@ -110,17 +177,19 @@ const MoneyOnboardingCard = () => {
     // - step 1 is complete right now (immediately advance funded users).
     const canEvaluateStep2 = currentStep >= 1 || isStep1Complete;
     const isStep2Complete =
-      canEvaluateStep2 && isCardAuthenticated && isCardLinkedToMoneyAccount;
+      canEvaluateStep2 &&
+      ((isCardAuthenticated && isCardLinkedToMoneyAccount) ||
+        isCardStepBlocked);
 
     if (isStep2Complete) return 2;
     if (isStep1Complete) return 1;
     return 0;
   }, [
     currentStep,
-    isAggregatedBalanceLoading,
-    tokenTotal,
+    isMoneyAccountFunded,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
+    isCardStepBlocked,
   ]);
 
   // Prevent a flash of earlier steps by rendering the computed step immediately,
@@ -134,6 +203,39 @@ const MoneyOnboardingCard = () => {
       incrementStep();
     }
   }, [currentStep, targetStepFromCompletion, incrementStep]);
+
+  useEffect(() => {
+    if (
+      hasTrackedCardStepViewRef.current ||
+      isBalanceLoading ||
+      !isCardAnalyticsReady ||
+      !isOnboardingCardVisible ||
+      !isVisibleAfterAutoSkip ||
+      effectiveCurrentStep !== 1
+    ) {
+      return;
+    }
+
+    hasTrackedCardStepViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.MONEY_HOME,
+          entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+          card_state: cardState,
+        })
+        .build(),
+    );
+  }, [
+    trackEvent,
+    createEventBuilder,
+    effectiveCurrentStep,
+    isBalanceLoading,
+    isCardAnalyticsReady,
+    isOnboardingCardVisible,
+    isVisibleAfterAutoSkip,
+    cardState,
+  ]);
 
   const handleStep1CtaPressed = useCallback(() => {
     trackOnboardingEvent({
@@ -160,94 +262,82 @@ const MoneyOnboardingCard = () => {
       image: moneyOnboardingStepperStep1,
     };
 
-    // Case 1: Has MetaMask card but not linked to Money account yet.
-    const step2: StepperCardStep =
-      isCardAuthenticated && !isCardLinkedToMoneyAccount
-        ? {
-            title: strings(
-              'money.onboarding.step_2.unlinked_card_account.title',
+    // Case 1: Cardholder, or authenticated with a card not yet linked.
+    const step2: StepperCardStep = shouldShowLinkCardAction
+      ? {
+          title: strings('money.onboarding.step_2.unlinked_card_account.title'),
+          description: strings(
+            'money.onboarding.step_2.unlinked_card_account.description',
+          ),
+          primaryCta: {
+            text: strings(
+              'money.onboarding.step_2.unlinked_card_account.cta_primary',
             ),
-            description: strings(
-              'money.onboarding.step_2.unlinked_card_account.description',
+            onPress: () =>
+              handleCardCtaPress(
+                strings('money.onboarding.step_2.unlinked_card_account.title', {
+                  locale: 'en',
+                }),
+              ),
+            disabled: isLinking,
+          },
+          secondaryCta: {
+            text: strings(
+              'money.onboarding.step_2.unlinked_card_account.cta_secondary',
             ),
-            primaryCta: {
-              text: strings(
-                'money.onboarding.step_2.unlinked_card_account.cta_primary',
+            onPress: () =>
+              handleSkipPress(
+                strings('money.onboarding.step_2.unlinked_card_account.title', {
+                  locale: 'en',
+                }),
               ),
-              onPress: () =>
-                handleCardCtaPress(
-                  strings(
-                    'money.onboarding.step_2.unlinked_card_account.title',
-                    {
-                      locale: 'en',
-                    },
-                  ),
-                ),
-              disabled: isLinking,
-            },
-            secondaryCta: {
-              text: strings(
-                'money.onboarding.step_2.unlinked_card_account.cta_secondary',
-              ),
-              onPress: () =>
-                handleSkipPress(
-                  strings(
-                    'money.onboarding.step_2.unlinked_card_account.title',
-                    { locale: 'en' },
-                  ),
-                ),
-            },
-            image: moneyOnboardingStepperStep2,
-          }
-        : // No MetaMask card yet.
-          {
-            title: strings('money.onboarding.step_2.no_card_account.title'),
-            description: strings(
-              'money.onboarding.step_2.no_card_account.description',
+          },
+          image: moneyOnboardingStepperStep2,
+        }
+      : // No MetaMask card yet.
+        {
+          title: strings('money.onboarding.step_2.no_card_account.title'),
+          description: strings(
+            'money.onboarding.step_2.no_card_account.description',
+          ),
+          primaryCta: {
+            text: strings(
+              'money.onboarding.step_2.no_card_account.cta_primary',
             ),
-            primaryCta: {
-              text: strings(
-                'money.onboarding.step_2.no_card_account.cta_primary',
+            onPress: () =>
+              handleCardCtaPress(
+                strings('money.onboarding.step_2.no_card_account.title', {
+                  locale: 'en',
+                }),
               ),
-              onPress: () =>
-                handleCardCtaPress(
-                  strings('money.onboarding.step_2.no_card_account.title', {
-                    locale: 'en',
-                  }),
-                ),
-              disabled: isLinking,
-            },
-            secondaryCta: {
-              text: strings(
-                'money.onboarding.step_2.no_card_account.cta_secondary',
+            disabled: isLinking,
+          },
+          secondaryCta: {
+            text: strings(
+              'money.onboarding.step_2.no_card_account.cta_secondary',
+            ),
+            onPress: () =>
+              handleSkipPress(
+                strings('money.onboarding.step_2.no_card_account.title', {
+                  locale: 'en',
+                }),
               ),
-              onPress: () =>
-                handleSkipPress(
-                  strings('money.onboarding.step_2.no_card_account.title', {
-                    locale: 'en',
-                  }),
-                ),
-            },
-            image: moneyOnboardingStepperStep2,
-          };
+          },
+          image: moneyOnboardingStepperStep2,
+        };
 
     return [step1, step2];
   }, [
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
     handleStep1CtaPressed,
-    isCardAuthenticated,
-    isCardLinkedToMoneyAccount,
+    shouldShowLinkCardAction,
     isLinking,
     handleCardCtaPress,
     handleSkipPress,
   ]);
 
-  if (
-    isAggregatedBalanceLoading ||
-    !isOnboardingCardVisible ||
-    !isVisibleAfterAutoSkip
-  ) {
+  if (isBalanceLoading || !isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
     return null;
   }
 

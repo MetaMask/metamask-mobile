@@ -9,6 +9,13 @@ const mockDispatch = jest.fn();
 const mockUseFocusEffect = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockFetchSpendingLimitData = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -29,6 +36,13 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 // Mock useCardHomeData hook (SpendingLimit now reads from it)
 jest.mock('../../hooks/useCardHomeData', () => ({

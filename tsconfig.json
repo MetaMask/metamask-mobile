@@ -48,6 +48,12 @@
       "@metamask/eth-ledger-bridge-keyring/v2": [
         "node_modules/@metamask/eth-ledger-bridge-keyring/dist/v2/index.d.cts"
       ],
+      "@metamask/eth-qr-keyring/v2": [
+        "node_modules/@metamask/eth-qr-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-money-keyring/v2": [
+        "node_modules/@metamask/eth-money-keyring/dist/v2/index.d.cts"
+      ],
       "@metamask/design-system-react-native/spinner": [
         "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
       ],

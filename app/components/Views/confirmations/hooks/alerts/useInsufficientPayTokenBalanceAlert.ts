@@ -23,6 +23,7 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -152,6 +153,7 @@ export function useInsufficientPayTokenBalanceAlert({
   // payToken is absent as long as we're in a post-quote flow.
   const isInsufficientForSourceNetwork = useMemo(
     () =>
+      sourceChainId !== CHAIN_IDS.MONAD &&
       !isMoneyPaymentOverride &&
       (payToken || isPostQuote) &&
       !isPayTokenNative &&
@@ -159,6 +161,7 @@ export function useInsufficientPayTokenBalanceAlert({
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
+      sourceChainId,
       isMoneyPaymentOverride,
       isPayTokenNative,
       isPendingAlert,

@@ -81,6 +81,7 @@ enum EVENT_NAME {
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
   ADDRESS_COPIED = 'Address Copied',
+  ADDRESS_LIST_VIEWED = 'Address List Viewed',
   QR_CODE_VIEWED = 'QR Code Viewed',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
@@ -417,6 +418,9 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  SWAPBRIDGE_STATUS_MODAL_VIEWED = 'Unified SwapBridge Status Modal Viewed',
+  SWAPBRIDGE_STATUS_MODAL_DISMISSED = 'Unified SwapBridge Status Modal Dismissed',
+  SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED = 'Unified SwapBridge Status Modal Button Clicked',
   /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
   ASSET_VIEWED = 'Asset Viewed',
 
@@ -631,6 +635,9 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_MONEY_ACCOUNT_LINKING_STARTED = 'Card Money Account Linking Started',
+  CARD_MONEY_ACCOUNT_LINKING_COMPLETED = 'Card Money Account Linking Completed',
+  CARD_MONEY_ACCOUNT_LINKING_FAILED = 'Card Money Account Linking Failed',
   CARD_PUSH_PROVISIONING_STARTED = 'Card Push Provisioning Started',
   CARD_PUSH_PROVISIONING_COMPLETED = 'Card Push Provisioning Completed',
   CARD_PUSH_PROVISIONING_FAILED = 'Card Push Provisioning Failed',
@@ -900,6 +907,7 @@ const events = {
 
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   ADDRESS_COPIED: generateOpt(EVENT_NAME.ADDRESS_COPIED),
+  ADDRESS_LIST_VIEWED: generateOpt(EVENT_NAME.ADDRESS_LIST_VIEWED),
   QR_CODE_VIEWED: generateOpt(EVENT_NAME.QR_CODE_VIEWED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
@@ -1683,6 +1691,15 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  SWAPBRIDGE_STATUS_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_VIEWED,
+  ),
+  SWAPBRIDGE_STATUS_MODAL_DISMISSED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_DISMISSED,
+  ),
+  SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED,
+  ),
   ASSET_VIEWED: generateOpt(EVENT_NAME.ASSET_VIEWED),
 
   // RPC Failover
@@ -1789,6 +1806,15 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
+  ),
+  CARD_MONEY_ACCOUNT_LINKING_STARTED: generateOpt(
+    EVENT_NAME.CARD_MONEY_ACCOUNT_LINKING_STARTED,
+  ),
+  CARD_MONEY_ACCOUNT_LINKING_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_MONEY_ACCOUNT_LINKING_COMPLETED,
+  ),
+  CARD_MONEY_ACCOUNT_LINKING_FAILED: generateOpt(
+    EVENT_NAME.CARD_MONEY_ACCOUNT_LINKING_FAILED,
   ),
   CARD_PUSH_PROVISIONING_STARTED: generateOpt(
     EVENT_NAME.CARD_PUSH_PROVISIONING_STARTED,

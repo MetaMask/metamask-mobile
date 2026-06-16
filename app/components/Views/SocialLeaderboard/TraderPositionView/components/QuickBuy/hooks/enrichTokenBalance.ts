@@ -1,6 +1,11 @@
 import type { Hex } from '@metamask/utils';
 import { formatUnits } from 'ethers/lib/utils';
-import { isSolanaChainId, isNativeAddress } from '@metamask/bridge-controller';
+import {
+  isNonEvmChainId,
+  isSolanaChainId,
+  isNativeAddress,
+} from '@metamask/bridge-controller';
+import { BtcScope, TrxScope } from '@metamask/keyring-api';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { addCurrencySymbol } from '../../../../../../../util/number/bigint';
 import type { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
@@ -40,7 +45,14 @@ export interface TokenBalanceDeps {
   tokenMarketData: ReturnType<typeof selectTokenMarketData>;
   currencyRates: ReturnType<typeof selectCurrencyRates>;
   allNetworkConfigs?: Record<string, { nativeCurrency?: string } | undefined>;
+  /**
+   * Currency code used to format the fiat display string (e.g. `'usd'`,
+   * `'eur'`). Defaults to USD when omitted.
+   */
+  fiatCurrency?: Parameters<typeof addCurrencySymbol>[1];
   solanaAccount?: { id: string };
+  tronAccount?: { id: string };
+  bitcoinAccount?: { id: string };
   multichainBalances?: Record<
     string,
     Record<string, { amount?: string } | undefined> | undefined
@@ -68,9 +80,11 @@ export interface EnrichTokenBalanceOptions {
  */
 const USD_CURRENCY = 'usd' as Parameters<typeof addCurrencySymbol>[1];
 
-const zeroEnrichment = (): TokenBalanceEnrichment => ({
+const zeroEnrichment = (
+  fiatCurrency: Parameters<typeof addCurrencySymbol>[1] = USD_CURRENCY,
+): TokenBalanceEnrichment => ({
   balance: '0',
-  balanceFiat: addCurrencySymbol('0.00', USD_CURRENCY),
+  balanceFiat: addCurrencySymbol('0.00', fiatCurrency),
   tokenFiatAmount: 0,
   currencyExchangeRate: undefined,
 });
@@ -92,11 +106,12 @@ const priced = (
   balance: string,
   exchangeRate: number,
   balanceNum: number,
+  fiatCurrency: Parameters<typeof addCurrencySymbol>[1] = USD_CURRENCY,
 ): TokenBalanceEnrichment => {
   const tokenFiatAmount = balanceNum * exchangeRate;
   return {
     balance,
-    balanceFiat: addCurrencySymbol(tokenFiatAmount.toFixed(2), USD_CURRENCY),
+    balanceFiat: addCurrencySymbol(tokenFiatAmount.toFixed(2), fiatCurrency),
     tokenFiatAmount,
     currencyExchangeRate: exchangeRate,
   };
@@ -115,9 +130,11 @@ const enrichEvmTokenBalance = (
     tokenMarketData,
     currencyRates,
     allNetworkConfigs,
+    fiatCurrency,
   } = deps;
 
-  const dropOrZero = () => (includeZeroBalance ? zeroEnrichment() : null);
+  const dropOrZero = () =>
+    includeZeroBalance ? zeroEnrichment(fiatCurrency) : null;
 
   if (!accountAddress) return dropOrZero();
 
@@ -170,23 +187,40 @@ const enrichEvmTokenBalance = (
     return includeZeroBalance ? unpricedEnrichment(displayBalance) : null;
   }
 
-  return priced(displayBalance, exchangeRate, balanceNum);
+  return priced(displayBalance, exchangeRate, balanceNum, fiatCurrency);
 };
 
-const enrichSolanaTokenBalance = (
+/**
+ * Resolves the non-EVM account whose multichain balances cover the candidate's
+ * chain. Multichain balances/rates are keyed by account id + CAIP asset id, so
+ * each non-EVM chain needs the matching account from the selected group.
+ */
+const getNonEvmAccount = (
+  chainId: BridgeToken['chainId'],
+  deps: TokenBalanceDeps,
+): { id: string } | undefined => {
+  if (isSolanaChainId(chainId)) return deps.solanaAccount;
+  if (chainId === TrxScope.Mainnet) return deps.tronAccount;
+  if (chainId === BtcScope.Mainnet) return deps.bitcoinAccount;
+  return undefined;
+};
+
+const enrichNonEvmTokenBalance = (
   candidate: BridgeToken,
   deps: TokenBalanceDeps,
   options: EnrichTokenBalanceOptions,
 ): TokenBalanceEnrichment | null => {
   const { includeZeroBalance } = options;
-  const { solanaAccount, multichainBalances, multichainRates } = deps;
+  const { multichainBalances, multichainRates, fiatCurrency } = deps;
 
-  const dropOrZero = () => (includeZeroBalance ? zeroEnrichment() : null);
+  const dropOrZero = () =>
+    includeZeroBalance ? zeroEnrichment(fiatCurrency) : null;
 
-  if (!solanaAccount) return dropOrZero();
+  const nonEvmAccount = getNonEvmAccount(candidate.chainId, deps);
+  if (!nonEvmAccount) return dropOrZero();
 
   const amountStr =
-    multichainBalances?.[solanaAccount.id]?.[candidate.address]?.amount;
+    multichainBalances?.[nonEvmAccount.id]?.[candidate.address]?.amount;
   if (!amountStr) return dropOrZero();
 
   const balanceNum = parseFloat(amountStr);
@@ -201,20 +235,21 @@ const enrichSolanaTokenBalance = (
     return includeZeroBalance ? unpricedEnrichment(amountStr) : null;
   }
 
-  return priced(amountStr, rateNum, balanceNum);
+  return priced(amountStr, rateNum, balanceNum, fiatCurrency);
 };
 
 /**
  * Prices a single token candidate from cached Redux balances, returning the
  * shared balance fields (or `null` when the token should be omitted). Handles
- * EVM natives, EVM ERC-20s, and Solana assets, keeping the USD exchange-rate
- * semantics QuickBuy's amount math depends on.
+ * EVM natives, EVM ERC-20s, and non-EVM assets (Solana, Tron, Bitcoin) via the
+ * multichain balance/rate controllers, keeping the USD exchange-rate semantics
+ * QuickBuy's amount math depends on.
  */
 export const enrichTokenBalance = (
   candidate: BridgeToken,
   deps: TokenBalanceDeps,
   options: EnrichTokenBalanceOptions = {},
 ): TokenBalanceEnrichment | null =>
-  isSolanaChainId(candidate.chainId)
-    ? enrichSolanaTokenBalance(candidate, deps, options)
+  isNonEvmChainId(candidate.chainId)
+    ? enrichNonEvmTokenBalance(candidate, deps, options)
     : enrichEvmTokenBalance(candidate, deps, options);

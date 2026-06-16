@@ -69,6 +69,11 @@ jest.mock('../views/PredictWorldCup', () => {
   return () => <View testID="predict-world-cup" />;
 });
 
+jest.mock('../views/PredictFeedView', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="predict-feed-view" />;
+});
+
 jest.mock('../views/PredictMarketDetails', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-market-details" />;
@@ -194,6 +199,18 @@ describe('PredictScreenStack', () => {
     });
 
     expect(screen.getByTestId('predict-world-cup')).toBeOnTheScreen();
+  });
+
+  it('navigates to FEED screen', async () => {
+    renderWithNavigation(<PredictScreenStack />);
+
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.FEED, {
+        feedId: 'sports',
+      });
+    });
+
+    expect(screen.getByTestId('predict-feed-view')).toBeOnTheScreen();
   });
 
   it('navigates to POSITIONS screen when portfolio flag is enabled', async () => {

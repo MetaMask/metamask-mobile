@@ -34,6 +34,7 @@ import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
+import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
@@ -327,6 +328,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           <SpendAndEarnPromoCard
             apyPercent={moneyAccountApyPercent}
             onPress={selectMoneyAccountAsSource}
+            analytics={{
+              screen: CardScreens.SPENDING_LIMIT,
+              entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+            }}
           />
         )}
 

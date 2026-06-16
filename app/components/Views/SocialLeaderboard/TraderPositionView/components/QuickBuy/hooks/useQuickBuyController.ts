@@ -16,7 +16,6 @@ import {
   playErrorNotification,
   playImpact,
 } from '../../../../../../../util/haptics';
-import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 import {
   dotAndCommaDecimalFormatter,
   isNumberValue,
@@ -29,7 +28,10 @@ import {
   formatMinimumReceived,
 } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
-import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
+import {
+  isSameAsset,
+  selectDefaultSourceToken,
+} from '../../../../utils/tokenSelection';
 import type {
   QuickBuyAmountDisplayMode,
   QuickBuyAnalyticsContext,
@@ -38,6 +40,7 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
 import { usePayWithTokens } from './usePayWithTokens';
@@ -58,6 +61,7 @@ import {
   selectDestAddress,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSlippage,
@@ -101,6 +105,7 @@ import {
   endQuickBuySubmission,
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
+import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -160,6 +165,12 @@ export interface UseQuickBuyControllerResult {
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string;
   sourceBalanceDisplay: string | undefined;
+  /**
+   * Live fiat balance of the sell-mode "Receive" token, resynced from the
+   * reactive receive-token list so it tracks underlying balance changes.
+   * `undefined` when no receive token is selected or its price is unresolved.
+   */
+  destBalanceFiat: string | undefined;
   formattedNetworkFee: string;
   formattedSlippage: string;
   formattedMinimumReceived: string;
@@ -273,6 +284,7 @@ export function useQuickBuyController(
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isNonEvmSourced = useSelector(selectIsNonEvmSourced);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedAddress = useSelector(
@@ -291,7 +303,7 @@ export function useQuickBuyController(
   } = useQuickBuySetup(target);
 
   // ─── Buy "Pay with" options (tokens the user holds) ─────────────────────
-  const { options: sourceTokenOptions } = usePayWithTokens();
+  const { options: heldTokenOptions } = usePayWithTokens();
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
   >(undefined);
@@ -300,9 +312,10 @@ export function useQuickBuyController(
   // the auto-select effect is allowed to correct a stale selection.
   const isManualSelectionRef = useRef(false);
 
-  // Dest-token lookup key passed to `selectDefaultSourceToken` so the
-  // destination is filtered out of source candidates and not preselected as
-  // pay-with. Reads from `positionTokenFromSetup` once available because
+  // Dest-token lookup key used to exclude the destination from the "Pay with"
+  // options and from the default source-token selection — a source equal to
+  // the destination can never produce a quote.
+  // Reads from `positionTokenFromSetup` once available because
   // `useQuickBuySetup` normalises `address` to match what `sourceTokenOptions`
   // contains — bare hex for EVM (zero address for native, mint hex for
   // ERC-20) and CAIP-19 for non-EVM. Comparing against the raw
@@ -330,6 +343,20 @@ export function useQuickBuyController(
     target.tokenSymbol,
   ]);
 
+  // "Pay with" options surfaced to the picker: the asset being bought is
+  // excluded so the user can never select a source equal to the buy target
+  // (TSA-660). While ERC-20 metadata resolves, `destLookupKey` falls back to
+  // the raw target values; the non-EVM symbol fallback in `isSameAsset`
+  // covers cross-format mismatches in that window, and the dest is filtered
+  // out on the next render once the normalised address lands.
+  const sourceTokenOptions = useMemo(
+    () =>
+      destLookupKey
+        ? heldTokenOptions.filter((token) => !isSameAsset(token, destLookupKey))
+        : heldTokenOptions,
+    [heldTokenOptions, destLookupKey],
+  );
+
   // Auto-select default source token using smart priority rules (see
   // `selectDefaultSourceToken`). `destLookupKey` is passed so the destination
   // is deprioritized and not preselected when the user has other holdings.
@@ -355,6 +382,21 @@ export function useQuickBuyController(
     destChainId,
     destLookupKey,
   ]);
+
+  // If the current selection turns out to BE the destination asset — e.g. it
+  // was picked while ERC-20 metadata was still resolving and the normalised
+  // dest address only matched afterwards — fall back to the best non-dest
+  // option instead of silently keeping a same-token pair that can never
+  // quote. Clears the manual flag so the auto-select effect can take over
+  // again if the fallback yields nothing.
+  useEffect(() => {
+    if (!selectedSourceToken || !destLookupKey) return;
+    if (!isSameAsset(selectedSourceToken, destLookupKey)) return;
+    isManualSelectionRef.current = false;
+    setSelectedSourceToken(
+      selectDefaultSourceToken(sourceTokenOptions, destChainId, destLookupKey),
+    );
+  }, [selectedSourceToken, destLookupKey, sourceTokenOptions, destChainId]);
 
   // ─── Sell mode: position token (what the user is selling) ──────────────
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
@@ -436,15 +478,72 @@ export function useQuickBuyController(
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
-  const hasSourcePrice = Boolean(
-    sourceToken?.currencyExchangeRate && sourceToken.currencyExchangeRate > 0,
+  // ─── Live selected-token balances (TSA-632) ────────────────────────────
+  // The selected pay-with token (`selectedSourceToken`, buy mode) and receive
+  // token (`selectedDestStable`, sell mode) are `useState` snapshots, so their
+  // cached `balance` / `balanceFiat` freeze at selection time. The option lists
+  // they were picked from — `usePayWithTokens` / `useReceiveTokens` — recompute
+  // on every balance-state change because they subscribe (via `useSelector`) to
+  // `TokenBalancesController` / `AccountTrackerController` (EVM) and the
+  // multichain balances state (Solana). Re-reading the matching option here
+  // makes both displayed balances track the underlying state whatever changed
+  // it: a QuickBuy swap settling, an external incoming transfer, a send in
+  // another flow, etc.
+  //
+  // The other side of each trade is already selector-driven and needs no
+  // resync: sell-mode `positionToken` comes from `usePositionTokenBalance`, and
+  // buy-mode `destToken` (`positionTokenFromSetup`) carries no displayed
+  // balance in the footer.
+  //
+  // Only the balance fields are pulled from the live option — never the token
+  // reference passed to quote fetching — so market-data ticks can't churn quote
+  // requests (see `destTokenForRate` below for the same invariant).
+  const liveSelectedSourceBalance = resolveLiveTokenBalance(
+    selectedSourceToken,
+    sourceTokenOptions,
   );
+  const liveSelectedDestBalance = resolveLiveTokenBalance(
+    selectedDestStable,
+    sellDestTokenOptions,
+  );
+
+  // In buy mode, read the live exchange rate from the reactive option list so
+  // the displayed fiat balance and slider cap stay in sync with the option list
+  // when `usePayWithTokens` refreshes rates without a balance string change
+  // (Bugbot: "Stale rate with live balance"). In sell mode `sourceToken` is
+  // `positionToken` (already selector-driven), so the frozen value is live.
+  //
+  // Intentionally NOT used in `sourceTokenAmount` (the quote pipeline): a rate
+  // tick must not churn quote requests — only balance changes do.
+  const liveSourceCurrencyExchangeRate =
+    tradeMode === 'buy'
+      ? (liveSelectedSourceBalance?.currencyExchangeRate ??
+        sourceToken?.currencyExchangeRate)
+      : sourceToken?.currencyExchangeRate;
+
+  const hasSourcePrice = Boolean(
+    liveSourceCurrencyExchangeRate && liveSourceCurrencyExchangeRate > 0,
+  );
+
+  // The live balance for whichever token is the *source* this mode: the
+  // resynced pay-with token in buy mode, or the already-live position token in
+  // sell mode.
+  const liveSourceBalance =
+    tradeMode === 'buy'
+      ? liveSelectedSourceBalance?.balance
+      : positionToken?.balance;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
+    balance: liveSourceBalance,
+    // `useLatestBalance` does a one-shot on-chain RPC fetch that shadows the
+    // cached value until its token identity or this key changes. Keying it off
+    // the live balance itself means any change to the underlying balance — for
+    // ANY reason — triggers a fresh on-chain read and re-render, independent of
+    // QuickBuy's own state.
+    refreshKey: liveSourceBalance ?? '',
   });
 
   const sourceTokenAmount = useMemo(() => {
@@ -502,8 +601,13 @@ export function useQuickBuyController(
     return Number.isFinite(v) ? v : 0;
   }, [usdAmount]);
   const quotesAnalyticsContext = useMemo(
-    () => ({ traderAddress, caip19, amountUsd: quotedUsdAmountNumber }),
-    [traderAddress, caip19, quotedUsdAmountNumber],
+    () => ({
+      traderAddress,
+      caip19,
+      amountUsd: quotedUsdAmountNumber,
+      source: analyticsContext?.source,
+    }),
+    [traderAddress, caip19, quotedUsdAmountNumber, analyticsContext?.source],
   );
 
   const {
@@ -600,12 +704,13 @@ export function useQuickBuyController(
     if (!sourceAmt || !destAmt || isNaN(sourceAmt) || isNaN(destAmt))
       return undefined;
     const rate = destAmt / sourceAmt;
-    const formatter = getIntlNumberFormatter(I18n.locale, {
-      ...(rate > 1
+    const formattedRateValue = formatQuickBuyRateValue(
+      rate,
+      rate > 1
         ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
-        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
-    });
-    return `1 ${sourceToken.symbol} = ${formatter.format(rate)} ${destToken.symbol}`;
+        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 },
+    );
+    return `1 ${sourceToken.symbol} = ${formattedRateValue} ${destToken.symbol}`;
   }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
@@ -655,15 +760,15 @@ export function useQuickBuyController(
   const sourceBalanceFiatUsd = useMemo(() => {
     if (
       !latestSourceBalance?.displayBalance ||
-      !sourceToken?.currencyExchangeRate
+      !liveSourceCurrencyExchangeRate
     ) {
       return 0;
     }
     const balance = parseFloat(latestSourceBalance.displayBalance);
     if (!Number.isFinite(balance)) return 0;
-    const fiat = balance * sourceToken.currencyExchangeRate;
+    const fiat = balance * liveSourceCurrencyExchangeRate;
     return Number.isFinite(fiat) && fiat > 0 ? fiat : 0;
-  }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
+  }, [latestSourceBalance?.displayBalance, liveSourceCurrencyExchangeRate]);
 
   const sourceBalanceFiat = useMemo(
     () => formatCurrency(sourceBalanceFiatUsd, currentCurrency),
@@ -682,6 +787,12 @@ export function useQuickBuyController(
     }).format(balance);
     return `${formatted} ${sourceToken.symbol}`;
   }, [latestSourceBalance?.displayBalance, sourceToken?.symbol]);
+
+  // Live fiat balance for the sell-mode "Receive" token, resynced from the
+  // reactive `useReceiveTokens` list so the footer pill tracks balance changes
+  // (TSA-632). `enrichTokenBalance` already formats this as a fiat string, so we
+  // pass it straight through rather than re-deriving it from a token amount.
+  const destBalanceFiat = liveSelectedDestBalance?.balanceFiat;
 
   const maxSpendUsd = sourceBalanceFiatUsd;
 
@@ -893,15 +1004,15 @@ export function useQuickBuyController(
       if (
         Number.isFinite(tokens) &&
         tokens > 0 &&
-        sourceToken?.currencyExchangeRate
+        liveSourceCurrencyExchangeRate
       ) {
-        const usd = (tokens * sourceToken.currencyExchangeRate).toFixed(2);
+        const usd = (tokens * liveSourceCurrencyExchangeRate).toFixed(2);
         setUsdAmount(usd);
         setQuotedUsdAmount(usd);
         lastCommittedUsdRef.current = usd;
       }
     }
-  }, [hasSourcePrice, sourceAmountTokens, sourceToken?.currencyExchangeRate]);
+  }, [hasSourcePrice, sourceAmountTokens, liveSourceCurrencyExchangeRate]);
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
@@ -1029,13 +1140,13 @@ export function useQuickBuyController(
     }
     markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
-    // Same-chain Solana swaps never reach a terminal `BridgeStatusController`
-    // status, so the terminal toast must resolve from
+    // Same-chain non-EVM swaps (Solana, Tron, Bitcoin) never reach a terminal
+    // `BridgeStatusController` status, so the terminal toast must resolve from
     // `MultichainTransactionsController` instead. Cross-chain bridges (incl.
-    // Solana → EVM) still settle via the bridge status path, so they are
+    // non-EVM → EVM) still settle via the bridge status path, so they are
     // excluded here.
     const isNonEvmSwap =
-      Boolean(isSolanaSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
+      Boolean(isNonEvmSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
     // Captures the copy data for every swap-lifecycle toast so the pending,
     // complete and failed states read consistently — and so the app-root
     // watcher can render the terminal toast after the sheet has unmounted.
@@ -1155,7 +1266,7 @@ export function useQuickBuyController(
     onClose,
     toastRef,
     theme,
-    isSolanaSourced,
+    isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
     sourceToken?.chainId,
@@ -1350,6 +1461,7 @@ export function useQuickBuyController(
     estimatedReceiveAmount,
     sourceBalanceFiat,
     sourceBalanceDisplay,
+    destBalanceFiat,
     formattedNetworkFee,
     formattedSlippage,
     formattedMinimumReceived,
