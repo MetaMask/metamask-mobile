@@ -14,7 +14,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { toFcmDataStringRecord } from '../utils/fcm-data';
-import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -41,7 +40,6 @@ async function analyticsTrackPushClickEvent(
     const properties = payload
       ? {
           ...payload,
-          profile_id: (await getSessionProfileId()) ?? payload.profile_id,
         }
       : { ...(data?.deeplink && { deeplink: data.deeplink }) };
 

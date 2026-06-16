@@ -173,7 +173,6 @@ describe('NotificationSettingsSection', () => {
             settings_type: 'wallet_activity',
             notification_channel: NotificationChannel.ALL,
             enabled: false,
-            profile_id: TEST_PROFILE_ID,
           })
           .build(),
       );
@@ -215,7 +214,6 @@ describe('NotificationSettingsSection', () => {
             settings_type: 'wallet_activity',
             notification_channel: NotificationChannel.ALL,
             enabled: true,
-            profile_id: TEST_PROFILE_ID,
           })
           .build(),
       );
@@ -258,7 +256,6 @@ describe('NotificationSettingsSection', () => {
             settings_type: 'perps',
             notification_channel: NotificationChannel.PUSH,
             enabled: false,
-            profile_id: TEST_PROFILE_ID,
           })
           .build(),
       );
@@ -292,7 +289,6 @@ describe('NotificationSettingsSection', () => {
             settings_type: 'perps',
             notification_channel: NotificationChannel.IN_APP,
             enabled: false,
-            profile_id: TEST_PROFILE_ID,
           })
           .build(),
       );

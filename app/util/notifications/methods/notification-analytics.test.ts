@@ -51,33 +51,6 @@ describe('notificationAnalyticsProperties', () => {
     });
   });
 
-  it('includes the profile_id when provided', () => {
-    const notification = {
-      id: 'notification-1',
-      type: 'eth_received',
-    } as unknown as INotification;
-
-    expect(
-      notificationAnalyticsProperties(notification, 'profile-123'),
-    ).toStrictEqual({
-      notification_id: 'notification-1',
-      notification_type: 'eth_received',
-      notification_subtype: 'eth_received',
-      profile_id: 'profile-123',
-    });
-  });
-
-  it('omits the profile_id when unavailable', () => {
-    const notification = {
-      id: 'notification-1',
-      type: 'eth_received',
-    } as unknown as INotification;
-
-    expect(
-      notificationAnalyticsProperties(notification, undefined),
-    ).not.toHaveProperty('profile_id');
-  });
-
   it('derives the subtype and merges chain_id for on-chain notifications', () => {
     const notification = {
       id: 'notification-1',
@@ -86,13 +59,10 @@ describe('notificationAnalyticsProperties', () => {
       payload: { chain_id: '1', data: { kind: 'eth_received' } },
     } as unknown as INotification;
 
-    expect(
-      notificationAnalyticsProperties(notification, 'profile-123'),
-    ).toStrictEqual({
+    expect(notificationAnalyticsProperties(notification)).toStrictEqual({
       notification_id: 'notification-1',
       notification_type: 'eth_received',
       notification_subtype: 'eth_received',
-      profile_id: 'profile-123',
       chain_id: '1',
     });
   });

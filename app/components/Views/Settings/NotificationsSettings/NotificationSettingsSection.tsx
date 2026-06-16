@@ -42,15 +42,13 @@ interface SectionContentProps {
   styles: NotificationSettingsStyles;
 }
 
-const SETTINGS_TYPE_BY_SECTION: Record<
-  NotificationPreferenceSection,
-  string
-> = {
-  walletActivity: 'wallet_activity',
-  perps: 'perps',
-  socialAI: 'social_ai',
-  marketing: 'marketing',
-};
+const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
+  {
+    walletActivity: 'wallet_activity',
+    perps: 'perps',
+    socialAI: 'social_ai',
+    marketing: 'marketing',
+  };
 
 const CHANNEL_BY_KEY: Record<
   NotificationPreferenceChannelKey,
@@ -95,7 +93,6 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
           settings_type: SETTINGS_TYPE_BY_SECTION.walletActivity,
           notification_channel: NotificationChannel.ALL,
           enabled: nextEnabled,
-          ...(profileId ? { profile_id: profileId } : {}),
         })
         .build(),
     );
@@ -106,7 +103,6 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     updatePreferencesSection,
     trackEvent,
     createEventBuilder,
-    profileId,
   ]);
 
   return (
@@ -243,12 +239,11 @@ const NotificationSettingsSection = ({
             settings_type: SETTINGS_TYPE_BY_SECTION[type],
             notification_channel: channel,
             enabled,
-            ...(profileId ? { profile_id: profileId } : {}),
           })
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, type, profileId],
+    [trackEvent, createEventBuilder, type],
   );
 
   useEffect(() => {

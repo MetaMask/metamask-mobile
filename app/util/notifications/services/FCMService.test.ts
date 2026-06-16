@@ -432,7 +432,6 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
           notification_id: 'test-notification-id',
           notification_type: 'platform',
           notification_subtype: 'take_profit_executed',
-          profile_id: 'test-profile-id',
           deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
         });
       });
@@ -447,7 +446,6 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
           notification_id: 'test-notification-id',
           notification_type: 'platform',
           notification_subtype: 'take_profit_executed',
-          profile_id: 'test-profile-id',
         });
       });
 
@@ -536,7 +534,6 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       notification_id: 'test-notification-id',
       notification_type: 'platform',
       notification_subtype: 'take_profit_executed',
-      profile_id: 'test-profile-id',
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
     });
   });
@@ -550,7 +547,6 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       notification_id: 'test-notification-id',
       notification_type: 'platform',
       notification_subtype: 'take_profit_executed',
-      profile_id: 'test-profile-id',
     });
   });
 
@@ -579,7 +575,6 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       notification_id: 'test-notification-id',
       notification_type: 'platform',
       notification_subtype: 'take_profit_executed',
-      profile_id: 'test-profile-id',
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
     });
   });
