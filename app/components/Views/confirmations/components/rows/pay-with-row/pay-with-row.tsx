@@ -368,7 +368,12 @@ function PayWithRowMoneyAccount({
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
       preferredPaymentToken,
     });
-  }, [navigation, onSelectorOpen, preferredPaymentToken, setConfirmationMetric]);
+  }, [
+    navigation,
+    onSelectorOpen,
+    preferredPaymentToken,
+    setConfirmationMetric,
+  ]);
 
   if (!payToken) {
     return <PayWithRowSkeleton />;

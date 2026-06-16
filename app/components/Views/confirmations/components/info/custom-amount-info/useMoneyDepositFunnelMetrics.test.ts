@@ -15,9 +15,9 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsUserRegion');
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => 'built-event');
-const mockAddProperties = jest.fn(
-  (_properties: Record<string, unknown>) => ({ build: mockBuild }),
-);
+const mockAddProperties = jest.fn((_properties: Record<string, unknown>) => ({
+  build: mockBuild,
+}));
 const mockCreateEventBuilder = jest.fn((_event: unknown) => ({
   addProperties: mockAddProperties,
 }));
@@ -135,14 +135,14 @@ describe('useMoneyDepositFunnelMetrics', () => {
     it('emits RAMPS_PAYMENT_METHOD_SELECTED reactively when a method is selected', () => {
       renderHook(() => useMoneyDepositFunnelMetrics());
 
-      expect(payloadFor(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED)).toEqual(
-        {
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          region: REGION,
-          payment_method_id: '/payments/debit-credit-card',
-        },
-      );
+      expect(
+        payloadFor(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED),
+      ).toEqual({
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'money_account',
+        region: REGION,
+        payment_method_id: '/payments/debit-credit-card',
+      });
     });
 
     it('emits RAMPS_QUOTE_ERROR reactively on the no-quotes alert', () => {
@@ -212,7 +212,9 @@ describe('useMoneyDepositFunnelMetrics', () => {
         result.current.trackAmountCommitted();
       });
 
-      expect(payloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED)).toBeUndefined();
+      expect(
+        payloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED),
+      ).toBeUndefined();
     });
 
     it('emits RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED when trackPaymentSelectorOpened is called', () => {
@@ -240,17 +242,17 @@ describe('useMoneyDepositFunnelMetrics', () => {
         result.current.trackContinue();
       });
 
-      expect(payloadFor(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)).toEqual(
-        {
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          region: REGION,
-          amount_source: 100,
-          payment_method_id: '/payments/debit-credit-card',
-          currency_destination: 'eip155:1/slip44:60',
-          currency_source: 'USD',
-        },
-      );
+      expect(
+        payloadFor(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED),
+      ).toEqual({
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'money_account',
+        region: REGION,
+        amount_source: 100,
+        payment_method_id: '/payments/debit-credit-card',
+        currency_destination: 'eip155:1/slip44:60',
+        currency_source: 'USD',
+      });
     });
 
     it('routes every emit through trackEvent', () => {

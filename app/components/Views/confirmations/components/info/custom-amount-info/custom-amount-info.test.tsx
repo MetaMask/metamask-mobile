@@ -129,7 +129,9 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsUserRegion', () => ({
 }));
 
 /** Returns the addProperties payload for the first emit of `event`. */
-function emittedPayloadFor(event: unknown): Record<string, unknown> | undefined {
+function emittedPayloadFor(
+  event: unknown,
+): Record<string, unknown> | undefined {
   const callIndex = mockCreateEventBuilder.mock.calls.findIndex(
     ([arg]) => arg === event,
   );
@@ -262,7 +264,9 @@ describe('CustomAmountInfo', () => {
     jest.resetAllMocks();
 
     // resetAllMocks clears implementations; restore the analytics capture mocks.
-    mockAddProperties.mockImplementation(() => ({ build: () => 'built-event' }));
+    mockAddProperties.mockImplementation(() => ({
+      build: () => 'built-event',
+    }));
     mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: mockAddProperties,
     }));
@@ -970,52 +974,55 @@ describe('CustomAmountInfo', () => {
       TransactionType.predictDeposit,
       TransactionType.moneyAccountWithdraw,
       TransactionType.musdConversion,
-    ])('fires no money RAMPS funnel events for %s on Done press', async (type) => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        id: 'tx-1',
-        type,
-        txParams: { from: '0x123' },
-      } as never);
-      useTransactionPayFiatPaymentMock.mockReturnValue({
-        selectedPaymentMethodId: '/payments/debit-credit-card',
-        amountFiat: '100',
-        caipAssetId: 'eip155:1/slip44:60',
-        rampsQuote: {
-          provider: '/providers/transak',
-          quote: { amountIn: 100, amountOut: 0.05 },
-        },
-      } as never);
-      useAlertsMock.mockReturnValue({
-        alerts: [
-          {
-            key: AlertKeys.NoPayTokenQuotes,
-            severity: Severity.Danger,
-            isBlocking: true,
+    ])(
+      'fires no money RAMPS funnel events for %s on Done press',
+      async (type) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type,
+          txParams: { from: '0x123' },
+        } as never);
+        useTransactionPayFiatPaymentMock.mockReturnValue({
+          selectedPaymentMethodId: '/payments/debit-credit-card',
+          amountFiat: '100',
+          caipAssetId: 'eip155:1/slip44:60',
+          rampsQuote: {
+            provider: '/providers/transak',
+            quote: { amountIn: 100, amountOut: 0.05 },
           },
-        ] as Alert[],
-        generalAlerts: [] as Alert[],
-        fieldAlerts: [] as Alert[],
-      } as AlertsContextParams);
+        } as never);
+        useAlertsMock.mockReturnValue({
+          alerts: [
+            {
+              key: AlertKeys.NoPayTokenQuotes,
+              severity: Severity.Danger,
+              isBlocking: true,
+            },
+          ] as Alert[],
+          generalAlerts: [] as Alert[],
+          fieldAlerts: [] as Alert[],
+        } as AlertsContextParams);
 
-      const { getByText } = render({ transactionType: type });
+        const { getByText } = render({ transactionType: type });
 
-      await act(async () => {
-        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-      });
+        await act(async () => {
+          fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+        });
 
-      const moneyRampEvents = [
-        MetaMetricsEvents.RAMPS_ORDER_PROPOSED,
-        MetaMetricsEvents.RAMPS_ORDER_SELECTED,
-        MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED,
-        MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
-        MetaMetricsEvents.RAMPS_QUOTE_ERROR,
-        MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED,
-        MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
-      ];
-      for (const event of moneyRampEvents) {
-        expect(emittedPayloadFor(event)).toBeUndefined();
-      }
-    });
+        const moneyRampEvents = [
+          MetaMetricsEvents.RAMPS_ORDER_PROPOSED,
+          MetaMetricsEvents.RAMPS_ORDER_SELECTED,
+          MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED,
+          MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
+          MetaMetricsEvents.RAMPS_QUOTE_ERROR,
+          MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED,
+          MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
+        ];
+        for (const event of moneyRampEvents) {
+          expect(emittedPayloadFor(event)).toBeUndefined();
+        }
+      },
+    );
   });
 });
 
