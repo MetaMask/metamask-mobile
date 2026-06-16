@@ -319,6 +319,52 @@ describe('RewardsVipRefereeView', () => {
     ).toBeNull();
   });
 
+  it('renders the referred-by card when dashboard data is present', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.REFERRED_BY_CARD),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the loading skeleton without the contact support button', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: true,
+      hasError: false,
+      hasAttemptedFetch: false,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeNull();
+  });
+
+  it('does not render the contact support button when the fetch errors with no data', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: false,
+      hasError: true,
+      hasAttemptedFetch: true,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeNull();
+  });
+
   it('renders the contact support button', () => {
     const { getByTestId, getByText } = render(<RewardsVipRefereeView />);
 
@@ -326,6 +372,26 @@ describe('RewardsVipRefereeView', () => {
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
     ).toBeOnTheScreen();
     expect(getByText('Contact support')).toBeOnTheScreen();
+  });
+
+  it('disables the contact support button when the selected account address is missing', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return undefined;
+      if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      return (
+        selector as (
+          state: ReturnType<typeof getRewardsSelectorState>,
+        ) => unknown
+      )(getRewardsSelectorState());
+    });
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeDisabled();
   });
 
   it('opens the priority support webview tagged as VIP with the account address on press', () => {
@@ -339,7 +405,7 @@ describe('RewardsVipRefereeView', () => {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: expect.stringContaining(
-          `priority=vip&account=${mockAccountAddress}`,
+          `priority=vip&account=${encodeURIComponent(mockAccountAddress)}`,
         ),
         title: 'Contact support',
       },
