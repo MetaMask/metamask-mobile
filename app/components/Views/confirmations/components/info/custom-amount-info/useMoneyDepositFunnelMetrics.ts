@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import type {
-  AnalyticsUnfilteredProperties,
-  IMetaMetricsEvent,
-} from '../../../../../../util/analytics/analytics.types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useRampsUserRegion } from '../../../../../UI/Ramp/hooks/useRampsUserRegion';
-import type { RampSurface } from '../../../../../UI/Ramp/Deposit/types/analytics';
+import { getChainIdFromAssetId } from '../../../../../UI/Ramp/headless/useHeadlessBuy';
+import type {
+  AnalyticsEvents,
+  RampSurface,
+} from '../../../../../UI/Ramp/Deposit/types/analytics';
 import type { Quote } from '../../../../../UI/Ramp/types';
+import type { AnalyticsUnfilteredProperties } from '../../../../../../util/analytics/analytics.types';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionPayFiatPayment } from '../../../hooks/pay/useTransactionPayData';
@@ -16,32 +17,27 @@ import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
 
 /**
- * TRAM-3623 headless ramps funnel telemetry for the Money "Add funds" deposit
- * flow.
- *
- * `custom-amount-info` is shared across perps / predict / withdraw / mUSD
- * confirmations, so every emit here is gated on
- * `TransactionType.moneyAccountDeposit`. The money-account-deposit confirmation
- * always leads to the headless buy, so each event is tagged with
- * `ramp_type: 'HEADLESS'`, `ramp_surface: 'money_account'`, and the user's
- * `region` (from `RampsController`, matching how the foundation tags Checkout).
- *
- * These reuse the existing `Ramps`-prefixed events via the loose
- * `createEventBuilder(...).addProperties(...)` path (not the typed Ramp hook),
- * to avoid coupling confirmations to the Ramp typed analytics interfaces.
- *
- * The buy funnel (`RAMPS_*`) is intentionally distinct from the Money-surface
- * telemetry (`mm_pay_*`, `MONEY_SURFACE_VIEWED`); this hook does not touch the
- * latter.
+ * TRAM-3623 headless funnel telemetry for the Money "Add funds" deposit. Gated on
+ * `TransactionType.moneyAccountDeposit`; tags HEADLESS / money_account / region.
+ * Payloads typed against `AnalyticsEvents[KEY]` to enforce Segment-required fields.
  */
 
 const RAMP_TYPE_HEADLESS = 'HEADLESS' as const;
 const RAMP_SURFACE_MONEY_ACCOUNT: RampSurface = 'money_account';
 const CURRENCY_SOURCE = 'USD';
+// Transak auth happens later in the headless flow, so the user is not yet
+// authenticated at these pre-checkout funnel steps.
+const IS_AUTHENTICATED = false;
 
 /** Reads a numeric field that the SDK may type as `number | string`. */
 function toNumber(value: number | string | undefined): number {
   return Number(value ?? 0) || 0;
+}
+
+/** Fiat-per-crypto rate `(amountIn - totalFees) / amountOut`; 0 if no crypto out. */
+function toExchangeRate(q: Quote['quote'] | undefined): number {
+  const out = toNumber(q?.amountOut);
+  return out > 0 ? (toNumber(q?.amountIn) - toNumber(q?.totalFees)) / out : 0;
 }
 
 export function useMoneyDepositFunnelMetrics() {
@@ -60,6 +56,8 @@ export function useMoneyDepositFunnelMetrics() {
   const rampsQuote = fiatPayment?.rampsQuote as Quote | undefined;
   const amountFiat = fiatPayment?.amountFiat;
   const assetId = fiatPayment?.caipAssetId;
+  // CAIP chain id of the deposit asset; '' when the asset id is missing/malformed.
+  const chainId = getChainIdFromAssetId(assetId ?? '') ?? '';
 
   // Base properties shared by every funnel event so the stream can be sliced by
   // headless surface and region.
@@ -73,8 +71,10 @@ export function useMoneyDepositFunnelMetrics() {
   );
 
   const emit = useCallback(
-    (event: IMetaMetricsEvent, properties: AnalyticsUnfilteredProperties) => {
-      trackEvent(createEventBuilder(event).addProperties(properties).build());
+    <T extends keyof AnalyticsEvents>(event: T, props: AnalyticsEvents[T]) => {
+      const builder = createEventBuilder(MetaMetricsEvents[event]);
+      const properties = props as unknown as AnalyticsUnfilteredProperties;
+      trackEvent(builder.addProperties(properties).build());
     },
     [trackEvent, createEventBuilder],
   );
@@ -84,8 +84,8 @@ export function useMoneyDepositFunnelMetrics() {
   const lastQuoteSelectedKeyRef = useRef<string | undefined>(undefined);
   const lastQuoteErrorKeyRef = useRef<string | undefined>(undefined);
 
-  // Amount committed (pre-quote). Fired imperatively from the Done handler when
-  // a valid amount has been committed. Reuses RAMPS_ORDER_PROPOSED.
+  // Amount committed (pre-quote): RAMPS_ORDER_PROPOSED. Imperative; no-op until
+  // a valid amount is committed.
   const trackAmountCommitted = useCallback(() => {
     if (!isMoneyAccountDeposit) {
       return;
@@ -96,64 +96,69 @@ export function useMoneyDepositFunnelMetrics() {
       return;
     }
 
-    emit(MetaMetricsEvents.RAMPS_ORDER_PROPOSED, {
+    emit('RAMPS_ORDER_PROPOSED', {
       ...baseProps,
       amount_source: amount,
+      // Crypto-out is only known once a quote arrives; 0 at amount-commit.
+      amount_destination: toNumber(rampsQuote?.quote?.amountOut),
       payment_method_id: selectedPaymentMethodId ?? '',
       currency_destination: assetId ?? '',
       currency_source: CURRENCY_SOURCE,
+      chain_id: chainId,
+      is_authenticated: IS_AUTHENTICATED,
     });
   }, [
     isMoneyAccountDeposit,
     amountFiat,
     assetId,
+    chainId,
+    rampsQuote,
     baseProps,
     emit,
     selectedPaymentMethodId,
   ]);
 
-  // Payment selector opened. Fired imperatively when the PayWith selector is
-  // opened. Reuses RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED. May not fire when the
-  // #31641 auto-select flag short-circuits the selector (expected/acceptable).
+  // PayWith selector opened: RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED. May not fire
+  // when the #31641 auto-select flag short-circuits the selector (acceptable).
   const trackPaymentSelectorOpened = useCallback(() => {
     if (!isMoneyAccountDeposit) {
       return;
     }
 
-    emit(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED, {
+    emit('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED', {
       ...baseProps,
       location: 'Amount Input',
       current_payment_method: selectedPaymentMethodId,
     });
   }, [isMoneyAccountDeposit, baseProps, emit, selectedPaymentMethodId]);
 
-  // Continue / Add Funds CTA. Fired imperatively from the confirm handler.
-  // Reuses RAMPS_CONTINUE_BUTTON_CLICKED. Note: in the headless flow the usable
-  // quote (RAMPS_ORDER_SELECTED) arrives reactively before this CTA fires.
+  // Continue / Add Funds CTA: RAMPS_CONTINUE_BUTTON_CLICKED. Imperative; the
+  // usable quote (RAMPS_ORDER_SELECTED) arrives reactively before this fires.
   const trackContinue = useCallback(() => {
     if (!isMoneyAccountDeposit) {
       return;
     }
 
-    emit(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED, {
+    emit('RAMPS_CONTINUE_BUTTON_CLICKED', {
       ...baseProps,
       amount_source: toNumber(amountFiat),
       payment_method_id: selectedPaymentMethodId ?? '',
       currency_destination: assetId ?? '',
       currency_source: CURRENCY_SOURCE,
+      chain_id: chainId,
     });
   }, [
     isMoneyAccountDeposit,
     amountFiat,
     assetId,
+    chainId,
     baseProps,
     emit,
     selectedPaymentMethodId,
   ]);
 
-  // Payment method changed. Reactive: fires once each time the selected fiat
-  // payment method id transitions to a new defined value. Reuses
-  // RAMPS_PAYMENT_METHOD_SELECTED.
+  // Payment method changed: RAMPS_PAYMENT_METHOD_SELECTED. Reactive; fires once
+  // per transition to a new defined method id.
   useEffect(() => {
     if (!isMoneyAccountDeposit || !selectedPaymentMethodId) {
       return;
@@ -164,14 +169,15 @@ export function useMoneyDepositFunnelMetrics() {
     }
 
     lastSelectedPaymentMethodRef.current = selectedPaymentMethodId;
-    emit(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED, {
+    emit('RAMPS_PAYMENT_METHOD_SELECTED', {
       ...baseProps,
       payment_method_id: selectedPaymentMethodId,
+      is_authenticated: IS_AUTHENTICATED,
     });
   }, [isMoneyAccountDeposit, selectedPaymentMethodId, baseProps, emit]);
 
-  // Usable quote received. Reactive: fires once each time fiatPayment.rampsQuote
-  // becomes usable. Reuses RAMPS_ORDER_SELECTED with the full fee breakdown.
+  // Usable quote received: RAMPS_ORDER_SELECTED with the full fee breakdown.
+  // Reactive; fires once per new quote.
   useEffect(() => {
     if (!isMoneyAccountDeposit || !rampsQuote) {
       return;
@@ -187,10 +193,11 @@ export function useMoneyDepositFunnelMetrics() {
     }
 
     lastQuoteSelectedKeyRef.current = quoteKey;
-    emit(MetaMetricsEvents.RAMPS_ORDER_SELECTED, {
+    emit('RAMPS_ORDER_SELECTED', {
       ...baseProps,
       amount_source: toNumber(quoteDetails?.amountIn),
       amount_destination: toNumber(quoteDetails?.amountOut),
+      exchange_rate: toExchangeRate(quoteDetails),
       total_fee: toNumber(quoteDetails?.totalFees),
       gas_fee: toNumber(quoteDetails?.networkFee),
       processing_fee: toNumber(quoteDetails?.providerFee),
@@ -198,18 +205,20 @@ export function useMoneyDepositFunnelMetrics() {
         quoteDetails?.paymentMethod ?? selectedPaymentMethodId ?? '',
       currency_destination: assetId ?? '',
       currency_source: CURRENCY_SOURCE,
+      chain_id: chainId,
     });
   }, [
     isMoneyAccountDeposit,
     rampsQuote,
     assetId,
+    chainId,
     baseProps,
     emit,
     selectedPaymentMethodId,
   ]);
 
-  // Quote failure. Reactive: fires once each time the no-quotes or buy-limit
-  // alert becomes active. Reuses RAMPS_QUOTE_ERROR.
+  // Quote failure: RAMPS_QUOTE_ERROR. Reactive; fires once per no-quotes or
+  // buy-limit alert becoming active.
   const quoteErrorAlert = alerts.find(
     (candidate) =>
       candidate.key === AlertKeys.NoPayTokenQuotes ||
@@ -235,7 +244,7 @@ export function useMoneyDepositFunnelMetrics() {
     }
 
     lastQuoteErrorKeyRef.current = errorKey;
-    emit(MetaMetricsEvents.RAMPS_QUOTE_ERROR, {
+    emit('RAMPS_QUOTE_ERROR', {
       ...baseProps,
       error_message:
         typeof quoteErrorAlert.message === 'string'

@@ -57,10 +57,25 @@ const RAMPS_QUOTE_MOCK = {
   },
 };
 
-/**
- * Returns the addProperties payload for the first emit of `event`, or
- * undefined if it was never emitted.
- */
+const FIAT_PAYMENT_WITH_QUOTE = {
+  ...FIAT_PAYMENT_MOCK,
+  rampsQuote: RAMPS_QUOTE_MOCK,
+};
+
+const EXPECTED_BASE = {
+  ramp_type: 'HEADLESS',
+  ramp_surface: 'money_account',
+  region: REGION,
+};
+
+const NO_QUOTES_ALERTS = [
+  { key: AlertKeys.NoPayTokenQuotes, message: 'No quotes available' },
+];
+const BUY_LIMIT_ALERTS = [
+  { key: AlertKeys.FiatBuyAmountLimit, message: 'Over the limit' },
+];
+
+/** addProperties payload for the first emit of `event`, or undefined. */
 function payloadFor(event: unknown): Record<string, unknown> | undefined {
   const callIndex = mockCreateEventBuilder.mock.calls.findIndex(
     ([arg]) => arg === event,
@@ -72,6 +87,11 @@ function payloadFor(event: unknown): Record<string, unknown> | undefined {
     string,
     unknown
   >;
+}
+
+/** How many times `event` was emitted. */
+function emitCount(event: unknown): number {
+  return mockCreateEventBuilder.mock.calls.filter((c) => c[0] === event).length;
 }
 
 function setMocks({
@@ -111,25 +131,24 @@ describe('useMoneyDepositFunnelMetrics', () => {
 
   describe('moneyAccountDeposit (HEADLESS / money_account)', () => {
     it('emits RAMPS_ORDER_SELECTED reactively when a usable quote is present', () => {
-      setMocks({
-        fiatPayment: { ...FIAT_PAYMENT_MOCK, rampsQuote: RAMPS_QUOTE_MOCK },
-      });
+      setMocks({ fiatPayment: FIAT_PAYMENT_WITH_QUOTE });
 
       renderHook(() => useMoneyDepositFunnelMetrics());
 
       expect(payloadFor(MetaMetricsEvents.RAMPS_ORDER_SELECTED)).toEqual({
-        ramp_type: 'HEADLESS',
-        ramp_surface: 'money_account',
-        region: REGION,
+        ...EXPECTED_BASE,
         amount_source: 100,
         amount_destination: 0.05,
+        exchange_rate: 1900, // (100 - 5) / 0.05
         total_fee: 5,
         gas_fee: 2,
         processing_fee: 3,
         payment_method_id: '/payments/debit-credit-card',
         currency_destination: 'eip155:1/slip44:60',
         currency_source: 'USD',
+        chain_id: 'eip155:1',
       });
+      expect(mockTrackEvent).toHaveBeenCalledWith('built-event');
     });
 
     it('emits RAMPS_PAYMENT_METHOD_SELECTED reactively when a method is selected', () => {
@@ -138,26 +157,19 @@ describe('useMoneyDepositFunnelMetrics', () => {
       expect(
         payloadFor(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED),
       ).toEqual({
-        ramp_type: 'HEADLESS',
-        ramp_surface: 'money_account',
-        region: REGION,
+        ...EXPECTED_BASE,
         payment_method_id: '/payments/debit-credit-card',
+        is_authenticated: false,
       });
     });
 
     it('emits RAMPS_QUOTE_ERROR reactively on the no-quotes alert', () => {
-      setMocks({
-        alerts: [
-          { key: AlertKeys.NoPayTokenQuotes, message: 'No quotes available' },
-        ],
-      });
+      setMocks({ alerts: NO_QUOTES_ALERTS });
 
       renderHook(() => useMoneyDepositFunnelMetrics());
 
       expect(payloadFor(MetaMetricsEvents.RAMPS_QUOTE_ERROR)).toEqual({
-        ramp_type: 'HEADLESS',
-        ramp_surface: 'money_account',
-        region: REGION,
+        ...EXPECTED_BASE,
         error_message: 'No quotes available',
         amount: 100,
         currency_source: 'USD',
@@ -167,19 +179,13 @@ describe('useMoneyDepositFunnelMetrics', () => {
     });
 
     it('emits RAMPS_QUOTE_ERROR reactively on the fiat buy-limit alert', () => {
-      setMocks({
-        alerts: [
-          { key: AlertKeys.FiatBuyAmountLimit, message: 'Over the limit' },
-        ],
-      });
+      setMocks({ alerts: BUY_LIMIT_ALERTS });
 
       renderHook(() => useMoneyDepositFunnelMetrics());
 
       expect(payloadFor(MetaMetricsEvents.RAMPS_QUOTE_ERROR)).toEqual(
         expect.objectContaining({
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          region: REGION,
+          ...EXPECTED_BASE,
           error_message: 'Over the limit',
         }),
       );
@@ -187,19 +193,17 @@ describe('useMoneyDepositFunnelMetrics', () => {
 
     it('emits RAMPS_ORDER_PROPOSED when trackAmountCommitted is called with a valid amount', () => {
       const { result } = renderHook(() => useMoneyDepositFunnelMetrics());
-
-      act(() => {
-        result.current.trackAmountCommitted();
-      });
+      act(() => result.current.trackAmountCommitted());
 
       expect(payloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED)).toEqual({
-        ramp_type: 'HEADLESS',
-        ramp_surface: 'money_account',
-        region: REGION,
+        ...EXPECTED_BASE,
         amount_source: 100,
+        amount_destination: 0, // no quote yet at amount-commit
         payment_method_id: '/payments/debit-credit-card',
         currency_destination: 'eip155:1/slip44:60',
         currency_source: 'USD',
+        chain_id: 'eip155:1',
+        is_authenticated: false,
       });
     });
 
@@ -207,10 +211,7 @@ describe('useMoneyDepositFunnelMetrics', () => {
       setMocks({ fiatPayment: { ...FIAT_PAYMENT_MOCK, amountFiat: '0' } });
 
       const { result } = renderHook(() => useMoneyDepositFunnelMetrics());
-
-      act(() => {
-        result.current.trackAmountCommitted();
-      });
+      act(() => result.current.trackAmountCommitted());
 
       expect(
         payloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED),
@@ -219,17 +220,12 @@ describe('useMoneyDepositFunnelMetrics', () => {
 
     it('emits RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED when trackPaymentSelectorOpened is called', () => {
       const { result } = renderHook(() => useMoneyDepositFunnelMetrics());
-
-      act(() => {
-        result.current.trackPaymentSelectorOpened();
-      });
+      act(() => result.current.trackPaymentSelectorOpened());
 
       expect(
         payloadFor(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED),
       ).toEqual({
-        ramp_type: 'HEADLESS',
-        ramp_surface: 'money_account',
-        region: REGION,
+        ...EXPECTED_BASE,
         location: 'Amount Input',
         current_payment_method: '/payments/debit-credit-card',
       });
@@ -237,58 +233,67 @@ describe('useMoneyDepositFunnelMetrics', () => {
 
     it('emits RAMPS_CONTINUE_BUTTON_CLICKED when trackContinue is called', () => {
       const { result } = renderHook(() => useMoneyDepositFunnelMetrics());
-
-      act(() => {
-        result.current.trackContinue();
-      });
+      act(() => result.current.trackContinue());
 
       expect(
         payloadFor(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED),
       ).toEqual({
-        ramp_type: 'HEADLESS',
-        ramp_surface: 'money_account',
-        region: REGION,
+        ...EXPECTED_BASE,
         amount_source: 100,
         payment_method_id: '/payments/debit-credit-card',
         currency_destination: 'eip155:1/slip44:60',
         currency_source: 'USD',
+        chain_id: 'eip155:1',
       });
     });
+  });
 
-    it('routes every emit through trackEvent', () => {
+  describe('derived schema fields', () => {
+    // Non-CAIP asset id -> chain_id fallback; attached quote -> populated amount_destination.
+    it('falls back to empty chain_id and reads crypto-out from the quote', () => {
       setMocks({
-        fiatPayment: { ...FIAT_PAYMENT_MOCK, rampsQuote: RAMPS_QUOTE_MOCK },
+        fiatPayment: { ...FIAT_PAYMENT_WITH_QUOTE, caipAssetId: 'not-a-caip' },
+      });
+
+      const { result } = renderHook(() => useMoneyDepositFunnelMetrics());
+      act(() => result.current.trackAmountCommitted());
+
+      expect(payloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED)).toEqual(
+        expect.objectContaining({ chain_id: '', amount_destination: 0.05 }),
+      );
+    });
+
+    it('reports a zero exchange_rate when the quote has no crypto out', () => {
+      const quote = { ...RAMPS_QUOTE_MOCK.quote, amountOut: 0 };
+      setMocks({
+        fiatPayment: { ...FIAT_PAYMENT_MOCK, rampsQuote: { quote } },
       });
 
       renderHook(() => useMoneyDepositFunnelMetrics());
 
-      expect(mockTrackEvent).toHaveBeenCalledWith('built-event');
+      expect(payloadFor(MetaMetricsEvents.RAMPS_ORDER_SELECTED)).toEqual(
+        expect.objectContaining({ exchange_rate: 0 }),
+      );
     });
   });
 
   describe('dedupe (fire once per occurrence)', () => {
     it('does not re-emit RAMPS_ORDER_SELECTED for the same quote across re-renders', () => {
-      setMocks({
-        fiatPayment: { ...FIAT_PAYMENT_MOCK, rampsQuote: RAMPS_QUOTE_MOCK },
-      });
+      setMocks({ fiatPayment: FIAT_PAYMENT_WITH_QUOTE });
 
       const { rerender } = renderHook(() => useMoneyDepositFunnelMetrics());
       rerender({});
 
-      const selectedCalls = mockCreateEventBuilder.mock.calls.filter(
-        ([event]) => event === MetaMetricsEvents.RAMPS_ORDER_SELECTED,
-      );
-      expect(selectedCalls).toHaveLength(1);
+      expect(emitCount(MetaMetricsEvents.RAMPS_ORDER_SELECTED)).toBe(1);
     });
 
     it('does not re-emit RAMPS_PAYMENT_METHOD_SELECTED for the same method across re-renders', () => {
       const { rerender } = renderHook(() => useMoneyDepositFunnelMetrics());
       rerender({});
 
-      const selectedCalls = mockCreateEventBuilder.mock.calls.filter(
-        ([event]) => event === MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED,
+      expect(emitCount(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED)).toBe(
+        1,
       );
-      expect(selectedCalls).toHaveLength(1);
     });
   });
 
@@ -298,10 +303,7 @@ describe('useMoneyDepositFunnelMetrics', () => {
     it('emits no money RAMPS funnel events (reactive or imperative)', () => {
       setMocks({
         type,
-        fiatPayment: {
-          ...FIAT_PAYMENT_MOCK,
-          rampsQuote: RAMPS_QUOTE_MOCK,
-        },
+        fiatPayment: FIAT_PAYMENT_WITH_QUOTE,
         alerts: [
           { key: AlertKeys.NoPayTokenQuotes, message: 'No quotes available' },
         ],
