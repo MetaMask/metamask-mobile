@@ -79,6 +79,50 @@ const rememberExposureAssignment = (assignmentKey: string) => {
   trackedExposureAssignments.add(assignmentKey);
 };
 
+interface EmitExposureArgs<T extends ABTestVariants> {
+  flagKey: string;
+  variationId: string;
+  assignmentKey: string;
+  experimentName?: string;
+  variationName?: string;
+  trackEvent: ReturnType<typeof useAnalytics>['trackEvent'];
+  createEventBuilder: ReturnType<typeof useAnalytics>['createEventBuilder'];
+}
+
+// Extracted out of the hook body. The properties object below uses conditional
+// spreads (value blocks), which the React Compiler cannot yet handle inside a
+// try/catch. Keeping the emit in a plain function lets the hook compile while
+// preserving the exact tracking behavior.
+const emitExposureEvent = <T extends ABTestVariants>({
+  flagKey,
+  variationId,
+  assignmentKey,
+  experimentName,
+  variationName,
+  trackEvent,
+  createEventBuilder,
+}: EmitExposureArgs<T>) => {
+  try {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
+        .addProperties({
+          experiment_id: flagKey,
+          variation_id: variationId,
+          ...(experimentName && {
+            experiment_name: experimentName,
+          }),
+          ...(variationName && {
+            variation_name: variationName,
+          }),
+        })
+        .build(),
+    );
+    rememberExposureAssignment(assignmentKey);
+  } catch {
+    // Do not cache failed emits so the hook can retry next evaluation.
+  }
+};
+
 /**
  * Generic hook for A/B testing in React components
  *
@@ -139,26 +183,15 @@ export function useABTest<T extends ABTestVariants>(
       return;
     }
 
-    try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
-          .addProperties({
-            experiment_id: flagKey,
-            variation_id: variationId,
-            ...(exposureMetadata?.experimentName && {
-              experiment_name: exposureMetadata.experimentName,
-            }),
-            ...(activeVariationName && {
-              variation_name: activeVariationName,
-            }),
-          })
-          .build(),
-      );
-      rememberExposureAssignment(assignmentKey);
-    } catch {
-      // Do not cache failed emits so the hook can retry next evaluation.
-      return;
-    }
+    emitExposureEvent<T>({
+      flagKey,
+      variationId,
+      assignmentKey,
+      experimentName: exposureMetadata?.experimentName,
+      variationName: activeVariationName,
+      trackEvent,
+      createEventBuilder,
+    });
   }, [
     createEventBuilder,
     activeVariationName,
