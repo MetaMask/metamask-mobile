@@ -1,10 +1,12 @@
 import type { Action as ReduxAction } from 'redux';
 import { ConnectionProps } from '../../core/SDKConnect/Connection';
 import { ApprovedHosts, SDKSessions } from '../../core/SDKConnect/SDKConnect';
-import { WC2Metadata } from './state';
+import { WC2SessionMetadata } from './state';
 
 export enum ActionType {
-  WC2_METADATA = 'WC2_METADATA',
+  SET_WC2_SESSION_METADATA = 'SET_WC2_SESSION_METADATA',
+  UPDATE_WC2_SESSION_METADATA = 'UPDATE_WC2_SESSION_METADATA',
+  REMOVE_WC2_SESSION_METADATA = 'REMOVE_WC2_SESSION_METADATA',
   RESET_CONNECTIONS = 'RESET_CONNECTIONS',
   UPDATE_CONNECTION = 'UPDATE_CONNECTION',
   REMOVE_CONNECTION = 'REMOVE_CONNECTION',
@@ -85,9 +87,21 @@ export interface SetSDKV2Connections
   connections: SDKSessions;
 }
 
-export interface UpdateWC2Metadata
-  extends ReduxAction<ActionType.WC2_METADATA> {
-  metadata?: WC2Metadata;
+export interface SetWC2SessionMetadata
+  extends ReduxAction<ActionType.SET_WC2_SESSION_METADATA> {
+  channelId: string;
+  metadata: WC2SessionMetadata;
+}
+
+export interface UpdateWC2SessionMetadata
+  extends ReduxAction<ActionType.UPDATE_WC2_SESSION_METADATA> {
+  channelId: string;
+  metadata: Partial<WC2SessionMetadata>;
+}
+
+export interface RemoveWC2SessionMetadata
+  extends ReduxAction<ActionType.REMOVE_WC2_SESSION_METADATA> {
+  channelId: string;
 }
 
 export type Action =
@@ -99,7 +113,9 @@ export type Action =
   | RemoveApprovedHost
   | SetApprovedHost
   | ResetApprovedHosts
-  | UpdateWC2Metadata
+  | SetWC2SessionMetadata
+  | UpdateWC2SessionMetadata
+  | RemoveWC2SessionMetadata
   | UpdateDappConnection
   | RemoveDappConnection
   | ResetDappConnections
@@ -110,11 +126,29 @@ export const disconnectAll = (): DisconnectAll => ({
   type: ActionType.DISCONNECT_ALL,
 });
 
-export const updateWC2Metadata = (
-  metadata: WC2Metadata,
-): UpdateWC2Metadata => ({
-  type: ActionType.WC2_METADATA,
+export const setWC2SessionMetadata = (
+  channelId: string,
+  metadata: WC2SessionMetadata,
+): SetWC2SessionMetadata => ({
+  type: ActionType.SET_WC2_SESSION_METADATA,
+  channelId,
   metadata,
+});
+
+export const updateWC2SessionMetadata = (
+  channelId: string,
+  metadata: Partial<WC2SessionMetadata>,
+): UpdateWC2SessionMetadata => ({
+  type: ActionType.UPDATE_WC2_SESSION_METADATA,
+  channelId,
+  metadata,
+});
+
+export const removeWC2SessionMetadata = (
+  channelId: string,
+): RemoveWC2SessionMetadata => ({
+  type: ActionType.REMOVE_WC2_SESSION_METADATA,
+  channelId,
 });
 
 export const updateConnection = (

@@ -9,9 +9,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (state: RootState) => unknown) =>
     selector({
       sdk: {
-        wc2Metadata: {
-          id: '',
-        },
+        wc2SessionMetadata: {},
         v2Connections: {},
       },
     } as RootState),
@@ -41,9 +39,7 @@ jest.mock('../../core/SDKConnect/SDKConnect', () => ({
 describe('useOriginSource', () => {
   const mockState = {
     sdk: {
-      wc2Metadata: {
-        id: '',
-      },
+      wc2SessionMetadata: {},
       v2Connections: {},
     },
   } as RootState;
@@ -145,29 +141,62 @@ describe('useOriginSource', () => {
     });
   });
 
-  it('should return WALLET_CONNECT source when WC metadata is present', () => {
+  it('should return WALLET_CONNECT source when WC metadata is present for that origin', () => {
+    const wcOrigin = 'wc-pairing-topic-1';
     const wcState = {
       ...mockState,
       sdk: {
         ...mockState.sdk,
-        wc2Metadata: {
-          id: 'some-wc-id',
+        wc2SessionMetadata: {
+          [wcOrigin]: {
+            url: 'https://dapp.example',
+            name: 'Dapp',
+            icon: 'icon.png',
+          },
         },
       },
-    } as RootState;
+    } as unknown as RootState;
 
-    jest
-      .requireMock('react-redux')
-      .useSelector.mockImplementation(
-        (selector: (state: RootState) => unknown) => selector(wcState),
-      );
+    mockSelector.mockImplementation((selector: (state: RootState) => unknown) =>
+      selector(wcState),
+    );
 
     const { result } = renderHook(() =>
-      useOriginSource({ origin: 'some-non-uuid-origin' }),
+      useOriginSource({ origin: wcOrigin }),
     );
     expect(result.current).toEqual({
       source: SourceType.WALLET_CONNECT,
       requestSource: AppConstants.REQUEST_SOURCES.WC,
+    });
+  });
+
+  it('does not return WALLET_CONNECT for an origin missing from the per-connection map', () => {
+    // Even when *another* WC session exists, an unrelated origin must not be
+    // misclassified. This is the regression the per-connection store fixes.
+    const wcState = {
+      ...mockState,
+      sdk: {
+        ...mockState.sdk,
+        wc2SessionMetadata: {
+          'wc-pairing-topic-1': {
+            url: 'https://dapp.example',
+            name: 'Dapp',
+            icon: 'icon.png',
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    mockSelector.mockImplementation((selector: (state: RootState) => unknown) =>
+      selector(wcState),
+    );
+
+    const { result } = renderHook(() =>
+      useOriginSource({ origin: 'https://other.example' }),
+    );
+    expect(result.current).toEqual({
+      source: SourceType.IN_APP_BROWSER,
+      requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     });
   });
 

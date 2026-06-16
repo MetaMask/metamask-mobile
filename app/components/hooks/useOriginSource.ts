@@ -56,7 +56,7 @@ const SOURCE_TO_REQUEST_SOURCE: Record<
 export const useOriginSource = ({
   origin,
 }: UseOriginSourceProps): OriginSource | undefined => {
-  const { wc2Metadata, v2Connections } = useSelector(
+  const { wc2SessionMetadata, v2Connections } = useSelector(
     (state: RootState) => state.sdk,
   );
 
@@ -85,13 +85,11 @@ export const useOriginSource = ({
     ) {
       // --- SDK v1 (bare UUID) ---
       source = SourceType.SDK;
-    } else if (wc2Metadata?.id && wc2Metadata.id.length > 0) {
+    } else if (wc2SessionMetadata?.[origin]) {
       // --- WalletConnect ---
-      // wc2Metadata is a single Redux slot holding the *most recent* WC proposal
-      // metadata (set on session_proposal, cleared after approval/rejection).
-      // It is not keyed by origin — we rely on the WC proposal flow being
-      // serialized (via proposalLock in WalletConnectV2) so that during the
-      // approval window, a non-empty id implies *this* origin is from WC.
+      // wc2SessionMetadata is a per-connection map keyed by pairing topic
+      // (which is the same value PermissionController receives as `origin`
+      // for WC). Presence of an entry for this origin is the WC signal.
       source = SourceType.WALLET_CONNECT;
     }
 
@@ -100,7 +98,7 @@ export const useOriginSource = ({
       AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
 
     return { source, requestSource };
-  }, [origin, v2Connections, wc2Metadata]);
+  }, [origin, v2Connections, wc2SessionMetadata]);
 };
 
 export default useOriginSource;

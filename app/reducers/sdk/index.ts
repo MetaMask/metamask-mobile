@@ -8,7 +8,7 @@ export const initialState: Readonly<SDKState> = {
   approvedHosts: {},
   dappConnections: {},
   v2Connections: {},
-  wc2Metadata: undefined,
+  wc2SessionMetadata: {},
 };
 
 const sdkReducer = (
@@ -16,11 +16,40 @@ const sdkReducer = (
   action: Action,
 ): SDKState => {
   switch (action.type) {
-    case ActionType.WC2_METADATA:
+    case ActionType.SET_WC2_SESSION_METADATA:
       return {
         ...state,
-        wc2Metadata: action.metadata,
+        wc2SessionMetadata: {
+          ...state.wc2SessionMetadata,
+          [action.channelId]: action.metadata,
+        },
       };
+    case ActionType.UPDATE_WC2_SESSION_METADATA: {
+      const existing = state.wc2SessionMetadata?.[action.channelId];
+      // No-op if the channel has no entry. RPC writes that arrive after an
+      // explicit REMOVE should not resurrect stale metadata.
+      if (!existing) {
+        return state;
+      }
+      return {
+        ...state,
+        wc2SessionMetadata: {
+          ...state.wc2SessionMetadata,
+          [action.channelId]: { ...existing, ...action.metadata },
+        },
+      };
+    }
+    case ActionType.REMOVE_WC2_SESSION_METADATA: {
+      if (!state.wc2SessionMetadata?.[action.channelId]) {
+        return state;
+      }
+      const { [action.channelId]: _, ...wc2SessionMetadata } =
+        state.wc2SessionMetadata;
+      return {
+        ...state,
+        wc2SessionMetadata,
+      };
+    }
     case ActionType.DISCONNECT_ALL:
       // Set connected: false to all connections
       return {

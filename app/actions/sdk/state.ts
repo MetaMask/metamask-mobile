@@ -22,19 +22,30 @@ export interface WC2VerifyContext {
   verifiedOrigin?: string;
 }
 
-export interface WC2Metadata {
-  id: string;
+/**
+ * Per-connection WalletConnect metadata, captured at proposal time and
+ * enriched during the session's lifetime.
+ */
+export interface WC2SessionMetadata {
   url: string;
   name: string;
   icon: string;
-  lastVerifiedUrl?: string;
   verifyContext?: WC2VerifyContext;
+  /** Most recent unverified origin observed in an RPC request on this session. */
+  lastVerifiedUrl?: string;
+  /** Present only during the proposal window; cleared once the session is approved. */
+  proposalId?: string;
 }
+
 export interface SDKState {
   connections: SDKSessions;
   approvedHosts: ApprovedHosts;
   dappConnections: SDKSessions;
   v2Connections: SDKSessions;
-  // Link to metadata of last created wallet connect session.
-  wc2Metadata?: WC2Metadata;
+  /**
+   * Per-connection WalletConnect metadata, keyed by pairing topic (a.k.a.
+   * `channelId`). Replaces the legacy single-slot `wc2Metadata` so that
+   * concurrent sessions don't clobber each other.
+   */
+  wc2SessionMetadata: Record<string, WC2SessionMetadata>;
 }
