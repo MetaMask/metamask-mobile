@@ -125,7 +125,7 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="px-4 gap-2"
+        twClassName="px-4 gap-2 mb-3"
       >
         <TogglePill
           label={strings('perps.home.gainers')}
