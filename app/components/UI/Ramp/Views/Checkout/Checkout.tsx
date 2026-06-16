@@ -127,8 +127,8 @@ const Checkout = () => {
   // `ramp_type: 'HEADLESS'` plus the seeded `ramp_surface` and the user's
   // `region` (RampsController). For non-headless UB2 traffic these stay
   // undefined, so `buildBaseProps` keeps its `UNIFIED_BUY_2` defaults.
-  const headlessRampSurface = getSession(headlessSessionId)?.params
-    ?.rampSurface;
+  const headlessRampSurface =
+    getSession(headlessSessionId)?.params?.rampSurface;
   const regionCode = userRegion?.regionCode || undefined;
   const headlessBaseOverrides = useMemo(
     () =>
