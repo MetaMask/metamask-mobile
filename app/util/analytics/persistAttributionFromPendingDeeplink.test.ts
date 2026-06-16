@@ -1,6 +1,9 @@
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import { saveAttribution } from '../../core/redux/slices/attribution';
-import { persistAttributionFromPendingDeeplink } from './persistAttributionFromPendingDeeplink';
+import {
+  persistAttributionFromPendingDeeplink,
+  persistUtmAttributes,
+} from './persistAttributionFromPendingDeeplink';
 
 jest.mock('../../core/redux/slices/attributionFromSources', () => ({
   attributionPayloadFromDeeplink: jest.fn(),
@@ -12,6 +15,36 @@ const mockAttributionPayloadFromDeeplink =
   attributionPayloadFromDeeplink as jest.MockedFunction<
     typeof attributionPayloadFromDeeplink
   >;
+
+describe('persistUtmAttributes', () => {
+  const dispatch = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('dispatches saveAttribution when the deeplink has acquisition params', () => {
+    const deeplink =
+      'https://link.metamask.io/onboarding?utm_source=e2e&utm_campaign=test';
+    const payload = { utm_source: 'e2e', utm_campaign: 'test' };
+    mockAttributionPayloadFromDeeplink.mockReturnValue(payload);
+
+    const result = persistUtmAttributes(deeplink, dispatch);
+
+    expect(result).toBe(true);
+    expect(mockAttributionPayloadFromDeeplink).toHaveBeenCalledWith(deeplink);
+    expect(dispatch).toHaveBeenCalledWith(saveAttribution(payload));
+  });
+
+  it('returns false when the deeplink has no attributable params', () => {
+    mockAttributionPayloadFromDeeplink.mockReturnValue(null);
+
+    const result = persistUtmAttributes('metamask://connect', dispatch);
+
+    expect(result).toBe(false);
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+});
 
 describe('persistAttributionFromPendingDeeplink', () => {
   const dispatch = jest.fn();

@@ -30,6 +30,18 @@ import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDevAutoUnlockPassword } from '../../util/environment';
+import { saveAttribution } from '../../core/redux/slices/attribution';
+jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
+  getUtmAttributesFromDeeplinkUrl: jest.fn(),
+  persistUtmAttributes: jest.fn(),
+  persistAttributionFromPendingDeeplink: jest.fn(),
+}));
+
+import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
+
+const mockGetUtmAttributesFromDeeplinkUrl = jest.mocked(
+  getUtmAttributesFromDeeplinkUrl,
+);
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -667,6 +679,7 @@ describe('handleDeeplinkSaga', () => {
     __resetSDKServicesInitializationForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
+    mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
   });
 
   describe('without deeplink', () => {
@@ -924,10 +937,32 @@ describe('handleDeeplinkSaga', () => {
             .silentRun();
 
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(mockGetUtmAttributesFromDeeplinkUrl).not.toHaveBeenCalled();
         });
       });
 
       describe('when existing user is false', () => {
+        it('persists UTM attributes from pending deeplink before onboarding handling', async () => {
+          const onboardingLink =
+            'https://metamask.io/onboarding?utm_source=e2e&utm_campaign=test';
+          const payload = { utm_source: 'e2e', utm_campaign: 'test' };
+          AppStateEventProcessor.pendingDeeplink = onboardingLink;
+          mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(payload);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .put(saveAttribution(payload))
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(mockGetUtmAttributesFromDeeplinkUrl).toHaveBeenCalledWith(
+            onboardingLink,
+          );
+        });
+
         it('handle onboarding deeplink when completed onboarding is false', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://metamask.io/onboarding?type=google';
