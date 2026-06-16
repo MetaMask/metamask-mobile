@@ -61,7 +61,7 @@ import {
 import type { RootState } from '../../../reducers';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
-import { clearAcquisitionStateAfterOptIn } from '../../../util/analytics/clearAcquisitionStateAfterOptIn';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 
@@ -227,7 +227,7 @@ const OptinMetrics = () => {
       });
     }
 
-    clearAcquisitionStateAfterOptIn(dispatch);
+    dispatch(clearAttribution());
 
     dispatch(clearOnboardingEvents());
 

@@ -92,7 +92,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { clearAcquisitionStateAfterOptIn } from '../../../util/analytics/clearAcquisitionStateAfterOptIn';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -521,7 +521,7 @@ const ChoosePassword = () => {
       });
 
       if (isSocialLogin) {
-        clearAcquisitionStateAfterOptIn(dispatch);
+        dispatch(clearAttribution());
       }
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
