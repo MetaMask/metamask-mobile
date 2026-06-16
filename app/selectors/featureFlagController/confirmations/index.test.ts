@@ -25,6 +25,7 @@ import {
   PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
+  selectRelayFixedSpread,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -731,5 +732,68 @@ describe('selectMetaMaskPayFlags extended flags', () => {
         'money-account',
       );
     });
+  });
+});
+
+describe('selectRelayFixedSpread', () => {
+  let consoleWarnSpy: jest.SpyInstance;
+
+  const sampleRoute = {
+    sourceChain: '0x1',
+    sourceToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    targetChain: '0x1',
+    targetToken: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  };
+
+  beforeEach(() => {
+    consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('returns parsed routes when remote object is valid', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: { routes: [sampleRoute] },
+      };
+
+    expect(selectRelayFixedSpread(state).routes).toEqual([sampleRoute]);
+  });
+
+  it('parses remote value provided as a JSON string', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: JSON.stringify({
+          routes: [sampleRoute],
+        }),
+      };
+
+    expect(selectRelayFixedSpread(state).routes).toEqual([sampleRoute]);
+  });
+
+  it('warns and returns empty when remote is structurally invalid', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: { routes: 'not-an-array' },
+      };
+
+    expect(selectRelayFixedSpread(state)).toEqual({ routes: [] });
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
+  });
+
+  it('returns empty routes when remote flag is absent', () => {
+    expect(selectRelayFixedSpread(mockedEmptyFlagsState)).toEqual({
+      routes: [],
+    });
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 });
