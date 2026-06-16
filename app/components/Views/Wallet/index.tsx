@@ -52,29 +52,13 @@ import {
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
 } from '../../../constants/storage';
-import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
-import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import AddressCopy from '../../UI/AddressCopy';
-import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createAccountSelectorNavDetails } from '../AccountSelector';
-import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
-  BadgeStatus,
-  BadgeStatusStatus,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-  BadgeWrapperPositionAnchorShape,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor as MMDSIconColor,
-  IconName as MMDSIconName,
   Text as CustomText,
   TextColor,
 } from '@metamask/design-system-react-native';
+import WalletHeader from './WalletHeader';
 
 import {
   NavigationProp,
@@ -96,7 +80,6 @@ import {
 } from '../../../component-library/components/Toast';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -110,17 +93,11 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import {
-  getMetamaskNotificationsUnreadCount,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../selectors/notifications';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { getIsNetworkOnboarded } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
-import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
-import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -227,14 +204,6 @@ const createStyles = ({ colors }: Theme) =>
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
     },
-    headerActionButtonsContainer: {
-      flexDirection: 'row',
-      gap: 8,
-    },
-    headerAccountPickerStyle: {
-      marginRight: 16,
-      backgroundColor: 'transparent',
-    },
     accountGroupBalanceContainer: {
       marginBottom: 16,
     },
@@ -333,7 +302,6 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
   const { navigate } = useNavigation();
-  const walletRef = useRef(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
@@ -546,12 +514,8 @@ const Wallet = ({
 
   const currentToast = toastRef?.current;
 
-  const accountName = useAccountName();
-  const accountGroupName = useAccountGroupName();
-
   useSafeChains();
 
-  const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
@@ -707,14 +671,6 @@ const Wallet = ({
     (state: RootState) => state.networkOnboarded.networkOnboardedState,
   );
 
-  const isNotificationEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
-
-  const unreadNotificationCount = useSelector(
-    getMetamaskNotificationsUnreadCount,
-  );
-
   const homeGrowthBanner = useHomeGrowthBanner();
 
   /**
@@ -831,40 +787,6 @@ const Wallet = ({
       scrollSubscribersRef.current.forEach((cb) => cb());
     }
   }, []);
-
-  const touchAreaSlop = useMemo(
-    () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
-    [],
-  );
-
-  const handleHamburgerPress = useCallback(() => {
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-      )
-        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
-        .build(),
-    );
-    navigation.navigate(Routes.SETTINGS_VIEW);
-  }, [navigation, trackEvent]);
-
-  const handleCardPress = useCallback(() => {
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.CARD_HOME_CLICKED,
-      ).build(),
-    );
-    navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation, trackEvent]);
-
-  const handleActivityPress = useCallback(() => {
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ACTIVITY_CLICKED,
-      ).build(),
-    );
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [navigation, trackEvent]);
 
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1084,7 +1006,7 @@ const Wallet = ({
                     : undefined
                 }
               >
-                <HeaderRoot
+                <WalletHeader
                   onLayout={
                     isDiscoveryTabsTreatment
                       ? (e) => {
@@ -1096,94 +1018,7 @@ const Wallet = ({
                         }
                       : undefined
                   }
-                  testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-                  style={undefined}
-                  endAccessory={
-                    <View
-                      style={styles.headerActionButtonsContainer}
-                      accessible={false}
-                    >
-                      {isMoneyAccountEnabled && (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleActivityPress}
-                          iconName={MMDSIconName.Clock}
-                          size={ButtonIconSize.Md}
-                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
-                      <AddressCopy
-                        testID={
-                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
-                        }
-                        hitSlop={touchAreaSlop}
-                      />
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
-                      {isNotificationsFeatureEnabled() ? (
-                        <BadgeWrapper
-                          position={BadgeWrapperPosition.TopRight}
-                          positionAnchorShape={
-                            BadgeWrapperPositionAnchorShape.Circular
-                          }
-                          badge={
-                            isNotificationEnabled &&
-                            unreadNotificationCount > 0 ? (
-                              <BadgeStatus
-                                status={BadgeStatusStatus.Attention}
-                              />
-                            ) : null
-                          }
-                        >
-                          <ButtonIcon
-                            iconProps={{
-                              color: MMDSIconColor.IconDefault,
-                            }}
-                            onPress={handleHamburgerPress}
-                            iconName={MMDSIconName.Menu}
-                            size={ButtonIconSize.Md}
-                            testID={
-                              WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                            }
-                            hitSlop={touchAreaSlop}
-                          />
-                        </BadgeWrapper>
-                      ) : (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleHamburgerPress}
-                          iconName={MMDSIconName.Menu}
-                          size={ButtonIconSize.Md}
-                          testID={
-                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                          }
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
-                    </View>
-                  }
-                  twClassName="pl-1 pr-3"
-                >
-                  <PickerAccount
-                    ref={walletRef}
-                    accountName={displayName}
-                    onPress={() =>
-                      navigation.navigate(
-                        ...createAccountSelectorNavDetails({}),
-                      )
-                    }
-                    testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-                    hitSlop={touchAreaSlop}
-                    style={styles.headerAccountPickerStyle}
-                  />
-                </HeaderRoot>
+                />
               </Reanimated.View>
               <View
                 ref={containerViewRef}
