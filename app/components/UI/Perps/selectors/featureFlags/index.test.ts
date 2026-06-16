@@ -772,7 +772,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsAdvancedChartEnabled: {
+                  perpsAdvancedChartEnabledV2: {
                     enabled: true,
                     minimumVersion: '1.0.0',
                   },
@@ -798,7 +798,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsAdvancedChartEnabled: {
+                  perpsAdvancedChartEnabledV2: {
                     enabled: false,
                     minimumVersion: '1.0.0',
                   },
@@ -824,7 +824,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsAdvancedChartEnabled: {
+                  perpsAdvancedChartEnabledV2: {
                     enabled: true,
                     minimumVersion: '99.0.0',
                   },
@@ -849,7 +849,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsAdvancedChartEnabled: {
+                  perpsAdvancedChartEnabledV2: {
                     enabled: 'invalid',
                     minimumVersion: 123,
                   },
@@ -874,7 +874,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsAdvancedChartEnabled: null,
+                  perpsAdvancedChartEnabledV2: null,
                 },
                 cacheTimestamp: 0,
               },
