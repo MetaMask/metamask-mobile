@@ -1,0 +1,52 @@
+e2e/llm-workflow/capabilities/state-snapshot.ts
+  s_962d5eb427995d::t_83061c6519371e 1-75
+e2e/llm-workflow/capabilities/fixture.ts
+  s_962d5eb427995d::t_2320d39d402df3 1-6,8-64,68-96,98-142
+  s_f843a986edbb98::t_0aba7f1885c0a4 7,65-67,97
+e2e/llm-workflow/__tests__/state-snapshot.test.ts
+  s_f843a986edbb98::t_0aba7f1885c0a4 1-229
+e2e/llm-workflow/__tests__/fixture-adapter.test.ts
+  s_f843a986edbb98::t_0aba7f1885c0a4 1-174
+e2e/llm-workflow/__tests__/seeding.test.ts
+  s_f843a986edbb98::t_0aba7f1885c0a4 1-174
+e2e/llm-workflow/__tests__/fixture.test.ts
+  s_86081752bd1014::t_f2d89b4e00c9dd 1-114,119-179,184-192,197-233
+  s_f843a986edbb98::t_0aba7f1885c0a4 115-118,180-183,193-196
+e2e/llm-workflow/capabilities/fixture-adapter.ts
+  s_962d5eb427995d::t_97fe9933b71dfb 1,6-71
+  s_f843a986edbb98::t_0aba7f1885c0a4 2-5
+e2e/llm-workflow/capabilities/seeding.ts
+  s_962d5eb427995d::t_03cca537b95f4d 1-181
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "d81e1421048db2ea89b67878fa24a124cd58054a",
+  "prompts": {},
+  "sessions": {
+    "s_86081752bd1014": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_133ba0f9bffe0s6sw8LN111WtN",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_962d5eb427995d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_14354c23bffeuCAjy5XArXqpEW",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_f843a986edbb98": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_12f3a0a33ffeLrw2m6nK1H4bUx",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}

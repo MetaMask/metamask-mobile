@@ -1,0 +1,93 @@
+e2e/llm-workflow/stubs/react-native.cjs
+  s_f843a986edbb98::t_805bb4c2e54712 1-8
+e2e/llm-workflow/utils.ts
+  s_962d5eb427995d::t_6aed7821e921d2 1-3,5-14,16-20,26-28
+  s_4e5d0ff9d0a618::t_8f6ccfaf1dca54 4
+  s_f843a986edbb98::t_805bb4c2e54712 15,21-25
+  s_4e5d0ff9d0a618::t_711b7608e05e06 29-59
+e2e/llm-workflow/launcher-types.ts
+  s_962d5eb427995d::t_4b1443996e04a2 1-5,7,9,11,13,38-40,57-63,66-83
+  s_53f9f8d95bc628::t_f332cae9fd964f 6,8,10,12,14-16,18,20-30
+  s_29bc0da776df10::t_f69c661527a5ce 17,19
+  s_f843a986edbb98::t_805bb4c2e54712 31-37,43,54
+  s_29bc0da776df10::t_5afed408e4f25c 41-42,44-53,55-56
+  s_6bad13f06cd6d8::t_1bbbf6122ef057 64-65
+e2e/llm-workflow/index.ts
+  s_962d5eb427995d::t_a42e43b3b0ec92 1-2
+e2e/llm-workflow/stubs/react-native-nitro-modules.cjs
+  s_86081752bd1014::t_ca16cdca917256 1-26
+e2e/llm-workflow/resolve-repo-root.ts
+  s_d059ac20d457b2::t_2d7c345216bb54 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "c55935a58e5e55d5c013239c6c53bf4cb353a24e",
+  "prompts": {},
+  "sessions": {
+    "s_29bc0da776df10": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_13e346a67ffeRZZKcDkw3fXC0F",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_4e5d0ff9d0a618": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12fd7622dffeODScKosgmpa6oI",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_53f9f8d95bc628": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_130137ccfffexDiqUTCcRrUIkZ",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_6bad13f06cd6d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_13e2ff5b4ffe4zU3Enrz9mKs26",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_86081752bd1014": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_133ba0f9bffe0s6sw8LN111WtN",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_962d5eb427995d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_14354c23bffeuCAjy5XArXqpEW",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_d059ac20d457b2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_13dd3db1fffe5ObQ1UwEzw3eg0",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_f843a986edbb98": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_12f3a0a33ffeLrw2m6nK1H4bUx",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}

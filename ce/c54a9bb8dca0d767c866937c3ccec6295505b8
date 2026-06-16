@@ -1,0 +1,39 @@
+e2e/llm-workflow/capabilities/chain.ts
+  s_962d5eb427995d::t_acd66756c5d90a 1-67
+e2e/llm-workflow/__tests__/mock-server.test.ts
+  s_f843a986edbb98::t_27bd5bd789f152 1-113
+e2e/llm-workflow/__tests__/factory.test.ts
+  s_f843a986edbb98::t_27bd5bd789f152 1-143
+e2e/llm-workflow/__tests__/chain.test.ts
+  s_f843a986edbb98::t_27bd5bd789f152 1-118
+e2e/llm-workflow/capabilities/factory.ts
+  s_962d5eb427995d::t_c6a6f388b53125 1-95
+e2e/llm-workflow/capabilities/index.ts
+  s_962d5eb427995d::t_f150b2d6a79ac7 1-26
+e2e/llm-workflow/capabilities/mock-server.ts
+  s_962d5eb427995d::t_6ea44f45c7f1c0 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "cec54a9bb8dca0d767c866937c3ccec6295505b8",
+  "prompts": {},
+  "sessions": {
+    "s_962d5eb427995d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_14354c23bffeuCAjy5XArXqpEW",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_f843a986edbb98": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_12f3a0a33ffeLrw2m6nK1H4bUx",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}

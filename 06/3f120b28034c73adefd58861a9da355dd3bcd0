@@ -1,0 +1,41 @@
+e2e/llm-workflow/README.md
+  s_962d5eb427995d::t_18c558a7508ea1 1-32,38-80,82,86-109,111-137,139,141,143,145-146,148,151,153-154,163,166-174,176,178,182-191,199-202,204-209,211-212,221-226,230-291
+  s_f843a986edbb98::t_71aedd387d22b2 33-37,175,192-198,203,210,213-220
+  s_70c83ae9275eda::t_8ea016c4cacb15 81,83-85
+  s_70c83ae9275eda::t_719b40e8b5d8cf 110
+  s_70c83ae9275eda::t_0ebb342c920944 138,140,142,144,147,149-150,152,155-162,164-165
+  s_70c83ae9275eda::t_f0bb294508d2e0 177,179-181
+  s_70c83ae9275eda::t_6da84fc8629f30 227-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "063f120b28034c73adefd58861a9da355dd3bcd0",
+  "prompts": {},
+  "sessions": {
+    "s_70c83ae9275eda": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12fe3f867ffeR3bhMAK4GpOV14",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_962d5eb427995d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_14354c23bffeuCAjy5XArXqpEW",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_f843a986edbb98": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_12f3a0a33ffeLrw2m6nK1H4bUx",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}

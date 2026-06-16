@@ -1,0 +1,48 @@
+tests/framework/Constants.ts
+  s_75bb4205fae56f::t_65b7dfdbcd79ff 4-5
+tests/seeder/anvil-manager.ts
+  s_19400e49746156::t_bf12ea0290e0d8 15
+  s_1b8cda55002ae2::t_d16ecca3a7996e 17-18
+tests/framework/fixtures/FixtureUtils.ts
+  s_307fd409899dfc::t_6ec56b930ae679 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "0a25c888f2c38108663b7673e0edc2add959dc89",
+  "prompts": {},
+  "sessions": {
+    "s_19400e49746156": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12fe33287ffeCGxWB8hEDRDddp",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_1b8cda55002ae2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12f8e60aeffeB6p9Zsv31GGuwO",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_307fd409899dfc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12f8d0babffdIcG09WYOoPl1vg",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_75bb4205fae56f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1300bc8e7ffevqh3n4no33CBXw",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
