@@ -33,13 +33,17 @@ describe('QuickBuyToolbar', () => {
     });
   });
 
-  it('renders the static buy mode pill when only buy mode is enabled', () => {
+  it('renders buy-only toggle styling when only buy mode is enabled', () => {
     render(<QuickBuyToolbar />);
+    expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.quick_buy.buy_mode'),
+      screen.getByText('social_leaderboard.quick_buy.buy_label'),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('quick-buy-trade-mode-toggle'),
+      screen.queryByTestId('quick-buy-trade-mode-sell'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText('social_leaderboard.quick_buy.buy_mode'),
     ).not.toBeOnTheScreen();
   });
 
@@ -57,7 +61,7 @@ describe('QuickBuyToolbar', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the static buy mode pill when sell is enabled but there is no sellable balance', () => {
+  it('renders buy-only toggle when sell is enabled but there is no sellable balance', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
@@ -65,11 +69,12 @@ describe('QuickBuyToolbar', () => {
       hasSellableBalance: false,
     });
     render(<QuickBuyToolbar />);
+    expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.quick_buy.buy_mode'),
+      screen.getByText('social_leaderboard.quick_buy.buy_label'),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('quick-buy-trade-mode-toggle'),
+      screen.queryByTestId('quick-buy-trade-mode-sell'),
     ).not.toBeOnTheScreen();
   });
 
