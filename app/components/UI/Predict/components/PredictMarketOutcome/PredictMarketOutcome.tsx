@@ -8,7 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { memo } from 'react';
 import { Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -50,7 +50,7 @@ interface PredictMarketOutcomeProps {
 
 const MAX_LABEL_LENGTH = 6;
 
-const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
+const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
   market,
   outcome,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
@@ -220,5 +220,10 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     </View>
   );
 };
+
+// Memoized so that in a live-updating outcomes list only the rows whose
+// `outcome` reference actually changed re-render. Relies on useOpenOutcomes
+// preserving identity for unchanged outcomes/tokens.
+const PredictMarketOutcome = memo(PredictMarketOutcomeComponent);
 
 export default PredictMarketOutcome;
