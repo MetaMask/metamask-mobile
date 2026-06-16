@@ -273,6 +273,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(result.current.canLink).toBe(true);
       expect(result.current.hasMoneyAccountRequirements).toBe(true);
+      expect(result.current.hasMoneyAccountBaseRequirements).toBe(true);
       expect(result.current.isCardAuthenticated).toBe(true);
       expect(result.current.isCardLinkedToMoneyAccount).toBe(false);
       expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
@@ -348,7 +349,35 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
       expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.hasMoneyAccountBaseRequirements).toBe(true);
       expect(result.current.moneyAccountCardToken).toBeNull();
+    });
+
+    it('reports hasMoneyAccountBaseRequirements=true when VEDA is not allowlisted but base requirements are met', () => {
+      applySelectorMocks(
+        buildSelectors({
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xusdc',
+                    symbol: 'USDC',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'USD Coin',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.hasMoneyAccountBaseRequirements).toBe(true);
+      expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.canLink).toBe(false);
     });
 
     it('reports canLink=true when VEDA is allowlisted by address under the mUSD display symbol', () => {
@@ -375,6 +404,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(true);
       expect(result.current.hasMoneyAccountRequirements).toBe(true);
+      expect(result.current.hasMoneyAccountBaseRequirements).toBe(true);
       expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
     });
 
@@ -615,6 +645,50 @@ describe('useMoneyAccountCardLinkage', () => {
     it('routes a not-authenticated cardholder to CardAuthentication with postAuthRedirect and sets the pending flag', () => {
       applySelectorMocks(
         buildSelectors({ isCardAuthenticated: false, isCardholder: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(CardEntryPoint.MONEY_LINK_CARD_SHEET),
+      );
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: ORIGIN, showAuthPrompt: true },
+        },
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('routes an unauthenticated cardholder to CardAuthentication when base requirements are met but VEDA is not allowlisted', () => {
+      applySelectorMocks(
+        buildSelectors({
+          isCardAuthenticated: false,
+          isCardholder: true,
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xusdc',
+                    symbol: 'USDC',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'USD Coin',
+                  },
+                ],
+              },
+            },
+          },
+        }),
       );
       const { result } = renderLinkageHook();
 

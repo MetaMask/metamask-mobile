@@ -166,6 +166,7 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
     isLinking,
     hasMoneyAccountRequirements,
+    hasMoneyAccountBaseRequirements,
   } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
@@ -353,8 +354,7 @@ const MoneyHomeView = () => {
 
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+      ...MONEY_HOME_CARD_ORIGIN,
       entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     });
   }, [startLinkFlow]);
@@ -581,6 +581,8 @@ const MoneyHomeView = () => {
   let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
+  } else if (isCardholder && !isCardAuthenticated) {
+    metamaskCardMode = hasMoneyAccountBaseRequirements ? 'link' : null;
   } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
     metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
   } else if (isCardAuthenticated) {
