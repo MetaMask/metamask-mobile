@@ -54,6 +54,11 @@ import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
+import {
+  markNavStart,
+  NavPerfLabel,
+  useMarkNavEnd,
+} from '../../../../util/navigation/navPerf';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -159,6 +164,10 @@ const TokenDetails: React.FC<{
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
+  const handleBackPress = useCallback(() => {
+    markNavStart(NavPerfLabel.AssetViewBack);
+    navigation.goBack();
+  }, [navigation]);
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
@@ -360,7 +369,7 @@ const TokenDetails: React.FC<{
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
-        onBackPress={() => navigation.goBack()}
+        onBackPress={handleBackPress}
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled && currentPrice > 0 && caip19AssetId
             ? handlePriceAlertPress
@@ -436,6 +445,7 @@ const TokenDetails: React.FC<{
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
+  useMarkNavEnd(NavPerfLabel.AssetView);
   const navigation = useNavigation();
   const token = route.params as TokenDetailsRouteParams;
 

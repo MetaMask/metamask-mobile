@@ -22,6 +22,11 @@ import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  markNavStart,
+  NavPerfLabel,
+  useMarkNavEnd,
+} from '../../../util/navigation/navPerf';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
@@ -46,6 +51,8 @@ const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
+  useMarkNavEnd(NavPerfLabel.SettingsMenu);
+  useMarkNavEnd(NavPerfLabel.SettingsScreenBack);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
@@ -117,11 +124,13 @@ const AccountsMenu = () => {
     isBackupAndSyncEnabled,
   ]);
   const handleBack = useCallback(() => {
+    markNavStart(NavPerfLabel.SettingsMenuBack);
     navigation.goBack();
   }, [navigation]);
 
   const onPressSettings = useCallback(() => {
     trackEvent(createEventBuilder(EVENT_NAME.SETTINGS_VIEWED).build());
+    markNavStart(NavPerfLabel.SettingsScreen);
     navigation.navigate(Routes.SETTINGS.ROOT);
   }, [navigation, trackEvent, createEventBuilder]);
 

@@ -163,6 +163,7 @@ import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDet
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
+import { NavPerfOverlay } from '../NavPerfOverlay/NavPerfOverlay';
 
 const Stack = createStackNavigator();
 
@@ -1342,6 +1343,7 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
+        <NavPerfOverlay />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
         <ControllerEventToastBridge registrations={toastRegistrations} />

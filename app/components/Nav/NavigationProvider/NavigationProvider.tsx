@@ -5,7 +5,7 @@ import {
   ParamListBase,
   Theme,
 } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
@@ -16,10 +16,9 @@ import {
   TraceName,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
 
-const NativeStack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 /**
  * Provides the navigation context to the app
@@ -71,14 +70,14 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       onReady={onReady}
       ref={setNavigationRef}
     >
-      <NativeStack.Navigator
+      <Stack.Navigator
         initialRouteName="NavigationChildren"
-        screenOptions={clearNativeStackNavigatorOptions}
+        screenOptions={{ headerShown: false }}
       >
-        <NativeStack.Screen name="NavigationChildren">
+        <Stack.Screen name="NavigationChildren">
           {() => <>{children}</>}
-        </NativeStack.Screen>
-      </NativeStack.Navigator>
+        </Stack.Screen>
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };

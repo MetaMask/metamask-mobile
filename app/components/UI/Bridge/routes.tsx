@@ -1,5 +1,5 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
@@ -16,10 +16,7 @@ import { SwapCustomSlippageModal } from './components/SlippageModal/SwapCustomSl
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
@@ -34,7 +31,7 @@ import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpact
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
@@ -59,13 +56,10 @@ export const BridgeScreenStack = () => (
   </Stack.Navigator>
 );
 
-const ModalStack = createNativeStackNavigator();
+const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    screenOptions={{
-      ...clearNativeStackNavigatorOptions,
-      ...transparentModalScreenOptions,
-    }}
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL}

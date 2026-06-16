@@ -1,5 +1,5 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
@@ -8,19 +8,16 @@ import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const Stack = createStackNavigator();
+const ModalStack = createStackNavigator();
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
-    <Stack.Navigator screenOptions={transparentModalScreenOptions}>
+    <Stack.Navigator screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}>
       <Stack.Screen
         name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
         component={EarnLendingDepositConfirmationView}
@@ -47,10 +44,7 @@ const EarnScreenStack = () => {
 
 const EarnModalStack = () => (
   <ModalStack.Navigator
-    screenOptions={{
-      ...clearNativeStackNavigatorOptions,
-      ...transparentModalScreenOptions,
-    }}
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
   >
     <ModalStack.Screen
       name={Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL}
