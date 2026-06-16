@@ -102,16 +102,14 @@ describe('useTransitionToEmpty', () => {
   });
 
   it('executes transition with animations', async () => {
-    // Given - animations and callback are provided
     const { result } = renderHook(() => useTransitionToEmpty(mockAnimations));
     const mockCallback = jest.fn();
 
-    // When - transition is executed
     const transitionPromise = result.current.executeTransition(mockCallback);
+
     jest.runAllTimers();
     await Promise.resolve();
 
-    // Then - transition completes and callback is called
     await expect(transitionPromise).resolves.toBeUndefined();
     expect(mockCallback).toHaveBeenCalled();
   });
@@ -126,6 +124,34 @@ describe('useTransitionToEmpty', () => {
     await transitionPromise;
 
     expect(mockAnimations.carouselHeight.value).toBe(0);
+    expect(mockCallback).toHaveBeenCalled();
+  });
+
+  it('completes transition when height animation is interrupted', async () => {
+    const reanimated = jest.requireMock('react-native-reanimated');
+    const withTimingSpy = jest
+      .spyOn(reanimated, 'withTiming')
+      .mockImplementation(
+        (
+          toValue: unknown,
+          _config: unknown,
+          callback?: (finished: boolean) => void,
+        ) => {
+          callback?.(false);
+          return toValue;
+        },
+      );
+
+    const { result } = renderHook(() => useTransitionToEmpty(mockAnimations));
+    const mockCallback = jest.fn();
+
+    const transitionPromise = result.current.executeTransition(mockCallback);
+
+    jest.runAllTimers();
+    await transitionPromise;
+
+    expect(mockCallback).toHaveBeenCalled();
+    withTimingSpy.mockRestore();
   });
 
   it('falls back to timeout when no animations provided', async () => {

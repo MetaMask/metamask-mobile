@@ -28,10 +28,8 @@ const animateCarouselHeight = (carouselHeight: SharedValue<number>) =>
     carouselHeight.value = withTiming(
       0,
       { duration: ANIMATION_TIMINGS.EMPTY_STATE_HEIGHT_DURATION },
-      (finished) => {
-        if (finished) {
-          runOnJS(resolve)();
-        }
+      () => {
+        runOnJS(resolve)();
       },
     );
   });
