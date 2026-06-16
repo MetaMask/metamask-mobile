@@ -545,7 +545,7 @@ describe('captureSentryFeedback', () => {
         connections: {},
         approvedHosts: {},
         dappConnections: {},
-        wc2Metadata: undefined,
+        wc2SessionMetadata: {},
       },
       experimentalSettings: {
         securityAlertsEnabled: true,
