@@ -7,7 +7,11 @@ import Engine from '../../../../core/Engine';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 
 import stylesheet from './SnapSettings.styles';
 import {
@@ -16,7 +20,6 @@ import {
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { Snap } from '@metamask/snaps-utils';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import { SnapDetails } from '../components/SnapDetails';
 import { SnapDescription } from '../components/SnapDescription';
@@ -25,9 +28,12 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks/useStyles';
 import { useSelector } from 'react-redux';
 import {
+  SNAP_SETTINGS_BACK_BUTTON,
+  SNAP_SETTINGS_HEADER,
   SNAP_SETTINGS_REMOVE_BUTTON,
   SNAP_SETTINGS_SCROLLVIEW,
 } from './SnapSettings.constants';
+import { SNAPS_HEADER_TITLE_PROPS } from '../SnapsSettingsList/SnapsSettingsList.constants';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 import KeyringSnapRemovalWarning from '../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning';
 import { getAccountsBySnapId } from '../../../../core/SnapKeyring/utils/getAccountsBySnapId';
@@ -35,6 +41,8 @@ import { selectInternalAccounts } from '../../../../selectors/accountsController
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../../util/Logger';
 import { areAddressesEqual } from '../../../../util/address';
+import { RouteMessengerInstance } from './messenger';
+import { useMessenger } from '../../../../hooks/useMessenger';
 interface SnapSettingsProps {
   snap: Snap;
 }
@@ -46,6 +54,7 @@ const SnapSettings = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
+  const messenger = useMessenger<RouteMessengerInstance>();
 
   const { snap } = useParams<SnapSettingsProps>();
   const permissionsState = useSelector(selectPermissionControllerState);
@@ -72,16 +81,9 @@ const SnapSettings = () => {
 
   const permissionsFromController = getPermissions(permissionsState, snap.id);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        `${snap.manifest.proposedName}`,
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [colors, navigation, snap.manifest.proposedName]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const isKeyringSnap = Boolean(permissionsFromController?.snap_manageAccounts);
 
@@ -105,8 +107,7 @@ const SnapSettings = () => {
   }, []);
 
   const removeSnap = useCallback(async () => {
-    const { SnapController } = Engine.context;
-    await SnapController.removeSnap(snap.id);
+    await messenger.call('SnapController:removeSnap', snap.id);
 
     if (isKeyringSnap && keyringAccounts.length > 0) {
       try {
@@ -121,7 +122,7 @@ const SnapSettings = () => {
       }
     }
     navigation.goBack();
-  }, [isKeyringSnap, keyringAccounts, navigation, snap.id]);
+  }, [isKeyringSnap, keyringAccounts, navigation, messenger, snap.id]);
 
   const handleRemoveSnap = useCallback(() => {
     if (isKeyringSnap && keyringAccounts.length > 0) {
@@ -150,8 +151,27 @@ const SnapSettings = () => {
 
   return (
     <>
-      <SafeAreaView style={styles.snapSettingsContainer}>
-        <ScrollView testID={SNAP_SETTINGS_SCROLLVIEW}>
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={[
+          styles.snapSettingsContainer,
+          { backgroundColor: colors.background.default },
+        ]}
+      >
+        <HeaderStandard
+          title={snap.manifest.proposedName}
+          titleProps={SNAPS_HEADER_TITLE_PROPS}
+          onBack={handleBack}
+          includesTopInset
+          testID={SNAP_SETTINGS_HEADER}
+          backButtonProps={{
+            testID: SNAP_SETTINGS_BACK_BUTTON,
+          }}
+        />
+        <ScrollView
+          testID={SNAP_SETTINGS_SCROLLVIEW}
+          contentContainerStyle={styles.scrollContent}
+        >
           <SnapDetails snap={snap} />
           <View style={styles.itemPaddedContainer}>
             <SnapDescription

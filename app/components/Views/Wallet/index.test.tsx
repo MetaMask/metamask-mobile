@@ -26,18 +26,6 @@ jest.mock('../../hooks/useCheckNftAutoDetectionModal', () =>
   }),
 );
 
-// Mock PerpsTabView
-jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
-}));
-
-// Mock PredictTabView
-jest.mock('../../UI/Predict/views/PredictTabView', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
-}));
-
 jest.mock('../../UI/Assets/components/Balance/AccountGroupBalance', () => ({
   __esModule: true,
   default: jest.fn(() => null),
@@ -96,6 +84,11 @@ jest.mock('../../../selectors/featureFlagController/homepage', () => ({
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
+}));
+
+const mockMoneyAccountGeoEligible = true;
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -848,6 +841,7 @@ describe('Wallet', () => {
         expect.objectContaining({
           groupId: expect.any(String),
           title: expect.any(String),
+          source: 'receive_button',
         }),
       );
     });

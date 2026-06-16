@@ -23,6 +23,61 @@ export function formatUsd(value: number | null | undefined): string {
 }
 
 /**
+ * USD with explicit sign on positives. Use for PnL where direction matters
+ * (e.g. `+$0.12`, `-$1,234.56`). Zero is rendered without a sign.
+ */
+export function formatSignedUsd(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  if (value === 0) return formatPerpsFiat(0, { stripTrailingZeros: false });
+  const sign = value > 0 ? '+' : '-';
+  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+// Ordered largest → smallest. Walk down and promote when rounding pushes a
+// value past the bucket boundary (e.g. `999_999` rounds to `1000K`, which
+// we want as `$1M`, not `$1000K`).
+const CURRENCY_BUCKETS: readonly (readonly [number, string])[] = [
+  [1e12, 'T'],
+  [1e9, 'B'],
+  [1e6, 'M'],
+  [1e3, 'K'],
+];
+
+function renderBucket(value: number, suffix: string): string {
+  const str = value % 1 === 0 ? value.toFixed(0) : value.toFixed(1);
+  return `$${str}${suffix}`;
+}
+
+function shortenAbsCurrency(abs: number): string {
+  if (abs < 1e3) return `$${abs.toFixed(2)}`;
+  for (let i = 0; i < CURRENCY_BUCKETS.length; i++) {
+    const [divisor, suffix] = CURRENCY_BUCKETS[i];
+    if (abs < divisor) continue;
+    const value = Math.round((abs / divisor) * 10) / 10;
+    if (value >= 1_000 && i > 0) {
+      const [nextDivisor, nextSuffix] = CURRENCY_BUCKETS[i - 1];
+      const promoted = Math.round((abs / nextDivisor) * 10) / 10;
+      return renderBucket(promoted, nextSuffix);
+    }
+    return renderBucket(value, suffix);
+  }
+  return `$${abs.toFixed(2)}`;
+}
+
+/**
+ * Signed USD with K/M/B/T abbreviation for ≥$1K values. Used for compact
+ * PnL displays like the 30D Return headline (`+$117.2K`, `+$1.2M`, `-$500`).
+ */
+export function formatSignedAbbreviatedUsd(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  if (value === 0) return shortenAbsCurrency(0);
+  const sign = value > 0 ? '+' : '-';
+  return sign + shortenAbsCurrency(Math.abs(value));
+}
+
+/**
  * Formats a raw token quantity for display in list rows.
  * - Values >= 1,000 are abbreviated with K/M/B/T suffixes (e.g. 216.65M).
  * - Smaller values are capped at 4 decimal places, with "< 0.00001" for dust.

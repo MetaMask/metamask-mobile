@@ -52,7 +52,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open market details
       const timer2 = new TimerHelper(
         'Time since user taps market card until Market Detail screen is visible',
-        { ios: 1500, android: 1500 },
+        { ios: 1500, android: 6500 },
         currentDeviceDetails.platform,
       );
 

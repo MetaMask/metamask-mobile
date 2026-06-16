@@ -197,12 +197,9 @@ const buildBalanceReturn = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
 ) =>
   ({
-    musdBalanceQuery: {} as never,
+    moneyBalanceQuery: {} as never,
     vaultApyQuery: {} as never,
-    musdEquivalentBalanceQuery: {} as never,
-    isAggregatedBalanceLoading: false,
-    musdFiatFormatted: undefined,
-    musdSHFvdFiatFormatted: undefined,
+    isBalanceLoading: false,
     tokenTotal: new BigNumber(0),
     totalFiatFormatted: '$0.00',
     totalFiatRaw: '0',
@@ -535,31 +532,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken?.symbol).toBe('mUSD');
     });
 
-    it('defaults to mUSD on Linea when all tokens have zero fiat balance', () => {
-      const musdToken = createMockToken({
-        symbol: 'mUSD',
-        address: '0xmusd',
-        caipChainId: LINEA_CAIP_CHAIN_ID,
-        fundingStatus: FundingStatus.NotEnabled,
-      });
-      const usdcToken = createMockToken({
-        symbol: 'USDC',
-        address: '0xusdc',
-        fundingStatus: FundingStatus.NotEnabled,
-      });
-
-      (useTokensWithBalance as jest.Mock).mockReturnValue([]);
-
-      const { result } = renderHook(() =>
-        useSpendingLimit(
-          createDefaultParams({ allTokens: [usdcToken, musdToken] }),
-        ),
-      );
-
-      expect(result.current.selectedToken?.symbol).toBe('mUSD');
-    });
-
-    it('falls back to first sorted token when mUSD on Linea is not present', () => {
+    it('falls back to the first sorted token when all balances are zero', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
@@ -1693,7 +1666,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
-    it('does NOT preselect Money Account when balance is zero', () => {
+    it('preselects Money Account on the onboarding flow even when balance is zero', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue(
         buildLinkageReturn({
           hasMoneyAccountRequirements: true,
@@ -1710,8 +1683,101 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
       );
 
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+    });
+
+    it('preselects Money Account on the enable_card flow even when balance is zero', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({ tokenTotal: new BigNumber(0) }),
+      );
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+    });
+
+    it('preselects Money Account on the enable_card flow even when mUSD-on-Linea exists with zero balance', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({ tokenTotal: new BigNumber(0) }),
+      );
+      const musdOnLinea = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        caipChainId: LINEA_CAIP_CHAIN_ID,
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            flow: 'enable_card',
+            allTokens: [usdcToken, musdOnLinea],
+          }),
+        ),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+    });
+
+    it('falls through to highest-balance selection when canLinkMoneyAccount is false on enable_card', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: false,
+        }),
+      );
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+      const daiToken = createMockToken({
+        symbol: 'DAI',
+        address: '0xdai',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 50 },
+        { address: '0xdai', chainId: '0xe708', tokenFiatAmount: 200 },
+      ]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            flow: 'enable_card',
+            allTokens: [usdcToken, daiToken],
+          }),
+        ),
+      );
+
       expect(result.current.isMoneyAccountSource).toBe(false);
-      expect(result.current.canShowMoneyAccountCta).toBe(false);
+      expect(result.current.selectedToken?.symbol).toBe('DAI');
     });
 
     it('locks the manage flow to Money Account when the priority token has isMoneyAccountEntry (even with zero balance)', () => {
@@ -1821,7 +1887,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
-    it('shows the Money Account CTA in the enable flow when the initial token is NotEnabled and Money Account is funded', () => {
+    it('shows the Money Account CTA in the enable flow when the initial token is NotEnabled', () => {
       setupFunded();
       const initialToken = createMockToken({
         symbol: 'USDC',

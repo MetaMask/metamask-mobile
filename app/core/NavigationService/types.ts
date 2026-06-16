@@ -104,7 +104,7 @@ import type {
 
 // Predict params
 import type {
-  PredictMarketListParams,
+  PredictMarketListRouteParams,
   PredictMarketDetailsParams,
   PredictActivityDetailParams,
   PredictBuyPreviewParams,
@@ -246,6 +246,10 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -260,6 +264,10 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     };
 
 /**
@@ -357,6 +365,7 @@ export interface RootStackParamList extends ParamListBase {
   TransactionsView: TransactionsViewParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   RewardsView: undefined;
+  RewardsFlow: NestedNavigationParams | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -587,7 +596,7 @@ export interface RootStackParamList extends ParamListBase {
 
   // Predict routes
   Predict: undefined;
-  PredictMarketList: PredictMarketListParams | undefined;
+  PredictMarketList: PredictMarketListRouteParams | undefined;
   PredictMarketDetails: PredictMarketDetailsParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
   PredictModals: undefined;

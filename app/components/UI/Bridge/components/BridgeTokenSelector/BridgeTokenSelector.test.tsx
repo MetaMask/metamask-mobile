@@ -282,15 +282,13 @@ const mockFormatAddressToAssetId = jest.fn<string | null, [string, string]>(
 );
 const mockIsNonEvmChainId = jest.fn<boolean, [string]>(() => false);
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   formatAddressToAssetId: (address: string, chainId: string) =>
     mockFormatAddressToAssetId(address, chainId),
   formatChainIdToCaip: jest.fn(
     (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
   ),
   isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
-  UnifiedSwapBridgeEventName: {
-    AssetDetailTooltipClicked: 'AssetDetailTooltipClicked',
-  },
 }));
 
 jest.mock('../../../../../core/Multichain/utils', () => ({

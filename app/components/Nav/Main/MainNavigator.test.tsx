@@ -34,6 +34,14 @@ jest.mock('@react-navigation/bottom-tabs', () => ({
   }),
 }));
 
+// RewardsHome resolves the candidate subscription id for both the dashboard and
+// onboarding branches. Mock it so the regression test can assert the call
+// without exercising the real async fetch.
+const mockUseCandidateSubscriptionId = jest.fn();
+jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
+  useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
@@ -74,10 +82,21 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
+}));
+
+const mockSelectIsMoneyAccountGeoEligible = jest.fn().mockReturnValue(true);
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: (state: unknown) =>
+    mockSelectIsMoneyAccountGeoEligible(state),
 }));
 
 describe('MainNavigator', () => {
@@ -195,10 +214,10 @@ describe('MainNavigator', () => {
       )[0];
 
       // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed card background.
+      // inherits the themed content background (native-stack uses contentStyle).
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
-          cardStyle: {
+          contentStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
         }),
@@ -380,8 +399,8 @@ describe('MainNavigator', () => {
         component: { name: string };
         options?: {
           headerShown?: boolean;
-          animationEnabled?: boolean;
-          cardStyleInterpolator?: unknown;
+          animation?: string;
+          contentStyle?: unknown;
         };
       }
       return container.root.children
@@ -832,8 +851,8 @@ describe('MainNavigator', () => {
         component: { name: string };
         options?: {
           headerShown?: boolean;
-          animationEnabled?: boolean;
-          cardStyleInterpolator?: unknown;
+          animation?: string;
+          contentStyle?: unknown;
         };
       }
       return container.root.children
@@ -850,19 +869,6 @@ describe('MainNavigator', () => {
           options: child.props.options,
         })) as ScreenChild[];
     };
-
-    it('includes CollectiblesDetails screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === 'CollectiblesDetails',
-      );
-
-      expect(screen).toBeDefined();
-    });
 
     it('includes DeprecatedNetworkDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
@@ -989,6 +995,8 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes StakeScreens route', () => {
@@ -1072,6 +1080,8 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes Asset screen', () => {
@@ -1184,8 +1194,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1200,8 +1209,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
   });
 
@@ -1366,6 +1374,44 @@ describe('MainNavigator', () => {
         const Component = getScreenComponent(root, 'Asset');
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
+
+      it('registers the RewardsNavigator under the root REWARDS_FLOW route', () => {
+        // REWARDS_FLOW is a root-level stack screen distinct from the Rewards
+        // tab (REWARDS_VIEW). RewardsNavigator is pushed onto the JS root stack
+        // so its native-stack sub-pages animate independently of the tabs.
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+
+        const rewardsFlowScreen = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' &&
+            node.props?.name === Routes.REWARDS_FLOW,
+        )[0];
+
+        expect(rewardsFlowScreen).toBeTruthy();
+        expect(rewardsFlowScreen?.props?.component?.name).toBe(
+          'RewardsNavigator',
+        );
+      });
+
+      it('hides the header for the root REWARDS_FLOW route', () => {
+        // The flow renders its own headers, so the outer root-stack screen must
+        // not draw one on top.
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+
+        const rewardsFlowScreen = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' &&
+            node.props?.name === Routes.REWARDS_FLOW,
+        )[0];
+
+        expect(rewardsFlowScreen?.props?.options).toEqual(
+          expect.objectContaining({ headerShown: false }),
+        );
+      });
     });
 
     describe('HomeTabs child tab screens', () => {
@@ -1424,6 +1470,117 @@ describe('MainNavigator', () => {
         );
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
+
+      it('gates the Rewards tab behind RewardsUpdateRequired when the client version is blocked', () => {
+        // The version guard now lives in RewardsHome (above the
+        // onboarding/dashboard branch), so version-blocked clients see the
+        // update-required screen regardless of subscription status.
+        const RewardsHome = getScreenComponent(
+          homeTabsRoot,
+          Routes.REWARDS_VIEW,
+          'TabScreen',
+        );
+        const { getByTestId } = renderWithProvider(
+          <RewardsHome route={{ params: {} }} />,
+          {
+            state: {
+              ...initialRootState,
+              rewards: {
+                ...initialRootState.rewards,
+                // Higher than the mocked device version (7.72.0) → blocked.
+                versionGuardMinimumMobileVersion: '999.0.0',
+              },
+            },
+          },
+        );
+
+        expect(getByTestId('rewards-update-required-container')).toBeTruthy();
+      });
+
+      it('fetches the candidate subscription id at the Rewards tab entry point', () => {
+        // Regression: non-opted-in users only ever mount RewardsHome ->
+        // RewardsOnboardingNavigator (never RewardsDashboard / RewardsNavigator),
+        // so the candidate-subscription fetch must run here. Otherwise
+        // candidateSubscriptionId stays 'pending' and OnboardingMainStep shows a
+        // full-screen skeleton indefinitely.
+        mockUseCandidateSubscriptionId.mockClear();
+        const RewardsHome = getScreenComponent(
+          homeTabsRoot,
+          Routes.REWARDS_VIEW,
+          'TabScreen',
+        );
+        renderWithProvider(<RewardsHome route={{ params: {} }} />, {
+          state: initialRootState,
+        });
+
+        expect(mockUseCandidateSubscriptionId).toHaveBeenCalled();
+      });
+
+      const findRewardsHomeScreenNames = (
+        subscriptionId: string | null,
+      ): string[] => {
+        const RewardsHome = getScreenComponent(
+          homeTabsRoot,
+          Routes.REWARDS_VIEW,
+          'TabScreen',
+        );
+        const { root } = renderWithProvider(
+          <RewardsHome route={{ params: {} }} />,
+          {
+            state: {
+              ...initialRootState,
+              rewards: {
+                ...initialRootState.rewards,
+                // A concrete (non-pending/error/retry) candidate id makes
+                // selectRewardsSubscriptionId resolve to a subscription.
+                candidateSubscriptionId: subscriptionId,
+              },
+            },
+          },
+        );
+
+        return root
+          .findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'Screen' &&
+              typeof node.props?.name === 'string',
+          )
+          .map((node) => node.props.name as string);
+      };
+
+      it('renders the dashboard route when the user has a subscription', () => {
+        // Opted-in users land on the dashboard inside the Rewards tab; the
+        // onboarding flow is not registered for them.
+        const screenNames = findRewardsHomeScreenNames('test-subscription-id');
+
+        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+        expect(screenNames).not.toContain(Routes.REWARDS_ONBOARDING_FLOW);
+      });
+
+      it('renders the onboarding flow route when the user has no subscription', () => {
+        // Non-subscribed users see RewardsOnboardingNavigator directly in the
+        // tab (the dashboard route is not registered for them).
+        const screenNames = findRewardsHomeScreenNames(null);
+
+        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
+        expect(screenNames).not.toContain(Routes.REWARDS_DASHBOARD);
+      });
+
+      it('registers the rewards modal screens regardless of subscription state', () => {
+        // The modal screens are siblings of the dashboard/onboarding branch and
+        // must always be available so deeplinks/bottom sheets can open.
+        const screenNames = findRewardsHomeScreenNames('test-subscription-id');
+
+        expect(screenNames).toEqual(
+          expect.arrayContaining([
+            Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+            Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+            Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            Routes.MODAL.REWARDS_SELECT_SHEET,
+          ]),
+        );
+      });
     });
 
     describe('Nested navigator components', () => {
@@ -1481,6 +1638,20 @@ describe('MainNavigator', () => {
           'AssetStackFlow',
         );
         expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
+      });
+
+      it('renders SnapsSettingsStack inside SettingsFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
+
+        const SnapsSettingsStack = getScreenComponent(
+          settingsRoot,
+          Routes.SNAPS.SNAPS_SETTINGS_LIST,
+        );
+        expect(renderInner(SnapsSettingsStack).toJSON()).toBeTruthy();
       });
     });
 

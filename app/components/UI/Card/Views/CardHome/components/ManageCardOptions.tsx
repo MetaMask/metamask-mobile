@@ -125,11 +125,11 @@ const ManageCardOptions = ({
             account?.verificationStatus === 'VERIFIED') ||
             (showTeaserOptions && capabilities?.supportsCashback)) && (
             <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.cashback')}
+              title={strings('card.card_home.manage_card_options.cashback', {
+                cashbackPercentage: card?.type === CardType.METAL ? '3' : '1',
+              })}
               description={strings(
-                card?.type === CardType.METAL
-                  ? 'card.card_home.manage_card_options.cashback_description_metal'
-                  : 'card.card_home.manage_card_options.cashback_description',
+                'card.card_home.manage_card_options.cashback_description',
               )}
               rightIcon={IconName.ArrowRight}
               onPress={onCashback}

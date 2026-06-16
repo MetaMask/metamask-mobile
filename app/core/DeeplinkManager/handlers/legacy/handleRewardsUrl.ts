@@ -7,6 +7,8 @@ import {
   setOnboardingReferralCode,
   setPendingDeeplink,
 } from '../../../../reducers/rewards';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
 interface HandleRewardsUrlParams {
   rewardsPath: string;
@@ -63,6 +65,44 @@ const parseRewardsNavigationParams = (
  * - https://link.metamask.io/rewards?campaign=ondo
  * - https://link.metamask.io/rewards?campaign=season1
  */
+const prepareRewardsDeeplink = (rewardsPath: string) => {
+  // Parse navigation parameters from URL
+  const urlParams = parseRewardsNavigationParams(rewardsPath);
+  DevLogger.log('[handleRewardsUrl] Parsed URL parameters:', urlParams);
+
+  if (urlParams.referral && urlParams.referral.length > 0) {
+    ReduxService.store.dispatch(setOnboardingReferralCode(urlParams.referral));
+  } else {
+    // Clear any existing referral code
+    ReduxService.store.dispatch(setOnboardingReferralCode(null));
+  }
+  if (urlParams.page || urlParams.campaign) {
+    // Store the deeplink intent in Redux rather than passing it as navigation
+    // params. RewardsHome uses UnmountOnBlur, so the navigator is not mounted
+    // when the user is on another tab — nested navigation params would be lost.
+    // Redux state is always available regardless of mount status, so
+    // RewardsNavigator can read and act on it once it mounts.
+    ReduxService.store.dispatch(
+      setPendingDeeplink({
+        page: urlParams.page,
+        campaign: urlParams.campaign,
+      }),
+    );
+  } else {
+    ReduxService.store.dispatch(setPendingDeeplink(null));
+  }
+};
+
+export const createRewardsDeeplinkIntent = ({
+  rewardsPath,
+}: HandleRewardsUrlParams): DeeplinkIntent => ({
+  target: {
+    type: 'home-tab',
+    routeName: Routes.REWARDS_VIEW,
+  },
+  prepare: () => prepareRewardsDeeplink(rewardsPath),
+});
+
 export const handleRewardsUrl = async ({
   rewardsPath,
 }: HandleRewardsUrlParams) => {
@@ -73,34 +113,7 @@ export const handleRewardsUrl = async ({
   Logger.log(`[handleRewardsUrl] Raw rewardsPath received: "${rewardsPath}"`);
 
   try {
-    // Parse navigation parameters from URL
-    const urlParams = parseRewardsNavigationParams(rewardsPath);
-    DevLogger.log('[handleRewardsUrl] Parsed URL parameters:', urlParams);
-
-    if (urlParams.referral && urlParams.referral.length > 0) {
-      ReduxService.store.dispatch(
-        setOnboardingReferralCode(urlParams.referral),
-      );
-    } else {
-      // Clear any existing referral code
-      ReduxService.store.dispatch(setOnboardingReferralCode(null));
-    }
-    if (urlParams.page || urlParams.campaign) {
-      // Store the deeplink intent in Redux rather than passing it as navigation
-      // params. RewardsHome uses UnmountOnBlur, so the navigator is not mounted
-      // when the user is on another tab — nested navigation params would be lost.
-      // Redux state is always available regardless of mount status, so
-      // RewardsNavigator can read and act on it once it mounts.
-      ReduxService.store.dispatch(
-        setPendingDeeplink({
-          page: urlParams.page,
-          campaign: urlParams.campaign,
-        }),
-      );
-    } else {
-      ReduxService.store.dispatch(setPendingDeeplink(null));
-    }
-    NavigationService.navigation.navigate(Routes.REWARDS_VIEW);
+    await executeDeeplinkIntent(createRewardsDeeplinkIntent({ rewardsPath }));
   } catch (error) {
     DevLogger.log('Failed to handle rewards deeplink:', error);
     // Fallback to wallet home on error

@@ -9,6 +9,7 @@ import {
   race,
   delay,
   join,
+  spawn,
 } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
@@ -54,6 +55,8 @@ import {
   watchMarketingAttributionOnConsentChange,
 } from './marketingAttribution';
 import { getDevAutoUnlockPassword } from '../../util/environment';
+import { saveAttribution } from '../../core/redux/slices/attribution';
+import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
 
 /**
  * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
@@ -77,7 +80,9 @@ export function* startSDKServicesInitialization() {
   // Keep a single task so normal deeplinks can warm services in the background
   // and SDK/WC deeplinks can join that same work when they require it.
   if (!sdkServicesInitializationTask) {
-    sdkServicesInitializationTask = yield fork(initializeSDKServices);
+    // Detached so callers that only want to warm SDK services are not blocked
+    // by WC/SDK startup; SDK/WC deeplinks still join this task explicitly.
+    sdkServicesInitializationTask = yield spawn(initializeSDKServices);
   }
 
   return sdkServicesInitializationTask;
@@ -86,6 +91,16 @@ export function* startSDKServicesInitialization() {
 export function* waitForSDKServicesInitialization() {
   const task: Task<void> = yield call(startSDKServicesInitialization);
   yield join(task);
+}
+
+export function* parseDeeplink(deeplink: string, origin: string) {
+  try {
+    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
+      origin,
+    });
+  } catch (error) {
+    Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
+  }
 }
 
 /**
@@ -135,16 +150,7 @@ export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
     }
   }
 
-  try {
-    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
-      origin,
-    });
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'parseDeeplinkAfterNavReady: failed to parse deeplink',
-    );
-  }
+  yield call(parseDeeplink, deeplink, origin);
 }
 
 /**
@@ -335,12 +341,13 @@ export function* initializeSDKServices() {
 
 export function* handleDeeplinkSaga() {
   while (true) {
-    // Handle parsing deeplinks after login or when the lock manager is resolved
+    // Cold-start deeplinks are consumed by Authentication before HomeNav is
+    // displayed. This saga handles deeplinks received while the app is already
+    // unlocked, plus onboarding deeplinks for new users.
     const value = (yield take([
-      UserActionType.LOGIN,
       UserActionType.CHECK_FOR_DEEPLINK,
       SET_COMPLETED_ONBOARDING,
-    ])) as LoginAction | CheckForDeeplinkAction | SetCompletedOnboardingAction;
+    ])) as CheckForDeeplinkAction | SetCompletedOnboardingAction;
 
     let completedOnboarding = false;
 
@@ -358,9 +365,18 @@ export function* handleDeeplinkSaga() {
       const storedSource =
         AppStateEventProcessor.pendingDeeplinkSource ??
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+      // Persist UTM params for new users before pending deeplink may be cleared.
+      if (!existingUser) {
+        const utmPayload = getUtmAttributesFromDeeplinkUrl(url.href);
+        if (utmPayload) {
+          yield put(saveAttribution(utmPayload));
+        }
+      }
+
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
-        // New-user onboarding lives outside MainNavigator, so do not wait for MAIN_NAVIGATOR_READY
+        // New-user onboarding lives outside the post-login navigation tree.
         setTimeout(() => {
           SharedDeeplinkManager.parse(url.href, {
             origin: storedSource,
@@ -379,9 +395,6 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Start SDK services in the background
-    yield call(startSDKServicesInitialization);
-
     const deeplink = AppStateEventProcessor.pendingDeeplink;
     const deeplinkSource =
       AppStateEventProcessor.pendingDeeplinkSource ??
@@ -397,6 +410,36 @@ export function* handleDeeplinkSaga() {
       yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
       AppStateEventProcessor.clearPendingDeeplink();
     }
+  }
+}
+
+// Keep SDK warm-up independent from deeplink parsing. Normal app launches have
+// no pending deeplink, but WalletConnect/SDKConnect still need to initialize
+// after unlock; parsing pending links on LOGIN would race startup intents.
+export function* initializeSDKServicesSaga() {
+  while (true) {
+    const value = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    let completedOnboarding = false;
+    if (value.type === SET_COMPLETED_ONBOARDING) {
+      completedOnboarding = value.completedOnboarding;
+    } else {
+      completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    if (!completedOnboarding) {
+      continue;
+    }
+
+    const { KeyringController } = Engine.context;
+    if (!KeyringController.isUnlocked()) {
+      continue;
+    }
+
+    yield call(startSDKServicesInitialization);
   }
 }
 
@@ -472,6 +515,7 @@ export function* rootSaga() {
   yield fork(basicFunctionalityToggle);
   yield fork(mainNavigatorReadyStateMachine);
   yield fork(handleDeeplinkSaga);
+  yield fork(initializeSDKServicesSaga);
   yield fork(rewardsBulkLinkSaga);
 
   // Send one-time analytics backfill for migrated social login users after
