@@ -5,7 +5,6 @@ import type { Country, UserRegion } from '@metamask/ramps-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
-import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
@@ -42,7 +41,6 @@ jest.mock('./useRampsCountries', () => ({
 }));
 jest.mock('@react-navigation/native');
 jest.mock('../Aggregator/routes/utils');
-jest.mock('../Deposit/routes/utils');
 jest.mock('../Views/TokenSelection/TokenSelection', () => {
   const actual = jest.requireActual('../Views/TokenSelection/TokenSelection');
   const mockFn = jest.fn();
@@ -75,10 +73,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockCreateRampNavigationDetails =
   createRampNavigationDetails as jest.MockedFunction<
     typeof createRampNavigationDetails
-  >;
-const mockCreateDepositNavigationDetails =
-  createDepositNavigationDetails as jest.MockedFunction<
-    typeof createDepositNavigationDetails
   >;
 const mockCreateTokenSelectionNavigationDetails =
   createTokenSelectionNavDetails as jest.MockedFunction<
@@ -130,10 +124,6 @@ describe('useRampNavigation', () => {
       Routes.RAMP.BUY,
     ] as unknown as ReturnType<typeof createRampNavigationDetails>);
 
-    mockCreateDepositNavigationDetails.mockReturnValue([
-      Routes.DEPOSIT.ID,
-    ] as unknown as ReturnType<typeof createDepositNavigationDetails>);
-
     mockCreateTokenSelectionNavigationDetails.mockReturnValue([
       Routes.RAMP.TOKEN_SELECTION,
     ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
@@ -176,7 +166,6 @@ describe('useRampNavigation', () => {
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-        expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
       it('passes buyFlowOrigin through to BuildQuote params', () => {
@@ -466,7 +455,6 @@ describe('useRampNavigation', () => {
         undefined,
       );
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-      expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
     });
 
     it('navigates to aggregator BUY with intent', () => {
@@ -500,7 +488,6 @@ describe('useRampNavigation', () => {
         undefined,
       );
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-      expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
     });
 
     it('navigates to aggregator SELL with intent', () => {
@@ -515,35 +502,6 @@ describe('useRampNavigation', () => {
         AggregatorRampType.SELL,
         intent,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-    });
-  });
-
-  describe('goToDeposit', () => {
-    it('navigates to deposit flow (overrides unified routing)', () => {
-      const mockNavDetails = [Routes.DEPOSIT.ID] as const;
-      mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
-
-      const { result } = renderUseRampNavigation();
-
-      result.current.goToDeposit();
-
-      expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(
-        undefined,
-      );
-      expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-    });
-
-    it('navigates to deposit with intent', () => {
-      const intent = { assetId: 'eip155:1/erc20:0x123' };
-      const mockNavDetails = [Routes.DEPOSIT.ID] as const;
-      mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
-
-      const { result } = renderUseRampNavigation();
-
-      result.current.goToDeposit(intent);
-
-      expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(intent);
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
     });
   });

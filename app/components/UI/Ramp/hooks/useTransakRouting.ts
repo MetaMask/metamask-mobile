@@ -11,8 +11,10 @@ import {
 } from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
 import { generateThemeParameters } from '../Deposit/utils';
-import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
-import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
+import type {
+  AddressFormData,
+  BasicInfoFormData,
+} from '../types/transakNativeForms';
 import { createCheckoutNavDetails } from '../Views/Checkout';
 import { createV2EnterEmailNavDetails } from '../Views/NativeFlow/EnterEmail';
 import { createKycWebviewNavDetails } from '../Views/NativeFlow/KycWebview';

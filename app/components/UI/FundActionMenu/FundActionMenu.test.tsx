@@ -66,7 +66,6 @@ describe('FundActionMenu', () => {
   const mockGoToBuy = jest.fn();
   const mockGoToAggregator = jest.fn();
   const mockGoToSell = jest.fn();
-  const mockGoToDeposit = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
   const mockBuild = jest.fn();
@@ -113,7 +112,6 @@ describe('FundActionMenu', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: mockGoToAggregator,
       goToSell: mockGoToSell,
-      goToDeposit: mockGoToDeposit,
     });
     getDecimalChainId.mockReturnValue(1);
     createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);

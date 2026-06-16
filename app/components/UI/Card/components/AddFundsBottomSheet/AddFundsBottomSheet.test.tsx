@@ -20,7 +20,6 @@ const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
-const mockGoToDeposit = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../Ramp/hooks/useRampNavigation');
@@ -147,7 +146,6 @@ describe('AddFundsBottomSheet', () => {
 
     (useRampNavigation as jest.Mock).mockReturnValue({
       goToBuy: mockGoToBuy,
-      goToDeposit: mockGoToDeposit,
     });
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
@@ -331,16 +329,6 @@ describe('AddFundsBottomSheet', () => {
     expect(mockGoToBuy).toHaveBeenCalledWith({
       assetId: `${mockPriorityToken.caipChainId}/erc20:${mockPriorityToken.address}`,
     });
-  });
-
-  it('does NOT call the deprecated goToDeposit (UB1) when Fund with cash is pressed', () => {
-    // Regression guard: this entry point was migrated off goToDeposit (UB1)
-    // to goToBuy (UB2-aware). If someone reverts that, this test goes red.
-    const { getByText } = setupComponent();
-
-    fireEvent.press(getByText('Fund with cash'));
-
-    expect(mockGoToDeposit).not.toHaveBeenCalled();
   });
 
   it('falls back to goToBuy() with no intent when the priority token has no address', () => {

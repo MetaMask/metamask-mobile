@@ -181,7 +181,7 @@ function OrdersList() {
   const allLegacyOrders = useSelector(getOrders);
   const { orders: v2Orders } = useRampsOrders();
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const tw = useTailwind();
 
   const displayOrders = useMemo(
@@ -237,7 +237,7 @@ function OrdersList() {
         order?.state === FIAT_ORDER_STATES.CREATED &&
         order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
       ) {
-        goToDeposit();
+        goToBuy();
       } else if (order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
         navigation.navigate(
           ...createDepositOrderDetailsNavDetails({
@@ -250,7 +250,7 @@ function OrdersList() {
     },
     [
       allLegacyOrders,
-      goToDeposit,
+      goToBuy,
       handleNavigateToAggregatorTxDetails,
       navigation,
     ],

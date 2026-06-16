@@ -47,12 +47,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../utils/withRampAndDepositSDK', () =>
-  jest.fn((Component) => (props: Record<string, unknown>) => (
-    <Component {...props} />
-  )),
-);
-
 const mockedActivationKeys: ActivationKey[] = [
   {
     key: 'testKey1',

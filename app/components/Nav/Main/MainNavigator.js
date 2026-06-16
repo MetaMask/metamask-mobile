@@ -76,7 +76,6 @@ import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/Activ
 import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
-import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 
 import { colors as importedColors } from '../../../styles/common';
@@ -1155,7 +1154,6 @@ const MainNavigator = () => {
       >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
-      <NativeStack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}

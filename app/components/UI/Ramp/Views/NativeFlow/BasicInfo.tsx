@@ -45,7 +45,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import useRampsController from '../../hooks/useRampsController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
-import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
+import type { AddressFormData } from '../../types/transakNativeForms';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import TruncatedError from './TruncatedError';
-import { createErrorDetailsModalNavigationDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
+import { createErrorDetailsModalNavDetails } from '../../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -113,7 +113,7 @@ describe('TruncatedError', () => {
       fireEvent.press(seeMoreButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        ...createErrorDetailsModalNavigationDetails({
+        ...createErrorDetailsModalNavDetails({
           errorMessage: longError,
         }),
       );

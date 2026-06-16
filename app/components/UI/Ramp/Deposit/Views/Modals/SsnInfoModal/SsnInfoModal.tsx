@@ -17,8 +17,8 @@ import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 
 export const createSsnInfoModalNavigationDetails = createNavigationDetails(
-  Routes.DEPOSIT.MODALS.ID,
-  Routes.DEPOSIT.MODALS.SSN_INFO,
+  Routes.RAMP.MODALS.ID,
+  Routes.RAMP.MODALS.SSN_INFO,
 );
 
 function SsnInfoModal() {

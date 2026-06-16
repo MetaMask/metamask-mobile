@@ -224,12 +224,12 @@ describe('useTokenBuyability', () => {
       {
         testName: 'token is in the list and supported',
         hookReturn: [
-          {
+          getMockRampToken({
             assetId:
               'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
             chainId: 'eip155:1',
             tokenSupported: true,
-          },
+          }),
         ],
         token: getMockToken(),
         expectedBuyable: true,
@@ -237,11 +237,11 @@ describe('useTokenBuyability', () => {
       {
         testName: 'token is native and supported',
         hookReturn: [
-          {
+          getMockRampToken({
             assetId: 'eip155:1/slip44:60',
             chainId: 'eip155:1',
             tokenSupported: true,
-          },
+          }),
         ],
         token: getMockToken({ isNative: true }),
         expectedBuyable: true,

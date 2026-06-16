@@ -132,7 +132,7 @@ describe('useMusdCtaVisibility', () => {
   };
 
   const defaultRampTokens = {
-    topTokens: null,
+    topTokens: [],
     allTokens: [
       createMusdRampToken(CHAIN_IDS.MAINNET),
       createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
@@ -917,7 +917,7 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
         });
-        mockUseRampsTokens.mockReturnValue({ tokens: { topTokens: defaultRampTokens.topTokens, allTokens: null }, selectedToken: null, setSelectedToken: jest.fn(), isLoading: false, error: null });
+        mockUseRampsTokens.mockReturnValue({ tokens: null, selectedToken: null, setSelectedToken: jest.fn(), isLoading: true, error: null });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();

@@ -7,7 +7,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { createErrorDetailsModalNavigationDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
+import { createErrorDetailsModalNavDetails } from '../../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './TruncatedError.styles';
 import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button';
@@ -38,7 +38,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
 
   const handleSeeMore = useCallback(() => {
     navigation.navigate(
-      ...createErrorDetailsModalNavigationDetails({ errorMessage: error }),
+      ...createErrorDetailsModalNavDetails({ errorMessage: error }),
     );
   }, [error, navigation]);
 

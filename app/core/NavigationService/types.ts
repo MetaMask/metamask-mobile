@@ -66,7 +66,6 @@ import type {
   RampBuySellParams,
   RampOrderDetailsParams,
   RampAggregatorBuildQuoteParams,
-  DepositBuildQuoteParams,
   SimpleRampBuildQuoteParams,
   WebviewModalParams,
   KycWebviewModalParams,
@@ -285,11 +284,11 @@ export interface RootStackParamList extends ParamListBase {
   /**
    * BuildQuote route is shared between:
    * - Ramp Aggregator: uses RampAggregatorBuildQuoteParams (showBack, assetId, amount, currency)
-   * - Deposit: uses DepositBuildQuoteParams (shouldRouteImmediately)
+   * - Unified buy (Ramp): uses SimpleRampBuildQuoteParams
    */
   BuildQuote:
     | RampAggregatorBuildQuoteParams
-    | DepositBuildQuoteParams
+    | SimpleRampBuildQuoteParams
     | undefined;
   BuildQuoteHasStarted: undefined;
   Quotes: undefined;
