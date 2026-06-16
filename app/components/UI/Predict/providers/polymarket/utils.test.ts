@@ -145,6 +145,89 @@ describe('polymarket utils', () => {
     ...overrides,
   });
 
+  const createNbaTeam = (
+    abbreviation: string,
+    overrides: Partial<PolymarketApiTeam> = {},
+  ): PolymarketApiTeam => ({
+    id: `team-${abbreviation}`,
+    name: abbreviation.toUpperCase(),
+    logo: `${abbreviation}.png`,
+    abbreviation,
+    color: 'red',
+    alias: abbreviation.toUpperCase(),
+    league: 'nba',
+    ...overrides,
+  });
+
+  const nbaTeamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+    bos: createNbaTeam('bos'),
+    nyk: createNbaTeam('nyk', { color: 'blue' }),
+  };
+
+  const createSportsMarket = ({
+    id,
+    sportsMarketType,
+    volume = 100,
+  }: {
+    id: string;
+    sportsMarketType?: string;
+    volume?: number;
+  }): PolymarketApiEvent['markets'][number] =>
+    ({
+      conditionId: id,
+      question: `${id} question`,
+      description: `${id} description`,
+      icon: 'icon.png',
+      image: 'image.png',
+      groupItemTitle: id,
+      sportsMarketType,
+      status: 'open',
+      volumeNum: volume,
+      liquidity: 100,
+      negRisk: false,
+      clobTokenIds: `["${id}-yes","${id}-no"]`,
+      outcomes: '["Yes","No"]',
+      outcomePrices: '["0.5","0.5"]',
+      closed: false,
+      active: true,
+      acceptingOrders: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: '',
+    }) as PolymarketApiEvent['markets'][number];
+
+  const createNbaGameEvent = (
+    markets: PolymarketApiEvent['markets'],
+  ): PolymarketApiEvent => ({
+    id: 'nba-game-event',
+    slug: 'nba-bos-nyk-2026-06-12',
+    title: 'Boston Celtics vs New York Knicks',
+    description: 'NBA game',
+    icon: 'icon.png',
+    closed: false,
+    active: true,
+    series: [
+      {
+        id: 'nba-series',
+        slug: 'nba',
+        title: 'NBA',
+        recurrence: 'daily',
+      },
+    ],
+    markets,
+    tags: [
+      { id: 'games', label: 'Games', slug: 'games' },
+      { id: 'nba', label: 'NBA', slug: 'nba' },
+    ],
+    teams: Object.values(nbaTeamsByAbbreviation),
+    liquidity: 100,
+    volume: 100,
+    gameId: 'nba-game-1',
+    startTime: '2026-06-12T20:00:00.000Z',
+    live: false,
+    ended: false,
+  });
+
   it('parses activity with deterministic ids when transaction hash is missing', () => {
     const rawActivity = createRawActivity({
       transactionHash: undefined as unknown as string,
@@ -206,6 +289,236 @@ describe('polymarket utils', () => {
       'tennis_first_set_winner',
       'tennis_first_set_totals',
     ]);
+  });
+
+  it('orders spread subgroup outcomes descending when first spread is team one negative', () => {
+    const createOutcome = (
+      id: string,
+      sportsMarketType: string,
+      line?: number,
+      shortTitle = id,
+    ): PredictOutcome => ({
+      id,
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'market-1',
+      title: id,
+      description: id,
+      image: 'icon.png',
+      status: 'open',
+      tokens: [
+        { id: `${id}-token`, title: shortTitle, shortTitle, price: 0.5 },
+      ],
+      volume: 100,
+      groupItemTitle: id,
+      sportsMarketType,
+      ...(line !== undefined && { line }),
+    });
+
+    const groups = buildOutcomeGroups([
+      createOutcome('moneyline', 'moneyline'),
+      createOutcome('arg-minus-1.5', 'spreads', -1.5, 'ARG -1.5'),
+      createOutcome('arg-plus-1.5', 'spreads', -1.5, 'ARG +1.5'),
+      createOutcome('arg-minus-2.5', 'spreads', -2.5, 'ARG -2.5'),
+      createOutcome('arg-plus-2.5', 'spreads', -2.5, 'ARG +2.5'),
+    ]);
+
+    const spreadsSubgroup = groups[0].subgroups?.find(
+      (subgroup) => subgroup.key === 'spreads',
+    );
+
+    expect(spreadsSubgroup?.outcomes.map((outcome) => outcome.id)).toEqual([
+      'arg-plus-2.5',
+      'arg-plus-1.5',
+      'arg-minus-1.5',
+      'arg-minus-2.5',
+    ]);
+    expect(
+      spreadsSubgroup?.outcomes.map((outcome) => Math.abs(outcome.line ?? 0)),
+    ).toEqual([2.5, 1.5, 1.5, 2.5]);
+  });
+
+  it('orders spread subgroup outcomes ascending when first spread is team two negative', () => {
+    const createOutcome = (
+      id: string,
+      sportsMarketType: string,
+      line?: number,
+      shortTitle = id,
+    ): PredictOutcome => ({
+      id,
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'market-1',
+      title: id,
+      description: id,
+      image: 'icon.png',
+      status: 'open',
+      tokens: [
+        { id: `${id}-token`, title: shortTitle, shortTitle, price: 0.5 },
+      ],
+      volume: 100,
+      groupItemTitle: id,
+      sportsMarketType,
+      ...(line !== undefined && { line }),
+    });
+
+    const groups = buildOutcomeGroups([
+      createOutcome('moneyline', 'moneyline'),
+      createOutcome('irq-plus-1.5', 'spreads', -1.5, 'IRQ +1.5'),
+      createOutcome('irq-plus-2.5', 'spreads', -2.5, 'IRQ +2.5'),
+      createOutcome('irq-minus-2.5', 'spreads', -2.5, 'IRQ -2.5'),
+      createOutcome('irq-minus-1.5', 'spreads', -1.5, 'IRQ -1.5'),
+      createOutcome('irq-plus-3.5', 'spreads', -3.5, 'IRQ +3.5'),
+      createOutcome('irq-minus-3.5', 'spreads', -3.5, 'IRQ -3.5'),
+    ]);
+
+    const spreadsSubgroup = groups[0].subgroups?.find(
+      (subgroup) => subgroup.key === 'spreads',
+    );
+
+    expect(spreadsSubgroup?.outcomes.map((outcome) => outcome.id)).toEqual([
+      'irq-minus-3.5',
+      'irq-minus-2.5',
+      'irq-minus-1.5',
+      'irq-plus-1.5',
+      'irq-plus-2.5',
+      'irq-plus-3.5',
+    ]);
+    expect(
+      spreadsSubgroup?.outcomes.map((outcome) => Math.abs(outcome.line ?? 0)),
+    ).toEqual([3.5, 2.5, 1.5, 1.5, 2.5, 3.5]);
+  });
+
+  it('orders non-spread line subgroup outcomes by line', () => {
+    const createOutcome = (
+      id: string,
+      sportsMarketType: string,
+      line?: number,
+    ): PredictOutcome => ({
+      id,
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'market-1',
+      title: id,
+      description: id,
+      image: 'icon.png',
+      status: 'open',
+      tokens: [{ id: `${id}-token`, title: id, price: 0.5 }],
+      volume: 100,
+      groupItemTitle: id,
+      sportsMarketType,
+      ...(line !== undefined && { line }),
+    });
+
+    const groups = buildOutcomeGroups([
+      createOutcome('moneyline', 'moneyline'),
+      createOutcome('total-216.5', 'totals', 216.5),
+      createOutcome('total-211.5', 'totals', 211.5),
+      createOutcome('total-214.5', 'totals', 214.5),
+    ]);
+
+    const totalsSubgroup = groups[0].subgroups?.find(
+      (subgroup) => subgroup.key === 'totals',
+    );
+
+    expect(totalsSubgroup?.outcomes.map((outcome) => outcome.id)).toEqual([
+      'total-211.5',
+      'total-214.5',
+      'total-216.5',
+    ]);
+  });
+
+  it('builds outcome groups only from supported and enabled sports market types', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+      createSportsMarket({ id: 'totals', sportsMarketType: 'totals' }),
+      createSportsMarket({ id: 'points', sportsMarketType: 'points' }),
+      createSportsMarket({
+        id: 'first-half-moneyline',
+        sportsMarketType: 'first_half_moneyline',
+      }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: [
+        'moneyline',
+        'spreads',
+        'totals',
+        'points',
+        'first_half_moneyline',
+      ],
+    });
+
+    expect(market.outcomes).toHaveLength(5);
+    expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
+      expect.arrayContaining([
+        'moneyline',
+        'spreads',
+        'totals',
+        'points',
+        'first_half_moneyline',
+      ]),
+    );
+    expect(market.outcomeGroups).toEqual([
+      expect.objectContaining({
+        key: 'game_lines',
+        outcomes: [],
+        subgroups: [
+          expect.objectContaining({ key: 'moneyline' }),
+          expect.objectContaining({ key: 'spreads' }),
+          expect.objectContaining({ key: 'totals' }),
+        ],
+      }),
+    ]);
+  });
+
+  it('keeps supported but unlisted sports market types out of outcome groups', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+      createSportsMarket({ id: 'totals', sportsMarketType: 'totals' }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: ['moneyline'],
+    });
+
+    expect(market.outcomes).toHaveLength(3);
+    expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
+      expect.arrayContaining(['moneyline', 'spreads', 'totals']),
+    );
+    expect(market.outcomeGroups).toEqual([
+      expect.objectContaining({
+        key: 'game_lines',
+        outcomes: [expect.objectContaining({ sportsMarketType: 'moneyline' })],
+      }),
+    ]);
+  });
+
+  it('does not build outcome groups when enabledSportsMarketTypes is missing', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+    });
+
+    expect(market.outcomes).toHaveLength(2);
+    expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
+      expect.arrayContaining(['moneyline', 'spreads']),
+    );
+    expect(market.outcomeGroups).toBeUndefined();
   });
 
   it('parses World Cup game events with game metadata when team data is available', () => {

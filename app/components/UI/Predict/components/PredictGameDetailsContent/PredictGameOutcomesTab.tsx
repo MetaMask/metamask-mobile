@@ -140,6 +140,22 @@ const buildButtons = (
 const buildSubtitle = (outcome: PredictOutcome): string =>
   `$${formatVolume(outcome.volume)} Vol`;
 
+const getDefaultLineIndex = (
+  outcomes: PredictOutcome[],
+  lineIndices: number[],
+): number => {
+  if (lineIndices.length === 0) return 0;
+
+  return lineIndices.reduce((bestIndex, outcomeIndex, lineIndex) => {
+    const bestOutcome = outcomes[lineIndices[bestIndex]];
+    const outcome = outcomes[outcomeIndex];
+    const bestScore =
+      (bestOutcome?.volume ?? 0) + (bestOutcome?.liquidity ?? 0);
+    const score = (outcome?.volume ?? 0) + (outcome?.liquidity ?? 0);
+    return score > bestScore ? lineIndex : bestIndex;
+  }, 0);
+};
+
 const SimpleOutcomeCard = memo(
   ({
     outcome,
@@ -186,13 +202,8 @@ const LineOutcomeCard = memo(
     const lineIndices = useMemo(
       () =>
         outcomes
-          .map((o, i) => (o.line != null ? i : -1))
-          .filter((i) => i !== -1)
-          .sort((a, b) => {
-            const lineA = outcomes[a].line ?? 0;
-            const lineB = outcomes[b].line ?? 0;
-            return lineA - lineB;
-          }),
+          .map((outcome, index) => (outcome.line != null ? index : -1))
+          .filter((index) => index !== -1),
       [outcomes],
     );
 
@@ -201,11 +212,16 @@ const LineOutcomeCard = memo(
       [lineIndices, outcomes],
     );
 
-    const [selectedIdx, setSelectedIdx] = useState(0);
+    const defaultSelectedIdx = useMemo(
+      () => getDefaultLineIndex(outcomes, lineIndices),
+      [outcomes, lineIndices],
+    );
+
+    const [selectedIdx, setSelectedIdx] = useState(defaultSelectedIdx);
 
     useEffect(() => {
-      setSelectedIdx(0);
-    }, [outcomes]);
+      setSelectedIdx(defaultSelectedIdx);
+    }, [defaultSelectedIdx]);
 
     const handleSelectLine = useCallback(
       (_line: number, indexInLines: number) => {

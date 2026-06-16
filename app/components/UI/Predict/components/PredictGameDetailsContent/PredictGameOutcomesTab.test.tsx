@@ -67,6 +67,7 @@ interface CapturedCard {
   buttonLayout?: string;
   lines?: number[];
   selectedLine?: number;
+  selectedIndex?: number;
   testID?: string;
 }
 
@@ -79,6 +80,7 @@ interface MockCardProps {
   buttonLayout?: string;
   lines?: number[];
   selectedLine?: number;
+  selectedIndex?: number;
   onSelectLine?: (line: number, index: number) => void;
   testID?: string;
 }
@@ -99,6 +101,7 @@ jest.mock('../PredictSportOutcomeCard', () => {
       buttonLayout: props.buttonLayout,
       lines: props.lines,
       selectedLine: props.selectedLine,
+      selectedIndex: props.selectedIndex,
       testID: props.testID,
     });
     return (
@@ -948,7 +951,7 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('line selection', () => {
-    it('sorts lines numerically in ascending order', () => {
+    it('preserves incoming line order', () => {
       const subgroups: PredictOutcomeGroup[] = [
         createGroup({
           key: 'spreads',
@@ -972,16 +975,16 @@ describe('PredictGameOutcomesTab', () => {
         />,
       );
 
-      expect(mockCapturedCards[0].lines).toEqual([3.5, 7.5, 10.5]);
+      expect(mockCapturedCards[0].lines).toEqual([7.5, 3.5, 10.5]);
     });
 
-    it('defaults selected line to the first outcome line', () => {
+    it('defaults selected line to the highest volume and liquidity outcome', () => {
       const subgroups: PredictOutcomeGroup[] = [
         createGroup({
           key: 'spreads',
           outcomes: [
-            createOutcome({ id: 's1', line: 7.5 }),
-            createOutcome({ id: 's2', line: 3.5 }),
+            createOutcome({ id: 's1', line: 7.5, volume: 1000, liquidity: 50 }),
+            createOutcome({ id: 's2', line: 3.5, volume: 5000, liquidity: 50 }),
           ],
         }),
       ];
@@ -999,6 +1002,7 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards[0].selectedLine).toBe(3.5);
+      expect(mockCapturedCards[0].selectedIndex).toBe(1);
     });
 
     it('switches displayed outcome when line is selected', () => {
@@ -1009,7 +1013,7 @@ describe('PredictGameOutcomesTab', () => {
             createOutcome({
               id: 's1',
               line: 3.5,
-              volume: 1000,
+              volume: 5000,
               tokens: [
                 createToken({ shortTitle: 'TA', price: 0.6 }),
                 createToken({ shortTitle: 'TB', price: 0.4 }),
@@ -1018,7 +1022,7 @@ describe('PredictGameOutcomesTab', () => {
             createOutcome({
               id: 's2',
               line: 7.5,
-              volume: 5000,
+              volume: 1000,
               tokens: [
                 createToken({ shortTitle: 'TA', price: 0.8 }),
                 createToken({ shortTitle: 'TB', price: 0.2 }),
@@ -1046,6 +1050,57 @@ describe('PredictGameOutcomesTab', () => {
       fireEvent(getByTestId('game_lines-spreads-0-line-1-7.5'), 'touchEnd');
 
       expect(mockCapturedCards[0].buttons[0].price).toBe(80);
+    });
+
+    it('selects duplicate line labels by index', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'spreads',
+          outcomes: [
+            createOutcome({
+              id: 'spread-plus-2.5',
+              line: -2.5,
+              tokens: [createToken({ shortTitle: 'TA +2.5', price: 0.9 })],
+            }),
+            createOutcome({
+              id: 'spread-plus-1.5',
+              line: -1.5,
+              tokens: [createToken({ shortTitle: 'TA +1.5', price: 0.8 })],
+            }),
+            createOutcome({
+              id: 'spread-minus-1.5',
+              line: -1.5,
+              tokens: [createToken({ shortTitle: 'TA -1.5', price: 0.6 })],
+            }),
+            createOutcome({
+              id: 'spread-minus-2.5',
+              line: -2.5,
+              tokens: [createToken({ shortTitle: 'TA -2.5', price: 0.4 })],
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].lines).toEqual([2.5, 1.5, 1.5, 2.5]);
+
+      mockCapturedCards = [];
+      fireEvent(getByTestId('game_lines-spreads-0-line-2-1.5'), 'touchEnd');
+
+      expect(mockCapturedCards[0].selectedLine).toBe(1.5);
+      expect(mockCapturedCards[0].selectedIndex).toBe(2);
+      expect(mockCapturedCards[0].buttons[0].price).toBe(60);
     });
   });
 

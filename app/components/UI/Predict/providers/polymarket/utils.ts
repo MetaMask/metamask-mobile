@@ -650,6 +650,60 @@ const normalizeSportsMarketType = (type: string): string => {
 const getSportsMarketTypePriority = (type: string): number =>
   SPORTS_MARKET_TYPE_PRIORITIES[type.toLowerCase()] ?? 3;
 
+const DISPLAYED_SPREAD_LINE_PATTERN = /([+-]\d+(?:\.\d+)?)$/;
+
+const isSpreadOutcomeType = (sportsMarketType?: string): boolean =>
+  sportsMarketType?.toLowerCase().includes('spread') ?? false;
+
+const isLineOutcomeType = (sportsMarketType?: string): boolean => {
+  const normalizedType = normalizeSportsMarketType(sportsMarketType ?? '');
+  return isSpreadOutcomeType(normalizedType) || normalizedType === 'totals';
+};
+
+const getDisplayedSpreadLine = (
+  outcome: PredictOutcome,
+): number | undefined => {
+  const label = outcome.tokens[0]?.shortTitle ?? outcome.tokens[0]?.title;
+  const match = label?.trim().match(DISPLAYED_SPREAD_LINE_PATTERN);
+  if (!match) return undefined;
+
+  const line = Number(match[1]);
+  return Number.isFinite(line) ? line : undefined;
+};
+
+const sortLineOutcomesForDisplay = (
+  outcomes: PredictOutcome[],
+  sportsMarketType?: string,
+): PredictOutcome[] => {
+  const hasLineOutcomes = outcomes.some((outcome) => outcome.line != null);
+  if (!hasLineOutcomes) return outcomes;
+
+  const shouldSortByDisplayedSpreadLine =
+    isSpreadOutcomeType(sportsMarketType) &&
+    outcomes.every(
+      (outcome) =>
+        outcome.line == null || getDisplayedSpreadLine(outcome) !== undefined,
+    );
+
+  const firstLineOutcome = outcomes.find((outcome) => outcome.line != null);
+  const firstDisplayedSpreadLine =
+    shouldSortByDisplayedSpreadLine && firstLineOutcome
+      ? getDisplayedSpreadLine(firstLineOutcome)
+      : undefined;
+  const sortSpreadAscending =
+    firstDisplayedSpreadLine !== undefined && firstDisplayedSpreadLine > 0;
+
+  return [...outcomes].sort((a, b) => {
+    if (shouldSortByDisplayedSpreadLine) {
+      const lineA = getDisplayedSpreadLine(a) ?? 0;
+      const lineB = getDisplayedSpreadLine(b) ?? 0;
+      return sortSpreadAscending ? lineA - lineB : lineB - lineA;
+    }
+
+    return (a.line ?? 0) - (b.line ?? 0);
+  });
+};
+
 const toEnabledSportsMarketTypeSet = (
   enabledSportsMarketTypes: string[] = [],
 ): ReadonlySet<string> =>
@@ -713,6 +767,12 @@ export function buildOutcomeGroups(
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
+      if (
+        a.sportsMarketType === b.sportsMarketType &&
+        isLineOutcomeType(a.sportsMarketType)
+      ) {
+        return 0;
+      }
       const volumeDiff = b.volume - a.volume;
       if (volumeDiff !== 0) return volumeDiff;
       return (b.liquidity ?? 0) - (a.liquidity ?? 0);
@@ -744,7 +804,13 @@ export function buildOutcomeGroups(
     }
 
     if (typeMap.size < 2) {
-      return { key, outcomes: groupOutcomes };
+      return {
+        key,
+        outcomes: sortLineOutcomesForDisplay(
+          groupOutcomes,
+          groupOutcomes[0]?.sportsMarketType ?? key,
+        ),
+      };
     }
 
     const subgroupEntries = [...typeMap.entries()];
@@ -759,7 +825,7 @@ export function buildOutcomeGroups(
       outcomes: [],
       subgroups: subgroupEntries.map(([subKey, subOutcomes]) => ({
         key: subKey,
-        outcomes: subOutcomes,
+        outcomes: sortLineOutcomesForDisplay(subOutcomes, subKey),
       })),
     };
   });
@@ -969,9 +1035,11 @@ export const sortGameMarkets = (
     return priorityA - priorityB;
   });
 
-  // Sort each group by liquidity + volume, then flatten
+  // Preserve API order for line markets; their display order is derived later.
   return sortedTypes.flatMap((type) =>
-    sortByLiquidityAndVolume(groupedMarkets[type]),
+    isLineOutcomeType(type)
+      ? groupedMarkets[type]
+      : sortByLiquidityAndVolume(groupedMarkets[type]),
   );
 };
 
