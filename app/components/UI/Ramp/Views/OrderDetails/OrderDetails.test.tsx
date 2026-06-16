@@ -47,15 +47,6 @@ jest.mock('../../utils/v2OrderToast', () => ({
   showV2OrderToast: jest.fn(),
 }));
 
-const mockHandleOrderStatusChangedForMetrics = jest.fn();
-jest.mock(
-  '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
-  () => ({
-    handleOrderStatusChangedForMetrics: (...args: unknown[]) =>
-      mockHandleOrderStatusChangedForMetrics(...args),
-  }),
-);
-
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -343,36 +334,6 @@ describe('OrderDetails', () => {
         }),
       );
     });
-  });
-
-  it('does not emit status metrics when callback order status matches prior order', async () => {
-    const { showV2OrderToast } = jest.requireMock(
-      '../../utils/v2OrderToast',
-    ) as { showV2OrderToast: jest.Mock };
-    const completedOrder = {
-      providerOrderId: 'ord-same',
-      status: RampsOrderStatus.Completed,
-      cryptoCurrency: { symbol: 'ETH' },
-      cryptoAmount: '0.1',
-      provider: { id: 'moonpay' },
-      walletAddress: '0x123',
-    };
-    mockUseParams.mockReturnValue({
-      callbackUrl: 'https://callback.example?x=1',
-      providerCode: 'moonpay',
-      walletAddress: '0x123',
-    });
-    mockGetOrderById.mockImplementation((id: string) =>
-      id === 'ord-same' ? completedOrder : undefined,
-    );
-    mockGetOrderFromCallback.mockResolvedValue(completedOrder);
-
-    render();
-
-    await waitFor(() => {
-      expect(showV2OrderToast).toHaveBeenCalled();
-    });
-    expect(mockHandleOrderStatusChangedForMetrics).not.toHaveBeenCalled();
   });
 
   it('shows localized error when callback fetch rejects with Error that has no message', async () => {

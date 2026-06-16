@@ -34,7 +34,6 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
-import { handleOrderStatusChangedForMetrics } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
@@ -112,18 +111,7 @@ const OrderDetails = () => {
           });
           return;
         }
-        const priorOrder = getOrderById(fetchedOrder.providerOrderId);
-        const previousStatus =
-          priorOrder?.status ?? RampsOrderStatus.Precreated;
-
         addOrder(fetchedOrder);
-
-        if (previousStatus !== fetchedOrder.status) {
-          handleOrderStatusChangedForMetrics({
-            order: fetchedOrder,
-            previousStatus,
-          });
-        }
 
         showV2OrderToast({
           orderId: fetchedOrder.providerOrderId,
@@ -156,13 +144,7 @@ const OrderDetails = () => {
         setIsLoading(false);
       }
     },
-    [
-      getOrderFromCallback,
-      getOrderById,
-      addOrder,
-      navigation,
-      params.cryptocurrency,
-    ],
+    [getOrderFromCallback, addOrder, navigation, params.cryptocurrency],
   );
 
   const handleHeaderBack = useCallback(() => {
