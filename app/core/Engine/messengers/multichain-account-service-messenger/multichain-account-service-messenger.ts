@@ -17,14 +17,12 @@ import { RootMessenger } from '../../types';
  * @returns The MultichainAccountServiceMessenger.
  */
 export function getMultichainAccountServiceMessenger(
-  rootMessenger: RootMessenger,
-): MultichainAccountServiceMessenger {
-  const messenger = new Messenger<
-    'MultichainAccountService',
+  rootMessenger: RootMessenger<
     MessengerActions<MultichainAccountServiceMessenger>,
-    MessengerEvents<MultichainAccountServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<MultichainAccountServiceMessenger>
+  >,
+): MultichainAccountServiceMessenger {
+  const messenger: MultichainAccountServiceMessenger = new Messenger({
     namespace: 'MultichainAccountService',
     parent: rootMessenger,
   });
@@ -58,10 +56,10 @@ export function getMultichainAccountServiceMessenger(
 type AllowedInitializationEvents =
   MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
 
-type AllowedInitializationActions = never;
-
-export type MultichainAccountServiceInitMessenger = ReturnType<
-  typeof getMultichainAccountServiceInitMessenger
+export type MultichainAccountServiceInitMessenger = Messenger<
+  'MultichainAccountServiceInit',
+  never,
+  AllowedInitializationEvents
 >;
 
 /**
@@ -72,14 +70,12 @@ export type MultichainAccountServiceInitMessenger = ReturnType<
  * @returns The MultichainAccountServiceInitMessenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'MultichainAccountServiceInit',
-    AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<MultichainAccountServiceInitMessenger>,
+    MessengerEvents<MultichainAccountServiceInitMessenger>
+  >,
+): MultichainAccountServiceInitMessenger {
+  const messenger: MultichainAccountServiceInitMessenger = new Messenger({
     namespace: 'MultichainAccountServiceInit',
     parent: rootMessenger,
   });

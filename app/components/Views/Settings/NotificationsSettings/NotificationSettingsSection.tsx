@@ -4,7 +4,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -20,8 +20,8 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   useNotificationStoragePreferences,
-  type NotificationStoragePreferenceSection,
-  type NotificationStoragePreferenceChannelKey,
+  type NotificationPreferenceChannelKey,
+  type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
@@ -34,6 +34,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { NotificationChannel } from '../../../../core/Analytics/events/channels';
 import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
+import Logger from '../../../../util/Logger';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -42,13 +43,21 @@ interface SectionContentProps {
 }
 
 const SETTINGS_TYPE_BY_SECTION: Record<
-  NotificationStoragePreferenceSection,
+  NotificationPreferenceSection,
   string
 > = {
   walletActivity: 'wallet_activity',
   perps: 'perps',
   socialAI: 'social_ai',
   marketing: 'marketing',
+};
+
+const CHANNEL_BY_KEY: Record<
+  NotificationPreferenceChannelKey,
+  NotificationChannel
+> = {
+  pushNotificationsEnabled: NotificationChannel.PUSH,
+  inAppNotificationsEnabled: NotificationChannel.IN_APP,
 };
 
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
@@ -176,7 +185,7 @@ const MarketingSectionContent = ({ styles }: SectionContentProps) => (
 
 const SECTION_CONTENT_BY_TYPE: Partial<
   Record<
-    NotificationStoragePreferenceSection,
+    NotificationPreferenceSection,
     React.ComponentType<SectionContentProps>
   >
 > = {
@@ -190,7 +199,7 @@ export interface NotificationSettingsSectionProps {
   route: RouteProp<
     {
       params: {
-        type: NotificationStoragePreferenceSection;
+        type: NotificationPreferenceSection;
         title: string;
         description: string;
       };
@@ -212,7 +221,19 @@ const NotificationSettingsSection = ({
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const { preferences, updatePreference } = useNotificationStoragePreferences();
+  const { preferences, updateSectionChannel } =
+    useNotificationStoragePreferences();
+  const [pendingChannelToggles, setPendingChannelToggles] = useState<
+    Partial<Record<NotificationPreferenceChannelKey, boolean>>
+  >({});
+  const channelGenerationsRef = useRef<
+    Record<NotificationPreferenceChannelKey, number>
+  >({
+    pushNotificationsEnabled: 0,
+    inAppNotificationsEnabled: 0,
+  });
+  const sectionPrefs = preferences?.[type];
+  const SectionContent = SECTION_CONTENT_BY_TYPE[type];
 
   const trackChannelUpdate = useCallback(
     (channel: NotificationChannel, enabled: boolean) => {
@@ -230,33 +251,80 @@ const NotificationSettingsSection = ({
     [trackEvent, createEventBuilder, type, profileId],
   );
 
-  const handleToggleChannel = useCallback(
-    async (
-      key: NotificationStoragePreferenceChannelKey,
-      channel: NotificationChannel,
-      currentValue: boolean,
-    ) => {
-      const nextEnabled = !currentValue;
-
-      await updatePreference(type, key, nextEnabled);
-
-      trackChannelUpdate(channel, nextEnabled);
-    },
-    [updatePreference, trackChannelUpdate, type],
-  );
-
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
       navigation.dispatch(StackActions.replace(Routes.SETTINGS.NOTIFICATIONS));
     }
   }, [isMetamaskNotificationsEnabled, navigation]);
 
-  if (!isMetamaskNotificationsEnabled || !preferences) {
+  const clearPendingChannelToggle = useCallback(
+    (channel: NotificationPreferenceChannelKey) => {
+      setPendingChannelToggles((current) => {
+        if (current[channel] === undefined) {
+          return current;
+        }
+
+        const next = { ...current };
+        delete next[channel];
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleChannelToggle = useCallback(
+    (channel: NotificationPreferenceChannelKey, nextValue: boolean) => {
+      channelGenerationsRef.current[channel] += 1;
+      const generation = channelGenerationsRef.current[channel];
+
+      setPendingChannelToggles((current) => ({
+        ...current,
+        [channel]: nextValue,
+      }));
+
+      updateSectionChannel(type, channel, nextValue)
+        .then(() => {
+          trackChannelUpdate(CHANNEL_BY_KEY[channel], nextValue);
+        })
+        .catch(() => {
+          Logger.error(
+            new Error('Failed to update notification section channel'),
+            {
+              message: 'NotificationSettingsSection: update channel failed',
+              type,
+              channel,
+              nextValue,
+            },
+          );
+
+          if (channelGenerationsRef.current[channel] === generation) {
+            clearPendingChannelToggle(channel);
+          }
+        });
+    },
+    [clearPendingChannelToggle, trackChannelUpdate, type, updateSectionChannel],
+  );
+
+  useEffect(() => {
+    if (!sectionPrefs) {
+      return;
+    }
+
+    (
+      [
+        'pushNotificationsEnabled',
+        'inAppNotificationsEnabled',
+      ] as NotificationPreferenceChannelKey[]
+    ).forEach((channel) => {
+      if (pendingChannelToggles[channel] === sectionPrefs[channel]) {
+        clearPendingChannelToggle(channel);
+      }
+    });
+  }, [clearPendingChannelToggle, pendingChannelToggles, sectionPrefs]);
+
+  if (!isMetamaskNotificationsEnabled || !sectionPrefs) {
     return null;
   }
-
-  const sectionPrefs = preferences[type];
-  const SectionContent = SECTION_CONTENT_BY_TYPE[type];
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -286,13 +354,12 @@ const NotificationSettingsSection = ({
             {strings('app_settings.notifications_opts.push_recommended')}
           </Text>
           <Switch
-            value={sectionPrefs.pushNotificationsEnabled}
-            onChange={() =>
-              handleToggleChannel(
-                'pushNotificationsEnabled',
-                NotificationChannel.PUSH,
-                sectionPrefs.pushNotificationsEnabled,
-              )
+            value={
+              pendingChannelToggles.pushNotificationsEnabled ??
+              sectionPrefs.pushNotificationsEnabled
+            }
+            onValueChange={(nextValue) =>
+              handleChannelToggle('pushNotificationsEnabled', nextValue)
             }
             trackColor={{
               true: theme.colors.primary.default,
@@ -301,6 +368,9 @@ const NotificationSettingsSection = ({
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={theme.colors.border.muted}
+            testID={
+              NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE
+            }
           />
         </View>
 
@@ -313,13 +383,12 @@ const NotificationSettingsSection = ({
             {strings('app_settings.notifications_opts.in_app')}
           </Text>
           <Switch
-            value={sectionPrefs.inAppNotificationsEnabled}
-            onChange={() =>
-              handleToggleChannel(
-                'inAppNotificationsEnabled',
-                NotificationChannel.IN_APP,
-                sectionPrefs.inAppNotificationsEnabled,
-              )
+            value={
+              pendingChannelToggles.inAppNotificationsEnabled ??
+              sectionPrefs.inAppNotificationsEnabled
+            }
+            onValueChange={(nextValue) =>
+              handleChannelToggle('inAppNotificationsEnabled', nextValue)
             }
             trackColor={{
               true: theme.colors.primary.default,
@@ -328,6 +397,9 @@ const NotificationSettingsSection = ({
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={theme.colors.border.muted}
+            testID={
+              NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE
+            }
           />
         </View>
 

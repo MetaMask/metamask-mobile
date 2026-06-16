@@ -1,26 +1,23 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
-  FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
-  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import Logger from '../../../../../util/Logger';
+import MoneySheetOptionsList, {
+  type MoneySheetOption,
+} from '../MoneySheetOptionsList';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
@@ -31,19 +28,6 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
-
-interface ActiveOption {
-  label: string;
-  icon: IconName;
-  onPress: () => void;
-  testID: string;
-}
-
-interface DisabledOption {
-  label: string;
-  icon: IconName;
-  testID: string;
-}
 
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -84,10 +68,6 @@ const MoneyTransferSheet = () => {
   }, [initiateWithdrawal, trackSurfaceClicked]);
 
   const handlePerpsAccount = useCallback(() => {
-    if (!isPerpsEnabled) {
-      return;
-    }
-
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT,
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
@@ -96,13 +76,9 @@ const MoneyTransferSheet = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       initiatePerpsDeposit();
     });
-  }, [isPerpsEnabled, initiatePerpsDeposit, trackSurfaceClicked]);
+  }, [initiatePerpsDeposit, trackSurfaceClicked]);
 
   const handlePredictionsAccount = useCallback(() => {
-    if (!isPredictEnabled) {
-      return;
-    }
-
     trackSurfaceClicked({
       component_name:
         COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT,
@@ -112,12 +88,12 @@ const MoneyTransferSheet = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       initiatePredictDeposit();
     });
-  }, [isPredictEnabled, initiatePredictDeposit, trackSurfaceClicked]);
+  }, [initiatePredictDeposit, trackSurfaceClicked]);
 
-  const activeOptions: ActiveOption[] = [
+  const options: MoneySheetOption[] = [
     {
       label: strings('money.transfer_sheet.between_accounts'),
-      icon: IconName.SwapHorizontal,
+      icon: IconName.Arrow2UpRight,
       onPress: handleBetweenAccounts,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
     },
@@ -126,25 +102,28 @@ const MoneyTransferSheet = () => {
       icon: IconName.Candlestick,
       onPress: handlePerpsAccount,
       testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
+      disabled: !isPerpsEnabled,
     },
     {
       label: strings('money.transfer_sheet.predictions_account'),
       icon: IconName.Speedometer,
       onPress: handlePredictionsAccount,
       testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
+      disabled: !isPredictEnabled,
     },
-  ];
-
-  const disabledOptions: DisabledOption[] = [
     {
       label: strings('money.transfer_sheet.send_external'),
-      icon: IconName.Send,
+      icon: IconName.Arrow2Up,
       testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
+      disabled: true,
+      comingSoon: true,
     },
     {
       label: strings('money.transfer_sheet.withdraw_to_bank'),
       icon: IconName.Bank,
       testID: MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW,
+      disabled: true,
+      comingSoon: true,
     },
   ];
 
@@ -162,45 +141,7 @@ const MoneyTransferSheet = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
-        {activeOptions.map((item) => (
-          <TouchableOpacity
-            key={item.testID}
-            onPress={item.onPress}
-            style={styles.row}
-            testID={item.testID}
-          >
-            <Icon
-              name={item.icon}
-              size={IconSize.Lg}
-              color={IconColor.IconDefault}
-            />
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        {disabledOptions.map((item) => (
-          <View key={item.testID} style={styles.row} testID={item.testID}>
-            <Icon
-              name={item.icon}
-              size={IconSize.Lg}
-              color={IconColor.IconMuted}
-            />
-            <View style={styles.disabledRowContent}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {item.label}
-              </Text>
-              <Tag
-                label={strings('money.add_money_sheet.coming_soon')}
-                style={styles.comingSoonTag}
-              />
-            </View>
-          </View>
-        ))}
+        <MoneySheetOptionsList options={options} />
       </View>
     </BottomSheet>
   );

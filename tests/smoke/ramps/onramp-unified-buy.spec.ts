@@ -32,7 +32,7 @@ const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
 const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeatureFlagRampsUnifiedMatrixForE2E(true, true),
+    ...remoteFeatureFlagRampsUnifiedMatrixForE2E(true),
     depositConfig: {
       active: true,
       providerApiKey: 'DUMMY_VALUE_FOR_TESTING',
@@ -46,7 +46,7 @@ const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
 const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    remoteFeatureFlagRampsUnifiedMatrixForE2E(true, true),
+    remoteFeatureFlagRampsUnifiedMatrixForE2E(true),
   );
   await setupBuyOnRampMocks(mockServer, selectedRegion);
 };

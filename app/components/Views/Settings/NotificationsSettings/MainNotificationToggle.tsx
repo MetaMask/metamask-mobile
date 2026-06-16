@@ -23,10 +23,9 @@ export const MainNotificationToggle = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { onToggle, value } = useMainNotificationToggle();
+  const { onToggle, value, isUpdating } = useMainNotificationToggle();
 
-  const handleToggle = useCallback(async () => {
-    onToggle();
+  const trackNotificationToggleEvent = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
         .addProperties({
@@ -56,7 +55,9 @@ export const MainNotificationToggle = () => {
         </Text>
         <Switch
           value={value}
-          onChange={handleToggle}
+          onChange={trackNotificationToggleEvent}
+          disabled={isUpdating}
+          onValueChange={onToggle}
           trackColor={{
             true: theme.colors.primary.default,
             false: theme.colors.border.muted,

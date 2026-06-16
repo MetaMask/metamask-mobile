@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
 } from './MoneyOnboardingCard';
@@ -23,6 +24,7 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'built-event' }));
@@ -97,17 +99,21 @@ const mockStartLinkFlow = jest.fn();
 
 interface SetupOptions {
   currentStep?: number;
+  isCardholder?: boolean;
   isCardAuthenticated?: boolean;
+  isCardVerified?: boolean;
   isCardLinkedToMoneyAccount?: boolean;
-  isAggregatedBalanceLoading?: boolean;
+  isBalanceLoading?: boolean;
   tokenTotal?: BigNumber;
 }
 
 const setupDefaultMocks = ({
   currentStep = 0,
+  isCardholder = false,
   isCardAuthenticated = false,
+  isCardVerified = false,
   isCardLinkedToMoneyAccount = false,
-  isAggregatedBalanceLoading = false,
+  isBalanceLoading = false,
   tokenTotal = new BigNumber(0),
 }: SetupOptions = {}) => {
   mockUseOnboardingStep.mockReturnValue({
@@ -120,13 +126,16 @@ const setupDefaultMocks = ({
   });
   mockUseMoneyAccountBalance.mockReturnValue({
     tokenTotal,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
   } as ReturnType<typeof useMoneyAccountBalance>);
   (mockUseMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
     startLinkFlow: mockStartLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
+    isLinking: false,
   });
+  mockIsCardholder.mockReturnValue(isCardholder);
 };
 
 describe('MoneyOnboardingCard', () => {
@@ -147,7 +156,7 @@ describe('MoneyOnboardingCard', () => {
     });
 
     it('returns null when balance is loading', () => {
-      setupDefaultMocks({ isAggregatedBalanceLoading: true });
+      setupDefaultMocks({ isBalanceLoading: true });
 
       const { toJSON } = render(<MoneyOnboardingCard />);
 
@@ -178,7 +187,7 @@ describe('MoneyOnboardingCard', () => {
     it('does not call incrementStep while balance is loading', () => {
       setupDefaultMocks({
         currentStep: 0,
-        isAggregatedBalanceLoading: true,
+        isBalanceLoading: true,
         tokenTotal: new BigNumber(1),
       });
 
@@ -278,7 +287,7 @@ describe('MoneyOnboardingCard', () => {
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
-        card_state: 'no_card',
+        card_state: 'non_cardholder',
       });
     });
 
@@ -301,7 +310,7 @@ describe('MoneyOnboardingCard', () => {
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
-        card_state: 'no_card',
+        card_state: 'non_cardholder',
       });
     });
 
@@ -316,7 +325,7 @@ describe('MoneyOnboardingCard', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-        card_state: 'no_card',
+        card_state: 'non_cardholder',
       });
     });
 
@@ -388,6 +397,7 @@ describe('MoneyOnboardingCard', () => {
     it('renders the unlinked-card title', () => {
       setupDefaultMocks({
         currentStep: 1,
+        isCardholder: true,
         isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: false,
       });
@@ -402,6 +412,7 @@ describe('MoneyOnboardingCard', () => {
     it('renders the unlinked-card description', () => {
       setupDefaultMocks({
         currentStep: 1,
+        isCardholder: true,
         isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: false,
       });
@@ -418,6 +429,7 @@ describe('MoneyOnboardingCard', () => {
     it('renders the Link card primary CTA', () => {
       setupDefaultMocks({
         currentStep: 1,
+        isCardholder: true,
         isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: false,
       });
@@ -432,6 +444,7 @@ describe('MoneyOnboardingCard', () => {
     it('calls startLinkFlow with Money home origin when Link card CTA is pressed', () => {
       setupDefaultMocks({
         currentStep: 1,
+        isCardholder: true,
         isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: false,
       });
@@ -453,6 +466,7 @@ describe('MoneyOnboardingCard', () => {
     it('calls incrementStep when Skip CTA is pressed', () => {
       setupDefaultMocks({
         currentStep: 1,
+        isCardholder: true,
         isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: false,
       });
@@ -474,6 +488,59 @@ describe('MoneyOnboardingCard', () => {
         action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
         card_state: 'unlinked_card',
       });
+    });
+  });
+
+  describe('step 2 — cardholder not authenticated', () => {
+    it('renders the unlinked-card title when user is a cardholder but not authenticated', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
+        strings('money.onboarding.step_2.unlinked_card_account.title'),
+      );
+    });
+
+    it('renders the Link card primary CTA when user is a cardholder but not authenticated', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
+        strings('money.onboarding.step_2.unlinked_card_account.cta_primary'),
+      );
+    });
+
+    it('calls trackOnboardingEvent with LINK_CARD when cardholder (not authenticated) presses the CTA', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 2,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_LINK_SHEET,
+          total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+        }),
+      );
     });
   });
 
@@ -524,6 +591,26 @@ describe('MoneyOnboardingCard', () => {
       render(<MoneyOnboardingCard />);
 
       expect(mockIncrementStep).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('step 2 — authenticated but not VERIFIED', () => {
+    it('renders the no-card step instead of the link-card step', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
+        strings('money.onboarding.step_2.no_card_account.title'),
+      );
+      expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
+        strings('money.onboarding.step_2.no_card_account.cta_primary'),
+      );
     });
   });
 
@@ -588,6 +675,7 @@ describe('MoneyOnboardingCard', () => {
     it('calls trackOnboardingEvent with LINK_CARD when CTA is pressed for authenticated but unlinked cardholder at step 2', () => {
       setupDefaultMocks({
         currentStep: 1,
+        isCardholder: true,
         isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: false,
       });
