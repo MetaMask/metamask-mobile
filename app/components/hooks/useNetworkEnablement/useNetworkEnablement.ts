@@ -61,12 +61,18 @@ export const useNetworkEnablement = () => {
     [],
   );
 
-  const popularEvmNetworksList =
-    networkEnablementController?.listPopularEvmNetworks?.() ?? [];
-  const popularMultichainNetworksList =
-    networkEnablementController?.listPopularMultichainNetworks?.() ?? [];
-  const popularNetworksList =
-    networkEnablementController?.listPopularNetworks?.() ?? [];
+  const popularEvmNetworksList = useMemo(
+    () => networkEnablementController?.listPopularEvmNetworks?.() ?? [],
+    [networkEnablementController],
+  );
+  const popularMultichainNetworksList = useMemo(
+    () => networkEnablementController?.listPopularMultichainNetworks?.() ?? [],
+    [networkEnablementController],
+  );
+  const popularNetworksList = useMemo(
+    () => networkEnablementController?.listPopularNetworks?.() ?? [],
+    [networkEnablementController],
+  );
 
   const enabledNetworksForCurrentNamespace = useMemo(
     () => enabledNetworksByNamespace?.[namespace] || {},
@@ -141,20 +147,38 @@ export const useNetworkEnablement = () => {
     [isNetworkEnabled, enableNetwork],
   );
 
-  return {
-    namespace,
-    enabledNetworksByNamespace,
-    enabledNetworksForCurrentNamespace,
-    enabledNetworksForAllNamespaces,
-    networkEnablementController,
-    enableNetwork,
-    disableNetwork,
-    enableAllPopularNetworks,
-    popularEvmNetworks: popularEvmNetworksList,
-    popularMultichainNetworks: popularMultichainNetworksList,
-    popularNetworks: popularNetworksList,
-    isNetworkEnabled,
-    hasOneEnabledNetwork,
-    tryEnableEvmNetwork,
-  };
+  return useMemo(
+    () => ({
+      namespace,
+      enabledNetworksByNamespace,
+      enabledNetworksForCurrentNamespace,
+      enabledNetworksForAllNamespaces,
+      networkEnablementController,
+      enableNetwork,
+      disableNetwork,
+      enableAllPopularNetworks,
+      popularEvmNetworks: popularEvmNetworksList,
+      popularMultichainNetworks: popularMultichainNetworksList,
+      popularNetworks: popularNetworksList,
+      isNetworkEnabled,
+      hasOneEnabledNetwork,
+      tryEnableEvmNetwork,
+    }),
+    [
+      namespace,
+      enabledNetworksByNamespace,
+      enabledNetworksForCurrentNamespace,
+      enabledNetworksForAllNamespaces,
+      networkEnablementController,
+      enableNetwork,
+      disableNetwork,
+      enableAllPopularNetworks,
+      popularEvmNetworksList,
+      popularMultichainNetworksList,
+      popularNetworksList,
+      isNetworkEnabled,
+      hasOneEnabledNetwork,
+      tryEnableEvmNetwork,
+    ],
+  );
 };
