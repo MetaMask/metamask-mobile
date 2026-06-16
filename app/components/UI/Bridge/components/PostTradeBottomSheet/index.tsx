@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -55,6 +55,13 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../utils/postTradeNotifications';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  getAnalyticsStatus,
+  getPostTradeSharedAnalyticsProperties,
+  type PostTradeAnalyticsCta,
+} from './PostTradeBottomSheet.analytics';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -124,13 +131,21 @@ export const PostTradeBottomSheet = () => {
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasRefreshedBalancesRef = useRef(false);
+  const hasTrackedViewedRef = useRef(false);
+  const modalOpenedAtRef = useRef(Date.now());
+  const shouldSkipDismissedTrackingRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const params = useParams<PostTradeBottomSheetParams>();
   const updateQuoteParams = useBridgeQuoteRequest();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isBridge =
     params.sourceToken?.chainId &&
     params.destToken?.chainId &&
     params.sourceToken.chainId !== params.destToken.chainId;
+  const sharedAnalyticsProperties = useMemo(
+    () => getPostTradeSharedAnalyticsProperties(params),
+    [params],
+  );
 
   const status = usePostTradeTxStatus({
     initialStatus: params.status,
@@ -139,6 +154,11 @@ export const PostTradeBottomSheet = () => {
     transactionHash: params.transactionHash,
   });
 
+  const getTimeModalOpenMs = useCallback(
+    () => Date.now() - modalOpenedAtRef.current,
+    [],
+  );
+
   useEffect(() => {
     showPostTradeNotificationSurface();
 
@@ -146,6 +166,27 @@ export const PostTradeBottomSheet = () => {
       hidePostTradeNotificationSurface();
     };
   }, []);
+
+  useEffect(() => {
+    if (hasTrackedViewedRef.current) {
+      return;
+    }
+
+    hasTrackedViewedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAPBRIDGE_STATUS_MODAL_VIEWED)
+        .addProperties({
+          initial_status: getAnalyticsStatus(params.status),
+          ...sharedAnalyticsProperties,
+        })
+        .build(),
+    );
+  }, [
+    createEventBuilder,
+    params.status,
+    sharedAnalyticsProperties,
+    trackEvent,
+  ]);
 
   useEffect(() => {
     const isTerminalStatus =
@@ -173,17 +214,75 @@ export const PostTradeBottomSheet = () => {
   });
   const titleType = isBridge ? 'bridge' : 'swap';
 
+  const trackButtonClicked = useCallback(
+    (
+      ctaClicked: PostTradeAnalyticsCta,
+      clickedTokenProperties?: Record<string, unknown>,
+    ) => {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED,
+        )
+          .addProperties({
+            status_at_click: getAnalyticsStatus(status),
+            cta_clicked: ctaClicked,
+            time_modal_open_ms: getTimeModalOpenMs(),
+            ...clickedTokenProperties,
+            ...sharedAnalyticsProperties,
+          })
+          .build(),
+      );
+    },
+    [
+      createEventBuilder,
+      getTimeModalOpenMs,
+      sharedAnalyticsProperties,
+      status,
+      trackEvent,
+    ],
+  );
+
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (shouldSkipDismissedTrackingRef.current || hasPendingAction) {
+        shouldSkipDismissedTrackingRef.current = false;
+        return;
+      }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWAPBRIDGE_STATUS_MODAL_DISMISSED)
+          .addProperties({
+            status_at_dismissal: getAnalyticsStatus(status),
+            time_modal_open_ms: getTimeModalOpenMs(),
+            ...sharedAnalyticsProperties,
+          })
+          .build(),
+      );
+    },
+    [
+      createEventBuilder,
+      getTimeModalOpenMs,
+      sharedAnalyticsProperties,
+      status,
+      trackEvent,
+    ],
+  );
+
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
   const handleViewActivity = () => {
+    trackButtonClicked('view_activity');
+    shouldSkipDismissedTrackingRef.current = true;
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     });
   };
 
   const handleTryAgain = () => {
+    trackButtonClicked('try_again');
+    shouldSkipDismissedTrackingRef.current = true;
     if (params.sourceToken) {
       dispatch(setSourceToken(params.sourceToken));
     }
@@ -211,6 +310,13 @@ export const PostTradeBottomSheet = () => {
     } catch {
       return;
     }
+
+    trackButtonClicked('trending_token', {
+      token_symbol_clicked: selectedDestToken.symbol,
+      token_address_clicked: selectedDestToken.address,
+      token_clicked_is_imported: false,
+    });
+    shouldSkipDismissedTrackingRef.current = true;
 
     if (params.sourceToken) {
       dispatch(setSourceToken(params.sourceToken));
@@ -244,7 +350,11 @@ export const PostTradeBottomSheet = () => {
       : undefined;
 
   return (
-    <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={() => navigation.goBack()}
+      onClose={handleDismiss}
+    >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}

@@ -3017,7 +3017,64 @@
     "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
   },
   "activity_view": {
-    "title": "Activity"
+    "title": "Activity",
+    "search_placeholder": "Search tokens, transaction types...",
+    "filter_all_networks": "All networks",
+    "filter_all_types": "All types",
+    "filter_types_selected": "Types: {{label}}",
+    "filter_network_selected": "Network: {{label}}",
+    "type_filter": {
+      "title": "Types",
+      "all": "All types",
+      "transactions": "Transactions",
+      "buy_sell": "Buy/Sell",
+      "perps": "Perps",
+      "predictions": "Predictions",
+      "metamask_card": "MetaMask Card",
+      "money": "Money"
+    },
+    "empty_state": {
+      "default_funded": {
+        "description": "Nothing to see yet. Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "default_unfunded": {
+        "description": "Nothing to see yet. Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "predictions": {
+        "description": "Your first prediction could be your best.",
+        "action": "Make a prediction"
+      },
+      "perps": {
+        "description": "Your first perps trade could be your best.",
+        "action": "Browse markets"
+      },
+      "transactions_funded": {
+        "description": "Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "transactions_unfunded": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "buy_sell": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "money_funded": {
+        "description": "You've got funds—put them to work in MetaMask Money.",
+        "action": "Transfer funds"
+      },
+      "money_unfunded": {
+        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
+        "action": "Transfer funds"
+      },
+      "metamask_card": {
+        "description": "Manage your MetaMask Card and spend crypto anywhere.",
+        "action": "Open MetaMask Card"
+      }
+    }
   },
   "transactions_view": {
     "title": "Transactions"
@@ -4656,6 +4713,31 @@
     "tx_review_predict_withdraw": "Predictions withdraw",
     "tx_review_perps_withdraw": "Perps withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
+    "activity_buy": "Bought",
+    "activity_sell": "Sold",
+    "activity_claim_musd_bonus": "Claimed mUSD bonus",
+    "activity_wrap": "Wrapped",
+    "activity_unwrap": "Unwrapped",
+    "activity_revoke_spending_cap": "Revoked spending cap",
+    "activity_nft_mint": "NFT mint",
+    "activity_smart_account_upgrade": "Smart account upgrade",
+    "activity_prediction_cashed_out": "Prediction cashed out",
+    "activity_prediction_placed": "Prediction placed",
+    "activity_perps_open_long": "Opened long",
+    "activity_perps_close_long": "Closed long",
+    "activity_perps_close_long_liquidated": "Closed long - liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long - stop loss",
+    "activity_perps_open_short": "Opened short",
+    "activity_perps_close_short": "Closed short",
+    "activity_perps_close_short_liquidated": "Closed short - liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short - stop loss",
+    "activity_perps_paid_funding_fees": "Paid funding fees",
+    "activity_perps_received_funding_fees": "Received funding fees",
+    "activity_perps_close_short_take_profit": "Closed short - take profit",
+    "activity_perps_close_long_take_profit": "Closed long - take profit",
+    "activity_market_short": "Market short",
+    "activity_stop_market_close_short": "Stop market - close short",
+    "activity_market_close_short": "Market - close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -9742,15 +9824,6 @@
       "money": "Money",
       "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
-      "money_empty_state": {
-        "get_started": "Get started",
-        "earn": "Earn",
-        "earn_apy": "Earn {{percentage}}% APY"
-      },
-      "money_filled_state": {
-        "add": "Add",
-        "apy": "{{percentage}}% APY"
-      },
       "tokens": "Tokens",
       "perps": "Perps",
       "related_assets": "Related Assets",

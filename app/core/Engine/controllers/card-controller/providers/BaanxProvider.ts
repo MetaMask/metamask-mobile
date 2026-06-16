@@ -1480,6 +1480,10 @@ export class BaanxProvider implements ICardProvider {
             country: user.countryOfResidence ?? '',
           }
         : null,
+      countryOfResidence: user.countryOfResidence
+        ? user.countryOfResidence.toUpperCase()
+        : null,
+      usState: user.usState ? user.usState.toUpperCase() : null,
     };
   }
 
