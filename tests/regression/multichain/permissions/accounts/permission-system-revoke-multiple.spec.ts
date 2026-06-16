@@ -12,6 +12,8 @@ import Assertions from '../../../../framework/Assertions';
 import { RegressionNetworkExpansion } from '../../../../tags';
 import { DappVariants } from '../../../../framework/Constants';
 
+const AccountTwoText = 'Account 2';
+
 describe(RegressionNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -46,6 +48,10 @@ describe(RegressionNetworkExpansion('Account Permission Management'), () => {
           ToastModal.notificationTitle,
         );
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
+        await AccountListBottomSheet.tapAddAccountButtonV2();
+        if (device.getPlatform() === 'android') {
+          await Assertions.expectTextDisplayed(AccountTwoText);
+        }
         await AccountListBottomSheet.tapAccountIndex(0);
         await AccountListBottomSheet.tapConnectAccountsButton();
 
