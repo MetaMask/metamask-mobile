@@ -107,7 +107,7 @@ Pass a `testSpecificMock` function to `withFixtures`:
 
 ```typescript
 import { withFixtures } from '../framework/fixtures/FixtureHelper';
-import { setupMockRequest } from '../api-mocking/mockHelpers';
+import { setupMockRequest } from '../api-mocking/helpers/mockHelpers';
 
 describe('My Test Suite', () => {
   it('should handle custom API response', async () => {
@@ -156,9 +156,52 @@ await withFixtures(
 );
 ```
 
+### Appium tests
+
+Mocking is identical for Appium specs — the same `testSpecificMock` callback and
+the same helpers (`setupMockRequest`, `setupMockPostRequest`, …). The device
+proxy is transparent to the test author, and because mocks now apply to the
+device-proxy ingress too, your mock automatically covers native, WebView, and
+WebSocket traffic — not just `shim.js` `fetch`. Nothing proxy-specific is called
+in the test.
+
+The only differences are the harness wrapper and passing `currentDeviceDetails`
+into `withFixtures`:
+
+```typescript
+import { test as appiumTest } from '../../framework/fixtures/playwright/index';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import { Mockttp } from 'mockttp';
+
+appiumTest('handles custom API response', async ({ currentDeviceDetails }) => {
+  await withFixtures(
+    {
+      fixture: new FixtureBuilder().build(),
+      restartDevice: true,
+      currentDeviceDetails, // Appium-only — wires the per-test device handle
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: 'https://api.example.com/custom',
+          response: { customData: 'test' },
+          responseCode: 200,
+        });
+      },
+    },
+    async () => {
+      await loginToAppPlaywright({ scenarioType: 'e2e' });
+      // Your test code here
+    },
+  );
+});
+```
+
 ## Mock Helper Functions
 
-The `tests/api-mocking/mockHelpers.ts` file provides several utilities for mocking:
+The `tests/api-mocking/helpers/mockHelpers.ts` file provides several utilities for mocking:
 
 ### setupMockRequest
 
