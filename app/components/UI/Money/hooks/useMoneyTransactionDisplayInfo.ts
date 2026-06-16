@@ -23,6 +23,7 @@ import {
   getMusdDisplayAmountFromTransactionMeta,
   isIncomingMoneyTransactionMeta,
 } from '../constants/activityStyles';
+import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import {
@@ -97,7 +98,7 @@ function prettifyFiatProvider(
  * - converted → "{token} → mUSD"
  * - sent      → "mUSD → {token}" (the withdraw destination token)
  * - received  → "From: 0x…" (the sender)
- * - deposited → fiat provider ("Transak"), else the funding token ("mUSD")
+ * - deposited → fiat payment method ("Apple Pay"), else provider ("Transak"), else funding token ("mUSD")
  * - card / added / transferred → the source token symbol, if any
  */
 function deriveSubtitle(
@@ -105,6 +106,7 @@ function deriveSubtitle(
   tx: TransactionMeta,
   sourceTokenSymbol: string | undefined,
   explicitSubtitle: string | undefined,
+  paymentMethodName: string | undefined,
 ): string | undefined {
   if (explicitSubtitle) {
     return explicitSubtitle;
@@ -133,6 +135,7 @@ function deriveSubtitle(
     }
     case 'deposited':
       return (
+        paymentMethodName ??
         prettifyFiatProvider(tx.metamaskPay?.fiat?.provider) ??
         sourceTokenSymbol
       );
@@ -162,6 +165,7 @@ export function useMoneyTransactionDisplayInfo(
   _moneyAddress: string | undefined,
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
+  const paymentMethodName = useFiatPaymentMethodName(tx);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
   const tokenMarketData = useSelector(selectTokenMarketData);
@@ -242,7 +246,13 @@ export function useMoneyTransactionDisplayInfo(
 
     return {
       label: moneyActivityLabel(kind, status),
-      description: deriveSubtitle(kind, tx, sourceTokenSymbol, subtitle),
+      description: deriveSubtitle(
+        kind,
+        tx,
+        sourceTokenSymbol,
+        subtitle,
+        paymentMethodName,
+      ),
       primaryAmount,
       fiatAmount,
       isIncoming,
@@ -252,6 +262,7 @@ export function useMoneyTransactionDisplayInfo(
   }, [
     tx,
     subtitle,
+    paymentMethodName,
     currentCurrency,
     currencyRates,
     tokenMarketData,

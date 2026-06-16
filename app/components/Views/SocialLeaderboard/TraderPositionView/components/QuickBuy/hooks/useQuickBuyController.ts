@@ -16,7 +16,6 @@ import {
   playErrorNotification,
   playImpact,
 } from '../../../../../../../util/haptics';
-import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 import {
   dotAndCommaDecimalFormatter,
   isNumberValue,
@@ -41,6 +40,7 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
 import { usePayWithTokens } from './usePayWithTokens';
@@ -61,6 +61,7 @@ import {
   selectDestAddress,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSlippage,
@@ -283,6 +284,7 @@ export function useQuickBuyController(
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isNonEvmSourced = useSelector(selectIsNonEvmSourced);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedAddress = useSelector(
@@ -702,12 +704,13 @@ export function useQuickBuyController(
     if (!sourceAmt || !destAmt || isNaN(sourceAmt) || isNaN(destAmt))
       return undefined;
     const rate = destAmt / sourceAmt;
-    const formatter = getIntlNumberFormatter(I18n.locale, {
-      ...(rate > 1
+    const formattedRateValue = formatQuickBuyRateValue(
+      rate,
+      rate > 1
         ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
-        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
-    });
-    return `1 ${sourceToken.symbol} = ${formatter.format(rate)} ${destToken.symbol}`;
+        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 },
+    );
+    return `1 ${sourceToken.symbol} = ${formattedRateValue} ${destToken.symbol}`;
   }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
@@ -1137,13 +1140,13 @@ export function useQuickBuyController(
     }
     markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
-    // Same-chain Solana swaps never reach a terminal `BridgeStatusController`
-    // status, so the terminal toast must resolve from
+    // Same-chain non-EVM swaps (Solana, Tron, Bitcoin) never reach a terminal
+    // `BridgeStatusController` status, so the terminal toast must resolve from
     // `MultichainTransactionsController` instead. Cross-chain bridges (incl.
-    // Solana → EVM) still settle via the bridge status path, so they are
+    // non-EVM → EVM) still settle via the bridge status path, so they are
     // excluded here.
     const isNonEvmSwap =
-      Boolean(isSolanaSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
+      Boolean(isNonEvmSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
     // Captures the copy data for every swap-lifecycle toast so the pending,
     // complete and failed states read consistently — and so the app-root
     // watcher can render the terminal toast after the sheet has unmounted.
@@ -1263,7 +1266,7 @@ export function useQuickBuyController(
     onClose,
     toastRef,
     theme,
-    isSolanaSourced,
+    isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
     sourceToken?.chainId,
