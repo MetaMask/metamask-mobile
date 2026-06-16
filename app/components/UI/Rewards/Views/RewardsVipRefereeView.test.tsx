@@ -7,6 +7,8 @@ import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
 import type { VipRefereeMeState } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -18,6 +20,8 @@ const mockNavDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({ build: jest.fn(() => ({})) }));
 // Obviously-synthetic fixtures — never real VIP codes/figures.
 const mockSubscriptionId = 'test-subscription-id';
 const mockAccountAddress = '0xAbC0000000000000000000000000000000000123';
@@ -68,14 +72,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     children,
     onPress,
     testID,
+    disabled,
   }: {
     children?: React.ReactNode;
     onPress?: () => void;
     testID?: string;
+    disabled?: boolean;
   }) =>
     ReactActual.createElement(
       Pressable,
-      { onPress, testID },
+      { onPress: disabled ? undefined : onPress, testID, disabled },
       ReactActual.createElement(Text, null, children),
     );
 
@@ -116,7 +122,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   };
 });
 
-jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
+jest.mock('../../../../images/rewards/vip.svg', () => 'VipIcon');
 
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -134,9 +140,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.referee_perps_volume_label': 'Perps volume',
       'rewards.vip.referee_error_title': 'Error title',
       'rewards.vip.referee_error_description': 'Error description',
-      'rewards.vip.referee_contact_support': 'Contact priority support',
-      'rewards.vip.referee_priority_support_disclaimer':
-        'By contacting priority support you will connect your wallet.',
+      'rewards.vip.referee_contact_support': 'Contact support',
+      'app_settings.contact_support': 'Contact support',
       'rewards.vip.retry_button': 'Retry',
     };
     return translations[key] ?? key;
@@ -176,6 +181,10 @@ jest.mock('../components/RewardsErrorBanner', () => {
 
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
 jest.mock('../hooks/useVipRefereeDashboard', () => ({
   useVipRefereeDashboard: jest.fn(),
 }));
@@ -187,6 +196,9 @@ const mockUseTrack = useTrackRewardsPageView as jest.MockedFunction<
 >;
 const mockUseVipRefereeDashboard =
   useVipRefereeDashboard as jest.MockedFunction<typeof useVipRefereeDashboard>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 const mockFetch = jest.fn();
 
 const defaultDashboard: VipRefereeMeState = {
@@ -215,6 +227,10 @@ describe('RewardsVipRefereeView', () => {
     mockIsVipProgramEnabled = true;
     mockVipRefereeSplashAccepted = {};
     mockUseDispatch.mockReturnValue(mockReduxDispatch);
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as ReturnType<typeof useAnalytics>);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
       if (selector === selectSelectedInternalAccountFormattedAddress)
@@ -300,19 +316,13 @@ describe('RewardsVipRefereeView', () => {
     ).toBeNull();
   });
 
-  it('renders the contact priority support button and disclaimer', () => {
+  it('renders the contact support button', () => {
     const { getByTestId, getByText } = render(<RewardsVipRefereeView />);
 
     expect(
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SUPPORT_DISCLAIMER),
-    ).toBeOnTheScreen();
-    expect(getByText('Contact priority support')).toBeOnTheScreen();
-    expect(
-      getByText('By contacting priority support you will connect your wallet.'),
-    ).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
   });
 
   it('opens the priority support webview tagged as VIP with the account address on press', () => {
@@ -328,9 +338,36 @@ describe('RewardsVipRefereeView', () => {
         url: expect.stringContaining(
           `priority=vip&account=${mockAccountAddress}`,
         ),
-        title: 'Contact priority support',
+        title: 'Contact support',
       },
     });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('does not open support when the selected account address is missing', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return undefined;
+      if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      return (
+        selector as (
+          state: ReturnType<typeof getRewardsSelectorState>,
+        ) => unknown
+      )(getRewardsSelectorState());
+    });
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('renders the error banner when the fetch errors with no data', () => {

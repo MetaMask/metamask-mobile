@@ -64,8 +64,13 @@ export const REWARDS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto
 // the account address and returns tier/subscription status).
 // NOTE: `priority=vip` is a placeholder value pending support/Intercom confirmation;
 // `account` matches the support endpoint's query-param name.
-export const buildVipPrioritySupportUrl = (account: string) =>
-  `${METAMASK_SUPPORT_URL}&priority=vip&account=${encodeURIComponent(account)}`;
+export const buildVipPrioritySupportUrl = (
+  account: string,
+  baseUrl: string = METAMASK_SUPPORT_URL,
+) => {
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}priority=vip&account=${encodeURIComponent(account)}`;
+};
 
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;

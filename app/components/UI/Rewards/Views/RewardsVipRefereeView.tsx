@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -9,7 +9,6 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  IconName,
   Skeleton,
   Text,
   TextColor,
@@ -20,8 +19,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { buildVipPrioritySupportUrl } from '../../../../constants/urls';
-import VipSplashFox from '../../../../images/rewards/vip_splash.png';
+import {
+  buildVipPrioritySupportUrl,
+  METAMASK_SUPPORT_URL,
+} from '../../../../constants/urls';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import VipIcon from '../../../../images/rewards/vip.svg';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
 import {
   selectHasAcceptedVipRefereeInvite,
@@ -31,6 +34,7 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -57,7 +61,6 @@ export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   PERPS_VOLUME: 'rewards-vip-referee-view-perps-volume',
   LAST_UPDATED: 'rewards-vip-referee-view-last-updated',
   CONTACT_SUPPORT_BUTTON: 'rewards-vip-referee-view-contact-support-button',
-  SUPPORT_DISCLAIMER: 'rewards-vip-referee-view-support-disclaimer',
 } as const;
 
 const referredByCardStyle = {
@@ -70,6 +73,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const accountAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -120,14 +124,25 @@ const RewardsVipRefereeViewContent: React.FC = () => {
       return;
     }
 
+    let supportBaseUrl;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportBaseUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
+    supportBaseUrl = supportBaseUrl || METAMASK_SUPPORT_URL;
+
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
-        url: buildVipPrioritySupportUrl(accountAddress),
-        title: strings('rewards.vip.referee_contact_support'),
+        url: buildVipPrioritySupportUrl(accountAddress, supportBaseUrl),
+        title: strings('app_settings.contact_support'),
       },
     });
-  }, [navigation, accountAddress]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+    );
+  }, [accountAddress, createEventBuilder, navigation, trackEvent]);
 
   if (!canViewReferee) {
     return null;
@@ -151,168 +166,199 @@ const RewardsVipRefereeViewContent: React.FC = () => {
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
         />
+        <Box twClassName="flex-1">
+          <ScrollView
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('py-4 gap-4')}
+            testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SCROLL}
+          >
+            {showSkeleton ? (
+              <Box
+                twClassName="gap-4 px-4"
+                testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SKELETON}
+              >
+                <Skeleton style={tw.style('h-10 w-36 rounded-lg')} />
 
-        <ScrollView
-          contentContainerStyle={tw.style('py-4 pb-8 gap-6 px-4')}
-          testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SCROLL}
-        >
-          <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
-            {strings('rewards.vip.referee_page_title')}
-          </Text>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="items-center justify-between rounded-2xl border px-4 py-3"
+                  style={referredByCardStyle}
+                >
+                  <Skeleton style={tw.style('h-9 w-9 rounded-lg')} />
+                  <Skeleton style={tw.style('h-5 w-40 rounded-lg')} />
+                </Box>
+
+                <Box twClassName="mt-4 -mx-4 border-b border-border-muted" />
+
+                <Box twClassName="gap-1">
+                  <Skeleton style={tw.style('h-8 w-32 rounded-lg')} />
+                  <Skeleton style={tw.style('h-4 w-44 rounded-lg')} />
+                </Box>
+
+                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
+                  <Box twClassName="flex-1 gap-1">
+                    <Skeleton style={tw.style('h-4 w-20 rounded-lg')} />
+                    <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
+                  </Box>
+                  <Box twClassName="flex-1 gap-1">
+                    <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
+                    <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
+                  </Box>
+                </Box>
+
+                <Box twClassName="gap-1">
+                  <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
+                  <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
+                </Box>
+
+                <Skeleton style={tw.style('h-4 w-36 rounded-lg')} />
+              </Box>
+            ) : showError ? (
+              <Box twClassName="px-4">
+                <RewardsErrorBanner
+                  title={strings('rewards.vip.referee_error_title')}
+                  description={strings('rewards.vip.referee_error_description')}
+                  onConfirm={fetchVipRefereeDashboard}
+                  confirmButtonLabel={strings('rewards.vip.retry_button')}
+                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.ERROR}
+                />
+              </Box>
+            ) : dashboard ? (
+              <Box twClassName="px-4 gap-4">
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('rewards.vip.referee_page_title')}
+                </Text>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="items-center justify-between rounded-2xl border px-4 py-3"
+                  style={referredByCardStyle}
+                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.REFERRED_BY_CARD}
+                >
+                  <VipIcon width={36} height={36} name="VipIcon" />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    style={referredByTextStyle}
+                  >
+                    {strings('rewards.vip.referee_referred_by', {
+                      code: dashboard.referredByCode ?? '',
+                    })}
+                  </Text>
+                </Box>
+                {/* Divider */}
+                <Box twClassName="mt-4 -mx-4 border-b border-border-muted" />
+
+                <Box twClassName="gap-1">
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('rewards.vip.referee_stats_title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('rewards.vip.referee_period_last_30d')}
+                  </Text>
+                </Box>
+
+                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
+                  <Box
+                    twClassName="flex-1"
+                    testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('rewards.vip.referee_points_label')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.HeadingSm}
+                      fontWeight={FontWeight.Bold}
+                    >
+                      {formatNumber(dashboard.points)}
+                    </Text>
+                  </Box>
+                  <Box
+                    twClassName="flex-1"
+                    testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('rewards.vip.referee_swaps_volume_label')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.HeadingSm}
+                      fontWeight={FontWeight.Bold}
+                    >
+                      {formatUsd(dashboard.swapsVolume)}
+                    </Text>
+                  </Box>
+                </Box>
+
+                <Box
+                  twClassName="flex-1"
+                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('rewards.vip.referee_perps_volume_label')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.HeadingSm}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {formatUsd(dashboard.perpsVolume)}
+                  </Text>
+                </Box>
+
+                {dashboard.computedAt ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.LAST_UPDATED}
+                  >
+                    {strings('rewards.vip.last_updated', {
+                      time: formatRewardsTimeOnly(
+                        new Date(dashboard.computedAt),
+                      ),
+                    })}
+                  </Text>
+                ) : null}
+              </Box>
+            ) : null}
+          </ScrollView>
 
           {showSkeleton ? (
-            <Box
-              twClassName="gap-6"
-              testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SKELETON}
-            >
-              <Skeleton style={tw.style('h-16 rounded-2xl')} />
-              <Skeleton style={tw.style('h-8 w-44 rounded-lg')} />
-              <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
-                <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
-                <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
-              </Box>
+            <Box twClassName="px-4 pb-4">
+              <Skeleton style={tw.style('h-12 w-full rounded-lg')} />
             </Box>
-          ) : showError ? (
-            <RewardsErrorBanner
-              title={strings('rewards.vip.referee_error_title')}
-              description={strings('rewards.vip.referee_error_description')}
-              onConfirm={fetchVipRefereeDashboard}
-              confirmButtonLabel={strings('rewards.vip.retry_button')}
-              testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.ERROR}
-            />
           ) : dashboard ? (
-            <>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="items-center justify-between rounded-2xl border px-4 py-3"
-                style={referredByCardStyle}
-                testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.REFERRED_BY_CARD}
+            <Box twClassName="px-4 pb-4">
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                disabled={!accountAddress}
+                onPress={handleContactPrioritySupport}
+                twClassName="w-full"
+                testID={
+                  REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON
+                }
               >
-                <Image
-                  source={VipSplashFox}
-                  style={tw.style('h-9 w-9')}
-                  width={36}
-                  height={36}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  style={referredByTextStyle}
-                >
-                  {strings('rewards.vip.referee_referred_by', {
-                    code: dashboard.referredByCode ?? '',
-                  })}
-                </Text>
-              </Box>
-
-              <Box twClassName="gap-1">
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('rewards.vip.referee_stats_title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('rewards.vip.referee_period_last_30d')}
-                </Text>
-              </Box>
-
-              <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
-                <Box
-                  twClassName="flex-1"
-                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('rewards.vip.referee_points_label')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.HeadingSm}
-                    fontWeight={FontWeight.Bold}
-                  >
-                    {formatNumber(dashboard.points)}
-                  </Text>
-                </Box>
-                <Box
-                  twClassName="flex-1"
-                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('rewards.vip.referee_swaps_volume_label')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.HeadingSm}
-                    fontWeight={FontWeight.Bold}
-                  >
-                    {formatUsd(dashboard.swapsVolume)}
-                  </Text>
-                </Box>
-              </Box>
-
-              <Box
-                twClassName="flex-1"
-                testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('rewards.vip.referee_perps_volume_label')}
-                </Text>
-                <Text
-                  variant={TextVariant.HeadingSm}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {formatUsd(dashboard.perpsVolume)}
-                </Text>
-              </Box>
-
-              {dashboard.computedAt ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  twClassName="text-right"
-                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.LAST_UPDATED}
-                >
-                  {strings('rewards.vip.last_updated', {
-                    time: formatRewardsTimeOnly(new Date(dashboard.computedAt)),
-                  })}
-                </Text>
-              ) : null}
-
-              <Box twClassName="gap-2 mt-2">
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContactPrioritySupport}
-                  startIconName={IconName.MessageQuestion}
-                  endIconName={IconName.Export}
-                  twClassName="w-full"
-                  testID={
-                    REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON
-                  }
-                >
-                  {strings('rewards.vip.referee_contact_support')}
-                </Button>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SUPPORT_DISCLAIMER}
-                >
-                  {strings('rewards.vip.referee_priority_support_disclaimer')}
-                </Text>
-              </Box>
-            </>
+                {strings('rewards.vip.referee_contact_support')}
+              </Button>
+            </Box>
           ) : null}
-        </ScrollView>
+        </Box>
       </SafeAreaView>
     </ErrorBoundary>
   );
