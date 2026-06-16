@@ -275,6 +275,25 @@ describe('PerpsToggleBlock', () => {
       // commodity pill is active (stock was empty and hidden)
       expect(getByTestId('perps-row-GOLD')).toBeTruthy();
     });
+
+    it('calls onViewAll with the first visible category when the default pill is empty', () => {
+      const onViewAll = jest.fn();
+      const tabs: PerpsToggleBlockProps['tabs'] = [
+        { key: 'stock', name: 'Stocks', items: [] },
+        { key: 'commodity', name: 'Commodities', items: COMMODITY_MARKETS },
+      ];
+      const { getByTestId } = renderBlock({
+        ...DEFAULT_PROPS,
+        tabs,
+        defaultPillKey: 'stock',
+        isLoading: false,
+        onViewAll,
+      });
+
+      fireEvent.press(getByTestId('section-header-view-all-test'));
+
+      expect(onViewAll).toHaveBeenCalledWith('commodity', 'volume');
+    });
   });
 
   describe('analytics', () => {

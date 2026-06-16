@@ -10,10 +10,7 @@ import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigatio
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
-import {
-  CATEGORY_DISPLAY_ORDER,
-  normalizeFilterKey,
-} from '../../../UI/Perps/utils/marketCategoryMapping';
+import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
@@ -28,12 +25,14 @@ import ExploreScroll from '../components/ExploreScroll';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 
-/** Categories shown as pills in the Macro tab, in controller display order. */
-const MACRO_CATEGORIES = CATEGORY_DISPLAY_ORDER.filter((c) =>
-  (
-    ['stock', 'pre-ipo', 'index', 'etf', 'commodity'] as PerpsFilterKey[]
-  ).includes(c as PerpsFilterKey),
-) as PerpsFilterKey[];
+/** Perps category pills for the Macro tab, in perps display order. */
+const MACRO_PERPS_CATEGORIES: PerpsFilterKey[] = [
+  'stock',
+  'pre-ipo',
+  'commodity',
+  'index',
+  'etf',
+];
 
 interface MacroPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -47,11 +46,9 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   const perps = usePerpsFeed({ variant: 'macro', refresh });
   const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
 
-  const tabs = useMemo<
-    PillToggleCardListTab<PerpsMarketData, PerpsFilterKey>[]
-  >(
+  const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(
     () =>
-      MACRO_CATEGORIES.map((category) => ({
+      MACRO_PERPS_CATEGORIES.map((category) => ({
         key: category,
         name: strings(`perps.home.tabs.${normalizeFilterKey(category)}`),
         items: applyMarketFilters(markets, {
@@ -69,7 +66,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
       title={strings('trending.macro_stocks_commodity_perps')}
       tabs={tabs}
       isLoading={perps.isLoading}
-      defaultPillKey={MACRO_CATEGORIES[0]}
+      defaultPillKey={MACRO_PERPS_CATEGORIES[0]}
       onViewAll={onViewAll}
       sortOptionId={perps.defaultSortOptionId}
       tabName="Macro"

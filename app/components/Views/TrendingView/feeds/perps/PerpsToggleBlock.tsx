@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import {
@@ -25,7 +25,7 @@ const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
 
 export interface PerpsToggleBlockProps {
   title: string;
-  tabs: PillToggleCardListTab<PerpsMarketData, PerpsFilterKey>[];
+  tabs: PillToggleCardListTab<PerpsMarketData>[];
   isLoading: boolean;
   defaultPillKey: PerpsFilterKey;
   onViewAll: (filter: PerpsFilterKey, sortOptionId: SortOptionId) => void;
@@ -58,15 +58,27 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   testIdPrefix,
   listTestId,
 }) => {
-  // While loading all pills are shown (items will fill in). Once loaded, hide
-  // pills whose category returned no data so the user never sees an empty list.
   const visibleTabs = useMemo(
     () => (isLoading ? tabs : tabs.filter((t) => t.items.length > 0)),
     [isLoading, tabs],
   );
 
-  const firstVisibleKey = visibleTabs[0]?.key ?? defaultPillKey;
-  const activePillKey = useRef<PerpsFilterKey>(firstVisibleKey);
+  const firstVisibleKey = (visibleTabs[0]?.key ??
+    defaultPillKey) as PerpsFilterKey;
+  const [activePillKey, setActivePillKey] =
+    useState<PerpsFilterKey>(firstVisibleKey);
+
+  useEffect(() => {
+    setActivePillKey((current) =>
+      visibleTabs.some((tab) => tab.key === current)
+        ? current
+        : firstVisibleKey,
+    );
+  }, [firstVisibleKey, visibleTabs]);
+
+  const handlePillChange = useCallback((key: string) => {
+    setActivePillKey(key as PerpsFilterKey);
+  }, []);
 
   const renderItem: ListRenderItem<PerpsMarketData> = useCallback(
     ({ item, index }) => (
@@ -91,21 +103,20 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
     <Box>
       <SectionHeader
         title={title}
-        onViewAll={() => onViewAll(activePillKey.current, sortOptionId)}
+        onViewAll={() => onViewAll(activePillKey, sortOptionId)}
         testID={headerTestID}
         tabName={tabName}
         sectionName={sectionName}
       />
-      <PillToggleCardList<PerpsMarketData, PerpsFilterKey>
+      <PillToggleCardList<PerpsMarketData>
+        key={visibleTabs.map((tab) => tab.key).join(',')}
         tabs={visibleTabs}
         isLoading={isLoading}
         renderItem={renderItem}
         Skeleton={PerpsRowSingleSkeleton}
         idPrefix={idPrefix}
         defaultPillKey={firstVisibleKey}
-        onPillChange={(key) => {
-          activePillKey.current = key;
-        }}
+        onPillChange={handlePillChange}
         testIdPrefix={testIdPrefix}
         listTestId={listTestId}
       />

@@ -28,10 +28,7 @@ import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsToggleBlock, {
   type PerpsFilterKey,
 } from '../feeds/perps/PerpsToggleBlock';
-import {
-  CATEGORY_DISPLAY_ORDER,
-  normalizeFilterKey,
-} from '../../../UI/Perps/utils/marketCategoryMapping';
+import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
@@ -44,12 +41,14 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
-/** Categories shown as pills in the RWAs tab, in controller display order. */
-const RWA_CATEGORIES = CATEGORY_DISPLAY_ORDER.filter((c) =>
-  (['stock', 'pre-ipo', 'index', 'etf', 'forex'] as PerpsFilterKey[]).includes(
-    c as PerpsFilterKey,
-  ),
-) as PerpsFilterKey[];
+/** Perps category pills for the RWAs tab, in perps display order. */
+const RWA_PERPS_CATEGORIES: PerpsFilterKey[] = [
+  'stock',
+  'pre-ipo',
+  'forex',
+  'index',
+  'etf',
+];
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -63,11 +62,9 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
   const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
 
-  const tabs = useMemo<
-    PillToggleCardListTab<PerpsMarketData, PerpsFilterKey>[]
-  >(
+  const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(
     () =>
-      RWA_CATEGORIES.map((category) => ({
+      RWA_PERPS_CATEGORIES.map((category) => ({
         key: category,
         name: strings(`perps.home.tabs.${normalizeFilterKey(category)}`),
         items: applyMarketFilters(markets, {
@@ -85,7 +82,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       title={strings('trending.rwa_perps_section')}
       tabs={tabs}
       isLoading={perps.isLoading}
-      defaultPillKey={RWA_CATEGORIES[0]}
+      defaultPillKey={RWA_PERPS_CATEGORIES[0]}
       onViewAll={onViewAll}
       sortOptionId={perps.defaultSortOptionId}
       tabName="RWAs"

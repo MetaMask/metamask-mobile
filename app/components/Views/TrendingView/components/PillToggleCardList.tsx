@@ -4,22 +4,22 @@ import type { ListRenderItem } from '@shopify/flash-list';
 import PillRow, { type PillOption } from './PillRow';
 import CardList from './CardList';
 
-export interface PillToggleCardListTab<T, K extends string = string> {
-  key: K;
+export interface PillToggleCardListTab<T> {
+  key: string;
   name: string;
   items: T[];
 }
 
-export interface PillToggleCardListProps<T, K extends string = string> {
-  tabs: PillToggleCardListTab<T, K>[];
+export interface PillToggleCardListProps<T> {
+  tabs: PillToggleCardListTab<T>[];
   isLoading: boolean;
   renderItem: ListRenderItem<T>;
   Skeleton: React.ComponentType;
   idPrefix: string;
   /** Defaults to first tab. */
-  defaultPillKey?: K;
+  defaultPillKey?: string;
   /** Called whenever the active pill changes. */
-  onPillChange?: (key: K) => void;
+  onPillChange?: (key: string) => void;
   testIdPrefix?: string;
   listTestId?: string;
 }
@@ -30,7 +30,7 @@ const DEFAULT_TEST_ID_PREFIX = 'pill-toggle-card-list';
  * Pill selector + card list composition. The active pill's `items` are passed
  * to {@link CardList}. Used for perps "stocks vs commodities vs forex" toggles.
  */
-function PillToggleCardList<T, K extends string = string>({
+function PillToggleCardList<T>({
   tabs,
   isLoading,
   renderItem,
@@ -40,15 +40,15 @@ function PillToggleCardList<T, K extends string = string>({
   onPillChange,
   testIdPrefix = DEFAULT_TEST_ID_PREFIX,
   listTestId,
-}: PillToggleCardListProps<T, K>) {
-  const firstKey = tabs[0]?.key ?? ('' as K);
-  const [activeKey, setActiveKey] = useState<K>(defaultPillKey ?? firstKey);
+}: PillToggleCardListProps<T>) {
+  const firstKey = tabs[0]?.key ?? '';
+  const [activeKey, setActiveKey] = useState(defaultPillKey ?? firstKey);
   const active = tabs.find((p) => p.key === activeKey) ?? tabs[0];
   const pills: PillOption[] = tabs.map(({ key, name }) => ({ key, name }));
 
   const handleSelect = (key: string) => {
-    setActiveKey(key as K);
-    onPillChange?.(key as K);
+    setActiveKey(key);
+    onPillChange?.(key);
   };
 
   return (
