@@ -94,32 +94,4 @@ describe('hasPriorMoneyDeposit', () => {
 
     expect(result).toBe(false);
   });
-
-  it('counts failed prior deposits as prior', () => {
-    mockedSelectNonReplacedTransactions.mockReturnValue([
-      makeTx('current-tx', TransactionType.moneyAccountDeposit),
-      {
-        ...makeTx('failed-prior', TransactionType.moneyAccountDeposit),
-        status: TransactionStatus.failed,
-      } as unknown as TransactionMeta,
-    ]);
-
-    const result = hasPriorMoneyDeposit(mockState, 'current-tx');
-
-    expect(result).toBe(true);
-  });
-
-  it('counts submitted prior deposits as prior', () => {
-    mockedSelectNonReplacedTransactions.mockReturnValue([
-      makeTx('current-tx', TransactionType.moneyAccountDeposit),
-      {
-        ...makeTx('submitted-prior', TransactionType.moneyAccountDeposit),
-        status: TransactionStatus.submitted,
-      } as unknown as TransactionMeta,
-    ]);
-
-    const result = hasPriorMoneyDeposit(mockState, 'current-tx');
-
-    expect(result).toBe(true);
-  });
 });

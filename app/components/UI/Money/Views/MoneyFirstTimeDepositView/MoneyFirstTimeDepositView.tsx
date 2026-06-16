@@ -279,6 +279,14 @@ const MoneyFirstTimeDepositView = () => {
     };
   }, [riveRef]);
 
+  const handleError = useCallback(
+    (riveError: RNRiveError) => {
+      log(`Rive error: ${riveError.message}`);
+      goHome();
+    },
+    [goHome],
+  );
+
   return (
     <Rive
       ref={ref}
@@ -286,10 +294,7 @@ const MoneyFirstTimeDepositView = () => {
       artboardName={RIVE_ARTBOARD_NAME}
       dataBinding={AutoBind(true)}
       fit={Fit.FitWidth}
-      onError={(riveError: RNRiveError) => {
-        log(`Rive error: ${riveError.message}`);
-        goHome();
-      }}
+      onError={handleError}
       testID={MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION}
     />
   );

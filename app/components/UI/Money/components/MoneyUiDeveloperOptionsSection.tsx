@@ -29,8 +29,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation();
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
