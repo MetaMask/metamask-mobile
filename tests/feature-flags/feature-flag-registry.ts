@@ -4452,14 +4452,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tmcuActivityRedesignEnabled: {
-    name: 'tmcuActivityRedesignEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   trendingTokens: {
     name: 'trendingTokens',
     type: FeatureFlagType.Remote,
