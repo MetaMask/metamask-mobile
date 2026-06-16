@@ -228,69 +228,87 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     timeframes,
   } = useChartData({ market, hasAnyOutcomeToken });
 
+  // The game branch (PredictGameDetailsContent) does not consume openOutcomes /
+  // yesPercentage and runs its own live price subscriptions internally. Keeping
+  // this hook live for game markets only adds a redundant high-frequency price
+  // subscription that re-renders this whole screen on every tick.
   const shouldRefreshOpenOutcomePrices =
-    market?.status === PredictMarketStatus.OPEN && !isBuySheetOpen;
+    market?.status === PredictMarketStatus.OPEN &&
+    !isBuySheetOpen &&
+    !market?.game;
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
     enabled: shouldRefreshOpenOutcomePrices,
   });
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       // If we can't go back, navigate to the main predict screen
       navigation.navigate(Routes.PREDICT.ROOT);
     }
-  };
+  }, [navigation]);
 
-  const handleBuyPress = (
-    token: PredictOutcomeToken,
-    selectedMarket: typeof market = market,
-  ) => {
-    if (!selectedMarket) {
-      return;
-    }
-    executeGuardedAction(
-      () => {
-        const selectedOpenOutcomes =
-          selectedMarket.id === market?.id
-            ? openOutcomes
-            : selectedMarket.outcomes.filter(
-                (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
-              );
-        const matchingOutcome =
-          selectedMarket.outcomes.find((o) =>
-            o.tokens.some((marketToken) => marketToken.id === token.id),
-          ) ??
-          selectedOpenOutcomes[0] ??
-          selectedMarket.outcomes?.[0];
-        openBuySheet({
-          market: selectedMarket,
-          outcome: matchingOutcome,
-          outcomeToken: token,
-          entryPoint:
-            entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          ...(predictFeedTab && { predictFeedTab }),
-          ...(predictScreen && { predictScreen }),
-          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-        });
-      },
-      {
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-      },
-    );
-  };
+  const handleBuyPress = useCallback(
+    (token: PredictOutcomeToken, selectedMarket: typeof market = market) => {
+      if (!selectedMarket) {
+        return;
+      }
+      executeGuardedAction(
+        () => {
+          const selectedOpenOutcomes =
+            selectedMarket.id === market?.id
+              ? openOutcomes
+              : selectedMarket.outcomes.filter(
+                  (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
+                );
+          const matchingOutcome =
+            selectedMarket.outcomes.find((o) =>
+              o.tokens.some((marketToken) => marketToken.id === token.id),
+            ) ??
+            selectedOpenOutcomes[0] ??
+            selectedMarket.outcomes?.[0];
+          openBuySheet({
+            market: selectedMarket,
+            outcome: matchingOutcome,
+            outcomeToken: token,
+            entryPoint:
+              entryPoint ||
+              PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
+          });
+        },
+        {
+          attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+        },
+      );
+    },
+    [
+      executeGuardedAction,
+      openOutcomes,
+      market,
+      openBuySheet,
+      entryPoint,
+      predictFeedTab,
+      predictScreen,
+      transactionActiveAbTests,
+    ],
+  );
 
-  const handleClaimPress = async () => {
+  const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
         await claim();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  };
+  }, [executeGuardedAction, claim]);
 
   const handleTabPress = (tabIndex: number) => {
     if (!tabsReady) return;
