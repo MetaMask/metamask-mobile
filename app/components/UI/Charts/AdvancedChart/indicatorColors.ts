@@ -8,18 +8,18 @@ import type {
 // ── Moving Average colors ──────────────────────────────────────────────
 export const MA_INDICATOR_COLORS = {
   MA5: '#8B8BF5',
-  MA25: '#FF6B9D',
-  MA50: '#F5A623',
-  MA75: '#B8E62E',
-  MA99: '#5CC9F5',
+  MA10: '#FF6B9D',
+  MA20: '#F5A623',
+  MA50: '#B8E62E',
+  MA200: '#5CC9F5',
 } as const;
 
 export const MA_LENGTHS: Record<keyof typeof MA_INDICATOR_COLORS, number> = {
   MA5: 5,
-  MA25: 25,
+  MA10: 10,
+  MA20: 20,
   MA50: 50,
-  MA75: 75,
-  MA99: 99,
+  MA200: 200,
 };
 
 // ── MACD colors ────────────────────────────────────────────────────────

@@ -717,13 +717,13 @@ function handleRemoveIndicator(payload) {
 // ============================================
 // MA Study Visibility (built-in Moving Average studies)
 // ============================================
-var MA_LENGTHS = { MA5: 5, MA25: 25, MA50: 50, MA75: 75, MA99: 99 };
+var MA_LENGTHS = { MA5: 5, MA10: 10, MA20: 20, MA50: 50, MA200: 200 };
 var MA_COLORS = {
   MA5: getMAColor('MA5', '#8B8BF5'),
-  MA25: getMAColor('MA25', '#FF6B9D'),
-  MA50: getMAColor('MA50', '#F5A623'),
-  MA75: getMAColor('MA75', '#B8E62E'),
-  MA99: getMAColor('MA99', '#5CC9F5'),
+  MA10: getMAColor('MA10', '#FF6B9D'),
+  MA20: getMAColor('MA20', '#F5A623'),
+  MA50: getMAColor('MA50', '#B8E62E'),
+  MA200: getMAColor('MA200', '#5CC9F5'),
 };
 
 function handleSetMAVisibility(payload) {
@@ -3388,25 +3388,25 @@ var INDICATOR_LEGEND_CONFIG = {
     useIndex: true,
     plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: MA_COLORS.MA5 }],
   },
-  MA25: {
+  MA10: {
     isMA: true,
     useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: MA_COLORS.MA25 }],
+    plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: MA_COLORS.MA10 }],
+  },
+  MA20: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: MA_COLORS.MA20 }],
   },
   MA50: {
     isMA: true,
     useIndex: true,
     plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: MA_COLORS.MA50 }],
   },
-  MA75: {
+  MA200: {
     isMA: true,
     useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: MA_COLORS.MA75 }],
-  },
-  MA99: {
-    isMA: true,
-    useIndex: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: MA_COLORS.MA99 }],
+    plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: MA_COLORS.MA200 }],
   },
 };
 

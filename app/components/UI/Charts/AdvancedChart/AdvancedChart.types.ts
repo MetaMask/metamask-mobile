@@ -436,7 +436,7 @@ export interface AdvancedChartProps {
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
-  /** Selected MA names (e.g. ['MA5', 'MA25']). Sent as a single SET_MA_VISIBILITY batch message. */
+  /** Selected MA names (e.g. ['MA5', 'MA10']). Sent as a single SET_MA_VISIBILITY batch message. */
   selectedMAs?: string[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
