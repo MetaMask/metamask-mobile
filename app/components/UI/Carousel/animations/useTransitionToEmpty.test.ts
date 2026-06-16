@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Animated } from 'react-native';
-import { useTransitionToEmpty } from './useTransitionToEmpty';
+import type { SharedValue } from 'react-native-reanimated';
+import {
+  useTransitionToEmpty,
+  type TransitionToEmptyAnimations,
+} from './useTransitionToEmpty';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -88,10 +92,14 @@ describe('useTransitionToEmpty', () => {
     jest.useRealTimers();
   });
 
-  const mockAnimations = {
+  const createSharedValue = (initial: number) =>
+    ({ value: initial }) as unknown as SharedValue<number>;
+
+  const carouselHeight = createSharedValue(106);
+  const mockAnimations: TransitionToEmptyAnimations = {
     carouselOpacity: new Animated.Value(1),
     emptyCardOpacity: new Animated.Value(1),
-    carouselHeight: { value: 106 },
+    carouselHeight,
     carouselScaleY: new Animated.Value(1),
   };
 
@@ -123,7 +131,7 @@ describe('useTransitionToEmpty', () => {
     jest.runAllTimers();
     await transitionPromise;
 
-    expect(mockAnimations.carouselHeight.value).toBe(0);
+    expect(carouselHeight.value).toBe(0);
     expect(mockCallback).toHaveBeenCalled();
   });
 
@@ -131,16 +139,14 @@ describe('useTransitionToEmpty', () => {
     const reanimated = jest.requireMock('react-native-reanimated');
     const withTimingSpy = jest
       .spyOn(reanimated, 'withTiming')
-      .mockImplementation(
-        (
-          toValue: unknown,
-          _config: unknown,
-          callback?: (finished: boolean) => void,
-        ) => {
-          callback?.(false);
-          return toValue;
-        },
-      );
+      .mockImplementation(((
+        toValue: unknown,
+        _config: unknown,
+        callback?: (finished: boolean) => void,
+      ) => {
+        callback?.(false);
+        return toValue;
+      }) as typeof reanimated.withTiming);
 
     const { result } = renderHook(() => useTransitionToEmpty(mockAnimations));
     const mockCallback = jest.fn();
