@@ -215,7 +215,8 @@
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
     "@metamask/transaction-controller": "68.0.0",
     "@metamask/keyring-controller": "^26.0.0",
-    "@metamask/accounts-controller": "^39.0.0"
+    "@metamask/accounts-controller": "^39.0.0",
+    "@metamask/smart-transactions-controller": "npm:@metamask-previews/smart-transactions-controller@24.2.1-preview-742bf0b2a"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
