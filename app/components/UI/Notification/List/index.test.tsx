@@ -31,10 +31,6 @@ const mockTrackEvent = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
-  useSessionProfileId: () => ({ profileId: undefined, isLoading: false }),
-}));
-
 beforeEach(() => {
   jest.clearAllMocks();
   jest

@@ -18,7 +18,6 @@ import {
   useMarkNotificationAsRead,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { notificationAnalyticsProperties } from '../../../../util/notifications/methods/notification-analytics';
-import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -62,7 +61,6 @@ export function useNotificationOnClick(
 ) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { profileId } = useSessionProfileId();
 
   const handleNotificationClickMetricsAndUpdates = useCallback(
     (item: INotification) => {
@@ -77,12 +75,12 @@ export function useNotificationOnClick(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
           .addProperties({
-            ...notificationAnalyticsProperties(item, profileId),
+            ...notificationAnalyticsProperties(item),
           })
           .build(),
       );
     },
-    [createEventBuilder, markNotificationAsRead, trackEvent, profileId],
+    [createEventBuilder, markNotificationAsRead, trackEvent],
   );
 
   const onNavigation = useCallback(

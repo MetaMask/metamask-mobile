@@ -20,13 +20,6 @@ const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
-jest.mock(
-  '../../../../../util/notifications/hooks/useSessionProfileId',
-  () => ({
-    useSessionProfileId: () => ({ profileId: undefined, isLoading: false }),
-  }),
-);
-
 jest.mock('../../../../../core/DeeplinkManager/DeeplinkManager', () => {
   const mockParse = jest.fn().mockResolvedValue(true);
   return {

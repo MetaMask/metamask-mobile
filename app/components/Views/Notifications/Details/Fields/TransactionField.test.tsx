@@ -12,12 +12,6 @@ import { getNotificationSubtype } from '@metamask/notification-services-controll
 // Mock the required modules
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../hooks/useCopyClipboard');
-jest.mock(
-  '../../../../../util/notifications/hooks/useSessionProfileId',
-  () => ({
-    useSessionProfileId: () => ({ profileId: undefined, isLoading: false }),
-  }),
-);
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));

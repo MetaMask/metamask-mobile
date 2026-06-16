@@ -9,7 +9,6 @@ import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
-import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 
@@ -18,13 +17,12 @@ export default function AnnouncementCtaFooter(
 ) {
   const { styles } = useStyles();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { profileId } = useSessionProfileId();
 
   const callEvent = (clickedItem: 'external_link' | 'internal_link') => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
         .addProperties({
-          ...notificationAnalyticsProperties(props.notification, profileId),
+          ...notificationAnalyticsProperties(props.notification),
           clicked_item: clickedItem,
         })
         .build(),

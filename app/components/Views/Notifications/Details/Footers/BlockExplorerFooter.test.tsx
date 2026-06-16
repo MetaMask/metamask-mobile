@@ -32,13 +32,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../../util/notifications/hooks/useSessionProfileId',
-  () => ({
-    useSessionProfileId: () => ({ profileId: undefined, isLoading: false }),
-  }),
-);
-
 const trackEventMock = jest.fn();
 
 describe('BlockExplorerFooter', () => {
