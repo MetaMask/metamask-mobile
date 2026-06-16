@@ -30,6 +30,12 @@ jest.mock('../transaction-details-date-row', () => ({
 jest.mock('../transaction-details-account-row', () => ({
   TransactionDetailsAccountRow: jest.fn(() => null),
 }));
+jest.mock('../transaction-details-to-row', () => ({
+  TransactionDetailsToRow: jest.fn(() => null),
+}));
+jest.mock('../transaction-details-fiat-order-id-row', () => ({
+  TransactionDetailsFiatOrderIdRow: jest.fn(() => null),
+}));
 jest.mock('../transaction-details-paid-with-row', () => ({
   TransactionDetailsPaidWithRow: jest.fn(() => null),
 }));

@@ -33,23 +33,7 @@ class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
 
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_CONTAINER,
-            {
-              exact: true,
-            },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.EYE_SLASH_ICON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */

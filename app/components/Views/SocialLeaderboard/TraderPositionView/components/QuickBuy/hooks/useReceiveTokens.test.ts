@@ -41,31 +41,32 @@ jest.mock('../../../../../../../selectors/multichain/multichain', () => ({
 }));
 
 jest.mock(
-  '../../../../../../UI/Bridge/constants/default-swap-dest-tokens',
+  '../../../../../../UI/Bridge/utils/getAllChainDefaultDestTokens',
   () => ({
-    DefaultSwapDestTokens: {
-      'eip155:1/erc20:musd': {
+    getAllChainDefaultDestTokens: jest.fn(() => [
+      {
         symbol: 'mUSD',
         address: '0xmusd',
         chainId: '0x1',
         decimals: 6,
         name: 'MetaMask USD',
       },
-      'eip155:137/erc20:usdc_matic': {
+      {
         symbol: 'USDC',
         address: '0xusdc_matic',
         chainId: '0x89',
         decimals: 6,
         name: 'USD Coin (Polygon)',
       },
-      'eip155:1/erc20:weth': {
+      {
+        // Intentionally non-stablecoin to verify filtering
         symbol: 'WETH',
         address: '0xweth',
         chainId: '0x1',
         decimals: 18,
         name: 'Wrapped Ether',
       },
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+      {
         symbol: 'USDC',
         address:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -73,14 +74,14 @@ jest.mock(
         decimals: 6,
         name: 'USD Coin',
       },
-      'tron:728126428': {
+      {
         symbol: 'USDT',
         address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
         chainId: 'tron:728126428',
         decimals: 6,
         name: 'Tether USD',
       },
-    },
+    ]),
   }),
 );
 
