@@ -3838,8 +3838,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsAdvancedChartEnabled: {
-    name: 'perpsAdvancedChartEnabled',
+  perpsAdvancedChartEnabledV2: {
+    name: 'perpsAdvancedChartEnabledV2',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {

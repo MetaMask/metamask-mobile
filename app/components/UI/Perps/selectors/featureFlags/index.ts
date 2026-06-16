@@ -76,10 +76,10 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 
 /**
  * Client-config / Redux key for the Perps advanced chart feature flag.
- * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled`
+ * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
  */
 export const PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY =
-  'perpsAdvancedChartEnabled' as const;
+  'perpsAdvancedChartEnabledV2' as const;
 
 /**
  * Selector for Perps advanced chart feature flag.
