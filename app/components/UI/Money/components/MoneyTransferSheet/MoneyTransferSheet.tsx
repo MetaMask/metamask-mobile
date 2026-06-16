@@ -1,6 +1,18 @@
-import React, { useCallback, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import {
+  TransactionStatus,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
+import { providerErrors } from '@metamask/rpc-errors';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -11,6 +23,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import Engine from '../../../../../core/Engine';
+import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
@@ -29,6 +43,8 @@ import {
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 
+type TransferAction = 'withdraw' | 'perps' | 'predict';
+
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
@@ -46,6 +62,71 @@ const MoneyTransferSheet = () => {
 
   useMountEffect(trackBottomSheetViewed);
 
+  const transactions = useSelector(selectTransactions);
+
+  const hasPendingTransaction = useMemo(
+    () =>
+      (transactions ?? []).some(
+        (tx) => tx.status === TransactionStatus.unapproved,
+      ),
+    [transactions],
+  );
+
+  const [deferredAction, setDeferredAction] = useState<TransferAction | null>(
+    null,
+  );
+
+  // Close the sheet (which pops the modal) and kick off the transfer in one
+  // atomic step, so the confirmation slides straight over the sheet rather than
+  // flashing back to Money home in between. We resolve the initiator here rather
+  // than capturing it earlier so a deferred run uses the up-to-date navigation
+  // closure (which no longer sees the just-rejected transaction), not a stale
+  // snapshot.
+  const closeAndStart = useCallback(
+    (action: TransferAction) => {
+      let initiate = initiateWithdrawal;
+      if (action === 'perps') {
+        initiate = initiatePerpsDeposit;
+      } else if (action === 'predict') {
+        initiate = initiatePredictDeposit;
+      }
+      sheetRef.current?.onCloseBottomSheet(() => {
+        initiate().catch((error: Error) => {
+          Logger.error(
+            error,
+            '[MoneyTransferSheet] Transfer initiation failed',
+          );
+        });
+      });
+    },
+    [initiateWithdrawal, initiatePerpsDeposit, initiatePredictDeposit],
+  );
+
+  // A leftover unapproved transaction would be picked up by the confirmation
+  // screen, so we reject it before opening a fresh one. Rejection clears from
+  // state asynchronously and closing the sheet unmounts us, so when something is
+  // pending we stay mounted and defer the close+navigate (see effect) instead of
+  // letting it race the unmount.
+  const startAction = useCallback(
+    (action: TransferAction) => {
+      if (hasPendingTransaction) {
+        rejectPendingTransactions(transactions ?? []);
+        setDeferredAction(action);
+        return;
+      }
+      closeAndStart(action);
+    },
+    [hasPendingTransaction, transactions, closeAndStart],
+  );
+
+  useEffect(() => {
+    if (!deferredAction || hasPendingTransaction) {
+      return;
+    }
+    closeAndStart(deferredAction);
+    setDeferredAction(null);
+  }, [deferredAction, hasPendingTransaction, closeAndStart]);
+
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -57,15 +138,8 @@ const MoneyTransferSheet = () => {
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
     });
 
-    sheetRef.current?.onCloseBottomSheet(() => {
-      initiateWithdrawal().catch((error: Error) => {
-        Logger.error(
-          error,
-          '[MoneyTransferSheet] Withdrawal initiation failed',
-        );
-      });
-    });
-  }, [initiateWithdrawal, trackSurfaceClicked]);
+    startAction('withdraw');
+  }, [startAction, trackSurfaceClicked]);
 
   const handlePerpsAccount = useCallback(() => {
     trackSurfaceClicked({
@@ -73,10 +147,8 @@ const MoneyTransferSheet = () => {
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
     });
 
-    sheetRef.current?.onCloseBottomSheet(() => {
-      initiatePerpsDeposit();
-    });
-  }, [initiatePerpsDeposit, trackSurfaceClicked]);
+    startAction('perps');
+  }, [startAction, trackSurfaceClicked]);
 
   const handlePredictionsAccount = useCallback(() => {
     trackSurfaceClicked({
@@ -85,10 +157,8 @@ const MoneyTransferSheet = () => {
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
     });
 
-    sheetRef.current?.onCloseBottomSheet(() => {
-      initiatePredictDeposit();
-    });
-  }, [initiatePredictDeposit, trackSurfaceClicked]);
+    startAction('predict');
+  }, [startAction, trackSurfaceClicked]);
 
   const options: MoneySheetOption[] = [
     {
@@ -146,5 +216,26 @@ const MoneyTransferSheet = () => {
     </BottomSheet>
   );
 };
+
+function rejectPendingTransactions(transactions: TransactionMeta[]) {
+  const { ApprovalController } = Engine.context;
+
+  for (const tx of transactions) {
+    if (tx.status !== TransactionStatus.unapproved) {
+      continue;
+    }
+    try {
+      ApprovalController.rejectRequest(
+        tx.id,
+        providerErrors.userRejectedRequest(),
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[MoneyTransferSheet] Failed to reject pending transaction',
+      );
+    }
+  }
+}
 
 export default MoneyTransferSheet;
