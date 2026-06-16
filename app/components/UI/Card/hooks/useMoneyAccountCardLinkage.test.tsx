@@ -914,6 +914,74 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it.each(['idle', 'loading'] as const)(
+      'keeps the pending flag while VEDA support is unresolved and card home data is still %s',
+      (cardHomeDataStatus) => {
+        applySelectorMocks(
+          buildSelectors({
+            pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            vedaConfig: undefined,
+            cardHomeDataStatus,
+          }),
+        );
+        renderLinkageHook();
+
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockShowToast).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['success', 'error'] as const)(
+      'clears the flag silently once card home data has %s but VEDA support is unresolved',
+      (cardHomeDataStatus) => {
+        applySelectorMocks(
+          buildSelectors({
+            pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            vedaConfig: undefined,
+            cardHomeDataStatus,
+          }),
+        );
+        renderLinkageHook();
+
+        expect(mockDispatch).toHaveBeenCalledWith(
+          setPendingMoneyAccountCardLink(null),
+        );
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockShowToast).not.toHaveBeenCalled();
+      },
+    );
+
+    it('opens the sheet on rerender once VEDA support resolves after card home data succeeds', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          vedaConfig: undefined,
+          cardHomeDataStatus: 'loading',
+        }),
+      );
+      const { rerender } = renderLinkageHook();
+
+      // First render: VEDA config not yet loaded, flag must stay set.
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          cardHomeDataStatus: 'success',
+        }),
+      );
+      rerender();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(null),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        ...expectedLinkCardSheetRoute(),
+      });
+    });
+
     it('keeps the flag set when the funding token is null but card home data is still loading', () => {
       mockResolveMoneyAccountCardToken.mockReturnValue(null);
       applySelectorMocks(

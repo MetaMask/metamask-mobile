@@ -387,8 +387,18 @@ export const useMoneyAccountCardLinkage =
         return;
       }
 
-      if (!hasRequirements || !primaryMoneyAccount?.address) {
+      if (!hasMoneyAccountBaseRequirements || !primaryMoneyAccount?.address) {
         dispatch(setPendingMoneyAccountCardLink(null));
+        return;
+      }
+
+      if (!isMoneyAccountCardSupported) {
+        if (
+          cardHomeDataStatus === 'success' ||
+          cardHomeDataStatus === 'error'
+        ) {
+          dispatch(setPendingMoneyAccountCardLink(null));
+        }
         return;
       }
 
@@ -414,7 +424,8 @@ export const useMoneyAccountCardLinkage =
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
       isCardVerified,
-      hasRequirements,
+      hasMoneyAccountBaseRequirements,
+      isMoneyAccountCardSupported,
       moneyAccountCardToken,
       primaryMoneyAccount?.address,
       isAlreadyDelegated,
