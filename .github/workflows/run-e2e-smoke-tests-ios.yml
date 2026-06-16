@@ -40,7 +40,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_MIXED_E2E_SIZING == 'true' && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || (inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '') }}
     secrets: inherit
 
   swap-ios-smoke:
@@ -78,7 +78,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_MIXED_E2E_SIZING == 'true' && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || (inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '') }}
     secrets: inherit
 
   perps-ios-smoke:
@@ -287,7 +287,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_MIXED_E2E_SIZING == 'true' && (matrix.split == 1 || matrix.split == 3 || matrix.split == 4) && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || (inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '') }}
+      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_MIXED_E2E_SIZING == 'true' && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || (inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '') }}
     secrets: inherit
 
   report-ios-smoke-tests:
