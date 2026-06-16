@@ -8122,10 +8122,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:@metamask-previews/bitcoin-wallet-snap@1.10.1-preview-fa702f3":
-  version: 1.10.1-preview-fa702f3
-  resolution: "@metamask-previews/bitcoin-wallet-snap@npm:1.10.1-preview-fa702f3"
-  checksum: 10/99af5a8d0238922c835ad30029fb2ed154357f846844a90294ea14d2e84058e3d5ceb6822c57404bda5eb9dfbe6310f176865f7bd05b9a7b52436ca809b57304
+"@metamask/bitcoin-wallet-snap@npm:^1.13.0":
+  version: 1.14.0
+  resolution: "@metamask/bitcoin-wallet-snap@npm:1.14.0"
+  checksum: 10/2e23f10f2e9b0249110b3419da0e585df51db5e974aa7fffb75147ece92d12f9eec6916b51c273c116caa37cf9e8b948f3b988dbe2b5bdd48b406e20d6444be6
   languageName: node
   linkType: hard
 
@@ -10438,10 +10438,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:@metamask-previews/tron-wallet-snap@1.25.3-preview-779711e":
-  version: 1.25.3-preview-779711e
-  resolution: "@metamask-previews/tron-wallet-snap@npm:1.25.3-preview-779711e"
-  checksum: 10/3d426bc1d60cef9a5ee1040975a72166d623ddef0707a975af24eb0b0aac9b9b9c758cb575354b5cd09c2c29fbc662a1a2b6cc43afe5f97d17eb4166632cbf11
+"@metamask/tron-wallet-snap@npm:^1.26.0":
+  version: 1.26.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.26.0"
+  checksum: 10/ba7dc5d4bdae9f0a5c346744ea5eda311a1301a390c8ba3eedee4c99bf29d7d4937c65607198dcedda760223f07363638026e2649912123c4f89460de10906b4
   languageName: node
   linkType: hard
 
@@ -35705,7 +35705,7 @@ __metadata:
     "@metamask/authenticated-user-storage": "npm:^1.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/bitcoin-wallet-snap": "npm:^1.10.1"
+    "@metamask/bitcoin-wallet-snap": "npm:^1.13.0"
     "@metamask/bridge-controller": "npm:^71.0.0"
     "@metamask/bridge-status-controller": "npm:^71.1.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
@@ -35817,7 +35817,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^65.0.0"
     "@metamask/transaction-pay-controller": "npm:^20.0.0"
-    "@metamask/tron-wallet-snap": "npm:^1.25.3"
+    "@metamask/tron-wallet-snap": "npm:^1.26.0"
     "@metamask/utils": "npm:^11.11.0"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"

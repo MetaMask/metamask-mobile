@@ -239,7 +239,7 @@
     "@metamask/assets-controllers": "^105.0.0",
     "@metamask/authenticated-user-storage": "^1.0.0",
     "@metamask/base-controller": "^9.0.1",
-    "@metamask/bitcoin-wallet-snap": "^1.10.1",
+    "@metamask/bitcoin-wallet-snap": "^1.13.0",
     "@metamask/bridge-controller": "^71.0.0",
     "@metamask/bridge-status-controller": "^71.1.0",
     "@metamask/chain-agnostic-permission": "^1.5.0",
@@ -339,7 +339,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^65.0.0",
     "@metamask/transaction-pay-controller": "^20.0.0",
-    "@metamask/tron-wallet-snap": "^1.25.3",
+    "@metamask/tron-wallet-snap": "^1.26.0",
     "@metamask/utils": "^11.11.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -694,16 +694,6 @@
     "ws": "^8.19.0",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
-  },
-  "previewBuilds": {
-    "@metamask/tron-wallet-snap": {
-      "type": "non-breaking",
-      "previewVersion": "1.25.3-preview-779711e"
-    },
-    "@metamask/bitcoin-wallet-snap": {
-      "type": "non-breaking",
-      "previewVersion": "1.10.1-preview-fa702f3"
-    }
   },
   "config": {
     "react-native-storybook-loader": {
