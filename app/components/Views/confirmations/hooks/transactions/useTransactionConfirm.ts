@@ -150,7 +150,6 @@ export function useTransactionConfirm() {
       }
 
       console.log('[useTransactionConfirm] type: ', type);
-
       // Perps deposit-and-order: caller handles navigation (e.g. order flow)
       if (type === TransactionType.perpsDepositAndOrder) {
         return;
@@ -176,7 +175,11 @@ export function useTransactionConfirm() {
         }
       } else if (type === TransactionType.musdConversion) {
         musdConversionNavigateOnConfirm();
-      } else if (type === TransactionType.moneyAccountDeposit) {
+      } else if (
+        hasTransactionType(transactionMetadata, [
+          TransactionType.moneyAccountDeposit,
+        ])
+      ) {
         handleMoneyDepositConfirm(transactionMetadata);
       } else if (
         isFullScreenConfirmation &&
