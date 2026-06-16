@@ -40,9 +40,6 @@ function notify() {
  * `navigation.navigate(...)` or `navigation.goBack()`.
  */
 export function markNavStart(label: string): void {
-  if (!__DEV__) {
-    return;
-  }
   starts.set(label, Date.now());
 }
 
@@ -51,9 +48,6 @@ export function markNavStart(label: string): void {
  */
 export function useMarkNavEnd(label: string): void {
   const onFocus = useCallback(() => {
-    if (!__DEV__) {
-      return;
-    }
     const start = starts.get(label);
     if (start == null) {
       return;
@@ -71,9 +65,6 @@ export function useMarkNavEnd(label: string): void {
 export function useNavPerfSamples(): NavPerfSample[] {
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => {
-    if (!__DEV__) {
-      return undefined;
-    }
     listeners.add(force);
     return () => {
       listeners.delete(force);
@@ -83,9 +74,6 @@ export function useNavPerfSamples(): NavPerfSample[] {
 }
 
 export function clearNavPerfSamples(): void {
-  if (!__DEV__) {
-    return;
-  }
   starts.clear();
   samples = [];
   notify();
@@ -99,9 +87,6 @@ export function clearNavPerfSamples(): void {
 export function useJsFps(): number {
   const [fps, setFps] = useState(0);
   useEffect(() => {
-    if (!__DEV__) {
-      return undefined;
-    }
     let frames = 0;
     let last = Date.now();
     let raf: number;

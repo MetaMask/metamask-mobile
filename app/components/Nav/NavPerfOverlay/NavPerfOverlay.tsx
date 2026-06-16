@@ -82,10 +82,6 @@ export const NavPerfOverlay: React.FC = () => {
   const samples = useNavPerfSamples();
   const fps = useJsFps();
 
-  if (!__DEV__) {
-    return null;
-  }
-
   return (
     <View pointerEvents="box-none" style={styles.root}>
       <View pointerEvents="none" style={styles.panel}>
