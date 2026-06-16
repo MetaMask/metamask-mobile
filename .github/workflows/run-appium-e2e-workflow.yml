@@ -274,6 +274,7 @@ jobs:
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
           APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
@@ -297,6 +298,7 @@ jobs:
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
           APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -325,8 +327,27 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Upload Playwright JSON report (Namespace)
+        # Fixed inner filename (playwright-report.json) for github-tools playwright-test-health-report;
+        # suite/shard identity is in the artifact name prefix playwright-json-report-*.
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: playwright-json-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/playwright-json/playwright-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Playwright JSON report (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-json-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/playwright-json/playwright-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Upload failure screen recordings (Namespace)
-        if: ${{ (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
@@ -334,7 +355,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Upload failure screen recordings (current)
-        if: ${{ (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
