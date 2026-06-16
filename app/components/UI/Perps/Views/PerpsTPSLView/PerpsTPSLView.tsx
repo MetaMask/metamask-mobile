@@ -104,6 +104,7 @@ const PerpsTPSLView: React.FC = () => {
   const priceData = usePerpsLivePrices({
     symbols: asset ? [asset] : [],
     throttleMs: TP_SL_VIEW_CONFIG.PriceThrottleMs,
+    includeMarketData: true,
   });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)

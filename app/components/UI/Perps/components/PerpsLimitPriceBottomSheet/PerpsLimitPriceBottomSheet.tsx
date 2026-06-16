@@ -89,6 +89,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const priceData = usePerpsLivePrices({
     symbols: isVisible ? [asset] : [],
     throttleMs: 1000,
+    includeMarketData: true,
   });
   const currentPriceData = priceData[asset];
 

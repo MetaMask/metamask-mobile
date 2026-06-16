@@ -4140,4 +4140,229 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToOrderFills).toHaveBeenCalled();
     });
   });
+
+  describe('PriceStreamChannel fast lane (includeMarketData)', () => {
+    let allMidsUnsubscribe: jest.Mock;
+    let fastUnsubscribe: jest.Mock;
+
+    beforeEach(() => {
+      allMidsUnsubscribe = jest.fn();
+      fastUnsubscribe = jest.fn();
+      // Return different unsubscribes so allMids and fast-lane teardowns can be
+      // tracked independently — otherwise both stored refs point to the same mock.
+      mockSubscribeToPrices.mockImplementation(
+        (params: { includeMarketData?: boolean }) =>
+          params.includeMarketData ? fastUnsubscribe : allMidsUnsubscribe,
+      );
+    });
+
+    it('opens a fast sub on the 0→1 ref-count transition', async () => {
+      const unsubscribe = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+
+      // Wait for any microtasks (connect is synchronous here since isInitialized=true)
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Should have called subscribeToPrices twice: once for allMids (no flag) and
+      // once for the fast lane (includeMarketData: true, single symbol)
+      const fastCall = mockSubscribeToPrices.mock.calls.find(
+        (call) => call[0]?.includeMarketData === true,
+      );
+      expect(fastCall).toBeDefined();
+      expect(fastCall?.[0].symbols).toEqual(['BTC']);
+
+      unsubscribe();
+    });
+
+    it('tears down the fast sub on the 1→0 ref-count transition', async () => {
+      const unsubscribe = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(fastUnsubscribe).not.toHaveBeenCalled();
+
+      unsubscribe();
+
+      expect(fastUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens only one fast sub when two subscribers opt in for the same symbol', async () => {
+      const unsubscribeA = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      const unsubscribeB = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const fastCalls = mockSubscribeToPrices.mock.calls.filter(
+        (call) => call[0]?.includeMarketData === true,
+      );
+      expect(fastCalls).toHaveLength(1);
+
+      // First cleanup should NOT close the fast sub (ref still 1)
+      unsubscribeA();
+      expect(fastUnsubscribe).not.toHaveBeenCalled();
+
+      // Second cleanup should close it (ref drops to 0)
+      unsubscribeB();
+      expect(fastUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('fast-lane callback overwrites allMids price in shared cache', async () => {
+      let fastCallback: ((updates: PriceUpdate[]) => void) | undefined;
+      mockSubscribeToPrices.mockImplementation(
+        (params: {
+          symbols: string[];
+          includeMarketData?: boolean;
+          callback: (updates: PriceUpdate[]) => void;
+        }) => {
+          if (params.includeMarketData) {
+            fastCallback = params.callback;
+            return fastUnsubscribe;
+          }
+          return allMidsUnsubscribe;
+        },
+      );
+
+      const received: Record<string, PriceUpdate>[] = [];
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: (prices) => received.push(prices),
+        includeMarketData: true,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(fastCallback).toBeDefined();
+      // Capture as const so TypeScript narrows the type inside act()
+      const capturedFastCallback = fastCallback;
+      if (!capturedFastCallback) return;
+
+      // Fast-lane pushes a sub-second update
+      act(() => {
+        capturedFastCallback([
+          {
+            symbol: 'BTC',
+            price: '99999',
+            timestamp: Date.now(),
+            markPrice: '99998',
+            funding: 0.0001,
+            openInterest: 1000000,
+            volume24h: 5000000,
+          },
+        ]);
+      });
+
+      expect(received.length).toBeGreaterThan(0);
+      const latest = received[received.length - 1];
+      expect(latest.BTC?.price).toBe('99999');
+      expect(latest.BTC?.markPrice).toBe('99998');
+      expect(latest.BTC?.funding).toBe(0.0001);
+    });
+
+    it('tears down all fast subs on disconnect without clearing ref counts', async () => {
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      testStreamManager.prices.disconnect();
+
+      expect(fastUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('tears down all fast subs on clearCache', async () => {
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      expect(fastUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-opens fast subs via syncFastSubs after reconnect', async () => {
+      // Subscribe with fast lane; two calls will have been made (allMids + fast)
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['SOL'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const callsBeforeReconnect = mockSubscribeToPrices.mock.calls.filter(
+        (call) => call[0]?.includeMarketData === true,
+      ).length;
+      expect(callsBeforeReconnect).toBe(1);
+
+      // Simulate WS reconnect via clearAllChannels
+      act(() => {
+        testStreamManager.prices.reconnect();
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Fast sub should be re-opened after reconnect
+      const callsAfterReconnect = mockSubscribeToPrices.mock.calls.filter(
+        (call) => call[0]?.includeMarketData === true,
+      ).length;
+      expect(callsAfterReconnect).toBe(2);
+    });
+
+    it('does not open a fast sub for non-opted-in subscribers', async () => {
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['DOGE'],
+        callback: jest.fn(),
+        // includeMarketData omitted (defaults false)
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const fastCalls = mockSubscribeToPrices.mock.calls.filter(
+        (call) => call[0]?.includeMarketData === true,
+      );
+      expect(fastCalls).toHaveLength(0);
+    });
+  });
 });

@@ -359,6 +359,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const currentLivePrice = usePerpsLivePrices({
     symbols: [asset],
     throttleMs: 1000,
+    includeMarketData: true,
   });
 
   const currentPrice = parseFloat(currentLivePrice[asset]?.price);

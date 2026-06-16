@@ -42,7 +42,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   // Subscribe to live price updates including funding rate
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
-    throttleMs: 2000, // Update every 2 seconds for funding rate
+    throttleMs: 2000,
+    includeMarketData: true,
   });
 
   // Get live funding rate and oracle price from WebSocket subscription

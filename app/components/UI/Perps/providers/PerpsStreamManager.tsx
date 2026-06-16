@@ -384,8 +384,18 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
+  // Per-symbol fast lane: reference counts + active unsubscribes.
+  // Each symbol with includeMarketData:true gets one activeAssetCtx WS sub,
+  // reference-counted across all opt-in subscribers for that symbol.
+  private fastRefCounts = new Map<string, number>();
+  private fastUnsubscribes = new Map<string, () => void>();
+  // Safety cap to prevent a list screen from accidentally opening many fast subs
+  private static readonly MAX_FAST_SYMBOLS_WARN = 5;
+
   protected connect() {
     if (this.wsSubscription) {
+      // allMids already open; still sync fast subs in case new ones were queued
+      this.syncFastSubs();
       return;
     }
 
@@ -399,6 +409,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       if (cached) {
         this.notifySubscribers(cached);
       }
+      this.syncFastSubs();
       return;
     }
 
@@ -421,19 +432,26 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
-          // Map the update to PriceUpdate format
+          // If a fast sub is active for this symbol, preserve its sub-second
+          // price so the slower allMids cadence (~5s) doesn't cause a visible
+          // regression. Fast-lane data continues to arrive at sub-second
+          // cadence and overwrites via notifySubscribers on its own schedule.
+          const hasFastSub = this.fastUnsubscribes.has(update.symbol);
+          const existing = hasFastSub
+            ? this.priceCache.get(update.symbol)
+            : undefined;
           const priceUpdate: PriceUpdate = {
             symbol: update.symbol,
-            price: update.price,
+            price: existing?.price ?? update.price,
             timestamp: Date.now(),
             percentChange24h: update.percentChange24h,
             bestBid: update.bestBid,
             bestAsk: update.bestAsk,
             spread: update.spread,
-            markPrice: update.markPrice,
-            funding: update.funding,
-            openInterest: update.openInterest,
-            volume24h: update.volume24h,
+            markPrice: existing?.markPrice ?? update.markPrice,
+            funding: existing?.funding ?? update.funding,
+            openInterest: existing?.openInterest ?? update.openInterest,
+            volume24h: existing?.volume24h ?? update.volume24h,
           };
           this.priceCache.set(update.symbol, priceUpdate);
           priceMap[update.symbol] = priceUpdate;
@@ -442,6 +460,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         this.notifySubscribers(priceMap);
       },
     });
+
+    // Open fast subs for any symbols that opted in before the channel connected
+    this.syncFastSubs();
   }
 
   protected getCachedData(): Record<string, PriceUpdate> | null {
@@ -462,6 +483,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   }
 
   public clearCache(): void {
+    // Tear down fast subs (refCounts are preserved so reconnect can restore them)
+    this.teardownAllFastSubs();
     // Clear the price-specific cache
     this.priceCache.clear();
     // Cleanup pre-warm subscription
@@ -470,15 +493,125 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     super.clearCache();
   }
 
+  public disconnect(): void {
+    // Tear down fast subs without clearing refCounts — reconnect will restore them
+    this.teardownAllFastSubs();
+    super.disconnect();
+  }
+
+  // ── Fast-lane helpers ────────────────────────────────────────────────────
+
+  /**
+   * Open one activeAssetCtx subscription for a single symbol.
+   * Updates from this sub overwrite the allMids price in the shared cache so
+   * that all subscribers (including non-fast-lane ones) see the fastest price
+   * available for the focused symbol.
+   */
+  private openFastSubForSymbol(symbol: string): void {
+    if (this.fastUnsubscribes.has(symbol)) return;
+
+    const unsub = Engine.context.PerpsController.subscribeToPrices({
+      symbols: [symbol],
+      includeMarketData: true,
+      callback: (updates: PriceUpdate[]) => {
+        const update = updates.find((u) => u.symbol === symbol);
+        if (!update) return;
+        // Merge fast-lane fields over any cached allMids baseline
+        const merged: PriceUpdate = {
+          ...(this.priceCache.get(symbol) ?? {}),
+          symbol: update.symbol,
+          price: update.price,
+          timestamp: Date.now(),
+          percentChange24h:
+            update.percentChange24h ??
+            this.priceCache.get(symbol)?.percentChange24h,
+          markPrice: update.markPrice,
+          funding: update.funding,
+          openInterest: update.openInterest,
+          volume24h: update.volume24h,
+        };
+        this.priceCache.set(symbol, merged);
+        this.notifySubscribers({ [symbol]: merged });
+      },
+    });
+
+    this.fastUnsubscribes.set(symbol, unsub);
+    DevLogger.log(`PriceStreamChannel: Opened fast sub`, { symbol });
+  }
+
+  /** Tear down one fast sub without touching refCounts. */
+  private closeFastSubForSymbol(symbol: string): void {
+    const unsub = this.fastUnsubscribes.get(symbol);
+    if (unsub) {
+      unsub();
+      this.fastUnsubscribes.delete(symbol);
+      DevLogger.log(`PriceStreamChannel: Closed fast sub`, { symbol });
+    }
+  }
+
+  /**
+   * Tear down all open fast subs without clearing refCounts.
+   * Called on disconnect/clearCache so the underlying WS is cleaned up;
+   * refCounts remain so syncFastSubs() can restore them after reconnect.
+   */
+  private teardownAllFastSubs(): void {
+    this.fastUnsubscribes.forEach((_, symbol) => {
+      this.closeFastSubForSymbol(symbol);
+    });
+  }
+
+  /**
+   * Open fast subs for every symbol with a positive refCount that doesn't
+   * already have an open fast sub. Called at the end of connect() so that
+   * fast subs are (re-)established whenever the channel connects or reconnects.
+   */
+  private syncFastSubs(): void {
+    this.fastRefCounts.forEach((count, symbol) => {
+      if (count > 0 && !this.fastUnsubscribes.has(symbol)) {
+        this.openFastSubForSymbol(symbol);
+      }
+    });
+  }
+
+  // ── Symbol subscriptions ─────────────────────────────────────────────────
+
   subscribeToSymbols(params: {
     symbols: string[];
     callback: (prices: Record<string, PriceUpdate>) => void;
     throttleMs?: number;
+    // When true, opens a per-symbol activeAssetCtx sub for sub-second price
+    // cadence. Only use for single- or few-symbol focused views (detail,
+    // order ticket). Do NOT use on list/overview screens.
+    includeMarketData?: boolean;
   }): () => void {
+    const { includeMarketData = false } = params;
+
+    if (
+      includeMarketData &&
+      params.symbols.length > PriceStreamChannel.MAX_FAST_SYMBOLS_WARN
+    ) {
+      DevLogger.log(
+        `PriceStreamChannel: WARNING — subscribeToSymbols called with includeMarketData:true for ${params.symbols.length} symbols. This opens one activeAssetCtx WS sub per symbol. Only use on focused views.`,
+        { symbols: params.symbols },
+      );
+    }
+
     // Track symbols for filtering
     params.symbols.forEach((s) => {
       this.symbols.add(s);
     });
+
+    // Manage fast-lane ref counts before establishing the allMids connection
+    if (includeMarketData) {
+      params.symbols.forEach((symbol) => {
+        const prev = this.fastRefCounts.get(symbol) ?? 0;
+        this.fastRefCounts.set(symbol, prev + 1);
+        // If the channel is already connected, open the fast sub immediately
+        if (prev === 0 && (this.wsSubscription || this.prewarmUnsubscribe)) {
+          this.openFastSubForSymbol(symbol);
+        }
+      });
+    }
 
     // Ensure connection is established (allMids provides all symbols)
     // No need to reconnect when new symbols are added since allMids
@@ -487,7 +620,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       this.connect();
     }
 
-    return this.subscribe({
+    const baseUnsubscribe = this.subscribe({
       callback: (allPrices) => {
         // Filter to only requested symbols
         const filtered: Record<string, PriceUpdate> = {};
@@ -500,6 +633,22 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       },
       throttleMs: params.throttleMs,
     });
+
+    return () => {
+      // Decrement fast-lane ref counts and close sub on 1→0 transition
+      if (includeMarketData) {
+        params.symbols.forEach((symbol) => {
+          const count = (this.fastRefCounts.get(symbol) ?? 1) - 1;
+          if (count <= 0) {
+            this.fastRefCounts.delete(symbol);
+            this.closeFastSubForSymbol(symbol);
+          } else {
+            this.fastRefCounts.set(symbol, count);
+          }
+        });
+      }
+      baseUnsubscribe();
+    };
   }
 
   /**

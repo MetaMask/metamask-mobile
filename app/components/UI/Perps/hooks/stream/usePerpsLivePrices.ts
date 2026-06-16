@@ -7,6 +7,18 @@ export interface UsePerpsLivePricesOptions {
   symbols: string[];
   /** Throttle delay in milliseconds (default: 1000ms to prevent excessive re-renders) */
   throttleMs?: number;
+  /**
+   * When true, opens a per-symbol activeAssetCtx WebSocket subscription for
+   * sub-second price cadence and populates funding, openInterest, volume24h,
+   * and markPrice on each PriceUpdate.
+   *
+   * Only use on focused/single-symbol views (detail, order ticket, position
+   * detail). Do NOT set this on list or overview screens — it opens one
+   * dedicated WS connection per symbol.
+   *
+   * Defaults to false.
+   */
+  includeMarketData?: boolean;
 }
 
 /**
@@ -24,7 +36,7 @@ export interface UsePerpsLivePricesOptions {
 export function usePerpsLivePrices(
   options: UsePerpsLivePricesOptions,
 ): Record<string, PriceUpdate> {
-  const { symbols, throttleMs = 1000 } = options; // 1 second default for balanced performance
+  const { symbols, throttleMs = 1000, includeMarketData = false } = options;
   const stream = usePerpsStream();
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({});
 
@@ -43,6 +55,7 @@ export function usePerpsLivePrices(
         setPrices(newPrices);
       },
       throttleMs,
+      includeMarketData,
     });
 
     return () => {
@@ -51,7 +64,7 @@ export function usePerpsLivePrices(
     // symbolsKey captures symbols changes via memoization, so symbols is intentionally omitted
     // to prevent re-subscriptions when array reference changes but content is the same
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, symbolsKey, throttleMs]);
+  }, [stream, symbolsKey, throttleMs, includeMarketData]);
 
   return prices;
 }

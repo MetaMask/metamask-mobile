@@ -241,6 +241,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
     throttleMs: 1000,
+    includeMarketData: true,
   });
 
   const position = useMemo(

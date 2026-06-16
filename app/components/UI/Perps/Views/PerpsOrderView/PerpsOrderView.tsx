@@ -283,7 +283,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const inputMethodRef = useRef<InputMethod>('default');
 
   const { isInitialized } = usePerpsConnection();
-  const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
+  const { updatePositionTPSL } = usePerpsTrading();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -421,37 +421,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     properties: perpsScreenViewedProps,
   });
 
-  // Ensure oracle price (markPrice) is available for margin calculation.
-  // The PriceStreamChannel subscribes without includeMarketData, so the
-  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
-  // undefined when entering from Token Details (no prior market data sub).
-  // This subscription populates the cache for the traded asset so that
-  // subsequent allMids price updates include markPrice.
-  //
-  // We gate on isInitialized (from usePerpsConnection) so the subscription
-  // is deferred until the controller is ready. This mirrors the pattern in
-  // usePerpsPrices and avoids a silent failure that would leave markPrice
-  // undefined with no retry (the old deps would never change).
-  useEffect(() => {
-    if (!isDataReady || !isInitialized || !orderForm.asset) return;
-
-    const unsubscribe = subscribeToPrices({
-      symbols: [orderForm.asset],
-      includeMarketData: true,
-      callback: () => {
-        // No-op callback — the side effect of populating the
-        // marketDataCache with oraclePrice is all we need.
-      },
-    });
-
-    return unsubscribe;
-  }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
-
   // Get real-time price data using new stream architecture (deferred)
-  // Uses single WebSocket subscription with component-level debouncing
+  // includeMarketData:true opens an activeAssetCtx sub so markPrice, funding,
+  // OI, and volume are populated — this also satisfies the former separate
+  // no-op subscription that warmed the oracle price cache.
   const prices = usePerpsLivePrices({
     symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
     throttleMs: !isDataReady ? 0 : 1000,
+    includeMarketData: true,
   });
   const currentPrice = prices[orderForm.asset];
 

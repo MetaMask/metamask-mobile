@@ -60,6 +60,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const prices = usePerpsLivePrices({
     symbols: [position.symbol],
     throttleMs: 1000,
+    includeMarketData: true,
   });
   const currentPrice = prices[position.symbol];
   const price = parseFloat(currentPrice?.price || '0');

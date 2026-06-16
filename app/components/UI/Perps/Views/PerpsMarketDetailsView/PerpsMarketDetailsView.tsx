@@ -360,6 +360,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const livePrices = usePerpsLivePrices({
     symbols: market?.symbol ? [market.symbol] : [],
     throttleMs: 1000,
+    includeMarketData: true,
   });
 
   // Get current price for the symbol

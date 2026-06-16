@@ -125,6 +125,7 @@ const PerpsClosePositionView: React.FC = () => {
   const priceData = usePerpsLivePrices({
     symbols: [position.symbol],
     throttleMs: 1000,
+    includeMarketData: true,
   });
   const currentPrice = priceData[position.symbol]?.price
     ? parseFloat(priceData[position.symbol].price)

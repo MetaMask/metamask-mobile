@@ -75,6 +75,7 @@ export function usePerpsAdjustMarginData(
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
     throttleMs: 1000,
+    includeMarketData: true,
   });
   const { markets } = usePerpsMarkets();
 
