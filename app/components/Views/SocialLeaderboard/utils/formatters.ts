@@ -6,7 +6,7 @@ import {
   formatAmountWithThreshold,
   localizeLargeNumber,
 } from '../../../../util/number';
-import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import { toDateFormat } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
 
 const EM_DASH = '\u2014';
@@ -104,22 +104,10 @@ export function formatPercent(value: number | null | undefined): string {
 
 /**
  * Trade timestamps from the social API may be seconds or milliseconds.
- * Output matches the app-wide short transaction date convention,
- * e.g. `Jun 16 at 11:38 am`.
+ * Delegates to the shared `toDateFormat` so we render the same short
+ * convention used by the activity list (e.g. `Jun 16 at 11:38 am`).
  */
 export function formatTradeDate(timestamp: number): string {
   const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;
-  const date = new Date(ms);
-  const dateStr = getIntlDateTimeFormatter('en-US', {
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
-  const timeStr = getIntlDateTimeFormatter('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-    .format(date)
-    .toLowerCase();
-  return `${dateStr} at ${timeStr}`;
+  return toDateFormat(ms);
 }

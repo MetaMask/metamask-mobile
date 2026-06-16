@@ -169,7 +169,9 @@ describe('formatPercent', () => {
 describe('formatTradeDate', () => {
   it('formats a millisecond timestamp as "MMM D at h:mm am/pm"', () => {
     const result = formatTradeDate(1744732800000);
-    expect(result).toMatch(/^[A-Z][a-z]{2} \d{1,2} at \d{1,2}:\d{2} (am|pm)$/);
+    expect(result).toMatch(
+      /^[A-Z][a-z]{2,3} \d{1,2} at \d{1,2}:\d{2} (am|pm)$/,
+    );
   });
 
   it('converts a seconds timestamp to milliseconds before formatting', () => {
