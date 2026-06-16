@@ -189,6 +189,14 @@ export const PostTradeBottomSheet = () => {
   ]);
 
   useEffect(() => {
+    showPostTradeNotificationSurface();
+
+    return () => {
+      hidePostTradeNotificationSurface();
+    };
+  }, []);
+
+  useEffect(() => {
     const isTerminalStatus =
       status === PostTradeStatus.Success || status === PostTradeStatus.Failed;
     const hasSubmittedTransaction =
@@ -317,6 +325,7 @@ export const PostTradeBottomSheet = () => {
       token_clicked_is_imported: false,
     });
     shouldSkipDismissedTrackingRef.current = true;
+
 
     if (params.sourceToken) {
       dispatch(setSourceToken(params.sourceToken));

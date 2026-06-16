@@ -491,7 +491,7 @@ describe('hardwareWalletsSwapsReducer', () => {
     );
 
     expect(submittedState.status).toBe(HardwareWalletsSwapsStatus.Submitted);
-    expect(submittedState.currentStep).toBe(1);
+    expect(submittedState.currentStep).toBe(0);
 
     const result = hardwareWalletsSwapsReducer(submittedState, {
       type: HardwareWalletsSwapsEventType.Rejected,

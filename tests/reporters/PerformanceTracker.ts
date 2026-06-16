@@ -27,7 +27,6 @@ export interface MetricsOutput {
   } | null;
   device: DeviceInfo;
   sessionCreationDurationMs?: number;
-  appSizeMb?: number;
 }
 
 /**
