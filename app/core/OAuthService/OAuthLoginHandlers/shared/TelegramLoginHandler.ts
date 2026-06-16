@@ -57,14 +57,6 @@ const wait = (timeoutMs: number) =>
 const isNetworkRequestError = (error: unknown) =>
   error instanceof Error && error.message.includes('Network request failed');
 
-const redirectUrlHasExpectedState = (url: string, expectedState: string) => {
-  try {
-    return new URL(url).searchParams.get('state') === expectedState;
-  } catch {
-    return false;
-  }
-};
-
 const waitForActiveAppState = async () => {
   if (AppState.currentState === 'active') {
     return;
@@ -191,17 +183,15 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
     initiateUrl.searchParams.set('code_challenge', challenge);
 
-    const buildLoginResult = (): LoginHandlerCodeResult => ({
+    await this.loginWithAuthSession(initiateUrl.toString());
+
+    return {
       authConnection: this.authConnection,
       code: challenge,
       clientId: this.clientId,
       redirectUri: this.redirectUri,
       codeVerifier,
-    });
-
-    await this.loginWithAuthSession(initiateUrl.toString());
-
-    return buildLoginResult();
+    };
   }
 
   async loginWithAuthSession(authorizationUrl: string): Promise<string> {
