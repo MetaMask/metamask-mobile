@@ -75,6 +75,32 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for the Perps advanced chart feature flag.
+ * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled`
+ */
+export const PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY =
+  'perpsAdvancedChartEnabled' as const;
+
+/**
+ * Selector for Perps advanced chart feature flag.
+ * Controls whether market detail and fullscreen charts use the shared AdvancedChart
+ * (TradingView) instead of the Lightweight Charts WebView.
+ *
+ * @returns boolean - true if advanced chart should be shown, false otherwise
+ */
+export const selectPerpsAdvancedChartEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_ADVANCED_CHART_ENABLED === 'true';
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for Related Markets rail feature flag.
  * Controls visibility of the discovery rail on Perps market details.
  *
