@@ -131,6 +131,8 @@ export const useTokenPrice = ({
     setFetchedMarketData(undefined);
 
     if (marketDataRate !== undefined || !itemAddress) {
+      // Token data already available in Redux or no address - mark fetch as "not needed"
+      setFetchedMarketData({} as MarketDataDetails);
       return;
     }
 
@@ -140,6 +142,8 @@ export const useTokenPrice = ({
       conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
     if (!isNonEvm && !nativeTokenConversionRate) {
+      // Can't fetch without conversion rate - mark fetch as "not possible"
+      setFetchedMarketData({} as MarketDataDetails);
       return;
     }
 
@@ -158,7 +162,9 @@ export const useTokenPrice = ({
 
         if (!data?.price) {
           setFetchedRate(undefined);
-          setFetchedMarketData(undefined);
+          // Set empty object to indicate "fetch completed but no data available"
+          // This prevents infinite loading when API returns incomplete data
+          setFetchedMarketData({} as MarketDataDetails);
           return;
         }
 
@@ -172,7 +178,9 @@ export const useTokenPrice = ({
       } catch {
         if (id !== fetchIdRef.current) return;
         setFetchedRate(undefined);
-        setFetchedMarketData(undefined);
+        // Set empty object to indicate "fetch attempted but failed"
+        // This prevents infinite loading when API request fails
+        setFetchedMarketData({} as MarketDataDetails);
       }
     };
 
