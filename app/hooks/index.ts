@@ -9,3 +9,4 @@
 
 export { useABTest } from './useABTest';
 export { useFeatureFlagStats } from './useFeatureFlagStats';
+export { useIsInViewport } from './useIsInViewport';
