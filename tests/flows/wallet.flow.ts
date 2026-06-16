@@ -48,6 +48,7 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
+import { assertNotOnOfflineModeScreen } from './offline-mode.flow';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -515,13 +516,18 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login view container',
-      timeout: 45_000,
-    },
-  );
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.container),
+      {
+        description: 'Login view container',
+        timeout: 45_000,
+      },
+    );
+  } catch (error) {
+    await assertNotOnOfflineModeScreen('while waiting for login screen');
+    throw error;
+  }
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.passwordInput),
     {
