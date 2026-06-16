@@ -8,6 +8,12 @@ import React, {
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from '../../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../../search/abTestConfig';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -70,6 +76,12 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     null,
   );
 
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [searchQuery]);
@@ -87,7 +99,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     resetScrollTracking();
   }, [searchQuery, resetScrollTracking]);
 
-  const handleQuickTrade = feedId === 'tokens' ? setQuickTradeToken : undefined;
+  const handleQuickTrade =
+    feedId === 'tokens' && quickBuyVariant.showQuickTradeButton
+      ? setQuickTradeToken
+      : undefined;
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (

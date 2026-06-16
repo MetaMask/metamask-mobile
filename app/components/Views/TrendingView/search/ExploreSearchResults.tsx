@@ -38,6 +38,12 @@ import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 import type { FlatListItem, ListItemHeader } from './searchTypes';
 import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
 import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from './abTestConfig';
 
 const POPULAR_ASSETS: TrendingAsset[] = [
   {
@@ -100,6 +106,12 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
+  );
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
 
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
@@ -245,7 +257,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           tabName={activeTab}
           resultCount={totalResultCount}
           onQuickTrade={
-            item.feedId === 'tokens' ? setQuickTradeToken : undefined
+            item.feedId === 'tokens' && quickBuyVariant.showQuickTradeButton
+              ? setQuickTradeToken
+              : undefined
           }
         />
       );
@@ -256,6 +270,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       searchQuery,
       activeTab,
       totalResultCount,
+      quickBuyVariant.showQuickTradeButton,
     ],
   );
 

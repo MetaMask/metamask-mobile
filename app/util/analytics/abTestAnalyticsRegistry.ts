@@ -12,6 +12,7 @@ import {
 import { AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
+import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_CHECKLIST_STEPPER_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/WalletHomeOnboardingSteps/abTestConfig';
 
 export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
@@ -34,6 +35,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Explore
   WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
+  EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING,
 
   // Token Details
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
