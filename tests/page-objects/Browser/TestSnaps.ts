@@ -269,7 +269,10 @@ class TestSnaps {
 
   async tapCancelButton() {
     const button = Matchers.getElementByText('Cancel');
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(button, {
+      checkStability: true,
+      elemDescription: 'snap dialog cancel button',
+    });
   }
 
   async tapFooterButton() {
@@ -339,12 +342,22 @@ class TestSnaps {
       NativeDropdownSelectorWebIDS[selector],
     );
 
-    await Gestures.tap(dropdown);
+    await Assertions.expectElementToBeVisible(dropdown, {
+      timeout: 15_000,
+      description: `${selector} dropdown should be visible before opening`,
+    });
+    await Gestures.waitAndTap(dropdown, {
+      checkStability: true,
+      elemDescription: `${selector} dropdown`,
+    });
 
     const selectorItem = element(
       by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
     ) as unknown as DetoxElement;
-    await Gestures.tap(selectorItem);
+    await Gestures.waitAndTap(selectorItem, {
+      checkStability: true,
+      elemDescription: `${selector} option ${text}`,
+    });
   }
 
   async selectRadioButton(text: string) {
