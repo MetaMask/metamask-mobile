@@ -1,5 +1,5 @@
 import { type PaymentMethod } from '@metamask/ramps-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionMeta } from '@metamask/transaction-controller';
 import {
   PaymentOverride,
   TransactionPayRequiredToken,
@@ -372,6 +372,25 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toStrictEqual([]);
     });
 
+    it('returns no alert when source chain is Monad even if native balance is insufficient', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          chainId: CHAIN_IDS.MONAD as Hex,
+        },
+        setPayToken: jest.fn(),
+      });
+
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '1',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
     it('uses the standard message (with network switch hint) for non-post-quote flows', () => {
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -533,6 +552,21 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           severity: Severity.Danger,
         },
       ]);
+    });
+
+    it('skips source network fee check when source chain is Monad', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        chainId: CHAIN_IDS.MONAD,
+      } as TransactionMeta);
+
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '1',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
     });
 
     it('does not suppress source gas check when destination native token matches source native address', () => {
