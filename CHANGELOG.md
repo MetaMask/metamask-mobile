@@ -49,9 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added category-aware search shortcut to market detail page (#30738)
 - Fixed the World Cup events count shown in the homepage Predictions discovery row. (#31465)
 - Updated the Money Home Send action icon and label, and refreshed the Add funds and Send funds bottom sheet copy (#31470)
-- VIP rewards surfaces (home VIP icon, VIP splash page) and VIP controller endpoints (`getVIPDashboard`, `getVipTierForAccount`, (#31531)
-  `getPerpsDiscountForAccount`) are now gated behind the
-  `vipProgramEnabled` feature flag.
 - Fixed a bug where the trade list on a trader position only showed trades inside the active chart time period, hiding older (#31515)
   trades that still belonged to the position.
 - Added paid by metamask tag for Money account deposits when fees are subsidized. (#31485)
@@ -153,7 +150,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   funds" error.
 - Fixed Ledger signing not appearing on device after app relaunch when the device was previously disconnected (#30920)
 - Fixed back swipe not rejecting confirmation transactions on full-screen confirmations (#31451)
-- Fixed the VIP rewards badge label so it now reads `VIP <tier>` instead of `VIP Fox <tier>`. (#31449)
 - Polished the Money account screens (FAQs heading, button and divider spacing, light-blue "No fee" tag, full-screen card (#31398)
   education) and fixed a flicker of the "How it works" section when
   returning from the Add-funds flow.
