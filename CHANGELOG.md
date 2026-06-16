@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- VIP rewards surfaces (home VIP icon, VIP splash page) and VIP controller endpoints (`getVIPDashboard`, `getVipTierForAccount`, (#31531)
+  `getPerpsDiscountForAccount`) are now gated behind the
+  `vipProgramEnabled` feature flag.
 - Improved deep link routing to support direct startup navigation for Perps, Swap, Predict, and Trending flows. (#31160)
 - Migrate zkSync Era default RPC to Infura (#31562)
 - Adds Swap/Bridge feature to ARC mainnet (#31413)
@@ -117,6 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed the VIP rewards badge label so it now reads `VIP <tier>` instead of `VIP Fox <tier>`. (#31449)
 - Fixed Card sessions getting stuck on a stale screen when authentication expired — expired sessions now transparently refresh (#31587)
   and retry, fall back to a forced logout when unrecoverable, and survive
   transient network failures.
