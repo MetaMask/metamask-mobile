@@ -1,9 +1,99 @@
+import React from 'react';
+import { render } from '@testing-library/react-native';
+import { CandlePeriod } from '@metamask/perps-controller';
 import {
+  default as PerpsAdvancedChart,
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
 import type { Colors } from '../../../../../../util/theme/models';
+import { mockTheme } from '../../../../../../util/theme';
+
+const mockAdvancedChart = jest.fn((_props: unknown) => null);
+const mockUsePerpsAdvancedChartAdapter = jest.fn();
+
+jest.mock('../../../../Charts/AdvancedChart/AdvancedChart', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockAdvancedChart(props),
+}));
+
+jest.mock('../../../hooks/usePerpsAdvancedChartAdapter', () => ({
+  usePerpsAdvancedChartAdapter: (params: unknown) =>
+    mockUsePerpsAdvancedChartAdapter(params),
+}));
+
+jest.mock('../../TradingViewChart/TradingViewChart', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
+
+jest.mock('../../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  trace: jest.fn(),
+  TraceName: {
+    PerpsAdvancedChartInitialVisible: 'Perps Advanced Chart Initial Visible',
+    PerpsAdvancedChartIntervalVisible: 'Perps Advanced Chart Interval Visible',
+  },
+  TraceOperation: {
+    PerpsAdvancedChart: 'perps.advanced_chart',
+    PerpsAdvancedChartInterval: 'perps.advanced_chart_interval',
+  },
+}));
+
+jest.mock('../../../../../../util/haptics', () => ({
+  ImpactMoment: {
+    ChartCrosshair: 'ChartCrosshair',
+  },
+  playImpact: jest.fn(),
+}));
+
+jest.mock('react-native-performance', () => ({
+  now: jest.fn(() => 0),
+}));
+
+const mockAdapterResult = {
+  ohlcvData: [],
+  realtimeBar: undefined,
+  ohlcvSeriesKey: 'BTC|1h',
+  visibleFromMs: undefined,
+  visibleToMs: undefined,
+  isLoading: false,
+  handleFetchOlderBarsRequest: jest.fn(),
+};
+
+describe('PerpsAdvancedChart', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue(mockAdapterResult);
+  });
+
+  it('passes the visible current-price token to AdvancedChart', () => {
+    render(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+      />,
+    );
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currentPriceLineColorOverride: mockTheme.colors.text.default,
+      }),
+    );
+  });
+});
 
 describe('mapTpslToPositionLines', () => {
   it('returns undefined when tpslLines is undefined', () => {

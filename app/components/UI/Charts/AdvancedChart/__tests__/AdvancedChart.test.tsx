@@ -10,6 +10,7 @@ import {
   type AdvancedChartRef,
   type PositionLines,
 } from '../AdvancedChart.types';
+import { mockTheme } from '../../../../../util/theme';
 
 const mockInAppBrowserOpen = jest.fn();
 const mockIsAvailable = jest.fn().mockResolvedValue(true);
@@ -1016,6 +1017,34 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'SET_CHART_TYPE',
         payload: { type: ChartType.Line },
+      }),
+    );
+  });
+
+  it('includes current price color in SET_THEME_COLORS updates', async () => {
+    const currentPriceColor = mockTheme.colors.text.default;
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        currentPriceLineColorOverride={currentPriceColor}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    await flushMicrotasks();
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_THEME_COLORS',
+        payload: {
+          lineColor: mockTheme.colors.success.default,
+          successColor: mockTheme.colors.success.default,
+          errorColor: mockTheme.colors.error.default,
+          currentPriceColor,
+        },
       }),
     );
   });

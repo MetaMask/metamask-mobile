@@ -1126,6 +1126,11 @@ function applySeriesColors() {
   applySeriesStyleProperties(lineColor);
 }
 
+function getCurrentPriceVisualColor() {
+  var theme = (window.CONFIG && window.CONFIG.theme) || {};
+  return theme.currentPriceColor || theme.lineColor || theme.successColor;
+}
+
 /**
  * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
  * WebView. Uses TradingView's documented runtime APIs in one pass:
@@ -1184,7 +1189,7 @@ function handleSetThemeColors(payload) {
   // Update custom DOM pill colors
   let elLast = document.getElementById('last-close-price-label');
   if (elLast) {
-    elLast.style.background = lineColor;
+    elLast.style.background = lastPriceLineColor;
   }
 
   // Update Drawing API shapes in-place via setProperties (synchronous, no
@@ -1852,6 +1857,7 @@ function updateLastClosePriceLabel() {
     return;
   }
   el.textContent = formatCrosshairPrice(labelPrice);
+  el.style.background = getCurrentPriceVisualColor();
   el.style.display = 'flex';
   let overlay = document.getElementById('custom-crosshair-overlay');
   positionPricePillAtPlotPriceBoundary(el, overlay, y);

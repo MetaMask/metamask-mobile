@@ -144,6 +144,8 @@ export const createAdvancedChartTemplate = (
 ): string => {
   const resolvedLineColor =
     features.lineColorOverride ?? getChartSuccessColor(theme);
+  const resolvedCurrentPriceLabelColor =
+    features.currentPriceLineColorOverride ?? resolvedLineColor;
   const configInline = createConfigScript(
     CHARTING_LIBRARY_URL,
     theme,
@@ -257,11 +259,12 @@ export const createAdvancedChartTemplate = (
             transform: translateX(-50%);
         }
         /*
-         * Last-close: green pill (matches TV last-price line), same stacking context as the overlay.
+         * Last-close: filled pill matching the current-price line override when supplied,
+         * otherwise matching the default chart line color.
          */
         #last-close-price-label {
             z-index: 50;
-            background: ${stripHexAlpha(resolvedLineColor)};
+            background: ${resolvedCurrentPriceLabelColor};
             color: ${stripHexAlpha(theme.colors.success.inverse)};
         }
         /*
