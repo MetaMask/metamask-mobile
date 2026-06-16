@@ -47,7 +47,7 @@ export function animateWalletHomeOnboardingProgressRatio(
     (finished) => {
       'worklet';
       if (onComplete) {
-        runOnJS(onComplete)(finished);
+        runOnJS(onComplete)(finished ?? false);
       }
     },
   );
