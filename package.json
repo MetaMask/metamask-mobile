@@ -315,7 +315,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^3.1.0",
     "@metamask/profile-sync-controller": "^28.1.0",
-    "@metamask/ramps-controller": "^14.1.0",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@14.2.0-preview-b92250061",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
@@ -552,12 +552,6 @@
     "valid-url": "1.0.9",
     "viem": "^2.28.0",
     "vm-browserify": "1.1.2"
-  },
-  "previewBuilds": {
-    "@metamask/ramps-controller": {
-      "type": "non-breaking",
-      "previewVersion": "14.2.0-preview-69b6829ad"
-    }
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
