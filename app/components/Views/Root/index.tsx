@@ -59,11 +59,21 @@ const Root = ({ foxCode }: RootProps) => {
    */
   const waitForStore = () =>
     new Promise((resolve) => {
+      let pollCount = 0;
       const intervalId = setInterval(() => {
+        pollCount += 1;
         if (store && persistor) {
+          // eslint-disable-next-line no-console
+          console.log(`[ROOT DEBUG] Store ready after ${pollCount} polls`);
           clearInterval(intervalId);
           setIsStoreLoading(false);
           resolve(null);
+        } else if (pollCount % 20 === 0) {
+          // Log every 2 seconds if still waiting
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[ROOT DEBUG] Still waiting for store (poll #${pollCount}) — store: ${!!store}, persistor: ${!!persistor}`,
+          );
         }
       }, 100);
     });

@@ -30,6 +30,8 @@ const pReducer = persistReducer<RootState, AnyAction>(
 let store: ReduxStore, persistor: Persistor, runSaga: SagaMiddleware['run'];
 /* istanbul ignore next -- store initialization; runs at module load with heavy deps (sagas, persistence, tracing) */
 const createStoreAndPersistor = async () => {
+  // eslint-disable-next-line no-console
+  console.log('[STORE DEBUG] createStoreAndPersistor started');
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
@@ -90,6 +92,13 @@ const createStoreAndPersistor = async () => {
   };
 
   persistor = persistStore(store, null, onPersistComplete);
+  // eslint-disable-next-line no-console
+  console.log(
+    '[STORE DEBUG] createStoreAndPersistor completed — store:',
+    !!store,
+    'persistor:',
+    !!persistor,
+  );
 };
 
 /* istanbul ignore next -- app bootstrap IIFE; E2E polling tested in e2eCommandPolling.test.ts */
@@ -110,6 +119,8 @@ const createStoreAndPersistor = async () => {
       }, 5000);
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[STORE DEBUG] FATAL: createStoreAndPersistor threw:', error);
     Logger.error(error as Error, 'Error creating store and persistor');
   }
 })();
