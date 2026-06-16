@@ -9,6 +9,11 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  markNavStart,
+  NavPerfLabel,
+  useMarkNavEnd,
+} from '../../../util/navigation/navPerf';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -31,6 +36,7 @@ const createStyles = (colors: Colors) =>
 
 const Settings = () => {
   const { colors } = useTheme();
+  useMarkNavEnd(NavPerfLabel.SettingsScreen);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -42,6 +48,7 @@ const Settings = () => {
   );
 
   const handleBack = useCallback(() => {
+    markNavStart(NavPerfLabel.SettingsScreenBack);
     navigation.goBack();
   }, [navigation]);
 

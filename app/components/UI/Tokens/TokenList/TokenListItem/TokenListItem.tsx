@@ -35,6 +35,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  markNavStart,
+  NavPerfLabel,
+} from '../../../../../util/navigation/navPerf';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
@@ -408,6 +412,7 @@ export const TokenListItem = React.memo(
             ) ?? undefined;
         }
 
+        markNavStart(NavPerfLabel.AssetView);
         navigation.navigate('Asset', {
           ...token,
           source: isFullView
