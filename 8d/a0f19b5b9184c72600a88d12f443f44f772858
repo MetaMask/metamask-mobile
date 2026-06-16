@@ -1,0 +1,33 @@
+e2e/llm-workflow/__tests__/fixture.test.ts
+  s_e5f20476855121::t_54d4e75af45421 1-233
+e2e/llm-workflow/capabilities/state-snapshot.ts
+  s_e5f20476855121::t_54d4e75af45421 1-75
+e2e/llm-workflow/capabilities/fixture.ts
+  s_e5f20476855121::t_54d4e75af45421 1-142
+e2e/llm-workflow/__tests__/fixture-adapter.test.ts
+  s_e5f20476855121::t_54d4e75af45421 1-174
+e2e/llm-workflow/capabilities/fixture-adapter.ts
+  s_e5f20476855121::t_54d4e75af45421 1-71
+e2e/llm-workflow/capabilities/seeding.ts
+  s_e5f20476855121::t_54d4e75af45421 1-181
+e2e/llm-workflow/__tests__/seeding.test.ts
+  s_e5f20476855121::t_54d4e75af45421 1-174
+e2e/llm-workflow/__tests__/state-snapshot.test.ts
+  s_e5f20476855121::t_54d4e75af45421 1-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "8da0f19b5b9184c72600a88d12f443f44f772858",
+  "prompts": {},
+  "sessions": {
+    "s_e5f20476855121": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12ef9d7fdffe35fywt3dWB1m40",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
