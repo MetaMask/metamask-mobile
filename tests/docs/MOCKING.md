@@ -23,7 +23,7 @@ The framework also supports device-proxy mocking for traffic that does not relia
 The implementation differs by platform:
 
 - iOS uses an app launch argument (`e2eIosProxyPort`) plus a simulator-trusted generated CA. React Native HTTP traffic is configured in `ios/MetaMask/E2E/E2ENativeAppProxy.swift` (compiled into E2E builds only), and WebSocket traffic uses an E2E-gated SocketRocket patch.
-- Android uses adb to install the generated CA, set the emulator global HTTP proxy to MockServer, and set a local harness exclusion list so fixture/local framework traffic bypasses the proxy.
+- Android trusts the proxy CA bundled into the E2E APK (via the `METAMASK_ENVIRONMENT=e2e` network security config — no runtime `adb` CA install), and uses adb to set the emulator global HTTP proxy to MockServer plus a local harness exclusion list so fixture/local framework traffic bypasses the proxy.
 
 See [E2E Device Proxy Mocking](../framework/DEVICE_PROXY_MOCKING.md) for the full lifecycle, platform differences, log markers, and troubleshooting commands.
 

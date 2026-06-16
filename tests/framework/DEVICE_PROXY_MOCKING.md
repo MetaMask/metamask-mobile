@@ -52,13 +52,14 @@ The CA warm-up is idempotent (concurrent and repeat callers share one in-flight 
 
 Per-test flow inside `withFixtures`:
 
-1. Generate (or reuse) the local E2E proxy CA via `ensureNativeProxyCa`.
-2. Start `MockServerE2E`.
-3. Configure the current platform proxy (`setupProxy`) after the MockServer port is known.
-4. Start local WebSocket services.
+1. Start fixture dependencies (local nodes, contracts, dapp servers).
+2. Generate (or reuse) the local E2E proxy CA via `ensureNativeProxyCa`.
+3. Start `MockServerE2E` (its port is now known).
+4. Start local WebSocket services and register their device-proxy bridges (`bridgeLocalWebSocketPort`).
 5. Start the fixture server and load fixture state.
-6. Launch or relaunch the app with the existing E2E launch args.
-7. On teardown, restore any platform proxy state that was changed (`cleanupProxy`).
+6. Configure the current platform proxy (`setupProxy`) — after all local harness resources are listening and before the app is launched.
+7. Launch or relaunch the app with the existing E2E launch args.
+8. On teardown, restore any platform proxy state that was changed (`cleanupProxy`).
 
 The CA is deterministic and checked in under `tests/framework/utils/e2e-proxy-ca/` (Decision DA/A1 — see the README there for why the private key is committed and how to rotate):
 
@@ -214,16 +215,16 @@ E2E_NATIVE_PROXY_WS_CLOSE
 
 ## Platform Differences
 
-| Area                       | iOS                                              | Android                                                                            |
-| -------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| Proxy mechanism            | App-level launch arg                             | Emulator global HTTP proxy through adb                                             |
-| Proxy host from app/device | `127.0.0.1`                                      | `10.0.2.2`                                                                         |
-| Proxy port source          | `e2eIosProxyPort` launch arg                     | MockServer port written to Android global settings                                 |
-| CA trust                   | `simctl keychain add-root-cert` with DER cert    | User CA store install with PEM cert                                                |
-| HTTPS trust gate           | Simulator keychain trust plus Mockttp CA         | `METAMASK_ENVIRONMENT=e2e` network security config trusts the APK-bundled proxy CA |
-| WebSocket support          | SocketRocket E2E patch uses launch arg           | Depends on Android/network stack honoring global proxy                             |
-| Local framework traffic    | App proxy exceptions avoid localhost-style hosts | Android global proxy exclusion list avoids localhost-style hosts                   |
-| Cleanup                    | No device-wide proxy state to clear              | Clear Android global proxy settings on teardown                                    |
+| Area                       | iOS                                              | Android                                                                                                         |
+| -------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Proxy mechanism            | App-level launch arg                             | Emulator global HTTP proxy through adb                                                                          |
+| Proxy host from app/device | `127.0.0.1`                                      | `10.0.2.2`                                                                                                      |
+| Proxy port source          | `e2eIosProxyPort` launch arg                     | MockServer port written to Android global settings                                                              |
+| CA trust                   | `simctl keychain add-root-cert` with DER cert    | Bundled into the E2E APK (`res/raw/e2e_proxy_ca`), trusted via the network security config — no runtime install |
+| HTTPS trust gate           | Simulator keychain trust plus Mockttp CA         | `METAMASK_ENVIRONMENT=e2e` network security config trusts the APK-bundled proxy CA                              |
+| WebSocket support          | SocketRocket E2E patch uses launch arg           | Depends on Android/network stack honoring global proxy                                                          |
+| Local framework traffic    | App proxy exceptions avoid localhost-style hosts | Android global proxy exclusion list avoids localhost-style hosts                                                |
+| Cleanup                    | No device-wide proxy state to clear              | Clear Android global proxy settings on teardown                                                                 |
 
 ## Troubleshooting
 
