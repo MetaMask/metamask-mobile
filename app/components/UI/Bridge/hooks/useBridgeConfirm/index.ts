@@ -62,9 +62,7 @@ export const useBridgeConfirm = ({
       return;
     }
 
-    const isHardwareWalletBridgeSubmission = isHardwareWalletAccount;
-
-    if (isHardwareWalletBridgeSubmission) {
+    if (isHardwareWalletAccount) {
       dispatch(setIsSubmittingTx(true));
       try {
         dispatch(resetHardwareWalletsSwaps());
