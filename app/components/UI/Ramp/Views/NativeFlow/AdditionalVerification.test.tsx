@@ -40,7 +40,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock(
-  '../../Deposit/assets/additional-verification.png',
+  '../../assets/additional-verification.png',
   () => 'mock-image',
 );
 

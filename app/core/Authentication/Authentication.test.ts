@@ -49,7 +49,7 @@ import {
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { TraceName, TraceOperation } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -272,7 +272,7 @@ jest.mock('../../util/analytics/analyticsDataDeletion', () => ({
   createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../components/UI/Ramp/utils/ProviderTokenVault', () => ({
   resetProviderToken: jest.fn(),
 }));
 

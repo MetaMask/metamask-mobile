@@ -26,4 +26,4 @@ export type { BuildQuoteParams as SimpleRampBuildQuoteParams } from '../../Views
 export type {
   WebviewModalParams,
   KycWebviewModalParams,
-} from '../../Deposit/types/legacyNavigation';
+} from '../../types/legacyNavigation';

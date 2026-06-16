@@ -82,7 +82,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts',
   'app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts',
   'app/components/UI/Ramp/Aggregator/utils/index.ts',
-  'app/components/UI/Ramp/Deposit/utils/index.ts',
+  'app/components/UI/Ramp/utils/depositUtils.ts',
   'app/components/UI/Ramp/utils/getOrderAmount.ts',
   'app/components/UI/Ramp/utils/v2OrderToast.ts',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',

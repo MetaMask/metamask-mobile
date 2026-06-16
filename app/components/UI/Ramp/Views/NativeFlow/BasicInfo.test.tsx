@@ -81,12 +81,12 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
+jest.mock('../../utils/depositUtils', () => ({
   timestampToTransakFormat: (ts: string) => (ts ? '1990-01-01' : ''),
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
-jest.mock('../../Deposit/constants/constants', () => ({
+jest.mock('../../constants/transak', () => ({
   VALIDATION_REGEX: {
     firstName: /^[a-zA-Z\s'-]+$/,
     lastName: /^[a-zA-Z\s'-]+$/,
@@ -96,13 +96,13 @@ jest.mock('../../Deposit/constants/constants', () => ({
 }));
 
 jest.mock(
-  '../../Deposit/components/DepositPhoneField/formatNumberToTemplate',
+  '../../utils/formatNumberToTemplate',
   () => ({
     formatNumberToTemplate: (num: string) => num,
   }),
 );
 
-jest.mock('../../Deposit/hooks/useForm', () => ({
+jest.mock('../../hooks/useForm', () => ({
   useForm: <T extends Record<string, string>>({
     initialFormData,
     validateForm,

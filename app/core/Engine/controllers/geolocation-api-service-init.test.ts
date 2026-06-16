@@ -12,11 +12,11 @@ import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/geolocation-controller');
 
-jest.mock('../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment', () => ({
+jest.mock('../../../components/UI/Ramp/sdk/getSdkEnvironment', () => ({
   getSdkEnvironment: jest.fn(),
 }));
 
-import { getSdkEnvironment } from '../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment';
+import { getSdkEnvironment } from '../../../components/UI/Ramp/sdk/getSdkEnvironment';
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
 const mockGetSdkEnvironment = jest.mocked(getSdkEnvironment);
 

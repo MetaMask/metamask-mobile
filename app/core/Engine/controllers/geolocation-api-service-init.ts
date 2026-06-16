@@ -4,7 +4,7 @@ import {
   type GeolocationApiServiceMessenger,
 } from '@metamask/geolocation-controller';
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
-import { getSdkEnvironment } from '../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment';
+import { getSdkEnvironment } from '../../../components/UI/Ramp/sdk/getSdkEnvironment';
 import type { MessengerClientInitFunction } from '../types';
 
 /**

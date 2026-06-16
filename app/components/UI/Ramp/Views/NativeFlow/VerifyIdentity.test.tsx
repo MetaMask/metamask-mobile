@@ -48,7 +48,7 @@ jest.mock('../../hooks/useRampsUserRegion', () => ({
   }),
 }));
 
-jest.mock('../../Deposit/constants/constants', () => ({
+jest.mock('../../constants/transak', () => ({
   TRANSAK_TERMS_URL_US: 'https://transak.com/terms-us',
   TRANSAK_TERMS_URL_WORLD: 'https://transak.com/terms-world',
   CONSENSYS_PRIVACY_POLICY_URL: 'https://consensys.io/privacy-policy',
@@ -56,7 +56,7 @@ jest.mock('../../Deposit/constants/constants', () => ({
 }));
 
 jest.mock(
-  '../../Deposit/assets/verifyIdentityIllustration.png',
+  '../../assets/verifyIdentityIllustration.png',
   () => 'mock-image',
 );
 

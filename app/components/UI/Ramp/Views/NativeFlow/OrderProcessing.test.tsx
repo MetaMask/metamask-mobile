@@ -30,7 +30,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
-jest.mock('../../Deposit/constants', () => ({
+jest.mock('../../constants', () => ({
   TRANSAK_SUPPORT_URL: 'https://support.transak.com',
 }));
 
@@ -54,7 +54,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../Deposit/components/DepositOrderContent/DepositOrderContent',
+  '../../components/DepositOrderContent/DepositOrderContent',
   () => {
     const { createElement } = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');

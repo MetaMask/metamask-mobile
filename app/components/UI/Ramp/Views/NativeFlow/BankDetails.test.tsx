@@ -103,7 +103,7 @@ jest.mock('../../../../hooks/useThunkDispatch', () => ({
   default: () => jest.fn(),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
+jest.mock('../../utils/depositUtils', () => ({
   hasDepositOrderField: (data: unknown, field: string) => {
     if (!data || typeof data !== 'object') return false;
     return field in (data as Record<string, unknown>);
@@ -111,7 +111,7 @@ jest.mock('../../Deposit/utils', () => ({
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
-jest.mock('../../Deposit/orderProcessor', () => ({
+jest.mock('../../orderProcessor/depositOrderProcessor', () => ({
   depositOrderToFiatOrder: jest.fn((order) => ({
     ...order,
     orderType: 'BUY',
@@ -130,7 +130,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../Deposit/components/BankDetailRow', () => {
+jest.mock('../../components/BankDetailRow', () => {
   const { createElement } = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {

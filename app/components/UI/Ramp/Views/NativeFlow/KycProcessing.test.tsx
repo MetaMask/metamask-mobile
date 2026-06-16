@@ -55,7 +55,7 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../Deposit/constants', () => ({
+jest.mock('../../constants', () => ({
   KycStatus: {
     NOT_SUBMITTED: 'NOT_SUBMITTED',
     SUBMITTED: 'SUBMITTED',

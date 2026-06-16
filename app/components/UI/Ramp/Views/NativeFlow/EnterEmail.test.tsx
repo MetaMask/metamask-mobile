@@ -52,14 +52,14 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
-  ...jest.requireActual('../../Deposit/utils'),
+jest.mock('../../utils/depositUtils', () => ({
+  ...jest.requireActual('../../utils/depositUtils'),
   validateEmail: (email: string) => /\S+@\S+\.\S+/.test(email),
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
 jest.mock(
-  '../../Deposit/components/DepositProgressBar/DepositProgressBar',
+  '../../components/DepositProgressBar/DepositProgressBar',
   () => {
     const { createElement } = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');

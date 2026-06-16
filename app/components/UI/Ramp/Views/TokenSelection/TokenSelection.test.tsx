@@ -2,10 +2,10 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import TokenSelection from './TokenSelection';
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
-import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
+import useSearchTokenResults from '../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
+import { MOCK_CRYPTOCURRENCIES } from '../../testUtils';
 import { useRampsController } from '../../hooks/useRampsController';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -59,7 +59,7 @@ function renderWithProvider(
   );
 }
 
-jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
+jest.mock('../../hooks/useSearchTokenResults', () => jest.fn());
 
 const mockGoToBuy = jest.fn();
 
@@ -79,7 +79,7 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
 }));
 
 const mockGetNetworkName = jest.fn();
-jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({
+jest.mock('../../hooks/useDepositCryptoCurrencyNetworkName', () => ({
   useDepositCryptoCurrencyNetworkName: () => mockGetNetworkName,
 }));
 
