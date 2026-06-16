@@ -40,6 +40,12 @@ const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
 const RTDS_PING_INTERVAL_MS = 5000;
 const DEFAULT_THROTTLE_INTERVAL_MS = 16;
 const ORDERBOOK_EMIT_THROTTLE_MS = 250;
+// Market `price_change` events can arrive many times per second on active
+// markets. Dispatching each one synchronously re-renders every subscribed
+// outcome card, redraws the chart and recomputes positions on every tick, which
+// pins the JS thread (notably on game market details). Coalesce per token and
+// flush on this cadence instead. Prices are display-only, so ~4 Hz is plenty.
+const MARKET_PRICE_EMIT_THROTTLE_MS = 250;
 
 const HEARTBEAT_CHECK_INTERVAL_MS = 5000;
 const MARKET_STALE_THRESHOLD_MS = 60000;
@@ -108,6 +114,10 @@ export class WebSocketManager {
   private gameSubscriptions: Map<string, Set<GameUpdateCallback>> = new Map();
   private priceSubscriptions: Map<string, Set<PriceUpdateCallback>> = new Map();
   private marketPriceCache: Map<string, PriceUpdate> = new Map();
+  // Coalesced, not-yet-dispatched market price updates (keyed by token) plus the
+  // timer that flushes them to subscribers on MARKET_PRICE_EMIT_THROTTLE_MS.
+  private marketPriceEmitBuffer: Map<string, PriceUpdate> = new Map();
+  private marketPriceEmitTimer: ReturnType<typeof setInterval> | null = null;
   private orderbookSubscriptions: Map<string, Set<OrderbookCallback>> =
     new Map();
   private orderbookState: Map<
@@ -821,36 +831,11 @@ export class WebSocketManager {
 
       updates.forEach((update) => {
         this.marketPriceCache.set(update.tokenId, update);
+        // Coalesce: keep only the latest price per token until the next flush.
+        this.marketPriceEmitBuffer.set(update.tokenId, update);
       });
 
-      this.priceSubscriptions.forEach((callbacks, key) => {
-        const subscribedTokenIds = new Set(key.split(','));
-        const relevantUpdates = updates.filter((u) =>
-          subscribedTokenIds.has(u.tokenId),
-        );
-
-        if (relevantUpdates.length > 0) {
-          callbacks.forEach((callback) => {
-            try {
-              callback(relevantUpdates);
-            } catch (error) {
-              DevLogger.log(
-                'WebSocketManager: Market price subscriber failed',
-                {
-                  error,
-                  subscriptionKey: key,
-                },
-              );
-              Logger.error(
-                this.toError(error),
-                this.getErrorContext('handleMarketMessage', 'market', {
-                  subscriptionKey: key,
-                }),
-              );
-            }
-          });
-        }
-      });
+      this.ensureMarketPriceEmitTimer();
 
       // Intentionally NOT forwarding `price_change` to orderbook subscribers.
       // The payload only carries `best_bid` / `best_ask` (no per-level
@@ -869,6 +854,55 @@ export class WebSocketManager {
       );
     }
   };
+
+  private ensureMarketPriceEmitTimer(): void {
+    if (this.marketPriceEmitTimer) {
+      return;
+    }
+
+    this.marketPriceEmitTimer = setInterval(() => {
+      this.flushMarketPriceBuffer();
+    }, MARKET_PRICE_EMIT_THROTTLE_MS);
+  }
+
+  private flushMarketPriceBuffer(): void {
+    if (this.marketPriceEmitBuffer.size === 0) {
+      if (this.marketPriceEmitTimer) {
+        clearInterval(this.marketPriceEmitTimer);
+        this.marketPriceEmitTimer = null;
+      }
+      return;
+    }
+
+    const updates = Array.from(this.marketPriceEmitBuffer.values());
+    this.marketPriceEmitBuffer.clear();
+
+    this.priceSubscriptions.forEach((callbacks, key) => {
+      const subscribedTokenIds = new Set(key.split(','));
+      const relevantUpdates = updates.filter((u) =>
+        subscribedTokenIds.has(u.tokenId),
+      );
+
+      if (relevantUpdates.length > 0) {
+        callbacks.forEach((callback) => {
+          try {
+            callback(relevantUpdates);
+          } catch (error) {
+            DevLogger.log('WebSocketManager: Market price subscriber failed', {
+              error,
+              subscriptionKey: key,
+            });
+            Logger.error(
+              this.toError(error),
+              this.getErrorContext('flushMarketPriceBuffer', 'market', {
+                subscriptionKey: key,
+              }),
+            );
+          }
+        });
+      }
+    });
+  }
 
   private handleBookEvent(data: MarketWebSocketEvent): void {
     if (!data.asset_id) {
@@ -1028,6 +1062,12 @@ export class WebSocketManager {
   private cleanupMarketConnection(): void {
     this.stopMarketPing();
     this.stopMarketHeartbeat();
+
+    if (this.marketPriceEmitTimer) {
+      clearInterval(this.marketPriceEmitTimer);
+      this.marketPriceEmitTimer = null;
+    }
+    this.marketPriceEmitBuffer.clear();
 
     if (this.marketReconnectTimeout) {
       clearTimeout(this.marketReconnectTimeout);

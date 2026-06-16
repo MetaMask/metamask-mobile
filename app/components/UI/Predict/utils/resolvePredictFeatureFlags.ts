@@ -9,7 +9,10 @@ import {
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
-import { filterSupportedLeagues } from '../constants/sports';
+import {
+  filterSupportedLeagues,
+  SUPPORTED_SPORTS_LEAGUES,
+} from '../constants/sports';
 import {
   parse,
   PredictFeeCollectionSchema,
@@ -85,11 +88,22 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
+  let extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
     extendedSportsFlag,
   )
     ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
     : [];
+  // TEMP / DEV-ONLY OVERRIDE — do NOT commit/merge. Delete this single line to
+  // restore remote-flag behavior. Force-enables extended sports markets (game
+  // lines / outcome cards + chips) for ALL supported leagues so the Predict game
+  // details performance fix can be validated locally (e.g. France vs Senegal,
+  // Iraq vs New Zealand), bypassing remote-flag precedence + version gating for
+  // both the UI gate (useGameDetailsTabs) and the data-parse gate
+  // (PolymarketProvider). Reload JS AND refetch the market (pull-to-refresh /
+  // reopen) afterwards, since outcomeGroups are built at parse time.
+  extendedSportsMarketsLeagues = filterSupportedLeagues(
+    SUPPORTED_SPORTS_LEAGUES,
+  );
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
   );

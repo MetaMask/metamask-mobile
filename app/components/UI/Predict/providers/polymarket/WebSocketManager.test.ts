@@ -569,6 +569,8 @@ describe('WebSocketManager', () => {
         timestamp: '2025-01-12T12:00:00Z',
       });
 
+      jest.advanceTimersByTime(250);
+
       expect(callback).toHaveBeenCalledWith([
         {
           tokenId: 'token1',
@@ -598,6 +600,8 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:00Z',
       });
+
+      jest.advanceTimersByTime(250);
 
       expect(callback).toHaveBeenCalledWith([
         {
@@ -696,6 +700,8 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:00Z',
       });
+
+      jest.advanceTimersByTime(250);
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({ tokenId: 'token1' }),
@@ -1132,6 +1138,8 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:00Z',
       });
+
+      jest.advanceTimersByTime(250);
 
       expect(priceCallback).toHaveBeenCalledTimes(1);
       expect(orderbookCallback).not.toHaveBeenCalled();
@@ -2260,6 +2268,8 @@ describe('WebSocketManager', () => {
         timestamp: '2025-01-12T12:00:00Z',
       });
 
+      jest.advanceTimersByTime(250);
+
       expect(throwingCallback).toHaveBeenCalledTimes(1);
       expect(healthyCallback).toHaveBeenCalledTimes(1);
     });
@@ -2294,6 +2304,8 @@ describe('WebSocketManager', () => {
         timestamp: '2025-01-12T12:00:00Z',
       });
 
+      jest.advanceTimersByTime(250);
+
       expect(throwingCallback).toHaveBeenCalledTimes(1);
       expect(healthyCallback).toHaveBeenCalledTimes(1);
     });
@@ -2322,6 +2334,9 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:00Z',
       });
+
+      jest.advanceTimersByTime(250);
+
       mockWebSocketInstances[0].simulateMessage({
         event_type: 'price_change',
         market: 'market-1',
@@ -2335,6 +2350,8 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:01Z',
       });
+
+      jest.advanceTimersByTime(250);
 
       expect(throwingCallback).toHaveBeenCalledTimes(2);
       expect(healthyCallback).toHaveBeenCalledTimes(2);
@@ -2365,6 +2382,8 @@ describe('WebSocketManager', () => {
         timestamp: '2025-01-12T12:00:00Z',
       });
 
+      jest.advanceTimersByTime(250);
+
       expect(mockedLoggerError).toHaveBeenCalledTimes(1);
       const [errorArg, optionsArg] = mockedLoggerError.mock.calls[0];
       expect(errorArg).toBeInstanceOf(Error);
@@ -2378,7 +2397,7 @@ describe('WebSocketManager', () => {
         context: {
           name: 'WebSocketManager',
           data: {
-            method: 'handleMarketMessage',
+            method: 'flushMarketPriceBuffer',
             subscriptionKey: 'token1',
           },
         },
