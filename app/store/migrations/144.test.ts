@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { captureException } from '@sentry/react-native';
 
 import { ensureValidState } from './util';
 import migrate from './144';
@@ -7,7 +8,12 @@ jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
 const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedCaptureException = jest.mocked(captureException);
 
 const baseValidState = () => ({
   engine: { backgroundState: {} },
@@ -28,9 +34,10 @@ describe('Migration 144: per-connection WalletConnect metadata', () => {
 
     expect(migratedState).toBe(state);
     expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged if state.sdk is missing', () => {
+  it('captures an error and returns state unchanged if state.sdk is missing', () => {
     mockedEnsureValidState.mockReturnValue(true);
     const state = baseValidState();
 
@@ -38,15 +45,23 @@ describe('Migration 144: per-connection WalletConnect metadata', () => {
 
     expect(migratedState).toBe(state);
     expect(migratedState).toStrictEqual(baseValidState());
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      'Migration 144: Missing sdk state slice',
+    );
   });
 
-  it('returns state unchanged if state.sdk is not an object', () => {
+  it('captures an error and returns state unchanged if state.sdk is not an object', () => {
     mockedEnsureValidState.mockReturnValue(true);
     const state = { ...baseValidState(), sdk: 'not-an-object' };
 
     const migratedState = migrate(state) as typeof state;
 
     expect(migratedState.sdk).toBe('not-an-object');
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      `Migration 144: Invalid sdk state error: '"not-an-object"'`,
+    );
   });
 
   it('removes legacy wc2Metadata and initializes wc2SessionMetadata when missing', () => {

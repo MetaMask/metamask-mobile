@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
@@ -26,7 +27,21 @@ const migration = (state: unknown): unknown => {
     return state;
   }
 
-  if (!hasProperty(state, 'sdk') || !isObject(state.sdk)) {
+  if (!hasProperty(state, 'sdk')) {
+    captureException(
+      new Error(`Migration ${migrationVersion}: Missing sdk state slice`),
+    );
+    return state;
+  }
+
+  if (!isObject(state.sdk)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid sdk state error: '${JSON.stringify(
+          state.sdk,
+        )}'`,
+      ),
+    );
     return state;
   }
 
@@ -36,7 +51,10 @@ const migration = (state: unknown): unknown => {
     delete sdk.wc2Metadata;
   }
 
-  if (!hasProperty(sdk, 'wc2SessionMetadata') || !isObject(sdk.wc2SessionMetadata)) {
+  if (
+    !hasProperty(sdk, 'wc2SessionMetadata') ||
+    !isObject(sdk.wc2SessionMetadata)
+  ) {
     sdk.wc2SessionMetadata = {};
   }
 
