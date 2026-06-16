@@ -7,6 +7,10 @@ import React, {
   useRef,
 } from 'react';
 import { Dimensions, Animated, Linking } from 'react-native';
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { CarouselProps, CarouselSlide } from './types';
@@ -155,8 +159,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   // Carousel-level animations for empty state dismissal
   const carouselOpacity = useRef(new Animated.Value(1)).current;
-  const carouselHeight = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
+  const carouselHeight = useSharedValue(BANNER_HEIGHT + 6);
   const carouselScaleY = useRef(new Animated.Value(1)).current;
+  const carouselContainerStyle = useAnimatedStyle(() => ({
+    height: carouselHeight.value,
+  }));
 
   const isAnimating = useRef(false);
 
@@ -642,15 +649,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   }
 
   return (
-    <Animated.View
-      style={[
-        tw.style('mx-4'),
-        {
-          height: carouselHeight, // Layout animation (non-native)
-        },
-        style,
-      ]}
-    >
+    <Reanimated.View style={[tw.style('mx-4'), carouselContainerStyle, style]}>
       <Animated.View
         style={{
           opacity: carouselOpacity,
@@ -719,7 +718,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           </Box>
         </Box>
       </Animated.View>
-    </Animated.View>
+    </Reanimated.View>
   );
 };
 

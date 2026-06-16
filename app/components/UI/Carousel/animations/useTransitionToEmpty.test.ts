@@ -2,6 +2,16 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Animated } from 'react-native';
 import { useTransitionToEmpty } from './useTransitionToEmpty';
 
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  return {
+    ...Reanimated,
+    default: {
+      ...Reanimated.default,
+    },
+  };
+});
+
 // Use fake timers to prevent environment teardown issues
 jest.useFakeTimers();
 
@@ -30,31 +40,28 @@ jest.mock('react-native', () => {
     })),
     timing: jest.fn(() => ({
       start: jest.fn((callback) => {
-        // Use process.nextTick for immediate completion
-        if (callback) process.nextTick(callback);
+        if (callback) callback();
       }),
       stop: jest.fn(),
       reset: jest.fn(),
     })),
     parallel: jest.fn(() => ({
       start: jest.fn((callback) => {
-        // Simulate parallel completion
-        if (callback) process.nextTick(callback);
+        if (callback) callback();
       }),
       stop: jest.fn(),
       reset: jest.fn(),
     })),
     sequence: jest.fn(() => ({
       start: jest.fn((callback) => {
-        // Simulate sequence completion
-        if (callback) process.nextTick(callback);
+        if (callback) callback();
       }),
       stop: jest.fn(),
       reset: jest.fn(),
     })),
     delay: jest.fn(() => ({
       start: jest.fn((callback) => {
-        if (callback) process.nextTick(callback);
+        if (callback) callback();
       }),
     })),
   };
@@ -80,10 +87,11 @@ describe('useTransitionToEmpty', () => {
   afterAll(() => {
     jest.useRealTimers();
   });
+
   const mockAnimations = {
     carouselOpacity: new Animated.Value(1),
     emptyCardOpacity: new Animated.Value(1),
-    carouselHeight: new Animated.Value(106),
+    carouselHeight: { value: 106 },
     carouselScaleY: new Animated.Value(1),
   };
 
@@ -100,13 +108,24 @@ describe('useTransitionToEmpty', () => {
 
     // When - transition is executed
     const transitionPromise = result.current.executeTransition(mockCallback);
-
-    // Run all pending timers to complete animations
     jest.runAllTimers();
+    await Promise.resolve();
 
     // Then - transition completes and callback is called
     await expect(transitionPromise).resolves.toBeUndefined();
     expect(mockCallback).toHaveBeenCalled();
+  });
+
+  it('animates carousel height on the UI thread via Reanimated', async () => {
+    const { result } = renderHook(() => useTransitionToEmpty(mockAnimations));
+    const mockCallback = jest.fn();
+
+    const transitionPromise = result.current.executeTransition(mockCallback);
+
+    jest.runAllTimers();
+    await transitionPromise;
+
+    expect(mockAnimations.carouselHeight.value).toBe(0);
   });
 
   it('falls back to timeout when no animations provided', async () => {
