@@ -57,7 +57,7 @@ class SendView {
   }
 
   get amountInputField(): EncapsulatedElementType {
-    return Matchers.getElementByID('txn-amount-input');
+    return Matchers.getElementByID('send_amount');
   }
 
   get nextButton(): EncapsulatedElementType {

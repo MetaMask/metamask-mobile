@@ -226,3 +226,6 @@ release-signoffs.json
 
 # Build environment validation
 build-env.json
+
+# Deepwork session state
+.slim/deepwork/

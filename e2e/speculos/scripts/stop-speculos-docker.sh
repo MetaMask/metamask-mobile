@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
-HW_EMULATOR_DIR="${PROJECT_ROOT}/node_modules/@metamask-previews/hw-emulator"
+HW_EMULATOR_DIR="${PROJECT_ROOT}/node_modules/@metamask/hw-emulator"
 COMPOSE_FILE="${HW_EMULATOR_DIR}/docker-compose.yml"
 
 if [ ! -f "${COMPOSE_FILE}" ]; then

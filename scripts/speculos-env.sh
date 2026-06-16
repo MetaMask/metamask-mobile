@@ -16,8 +16,9 @@ set -euo pipefail
 #   LEDGER_E2E=1 yarn detox test -c android.emu.main.speculos.debug --testPathPattern='ledger-send-eth'
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SPECULOS_BLE_DIR="$ROOT_DIR/packages/speculos-ble"
-HW_EMULATOR_DIR="$ROOT_DIR/node_modules/@metamask-previews/hw-emulator"
+# Source of truth for the emulator package (apps/, nvram/, python_src/, .venv).
+# Defaults to the local accounts repo build; override with ACCOUNTS_HW_EMULATOR_DIR.
+HW_EMULATOR_DIR="${ACCOUNTS_HW_EMULATOR_DIR:-/Users/montelai/consensys/accounts/packages/hw-emulator}"
 
 # Config
 SEED="grit essence story volume tip entry situate found february olympic monitor hybrid"
@@ -60,10 +61,10 @@ check_anvil() {
 }
 
 check_speculos_ble() {
-  local venv_python="$SPECULOS_BLE_DIR/.venv/bin/python"
+  local venv_python="$HW_EMULATOR_DIR/.venv/bin/python"
   if [[ ! -f "$venv_python" ]]; then
-    err "speculos-ble venv not found at $SPECULOS_BLE_DIR/.venv/"
-    err "Run: cd $SPECULOS_BLE_DIR && python3 -m venv .venv && .venv/bin/pip install -e ."
+    err "speculos-ble venv not found at $HW_EMULATOR_DIR/.venv/"
+    err "Run: bash $HW_EMULATOR_DIR/scripts/setup-python.sh"
     exit 1
   fi
 }
@@ -147,7 +148,7 @@ start_speculos_ble() {
   pkill -f "speculos_ble" 2>/dev/null || true
   sleep 1
 
-  local venv_python="$SPECULOS_BLE_DIR/.venv/bin/python"
+  local venv_python="$HW_EMULATOR_DIR/.venv/bin/python"
 
   log "Starting speculos-ble (android-netsim transport)..."
   "$venv_python" -m speculos_ble \

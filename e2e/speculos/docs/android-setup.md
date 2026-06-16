@@ -61,8 +61,11 @@ curl --retry 10 --retry-delay 1 http://127.0.0.1:5000/ping
 
 ## Step 5: Start speculos-ble
 
+The BLE bridge now lives in the `@metamask/hw-emulator` package (accounts repo).
+Run it from there:
+
 ```bash
-bash packages/speculos-ble/scripts/start-android.sh
+bash "$ACCOUNTS_REPO/packages/hw-emulator/scripts/start-android.sh"
 ```
 
 Wait for "speculos-ble ready" in output.

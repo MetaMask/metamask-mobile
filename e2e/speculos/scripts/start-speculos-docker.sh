@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Start Speculos via @metamask-previews/hw-emulator DockerManager (docker-compose).
+# Start Speculos via @metamask/hw-emulator DockerManager (docker-compose).
 # This uses the hw-emulator's bundled ELF files, docker-compose.yml, and health checks.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
-HW_EMULATOR_DIR="${PROJECT_ROOT}/node_modules/@metamask-previews/hw-emulator"
+HW_EMULATOR_DIR="${PROJECT_ROOT}/node_modules/@metamask/hw-emulator"
 
 COMPOSE_FILE="${HW_EMULATOR_DIR}/docker-compose.yml"
 
 if [ ! -f "${COMPOSE_FILE}" ]; then
   echo "Error: hw-emulator docker-compose.yml not found at ${COMPOSE_FILE}"
-  echo "Run: yarn add @metamask-previews/hw-emulator@0.1.0-de887b2"
+  echo "Run: yarn install (resolves @metamask/hw-emulator via file:)"
   exit 1
 fi
 

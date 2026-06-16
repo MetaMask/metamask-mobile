@@ -1,5 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { execSync, spawn, type ChildProcess } from 'child_process';
+import { execSync } from 'child_process';
 import { resolve, join } from 'path';
 import { withFixtures } from './FixtureHelper';
 import {
@@ -20,17 +20,32 @@ import type { Mockttp } from 'mockttp';
 import type CommandQueueServer from './CommandQueueServer';
 import {
   DockerManager,
+  SpeculosBleRunner,
   SPECULOS_SEED as HW_EMULATOR_SEED,
   SPECULOS_LEDGER_ADDRESS as HW_EMULATOR_LEDGER_ADDRESS,
-} from '@metamask-previews/hw-emulator';
+} from '@metamask/hw-emulator';
 
 const logger = createLogger({ name: 'SpeculosFixtureHelper' });
 
-const SPECULOS_BLE_DIR = resolve(__dirname, '../../../packages/speculos-ble');
+/**
+ * Source-of-truth directory for the `@metamask/hw-emulator` package, used by
+ * `SpeculosBleRunner` to locate `python_src/` and the Python virtualenv.
+ *
+ * The package is resolved into `node_modules` via a Yarn `file:` resolution,
+ * but a Python venv is non-portable, so it is created once at the source path
+ * (`scripts/setup-python.sh`) and located at runtime via these env vars —
+ * letting the runner find the real venv regardless of where the package was
+ * copied. Override `HW_EMULATOR_SOURCE_DIR` to use a different local checkout.
+ */
+const HW_EMULATOR_SOURCE_DIR =
+  process.env.HW_EMULATOR_SOURCE_DIR ??
+  '/Users/montelai/consensys/accounts/packages/hw-emulator';
+process.env.SPECULOS_BLE_PACKAGE_DIR ??= HW_EMULATOR_SOURCE_DIR;
+process.env.SPECULOS_BLE_VENV_DIR ??= `${HW_EMULATOR_SOURCE_DIR}/.venv`;
 
 const HW_EMULATOR_DIR = resolve(
   __dirname,
-  '../../../node_modules/@metamask-previews/hw-emulator',
+  '../../../node_modules/@metamask/hw-emulator',
 );
 
 export interface SpeculosConfig {
@@ -133,6 +148,9 @@ export class SpeculosHelper {
   }
 
   async isControlApiReady(): Promise<boolean> {
+    // Control-API readiness is now owned by SpeculosBleRunner. This thin
+    // wrapper is retained for ad-hoc diagnostics (e.g. manual probes of the
+    // control port during debugging) and delegates to the same /health check.
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 2000);
@@ -147,19 +165,6 @@ export class SpeculosHelper {
     } catch {
       return false;
     }
-  }
-
-  async waitForControlApi(maxRetries = 30, delayMs = 2000): Promise<void> {
-    for (let i = 0; i < maxRetries; i++) {
-      if (await this.isControlApiReady()) {
-        logger.debug('Control API is ready');
-        return;
-      }
-      await new Promise((r) => setTimeout(r, delayMs));
-    }
-    throw new Error(
-      `Control API not ready at ${this.config.speculosHost}:${this.config.controlApiPort} after ${maxRetries} retries`,
-    );
   }
 
   async pressButton(
@@ -203,6 +208,17 @@ export class SpeculosHelper {
     }
   }
 
+  // Device-interaction helpers below (pressButton / approveTransaction /
+  // enableBlindSigning / autoApproveSigning / ...) are kept here rather than
+  // migrated to the hw-emulator package's `createDeviceInteraction`/`Speculos`
+  // APIs on purpose:
+  //  - `enableBlindSigning` includes a 4× left-press preamble to recover from
+  //    stale NVRAM (the Ethereum app may boot into Settings/Blind Signing). The
+  //    package's NanoInteraction.enableBlindSigning lacks this preamble.
+  //  - The package's `Speculos` wrapper does not expose enableBlindSigning /
+  //    autoApproveSigning convenience methods.
+  // These methods talk to the Speculos Docker REST API directly and remain the
+  // simplest correct implementation for the Detox flows.
   async approveTransaction(): Promise<void> {
     for (let i = 0; i < 6; i++) {
       await this.pressButton('right');
@@ -304,57 +320,6 @@ export class SpeculosHelper {
   }
 }
 
-function startSpeculosBleService(config: SpeculosConfig): ChildProcess {
-  const venvPython = join(SPECULOS_BLE_DIR, '.venv', 'bin', 'python');
-
-  const args = [
-    '-m',
-    'speculos_ble',
-    '--transport',
-    'android-netsim',
-    '--device-name',
-    config.deviceName,
-    '--speculos-host',
-    config.speculosHost,
-    '--speculos-apdu-port',
-    String(config.speculosApduPort),
-    '--speculos-api-port',
-    String(config.speculosApiPort),
-    '--control-api-port',
-    String(config.controlApiPort),
-    '-v',
-  ];
-
-  logger.debug(`Starting speculos-ble: ${venvPython} ${args.join(' ')}`);
-
-  const child = spawn(venvPython, args, {
-    cwd: SPECULOS_BLE_DIR,
-    stdio: ['ignore', 'pipe', 'pipe'],
-    env: {
-      ...process.env,
-      VIRTUAL_ENV: join(SPECULOS_BLE_DIR, '.venv'),
-    },
-  });
-
-  child.stdout?.on('data', (data: Buffer) => {
-    logger.debug(`[speculos-ble stdout] ${data.toString().trim()}`);
-  });
-
-  child.stderr?.on('data', (data: Buffer) => {
-    logger.debug(`[speculos-ble stderr] ${data.toString().trim()}`);
-  });
-
-  child.on('error', (err) => {
-    logger.error(`speculos-ble process error: ${err.message}`);
-  });
-
-  child.on('exit', (code, signal) => {
-    logger.debug(`speculos-ble exited with code=${code} signal=${signal}`);
-  });
-
-  return child;
-}
-
 function createDockerManager(config: SpeculosConfig): DockerManager {
   const composeFile = join(HW_EMULATOR_DIR, 'docker-compose.yml');
   const elfPath = join(HW_EMULATOR_DIR, 'apps', config.elfFilename);
@@ -368,6 +333,7 @@ function createDockerManager(config: SpeculosConfig): DockerManager {
     seed: SPECULOS_MNEMONIC,
     display: 'headless',
     loadNvram: true,
+    startTimeout: 180000, // 3 minutes (default 60s is too short when Docker is under load)
   });
 }
 
@@ -419,7 +385,7 @@ export async function withSpeculosFixtures(
     options.startSpeculos !== undefined && options.startSpeculos !== false;
 
   let dockerManager: DockerManager | undefined;
-  let bleProcess: ChildProcess | undefined;
+  let bleRunner: SpeculosBleRunner | undefined;
 
   try {
     if (shouldStartDocker) {
@@ -433,29 +399,39 @@ export async function withSpeculosFixtures(
     const speculos = new SpeculosHelper(speculosConfig, dockerManager);
     await speculos.waitForSpeculos();
 
-    // Kill any stale speculos-ble processes (but NOT Docker — that's running)
+    // Kill any stale speculos-ble processes (but NOT Docker — that's running).
     cleanupStaleSpeculosBle(speculosConfig.controlApiPort);
 
-    logger.debug('Starting speculos-ble with android-netsim transport...');
-    bleProcess = startSpeculosBleService(speculosConfig);
+    logger.debug(
+      'Starting speculos-ble (SpeculosBleRunner, android-netsim)...',
+    );
+    bleRunner = new SpeculosBleRunner({
+      speculosHost: speculosConfig.speculosHost,
+      speculosApduPort: speculosConfig.speculosApduPort,
+      speculosApiPort: speculosConfig.speculosApiPort,
+      controlApiPort: speculosConfig.controlApiPort,
+      deviceName: speculosConfig.deviceName,
+      transport: 'android-netsim',
+      verbose: true,
+      onLog: (line, stream) => logger.debug(`[speculos-ble ${stream}] ${line}`),
+    });
+    bleRunner.start();
 
-    // Give the process a moment to start before checking readiness
+    // Give the process a moment to start before checking readiness.
     await new Promise((r) => setTimeout(r, 1000));
 
-    // Verify the process didn't crash immediately
-    if (bleProcess.exitCode !== null) {
+    // Verify the process didn't crash immediately.
+    if (!bleRunner.isRunning) {
       throw new Error(
-        `speculos-ble process exited immediately with code=${bleProcess.exitCode}. Check port ${speculosConfig.controlApiPort} availability.`,
+        `speculos-ble process exited immediately. Check port ${speculosConfig.controlApiPort} availability.`,
       );
     }
 
-    await speculos.waitForControlApi();
+    await bleRunner.waitForControlApi();
 
-    // Double-check the process is still alive after readiness
-    if (bleProcess.exitCode !== null) {
-      throw new Error(
-        `speculos-ble process died after Control API readiness (code=${bleProcess.exitCode})`,
-      );
+    // Double-check the process is still alive after readiness.
+    if (!bleRunner.isRunning) {
+      throw new Error('speculos-ble process died after Control API readiness');
     }
 
     logger.debug(
@@ -491,21 +467,9 @@ export async function withSpeculosFixtures(
       });
     });
   } finally {
-    if (bleProcess) {
-      logger.debug('Stopping speculos-ble process...');
-      bleProcess.kill('SIGTERM');
-      try {
-        await new Promise<void>((res) => {
-          const proc = bleProcess as ChildProcess;
-          proc.once('exit', () => res());
-          setTimeout(() => {
-            proc.kill('SIGKILL');
-            res();
-          }, 5000);
-        });
-      } catch {
-        // Best effort
-      }
+    if (bleRunner) {
+      logger.debug('Stopping speculos-ble runner...');
+      await bleRunner.stop();
     }
     if (dockerManager) {
       logger.debug('Stopping Speculos Docker via DockerManager...');

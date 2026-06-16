@@ -7736,20 +7736,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/hw-emulator@npm:0.1.0-de887b2":
-  version: 0.1.0-de887b2
-  resolution: "@metamask-previews/hw-emulator@npm:0.1.0-de887b2"
-  dependencies:
-    "@ledgerhq/devices": "npm:^7.0.0"
-    "@metamask/speculos-up": "npm:0.1.0"
-    ws: "npm:^8.18.0"
-  peerDependenciesMeta:
-    "@metamask/speculos-up":
-      optional: true
-  checksum: 10/40b7cd38fbf5bfc7ed90f6e2c46ea48ff0e1423e44d97eee282967a9a5956b1b56d5c413cac249f014b6475c4456bce01faa0413433b3b18a347c08387f02ac3
-  languageName: node
-  linkType: hard
-
 "@metamask/7715-permission-types@npm:^0.5.0":
   version: 0.5.0
   resolution: "@metamask/7715-permission-types@npm:0.5.0"
@@ -8972,6 +8958,21 @@ __metadata:
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
   checksum: 10/fb8bd2997911b87acb47931c2a9903d4a25cc8bf4681aa8ada98d1869fceb2a3d642423644863fb4eb991f8e8c611ba10fd6f5c9cd55602849af0a3c094db600
+  languageName: node
+  linkType: hard
+
+"@metamask/hw-emulator@file:/Users/montelai/consensys/accounts/packages/hw-emulator::locator=metamask%40workspace%3A.":
+  version: 0.1.0
+  resolution: "@metamask/hw-emulator@file:/Users/montelai/consensys/accounts/packages/hw-emulator#/Users/montelai/consensys/accounts/packages/hw-emulator::hash=7942c4&locator=metamask%40workspace%3A."
+  dependencies:
+    "@ledgerhq/devices": "npm:^7.0.0"
+    ws: "npm:^8.18.0"
+  peerDependencies:
+    "@metamask/speculos-up": ^0.1.0
+  peerDependenciesMeta:
+    "@metamask/speculos-up":
+      optional: true
+  checksum: 10/ff825b1fc21ac4c0135de67db105a13154841932fbfcafc80cd3ce398125baabf77bad21e768b922a1b9fd48eb87f8c58d3d447a738ec9a17d6291413fbf6afe
   languageName: node
   linkType: hard
 
@@ -10283,12 +10284,6 @@ __metadata:
   checksum: 10/5a04227ed51ce27ffd24d691ba4f4136f07a77c04a79eed1f6eb883c9b98e3be7cdf5527833a8af1e1530936b581f74bb7dd6ba18019346939c77498f3c70ff4
   languageName: node
   linkType: hard
-
-"@metamask/speculos-up@link:.yarn/dummies/speculos-up::locator=metamask%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@metamask/speculos-up@link:.yarn/dummies/speculos-up::locator=metamask%40workspace%3A."
-  languageName: node
-  linkType: soft
 
 "@metamask/stake-sdk@npm:^3.2.1, @metamask/stake-sdk@npm:^3.4.0":
   version: 3.4.0
@@ -35311,7 +35306,6 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
-    "@metamask-previews/hw-emulator": "npm:0.1.0-de887b2"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.4"
     "@metamask/account-tree-controller": "npm:^7.5.0"
@@ -35367,6 +35361,7 @@ __metadata:
     "@metamask/gas-fee-controller": "npm:^26.1.0"
     "@metamask/gator-permissions-controller": "npm:^4.0.0"
     "@metamask/geolocation-controller": "npm:^0.1.1"
+    "@metamask/hw-emulator": "file:/Users/montelai/consensys/accounts/packages/hw-emulator"
     "@metamask/hw-wallet-sdk": "npm:^0.8.0"
     "@metamask/json-rpc-engine": "npm:^10.5.0"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"

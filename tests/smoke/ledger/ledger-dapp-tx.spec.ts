@@ -17,9 +17,11 @@ import {
 } from '../../flows/browser.flow';
 import { DappVariants } from '../../framework/Constants';
 
+const describeIf = process.env.LEDGER_E2E === '1' ? describe : describe.skip;
+
 jest.setTimeout(600000);
 
-describe(SmokeLedger, () => {
+describeIf(SmokeLedger('Sign dApp transaction via Ledger'), () => {
   it('should sign a dApp-initiated EIP-1559 transaction via Ledger', async () => {
     await withSpeculosFixtures(
       {
@@ -41,6 +43,10 @@ describe(SmokeLedger, () => {
           },
         );
 
+        // Enable blind signing on the virtual Ledger device.
+        // EIP-1559 transactions require blind signing on the Ethereum app.
+        await speculos.enableBlindSigning();
+
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await waitForTestDappToLoad();
@@ -48,13 +54,30 @@ describe(SmokeLedger, () => {
         await TestDApp.tapSendEIP1559Button();
         await TestHelpers.delay(3000);
 
-        speculos.autoApproveSigning();
         await FooterActions.tapConfirmButton(30000);
+
+        // Wait for the HW bottom sheet to appear in any state
+        // (scanning, connecting, awaiting-confirmation, etc.).
+        await HardwareWalletBottomSheet.waitForVisible(90000);
+        await TestHelpers.delay(2000);
+
+        // If in device-selection state, reconnect the virtual device.
+        try {
+          await HardwareWalletBottomSheet.waitForDeviceSelection(10000);
+          await HardwareWalletBottomSheet.selectVirtualDevice();
+          await TestHelpers.delay(2000);
+          await HardwareWalletBottomSheet.tapConnect();
+        } catch {
+          // Device already connected; bottom sheet is in connecting/awaiting state.
+        }
 
         await Assertions.expectElementToBeVisible(
           HardwareWalletBottomSheet.awaitingConfirmationContent,
-          { timeout: 30000 },
+          { timeout: 120000 },
         );
+
+        // Press buttons on the virtual Ledger device to approve the transaction.
+        await speculos.approveTransaction();
 
         await Assertions.expectElementToBeVisible(
           HardwareWalletBottomSheet.successContent,

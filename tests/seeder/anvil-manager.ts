@@ -1,4 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
+import { execSync } from 'child_process';
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import fs from 'fs';
 import path from 'path';
