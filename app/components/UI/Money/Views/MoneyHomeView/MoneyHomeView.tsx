@@ -166,6 +166,7 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
     isLinking,
     hasMoneyAccountRequirements,
+    isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
@@ -581,6 +582,8 @@ const MoneyHomeView = () => {
   let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
+  } else if (isResidencyBlocked) {
+    metamaskCardMode = null;
   } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
     metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
   } else if (isCardAuthenticated) {
