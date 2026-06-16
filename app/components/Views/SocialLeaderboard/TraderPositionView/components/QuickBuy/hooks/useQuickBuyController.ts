@@ -16,7 +16,6 @@ import {
   playErrorNotification,
   playImpact,
 } from '../../../../../../../util/haptics';
-import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 import {
   dotAndCommaDecimalFormatter,
   isNumberValue,
@@ -29,7 +28,10 @@ import {
   formatMinimumReceived,
 } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
-import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
+import {
+  isSameAsset,
+  selectDefaultSourceToken,
+} from '../../../../utils/tokenSelection';
 import type {
   QuickBuyAmountDisplayMode,
   QuickBuyAnalyticsContext,
@@ -38,6 +40,7 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
 import { usePayWithTokens } from './usePayWithTokens';
@@ -58,6 +61,7 @@ import {
   selectDestAddress,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSlippage,
@@ -280,6 +284,7 @@ export function useQuickBuyController(
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isNonEvmSourced = useSelector(selectIsNonEvmSourced);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedAddress = useSelector(
@@ -298,7 +303,7 @@ export function useQuickBuyController(
   } = useQuickBuySetup(target);
 
   // ─── Buy "Pay with" options (tokens the user holds) ─────────────────────
-  const { options: sourceTokenOptions } = usePayWithTokens();
+  const { options: heldTokenOptions } = usePayWithTokens();
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
   >(undefined);
@@ -307,9 +312,10 @@ export function useQuickBuyController(
   // the auto-select effect is allowed to correct a stale selection.
   const isManualSelectionRef = useRef(false);
 
-  // Dest-token lookup key passed to `selectDefaultSourceToken` so the
-  // destination is filtered out of source candidates and not preselected as
-  // pay-with. Reads from `positionTokenFromSetup` once available because
+  // Dest-token lookup key used to exclude the destination from the "Pay with"
+  // options and from the default source-token selection — a source equal to
+  // the destination can never produce a quote.
+  // Reads from `positionTokenFromSetup` once available because
   // `useQuickBuySetup` normalises `address` to match what `sourceTokenOptions`
   // contains — bare hex for EVM (zero address for native, mint hex for
   // ERC-20) and CAIP-19 for non-EVM. Comparing against the raw
@@ -337,6 +343,20 @@ export function useQuickBuyController(
     target.tokenSymbol,
   ]);
 
+  // "Pay with" options surfaced to the picker: the asset being bought is
+  // excluded so the user can never select a source equal to the buy target
+  // (TSA-660). While ERC-20 metadata resolves, `destLookupKey` falls back to
+  // the raw target values; the non-EVM symbol fallback in `isSameAsset`
+  // covers cross-format mismatches in that window, and the dest is filtered
+  // out on the next render once the normalised address lands.
+  const sourceTokenOptions = useMemo(
+    () =>
+      destLookupKey
+        ? heldTokenOptions.filter((token) => !isSameAsset(token, destLookupKey))
+        : heldTokenOptions,
+    [heldTokenOptions, destLookupKey],
+  );
+
   // Auto-select default source token using smart priority rules (see
   // `selectDefaultSourceToken`). `destLookupKey` is passed so the destination
   // is deprioritized and not preselected when the user has other holdings.
@@ -362,6 +382,21 @@ export function useQuickBuyController(
     destChainId,
     destLookupKey,
   ]);
+
+  // If the current selection turns out to BE the destination asset — e.g. it
+  // was picked while ERC-20 metadata was still resolving and the normalised
+  // dest address only matched afterwards — fall back to the best non-dest
+  // option instead of silently keeping a same-token pair that can never
+  // quote. Clears the manual flag so the auto-select effect can take over
+  // again if the fallback yields nothing.
+  useEffect(() => {
+    if (!selectedSourceToken || !destLookupKey) return;
+    if (!isSameAsset(selectedSourceToken, destLookupKey)) return;
+    isManualSelectionRef.current = false;
+    setSelectedSourceToken(
+      selectDefaultSourceToken(sourceTokenOptions, destChainId, destLookupKey),
+    );
+  }, [selectedSourceToken, destLookupKey, sourceTokenOptions, destChainId]);
 
   // ─── Sell mode: position token (what the user is selling) ──────────────
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
@@ -669,12 +704,13 @@ export function useQuickBuyController(
     if (!sourceAmt || !destAmt || isNaN(sourceAmt) || isNaN(destAmt))
       return undefined;
     const rate = destAmt / sourceAmt;
-    const formatter = getIntlNumberFormatter(I18n.locale, {
-      ...(rate > 1
+    const formattedRateValue = formatQuickBuyRateValue(
+      rate,
+      rate > 1
         ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
-        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
-    });
-    return `1 ${sourceToken.symbol} = ${formatter.format(rate)} ${destToken.symbol}`;
+        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 },
+    );
+    return `1 ${sourceToken.symbol} = ${formattedRateValue} ${destToken.symbol}`;
   }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
@@ -1104,13 +1140,13 @@ export function useQuickBuyController(
     }
     markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
-    // Same-chain Solana swaps never reach a terminal `BridgeStatusController`
-    // status, so the terminal toast must resolve from
+    // Same-chain non-EVM swaps (Solana, Tron, Bitcoin) never reach a terminal
+    // `BridgeStatusController` status, so the terminal toast must resolve from
     // `MultichainTransactionsController` instead. Cross-chain bridges (incl.
-    // Solana → EVM) still settle via the bridge status path, so they are
+    // non-EVM → EVM) still settle via the bridge status path, so they are
     // excluded here.
     const isNonEvmSwap =
-      Boolean(isSolanaSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
+      Boolean(isNonEvmSourced) && !isEvmNonEvmBridge && !isNonEvmNonEvmBridge;
     // Captures the copy data for every swap-lifecycle toast so the pending,
     // complete and failed states read consistently — and so the app-root
     // watcher can render the terminal toast after the sheet has unmounted.
@@ -1230,7 +1266,7 @@ export function useQuickBuyController(
     onClose,
     toastRef,
     theme,
-    isSolanaSourced,
+    isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
     sourceToken?.chainId,
