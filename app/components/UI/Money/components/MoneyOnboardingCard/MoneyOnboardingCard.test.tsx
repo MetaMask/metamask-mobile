@@ -103,6 +103,8 @@ interface SetupOptions {
   isCardAuthenticated?: boolean;
   isCardVerified?: boolean;
   isCardLinkedToMoneyAccount?: boolean;
+  isResidencyBlocked?: boolean;
+  isAggregatedBalanceLoading?: boolean;
   isBalanceLoading?: boolean;
   tokenTotal?: BigNumber;
 }
@@ -113,6 +115,8 @@ const setupDefaultMocks = ({
   isCardAuthenticated = false,
   isCardVerified = false,
   isCardLinkedToMoneyAccount = false,
+  isResidencyBlocked = false,
+  isAggregatedBalanceLoading = false,
   isBalanceLoading = false,
   tokenTotal = new BigNumber(0),
 }: SetupOptions = {}) => {
@@ -133,6 +137,7 @@ const setupDefaultMocks = ({
     isCardAuthenticated,
     isCardVerified,
     isCardLinkedToMoneyAccount,
+    isResidencyBlocked,
     isLinking: false,
   });
   mockIsCardholder.mockReturnValue(isCardholder);
@@ -710,6 +715,37 @@ describe('MoneyOnboardingCard', () => {
           total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
         }),
       );
+    });
+  });
+
+  describe('residency blocking', () => {
+    it('auto-skips step 2 when residency is blocked and account is funded', () => {
+      setupDefaultMocks({
+        currentStep: 0,
+        isCardholder: true,
+        isCardAuthenticated: true,
+        isCardVerified: true,
+        isResidencyBlocked: true,
+        tokenTotal: new BigNumber(100),
+      });
+
+      const { toJSON } = render(<MoneyOnboardingCard />);
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('shows get-card step 2 when residency is not blocked', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardAuthenticated: false,
+        isResidencyBlocked: false,
+      });
+
+      const { getByText } = render(<MoneyOnboardingCard />);
+
+      expect(
+        getByText(strings('money.onboarding.step_2.no_card_account.title')),
+      ).toBeOnTheScreen();
     });
   });
 });
