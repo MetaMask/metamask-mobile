@@ -22,6 +22,8 @@ import {
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
+  fetchRelatedTagsFromPolymarketApi,
+  normalizeRelatedTagsToFilterOptions,
   getAllowance,
   getClobMarketInfo,
   getClobMarketInfoSafe,
@@ -257,10 +259,32 @@ describe('polymarket utils', () => {
           status: 'open',
           volumeNum: 100,
           liquidity: 100,
-          negRisk: false,
+          negRisk: true,
           clobTokenIds: '["token-yes","token-no"]',
           outcomes: '["Yes","No"]',
           outcomePrices: '["0.5","0.5"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+        {
+          conditionId: 'condition-draw',
+          question: 'United States vs Canada',
+          description: 'Draw market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: 'Draw',
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: true,
+          clobTokenIds: '["token-draw-yes","token-draw-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.25","0.75"]',
           closed: false,
           active: true,
           acceptingOrders: true,
@@ -301,6 +325,124 @@ describe('polymarket utils', () => {
       expect.objectContaining({
         active: true,
         acceptingOrders: true,
+        image: 'usa.png',
+        tokens: [
+          expect.objectContaining({
+            id: 'token-yes',
+            title: 'Yes',
+            shortTitle: 'usa',
+          }),
+          expect.objectContaining({
+            id: 'token-no',
+            title: 'No',
+            shortTitle: 'can',
+          }),
+        ],
+      }),
+    );
+    expect(market.outcomes[1]).toEqual(
+      expect.objectContaining({
+        image: 'icon.png',
+        tokens: [
+          expect.objectContaining({
+            id: 'token-draw-yes',
+            title: 'Yes',
+            shortTitle: 'Draw',
+          }),
+          expect.objectContaining({
+            id: 'token-draw-no',
+            title: 'No',
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('does not apply team logo and short title normalization to non-moneyline markets', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      usa: {
+        id: 'team-usa',
+        name: 'United States',
+        logo: 'usa.png',
+        abbreviation: 'usa',
+        color: 'red',
+        alias: 'USA',
+        league: 'fifwc',
+      },
+      can: {
+        id: 'team-can',
+        name: 'Canada',
+        logo: 'can.png',
+        abbreviation: 'can',
+        color: 'white',
+        alias: 'CAN',
+        league: 'fifwc',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: 'event-non-moneyline',
+      slug: 'fifwc-usa-can-2026-06-12',
+      title: 'United States vs Canada',
+      description: 'World Cup match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '11433',
+          slug: 'world-cup',
+          title: 'World Cup',
+          recurrence: 'none',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-non-moneyline',
+          question: 'United States vs Canada',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: 'United States',
+          sportsMarketType: 'custom_market',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: true,
+          clobTokenIds: '["token-yes","token-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.5","0.5"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'games', label: 'Games', slug: 'games' },
+        { id: 'world-cup', label: 'World Cup', slug: 'fifa-world-cup' },
+      ],
+      liquidity: 100,
+      volume: 100,
+      gameId: 'game-1',
+      startTime: '2026-06-12T20:00:00.000Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+    });
+
+    expect(market.outcomes[0]).toEqual(
+      expect.objectContaining({
+        image: 'icon.png',
+        tokens: [
+          { id: 'token-yes', title: 'Yes', price: 0.5 },
+          { id: 'token-no', title: 'No', price: 0.5 },
+        ],
       }),
     );
   });
@@ -729,6 +871,23 @@ describe('polymarket utils', () => {
       const params = buildMarketListQueryParams({ tags: ['100', '200'] });
 
       expect(params.getAll('tag_id')).toEqual(['100', '200']);
+      expect(params.getAll('tag_slug')).toEqual([]);
+    });
+
+    it('appends multiple tagSlugs as repeated tag_slug params', () => {
+      const params = buildMarketListQueryParams({ tagSlugs: ['nba', 'nfl'] });
+
+      expect(params.getAll('tag_slug')).toEqual(['nba', 'nfl']);
+    });
+
+    it('appends tag_id and tag_slug independently when both are provided', () => {
+      const params = buildMarketListQueryParams({
+        tags: ['100'],
+        tagSlugs: ['politics'],
+      });
+
+      expect(params.getAll('tag_id')).toEqual(['100']);
+      expect(params.getAll('tag_slug')).toEqual(['politics']);
     });
 
     it('appends multiple series as repeated series_id params', () => {
@@ -837,6 +996,229 @@ describe('polymarket utils', () => {
       await expect(fetchMarketsFromPolymarketApi()).rejects.toThrow(
         'Malformed keyset events response',
       );
+    });
+  });
+
+  describe('fetchRelatedTagsFromPolymarketApi', () => {
+    it('builds the related-tags endpoint URL for the general "all" root', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: '1', slug: 'nba' }]),
+      });
+
+      await expect(fetchRelatedTagsFromPolymarketApi('all')).resolves.toEqual([
+        { id: '1', slug: 'nba' },
+      ]);
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'https://gamma-api.polymarket.com/tags/slug/all/related-tags/tags?omit_empty=true&status=active',
+      );
+    });
+
+    it('builds the URL for a feed-specific slug such as politics', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      await fetchRelatedTagsFromPolymarketApi('politics');
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'https://gamma-api.polymarket.com/tags/slug/politics/related-tags/tags?omit_empty=true&status=active',
+      );
+    });
+
+    it('url-encodes the slug', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      await fetchRelatedTagsFromPolymarketApi('march madness');
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('/tags/slug/march%20madness/related-tags/tags');
+    });
+
+    it('throws when the response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false });
+
+      await expect(fetchRelatedTagsFromPolymarketApi('all')).rejects.toThrow(
+        'Failed to fetch related tags',
+      );
+    });
+
+    it('throws when the payload is not an array', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+      await expect(fetchRelatedTagsFromPolymarketApi('all')).rejects.toThrow(
+        'Malformed related-tags response',
+      );
+    });
+  });
+
+  describe('normalizeRelatedTagsToFilterOptions', () => {
+    it('normalizes each tag into a slug-based filter option with ready params', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NFL', slug: 'nfl' },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result).toEqual([
+        {
+          id: 'nba',
+          label: 'NBA',
+          source: 'hot-tags',
+          params: { tagSlugs: ['nba'], order: 'volume24hr', status: 'open' },
+        },
+        {
+          id: 'nfl',
+          label: 'NFL',
+          source: 'hot-tags',
+          params: { tagSlugs: ['nfl'], order: 'volume24hr', status: 'open' },
+        },
+      ]);
+    });
+
+    it('merges baseParams into each option params', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: { tagSlugs: ['sports'], live: true },
+        },
+      );
+
+      // tagSlugs is overridden with the option's own slug; other base params kept.
+      expect(option.params).toEqual({
+        tagSlugs: ['nba'],
+        live: true,
+        order: 'volume24hr',
+        status: 'open',
+      });
+    });
+
+    it('never leaks a pagination cursor (afterCursor) from baseParams into option params', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: { live: true, afterCursor: 'cursor-123' },
+        },
+      );
+
+      expect(option.params).not.toHaveProperty('afterCursor');
+      expect(option.params).toEqual({
+        order: 'volume24hr',
+        status: 'open',
+        live: true,
+        tagSlugs: ['nba'],
+      });
+    });
+
+    it('lets baseParams override the default order/status, but never tagSlugs', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: {
+            order: 'newest',
+            status: 'closed',
+            tagSlugs: ['sports'],
+          },
+        },
+      );
+
+      expect(option.params).toEqual({
+        order: 'newest',
+        status: 'closed',
+        tagSlugs: ['nba'],
+      });
+    });
+
+    it('falls back to the slug when label is missing/blank', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: '  ', slug: 'nba' }],
+        { source: 'hot-tags' },
+      );
+
+      expect(option.label).toBe('nba');
+    });
+
+    it('dedupes by slug (id), keeping the first occurrence', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NBA dup', slug: 'nba' },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].label).toBe('NBA');
+    });
+
+    it('drops options whose slug is in existingIds (static-vs-dynamic dedupe)', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Politics', slug: 'politics' },
+          { id: '2', label: 'NBA', slug: 'nba' },
+        ],
+        { source: 'hot-tags', existingIds: ['politics'] },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba']);
+    });
+
+    it('skips tags with missing/blank slugs', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'No slug', slug: '' },
+          { id: '2', label: 'NBA', slug: 'nba' },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba']);
+    });
+
+    it('respects limit', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NFL', slug: 'nfl' },
+          { id: '3', label: 'NHL', slug: 'nhl' },
+        ],
+        { source: 'hot-tags', limit: 2 },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
+
+    it('returns an empty list when limit is 0', () => {
+      expect(
+        normalizeRelatedTagsToFilterOptions(
+          [
+            { id: '1', label: 'NBA', slug: 'nba' },
+            { id: '2', label: 'NFL', slug: 'nfl' },
+          ],
+          { source: 'hot-tags', limit: 0 },
+        ),
+      ).toEqual([]);
+    });
+
+    it('returns an empty list for empty input', () => {
+      expect(
+        normalizeRelatedTagsToFilterOptions([], { source: 'hot-tags' }),
+      ).toEqual([]);
     });
   });
 

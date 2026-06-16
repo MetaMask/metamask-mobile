@@ -11,7 +11,8 @@ export interface PredictLiveSportsFlag {
 
 export interface PredictMarketHighlight {
   category: string;
-  markets: string[];
+  markets?: string[];
+  series?: string[];
 }
 
 export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {

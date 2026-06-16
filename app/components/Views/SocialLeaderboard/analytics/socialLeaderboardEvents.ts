@@ -84,7 +84,9 @@ export type SocialLeaderboardSource =
   | 'leaderboard'
   | 'trader_profile'
   | 'profile_position'
-  | 'asset_details';
+  | 'asset_details'
+  | 'market_insights'
+  | 'security_trust';
 
 export type LeaderboardScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -113,5 +115,10 @@ export type FollowTradingTokenSource = Extract<
 
 export type QuickBuySheetSource = Extract<
   SocialLeaderboardSource,
-  'notification' | 'profile_position' | 'leaderboard' | 'asset_details'
+  | 'notification'
+  | 'profile_position'
+  | 'leaderboard'
+  | 'asset_details'
+  | 'market_insights'
+  | 'security_trust'
 >;

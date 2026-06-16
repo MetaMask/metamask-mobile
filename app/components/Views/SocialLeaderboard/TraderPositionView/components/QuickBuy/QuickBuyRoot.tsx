@@ -1,6 +1,6 @@
 import {
-  BottomSheet,
-  type BottomSheetRef,
+  BottomSheetDialog,
+  type BottomSheetDialogRef,
   Box,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -17,7 +17,7 @@ import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
-import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
+import QuickBuyTokenSelectScreen from './QuickBuyTokenSelectScreen';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
@@ -54,7 +54,7 @@ function renderActiveScreen(
 
   switch (activeScreen) {
     case 'payWith':
-      return <QuickBuyPayWithScreen />;
+      return <QuickBuyTokenSelectScreen />;
     case 'quoteDetails':
       return <QuickBuyQuoteDetailsScreen />;
     case 'selectQuote':
@@ -83,10 +83,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   children,
 }) => {
   const tw = useTailwind();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
   const [lockedHeight, setLockedHeight] = useState<number | null>(null);
+  // True once a dismissal is requested via the CTA/Cancel so the content drops
+  // with the sheet instead of running its horizontal screen-exit transition.
+  const [isClosing, setIsClosing] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const surfaceClass = useElevatedSurface();
 
@@ -112,10 +115,23 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   );
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet(() => {
+    bottomSheetRef.current?.onOpenDialog(() => {
       setIsContentReady(true);
     });
   }, []);
+
+  // Animate the sheet down (then run the parent's onClose) and flag the content
+  // as closing so it doesn't slide horizontally on the way out. Falls back to a
+  // direct onClose when the imperative handle isn't available.
+  const requestClose = useCallback(() => {
+    setIsClosing(true);
+    const sheet = bottomSheetRef.current;
+    if (sheet?.onCloseDialog) {
+      sheet.onCloseDialog(onClose);
+    } else {
+      onClose();
+    }
+  }, [onClose]);
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -131,7 +147,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   );
 
   return (
-    <BottomSheet
+    <BottomSheetDialog
       ref={bottomSheetRef}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
@@ -140,7 +156,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       {isContentReady ? (
         <QuickBuyProvider
           target={target}
-          onClose={onClose}
+          onClose={requestClose}
           features={features}
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
@@ -154,7 +170,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
             <Animated.View
               key={activeScreen}
               entering={hasNavigated ? entering : undefined}
-              exiting={exiting}
+              exiting={isClosing ? undefined : exiting}
               style={lockedHeight !== null ? tw.style('flex-1') : undefined}
             >
               {renderActiveScreen(activeScreen, children)}
@@ -170,7 +186,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           <QuickBuyBottomSheetSkeleton />
         </AnimatedScrollView>
       )}
-    </BottomSheet>
+    </BottomSheetDialog>
   );
 };
 

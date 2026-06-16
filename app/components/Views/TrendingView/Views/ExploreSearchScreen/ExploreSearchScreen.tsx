@@ -19,7 +19,9 @@ import SearchFeedRow, {
   getItemId,
 } from '../../search/SearchFeedRow';
 import {
+  getExploreSearchResultCount,
   trackExploreSearchEvent,
+  useInstrumentedSearchEffect,
   useScrollTracking,
   type SearchFeedPill,
 } from '../../search/analytics';
@@ -45,6 +47,7 @@ interface FullFeedListProps {
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
+  resultCount?: number;
 }
 
 const FullFeedList: React.FC<FullFeedListProps> = ({
@@ -57,6 +60,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   fetchMore,
   isFetchingMore,
   hasMore,
+  resultCount,
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<unknown>>(null);
@@ -65,9 +69,18 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [searchQuery]);
 
-  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
-    tab_name: tabName,
-  });
+  const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
+    'scrolled',
+    searchQuery,
+    {
+      tab_name: tabName,
+      result_count: resultCount,
+    },
+  );
+
+  useEffect(() => {
+    resetScrollTracking();
+  }, [searchQuery, resetScrollTracking]);
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
@@ -77,9 +90,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         index={index}
         searchQuery={searchQuery}
         tabName={tabName}
+        resultCount={resultCount}
       />
     ),
-    [feedId, searchQuery, tabName],
+    [feedId, searchQuery, tabName, resultCount],
   );
 
   const keyExtractor = useCallback(
@@ -161,6 +175,10 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const { sections } = useExploreSearch(searchQuery, {
     exposePagination: true,
   });
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
+
+  const isLoading = sections.some((s) => s.isLoading);
 
   const pills = useMemo<PillOption[]>(
     () => [
@@ -178,12 +196,28 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     [sections, activePill],
   );
 
+  const getActivePill = useCallback(() => activePillRef.current, []);
+  const getSections = useCallback(() => sectionsRef.current, []);
+
+  useInstrumentedSearchEffect({
+    searchQuery,
+    isLoading,
+    getPill: getActivePill,
+    getSections,
+  });
+
   const handlePillSelect = useCallback((key: string) => {
+    const targetSections = sectionsRef.current;
+    const resultCount = getExploreSearchResultCount(
+      key as SearchFeedPill,
+      targetSections,
+    );
     trackExploreSearchEvent({
       interaction_type: 'tab_switched',
       search_query: searchQueryRef.current,
       tab_name: key as SearchFeedPill,
       previous_tab: activePillRef.current,
+      result_count: resultCount,
     });
     setActivePill(key as ActivePill);
   }, []);
@@ -225,6 +259,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
           fetchMore={activeSection?.fetchMore}
           isFetchingMore={activeSection?.isFetchingMore}
           hasMore={activeSection?.hasMore}
+          resultCount={activeSection?.total ?? activeSection?.items.length}
         />
       ) : (
         <ExploreSearchResults

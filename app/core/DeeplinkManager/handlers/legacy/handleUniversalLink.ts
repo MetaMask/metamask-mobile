@@ -20,23 +20,38 @@ import { capitalize } from '../../../../util/general';
 import handleRampUrl from './handleRampUrl';
 import handleRampReturnUrl from './handleRampReturnUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
-import { handleSwapUrl } from './handleSwapUrl';
+import { handleSwapUrl, createSwapDeeplinkIntent } from './handleSwapUrl';
+import { handleBatchSellUrl } from './handleBatchSellUrl';
 import handleBrowserUrl from './handleBrowserUrl';
+import {
+  createDappDeeplinkIntent,
+  getDappUrlFromUniversalLink,
+} from './handleDappUrl';
 import { handleCreateAccountUrl } from './handleCreateAccountUrl';
-import { handlePerpsUrl } from './handlePerpsUrl';
-import { handleRewardsUrl } from './handleRewardsUrl';
-import { handlePredictUrl } from './handlePredictUrl';
+import { handlePerpsUrl, createPerpsDeeplinkIntent } from './handlePerpsUrl';
+import {
+  createRewardsDeeplinkIntent,
+  handleRewardsUrl,
+} from './handleRewardsUrl';
+import {
+  handlePredictUrl,
+  createPredictDeeplinkIntent,
+} from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
-import { handleTrendingUrl } from './handleTrendingUrl';
+import {
+  handleTrendingUrl,
+  createTrendingDeeplinkIntent,
+} from './handleTrendingUrl';
 import { handleWhatsHappeningUrl } from './handleWhatsHappeningUrl';
 import { handleSocialLeaderboardUrl } from './handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
+import { handleAgenticCliApproval } from './handleAgenticCliApproval';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
@@ -60,6 +75,8 @@ import ReduxService from '../../../redux';
 import { analytics } from '../../../../util/analytics/analytics';
 import branch from 'react-native-branch';
 import Logger from '../../../../util/Logger';
+import type { DeeplinkParseMode } from '../../utils/parseDeeplink';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
@@ -72,6 +89,7 @@ const SUPPORTED_ACTIONS = {
   HOME: ACTIONS.HOME,
   ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
+  BATCH_SELL: ACTIONS.BATCH_SELL,
   SEND: ACTIONS.SEND,
   CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
   PERPS: ACTIONS.PERPS,
@@ -91,6 +109,7 @@ const SUPPORTED_ACTIONS = {
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
+  AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   ON_RAMP: ACTIONS.ON_RAMP,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
@@ -107,6 +126,7 @@ type SUPPORTED_ACTIONS =
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.SWAP,
+  SUPPORTED_ACTIONS.BATCH_SELL,
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
@@ -126,6 +146,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
+  SUPPORTED_ACTIONS.AGENTIC_CLI,
   SUPPORTED_ACTIONS.ON_RAMP,
 ];
 
@@ -160,6 +181,110 @@ const trackDeepLinkAnalytics = (
     });
 };
 
+interface UniversalLinkActionHandlerContext {
+  actionBasedRampPath: string;
+  baseUrlAction: string;
+  browserCallBack?: (url: string) => void;
+  urlObj: ReturnType<typeof extractURLParams>['urlObj'];
+  source: string;
+}
+
+interface UniversalLinkActionHandler {
+  execute: (context: UniversalLinkActionHandlerContext) => void | Promise<void>;
+  resolve?: (
+    context: UniversalLinkActionHandlerContext,
+  ) => DeeplinkIntent | Promise<DeeplinkIntent> | null;
+}
+
+// perps-asset URLs carry just '?symbol=X', so inject screen=asset to reuse the
+// unified perps handler/intent builder.
+const getPerpsAssetPath = (actionBasedRampPath: string): string =>
+  `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`;
+
+const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
+  Record<SUPPORTED_ACTIONS, UniversalLinkActionHandler>
+> = {
+  // Actions listed here can opt into startup intent resolution while still
+  // sharing the signature, interstitial, and analytics flow above.
+  [SUPPORTED_ACTIONS.DAPP]: {
+    execute: ({ baseUrlAction, browserCallBack, urlObj }) => {
+      const deeplinkUrl = getDappUrlFromUniversalLink({
+        baseUrlAction,
+        urlObj,
+      });
+      if (!deeplinkUrl) {
+        return;
+      }
+      handleBrowserUrl({
+        url: deeplinkUrl,
+        callback: browserCallBack,
+      });
+    },
+    resolve: ({ baseUrlAction, urlObj }) => {
+      const deeplinkUrl = getDappUrlFromUniversalLink({
+        baseUrlAction,
+        urlObj,
+      });
+      return deeplinkUrl
+        ? createDappDeeplinkIntent({ url: deeplinkUrl })
+        : null;
+    },
+  },
+  [SUPPORTED_ACTIONS.REWARDS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleRewardsUrl({
+        rewardsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createRewardsDeeplinkIntent({
+        rewardsPath: actionBasedRampPath,
+      }),
+  },
+  [SUPPORTED_ACTIONS.PERPS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handlePerpsUrl({ perpsPath: actionBasedRampPath }),
+    resolve: ({ actionBasedRampPath }) =>
+      createPerpsDeeplinkIntent({ perpsPath: actionBasedRampPath }),
+  },
+  [SUPPORTED_ACTIONS.PERPS_MARKETS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handlePerpsUrl({ perpsPath: actionBasedRampPath }),
+    resolve: ({ actionBasedRampPath }) =>
+      createPerpsDeeplinkIntent({ perpsPath: actionBasedRampPath }),
+  },
+  [SUPPORTED_ACTIONS.PERPS_ASSET]: {
+    // perps-asset URLs need screen=asset injected since actionBasedRampPath is
+    // just '?symbol=X'
+    execute: ({ actionBasedRampPath }) =>
+      handlePerpsUrl({ perpsPath: getPerpsAssetPath(actionBasedRampPath) }),
+    resolve: ({ actionBasedRampPath }) =>
+      createPerpsDeeplinkIntent({
+        perpsPath: getPerpsAssetPath(actionBasedRampPath),
+      }),
+  },
+  [SUPPORTED_ACTIONS.SWAP]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleSwapUrl({ swapPath: actionBasedRampPath }),
+    resolve: ({ actionBasedRampPath }) =>
+      createSwapDeeplinkIntent({ swapPath: actionBasedRampPath }),
+  },
+  [SUPPORTED_ACTIONS.PREDICT]: {
+    execute: ({ actionBasedRampPath, source }) =>
+      handlePredictUrl({ predictPath: actionBasedRampPath, origin: source }),
+    resolve: ({ actionBasedRampPath, source }) =>
+      createPredictDeeplinkIntent({
+        predictPath: actionBasedRampPath,
+        origin: source,
+      }),
+  },
+  [SUPPORTED_ACTIONS.TRENDING]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleTrendingUrl({ actionPath: actionBasedRampPath }),
+    resolve: ({ actionBasedRampPath }) =>
+      createTrendingDeeplinkIntent({ actionPath: actionBasedRampPath }),
+  },
+};
+
 async function handleUniversalLink({
   instance,
   handled,
@@ -167,6 +292,7 @@ async function handleUniversalLink({
   browserCallBack,
   url,
   source,
+  mode = 'execute',
 }: {
   instance: DeeplinkManager;
   handled: () => void;
@@ -174,7 +300,8 @@ async function handleUniversalLink({
   browserCallBack?: (url: string) => void;
   url: string;
   source: string;
-}) {
+  mode?: DeeplinkParseMode;
+}): Promise<boolean | DeeplinkIntent | null | void> {
   const validatedUrl = new URL(url);
 
   if (
@@ -204,6 +331,22 @@ async function handleUniversalLink({
   let isPrivateLink = false;
   let isInvalidLink = false;
 
+  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
+  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+  const universalLinkActionHandler = isActionSupported
+    ? UNIVERSAL_LINK_ACTION_HANDLERS[action]
+    : undefined;
+
+  if (
+    mode === 'resolve' &&
+    (!isSupportedDomain ||
+      !isActionSupported ||
+      !universalLinkActionHandler?.resolve)
+  ) {
+    handled();
+    return null;
+  }
+
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
@@ -212,6 +355,23 @@ async function handleUniversalLink({
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
+
+    // Fire DEEP_LINK_USED for SDK deeplinks (they previously bypassed all analytics)
+    const sdkRoute = isSupportedAction(action)
+      ? mapSupportedActionToRoute(action)
+      : DeepLinkRoute.INVALID;
+
+    trackDeepLinkAnalytics({
+      url,
+      route: sdkRoute,
+      urlParams: params || {},
+      branchParams: {},
+      signatureStatus: SignatureStatus.MISSING,
+      interstitialShown: false,
+      interstitialDisabled: false,
+      interstitialAction: InterstitialState.NOT_SHOWN,
+    });
+
     // `handleMetaMaskDeeplink` is async. We deliberately don't await it here;
     // the call is fire-and-forget from the deeplink pipeline's perspective,
     // but we must still surface rejections (including the synchronous
@@ -232,9 +392,6 @@ async function handleUniversalLink({
     return;
   }
 
-  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
-
-  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
   if (!isSupportedDomain) {
     isInvalidLink = true;
   }
@@ -499,6 +656,26 @@ async function handleUniversalLink({
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');
+  const universalLinkActionHandlerContext: UniversalLinkActionHandlerContext = {
+    actionBasedRampPath,
+    baseUrlAction: BASE_URL_ACTION,
+    browserCallBack,
+    urlObj,
+    source,
+  };
+
+  if (mode === 'resolve') {
+    return (
+      universalLinkActionHandler?.resolve?.(
+        universalLinkActionHandlerContext,
+      ) ?? null
+    );
+  }
+
+  if (universalLinkActionHandler) {
+    await universalLinkActionHandler.execute(universalLinkActionHandlerContext);
+    return;
+  }
 
   switch (action) {
     case SUPPORTED_ACTIONS.BUY_CRYPTO:
@@ -529,34 +706,9 @@ async function handleUniversalLink({
       });
       break;
     }
-    case SUPPORTED_ACTIONS.SWAP:
-      handleSwapUrl({
-        swapPath: actionBasedRampPath,
-      });
-      return;
-    case SUPPORTED_ACTIONS.DAPP: {
-      // Extract everything after /dapp/ from the URL.
-      // The path can contain either a bare domain (example.com/path)
-      // or a full URL with protocol (https://example.com/path).
-      // When a full URL is embedded, url-parse may normalize the double
-      // slash (https://...app.link/dapp/https://x.com → .../dapp/https:/x.com),
-      // so we check for both http:// and http:/ patterns.
-      const pathAfterAction = urlObj.href.replace(`${BASE_URL_ACTION}/`, '');
-
-      // Guard: no domain was supplied after /dapp/ — nothing to open.
-      if (!pathAfterAction) {
-        return;
-      }
-
-      const hasProtocol = /^https?:\/\/?/.test(pathAfterAction);
-      const deeplinkUrl = hasProtocol
-        ? pathAfterAction.replace(/^(https?:\/)([^/])/, '$1/$2')
-        : `${PREFIXES[ACTIONS.DAPP]}${pathAfterAction}`;
-      handleBrowserUrl({
-        url: deeplinkUrl,
-        callback: browserCallBack,
-      });
-      return;
+    case SUPPORTED_ACTIONS.BATCH_SELL: {
+      handleBatchSellUrl();
+      break;
     }
     case SUPPORTED_ACTIONS.SEND: {
       const deeplinkUrl = urlObj.href
@@ -571,33 +723,6 @@ async function handleUniversalLink({
         path: actionBasedRampPath,
       });
       return;
-    }
-    case SUPPORTED_ACTIONS.PERPS:
-    case SUPPORTED_ACTIONS.PERPS_MARKETS: {
-      handlePerpsUrl({
-        perpsPath: actionBasedRampPath,
-      });
-      break;
-    }
-    case SUPPORTED_ACTIONS.PERPS_ASSET: {
-      // perps-asset URLs need screen=asset injected since actionBasedRampPath is just '?symbol=X'
-      handlePerpsUrl({
-        perpsPath: `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`,
-      });
-      break;
-    }
-    case SUPPORTED_ACTIONS.REWARDS: {
-      handleRewardsUrl({
-        rewardsPath: actionBasedRampPath,
-      });
-      return;
-    }
-    case SUPPORTED_ACTIONS.PREDICT: {
-      handlePredictUrl({
-        predictPath: actionBasedRampPath,
-        origin: source,
-      });
-      break;
     }
     case SUPPORTED_ACTIONS.SHIELD: {
       // shield is only available on extension for now, open shield website from in app browser
@@ -632,12 +757,6 @@ async function handleUniversalLink({
       handleCardKycNotification();
       break;
     }
-    case SUPPORTED_ACTIONS.TRENDING: {
-      handleTrendingUrl({
-        actionPath: actionBasedRampPath,
-      });
-      break;
-    }
     case SUPPORTED_ACTIONS.WHATS_HAPPENING: {
       handleWhatsHappeningUrl();
       break;
@@ -658,6 +777,10 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.NFT: {
       handleNftUrl();
+      break;
+    }
+    case SUPPORTED_ACTIONS.AGENTIC_CLI: {
+      handleAgenticCliApproval({ actionPath: actionBasedRampPath });
       break;
     }
   }

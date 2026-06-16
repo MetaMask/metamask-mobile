@@ -104,7 +104,7 @@ import type {
 
 // Predict params
 import type {
-  PredictMarketListParams,
+  PredictMarketListRouteParams,
   PredictMarketDetailsParams,
   PredictActivityDetailParams,
   PredictBuyPreviewParams,
@@ -121,6 +121,7 @@ import type {
   SDKDisconnectParams,
   ReturnToDappNotificationParams,
 } from '../../components/Views/SDK/SDK.types';
+import type { SDKConnectV2OtpModalParams } from '../../components/Views/SDK/SDKConnectV2OtpModal';
 
 // Notification params
 import type { NotificationDetailsParams } from '../../components/Views/Notifications/Notifications.types';
@@ -356,6 +357,7 @@ export interface RootStackParamList extends ParamListBase {
   TransactionsView: TransactionsViewParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   RewardsView: undefined;
+  RewardsFlow: NestedNavigationParams | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -455,6 +457,7 @@ export interface RootStackParamList extends ParamListBase {
   ConfirmTurnOnBackupAndSync: undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
+  SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
   SDKManageConnections: undefined;
@@ -585,7 +588,7 @@ export interface RootStackParamList extends ParamListBase {
 
   // Predict routes
   Predict: undefined;
-  PredictMarketList: PredictMarketListParams | undefined;
+  PredictMarketList: PredictMarketListRouteParams | undefined;
   PredictMarketDetails: PredictMarketDetailsParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
   PredictModals: undefined;

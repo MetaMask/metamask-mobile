@@ -16,6 +16,7 @@ import Logger from '../Logger';
 import { toFormattedAddress } from '../address';
 import {
   isNotificationPreferencesMissingAgenticCli,
+  resolveAgenticCliPreference,
   withAgenticCliDefaults,
 } from './agenticCliNotificationPreferences';
 
@@ -303,6 +304,35 @@ export const ensureNotificationPreferencesReady = async (): Promise<void> => {
     );
   }
 };
+
+/**
+ * Enables agentic CLI push and in-app notifications when either channel is off.
+ * Used after Agentic CLI QR login so users receive CLI-related notifications.
+ */
+export const enableAgenticCliNotificationsIfDisabled =
+  async (): Promise<boolean> => {
+    await ensureNotificationPreferencesReady();
+
+    const preferences = await readNotificationPreferencesForUpdate();
+    const currentPreference = resolveAgenticCliPreference(preferences);
+
+    if (
+      currentPreference.inAppNotificationsEnabled &&
+      currentPreference.pushNotificationsEnabled
+    ) {
+      return false;
+    }
+
+    await mergeAndPersistNotificationPreferences({
+      agenticCli: {
+        ...currentPreference,
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+      },
+    });
+
+    return true;
+  };
 
 export const readWalletActivityAccountEnabledStates = async (
   accounts: string[],

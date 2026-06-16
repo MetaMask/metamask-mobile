@@ -105,6 +105,31 @@ describe('resolvePredictFeatureFlags', () => {
     expect(result.marketHighlightsFlag).toEqual(marketHighlights);
   });
 
+  it('passes through series ids on market highlights entries unchanged', () => {
+    mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+    const marketHighlights = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      highlights: [
+        {
+          category: 'crypto',
+          markets: ['direct-1'],
+          series: ['series-1', 'series-2'],
+        },
+        { category: 'sports', series: ['series-3'] },
+      ],
+    };
+
+    const result = resolvePredictFeatureFlags({
+      remoteFeatureFlags: {
+        predictMarketHighlights: marketHighlights,
+      },
+    });
+
+    expect(result.marketHighlightsFlag).toEqual(marketHighlights);
+  });
+
   it('falls back to default market highlights flag when validation returns false', () => {
     mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => false);
 

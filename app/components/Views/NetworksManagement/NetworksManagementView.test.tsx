@@ -58,7 +58,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
     })),
-    addTraitsToUser: jest.fn(),
+    identify: jest.fn(),
   }),
 }));
 

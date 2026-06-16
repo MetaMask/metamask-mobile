@@ -1,10 +1,7 @@
 import { Messenger } from '@metamask/messenger';
 import { MultichainRoutingServiceMessenger } from '@metamask/snaps-controllers';
-import {
-  KeyringControllerAddNewKeyringAction,
-  KeyringControllerGetKeyringsByTypeAction,
-} from '@metamask/keyring-controller';
 import { RootMessenger } from '../types';
+import { SnapAccountServiceGetLegacySnapKeyringAction } from '@metamask/snap-account-service';
 
 /**
  * Get the multichain routing service messenger for the multichain routing
@@ -36,8 +33,7 @@ export function getMultichainRoutingServiceMessenger(
 }
 
 type AllowedInitializationActions =
-  | KeyringControllerAddNewKeyringAction
-  | KeyringControllerGetKeyringsByTypeAction;
+  SnapAccountServiceGetLegacySnapKeyringAction;
 
 export type MultichainRoutingServiceInitMessenger = ReturnType<
   typeof getMultichainRoutingServiceInitMessenger
@@ -65,10 +61,7 @@ export function getMultichainRoutingServiceInitMessenger(
   });
 
   rootMessenger.delegate({
-    actions: [
-      'KeyringController:addNewKeyring',
-      'KeyringController:getKeyringsByType',
-    ],
+    actions: ['SnapAccountService:getLegacySnapKeyring'],
     events: [],
     messenger,
   });

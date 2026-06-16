@@ -1,7 +1,10 @@
 import { DEFAULT_AGENTIC_CLI_PREFERENCES } from '@metamask/notification-services-controller';
 import Engine from '../../core/Engine';
 import ReactQueryService from '../../core/ReactQueryService';
-import { ensureAgenticCliNotificationPreferencesMigrated } from './ensureAgenticCliNotificationPreferencesMigrated';
+import {
+  enableAgenticCliNotificationsIfDisabled,
+  ensureAgenticCliNotificationPreferencesMigrated,
+} from './ensureAgenticCliNotificationPreferencesMigrated';
 
 jest.mock(
   '../../core/Engine/controllers/authenticated-user-storage-service-init',
@@ -14,6 +17,7 @@ jest.mock('../../core/ReactQueryService', () => ({
   __esModule: true,
   default: {
     queryClient: {
+      getQueryData: jest.fn(),
       setQueryData: jest.fn(),
       invalidateQueries: jest.fn(),
     },
@@ -58,6 +62,9 @@ describe('ensureAgenticCliNotificationPreferencesMigrated', () => {
     jest
       .mocked(Engine.context.AuthenticationController.getBearerToken)
       .mockResolvedValue('test-token');
+    jest
+      .mocked(ReactQueryService.queryClient.getQueryData)
+      .mockReturnValue(undefined);
     global.fetch = jest.fn();
   });
 
@@ -124,5 +131,65 @@ describe('ensureAgenticCliNotificationPreferencesMigrated', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('enableAgenticCliNotificationsIfDisabled', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest
+      .mocked(Engine.context.AuthenticationController.getBearerToken)
+      .mockResolvedValue('test-token');
+    jest
+      .mocked(ReactQueryService.queryClient.getQueryData)
+      .mockReturnValue(undefined);
+    global.fetch = jest.fn();
+  });
+
+  it('does nothing when agentic CLI notifications are already enabled', async () => {
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue({
+      ...legacyPreferences,
+      agenticCli: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+      },
+    });
+
+    const enabled = await enableAgenticCliNotificationsIfDisabled();
+
+    expect(enabled).toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('enables push and in-app agentic CLI notifications when either is disabled', async () => {
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue({
+      ...legacyPreferences,
+      agenticCli: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: true,
+      },
+    });
+
+    jest.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const enabled = await enableAgenticCliNotificationsIfDisabled();
+
+    expect(enabled).toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/preferences/notifications'),
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({
+          ...legacyPreferences,
+          agenticCli: {
+            inAppNotificationsEnabled: true,
+            pushNotificationsEnabled: true,
+          },
+        }),
+      }),
+    );
   });
 });

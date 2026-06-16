@@ -350,6 +350,17 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('567.89');
   });
 
+  it('pads targetAmount.usd to two decimals when isMaxAmount is true', async () => {
+    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+    useTransactionPayTotalsMock.mockReturnValue({
+      targetAmount: { usd: '3.4' },
+    } as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current.amountFiat).toBe('3.40');
+  });
+
   it.each([
     TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
@@ -439,13 +450,28 @@ describe('useTransactionCustomAmount', () => {
       result.current.updatePendingAmount('0');
     });
 
-    expect(result.current.hasInput).toBe(true);
+    expect(result.current.hasInput).toBe(false);
+  });
+
+  it('clears debounced amounts immediately when amount is cleared', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
 
     await act(async () => {
       jest.runAllTimers();
     });
 
-    expect(result.current.hasInput).toBe(false);
+    expect(result.current.amountFiatDebounced).toBe('123.45');
+
+    await act(async () => {
+      result.current.updatePendingAmount('0');
+    });
+
+    expect(result.current.amountFiatDebounced).toBe('0');
+    expect(result.current.amountHumanDebounced).toBe('0');
   });
 
   describe('updatePendingAmountPercentage updates amount fiat', () => {
@@ -706,7 +732,7 @@ describe('useTransactionCustomAmount', () => {
     it('does NOT set isMaxAmount=true for money account withdraw when Max is pressed', async () => {
       // Same class of bug as perps: isMaxAmount=true makes TPC use on-chain
       // token.balanceRaw (mUSD only) instead of the typed aggregate (mUSD +
-      // musdSHFvd).
+      // vmUSD).
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableMusd: new BigNumber(500),
@@ -833,7 +859,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(result.current.amountFiat).toBe('750.5');
+      expect(result.current.amountFiat).toBe('750.50');
     });
 
     it('returns 0 when payment override is MoneyAccount but totalFiatRaw is undefined', async () => {

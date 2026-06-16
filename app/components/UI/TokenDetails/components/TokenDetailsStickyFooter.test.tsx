@@ -2,11 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import {
-  AMBIENT_NEGATIVE_COLOR,
-  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
-  StickyFooterSwapLabelVariant,
-} from './abTestConfig';
+import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
@@ -86,8 +82,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('./assets/flash-filled.svg', () => 'FlashFilledIcon');
-
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
 let mockHasEligibleSwapTokens = true;
@@ -98,11 +92,6 @@ jest.mock('../hooks/useStickyTokenActions', () => ({
     hasEligibleSwapTokens: mockHasEligibleSwapTokens,
     networkModal: null,
   }),
-}));
-
-const mockUseABTest = jest.fn();
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: (...args: unknown[]) => mockUseABTest(...args),
 }));
 
 const mockTrackStickyFooterTapped = jest.fn();
@@ -133,12 +122,6 @@ describe('TokenDetailsStickyFooter', () => {
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockHasEligibleSwapTokens = true;
-    mockUseABTest.mockReturnValue({
-      variant:
-        STICKY_FOOTER_SWAP_LABEL_VARIANTS[StickyFooterSwapLabelVariant.Control],
-      variantName: StickyFooterSwapLabelVariant.Control,
-      isActive: false,
-    });
   });
 
   describe('button visibility', () => {
@@ -292,64 +275,8 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('A/B test variants - swap button label', () => {
-    it('control variant shows "Swap" label', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
-      const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Swap')).toBeTruthy();
-    });
-
-    it('convert variant shows "Convert" label on swap button', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Treatment
-          ],
-        variantName: StickyFooterSwapLabelVariant.Treatment,
-        isActive: true,
-      });
-      const { getByText, queryByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Convert')).toBeTruthy();
-      expect(queryByText('Swap')).toBeNull();
-    });
-
-    it('falls back to "Swap" label when flag is not active', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: false,
-      });
-      const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Swap')).toBeTruthy();
-    });
-  });
-
   describe('Sticky Footer Button Tapped tracking', () => {
     it('tracks swap button tap with usd_amount_range when balance < $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
@@ -365,14 +292,6 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('tracks buy button tap with usd_amount_range when balance < $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
@@ -388,19 +307,11 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('tracks swap tap with usd_amount_range when balance >= $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Treatment
-          ],
-        variantName: StickyFooterSwapLabelVariant.Treatment,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={150} />,
       );
 
-      fireEvent.press(getByText('Convert'));
+      fireEvent.press(getByText('Swap'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
@@ -412,14 +323,6 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('tracks single swap button with usd_amount_range when balance is undefined', () => {
       mockIsBuyable.mockReturnValue(false);
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
@@ -842,6 +745,20 @@ describe('TokenDetailsStickyFooter', () => {
       fireEvent.press(getByTestId(quickBuyTestID));
 
       expect(onQuickBuyPress).not.toHaveBeenCalled();
+    });
+
+    it('hides the quick buy button when the account has no eligible swap source', () => {
+      mockHasEligibleSwapTokens = false;
+      const onQuickBuyPress = jest.fn();
+      const { queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+
+      expect(queryByTestId(quickBuyTestID)).toBeNull();
     });
   });
 });

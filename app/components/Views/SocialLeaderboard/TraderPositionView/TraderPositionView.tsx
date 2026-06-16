@@ -20,8 +20,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  ButtonHero,
-  ButtonHeroSize,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -117,7 +118,8 @@ const TraderPositionView = () => {
     pnlValue,
     pnlPercent,
     isPnlPositive,
-    trades,
+    allTrades,
+    chartTrades,
     activeTimePeriod,
     setActiveTimePeriod,
     timePeriods,
@@ -339,7 +341,7 @@ const TraderPositionView = () => {
               priceDiff={priceDiff}
               isPricesLoading={isPricesLoading}
               onChartIndexChange={handleChartIndexChange}
-              trades={trades}
+              trades={chartTrades}
             />
 
             <TraderTimePeriodSelector
@@ -357,21 +359,22 @@ const TraderPositionView = () => {
             />
 
             <TraderTradesSection
-              trades={trades}
+              trades={allTrades}
               traderName={traderName}
               traderImageUrl={traderImageUrl}
             />
           </ScrollView>
 
           <Box twClassName="px-4 py-3">
-            <ButtonHero
-              size={ButtonHeroSize.Lg}
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
               isFullWidth
               onPress={handleBuyPress}
               testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
             >
               {strings('social_leaderboard.trader_position.buy')}
-            </ButtonHero>
+            </Button>
           </Box>
 
           <TraderPositionQuickBuy

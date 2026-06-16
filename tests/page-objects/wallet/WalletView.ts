@@ -6,7 +6,6 @@ import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds
 import { CashGetMusdEmptyStateSelectors } from '../../../app/components/Views/Homepage/Sections/Cash/CashGetMusdEmptyState.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
-  PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
   PredictClaimConfirmationSelectorsIDs,
@@ -34,23 +33,7 @@ class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
 
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_CONTAINER,
-            {
-              exact: true,
-            },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.EYE_SLASH_ICON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
@@ -59,7 +42,7 @@ class WalletView {
   }
 
   /** Wallet ScrollView as element (for gestures like swipe). */
-  get walletScrollView(): DetoxElement {
+  get walletScrollView(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
@@ -71,7 +54,7 @@ class WalletView {
    * from the tab bar (e.g. direction 'up' = one more scroll down = section moves higher on screen).
    */
   private async scrollAndTapSection(
-    target: DetoxElement,
+    target: DetoxElement | EncapsulatedElementType,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: {
@@ -97,7 +80,7 @@ class WalletView {
     });
   }
 
-  get earnButton(): DetoxElement {
+  get earnButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
 
@@ -105,19 +88,19 @@ class WalletView {
    * The "Earn" CTA on the USDC token row's secondary balance area.
    * Index 2 = USDC (third token: ETH → mUSD → USDC) in the standard lending fixture.
    */
-  get lendingEarnCta(): DetoxElement {
+  get lendingEarnCta(): EncapsulatedElementType {
     return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 2);
   }
 
-  get stakedEthereumLabel(): DetoxElement {
+  get stakedEthereumLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM);
   }
 
-  get stakeMoreButton(): DetoxElement {
+  get stakeMoreButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
-  get tokenDetectionLinkButton(): DetoxElement {
+  get tokenDetectionLinkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
     );
@@ -139,11 +122,11 @@ class WalletView {
     });
   }
 
-  get eyeSlashIcon(): DetoxElement {
+  get eyeSlashIcon(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON);
   }
 
-  get notificationBellIcon(): DetoxElement {
+  get notificationBellIcon(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
     );
@@ -163,7 +146,7 @@ class WalletView {
     });
   }
 
-  get navbarNetworkText(): DetoxElement {
+  get navbarNetworkText(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
 
@@ -179,33 +162,33 @@ class WalletView {
     });
   }
 
-  get navbarNetworkPicker(): DetoxElement {
+  get navbarNetworkPicker(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
     );
   }
 
-  get navbarCardButton(): DetoxElement {
+  get navbarCardButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
   }
 
-  get nftTab(): DetoxElement {
+  get nftTab(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
 
-  get nftTabContainer(): DetoxElement {
+  get nftTabContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NFT_TAB_CONTAINER);
   }
 
-  get importNFTButton(): DetoxElement {
+  get importNFTButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
   }
 
-  get importTokensButton(): DetoxElement {
+  get importTokensButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
 
-  get networkName(): DetoxElement {
+  get networkName(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NETWORK_NAME);
   }
 
@@ -232,7 +215,7 @@ class WalletView {
     });
   }
 
-  get accountName(): DetoxElement {
+  get accountName(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
@@ -263,57 +246,57 @@ class WalletView {
     });
   }
 
-  get hideTokensLabel(): DetoxElement {
+  get hideTokensLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
-  get currentMainWalletAccountActions(): DetoxElement {
+  get currentMainWalletAccountActions(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
   }
 
-  get tokenNetworkFilter(): DetoxElement {
+  get tokenNetworkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  get sortButton(): DetoxElement {
+  get sortButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
   }
 
-  get sortBy(): DetoxElement {
+  get sortBy(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
   }
 
-  get tokenNetworkFilterAll(): DetoxElement {
+  get tokenNetworkFilterAll(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
     );
   }
 
-  get tokenNetworkFilterCurrent(): DetoxElement {
+  get tokenNetworkFilterCurrent(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
     );
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Cancel');
   }
 
-  get carouselContainer(): DetoxElement {
+  get carouselContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
-  get carouselProgressDots(): DetoxElement {
+  get carouselProgressDots(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
     );
   }
-  get testCollectible(): DetoxElement {
+  get testCollectible(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
   }
-  get testCollectibleFallback(): DetoxElement {
+  get testCollectibleFallback(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
       1,
@@ -350,7 +333,7 @@ class WalletView {
     });
   }
 
-  get walletBridgeButton(): DetoxElement {
+  get walletBridgeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
   }
 
@@ -373,77 +356,81 @@ class WalletView {
   }
 
   // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
-  get musdConversionCta(): DetoxElement {
+  get musdConversionCta(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
     );
   }
 
-  get cashGetMusdContainer(): DetoxElement {
+  get cashGetMusdContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER);
   }
 
-  get getMusdButton(): DetoxElement {
+  get getMusdButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Get mUSD');
   }
 
-  get getStartedButton(): DetoxElement {
+  get getStartedButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Get Started');
   }
 
   /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
-  get tokenListItemConvertToMusdCta(): DetoxElement {
+  get tokenListItemConvertToMusdCta(): EncapsulatedElementType {
     return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
   }
 
-  get assetOverviewMusdCta(): DetoxElement {
+  get assetOverviewMusdCta(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
     );
   }
 
-  get walletReceiveButton(): DetoxElement {
+  get walletReceiveButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
     );
   }
   // Balance Empty State - displayed when account group has zero balance across all networks
-  get balanceEmptyStateContainer(): DetoxElement {
+  get balanceEmptyStateContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
     );
   }
 
-  get balanceEmptyStateActionButton(): DetoxElement {
+  get balanceEmptyStateActionButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
     );
   }
-  getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
+  getPredictCurrentPositionCardByIndex(
+    index: number = 0,
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
       index,
     );
   }
 
-  getPredictResolvedPositionCardByIndex(index: number = 0): DetoxElement {
+  getPredictResolvedPositionCardByIndex(
+    index: number = 0,
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD,
       index,
     );
   }
 
-  getCarouselSlide(id: string): DetoxElement {
+  getCarouselSlide(id: string): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE(id));
   }
 
-  getCarouselSlideTitle(id: string): DetoxElement {
+  getCarouselSlideTitle(id: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_SLIDE_TITLE(id),
     );
   }
 
-  getCarouselSlideCloseButton(id: string): DetoxElement {
+  getCarouselSlideCloseButton(id: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(id),
     );
@@ -649,21 +636,21 @@ class WalletView {
     });
   }
 
-  async tokenInWallet(tokenName: string): Promise<DetoxElement> {
+  async tokenInWallet(tokenName: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByText(tokenName);
   }
 
-  async getTokensInWallet(): Promise<DetoxElement> {
+  async getTokensInWallet(): Promise<EncapsulatedElementType> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
     );
   }
 
-  async nftIDInWallet(nftId: string): Promise<DetoxElement> {
+  async nftIDInWallet(nftId: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByID(nftId);
   }
 
-  async nftInWallet(nftName: string): Promise<DetoxElement> {
+  async nftInWallet(nftName: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByText(nftName);
   }
 
@@ -757,73 +744,65 @@ class WalletView {
     });
   }
 
-  get defiTab(): DetoxElement {
+  get defiTab(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
   }
 
-  get defiNetworkFilter(): DetoxElement {
+  get defiNetworkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
     );
   }
 
-  get defiTabContainer(): DetoxElement {
+  get defiTabContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
     );
   }
-  get claimButton(): DetoxElement {
+  get claimButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
     );
   }
-  get predictClaimConfirmButton(): DetoxElement {
+  get predictClaimConfirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
     );
   }
-  get predictScrollViewIdentifier() {
-    return Matchers.getIdentifier(PredictTabViewSelectorsIDs.SCROLL_VIEW);
-  }
-
-  get defiPositionDetailsContainer(): DetoxElement {
+  get defiPositionDetailsContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
     );
   }
 
-  get predictionsTab(): DetoxElement {
+  get predictionsTab(): EncapsulatedElementType {
     return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
   }
 
-  get PredictionsTabContainer(): DetoxElement {
-    return Matchers.getElementByID(PredictTabViewSelectorsIDs.SCROLL_VIEW);
-  }
-
-  get availableBalanceLabel(): DetoxElement {
+  get availableBalanceLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
   }
 
-  get defiPositionsNew(): DetoxElement {
+  get defiPositionsNew(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION);
   }
 
   /** Perpetuals section title button on the homepage. */
-  get perpsSectionHeader(): DetoxElement {
+  get perpsSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByLabel(
       WalletViewSelectorsText.PERPETUALS_SECTION,
     );
   }
 
   /** Predictions section title button on the homepage. */
-  get predictionsSectionHeader(): DetoxElement {
+  get predictionsSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
     );
   }
 
   /** Tokens section header on the homepage. */
-  get tokensSectionHeader(): DetoxElement {
+  get tokensSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
   }
 
@@ -847,7 +826,7 @@ class WalletView {
   }
 
   /** NFTs section header on the homepage. */
-  get nftsSectionHeader(): DetoxElement {
+  get nftsSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
   }
 
@@ -907,34 +886,6 @@ class WalletView {
     await this.scrollAndTapSection(
       elem,
       `Predictions Position: ${positionName}`,
-    );
-  }
-
-  async scrollDownOnPredictionsTab(): Promise<void> {
-    await Gestures.swipe(this.PredictionsTabContainer, 'up', {
-      speed: 'slow',
-      percentage: 0.4,
-    });
-  }
-
-  async scrollUpOnPredictionsTab(): Promise<void> {
-    await Gestures.swipe(this.PredictionsTabContainer, 'down', {
-      speed: 'slow',
-      percentage: 0.4,
-    });
-  }
-
-  async scrollToPosition(
-    positionName: string,
-    direction: 'up' | 'down' = 'down',
-  ): Promise<void> {
-    const positionElement = (await Matchers.getElementByText(
-      positionName,
-    )) as unknown as DetoxElement;
-    await Gestures.scrollToElement(
-      positionElement,
-      this.predictScrollViewIdentifier,
-      { direction },
     );
   }
 
@@ -1288,7 +1239,7 @@ class WalletView {
     });
   }
 
-  get perpsTab(): DetoxElement {
+  get perpsTab(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
   }
 

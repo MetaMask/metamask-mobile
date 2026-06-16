@@ -81,6 +81,7 @@ export function useNotificationAccountListProps() {
     },
     [accountsBeingUpdated, getEvmAddressesFromAccountIds],
   );
+  const isAnyAccountUpdating = accountsBeingUpdated.length > 0;
 
   const isAccountEnabled = useCallback(
     (accountIds: string[]) => {
@@ -101,6 +102,7 @@ export function useNotificationAccountListProps() {
 
   return {
     shouldDisableSwitches,
+    isAnyAccountUpdating,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,

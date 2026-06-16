@@ -7,9 +7,9 @@ class CameraWebsite {
   async verifyRequestPermissionDialogVisible(): Promise<void> {
     if (device.getPlatform() === 'ios') {
       await waitFor(
-        await Matchers.getElementByLabel(
+        (await Matchers.getElementByLabel(
           'Allow "localhost" to use your camera?',
-        ),
+        )) as Detox.NativeElement,
       ).toExist();
       // The WKWebView permission prompt is part of the app view hierarchy,
       // not a system alert. Multiple elements may match "Allow", so pick

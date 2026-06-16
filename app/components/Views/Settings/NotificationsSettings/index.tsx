@@ -1,5 +1,4 @@
-import React, { useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -9,7 +8,6 @@ import { useTheme } from '../../../../util/theme';
 
 import { useStyles } from '../../../../component-library/hooks';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
-import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
@@ -22,13 +20,11 @@ import {
 
 import Routes from '../../../../constants/navigation/Routes';
 
-import { useSwitchNotificationLoadingText } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
 import {
   useNotificationStoragePreferences,
-  type NotificationStoragePreferences,
-  type NotificationStoragePreferenceSection,
+  type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 
 import {
@@ -42,6 +38,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;
@@ -81,7 +78,7 @@ const NotificationRow = ({
 };
 
 type NotificationPreferenceStatus =
-  NotificationStoragePreferences[NotificationStoragePreferenceSection];
+  NotificationPreferences[NotificationPreferenceSection];
 
 const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
   const active = [];
@@ -110,18 +107,10 @@ const NotificationsSettings = ({ navigation }: Props) => {
     selectAgenticCliNotificationsEnabled,
   );
 
-  const loadingText = useSwitchNotificationLoadingText();
-  const { preferences, syncPreferencesFromCache } =
-    useNotificationStoragePreferences();
-
-  useFocusEffect(
-    useCallback(() => {
-      syncPreferencesFromCache();
-    }, [syncPreferencesFromCache]),
-  );
+  const { preferences } = useNotificationStoragePreferences();
 
   const navigateToSection = (
-    type: NotificationStoragePreferenceSection,
+    type: NotificationPreferenceSection,
     title: string,
     description: string,
   ) => {
@@ -228,10 +217,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
             />
           </>
         )}
-        <SwitchLoadingModal
-          loading={!!loadingText}
-          loadingText={loadingText ?? ''}
-        />
       </ScrollView>
     </SafeAreaView>
   );
