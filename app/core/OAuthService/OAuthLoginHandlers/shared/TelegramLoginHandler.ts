@@ -1,5 +1,5 @@
-import { openAuthSessionAsync, openBrowserAsync } from 'expo-web-browser';
-import { AppState, Linking, Platform } from 'react-native';
+import { openAuthSessionAsync } from 'expo-web-browser';
+import { AppState, Linking } from 'react-native';
 import {
   Env as ProfileSyncEnv,
   getEnvUrls,
@@ -27,7 +27,6 @@ const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
 const TELEGRAM_MINT_PATH = 'api/v1/oauth/mint';
 const REDIRECT_LINKING_FALLBACK_TIMEOUT_MS = 1500;
-const ANDROID_LOGIN_REDIRECT_TIMEOUT_MS = 120000;
 const VERIFY_APP_ACTIVE_TIMEOUT_MS = 5000;
 const VERIFY_AFTER_APP_ACTIVE_DELAY_MS = 500;
 const VERIFY_NETWORK_RETRY_DELAY_MS = 500;
