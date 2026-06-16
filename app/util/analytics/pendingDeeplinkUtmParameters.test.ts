@@ -112,6 +112,27 @@ describe('getPendingDeeplinkUtmParameters', () => {
     );
   });
 
+  it('falls back to preloaded Redux attribution in E2E when deeplink has no utm params', () => {
+    mockTestUtils.hasTestOverrides = true;
+    mockAppStateEventProcessor.currentDeeplink = 'metamask://onboarding';
+    mockReduxGetState.mockReturnValue({
+      attribution: {
+        attribution: {
+          utm_source: 'e2e_wsc_utm_source',
+          utm_campaign: 'e2e_wsc_campaign',
+          attribution_id: 'e2e_wsc_attr_id',
+          capturedAt: Date.now(),
+        },
+      },
+    });
+
+    expect(getPendingDeeplinkUtmParameters()).toEqual({
+      utm_source: 'e2e_wsc_utm_source',
+      utm_campaign: 'e2e_wsc_campaign',
+      attribution_id: 'e2e_wsc_attr_id',
+    });
+  });
+
   it('falls back to preloaded Redux attribution in E2E when deeplink is absent', () => {
     mockTestUtils.hasTestOverrides = true;
     mockReduxGetState.mockReturnValue({

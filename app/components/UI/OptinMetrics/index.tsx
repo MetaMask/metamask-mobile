@@ -491,6 +491,9 @@ const OptinMetrics = () => {
               }
               onPress={handleMarketingToggle}
               disabled={isMarketingDisabled}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
+              }
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}

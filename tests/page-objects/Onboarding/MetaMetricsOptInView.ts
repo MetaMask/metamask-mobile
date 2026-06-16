@@ -65,6 +65,12 @@ class MetaMetricsOptIn {
     );
   }
 
+  get marketingCheckbox(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX,
+    );
+  }
+
   async swipeContentUp(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
@@ -113,6 +119,27 @@ class MetaMetricsOptIn {
   async tapMetricsCheckbox(): Promise<void> {
     await Gestures.waitAndTap(this.metricsCheckbox, {
       elemDescription: 'Opt-in Metrics Metrics Checkbox',
+    });
+  }
+
+  async tapMarketingCheckbox(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await this.swipeContentUp();
+        await Gestures.waitAndTap(asDetoxElement(this.marketingCheckbox), {
+          elemDescription: 'Opt-in Metrics Marketing Checkbox',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.marketingCheckbox),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            timeout: 15_000,
+          },
+        );
+      },
     });
   }
 }

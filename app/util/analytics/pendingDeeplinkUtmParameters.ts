@@ -133,7 +133,10 @@ export function getPendingDeeplinkUtmParameters(): WalletSetupCompletedAttributi
 
   const deeplink = getDeeplinkForAttribution();
   if (deeplink) {
-    return parseDeeplinkUtmParameters(deeplink);
+    const fromDeeplink = parseDeeplinkUtmParameters(deeplink);
+    if (fromDeeplink) {
+      return fromDeeplink;
+    }
   }
 
   return getE2eAttributionUtmFallback();

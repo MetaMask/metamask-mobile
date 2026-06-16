@@ -23,7 +23,7 @@ function walletSetupCompletedOnlyExpectations(
     events: [
       {
         name: onboardingEvents.WALLET_SETUP_COMPLETED,
-        matchProperties: {
+        containProperties: {
           wallet_setup_type: 'new',
           new_wallet: true,
           account_type: accountType,
