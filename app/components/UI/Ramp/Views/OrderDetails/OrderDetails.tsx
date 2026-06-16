@@ -118,10 +118,17 @@ const OrderDetails = () => {
           walletAddress: undefined,
         });
       } catch (fetchError) {
-        Logger.error(fetchError as Error, {
-          message: `RampsOrderDetails: error fetching order from callback URL${logContext}`,
-          callbackUrl,
-        });
+        Logger.log(
+          'RampsOrderDetails: recoverable error fetching order from callback URL',
+          {
+            providerCode,
+            logContext,
+            errorMessage:
+              fetchError instanceof Error
+                ? fetchError.message
+                : strings('ramps_order_details.error_message'),
+          },
+        );
         setError(
           fetchError instanceof Error && fetchError.message
             ? fetchError.message
@@ -191,12 +198,18 @@ const OrderDetails = () => {
         order.walletAddress,
       );
     } catch (fetchError) {
-      Logger.error(fetchError as Error, {
-        message: 'FiatOrders::RampsOrderDetails error while refreshing order',
-        orderId: order.providerOrderId,
-        provider: order.provider?.id,
-        status: order.status,
-      });
+      Logger.log(
+        'FiatOrders::RampsOrderDetails recoverable error while refreshing order',
+        {
+          orderId: order.providerOrderId,
+          provider: order.provider?.id,
+          status: order.status,
+          errorMessage:
+            fetchError instanceof Error
+              ? fetchError.message
+              : strings('ramps_order_details.error_message'),
+        },
+      );
       setError(
         fetchError instanceof Error && fetchError.message
           ? fetchError.message

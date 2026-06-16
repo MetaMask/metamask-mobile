@@ -36,6 +36,16 @@ jest.mock('../../hooks/useRampsOrders', () => ({
   }),
 }));
 
+const mockLoggerLog = jest.fn();
+const mockLoggerError = jest.fn();
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: (...args: unknown[]) => mockLoggerLog(...args),
+    error: (...args: unknown[]) => mockLoggerError(...args),
+  },
+}));
+
 jest.mock('../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
@@ -143,17 +153,25 @@ describe('OrderDetails', () => {
     expect(queryByTestId('order-content')).not.toBeOnTheScreen();
   });
 
-  it('shows loading state when order is pending and refreshing', () => {
+  it('shows loading state when order is pending and refreshing', async () => {
     mockUseParams.mockReturnValue({ orderId: 'ord-123' });
     mockGetOrderById.mockReturnValue({
       ...mockOrder,
       status: RampsOrderStatus.Pending,
     });
-    // eslint-disable-next-line no-empty-function -- Never-resolving promise for loading state test
-    mockRefreshOrder.mockImplementation(() => new Promise<never>(() => {}));
+    let resolveRefresh: () => void = () => undefined;
+    mockRefreshOrder.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      }),
+    );
     const { UNSAFE_getAllByType } = render();
     const indicators = UNSAFE_getAllByType(ActivityIndicator);
     expect(indicators.length).toBeGreaterThan(0);
+
+    await act(async () => {
+      resolveRefresh();
+    });
   });
 
   it('shows error state with retry when refresh fails', async () => {
@@ -174,6 +192,16 @@ describe('OrderDetails', () => {
       fireEvent.press(getByText('ramps_order_details.try_again'));
     });
     expect(mockRefreshOrder).toHaveBeenCalled();
+    expect(mockLoggerLog).toHaveBeenCalledWith(
+      'FiatOrders::RampsOrderDetails recoverable error while refreshing order',
+      expect.objectContaining({
+        orderId: 'ord-123',
+        provider: 'paypal',
+        status: RampsOrderStatus.Pending,
+        errorMessage: 'Refresh failed',
+      }),
+    );
+    expect(mockLoggerError).not.toHaveBeenCalled();
   });
 
   it('tracks RAMPS_SCREEN_VIEWED when order is displayed', async () => {
@@ -234,5 +262,14 @@ describe('OrderDetails', () => {
       'metamask://on-ramp/providers/paypal?orderId=abc',
       '0x123',
     );
+    expect(mockLoggerLog).toHaveBeenCalledWith(
+      'RampsOrderDetails: recoverable error fetching order from callback URL',
+      expect.objectContaining({
+        providerCode: 'paypal',
+        logContext: '',
+        errorMessage: 'Network request failed',
+      }),
+    );
+    expect(mockLoggerError).not.toHaveBeenCalled();
   });
 });
