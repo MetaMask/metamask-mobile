@@ -67,8 +67,8 @@ export interface ConfigureHttpProxyOptions {
   host: string;
   port: number;
   /**
-   * Optional comma-separated proxy bypass entries. Android uses this as the
-   * global HTTP proxy exclusion list.
+   * Optional proxy bypass entries. Android joins these into the global HTTP
+   * proxy exclusion list (which is a comma-separated string at the adb layer).
    */
   exclusionList?: string[];
 }
