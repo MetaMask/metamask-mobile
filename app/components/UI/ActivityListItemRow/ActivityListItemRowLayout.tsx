@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- this row intentionally uses the legacy ListItem with legacy ListItemColumn; mixing in the new DS ListItem causes press/layout regressions */
 import React from 'react';
-import { Text, TouchableHighlight, View } from 'react-native';
-import { ListItem } from '@metamask/design-system-react-native';
+import { Pressable, Text } from 'react-native';
+import ListItem from '../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
 } from '../../../component-library/components/List/ListItemColumn';
@@ -79,30 +80,28 @@ export function ActivityListItemRowLayout({
   ) : undefined;
   const amountColumn =
     primaryAmountNode || secondaryAmountNode ? (
-      <View style={styles.listItemAmounts}>
+      <ListItemColumn widthType={WidthType.Auto} style={styles.listItemAmounts}>
         {primaryAmountNode}
         {secondaryAmountNode}
-      </View>
+      </ListItemColumn>
     ) : undefined;
 
   return (
-    <TouchableHighlight
+    <Pressable
+      accessibilityRole="button"
+      disabled={!onPress}
       onPress={onPress}
+      style={styles.row}
       testID={`activity-item-${index ?? 0}`}
-      underlayColor="transparent"
     >
-      <ListItem style={[styles.row, styles.listItem]}>
-        <ListItemColumn>{avatar}</ListItemColumn>
+      <ListItem style={styles.listItem}>
+        <ListItemColumn widthType={WidthType.Auto}>{avatar}</ListItemColumn>
         <ListItemColumn widthType={WidthType.Fill}>
           {titleNode}
           {subtitleNode}
         </ListItemColumn>
-        {amountColumn ? (
-          <ListItemColumn style={styles.listItemAmounts}>
-            {amountColumn}
-          </ListItemColumn>
-        ) : null}
+        {amountColumn}
       </ListItem>
-    </TouchableHighlight>
+    </Pressable>
   );
 }
