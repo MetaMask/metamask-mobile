@@ -257,9 +257,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [existingPermissionsCaip25CaveatValue],
   );
 
-  const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
-
   const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
+
+  // Per-connection WalletConnect metadata, keyed by pairing topic (which is
+  // the value we receive as `channelIdOrHostname` for WC origins).
+  const wcMetadata = useSelector(
+    (state: RootState) => state.sdk.wc2SessionMetadata?.[channelIdOrHostname],
+  );
 
   const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
   const anonId = sdkV2Connection?.originatorInfo?.anonId;
@@ -277,10 +281,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
   const isOriginWalletConnect =
-    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+    !isOriginMMSDKRemoteConn && wcMetadata !== undefined;
 
   const isMaliciousDapp = Boolean(
-    isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
+    isOriginWalletConnect && wcMetadata?.verifyContext?.isScam,
   );
 
   const currentlySelectedNetwork = useSelector(getSelectedMultichainNetwork);
@@ -492,7 +496,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   if (isOriginMMSDKRemoteConn || isOriginMMSDKV2RemoteConn) {
     referrer = dappUrl;
   } else if (isOriginWalletConnect) {
-    referrer = wc2Metadata?.url;
+    referrer = wcMetadata?.url;
   }
 
   const { domainTitle, hostname } = useMemo(() => {
@@ -507,7 +511,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       ).origin;
     } else if (isOriginWalletConnect) {
       title =
-        wc2Metadata?.lastVerifiedUrl ?? wc2Metadata?.url ?? channelIdOrHostname;
+        wcMetadata?.lastVerifiedUrl ?? wcMetadata?.url ?? channelIdOrHostname;
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
@@ -525,8 +529,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     isChannelId,
     dappUrl,
     channelIdOrHostname,
-    wc2Metadata?.lastVerifiedUrl,
-    wc2Metadata?.url,
+    wcMetadata?.lastVerifiedUrl,
+    wcMetadata?.url,
   ]);
 
   const urlWithProtocol =

@@ -391,7 +391,7 @@ const createMockState = (): DeepPartial<RootState> => ({
   settings: {},
   sdk: {
     v2Connections: {},
-    wc2Metadata: { id: '' },
+    wc2SessionMetadata: {},
   },
   engine: {
     backgroundState: {
@@ -769,7 +769,8 @@ describe('MultichainAccountConnect', () => {
         ...createMockState(),
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
+          // No entry for this origin -> not a WalletConnect connection.
+          wc2SessionMetadata: {},
         },
       };
 
@@ -813,7 +814,13 @@ describe('MultichainAccountConnect', () => {
         ...createMockState(),
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: 'mock-wc2-id' },
+          wc2SessionMetadata: {
+            [mockChannelId]: {
+              url: 'https://walletconnect-origin.com',
+              name: 'WC Dapp',
+              icon: '',
+            },
+          },
         },
       };
 
@@ -2188,20 +2195,23 @@ describe('MultichainAccountConnect', () => {
   });
 
   describe('WalletConnect Verify API - malicious dapp flow', () => {
+    const maliciousChannelId = 'wc-channel-id';
     const createMaliciousWC2State = () => {
       const state = createMockState();
       return {
         ...state,
         sdk: {
-          wc2Metadata: {
-            id: 'mock-wc2-id',
-            url: 'https://malicious-dapp.com',
-            name: 'Malicious Dapp',
-            icon: '',
-            verifyContext: {
-              isScam: true,
-              validation: WC2VerifyValidation.INVALID,
-              verifiedOrigin: 'https://malicious-dapp.com',
+          v2Connections: {},
+          wc2SessionMetadata: {
+            [maliciousChannelId]: {
+              url: 'https://malicious-dapp.com',
+              name: 'Malicious Dapp',
+              icon: '',
+              verifyContext: {
+                isScam: true,
+                validation: WC2VerifyValidation.INVALID,
+                verifiedOrigin: 'https://malicious-dapp.com',
+              },
             },
           },
         },
@@ -2213,7 +2223,7 @@ describe('MultichainAccountConnect', () => {
         hostInfo: {
           metadata: {
             id: 'mockId',
-            origin: 'wc-channel-id',
+            origin: maliciousChannelId,
             isEip1193Request: true,
           },
           permissions: createMockCaip25Permission({
@@ -2492,7 +2502,9 @@ describe('MultichainAccountConnect', () => {
       const { getByTestId } = renderForReferrer(channelId, {
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: 'wc-id', url: wcUrl },
+          wc2SessionMetadata: {
+            [channelId]: { url: wcUrl, name: 'WC Dapp', icon: '' },
+          },
         },
       });
 
