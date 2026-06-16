@@ -10,7 +10,8 @@ import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectDepositLimit } from '../../../../../selectors/featureFlagController/confirmations';
+import { RootState } from '../../../../../reducers';
 
 function formatUsdAmount(value: number): string {
   return `$${value.toLocaleString('en-US')}`;
@@ -22,7 +23,9 @@ export function useMoneyAccountDepositLimitAlert({
   pendingAmount?: string;
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { moneyAccountDepositLimit } = useSelector(selectMetaMaskPayFlags);
+  const moneyAccountDepositLimit = useSelector((state: RootState) =>
+    selectDepositLimit(state, 'moneyAccountDeposit'),
+  );
 
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,

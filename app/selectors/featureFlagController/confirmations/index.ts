@@ -65,7 +65,6 @@ export interface MetaMaskPayExtendedFlags {
   enableMoneyHomePagePerpsTransaction: boolean;
   enableMoneyHomePagePredictTransaction: boolean;
   defaultPaySelectedSection?: string;
-  moneyAccountDepositLimit?: number;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -159,14 +158,6 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
       PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
 
-    const depositLimitFlags = metaMaskPayExtendedFlags?.depositLimit as
-      | Record<string, Json>
-      | undefined;
-
-    const moneyAccountDepositLimit =
-      (depositLimitFlags?.moneyAccountDeposit as number) ??
-      PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT;
-
     return {
       attemptsMax,
       bufferInitial,
@@ -180,8 +171,29 @@ export const selectMetaMaskPayFlags = createSelector(
       enableMoneyHomePagePerpsTransaction,
       enableMoneyHomePagePredictTransaction,
       defaultPaySelectedSection,
-      moneyAccountDepositLimit,
     };
+  },
+);
+
+export const selectDepositLimit = createSelector(
+  [
+    selectRemoteFeatureFlags,
+    (_state: RootState, depositType: string) => depositType,
+  ],
+  (featureFlags, depositType): number | undefined => {
+    const metaMaskPayExtendedFlags =
+      featureFlags?.confirmations_pay_extended as
+        | Record<string, Json>
+        | undefined;
+
+    const depositLimitFlags = metaMaskPayExtendedFlags?.depositLimit as
+      | Record<string, Json>
+      | undefined;
+
+    return (
+      (depositLimitFlags?.[depositType] as number) ??
+      PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT
+    );
   },
 );
 

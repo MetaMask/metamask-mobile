@@ -9,7 +9,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectDepositLimit } from '../../../../../selectors/featureFlagController/confirmations';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock(
@@ -18,7 +18,7 @@ jest.mock(
     ...jest.requireActual(
       '../../../../../selectors/featureFlagController/confirmations',
     ),
-    selectMetaMaskPayFlags: jest.fn(),
+    selectDepositLimit: jest.fn(),
   }),
 );
 
@@ -41,9 +41,7 @@ describe('useMoneyAccountDepositLimitAlert', () => {
       type: TransactionType.moneyAccountDeposit,
     } as unknown as TransactionMeta);
 
-    (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      moneyAccountDepositLimit: 100000,
-    });
+    (selectDepositLimit as unknown as jest.Mock).mockReturnValue(100000);
   });
 
   it('returns alert when pending amount exceeds deposit limit', () => {
@@ -78,9 +76,7 @@ describe('useMoneyAccountDepositLimitAlert', () => {
   });
 
   it('returns no alert when deposit limit is undefined', () => {
-    (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      moneyAccountDepositLimit: undefined,
-    });
+    (selectDepositLimit as unknown as jest.Mock).mockReturnValue(undefined);
 
     const { result } = runHook({ pendingAmount: '150000' });
 
@@ -105,9 +101,7 @@ describe('useMoneyAccountDepositLimitAlert', () => {
   });
 
   it('uses custom limit from feature flag', () => {
-    (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      moneyAccountDepositLimit: 50000,
-    });
+    (selectDepositLimit as unknown as jest.Mock).mockReturnValue(50000);
 
     const { result } = runHook({ pendingAmount: '60000' });
     const expectedTitle = strings(
