@@ -2335,6 +2335,9 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:01Z',
       });
+      // Price emission is throttled: the first message flushes immediately
+      // (leading edge) and the second is coalesced into the trailing flush.
+      jest.advanceTimersByTime(250);
 
       expect(throwingCallback).toHaveBeenCalledTimes(2);
       expect(healthyCallback).toHaveBeenCalledTimes(2);
@@ -2378,7 +2381,7 @@ describe('WebSocketManager', () => {
         context: {
           name: 'WebSocketManager',
           data: {
-            method: 'handleMarketMessage',
+            method: 'flushMarketPriceUpdates',
             subscriptionKey: 'token1',
           },
         },

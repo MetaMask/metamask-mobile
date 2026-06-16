@@ -37,6 +37,7 @@ import {
   selectIsCardholder,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
+  selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
 } from '../../../../selectors/cardController';
 import {
@@ -86,6 +87,7 @@ export interface UseMoneyAccountCardLinkageReturn {
   primaryMoneyAccount: MoneyAccount | undefined;
   moneyAccountCardToken: CardFundingToken | null;
   canLink: boolean;
+  isResidencyBlocked: boolean;
 
   status: LinkageStatus;
   isLinking: boolean;
@@ -135,6 +137,7 @@ export const useMoneyAccountCardLinkage =
       selectPendingMoneyAccountCardLink,
     );
     const linkInProgress = useSelector(selectIsMoneyAccountCardLinkInProgress);
+    const isResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
@@ -173,7 +176,9 @@ export const useMoneyAccountCardLinkage =
         moneyAccountCardToken &&
         isMonadSponsorshipEnabled,
     );
-    const canLink = Boolean(canSubmitDelegation && !isAlreadyDelegated);
+    const canLink = Boolean(
+      canSubmitDelegation && !isAlreadyDelegated && !isResidencyBlocked,
+    );
 
     const showPendingToast = useCallback(
       (isRevoke: boolean = false) => {
@@ -286,6 +291,15 @@ export const useMoneyAccountCardLinkage =
           return;
         }
         if (!canLink || !primaryMoneyAccount?.address) {
+          if (isResidencyBlocked) {
+            trackMoneyAccountLinkingEvent(
+              MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
+              {
+                entrypoint: entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET,
+                reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+              },
+            );
+          }
           showErrorToast();
           return;
         }
@@ -302,6 +316,8 @@ export const useMoneyAccountCardLinkage =
         primaryMoneyAccount?.address,
         navigation,
         showErrorToast,
+        isResidencyBlocked,
+        trackMoneyAccountLinkingEvent,
       ],
     );
 
@@ -311,6 +327,18 @@ export const useMoneyAccountCardLinkage =
           return;
         }
         if (!hasMoneyAccountBaseRequirements || !primaryMoneyAccount?.address) {
+          showErrorToast();
+          return;
+        }
+
+        if (isResidencyBlocked) {
+          trackMoneyAccountLinkingEvent(
+            MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
+            {
+              entrypoint: origin.entrypoint,
+              reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+            },
+          );
           showErrorToast();
           return;
         }
@@ -366,10 +394,12 @@ export const useMoneyAccountCardLinkage =
         isCardVerified,
         isAlreadyDelegated,
         isCardholder,
+        isResidencyBlocked,
         openLinkCardSheet,
         showErrorToast,
         navigation,
         dispatch,
+        trackMoneyAccountLinkingEvent,
       ],
     );
 
@@ -402,6 +432,19 @@ export const useMoneyAccountCardLinkage =
         return;
       }
 
+      if (isResidencyBlocked) {
+        trackMoneyAccountLinkingEvent(
+          MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
+          {
+            entrypoint: pendingMoneyAccountCardLinkEntryPoint,
+            reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+          },
+        );
+        dispatch(setPendingMoneyAccountCardLink(null));
+        showErrorToast();
+        return;
+      }
+
       if (isAlreadyDelegated) {
         dispatch(setPendingMoneyAccountCardLink(null));
         return;
@@ -429,9 +472,12 @@ export const useMoneyAccountCardLinkage =
       moneyAccountCardToken,
       primaryMoneyAccount?.address,
       isAlreadyDelegated,
+      isResidencyBlocked,
       cardHomeDataStatus,
       openLinkCardSheet,
       dispatch,
+      showErrorToast,
+      trackMoneyAccountLinkingEvent,
     ]);
 
     const confirmLinkInBackground = useCallback(
@@ -444,13 +490,20 @@ export const useMoneyAccountCardLinkage =
         const isRevoke =
           options?.delegationAmountHuman !== undefined &&
           parseFloat(options.delegationAmountHuman) === 0;
+        const isBlockedByResidency = isResidencyBlocked && !isAlreadyDelegated;
 
-        if (!canSubmitDelegation || !primaryMoneyAccount?.address) {
+        if (
+          !canSubmitDelegation ||
+          !primaryMoneyAccount?.address ||
+          isBlockedByResidency
+        ) {
           trackMoneyAccountLinkingEvent(
             MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
             {
               entrypoint,
-              reason: CardLinkingFailureReason.PRECONDITION_FAILED,
+              reason: isBlockedByResidency
+                ? CardLinkingFailureReason.RESIDENCY_BLOCKED
+                : CardLinkingFailureReason.PRECONDITION_FAILED,
               is_revoke: isRevoke,
             },
           );
@@ -547,6 +600,8 @@ export const useMoneyAccountCardLinkage =
         showPendingToast,
         showSuccessToast,
         trackMoneyAccountLinkingEvent,
+        isResidencyBlocked,
+        isAlreadyDelegated,
       ],
     );
 
@@ -564,6 +619,7 @@ export const useMoneyAccountCardLinkage =
       primaryMoneyAccount,
       moneyAccountCardToken,
       canLink,
+      isResidencyBlocked,
 
       status,
       isLinking: linkInProgress,
