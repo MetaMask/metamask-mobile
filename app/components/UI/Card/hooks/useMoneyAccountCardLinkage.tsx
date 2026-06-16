@@ -33,6 +33,7 @@ import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
+  selectIsCardVerified,
   selectIsCardholder,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
@@ -79,6 +80,7 @@ export interface LinkFlowOrigin {
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
   isCardAuthenticated: boolean;
+  isCardVerified: boolean;
   isCardLinkedToMoneyAccount: boolean;
   primaryMoneyAccount: MoneyAccount | undefined;
   moneyAccountCardToken: CardFundingToken | null;
@@ -119,6 +121,7 @@ export const useMoneyAccountCardLinkage =
       selectMoneyEnableMoneyAccountFlag,
     );
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
+    const isCardVerified = useSelector(selectIsCardVerified);
     const isCardholder = useSelector(selectIsCardholder);
     const delegationSettings = useSelector(selectCardDelegationSettings);
     const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
@@ -163,6 +166,7 @@ export const useMoneyAccountCardLinkage =
     const canSubmitDelegation = Boolean(
       hasRequirements &&
         isCardAuthenticated &&
+        isCardVerified &&
         moneyAccountCardToken &&
         isMonadSponsorshipEnabled,
     );
@@ -309,6 +313,10 @@ export const useMoneyAccountCardLinkage =
         }
 
         if (isCardAuthenticated) {
+          if (!isCardVerified) {
+            return;
+          }
+
           if (isAlreadyDelegated) {
             return;
           }
@@ -352,6 +360,7 @@ export const useMoneyAccountCardLinkage =
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
         isCardAuthenticated,
+        isCardVerified,
         isAlreadyDelegated,
         isCardholder,
         openLinkCardSheet,
@@ -364,6 +373,16 @@ export const useMoneyAccountCardLinkage =
     useEffect(() => {
       if (!pendingMoneyAccountCardLinkEntryPoint) return;
       if (!isCardAuthenticated) return;
+
+      if (!isCardVerified) {
+        if (
+          cardHomeDataStatus === 'success' ||
+          cardHomeDataStatus === 'error'
+        ) {
+          dispatch(setPendingMoneyAccountCardLink(null));
+        }
+        return;
+      }
 
       if (!hasRequirements || !primaryMoneyAccount?.address) {
         dispatch(setPendingMoneyAccountCardLink(null));
@@ -391,6 +410,7 @@ export const useMoneyAccountCardLinkage =
     }, [
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
+      isCardVerified,
       hasRequirements,
       moneyAccountCardToken,
       primaryMoneyAccount?.address,
@@ -524,6 +544,7 @@ export const useMoneyAccountCardLinkage =
     return {
       hasMoneyAccountRequirements: hasRequirements,
       isCardAuthenticated,
+      isCardVerified,
       isCardLinkedToMoneyAccount: isAlreadyDelegated,
       primaryMoneyAccount,
       moneyAccountCardToken,
