@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, within } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
@@ -319,6 +320,34 @@ jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
+
+const collectTestIdsInTreeOrder = (
+  node: ReactTestInstance,
+  testIds: string[] = [],
+): string[] => {
+  if (typeof node.props?.testID === 'string') {
+    testIds.push(node.props.testID);
+  }
+
+  node.children.forEach((child) => {
+    if (typeof child === 'object' && child !== null && 'props' in child) {
+      collectTestIdsInTreeOrder(child as ReactTestInstance, testIds);
+    }
+  });
+
+  return testIds;
+};
+
+const expectTestIdBefore = (
+  root: ReactTestInstance,
+  earlierTestId: string,
+  laterTestId: string,
+) => {
+  const order = collectTestIdsInTreeOrder(root);
+  expect(order.indexOf(earlierTestId)).toBeGreaterThanOrEqual(0);
+  expect(order.indexOf(laterTestId)).toBeGreaterThanOrEqual(0);
+  expect(order.indexOf(earlierTestId)).toBeLessThan(order.indexOf(laterTestId));
+};
 
 describe('MoneyHomeView', () => {
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
@@ -2072,6 +2101,57 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
       ).toBeOnTheScreen();
+    });
+
+    it('renders upsell MetaMask Card below Activity and Earn on your crypto', () => {
+      mockSelectIsCardholder.mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollRoot = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      expectTestIdBefore(
+        scrollRoot,
+        MoneyActivityListTestIds.CONTAINER,
+        MoneyMetaMaskCardTestIds.CONTAINER,
+      );
+      expectTestIdBefore(
+        scrollRoot,
+        MoneyPotentialEarningsTestIds.CONTAINER,
+        MoneyMetaMaskCardTestIds.CONTAINER,
+      );
+    });
+
+    it('renders link MetaMask Card above Activity and Earn on your crypto', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        hasMoneyAccountBaseRequirements: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'veda' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollRoot = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      expectTestIdBefore(
+        scrollRoot,
+        MoneyMetaMaskCardTestIds.CONTAINER,
+        MoneyActivityListTestIds.CONTAINER,
+      );
+      expectTestIdBefore(
+        scrollRoot,
+        MoneyMetaMaskCardTestIds.CONTAINER,
+        MoneyPotentialEarningsTestIds.CONTAINER,
+      );
     });
 
     it('selects mode="link" when card-authenticated and VERIFIED even if selected wallet is not a cardholder account', () => {
