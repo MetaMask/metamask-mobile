@@ -8,6 +8,7 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
@@ -196,9 +197,6 @@ const mockUseTrack = useTrackRewardsPageView as jest.MockedFunction<
 >;
 const mockUseVipRefereeDashboard =
   useVipRefereeDashboard as jest.MockedFunction<typeof useVipRefereeDashboard>;
-const mockUseAnalytics = useAnalytics as jest.MockedFunction<
-  typeof useAnalytics
->;
 const mockFetch = jest.fn();
 
 const defaultDashboard: VipRefereeMeState = {
@@ -227,10 +225,12 @@ describe('RewardsVipRefereeView', () => {
     mockIsVipProgramEnabled = true;
     mockVipRefereeSplashAccepted = {};
     mockUseDispatch.mockReturnValue(mockReduxDispatch);
-    mockUseAnalytics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    } as ReturnType<typeof useAnalytics>);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
       if (selector === selectSelectedInternalAccountFormattedAddress)
