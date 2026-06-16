@@ -61,20 +61,17 @@ export function isClosedPosition(position: ClosedPositionFields): boolean {
 }
 
 /**
- * Resolves the side (long/short) of a perp position. Prefers the explicit
- * `perpPositionType`; for Hyperliquid positions that omit it, infers from the
- * sign of `positionAmount` (negative → short). Returns `null` for spot.
+ * Resolves the side (long/short) of a perp position from Clicker's explicit
+ * `perpPositionType`. Returns `null` when it is absent: Clicker reports perp
+ * size as a positive magnitude and conveys direction only via
+ * `perpPositionType`, so the sign of `positionAmount` is not a reliable
+ * direction signal (e.g. Hyperliquid spot tokens can carry a negative amount
+ * with no side). Returns `null` for spot.
  */
 export function getPerpPositionDirection(
   position: PerpPositionFields,
 ): PerpDirection | null {
-  if (position.perpPositionType) {
-    return position.perpPositionType;
-  }
-  if (position.chain?.toLowerCase() === HYPERLIQUID_CHAIN_NAME) {
-    return (position.positionAmount ?? 0) < 0 ? 'short' : 'long';
-  }
-  return null;
+  return position.perpPositionType ?? null;
 }
 
 /**

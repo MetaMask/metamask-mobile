@@ -63,7 +63,10 @@ describe('perp utils', () => {
       ).toBe('short');
     });
 
-    it('infers long from a positive positionAmount on hyperliquid', () => {
+    it('returns null when perpPositionType is absent, even on hyperliquid', () => {
+      // Clicker reports perp size as a positive magnitude and conveys direction
+      // only via perpPositionType, so the sign of positionAmount must not be
+      // used to fabricate a side (HL spot tokens can carry a negative amount).
       expect(
         getPerpPositionDirection({
           ...basePosition,
@@ -71,10 +74,7 @@ describe('perp utils', () => {
           perpPositionType: null,
           positionAmount: 5,
         }),
-      ).toBe('long');
-    });
-
-    it('infers short from a negative positionAmount on hyperliquid', () => {
+      ).toBeNull();
       expect(
         getPerpPositionDirection({
           ...basePosition,
@@ -82,7 +82,7 @@ describe('perp utils', () => {
           perpPositionType: null,
           positionAmount: -5,
         }),
-      ).toBe('short');
+      ).toBeNull();
     });
   });
 

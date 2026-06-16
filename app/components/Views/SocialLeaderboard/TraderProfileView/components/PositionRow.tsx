@@ -185,7 +185,14 @@ const PositionRow: React.FC<PositionRowProps> = ({
           >
             {isClosed
               ? formatTradeDate(position.lastTradeAt)
-              : `${formatTokenAmount(position.positionAmount)} ${position.tokenSymbol}`}
+              : `${formatTokenAmount(
+                  isPerp
+                    ? Math.abs(
+                        position.positionAmountWithLeverage ??
+                          position.positionAmount,
+                      )
+                    : position.positionAmount,
+                )} ${position.tokenSymbol}`}
           </Text>
         </Box>
       </Box>
