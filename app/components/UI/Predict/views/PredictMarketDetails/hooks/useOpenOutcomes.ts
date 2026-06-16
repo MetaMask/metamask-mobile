@@ -56,18 +56,26 @@ export const useOpenOutcomes = ({
     ? priceQueries
     : EMPTY_PRICE_QUERIES;
 
-  const { prices } = usePredictPrices({
-    queries: activePriceQueries,
-    enabled: shouldFetchPrices,
-    pollingInterval: shouldFetchPrices ? 2000 : undefined,
-  });
-
   const tokenIds = useMemo(
     () => activePriceQueries.map((q) => q.outcomeTokenId),
     [activePriceQueries],
   );
-  const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
+  const { getPrice: getLivePrice, isConnected: isLiveConnected } =
+    useLiveMarketPrices(tokenIds, {
+      enabled: shouldFetchPrices,
+    });
+
+  // The live WebSocket feed is the primary source of truth for prices. When it
+  // is connected we only keep a slow REST poll as a freshness fallback; this
+  // avoids both sources driving full re-renders at the same time.
+  const { prices } = usePredictPrices({
+    queries: activePriceQueries,
     enabled: shouldFetchPrices,
+    pollingInterval: shouldFetchPrices
+      ? isLiveConnected
+        ? 10000
+        : 2000
+      : undefined,
   });
 
   // Price precedence: live WebSocket bestAsk > REST buy price > base market price.
