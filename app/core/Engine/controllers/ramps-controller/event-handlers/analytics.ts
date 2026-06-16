@@ -54,7 +54,11 @@ function buildV2AnalyticsPayload(
 ) {
   const isBuy = order.orderType === 'BUY' || order.orderType === 'DEPOSIT';
 
-  const baseParams = {
+  // Legacy aggregator-shaped params, used for OFFRAMP_PURCHASE_*
+  // (sell completion/failure) and ONRAMP_PURCHASE_CANCELLED (buy cancellation).
+  // These event names are scheduled for deprecation; their typed contract
+  // is still the legacy on-ramp/off-ramp shape.
+  const legacyParams = {
     amount: order.fiatAmount,
     currency_source: isBuy
       ? (order.fiatCurrency?.symbol ?? '')
@@ -75,46 +79,79 @@ function buildV2AnalyticsPayload(
         }),
   };
 
+  // Unified ramps transaction payload for V2 buys. Matches the shape the
+  // deposit flow already emits under RAMPS_TRANSACTION_* so a single Mixpanel
+  // event name maps to a single schema regardless of provider.
+  const cryptoAmount = Number(order.cryptoAmount);
+  const feeTotal = Number(order.totalFeesFiat);
+  const computedExchangeRate =
+    cryptoAmount > 0 ? (Number(order.fiatAmount) - feeTotal) / cryptoAmount : 0;
+
+  const unifiedBuyBase = {
+    ramp_type: 'UNIFIED_BUY_2' as const,
+    amount_source: order.fiatAmount,
+    amount_destination: cryptoAmount,
+    exchange_rate: order.exchangeRate ?? computedExchangeRate,
+    payment_method_id: order.paymentMethod?.id ?? '',
+    country: order.region ?? '',
+    chain_id: order.network?.chainId ?? '',
+    currency_destination: order.cryptoCurrency?.assetId ?? '',
+    currency_destination_symbol: order.cryptoCurrency?.symbol,
+    currency_destination_network: order.network?.name,
+    currency_source: order.fiatCurrency?.symbol ?? '',
+    provider_onramp: order.provider?.name ?? '',
+  };
+
+  const unifiedBuyFees = {
+    gas_fee: Number(order.networkFees ?? 0),
+    processing_fee: Number(order.partnerFees ?? 0),
+    total_fee: feeTotal,
+  };
+
   switch (order.status) {
     case Status.Completed: {
-      const cryptoAmount = Number(order.cryptoAmount);
-      const feeTotal = Number(order.totalFeesFiat);
-      const exchangeRate =
-        cryptoAmount > 0
-          ? (Number(order.fiatAmount) - feeTotal) / cryptoAmount
-          : 0;
-
+      if (isBuy) {
+        return {
+          event: MetaMetricsEvents.RAMPS_TRANSACTION_COMPLETED,
+          params: { ...unifiedBuyBase, ...unifiedBuyFees },
+        };
+      }
       return {
-        event: isBuy
-          ? MetaMetricsEvents.RAMPS_TRANSACTION_COMPLETED
-          : MetaMetricsEvents.OFFRAMP_PURCHASE_COMPLETED,
+        event: MetaMetricsEvents.OFFRAMP_PURCHASE_COMPLETED,
         params: {
-          ...baseParams,
+          ...legacyParams,
           total_fee: feeTotal,
-          exchange_rate: exchangeRate,
+          exchange_rate: computedExchangeRate,
           amount_in_usd: order.fiatAmountInUsd,
-          ...(isBuy
-            ? { crypto_out: order.cryptoAmount }
-            : { fiat_out: order.fiatAmount }),
+          fiat_out: order.fiatAmount,
         },
       };
     }
 
     case Status.Failed:
-    case Status.IdExpired:
+    case Status.IdExpired: {
+      if (isBuy) {
+        return {
+          event: MetaMetricsEvents.RAMPS_TRANSACTION_FAILED,
+          params: {
+            ...unifiedBuyBase,
+            ...unifiedBuyFees,
+            error_message: order.statusDescription ?? 'transaction_failed',
+          },
+        };
+      }
       return {
-        event: isBuy
-          ? MetaMetricsEvents.RAMPS_TRANSACTION_FAILED
-          : MetaMetricsEvents.OFFRAMP_PURCHASE_FAILED,
-        params: baseParams,
+        event: MetaMetricsEvents.OFFRAMP_PURCHASE_FAILED,
+        params: legacyParams,
       };
+    }
 
     case Status.Cancelled:
       return {
         event: isBuy
           ? MetaMetricsEvents.ONRAMP_PURCHASE_CANCELLED
           : MetaMetricsEvents.OFFRAMP_PURCHASE_CANCELLED,
-        params: baseParams,
+        params: legacyParams,
       };
 
     default:

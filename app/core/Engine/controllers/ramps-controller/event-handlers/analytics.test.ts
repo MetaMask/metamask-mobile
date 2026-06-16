@@ -62,10 +62,15 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
     links: [],
     logos: { light: '', dark: '', height: 24, width: 79 },
   },
-  cryptoCurrency: { symbol: 'ETH' },
+  cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   fiatCurrency: { symbol: 'USD' },
   paymentMethod: { id: 'card-1', name: 'Card' },
   fiatAmountInUsd: 100,
+  region: 'US',
+  exchangeRate: 200,
+  networkFees: 1,
+  partnerFees: 2,
+  statusDescription: 'card_declined',
   ...overrides,
 });
 
@@ -80,7 +85,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
   });
 
   describe('BUY orders', () => {
-    it('tracks RAMPS_TRANSACTION_COMPLETED with calculated exchange rate', () => {
+    it('tracks RAMPS_TRANSACTION_COMPLETED with the unified deposit-shaped payload', () => {
       const order = createMockOrder({ status: Status.Completed });
 
       handleOrderStatusChangedForMetrics({
@@ -92,21 +97,25 @@ describe('handleOrderStatusChangedForMetrics', () => {
       const trackedEvent = mockTrackEvent.mock.calls[0][0];
       expect(trackedEvent.name).toBe('Ramps Transaction Completed');
       expect(trackedEvent.properties).toEqual({
-        amount: 100,
-        amount_in_usd: 100,
-        chain_id_destination: 'eip155:1',
-        crypto_out: '0.5',
-        currency_destination: 'ETH',
-        currency_source: 'USD',
-        exchange_rate: 190,
-        order_type: 'BUY',
+        ramp_type: 'UNIFIED_BUY_2',
+        amount_source: 100,
+        amount_destination: 0.5,
+        exchange_rate: 200,
         payment_method_id: 'card-1',
+        country: 'US',
+        chain_id: 'eip155:1',
+        currency_destination: 'eip155:1/slip44:60',
+        currency_destination_symbol: 'ETH',
+        currency_destination_network: 'Ethereum',
+        currency_source: 'USD',
         provider_onramp: 'Transak',
+        gas_fee: 1,
+        processing_fee: 2,
         total_fee: 5,
       });
     });
 
-    it('tracks RAMPS_TRANSACTION_FAILED for Failed status', () => {
+    it('tracks RAMPS_TRANSACTION_FAILED for Failed status with the unified payload + error_message', () => {
       const order = createMockOrder({ status: Status.Failed });
 
       handleOrderStatusChangedForMetrics({
@@ -117,7 +126,12 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Ramps Transaction Failed',
-          properties: expect.objectContaining({ order_type: 'BUY' }),
+          properties: expect.objectContaining({
+            ramp_type: 'UNIFIED_BUY_2',
+            chain_id: 'eip155:1',
+            provider_onramp: 'Transak',
+            error_message: 'card_declined',
+          }),
         }),
       );
     });
@@ -133,7 +147,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Ramps Transaction Failed',
-          properties: expect.objectContaining({ order_type: 'BUY' }),
+          properties: expect.objectContaining({
+            ramp_type: 'UNIFIED_BUY_2',
+            error_message: 'card_declined',
+          }),
         }),
       );
     });
@@ -174,8 +191,9 @@ describe('handleOrderStatusChangedForMetrics', () => {
         expect.objectContaining({
           name: 'Ramps Transaction Completed',
           properties: expect.objectContaining({
-            order_type: 'DEPOSIT',
-            chain_id_destination: 'eip155:1',
+            ramp_type: 'UNIFIED_BUY_2',
+            chain_id: 'eip155:1',
+            country: 'US',
             provider_onramp: 'Transak',
           }),
         }),
@@ -196,7 +214,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Ramps Transaction Failed',
-          properties: expect.objectContaining({ order_type: 'DEPOSIT' }),
+          properties: expect.objectContaining({
+            ramp_type: 'UNIFIED_BUY_2',
+            error_message: 'card_declined',
+          }),
         }),
       );
     });
@@ -585,10 +606,11 @@ describe('handleOrderStatusChangedForMetrics', () => {
     }
   });
 
-  it('handles exchange rate calculation when cryptoAmount is 0', () => {
+  it('handles exchange rate calculation when cryptoAmount is 0 and order has no exchangeRate', () => {
     const order = createMockOrder({
       status: Status.Completed,
       cryptoAmount: '0',
+      exchangeRate: undefined,
     });
 
     handleOrderStatusChangedForMetrics({

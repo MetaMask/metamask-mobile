@@ -15,6 +15,8 @@ describe('getRampsV2AnalyticsPayload', () => {
     currency: 'USD',
     cryptocurrency: 'ETH',
     network: '1',
+    fee: '1',
+    cryptoAmount: '0.01',
     data: {
       paymentMethod: {
         id: '/payments/debit-credit-card',
@@ -23,6 +25,13 @@ describe('getRampsV2AnalyticsPayload', () => {
         id: '/providers/transak',
         name: 'Transak',
       },
+      region: 'US',
+      network: { name: 'Ethereum', chainId: 'eip155:1' },
+      cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+      fiatCurrency: { symbol: 'USD' },
+      networkFees: 0.5,
+      partnerFees: 0.5,
+      statusDescription: 'card_declined',
     },
   };
 
@@ -38,13 +47,22 @@ describe('getRampsV2AnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
-      amount: 100,
-      currency_source: 'USD',
-      currency_destination: 'ETH',
-      order_type: 'BUY',
+      ramp_type: 'UNIFIED_BUY_2',
+      amount_source: 100,
+      amount_destination: 0.01,
+      exchange_rate: 9900,
       payment_method_id: '/payments/debit-credit-card',
-      chain_id_destination: '1',
+      country: 'US',
+      chain_id: 'eip155:1',
+      currency_destination: 'eip155:1/slip44:60',
+      currency_destination_symbol: 'ETH',
+      currency_destination_network: 'Ethereum',
+      currency_source: 'USD',
       provider_onramp: 'Transak',
+      gas_fee: 0.5,
+      processing_fee: 0.5,
+      total_fee: 1,
+      error_message: 'card_declined',
     });
   });
 
@@ -70,26 +88,24 @@ describe('getRampsV2AnalyticsPayload', () => {
     const [eventName, params] = getRampsV2AnalyticsPayload({
       ...mockBuyOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
-      fee: '1',
-      cryptoAmount: '0.01',
-      data: {
-        ...mockBuyOrder.data,
-        fiatAmountInUsd: 99,
-      },
     } as FiatOrder);
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
-      amount: 100,
-      amount_in_usd: 99,
-      crypto_out: '0.01',
-      currency_source: 'USD',
-      currency_destination: 'ETH',
-      order_type: 'BUY',
-      payment_method_id: '/payments/debit-credit-card',
-      chain_id_destination: '1',
+      ramp_type: 'UNIFIED_BUY_2',
+      amount_source: 100,
+      amount_destination: 0.01,
       exchange_rate: 9900,
+      payment_method_id: '/payments/debit-credit-card',
+      country: 'US',
+      chain_id: 'eip155:1',
+      currency_destination: 'eip155:1/slip44:60',
+      currency_destination_symbol: 'ETH',
+      currency_destination_network: 'Ethereum',
+      currency_source: 'USD',
       provider_onramp: 'Transak',
+      gas_fee: 0.5,
+      processing_fee: 0.5,
       total_fee: 1,
     });
   });
@@ -193,13 +209,22 @@ describe('getRampsV2AnalyticsPayload', () => {
 
       expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
       expect(params).toEqual({
-        amount: 100,
-        currency_source: 'USD',
-        currency_destination: 'ETH',
-        order_type: 'DEPOSIT',
+        ramp_type: 'UNIFIED_BUY_2',
+        amount_source: 100,
+        amount_destination: 0.01,
+        exchange_rate: 9900,
         payment_method_id: '/payments/debit-credit-card',
-        chain_id_destination: '1',
+        country: 'US',
+        chain_id: 'eip155:1',
+        currency_destination: 'eip155:1/slip44:60',
+        currency_destination_symbol: 'ETH',
+        currency_destination_network: 'Ethereum',
+        currency_source: 'USD',
         provider_onramp: 'Transak',
+        gas_fee: 0.5,
+        processing_fee: 0.5,
+        total_fee: 1,
+        error_message: 'card_declined',
       });
     });
 
@@ -225,26 +250,24 @@ describe('getRampsV2AnalyticsPayload', () => {
       const [eventName, params] = getRampsV2AnalyticsPayload({
         ...mockDepositOrder,
         state: FIAT_ORDER_STATES.COMPLETED,
-        fee: '1',
-        cryptoAmount: '0.01',
-        data: {
-          ...mockDepositOrder.data,
-          fiatAmountInUsd: 99,
-        },
       } as FiatOrder);
 
       expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
       expect(params).toEqual({
-        amount: 100,
-        amount_in_usd: 99,
-        crypto_out: '0.01',
-        currency_source: 'USD',
-        currency_destination: 'ETH',
-        order_type: 'DEPOSIT',
-        payment_method_id: '/payments/debit-credit-card',
-        chain_id_destination: '1',
+        ramp_type: 'UNIFIED_BUY_2',
+        amount_source: 100,
+        amount_destination: 0.01,
         exchange_rate: 9900,
+        payment_method_id: '/payments/debit-credit-card',
+        country: 'US',
+        chain_id: 'eip155:1',
+        currency_destination: 'eip155:1/slip44:60',
+        currency_destination_symbol: 'ETH',
+        currency_destination_network: 'Ethereum',
+        currency_source: 'USD',
         provider_onramp: 'Transak',
+        gas_fee: 0.5,
+        processing_fee: 0.5,
         total_fee: 1,
       });
     });
@@ -262,13 +285,20 @@ describe('getRampsV2AnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
-      amount: 100,
-      currency_source: 'USD',
-      currency_destination: 'ETH',
-      order_type: 'BUY',
+      ramp_type: 'UNIFIED_BUY_2',
+      amount_source: 100,
+      amount_destination: 0.01,
+      exchange_rate: 9900,
       payment_method_id: '',
-      chain_id_destination: '1',
+      country: '',
+      chain_id: '1',
+      currency_destination: '',
+      currency_source: 'USD',
       provider_onramp: '',
+      gas_fee: 0,
+      processing_fee: 0,
+      total_fee: 1,
+      error_message: 'transaction_failed',
     });
   });
 });
