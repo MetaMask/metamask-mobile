@@ -217,18 +217,22 @@ const OnboardingSuccessFlow = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.DEFAULT_SETTINGS}
         component={DefaultSettings}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.GENERAL_SETTINGS}
         component={OnboardingGeneralSettings}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ASSETS_SETTINGS}
         component={OnboardingAssetsSettings}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.SECURITY_SETTINGS}
         component={OnboardingSecuritySettings}
+        options={{ headerShown: false }}
       />
     </NativeStack.Navigator>
   );
@@ -304,6 +308,7 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
         component={ImportFromSecretRecoveryPhrase}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="OptinMetrics"
@@ -1032,6 +1037,9 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.SUCCESS_FLOW}
         component={OnboardingSuccessFlow}
+        // Opaque, full-screen flow: present as a card so safe-area insets resolve
+        // correctly (the inherited `transparentModal` reports a 0 bottom inset on iOS).
+        options={{ presentation: 'card' }}
       />
       <NativeStack.Screen
         name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
@@ -1216,6 +1224,11 @@ const AppFlow = () => {
     </NativeStack.Navigator>
   );
 };
+
+// DEV-ONLY: flip to `true` to jump straight to the Assets settings screen a few
+// seconds after launch for quick visual testing. Set back to `false` (and remove
+// this block) before committing.
+const DEV_JUMP_TO_ASSETS_SETTINGS = false;
 
 const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);

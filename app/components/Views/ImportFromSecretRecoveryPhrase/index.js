@@ -43,7 +43,6 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
@@ -56,6 +55,8 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
+  IconName as DSIconName,
   Label,
   Text,
   TextColor,
@@ -236,50 +237,9 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-  const headerLeft = () => (
-    <TouchableOpacity
-      onPress={onBackPress}
-      testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
-    >
-      <Icon
-        name={IconName.ArrowLeft}
-        size={24}
-        color={colors.text.default}
-        style={tw.style('ml-4')}
-      />
-    </TouchableOpacity>
-  );
-
-  const headerRight = () =>
-    currentStep === 0 ? (
-      <TouchableOpacity
-        onPress={onQrCodePress}
-        testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
-      >
-        <Icon
-          name={IconName.Scan}
-          size={24}
-          color={colors.text.default}
-          onPress={onQrCodePress}
-          style={tw.style('mr-4')}
-        />
-      </TouchableOpacity>
-    ) : (
-      <Box />
-    );
-
+  // The header is rendered in-screen via HeaderStandard, so hide the native one.
   const updateNavBar = () => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-          headerRight,
-        },
-        colors,
-        false,
-      ),
-    );
+    navigation.setOptions({ headerShown: false });
   };
 
   useEffect(() => {
@@ -580,6 +540,25 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const content = (
     <Box twClassName="flex-1 bg-default">
+      <HeaderStandard
+        includesTopInset
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+          onPress: onBackPress,
+          testID: ImportFromSeedSelectorsIDs.BACK_BUTTON_ID,
+        }}
+        endButtonIconProps={
+          currentStep === 0
+            ? [
+                {
+                  iconName: DSIconName.Scan,
+                  onPress: onQrCodePress,
+                  testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+                },
+              ]
+            : undefined
+        }
+      />
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
