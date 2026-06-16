@@ -38,10 +38,12 @@ const styles = StyleSheet.create({
 
 interface QuickBuyTradeModeToggleProps {
   testID?: string;
+  buyOnly?: boolean;
 }
 
 const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   testID = 'quick-buy-trade-mode-toggle',
+  buyOnly = false,
 }) => {
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
@@ -57,7 +59,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   };
 
   useEffect(() => {
-    if (!buyLayout) return;
+    if (buyOnly || !buyLayout) return;
     Animated.spring(slideAnim, {
       toValue: tradeMode === 'buy' ? 0 : buyLayout.width,
       // Color interpolation (backgroundColor below) is not supported by the
@@ -66,7 +68,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
       tension: 180,
       friction: 20,
     }).start();
-  }, [tradeMode, buyLayout, slideAnim]);
+  }, [tradeMode, buyLayout, slideAnim, buyOnly]);
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
@@ -79,6 +81,29 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
           outputRange: [colors.success.default, colors.error.default],
         })
       : colors.success.default;
+
+  if (buyOnly) {
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="border border-muted rounded-xl p-1"
+        testID={testID}
+      >
+        <Box
+          twClassName="rounded-lg px-4 py-1"
+          style={{ backgroundColor: colors.success.default }}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.PrimaryInverse}
+          >
+            {strings('social_leaderboard.quick_buy.buy_label')}
+          </Text>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
