@@ -663,10 +663,32 @@ export async function importLedgerAccount(): Promise<void> {
   await TestHelpers.delay(5000);
   await device.takeScreenshot('14_after_unlock');
 
-  logger.debug('[importLedger] Step 15: waitForWalletView');
+  logger.debug(
+    '[importLedger] Step 15: dismissAccountListSheet + waitForWalletView',
+  );
+  // The "Accounts" bottom sheet opened in Step 3 (tapIdenticon) reliably stays
+  // open after the Ledger import completes — it covers the wallet's bottom tab
+  // bar (Explore), making downstream browser navigation unreachable. Dismiss it
+  // by swiping down. The V2 account list can stack layers, so repeat the swipe.
+  // (No visibility pre-check: under sync-disabled the toBeVisible check is
+  // flaky; the swipe itself targets the "Accounts" title and no-ops once the
+  // sheet is gone.)
+  for (let i = 0; i < 3; i++) {
+    try {
+      await AccountListBottomSheet.swipeToDismissAccountsModal();
+      logger.debug(
+        `[importLedger] Step 15: swiped down to dismiss account sheet (${i + 1}/3)`,
+      );
+      await TestHelpers.delay(1500);
+    } catch {
+      break; // swipe target missing -> sheet already dismissed
+    }
+  }
+
   await Assertions.expectElementToBeVisible(WalletView.container, {
     timeout: 30000,
   });
+  await device.takeScreenshot('15_wallet_home');
 
   logger.debug('[importLedger] ✅ Complete');
 }
