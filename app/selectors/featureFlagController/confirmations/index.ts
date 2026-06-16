@@ -159,8 +159,12 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
       PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
 
+    const depositLimitFlags = metaMaskPayExtendedFlags?.depositLimit as
+      | Record<string, Json>
+      | undefined;
+
     const moneyAccountDepositLimit =
-      (metaMaskPayExtendedFlags?.moneyAccountDepositLimit as number) ??
+      (depositLimitFlags?.moneyAccountDeposit as number) ??
       PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT;
 
     return {

@@ -748,7 +748,9 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
           confirmations_pay_extended: {
-            moneyAccountDepositLimit: 100000,
+            depositLimit: {
+              moneyAccountDeposit: 100000,
+            },
           },
         };
 
@@ -762,7 +764,9 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
           confirmations_pay_extended: {
-            moneyAccountDepositLimit: 50000,
+            depositLimit: {
+              moneyAccountDeposit: 50000,
+            },
           },
         };
 
