@@ -92,7 +92,7 @@ export function ActivityListItemRowLayout({
       disabled={!onPress}
       onPress={onPress}
       style={styles.row}
-      testID={`activity-item-${index ?? 0}`}
+      testID={`transaction-item-${index ?? 0}`}
     >
       <ListItem style={styles.listItem}>
         <ListItemColumn widthType={WidthType.Auto}>{avatar}</ListItemColumn>

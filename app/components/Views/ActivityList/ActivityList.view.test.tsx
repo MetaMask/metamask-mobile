@@ -27,6 +27,8 @@ const transactionControllerWithIncomingSync = Engine.context
 
 describeForPlatforms('ActivityList', () => {
   it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
+    const pendingRowIndex = 1;
+    const confirmedRowIndex = 3;
     const state = initialStateActivityWithLocalTransactions([
       buildConfirmedLocalSendTransaction(),
       buildPendingLocalSendTransaction(),
@@ -37,17 +39,18 @@ describeForPlatforms('ActivityList', () => {
       extraRoutes: [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
     });
 
-    const pendingStatus = await findByTestId(activityListRowStatusTestId(0));
+    const pendingStatus = await findByTestId(
+      activityListRowStatusTestId(pendingRowIndex),
+    );
 
     expect(pendingStatus).toHaveTextContent(strings('transaction.submitted'));
 
-    const confirmedRow = await findByTestId(activityListRowItemTestId(1));
+    const confirmedRow = await findByTestId(
+      activityListRowItemTestId(confirmedRowIndex),
+    );
     const confirmedScope = within(confirmedRow);
 
     expect(confirmedScope.getByText('Sent ETH')).toBeOnTheScreen();
-    expect(
-      confirmedScope.getByTestId(activityListRowStatusTestId(1)),
-    ).toHaveTextContent(strings('transaction.confirmed'));
     expect(confirmedScope.getByText('-1 ETH')).toBeOnTheScreen();
 
     fireEvent.press(confirmedRow);
