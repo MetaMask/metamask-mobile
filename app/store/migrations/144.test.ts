@@ -60,7 +60,7 @@ describe('Migration 144: per-connection WalletConnect metadata', () => {
     expect(migratedState.sdk).toBe('not-an-object');
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-      `Migration 144: Invalid sdk state error: '"not-an-object"'`,
+      `Migration 144: Invalid sdk state error: 'string'`,
     );
   });
 

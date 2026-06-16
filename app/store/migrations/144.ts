@@ -37,9 +37,7 @@ const migration = (state: unknown): unknown => {
   if (!isObject(state.sdk)) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Invalid sdk state error: '${JSON.stringify(
-          state.sdk,
-        )}'`,
+        `Migration ${migrationVersion}: Invalid sdk state error: '${typeof state.sdk}'`,
       ),
     );
     return state;
