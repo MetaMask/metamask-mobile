@@ -40,7 +40,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   swap-ios-smoke:
@@ -59,7 +59,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   stake-ios-smoke:
@@ -78,7 +78,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   perps-ios-smoke:
@@ -97,7 +97,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   wallet-platform-ios-smoke:
@@ -116,7 +116,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   identity-ios-smoke:
@@ -135,7 +135,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   network-abstraction-ios-smoke:
@@ -154,7 +154,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   network-expansion-ios-smoke:
@@ -173,7 +173,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   prediction-market-ios-smoke:
@@ -192,7 +192,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   money-ios-smoke:
@@ -211,7 +211,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   multichain-api-ios-smoke:
@@ -230,7 +230,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   seedless-onboarding-ios-smoke:
@@ -249,7 +249,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   browser-ios-smoke:
@@ -268,7 +268,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   snaps-ios-smoke:
@@ -287,7 +287,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && vars.BITRISE_E2E_LIGHT_MACHINE_TYPE || '' }}
+
     secrets: inherit
 
   report-ios-smoke-tests:
