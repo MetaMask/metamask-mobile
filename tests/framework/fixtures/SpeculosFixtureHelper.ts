@@ -212,29 +212,92 @@ export class SpeculosHelper {
   // enableBlindSigning / autoApproveSigning / ...) are kept here rather than
   // migrated to the hw-emulator package's `createDeviceInteraction`/`Speculos`
   // APIs on purpose:
-  //  - `enableBlindSigning` includes a 4× left-press preamble to recover from
-  //    stale NVRAM (the Ethereum app may boot into Settings/Blind Signing). The
-  //    package's NanoInteraction.enableBlindSigning lacks this preamble.
-  //  - The package's `Speculos` wrapper does not expose enableBlindSigning /
-  //    autoApproveSigning convenience methods.
-  // These methods talk to the Speculos Docker REST API directly and remain the
-  // simplest correct implementation for the Detox flows.
-  async approveTransaction(): Promise<void> {
-    for (let i = 0; i < 6; i++) {
-      await this.pressButton('right');
-      await new Promise((r) => setTimeout(r, 500));
+  //  - `enableBlindSigning` is calibrated against the bundled ethereum-nanox.elf
+  //    menu structure (main -> menu -> App settings -> Blind signing -> toggle
+  //    -> Back -> ready). The package's NanoInteraction.enableBlindSigning uses a
+  //    different, incorrect sequence for this ELF.
+  //  - approveTransaction/approveSigning are ADAPTIVE: they read the device
+  //    screen via the Speculos /events endpoint and navigate right until the
+  //    confirm screen appears, then press both. This is robust to blind-signing
+  //    on/off and to Ethereum-app review-screen count changes.
+  // These methods talk to the Speculos Docker REST API directly.
+
+  /**
+   * Read the current Speculos screen text. The `/events` endpoint returns the
+   * cumulative draw history as `{"events":[{"text":...}]}`; we take the tail
+   * (the most recently drawn lines = the current screen).
+   */
+  async getScreenText(): Promise<string> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    try {
+      const resp = await fetch(
+        `http://${this.config.speculosHost}:${this.config.speculosApiPort}/events`,
+        { signal: controller.signal },
+      );
+      const reader = resp.body?.getReader();
+      if (!reader) return '';
+      let buf = '';
+      for (let i = 0; i < 20; i++) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += new TextDecoder().decode(value);
+        try {
+          const obj = JSON.parse(buf.trim()) as {
+            events?: { text?: string }[];
+          };
+          const texts = (obj.events ?? []).map((e) => e.text ?? '');
+          return texts.slice(-6).join(' ').toLowerCase().trim();
+        } catch {
+          // incomplete JSON — keep reading
+        }
+        if (buf.length > 65536) break;
+      }
+      return '';
+    } catch {
+      return '';
+    } finally {
+      clearTimeout(timeout);
     }
+  }
+
+  /**
+   * Navigate right until the current screen matches one of `keywords`, then
+   * press both to confirm. Falls back to a both-press after `maxRights`.
+   */
+  async approveByScreen(keywords: string[], maxRights = 18): Promise<void> {
+    for (let i = 0; i < maxRights; i++) {
+      const text = await this.getScreenText();
+      if (keywords.some((k) => text.includes(k))) {
+        await this.pressButton('both');
+        await new Promise((r) => setTimeout(r, 600));
+        return;
+      }
+      await this.pressButton('right');
+      await new Promise((r) => setTimeout(r, 450));
+    }
+    logger.debug(
+      `approveByScreen: none of [${keywords.join(
+        ',',
+      )}] found after ${maxRights} rights; pressing both as fallback`,
+    );
     await this.pressButton('both');
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  async approveTransaction(): Promise<void> {
+    // Ledger Ethereum tx confirm screens (blind-signed or full review).
+    await this.approveByScreen([
+      'hold to sign',
+      'accept',
+      'approve',
+      'sign transaction',
+    ]);
   }
 
   async approveSigning(): Promise<void> {
-    for (let i = 0; i < 2; i++) {
-      await this.pressButton('right');
-      await new Promise((r) => setTimeout(r, 500));
-    }
-    await this.pressButton('both');
-    await new Promise((r) => setTimeout(r, 500));
+    // personal_sign / typed-data confirm screen.
+    await this.approveByScreen(['hold to sign', 'accept', 'sign']);
   }
 
   async rejectTransaction(): Promise<void> {
@@ -244,38 +307,27 @@ export class SpeculosHelper {
   }
 
   async enableBlindSigning(): Promise<void> {
-    // First, navigate back to main screen by pressing left repeatedly.
-    // The Ethereum app may be in Settings or Blind Signing screen from stale NVRAM.
-    for (let i = 0; i < 4; i++) {
-      await this.pressButton('left');
-      await new Promise((r) => setTimeout(r, 300));
-    }
-    // Now we should be on main screen. Open menu.
+    // Calibrated against ethereum-nanox.elf via Speculos /events screen mapping.
+    // Assumes the app is on the main "Ethereum / app is ready" screen (fresh
+    // Docker start with loadNvram resets settings each run).
+    // Open menu -> App settings -> (lands on Blind signing) -> toggle -> Back -> ready.
     await this.pressButton('both');
     await new Promise((r) => setTimeout(r, 800));
-    // Navigate to Settings
-    await this.pressButton('right');
-    await new Promise((r) => setTimeout(r, 400));
-    await this.pressButton('both');
-    await new Promise((r) => setTimeout(r, 800));
-    // Enter Blind Signing settings
-    await this.pressButton('both');
-    await new Promise((r) => setTimeout(r, 800));
-    // Navigate to enable blind signing
-    for (let i = 0; i < 6; i++) {
-      await this.pressButton('right');
-      await new Promise((r) => setTimeout(r, 200));
-    }
-    await this.pressButton('both');
+    await this.pressButton('right'); // -> App settings
     await new Promise((r) => setTimeout(r, 500));
-    // Navigate back to main screen
-    await this.pressButton('left');
-    await new Promise((r) => setTimeout(r, 400));
-    for (let i = 0; i < 4; i++) {
-      await this.pressButton('left');
-      await new Promise((r) => setTimeout(r, 300));
+    await this.pressButton('both'); // enter App settings (cursor on Blind signing)
+    await new Promise((r) => setTimeout(r, 800));
+    await this.pressButton('both'); // toggle Blind signing: Disabled -> Enabled
+    await new Promise((r) => setTimeout(r, 800));
+    for (let i = 0; i < 6; i++) {
+      await this.pressButton('right'); // -> Back
+      await new Promise((r) => setTimeout(r, 250));
     }
-    await this.pressButton('both');
+    await this.pressButton('both'); // Back -> main menu
+    await new Promise((r) => setTimeout(r, 700));
+    await this.pressButton('left'); // -> ready screen
+    await new Promise((r) => setTimeout(r, 300));
+    await this.pressButton('left');
     await new Promise((r) => setTimeout(r, 500));
   }
 
@@ -288,9 +340,7 @@ export class SpeculosHelper {
         await new Promise((r) => setTimeout(r, 500));
       }
     } else {
-      await this.pressButton('right', 4);
-      await new Promise((r) => setTimeout(r, 500));
-      await this.pressButton('both');
+      await this.approveSigning();
     }
   }
 
