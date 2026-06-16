@@ -9,7 +9,23 @@ import {
   getWildcardTokenListFromConfig,
   WildcardTokenList,
 } from '../../Earn/utils/wildcardTokenList';
-import { parseBlockedCountriesEnv } from '../../Earn/selectors/featureFlags';
+
+/**
+ * Parses a comma-separated string of country codes into an array.
+ * Returns empty array if input is undefined/empty.
+ *
+ * @param envValue - Comma-separated country codes (e.g., "GB,US,FR")
+ * @returns Array of country codes
+ */
+const parseBlockedCountriesEnv = (envValue?: string): string[] => {
+  if (!envValue || envValue.trim() === '') {
+    return [];
+  }
+  return envValue
+    .split(',')
+    .map((code) => code.trim().toUpperCase())
+    .filter((code) => code.length > 0);
+};
 
 /** Temporary flag: remote value is a boolean only. */
 export const selectMoneyActivityMockDataEnabledFlag = createSelector(
