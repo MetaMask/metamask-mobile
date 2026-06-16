@@ -1,8 +1,11 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
-import MainActionButton from '../../../../../component-library/components-temp/MainActionButton';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import {
+  Box,
+  BoxFlexDirection,
+  IconName,
+  MainActionButton,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 
@@ -40,7 +43,7 @@ const MoneyActionButtonRow = ({
       onPress={add.onPress}
       isDisabled={add.disabled}
       testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
-      containerStyle={styles.buttonContainer}
+      style={styles.buttonContainer}
     />
     <MainActionButton
       iconName={IconName.Arrow2UpRight}
@@ -48,7 +51,7 @@ const MoneyActionButtonRow = ({
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
-      containerStyle={styles.buttonContainer}
+      style={styles.buttonContainer}
     />
     <MainActionButton
       iconName={IconName.Card}
@@ -56,7 +59,7 @@ const MoneyActionButtonRow = ({
       onPress={card.onPress}
       isDisabled={card.disabled}
       testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
-      containerStyle={styles.buttonContainer}
+      style={styles.buttonContainer}
     />
   </Box>
 );
