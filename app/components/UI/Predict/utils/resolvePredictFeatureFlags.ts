@@ -10,6 +10,7 @@ import {
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
+import { SUPPORTED_SPORTS_MARKET_TYPES } from '../providers/polymarket/constants';
 import {
   parse,
   PredictFeeCollectionSchema,
@@ -38,6 +39,14 @@ function resolveVersionGatedBooleanFlag(
     ) ?? fallback
   );
 }
+
+const filterSupportedSportsMarketTypes = (types: string[] = []): string[] => [
+  ...new Set(
+    types
+      .map((type) => type.toLowerCase())
+      .filter((type) => SUPPORTED_SPORTS_MARKET_TYPES.has(type)),
+  ),
+];
 
 /**
  * Resolves the Predict feature flags used by both the controller and selectors.
@@ -85,10 +94,17 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
-    extendedSportsFlag,
-  )
+  const extendedSportsMarketsEnabled =
+    validatedVersionGatedFeatureFlag(extendedSportsFlag);
+  const extendedSportsMarketsLeagues = extendedSportsMarketsEnabled
     ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
+    : [];
+  const enabledSportsMarketTypes = extendedSportsMarketsEnabled
+    ? filterSupportedSportsMarketTypes(
+        Array.isArray(extendedSportsFlag.enabledSportsMarketTypes)
+          ? extendedSportsFlag.enabledSportsMarketTypes
+          : [],
+      )
     : [];
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
@@ -122,6 +138,7 @@ export function resolvePredictFeatureFlags(
     feeCollection,
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
+    enabledSportsMarketTypes,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
