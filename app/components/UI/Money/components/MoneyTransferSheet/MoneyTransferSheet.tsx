@@ -8,11 +8,7 @@ import React, {
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import {
-  TransactionStatus,
-  type TransactionMeta,
-} from '@metamask/transaction-controller';
-import { providerErrors } from '@metamask/rpc-errors';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -23,8 +19,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import Engine from '../../../../../core/Engine';
 import { selectTransactions } from '../../../../../selectors/transactionController';
+import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
@@ -216,26 +212,5 @@ const MoneyTransferSheet = () => {
     </BottomSheet>
   );
 };
-
-function rejectPendingTransactions(transactions: TransactionMeta[]) {
-  const { ApprovalController } = Engine.context;
-
-  for (const tx of transactions) {
-    if (tx.status !== TransactionStatus.unapproved) {
-      continue;
-    }
-    try {
-      ApprovalController.rejectRequest(
-        tx.id,
-        providerErrors.userRejectedRequest(),
-      );
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        '[MoneyTransferSheet] Failed to reject pending transaction',
-      );
-    }
-  }
-}
 
 export default MoneyTransferSheet;
