@@ -60,12 +60,7 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
-import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
 
-const mockPersistAttributionFromPendingDeeplink =
-  persistAttributionFromPendingDeeplink as jest.MockedFunction<
-    typeof persistAttributionFromPendingDeeplink
-  >;
 const mockAppStateEventProcessor = AppStateEventProcessor as jest.Mocked<
   typeof AppStateEventProcessor
 >;
@@ -98,13 +93,6 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
 }));
 
-jest.mock(
-  '../../../util/analytics/persistAttributionFromPendingDeeplink',
-  () => ({
-    persistAttributionFromPendingDeeplink: jest.fn(),
-  }),
-);
-
 jest.mock('../../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     pendingDeeplink: null as string | null,
@@ -136,7 +124,6 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPersistAttributionFromPendingDeeplink.mockReturnValue(false);
     mockAppStateEventProcessor.pendingDeeplink = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -229,9 +216,6 @@ describe('OptinMetrics', () => {
       await waitFor(() => {
         expect(store.getState().attribution.attribution).toBeNull();
         expect(
-          mockPersistAttributionFromPendingDeeplink,
-        ).not.toHaveBeenCalled();
-        expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
@@ -275,9 +259,6 @@ describe('OptinMetrics', () => {
         }),
       );
       await waitFor(() => {
-        expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
-          1,
-        );
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
@@ -322,9 +303,6 @@ describe('OptinMetrics', () => {
 
       await waitFor(() => {
         expect(
-          mockPersistAttributionFromPendingDeeplink,
-        ).not.toHaveBeenCalled();
-        expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
         expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
@@ -333,10 +311,9 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('persists attribution from pending deeplink without clearing it after opt-in', async () => {
+    it('keeps pending deeplink after marketing opt-in', async () => {
       const pendingDeeplink =
         'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
-      mockPersistAttributionFromPendingDeeplink.mockReturnValue(true);
       mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
@@ -350,9 +327,6 @@ describe('OptinMetrics', () => {
       );
 
       await waitFor(() => {
-        expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
-          1,
-        );
         expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -365,7 +339,6 @@ describe('OptinMetrics', () => {
     it('keeps pending deeplink when install link also targets navigation', async () => {
       const pendingDeeplink =
         'https://link.metamask.io/rewards?utm_source=campaign&utm_campaign=summer';
-      mockPersistAttributionFromPendingDeeplink.mockReturnValue(true);
       mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
@@ -379,9 +352,6 @@ describe('OptinMetrics', () => {
       );
 
       await waitFor(() => {
-        expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
-          1,
-        );
         expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();

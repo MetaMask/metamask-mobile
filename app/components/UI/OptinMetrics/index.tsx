@@ -62,7 +62,6 @@ import type { RootState } from '../../../reducers';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
 import { clearAcquisitionStateAfterOptIn } from '../../../util/analytics/clearAcquisitionStateAfterOptIn';
-import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 
@@ -179,10 +178,6 @@ const OptinMetrics = () => {
     updateCachedConsent(isBasicUsageChecked);
 
     dispatch(setDataCollectionForMarketing(isMarketingChecked));
-
-    if (isMarketingChecked) {
-      persistAttributionFromPendingDeeplink(dispatch);
-    }
 
     // Track opt-in / opt-out for metrics
     metrics.trackEvent(

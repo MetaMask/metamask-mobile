@@ -92,7 +92,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
+import { clearAcquisitionStateAfterOptIn } from '../../../util/analytics/clearAcquisitionStateAfterOptIn';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -509,9 +509,6 @@ const ChoosePassword = () => {
 
       let walletSetupAttributionProps = {};
       if (isSocialLogin) {
-        if (isSelected) {
-          persistAttributionFromPendingDeeplink(dispatch);
-        }
         walletSetupAttributionProps =
           getWalletSetupAttributionPropsFromStore(isSelected);
       }
@@ -522,6 +519,10 @@ const ChoosePassword = () => {
         account_type: accountType,
         ...walletSetupAttributionProps,
       });
+
+      if (isSocialLogin) {
+        clearAcquisitionStateAfterOptIn(dispatch);
+      }
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
