@@ -135,7 +135,7 @@ async function setupIosNativeAppProxy(
   });
 
   logger.warn(
-    `[E2E_IOS_NATIVE_APP_PROXY_CONFIGURED] Installed CA certificate and app launch will pass ${IOS_E2E_APP_PROXY_LAUNCH_ARG}=${mockServerPort}. Search simulator logs for E2E_IOS_NATIVE_APP_PROXY_ENABLED and E2E_IOS_NATIVE_APP_PROXY_WEBSOCKET_ENABLED, and MockServer logs for E2E_NATIVE_PROXY_WS_REQUEST or E2E_NATIVE_PROXY_DIRECT_REQUEST after app launch.`,
+    `[E2E_IOS_NATIVE_APP_PROXY_CONFIGURED] Installed CA certificate. The app must be launched with ${IOS_E2E_APP_PROXY_LAUNCH_ARG}=${mockServerPort} for the proxy to engage — the Appium launch path passes it; the Detox launch path does not in Phase 0, so the proxy stays dormant on Detox iOS. Search simulator logs for E2E_IOS_NATIVE_APP_PROXY_ENABLED and E2E_IOS_NATIVE_APP_PROXY_WEBSOCKET_ENABLED, and MockServer logs for E2E_NATIVE_PROXY_WS_REQUEST or E2E_NATIVE_PROXY_DIRECT_REQUEST after app launch.`,
   );
 }
 

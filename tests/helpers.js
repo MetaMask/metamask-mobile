@@ -563,7 +563,9 @@ export default class TestHelpers {
   static getDevLauncherPackagerUrl(platform) {
     const port =
       process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
-    const host = platform === 'android' ? '10.0.2.2' : 'localhost';
+    const host =
+      process.env.METRO_HOST_E2E ||
+      (platform === 'android' ? '10.0.2.2' : 'localhost');
     return `http://${host}:${port}/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
   }
 }
