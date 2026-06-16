@@ -168,15 +168,17 @@ const ActivityScreen = () => {
           </Box>
         </Box>
 
-        <AssetListControlBar
-          networkLabel={networkFilterLabel}
-          isNetworkFilterActive={isNetworkFilterActive}
-          isNetworkFilterDisabled={isNetworkFilterDisabled}
-          onNetworkPress={handleOpenNetworkSheet}
-          typeLabel={typeFilterLabel}
-          isTypeFilterActive={isTypeFilterActive}
-          onTypePress={handleOpenTypeSheet}
-        />
+        <Box>
+          <AssetListControlBar
+            networkLabel={networkFilterLabel}
+            isNetworkFilterActive={isNetworkFilterActive}
+            isNetworkFilterDisabled={isNetworkFilterDisabled}
+            onNetworkPress={handleOpenNetworkSheet}
+            typeLabel={typeFilterLabel}
+            isTypeFilterActive={isTypeFilterActive}
+            onTypePress={handleOpenTypeSheet}
+          />
+        </Box>
       </>
     ),
     [

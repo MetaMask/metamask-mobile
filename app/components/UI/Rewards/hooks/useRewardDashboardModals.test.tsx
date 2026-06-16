@@ -77,6 +77,9 @@ jest.mock('../utils', () => ({
   convertInternalAccountToCaipAccountId: jest.fn(
     (account) => `eip155:1:${account.id}`,
   ),
+  navigateToRewardsRoute: jest.fn((navigation, screen, params) =>
+    navigation.navigate('RewardsFlow', { screen, params }),
+  ),
 }));
 
 jest.mock('../../../../util/address', () => ({
@@ -240,7 +243,10 @@ describe('useRewardDashboardModals', () => {
         type: 'SET_HIDE_UNLINKED_ACCOUNTS_BANNER',
         payload: true,
       });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
     });
 
     it('handles cancel action correctly', () => {

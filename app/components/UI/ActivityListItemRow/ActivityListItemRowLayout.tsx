@@ -52,6 +52,7 @@ export function ActivityListItemRowLayout({
   );
   const subtitleNode = subtitle ? (
     <Text
+      numberOfLines={1}
       style={styles.subtitleText}
       testID={`activity-subtitle-${testIdSuffix}`}
     >
@@ -92,14 +93,14 @@ export function ActivityListItemRowLayout({
   return (
     <ListItem
       isInteractive
-      style={[styles.row, styles.listItem]}
-      onPress={onPress}
-      testID={`activity-item-${index ?? 0}`}
-      verticalAlignment="top"
       avatar={avatar}
-      title={titleNode}
       description={subtitleNode}
       endAccessory={amountColumn}
+      onPress={onPress}
+      style={[styles.row, styles.listItem]}
+      testID={`transaction-item-${index ?? 0}`}
+      title={titleNode}
+      verticalAlignment="top"
     />
   );
 }

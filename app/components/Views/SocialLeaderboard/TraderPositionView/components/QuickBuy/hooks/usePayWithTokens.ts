@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope, BtcScope } from '@metamask/keyring-api';
+import type { CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
 import { useTokensWithBalance } from '../../../../../../UI/Bridge/hooks/useTokensWithBalance';
@@ -13,9 +14,12 @@ import { selectCurrencyRates } from '../../../../../../../selectors/currencyRate
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
+  selectMultichainAssetsAllIgnoredAssets,
 } from '../../../../../../../selectors/multichain/multichain';
+import { getTokensControllerAllIgnoredTokens } from '../../../../../../../selectors/assets/assets-migration';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
+import { isPayWithTokenHidden } from './isPayWithTokenHidden';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
@@ -37,20 +41,25 @@ export const usePayWithTokens = (): {
   const heldTokens = useTokensWithBalance({ chainIds: sourceChainIds });
   const isChainEnabled = useNetworkEnabledPredicate();
 
-  const accountAddress = useSelector(
-    (state: RootState) =>
-      selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
-  );
+  const accountByScope = useSelector(selectSelectedInternalAccountByScope);
+  const accountAddress = accountByScope(EVM_SCOPE)?.address;
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
 
-  const solanaAccount = useSelector((state: RootState) =>
-    selectSelectedInternalAccountByScope(state)(SolScope.Mainnet),
-  );
+  const solanaAccount = accountByScope(SolScope.Mainnet);
+  const tronAccount = accountByScope(TrxScope.Mainnet);
+  const bitcoinAccount = accountByScope(BtcScope.Mainnet);
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
+
+  // Hidden-token state from the same consolidated selectors the main wallet
+  // list uses, so tokens hidden via "long tap -> hide" are excluded here too.
+  const ignoredEvmTokens = useSelector(getTokensControllerAllIgnoredTokens);
+  const ignoredNonEvmAssets = useSelector(
+    selectMultichainAssetsAllIgnoredAssets,
+  );
 
   const allNetworkConfigs = useSelector(
     (state: RootState) =>
@@ -67,6 +76,8 @@ export const usePayWithTokens = (): {
       currencyRates,
       allNetworkConfigs,
       solanaAccount: solanaAccount ?? undefined,
+      tronAccount: tronAccount ?? undefined,
+      bitcoinAccount: bitcoinAccount ?? undefined,
       multichainBalances,
       multichainRates: multichainRates as Record<
         string,
@@ -78,6 +89,17 @@ export const usePayWithTokens = (): {
     for (const token of heldTokens) {
       // Scope holdings to networks the user has enabled in wallet settings.
       if (!isChainEnabled(token.chainId)) continue;
+      // Exclude tokens the user has hidden (TSA-649).
+      if (
+        isPayWithTokenHidden(token, {
+          ignoredEvmTokens,
+          ignoredNonEvmAssets,
+          evmAccountAddress: accountAddress,
+          resolveNonEvmAccountId: (chainId: CaipChainId) =>
+            accountByScope(chainId)?.id,
+        })
+      )
+        continue;
       const enrichment = enrichTokenBalance(token, deps);
       if (!enrichment) continue;
       result.push({ ...token, ...enrichment });
@@ -88,6 +110,7 @@ export const usePayWithTokens = (): {
   }, [
     heldTokens,
     isChainEnabled,
+    accountByScope,
     accountAddress,
     accountsByChainId,
     tokenBalances,
@@ -95,8 +118,12 @@ export const usePayWithTokens = (): {
     currencyRates,
     allNetworkConfigs,
     solanaAccount,
+    tronAccount,
+    bitcoinAccount,
     multichainBalances,
     multichainRates,
+    ignoredEvmTokens,
+    ignoredNonEvmAssets,
   ]);
 
   return { options, isLoading: false };

@@ -5,14 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
 import RampsBootstrap from './RampsBootstrap';
 
-const mockUseRampsSmartRouting = jest.fn();
 const mockUseRampsProviders = jest.fn();
 const mockUseRampsPaymentMethods = jest.fn();
-
-jest.mock('./hooks/useRampsSmartRouting', () => ({
-  __esModule: true,
-  default: (...args: unknown[]) => mockUseRampsSmartRouting(...args),
-}));
 
 jest.mock('./hooks/useRampsProviders', () => ({
   __esModule: true,
@@ -66,11 +60,6 @@ const renderBootstrap = () => {
 describe('RampsBootstrap', () => {
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('calls useRampsSmartRouting on mount', () => {
-    renderBootstrap();
-    expect(mockUseRampsSmartRouting).toHaveBeenCalledTimes(1);
   });
 
   it('calls useRampsProviders on mount', () => {

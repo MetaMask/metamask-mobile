@@ -226,8 +226,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
         | undefined;
 
       if (accountAddress && txChainId && contractAddress) {
-        const accountTokensByChain = allTokens[accountAddress];
-        const chainTokens = accountTokensByChain?.[txChainId] ?? [];
+        const chainTokens = allTokens[txChainId]?.[accountAddress as Hex] ?? [];
         const matchingToken = chainTokens.find(
           (t) => t.address?.toLowerCase() === contractAddress,
         );

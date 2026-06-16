@@ -13,9 +13,12 @@ export const createStyles = (
     row: {
       backgroundColor: colors.background.default,
       flex: 1,
+      width: '100%',
+      alignSelf: 'stretch',
     },
     listItem: {
       minHeight: 64,
+      width: '100%',
       justifyContent: 'center',
       paddingLeft: 0,
       paddingRight: 0,

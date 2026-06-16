@@ -32,6 +32,7 @@ const DEFAULT_IOS_APP =
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
  * - IOS_SIMULATOR_UDID — booted sim UDID (CI sets this from prepare-ios-appium-runner)
  * - APPIUM_SMOKE_SUITE_NAME — CI suite id for per-job report/video paths
+ * - PLAYWRIGHT_JSON_OUTPUT_FILE — CI path for Playwright JSON report (always playwright-report.json per job; suite id is the artifact name)
  *
  * Usage:
  * yarn appium-smoke:android
@@ -44,17 +45,21 @@ const htmlReportDir = suiteName
 const junitReportPath = suiteName
   ? `./test-reports/appium-smoke-junit/${suiteName}.xml`
   : './test-reports/appium-smoke-junit.xml';
+const jsonReportPath = process.env.PLAYWRIGHT_JSON_OUTPUT_FILE?.trim();
 
 export default defineConfig({
   testDir: './smoke-appium',
   fullyParallel: false,
   // Per-test timeout: cold WDA build on CI can take up to 10 min plus test time.
   timeout: 15 * 60 * 1000,
-  retries: 1,
+  retries: process.env.CI === 'true' ? 1 : 0,
   reporter: [
     ['html', { open: 'never', outputFolder: htmlReportDir }],
     ['junit', { outputFile: junitReportPath }],
     ['list'],
+    ...(jsonReportPath
+      ? ([['json', { outputFile: jsonReportPath }] as const] as const)
+      : []),
     // CI: step summary + JUnit (dorny/test-reporter). Skip the `github` reporter —
     // it emits error annotations for failed retry attempts even when the test
     // eventually passes, which makes passing jobs look failed in the UI.

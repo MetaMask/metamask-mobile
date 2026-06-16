@@ -46,7 +46,7 @@ import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import Engine from '../../../core/Engine';
 import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
@@ -121,6 +121,13 @@ type ActivityFlashListProps = FlashListProps<GroupedActivityListItem> & {
 const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<ActivityFlashListProps>,
 ) as unknown as React.ComponentType<ActivityFlashListProps>;
+
+const updateIncomingTransactions = () =>
+  (
+    Engine.context.TransactionController as unknown as {
+      updateIncomingTransactions: () => Promise<void>;
+    }
+  ).updateIncomingTransactions();
 
 const generateKey = (item: ActivityListItem): string => {
   const hash = item.data.hash;

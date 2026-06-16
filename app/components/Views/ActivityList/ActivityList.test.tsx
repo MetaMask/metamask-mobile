@@ -14,7 +14,7 @@ import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import Engine from '../../../core/Engine';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -213,9 +213,19 @@ jest.mock('./useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
 }));
 
-jest.mock('../../../util/transaction-controller', () => ({
-  updateIncomingTransactions: jest.fn(() => Promise.resolve()),
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TransactionController: {
+      updateIncomingTransactions: jest.fn(() => Promise.resolve()),
+    },
+  },
 }));
+
+const updateIncomingTransactions = (
+  Engine.context.TransactionController as unknown as {
+    updateIncomingTransactions: jest.Mock;
+  }
+).updateIncomingTransactions;
 
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   ActivityListItemRow: ({

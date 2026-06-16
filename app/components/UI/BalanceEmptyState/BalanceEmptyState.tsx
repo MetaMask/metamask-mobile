@@ -26,7 +26,6 @@ import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 
 /**
@@ -43,7 +42,6 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   const handleAction = () => {
@@ -55,13 +53,8 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           button_text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: isV2UnifiedEnabled
-            ? 'UNIFIED_BUY_2'
-            : rampUnifiedV1Enabled
-              ? 'UNIFIED_BUY'
-              : 'BUY',
+          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
           region: rampGeodetectedRegion,
-          ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
           order_count: buttonClickData.order_count,

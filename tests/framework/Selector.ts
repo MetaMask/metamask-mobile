@@ -1,7 +1,6 @@
 import {
   encapsulated,
   type EncapsulatedElementType,
-  type LocatorConfig,
 } from './EncapsulatedElement.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
 
@@ -15,16 +14,31 @@ export type Selector =
       androidAppiumTestID: string;
       iosAppiumTestID: string;
     }
-  | { testID: string; iosAppiumTestID: string; index?: number }
-  | { custom: LocatorConfig };
+  | {
+      detoxTestID: string;
+      androidAppiumTestID: string;
+      iosAppiumXPath: string;
+    }
+  | { testID: string; iosAppiumTestID: string; index?: number };
 
 /**
  * Moves `encapsulated()` to a single location so page-objects can use declarative Selectors without importing encapsulated() or LocatorConfig.
  * This can also be used in the original Matchers, Assertions, and Gestures methods that currently return DetoxElements to make them cross-framework compatible without page-object changes.
  */
 export function resolve(selector: Selector): EncapsulatedElementType {
-  if ('custom' in selector) {
-    return encapsulated(selector.custom);
+  if ('iosAppiumXPath' in selector) {
+    return encapsulated({
+      detox: () =>
+        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(selector.androidAppiumTestID, {
+            exact: true,
+          }),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(selector.iosAppiumXPath),
+      },
+    });
   }
 
   if ('androidAppiumTestID' in selector) {
@@ -156,6 +170,6 @@ export function isSelector(value: unknown): value is Selector {
     'detoxTestID' in v ||
     'androidAppiumTestID' in v ||
     'iosAppiumTestID' in v ||
-    'custom' in v
+    'iosAppiumXPath' in v
   );
 }
