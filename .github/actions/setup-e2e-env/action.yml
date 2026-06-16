@@ -346,22 +346,13 @@ runs:
         NODE_OPTIONS: --max-old-space-size=4096
         YARN_ENABLE_GLOBAL_CACHE: 'true'
 
-    - name: Install Foundry with retry
-      if: ${{ inputs.install-foundry == 'true' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-      with:
-        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
-        max_attempts: 3
-        retry_wait_seconds: 30
-        on_retry_command: echo "⚠️ yarn install:foundryup failed — likely a transient network issue on the self-hosted runner. Retrying..."
-        command: |
-          echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
-          yarn install:foundryup
-
-    - name: Add Foundry binary path
+    - name: Install Foundry
       if: ${{ inputs.install-foundry == 'true' }}
       shell: bash
-      run: echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+      run: |
+        echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
+        yarn install:foundryup
+        echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
 
     ## iOS Setup ##
 
