@@ -33,6 +33,7 @@ jest.mock('../../../../../../../selectors/tokenRatesController', () => ({
 
 jest.mock('../../../../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(() => ({})),
+  selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
 jest.mock('../../../../../../../selectors/multichain/multichain', () => ({

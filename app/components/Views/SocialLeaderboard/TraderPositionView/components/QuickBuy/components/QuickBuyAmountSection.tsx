@@ -18,7 +18,8 @@ const styles = StyleSheet.create({
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
-  usdAmount: string;
+  /** Entered amount preformatted in the user's display currency (e.g. "$20", "20 €"). */
+  fiatAmountLabel: string;
   destSymbol: string;
   /** Estimated amount received in the dest token from the quote. */
   estimatedReceiveAmount: string | undefined;
@@ -44,7 +45,7 @@ interface QuickBuyAmountSectionProps {
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
-  usdAmount,
+  fiatAmountLabel,
   destSymbol,
   estimatedReceiveAmount,
   isQuoteLoading,
@@ -52,7 +53,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   sourceCryptoAmount,
   sourceSymbol,
 }) => {
-  const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
   const cryptoAmountLabel = estimatedReceiveAmount
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
