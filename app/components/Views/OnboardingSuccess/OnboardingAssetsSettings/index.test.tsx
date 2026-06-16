@@ -49,10 +49,12 @@ describe('OnboardingAssetSettings', () => {
     ).toBeOnTheScreen();
   });
 
-  it('sets navigation options', () => {
-    renderWithProvider(<OnboardingAssetSettings />, {
+  it('renders the header with the assets title', () => {
+    const { getByText } = renderWithProvider(<OnboardingAssetSettings />, {
       state: initialState,
     });
-    expect(mockNavigation.setOptions).toHaveBeenCalled();
+    expect(
+      getByText(strings('default_settings.drawer_assets_title')),
+    ).toBeOnTheScreen();
   });
 });
