@@ -654,7 +654,7 @@ describe('useQuickBuyController', () => {
       expect(mockTrackAmountSelected.mock.calls[0][0]).toBeCloseTo(24);
     });
 
-    it('commits whole-number amounts for a zero-decimal currency (JPY)', () => {
+    it('uses two-decimal fiat state for JPY (same as Bridge fiat input)', () => {
       (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('JPY');
       (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
         ETH: { conversionRate: 1000, usdConversionRate: 1000 },
@@ -676,9 +676,9 @@ describe('useQuickBuyController', () => {
         result.current.handleSliderChange(33);
       });
 
-      // 33% of a ¥100 cap = ¥33, committed without fractional digits.
-      expect(result.current.fiatAmount).toBe('33');
-      expect(result.current.fiatAmount).not.toContain('.');
+      // 33% of a ¥100 cap = ¥33.00 in state (FIAT_INPUT_DECIMALS); headline
+      // still formats via Intl as whole yen.
+      expect(result.current.fiatAmount).toBe('33.00');
       expect(result.current.fiatAmountLabel).toBe('¥33');
     });
   });

@@ -31,6 +31,7 @@ import {
   formatCurrency,
   formatMinimumReceived,
 } from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { FIAT_INPUT_DECIMALS } from '../../../../../../UI/Bridge/utils/sourceAmountInputMode';
 import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
 import { calcUsdAmountFromFiat } from '../../../../../../UI/Bridge/utils/exchange-rates';
 import {
@@ -47,10 +48,6 @@ import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
-import {
-  getCurrencyFractionDigits,
-  roundFiatAmount,
-} from '../utils/getCurrencyFractionDigits';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
 import { usePayWithTokens } from './usePayWithTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
@@ -925,18 +922,12 @@ export function useQuickBuyController(
       const nextFiat =
         rounded === 0
           ? ''
-          : roundFiatAmount((maxSpendFiat * rounded) / 100, currentCurrency);
+          : ((maxSpendFiat * rounded) / 100).toFixed(FIAT_INPUT_DECIMALS);
       setFiatAmount(nextFiat);
       lastInputMethodRef.current =
         SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
     },
-    [
-      hasSourcePrice,
-      maxSpendTokens,
-      maxSpendFiat,
-      currentCurrency,
-      lastInputMethodRef,
-    ],
+    [hasSourcePrice, maxSpendTokens, maxSpendFiat, lastInputMethodRef],
   );
 
   // Called once when the user lifts their finger (pan end) or taps the track.
@@ -948,7 +939,7 @@ export function useQuickBuyController(
       const nextFiat =
         rounded === 0 || maxSpendFiat <= 0
           ? ''
-          : roundFiatAmount((maxSpendFiat * rounded) / 100, currentCurrency);
+          : ((maxSpendFiat * rounded) / 100).toFixed(FIAT_INPUT_DECIMALS);
 
       // Flag max BEFORE the dedup guard. lastCommittedFiatRef is also written by
       // typed input and the price-migration effect, so releasing the slider at
@@ -991,7 +982,6 @@ export function useQuickBuyController(
     },
     [
       maxSpendFiat,
-      currentCurrency,
       sourceToken?.symbol,
       destToken?.symbol,
       tradeMode,
@@ -1064,21 +1054,15 @@ export function useQuickBuyController(
         tokens > 0 &&
         liveSourceCurrencyExchangeRate
       ) {
-        const fiat = roundFiatAmount(
-          tokens * liveSourceCurrencyExchangeRate,
-          currentCurrency,
+        const fiat = (tokens * liveSourceCurrencyExchangeRate).toFixed(
+          FIAT_INPUT_DECIMALS,
         );
         setFiatAmount(fiat);
         setQuotedFiatAmount(fiat);
         lastCommittedFiatRef.current = fiat;
       }
     }
-  }, [
-    hasSourcePrice,
-    sourceAmountTokens,
-    liveSourceCurrencyExchangeRate,
-    currentCurrency,
-  ]);
+  }, [hasSourcePrice, sourceAmountTokens, liveSourceCurrencyExchangeRate]);
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
@@ -1105,11 +1089,11 @@ export function useQuickBuyController(
       const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
       const parts = normalized.split('.');
       if (parts.length > 2) return;
-      // Priced (fiat) input: cap to the active currency's fraction digits (2 for
-      // USD/EUR, 0 for JPY/KRW, 3 for BHD). Unpriced (token) input: allow up to
-      // the token's decimals so the user can spend small balances.
+      // Priced (fiat) input: cap to two decimals, matching Bridge fiat mode
+      // (`FIAT_INPUT_DECIMALS`). Unpriced (token) input: allow up to the token's
+      // decimals so the user can spend small balances.
       const maxFractionDigits = hasSourcePrice
-        ? getCurrencyFractionDigits(currentCurrency)
+        ? FIAT_INPUT_DECIMALS
         : (sourceToken?.decimals ?? 18);
       if (parts.length === 2 && parts[1].length > maxFractionDigits) return;
       if (hasSourcePrice) {
@@ -1123,12 +1107,7 @@ export function useQuickBuyController(
       setSliderPercent(0);
       setIsMaxSourceAmount(false);
     },
-    [
-      hasSourcePrice,
-      sourceToken?.decimals,
-      currentCurrency,
-      lastInputMethodRef,
-    ],
+    [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
   );
 
   // Debounced track for custom amount entries — fires once after the user
