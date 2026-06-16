@@ -40,6 +40,7 @@ import TimeRangeSelector, {
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
+import IndicatorSelector from '../../Charts/AdvancedChart/IndicatorSelector';
 import {
   Box,
   FontWeight,
@@ -66,8 +67,6 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
-
-const EMPTY_INDICATORS: IndicatorType[] = [];
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -159,6 +158,38 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
+  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  const chartIndicators: IndicatorType[] = useMemo(
+    () => [...activeIndicators],
+    [activeIndicators],
+  );
+
+  const handleToggleIndicator = useCallback(
+    (key: string) => {
+      setActiveIndicators((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) {
+          next.delete(key);
+        } else {
+          next.add(key);
+        }
+        return next;
+      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: 'indicator_toggled',
+            indicator: key,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
@@ -644,6 +675,12 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
+      <IndicatorSelector
+        activeIndicators={activeIndicators}
+        onToggle={handleToggleIndicator}
+        activeColor={initialAmbientColor}
+      />
+
       <Box twClassName="mt-3 w-full">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
@@ -666,7 +703,7 @@ const PriceAdvanced = ({
               showVolume={chartType === ChartType.Candles}
               volumeOverlay
               chartType={chartType}
-              indicators={EMPTY_INDICATORS}
+              indicators={chartIndicators}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
