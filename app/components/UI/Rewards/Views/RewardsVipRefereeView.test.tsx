@@ -8,7 +8,10 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
@@ -22,7 +25,7 @@ const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({ build: jest.fn(() => ({})) }));
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 // Obviously-synthetic fixtures — never real VIP codes/figures.
 const mockSubscriptionId = 'test-subscription-id';
 const mockAccountAddress = '0xAbC0000000000000000000000000000000000123';
