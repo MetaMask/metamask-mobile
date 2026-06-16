@@ -30,7 +30,7 @@ describe('TopTraderCard', () => {
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
+    expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
     expect(screen.getByText(/30D/)).toBeOnTheScreen();
   });
 
@@ -186,6 +186,6 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 });
