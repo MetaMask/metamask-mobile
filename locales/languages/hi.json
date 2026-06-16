@@ -3529,6 +3529,7 @@
     "enable_push_notifications": "पुश नोटिफिकेशंस को चालू करें",
     "allow_notifications_desc": "आपको किस बारे में और कैसे सूचनाएँ मिलेंगी, यह चुनें।",
     "notifications_opts": {
+      "all_title": "सभी",
       "preferences_title": "प्राथमिकताएं",
       "push_recommended": "पुश",
       "in_app": "इन-ऐप",

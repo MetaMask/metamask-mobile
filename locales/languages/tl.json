@@ -3529,6 +3529,7 @@
     "enable_push_notifications": "Paganahin ang mga push na notipikasyon",
     "allow_notifications_desc": "Piliin kung para saan mo gustong maabisuhan at kung paano.",
     "notifications_opts": {
+      "all_title": "Lahat",
       "preferences_title": "Mga Kagustuhan",
       "push_recommended": "Push",
       "in_app": "Sa app",

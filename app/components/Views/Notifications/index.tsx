@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import DisabledNotifications from './DisabledNotifications';
+import NotificationsCategory from './NotificationsCategory';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -143,6 +144,11 @@ const NotificationsView = ({
       >
         {isNotificationEnabled ? (
           <>
+            <NotificationsCategory
+              onSelect={() => {
+                // TODO: filter the notifications list by the selected category
+              }}
+            />
             <Notifications
               navigation={navigation}
               allNotifications={allNotifications}

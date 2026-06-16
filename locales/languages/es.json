@@ -3529,6 +3529,7 @@
     "enable_push_notifications": "Activar notificaciones push",
     "allow_notifications_desc": "Elige sobre qué recibir notificaciones y cómo.",
     "notifications_opts": {
+      "all_title": "Todas",
       "preferences_title": "Preferencias",
       "push_recommended": "Push",
       "in_app": "En la aplicación",

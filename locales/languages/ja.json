@@ -3529,6 +3529,7 @@
     "enable_push_notifications": "プッシュ通知を有効にする",
     "allow_notifications_desc": "通知の内容と受取方法を選択できます。",
     "notifications_opts": {
+      "all_title": "すべて",
       "preferences_title": "設定",
       "push_recommended": "プッシュ",
       "in_app": "アプリ内",

@@ -3529,6 +3529,7 @@
     "enable_push_notifications": "푸시 알림 활성화",
     "allow_notifications_desc": "알림 내용 및 알림 수신 방식을 선택하세요.",
     "notifications_opts": {
+      "all_title": "전부",
       "preferences_title": "기본 설정",
       "push_recommended": "푸시",
       "in_app": "앱 내",

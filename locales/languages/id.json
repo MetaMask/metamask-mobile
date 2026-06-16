@@ -3529,6 +3529,7 @@
     "enable_push_notifications": "Aktifkan notifikasi push",
     "allow_notifications_desc": "Pilih notifikasi yang ingin Anda terima dan bagaimana caranya.",
     "notifications_opts": {
+      "all_title": "Semua",
       "preferences_title": "Preferensi",
       "push_recommended": "Push",
       "in_app": "Dalam aplikasi",
