@@ -453,12 +453,16 @@ function handleSetOHLCVData(payload) {
   var newResolution = detectResolution(window.ohlcvData);
 
   function scheduleVisibleRangeAfterDataLoad(chart) {
-    if (visibleFromMs == null) return;
+    if (visibleFromMs == null) {
+      try {
+        chart.getTimeScale().setRightOffset(2);
+      } catch (e) {}
+      return;
+    }
     var capturedGeneration = window.ohlcvGeneration;
     var sub = chart.onDataLoaded();
     sub.subscribe(null, function onLoaded() {
       sub.unsubscribe(null, onLoaded);
-      // Discard stale callback if user switched timeframes before load completed
       if (capturedGeneration !== window.ohlcvGeneration) {
         return;
       }
@@ -467,8 +471,6 @@ function handleSetOHLCVData(payload) {
       var toSec = lastBar
         ? Math.ceil(lastBar.time / 1000)
         : Math.ceil(Date.now() / 1000);
-      // Pad `to` forward by 2 bar durations so the end dot clears the price axis.
-      // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
       var barPadSec = getApproxBarDurationSec() * 2;
       try {
         chart.setVisibleRange(
@@ -1155,10 +1157,7 @@ function updateCustomCrosshairLabels(params) {
     return;
   }
   elP.textContent = formatCrosshairPrice(params.price);
-  var tSec =
-    params.userTime !== undefined && params.userTime !== null
-      ? params.userTime
-      : params.time;
+  var tSec = params.time;
   elT.textContent = formatCrosshairTime(tSec);
   elP.style.display = 'flex';
   elT.style.display = 'flex';
@@ -4334,6 +4333,12 @@ function initChart() {
 
       applySeriesColors();
       applyChartScaleLayout(window.currentChartType);
+
+      if (window.visibleFromMs == null) {
+        try {
+          window.chartWidget.activeChart().getTimeScale().setRightOffset(2);
+        } catch (e) {}
+      }
 
       scheduleHidePriceScaleModeButtons();
 
