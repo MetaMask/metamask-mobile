@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -8,10 +14,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
@@ -35,6 +37,7 @@ import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 import type { FlatListItem, ListItemHeader } from './searchTypes';
 import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
+import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
 
 const POPULAR_ASSETS: TrendingAsset[] = [
   {
@@ -93,6 +96,10 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const totalResultCount = useMemo(
     () => getTotalSectionResultCount(sections),
     [sections],
+  );
+
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
   );
 
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
@@ -161,11 +168,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
               >
                 {viewMoreLabel}
               </Text>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
             </Pressable>
           )}
         </Box>
@@ -242,6 +244,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           searchQuery={searchQuery}
           tabName={activeTab}
           resultCount={totalResultCount}
+          onQuickTrade={
+            item.feedId === 'tokens' ? setQuickTradeToken : undefined
+          }
         />
       );
     },
@@ -345,6 +350,10 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ListHeaderComponent={listHeader}
         ListFooterComponent={renderFooter}
         onScrollBeginDrag={onScrollBeginDrag}
+      />
+      <TrendingQuickBuy
+        token={quickTradeToken}
+        onClose={() => setQuickTradeToken(null)}
       />
     </Box>
   );
