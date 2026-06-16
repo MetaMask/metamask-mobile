@@ -699,7 +699,7 @@ describe('resolvePredictFeatureFlags', () => {
       expect(result.enabledSportsMarketTypes).toEqual([]);
     });
 
-    it('returns empty array when enabledSportsMarketTypes is missing', () => {
+    it('returns supported market types when enabledSportsMarketTypes is missing', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
         if (flag && typeof flag === 'object' && 'leagues' in flag) {
           return true;
@@ -713,6 +713,32 @@ describe('resolvePredictFeatureFlags', () => {
             enabled: true,
             minimumVersion: '1.0.0',
             leagues: ['nba'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+    });
+
+    it('returns empty array when enabledSportsMarketTypes is explicit empty array', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: [],
           },
         },
       });

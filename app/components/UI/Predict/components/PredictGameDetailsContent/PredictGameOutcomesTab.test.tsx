@@ -1852,6 +1852,31 @@ describe('PredictGameOutcomesTab', () => {
             }),
           ],
         }),
+        createGroup({
+          key: 'moneyline',
+          outcomes: [
+            createOutcome({
+              id: 'ml-home',
+              tokens: [
+                createToken({
+                  id: 'tok-ml-home',
+                  shortTitle: 'TA',
+                  price: 0.6,
+                }),
+              ],
+            }),
+            createOutcome({
+              id: 'ml-away',
+              tokens: [
+                createToken({
+                  id: 'tok-ml-away',
+                  shortTitle: 'TB',
+                  price: 0.4,
+                }),
+              ],
+            }),
+          ],
+        }),
       ];
       const groups = [
         createGroup({ key: 'game_lines', outcomes: [], subgroups }),
