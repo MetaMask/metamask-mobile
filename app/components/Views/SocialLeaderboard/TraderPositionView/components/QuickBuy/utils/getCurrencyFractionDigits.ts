@@ -1,5 +1,5 @@
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import I18n from '../../../../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 
 /**
  * Resolves how many fraction digits a currency uses for display (e.g. 2 for
@@ -10,7 +10,7 @@ import I18n from '../../../../../../../../locales/i18n';
  */
 export const getCurrencyFractionDigits = (currency: string): number => {
   try {
-    const { maximumFractionDigits } = new Intl.NumberFormat(I18n.locale, {
+    const { maximumFractionDigits } = getIntlNumberFormatter(I18n.locale, {
       style: 'currency',
       currency: (currency || 'USD').toUpperCase(),
     }).resolvedOptions();
