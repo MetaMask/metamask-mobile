@@ -53,7 +53,7 @@ const MoneyBalanceCard = () => {
     totalFiatRaw,
     totalFiatFormatted,
     apyPercent,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     isBalanceFetchError,
     isBalanceFetching,
     refetchBalance,
@@ -86,7 +86,7 @@ const MoneyBalanceCard = () => {
   const isUnavailable =
     hasMoneyAccount &&
     !isBalanceFetchError &&
-    !isAggregatedBalanceLoading &&
+    !isBalanceLoading &&
     totalFiatFormatted === undefined;
 
   // Genuinely zero balance — distinct from unavailable.
@@ -188,7 +188,7 @@ const MoneyBalanceCard = () => {
         </Text>
       );
     }
-    if (isAggregatedBalanceLoading || isRetrying) {
+    if (isBalanceLoading || isRetrying) {
       return (
         <Skeleton
           height={24}

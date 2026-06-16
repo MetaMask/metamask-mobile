@@ -2085,6 +2085,47 @@ describe('PredictBuyPreview', () => {
       // Separator should not be present when groupItemTitle is empty
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
     });
+
+    it('renders provider-normalized moneyline team picks', () => {
+      const moneylineMarket: PredictMarket = {
+        ...mockMarket,
+        title: 'Korea Republic vs. Czechia',
+        outcomes: [
+          {
+            ...mockMarket.outcomes[0],
+            title: 'Korea Republic vs. Czechia',
+            groupItemTitle: 'Korea Republic',
+            image: 'https://example.com/korea.png',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              {
+                id: 'outcome-token-789',
+                title: 'Yes',
+                shortTitle: 'KOR',
+                price: 0.5,
+              },
+            ],
+          },
+        ],
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          market: moneylineMarket,
+          outcome: moneylineMarket.outcomes[0],
+          outcomeToken: moneylineMarket.outcomes[0].tokens[0],
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(screen.getByText('Korea Republic')).toBeOnTheScreen();
+      expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
+      expect(screen.queryByText('Korea Republic at 50¢')).not.toBeOnTheScreen();
+    });
   });
 
   describe('outcome token color', () => {

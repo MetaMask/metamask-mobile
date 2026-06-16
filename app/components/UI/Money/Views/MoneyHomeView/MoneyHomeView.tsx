@@ -112,7 +112,7 @@ const MoneyHomeView = () => {
     totalFiatFormatted,
     totalFiatRaw,
     vaultApyQuery,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
@@ -571,9 +571,8 @@ const MoneyHomeView = () => {
         component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });
 
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId: transaction.id },
+      navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
       });
     },
     [navigation, trackActivitySurfaceClicked],
@@ -660,7 +659,7 @@ const MoneyHomeView = () => {
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
               yearlyEarnings={yearlyEarnings}
-              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+              isLoading={vaultApyQuery.isLoading || isBalanceLoading}
               onInfoPress={handleEarningsInfoPress}
             />
             <Divider />
