@@ -21,6 +21,7 @@ import {
 } from '../baseHandler';
 import { isRetryableError, retryWithDelay } from '../utils';
 import { OAuthError, OAuthErrorType } from '../../error';
+import Device from '../../../../util/device';
 
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
@@ -63,58 +64,6 @@ const redirectUrlHasExpectedState = (url: string, expectedState: string) => {
     return false;
   }
 };
-
-const waitForAndroidRedirectOrResume = (
-  expectedRedirectUri: string,
-  expectedState: string,
-  timeoutMs: number,
-) =>
-  new Promise<boolean>((resolve) => {
-    let sawBrowserAppState = AppState.currentState !== 'active';
-    let didResolve = false;
-    const subscriptionRef: {
-      appState?: ReturnType<typeof AppState.addEventListener>;
-      linking?: ReturnType<typeof Linking.addEventListener>;
-    } = {};
-
-    const finish = (didRedirectOrResume: boolean) => {
-      if (didResolve) {
-        return;
-      }
-
-      didResolve = true;
-      subscriptionRef.appState?.remove();
-      subscriptionRef.linking?.remove();
-      resolve(didRedirectOrResume);
-    };
-
-    const timeout = setTimeout(() => finish(false), timeoutMs);
-
-    subscriptionRef.linking = Linking.addEventListener('url', ({ url }) => {
-      if (
-        url.startsWith(expectedRedirectUri) &&
-        redirectUrlHasExpectedState(url, expectedState)
-      ) {
-        clearTimeout(timeout);
-        finish(true);
-      }
-    });
-
-    subscriptionRef.appState = AppState.addEventListener(
-      'change',
-      (nextState) => {
-        if (nextState !== 'active') {
-          sawBrowserAppState = true;
-          return;
-        }
-
-        if (sawBrowserAppState) {
-          clearTimeout(timeout);
-          finish(true);
-        }
-      },
-    );
-  });
 
 const waitForActiveAppState = async () => {
   if (AppState.currentState === 'active') {
@@ -250,29 +199,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       codeVerifier,
     });
 
-    if (Platform.OS === 'android') {
-      const redirectOrResumePromise = waitForAndroidRedirectOrResume(
-        this.redirectUri,
-        this.nonce,
-        ANDROID_LOGIN_REDIRECT_TIMEOUT_MS,
-      );
-
-      await openBrowserAsync(initiateUrl.toString(), {
-        createTask: false,
-      });
-
-      const didRedirectOrResume = await redirectOrResumePromise;
-
-      if (didRedirectOrResume) {
-        return buildLoginResult();
-      }
-
-      throw new OAuthError(
-        'TelegramLoginHandler: No OAuth redirect received',
-        OAuthErrorType.TelegramLoginError,
-      );
-    }
-
     await this.loginWithAuthSession(initiateUrl.toString());
 
     return buildLoginResult();
@@ -318,6 +244,13 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
       if (initialUrl?.startsWith(this.redirectUri)) {
         return initialUrl;
+      }
+
+      // Temporary workaround for Android 16 Safer Intents
+      // Telegram do no need return data from oauth login
+      // Login is done in kratos
+      if (Device.isAndroid()) {
+        return this.redirectUri;
       }
 
       if (result.type === 'cancel') {
