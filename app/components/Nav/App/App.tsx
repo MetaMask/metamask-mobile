@@ -1343,7 +1343,7 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
-        {__DEV__ ? <NavPerfOverlay /> : null}
+        <NavPerfOverlay />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
         <ControllerEventToastBridge registrations={toastRegistrations} />
