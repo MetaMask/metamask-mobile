@@ -25,7 +25,8 @@ import { formatAddress, getLabelTextByAddress } from '../../../util/address';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { Account, Assets } from '../../hooks/useAccounts';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
+import { Account } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import {
   removeAccountsFromPermissions,
@@ -47,6 +48,154 @@ import {
   CaipChainId,
 } from '@metamask/utils';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+
+interface CaipAccountSelectorRowProps {
+  account: Account;
+  ensName?: string;
+  accountAvatarType: AvatarAccountType;
+  isLoading: boolean;
+  isSelectionDisabled?: boolean;
+  isMultiSelect: boolean;
+  isSelectWithoutMenu: boolean;
+  isSelectedFromAddresses: boolean;
+  privacyMode: boolean;
+  styles: ReturnType<typeof styleSheet>;
+  onSelectAccount?: (caipAccountId: CaipAccountId, isSelected: boolean) => void;
+  onLongPressAccount: (params: {
+    address: string;
+    isAccountRemoveable: boolean;
+    isSelected: boolean;
+    caipAccountId: CaipAccountId;
+  }) => void;
+  onNavigateToAccountActions: (address: string) => void;
+  renderRightAccessory?: (
+    address: string,
+    accountName: string,
+  ) => React.ReactNode;
+}
+
+const CaipAccountSelectorRowBase = ({
+  account,
+  ensName,
+  accountAvatarType,
+  isLoading,
+  isSelectionDisabled,
+  isMultiSelect,
+  isSelectWithoutMenu,
+  isSelectedFromAddresses,
+  privacyMode,
+  styles,
+  onSelectAccount,
+  onLongPressAccount,
+  onNavigateToAccountActions,
+  renderRightAccessory,
+}: CaipAccountSelectorRowProps) => {
+  const {
+    name,
+    address,
+    assets,
+    type,
+    isSelected,
+    balanceError,
+    caipAccountId,
+    scopes,
+  } = account;
+
+  const partialAccount = { address, scopes };
+  const shortAddress = formatAddress(address, 'short');
+  const tagLabel = getLabelTextByAddress(address);
+  const accountName = isDefaultAccountName(name) && ensName ? ensName : name;
+  const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
+
+  let cellVariant = CellVariant.SelectWithMenu;
+  if (isMultiSelect) {
+    cellVariant = CellVariant.MultiSelect;
+  }
+  if (isSelectWithoutMenu) {
+    cellVariant = CellVariant.Select;
+  }
+
+  const isSelectedAccount = isSelectedFromAddresses || isSelected;
+
+  const cellStyle: ViewStyle = {
+    opacity: isLoading ? 0.5 : 1,
+  };
+  if (!isMultiSelect) {
+    cellStyle.alignItems = 'center';
+  }
+
+  const handleLongPress = () => {
+    onLongPressAccount({
+      address,
+      isAccountRemoveable:
+        type === KeyringTypes.simple ||
+        (type === KeyringTypes.snap && !isSolanaAddress(address)),
+      isSelected: isSelectedAccount,
+      caipAccountId,
+    });
+  };
+
+  const handlePress = () => {
+    onSelectAccount?.(caipAccountId, isSelectedAccount);
+  };
+
+  const handleButtonClick = () => {
+    onNavigateToAccountActions(address);
+  };
+
+  const buttonProps = {
+    onButtonClick: handleButtonClick,
+    buttonTestId: WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
+  };
+
+  const avatarProps = {
+    variant: AvatarVariant.Account as const,
+    type: accountAvatarType,
+    accountAddress: address,
+  };
+
+  const fiatBalanceAmount = assets
+    ? assets.fiatBalance.split('\n')[0] || ''
+    : '';
+
+  return (
+    <Cell
+      key={address}
+      onLongPress={handleLongPress}
+      variant={cellVariant}
+      isSelected={isSelectedAccount}
+      title={accountName}
+      secondaryText={shortAddress}
+      showSecondaryTextIcon={false}
+      tertiaryText={balanceError}
+      onPress={handlePress}
+      avatarProps={avatarProps}
+      tagLabel={tagLabel}
+      disabled={isDisabled}
+      style={cellStyle}
+      buttonProps={buttonProps}
+    >
+      {renderRightAccessory?.(address, accountName) ||
+        (assets && (
+          <View
+            style={styles.balancesContainer}
+            testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
+          >
+            <SensitiveText
+              length={SensitiveTextLength.Long}
+              style={styles.balanceLabel}
+              isHidden={privacyMode}
+            >
+              {fiatBalanceAmount}
+            </SensitiveText>
+            <AccountNetworkIndicator partialAccount={partialAccount} />
+          </View>
+        ))}
+    </Cell>
+  );
+};
+
+const CaipAccountSelectorRow = React.memo(CaipAccountSelectorRowBase);
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -73,32 +222,6 @@ const CaipAccountSelectorList = ({
 
   const accountAvatarType = useSelector(selectAvatarAccountType, shallowEqual);
   const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
-
-  const renderAccountBalances = useCallback(
-    (
-      { fiatBalance }: Assets,
-      partialAccount: { address: string; scopes: CaipChainId[] },
-    ) => {
-      const fiatBalanceStrSplit = fiatBalance.split('\n');
-      const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      return (
-        <View
-          style={styles.balancesContainer}
-          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
-        >
-          <SensitiveText
-            length={SensitiveTextLength.Long}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-          >
-            {fiatBalanceAmount}
-          </SensitiveText>
-          <AccountNetworkIndicator partialAccount={partialAccount} />
-        </View>
-      );
-    },
-    [styles.balancesContainer, styles.balanceLabel, privacyMode],
-  );
 
   const onLongPress = useCallback(
     ({
@@ -193,104 +316,33 @@ const CaipAccountSelectorList = ({
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
-    ({
-      item: {
-        name,
-        address,
-        assets,
-        type,
-        isSelected,
-        balanceError,
-        caipAccountId,
-        scopes,
-      },
-    }) => {
-      const partialAccount = {
-        address,
-        scopes,
-      };
-      const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getLabelTextByAddress(address);
-      const ensName = ensByAccountAddress[address];
-      const accountName =
-        isDefaultAccountName(name) && ensName ? ensName : name;
-      const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
-      let cellVariant = CellVariant.SelectWithMenu;
-      if (isMultiSelect) {
-        cellVariant = CellVariant.MultiSelect;
-      }
-      if (isSelectWithoutMenu) {
-        cellVariant = CellVariant.Select;
-      }
-      let isSelectedAccount = isSelected;
-      if (selectedAddresses.length > 0) {
-        isSelectedAccount = selectedAddresses.includes(caipAccountId);
-      }
-
-      const cellStyle: ViewStyle = {
-        opacity: isLoading ? 0.5 : 1,
-      };
-      if (!isMultiSelect) {
-        cellStyle.alignItems = 'center';
-      }
-
-      const handleLongPress = () => {
-        onLongPress({
-          address,
-          isAccountRemoveable:
-            type === KeyringTypes.simple ||
-            (type === KeyringTypes.snap && !isSolanaAddress(address)),
-          isSelected: isSelectedAccount,
-          caipAccountId,
-        });
-      };
-
-      const handlePress = () => {
-        onSelectAccount?.(caipAccountId, isSelectedAccount);
-      };
-
-      const handleButtonClick = () => {
-        onNavigateToAccountActions(address);
-      };
-
-      const buttonProps = {
-        onButtonClick: handleButtonClick,
-        buttonTestId: WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
-      };
-
-      const avatarProps = {
-        variant: AvatarVariant.Account as const,
-        type: accountAvatarType,
-        accountAddress: address,
-      };
-
+    ({ item }) => {
+      const isSelectedFromAddresses =
+        selectedAddresses.length > 0 &&
+        selectedAddresses.includes(item.caipAccountId);
       return (
-        <Cell
-          key={address}
-          onLongPress={handleLongPress}
-          variant={cellVariant}
-          isSelected={isSelectedAccount}
-          title={accountName}
-          secondaryText={shortAddress}
-          showSecondaryTextIcon={false}
-          tertiaryText={balanceError}
-          onPress={handlePress}
-          avatarProps={avatarProps}
-          tagLabel={tagLabel}
-          disabled={isDisabled}
-          style={cellStyle}
-          buttonProps={buttonProps}
-        >
-          {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, partialAccount))}
-        </Cell>
+        <CaipAccountSelectorRow
+          account={item}
+          ensName={ensByAccountAddress[item.address]}
+          accountAvatarType={accountAvatarType}
+          isLoading={isLoading}
+          isSelectionDisabled={isSelectionDisabled}
+          isMultiSelect={isMultiSelect}
+          isSelectWithoutMenu={isSelectWithoutMenu}
+          isSelectedFromAddresses={isSelectedFromAddresses}
+          privacyMode={privacyMode}
+          styles={styles}
+          onSelectAccount={onSelectAccount}
+          onLongPressAccount={onLongPress}
+          onNavigateToAccountActions={onNavigateToAccountActions}
+          renderRightAccessory={renderRightAccessory}
+        />
       );
     },
     [
       onNavigateToAccountActions,
       accountAvatarType,
       onSelectAccount,
-      renderAccountBalances,
       ensByAccountAddress,
       isLoading,
       selectedAddresses,
@@ -299,6 +351,8 @@ const CaipAccountSelectorList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,
+      privacyMode,
+      styles,
     ],
   );
 
