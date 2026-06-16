@@ -1,5 +1,5 @@
-import { openAuthSessionAsync } from 'expo-web-browser';
-import { AppState, Linking } from 'react-native';
+import { openAuthSessionAsync, openBrowserAsync } from 'expo-web-browser';
+import { AppState, Linking, Platform } from 'react-native';
 import {
   Env as ProfileSyncEnv,
   getEnvUrls,
@@ -26,6 +26,7 @@ const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
 const TELEGRAM_MINT_PATH = 'api/v1/oauth/mint';
 const REDIRECT_LINKING_FALLBACK_TIMEOUT_MS = 1500;
+const ANDROID_LOGIN_REDIRECT_TIMEOUT_MS = 120000;
 const VERIFY_APP_ACTIVE_TIMEOUT_MS = 5000;
 const VERIFY_AFTER_APP_ACTIVE_DELAY_MS = 500;
 const VERIFY_NETWORK_RETRY_DELAY_MS = 500;
@@ -54,6 +55,66 @@ const wait = (timeoutMs: number) =>
 
 const isNetworkRequestError = (error: unknown) =>
   error instanceof Error && error.message.includes('Network request failed');
+
+const redirectUrlHasExpectedState = (url: string, expectedState: string) => {
+  try {
+    return new URL(url).searchParams.get('state') === expectedState;
+  } catch {
+    return false;
+  }
+};
+
+const waitForAndroidRedirectOrResume = (
+  expectedRedirectUri: string,
+  expectedState: string,
+  timeoutMs: number,
+) =>
+  new Promise<boolean>((resolve) => {
+    let sawBrowserAppState = AppState.currentState !== 'active';
+    let didResolve = false;
+    const subscriptionRef: {
+      appState?: ReturnType<typeof AppState.addEventListener>;
+      linking?: ReturnType<typeof Linking.addEventListener>;
+    } = {};
+
+    const finish = (didRedirectOrResume: boolean) => {
+      if (didResolve) {
+        return;
+      }
+
+      didResolve = true;
+      subscriptionRef.appState?.remove();
+      subscriptionRef.linking?.remove();
+      resolve(didRedirectOrResume);
+    };
+
+    const timeout = setTimeout(() => finish(false), timeoutMs);
+
+    subscriptionRef.linking = Linking.addEventListener('url', ({ url }) => {
+      if (
+        url.startsWith(expectedRedirectUri) &&
+        redirectUrlHasExpectedState(url, expectedState)
+      ) {
+        clearTimeout(timeout);
+        finish(true);
+      }
+    });
+
+    subscriptionRef.appState = AppState.addEventListener(
+      'change',
+      (nextState) => {
+        if (nextState !== 'active') {
+          sawBrowserAppState = true;
+          return;
+        }
+
+        if (sawBrowserAppState) {
+          clearTimeout(timeout);
+          finish(true);
+        }
+      },
+    );
+  });
 
 const waitForActiveAppState = async () => {
   if (AppState.currentState === 'active') {
@@ -181,15 +242,40 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
     initiateUrl.searchParams.set('code_challenge', challenge);
 
-    await this.loginWithAuthSession(initiateUrl.toString());
-
-    return {
+    const buildLoginResult = (): LoginHandlerCodeResult => ({
       authConnection: this.authConnection,
       code: challenge,
       clientId: this.clientId,
       redirectUri: this.redirectUri,
       codeVerifier,
-    };
+    });
+
+    if (Platform.OS === 'android') {
+      const redirectOrResumePromise = waitForAndroidRedirectOrResume(
+        this.redirectUri,
+        this.nonce,
+        ANDROID_LOGIN_REDIRECT_TIMEOUT_MS,
+      );
+
+      await openBrowserAsync(initiateUrl.toString(), {
+        createTask: false,
+      });
+
+      const didRedirectOrResume = await redirectOrResumePromise;
+
+      if (didRedirectOrResume) {
+        return buildLoginResult();
+      }
+
+      throw new OAuthError(
+        'TelegramLoginHandler: No OAuth redirect received',
+        OAuthErrorType.TelegramLoginError,
+      );
+    }
+
+    await this.loginWithAuthSession(initiateUrl.toString());
+
+    return buildLoginResult();
   }
 
   async loginWithAuthSession(authorizationUrl: string): Promise<string> {
