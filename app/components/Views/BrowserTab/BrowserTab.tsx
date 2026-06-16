@@ -645,32 +645,35 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         backgroundBridgeRef.current?.onDisconnect();
         backgroundBridgeRef.current = undefined;
 
-        //@ts-expect-error - We should type bacgkround bridge js file
-        const newBridge = new BackgroundBridge({
-          webview: webviewRef,
-          url: urlBridge,
-          getRpcMethodMiddleware: ({
-            getProviderState,
-          }: {
-            getProviderState: () => void;
-          }) =>
-            getRpcMethodMiddleware({
-              hostname: new URL(urlBridge).origin,
+        try {
+          // @ts-expect-error - We should type background bridge js file
+          backgroundBridgeRef.current = new BackgroundBridge({
+            webview: webviewRef,
+            url: urlBridge,
+            getRpcMethodMiddleware: ({
               getProviderState,
-              navigation,
-              // Website info
-              url: resolvedUrlRef,
-              title: titleRef,
-              icon: iconRef,
-              tabId,
-              // TODO: This properties were missing, and were not optional
-              isWalletConnect: false,
-              isMMSDK: false,
-              analytics: {},
-            }),
-          isMainFrame,
-        });
-        backgroundBridgeRef.current = newBridge;
+            }: {
+              getProviderState: () => void;
+            }) =>
+              getRpcMethodMiddleware({
+                hostname: new URL(urlBridge).origin,
+                getProviderState,
+                navigation,
+                // Website info
+                url: resolvedUrlRef,
+                title: titleRef,
+                icon: iconRef,
+                tabId,
+                // TODO: This properties were missing, and were not optional
+                isWalletConnect: false,
+                isMMSDK: false,
+                analytics: {},
+              }),
+            isMainFrame,
+          });
+        } catch (error) {
+          Logger.log('BackgroundBridge initialization failed', error);
+        }
       },
       [navigation, tabId],
     );
