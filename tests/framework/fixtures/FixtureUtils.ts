@@ -134,9 +134,12 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
  * - Android: LaunchArgs DON'T work → app always uses fallback ports
  * - Solution: Use adb reverse ONLY for ports that would be passed via LaunchArgs
  *
- * IMPORTANT: We only forward LaunchArgs ports (fixture server, command queue server, mock server).
- * Other resources (Ganache, Anvil, Dapps) are accessed through MockServer proxy which handles
- * port translation, so they don't need adb reverse.
+ * IMPORTANT: The `forwardedResources` list below is the source of truth for
+ * which ports get adb reverse. It covers the LaunchArgs ports (fixture server,
+ * command queue server, mock server) AND dapp servers, Ganache/Anvil, and the
+ * local WebSocket services — on Android the app reaches those via fallback
+ * ports that adb reverse maps to the actual allocated ports (browser dapp
+ * navigation and some code paths bypass the MockServer proxy).
  * References:
  * https://github.com/expo/expo/issues/31830
  * https://github.com/expo/expo/pull/37172
