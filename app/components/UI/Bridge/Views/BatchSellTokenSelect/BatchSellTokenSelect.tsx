@@ -61,6 +61,7 @@ import { BatchSellEmptyState } from './BatchSellEmptyState';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useBatchSellTokens } from './useBatchSellTokens';
+import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
@@ -175,6 +176,10 @@ export function BatchSellTokenSelect() {
   }, [selectedChainId, sortedEligibleChains]);
 
   const activeChainId = selectedChainId ?? sortedEligibleChains[0]?.chainId;
+
+  // Fetch STX liveness for the active batch sell source chain
+  useRefreshSmartTransactionsLiveness(activeChainId);
+
   const destinationStablecoins = useSelector((state: RootState) =>
     selectBatchSellDestStablecoins(state, activeChainId),
   );
