@@ -38,7 +38,7 @@ import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import Engine from '../../../core/Engine';
 import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
@@ -82,6 +82,13 @@ import {
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
+
+const updateIncomingTransactions = () =>
+  (
+    Engine.context.TransactionController as unknown as {
+      updateIncomingTransactions: () => Promise<void>;
+    }
+  ).updateIncomingTransactions();
 
 const generateKey = (item: ActivityListItem): string => {
   const hash = item.data.hash;
