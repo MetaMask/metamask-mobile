@@ -398,7 +398,7 @@ const selectorValues = {
 };
 
 const confirmedItem = {
-  type: 'send',
+  type: 'contractInteraction',
   chainId: 'eip155:1',
   status: 'success',
   timestamp: 3,
@@ -406,7 +406,6 @@ const confirmedItem = {
     hash: '0xconfirmed',
     from: '0xevm',
     to: '0xto',
-    token: { symbol: 'ETH' },
   },
   raw: {
     type: 'apiEvmTransaction',
@@ -415,7 +414,7 @@ const confirmedItem = {
 };
 
 const localPendingItem = {
-  type: 'send',
+  type: 'approveSpendingCap',
   chainId: 'eip155:1',
   status: 'pending',
   timestamp: 4,
