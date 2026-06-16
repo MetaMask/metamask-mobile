@@ -17,7 +17,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useIsInViewport } from '../../../../../hooks';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import { PerpsPillItemWithLiveData } from '../PerpsPillItem';
@@ -64,11 +63,6 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
   const { navigateToMarketList } = usePerpsNavigation();
-  const {
-    ref: viewportRef,
-    onLayout: onViewportLayout,
-    isInViewport,
-  } = useIsInViewport();
 
   const { markets: allMarkets } = usePerpsMarkets();
   const relatedMarketsResult = useMemo(
@@ -129,11 +123,10 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
     (item: PerpsFeedItem, index: number) => (
       <PerpsPillItemWithLiveData
         item={item}
-        enabled={isInViewport}
         onNavigateToMarketDetails={() => handleMarketPress(item.market, index)}
       />
     ),
-    [handleMarketPress, isInViewport],
+    [handleMarketPress],
   );
 
   if (!relatedMarketsResult || !markets) {
@@ -144,9 +137,6 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
 
   return (
     <View
-      ref={viewportRef}
-      onLayout={onViewportLayout}
-      collapsable={false}
       style={styles.rail}
       testID={PerpsRelatedMarketsSelectorsIDs.RAIL}
       accessibilityLabel={`${strings('perps.market.related_markets')} - ${collection.label}`}

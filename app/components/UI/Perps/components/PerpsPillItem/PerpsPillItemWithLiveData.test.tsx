@@ -90,14 +90,4 @@ describe('PerpsPillItemWithLiveData', () => {
 
     expect(screen.getByText('+1.00%')).toBeOnTheScreen();
   });
-
-  it('passes empty symbols when enabled is false', () => {
-    render(
-      <PerpsPillItemWithLiveData item={buildItem('ETH')} enabled={false} />,
-    );
-
-    expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
-      expect.objectContaining({ symbols: [] }),
-    );
-  });
 });

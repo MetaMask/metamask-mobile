@@ -28,14 +28,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../../hooks', () => ({
-  useIsInViewport: () => ({
-    ref: { current: null },
-    onLayout: jest.fn(),
-    isInViewport: true,
-  }),
-}));
-
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: (...args: unknown[]) => mockUsePerpsMarkets(...args),
 }));
