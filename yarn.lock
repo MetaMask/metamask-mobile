@@ -10223,17 +10223,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:@metamask-previews/social-controllers@2.2.1-preview-a3e0ef7eb":
-  version: 2.2.1-preview-a3e0ef7eb
-  resolution: "@metamask-previews/social-controllers@npm:2.2.1-preview-a3e0ef7eb"
+"@metamask/social-controllers@npm:2.3.0":
+  version: 2.3.0
+  resolution: "@metamask/social-controllers@npm:2.3.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/base-data-service": "npm:^0.1.3"
     "@metamask/controller-utils": "npm:^12.2.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.1.1"
+    "@metamask/profile-sync-controller": "npm:^28.2.0"
     "@metamask/superstruct": "npm:^3.1.0"
-  checksum: 10/d5f4be147b71fea8984b6aa60fb43be4b3700806868f035f83babc1f043f5c4db3371dba1d8ae6316c28f5b1b76eba0672c857e0802ddf35371f0bce65e5fe12
+  checksum: 10/f492bef75b540820e5a2c7be30fba620e79041100fb46297c665398fbc061980a30fc2b0eebb01867e49c88194ecb7403df512ca6b1cfb75addfbe1a9d1ed252
   languageName: node
   linkType: hard
 
@@ -35397,7 +35397,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^16.0.0"
     "@metamask/snaps-sdk": "npm:^11.1.1"
     "@metamask/snaps-utils": "npm:^12.2.0"
-    "@metamask/social-controllers": "npm:^2.2.0"
+    "@metamask/social-controllers": "npm:2.3.0"
     "@metamask/solana-wallet-snap": "npm:^2.8.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"

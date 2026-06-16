@@ -158,12 +158,6 @@
     "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts",
     "skills:postinstall": "metamask-skills postinstall"
   },
-  "previewBuilds": {
-    "@metamask/social-controllers": {
-      "type": "non-breaking",
-      "previewVersion": "2.2.1-preview-a3e0ef7eb"
-    }
-  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",
@@ -345,7 +339,7 @@
     "@metamask/snaps-rpc-methods": "^16.0.0",
     "@metamask/snaps-sdk": "^11.1.1",
     "@metamask/snaps-utils": "^12.2.0",
-    "@metamask/social-controllers": "^2.2.0",
+    "@metamask/social-controllers": "2.3.0",
     "@metamask/solana-wallet-snap": "^2.8.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
