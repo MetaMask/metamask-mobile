@@ -214,7 +214,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
-            icon: IconName.Bank,
+            icon: IconName.Card,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
             disabled: !hasNativeFiatProvider,
@@ -232,6 +232,13 @@ const MoneyAddMoneySheet: React.FC = () => {
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       disabled: !hasMusdBalance,
+    },
+    {
+      label: strings('money.add_money_sheet.bank_account'),
+      icon: IconName.Bank,
+      testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+      disabled: true,
+      comingSoon: true,
     },
     {
       label: strings('money.add_money_sheet.receive_external'),

@@ -128,19 +128,31 @@ describe('MoneyAddMoneySheet', () => {
     (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
   });
 
-  it('renders all four options', () => {
-    const { getByText, getByTestId } = renderWithProvider(
+  it('renders all options', () => {
+    const { getByText, getAllByText, getByTestId } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
-    expect(getByText('Debit card or bank account')).toBeOnTheScreen();
+    expect(getByText('Debit card or Apple Pay')).toBeOnTheScreen();
     expect(getByText('$1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('Bank account')).toBeOnTheScreen();
     expect(getByText('External address')).toBeOnTheScreen();
-    expect(getByText('Coming soon')).toBeOnTheScreen();
+    // Bank account and External address are both coming soon.
+    expect(getAllByText('Coming soon')).toHaveLength(2);
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the Bank account row as a coming-soon, non-pressable option', () => {
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
+    expect(bankRow).toBeOnTheScreen();
+
+    fireEvent.press(bankRow);
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
   it('renders the "Add funds" title', () => {
@@ -370,8 +382,9 @@ describe('MoneyAddMoneySheet', () => {
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     );
 
-    // Two "Coming soon" tags now: the disabled Deposit row + Receive external.
-    expect(getAllByText('Coming soon')).toHaveLength(2);
+    // Three "Coming soon" tags: the disabled Deposit row + Bank account +
+    // Receive external.
+    expect(getAllByText('Coming soon')).toHaveLength(3);
     expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });

@@ -7032,7 +7032,8 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "deposit_funds": "Debit card or bank account",
+      "deposit_funds": "Debit card or Apple Pay",
+      "bank_account": "Bank account",
       "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
