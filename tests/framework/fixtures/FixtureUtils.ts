@@ -17,9 +17,9 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
+  DEFAULT_ANVIL_PORT,
 } from '../Constants.ts';
 import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
-import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
 import { FrameworkDetector } from '../FrameworkDetector.ts';
 
