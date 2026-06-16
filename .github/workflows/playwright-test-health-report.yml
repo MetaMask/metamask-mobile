@@ -1,0 +1,28 @@
+name: Playwright test health report
+
+on:
+  schedule:
+    # 10:00 UTC (Europe morning), Monday–Friday
+    - cron: '0 10 * * 1-5'
+    # 15:00 UTC (US morning), Monday–Friday
+    - cron: '0 15 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  playwright-test-health-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Playwright test health report
+        # Pin to github-tools PR #262 until playwright-test-health-report@v1 is tagged.
+        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@aaf10ac4b47e503ea2223c51e566757030ec8b7b
+        with:
+          repository: ${{ github.event.repository.name }}
+          workflow-ids: ci.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          slack-webhook: ${{ secrets.SLACK_WEBHOOK_FLAKY_TESTS }}
+          lookback-days: '1'
+          report-title: Playwright Test Health Report (Mobile Appium)
