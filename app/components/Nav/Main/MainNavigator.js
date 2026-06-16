@@ -7,7 +7,8 @@ import React, {
 } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
@@ -171,6 +172,8 @@ import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import CreatePriceAlertView from '../../UI/Assets/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView';
+import ManagePriceAlertsView from '../../UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
@@ -210,6 +213,14 @@ const AssetStackFlow = (props) => (
     <NativeStack.Screen
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
+    />
+    <NativeStack.Screen
+      name={Routes.CREATE_PRICE_ALERT}
+      component={CreatePriceAlertView}
+    />
+    <NativeStack.Screen
+      name={Routes.MANAGE_PRICE_ALERTS}
+      component={ManagePriceAlertsView}
     />
   </NativeStack.Navigator>
 );
@@ -977,6 +988,15 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
+  const dispatch = useDispatch();
+  // Announce to the saga layer (deeplink pipeline) that post-login screens
+  // are now registered with React Navigation. Before this dispatch, a
+  // `navigate('Wallet'|'RampTokenSelection'|...)` call would be silently
+  // dropped because the target screen isn't in the navigation state yet.
+  useEffect(() => {
+    dispatch(mainNavigatorReady());
+  }, [dispatch]);
+
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   // Get feature flag state for conditional Perps screen registration
@@ -1201,6 +1221,11 @@ const MainNavigator = () => {
               ...clearNativeStackNavigatorOptions,
               ...transparentModalScreenOptions,
             }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.TRANSACTION_DETAILS}
+            component={TransactionDetails}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}

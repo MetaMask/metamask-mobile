@@ -75,6 +75,7 @@ const TX_STATUS_UPDATED_EVENT =
 const CANCEL_TERMINAL_WAIT_TIMEOUT_MS = 30_000;
 const DEVICE_NOT_READY_RETRY_DELAY_MS = 1_000;
 
+/** Type guard: true when the tx type is a hardware-wallet batch approval or trade. */
 function isBatchTransactionType(
   txType: TransactionMeta['type'],
 ): txType is TransactionType {
@@ -95,6 +96,10 @@ function normalizeAddress(address: string | undefined): string | undefined {
   return isValidHexAddress(address) ? address.toLowerCase() : address;
 }
 
+/**
+ * Determines whether a transaction belongs to the active hardware wallet and is
+ * part of a swap/bridge batch — same `from` (case-normalized) and a batch tx type.
+ */
 function matchesTx(
   transactionMeta: TransactionMeta,
   targetFrom: string,
@@ -104,16 +109,19 @@ function matchesTx(
   return isBatchTransactionType(transactionMeta.type);
 }
 
+/** Maps a batch transaction type to its swap-flow step kind (approval vs. transaction). */
 function getStepKind(txType: TransactionType): HardwareWalletsSwapsStepKind {
   return APPROVAL_TYPES.has(txType)
     ? HardwareWalletsSwapsStepKind.Approval
     : HardwareWalletsSwapsStepKind.Transaction;
 }
 
+/** Returns all transactions currently held by the TransactionController. */
 function getTransactions(): TransactionMeta[] {
   return Engine.context.TransactionController.state.transactions;
 }
 
+/** Looks up a single transaction by id from the TransactionController state. */
 function getTransactionById(txId: string): TransactionMeta | undefined {
   return getTransactions().find(
     (transaction: TransactionMeta) => transaction.id === txId,
@@ -153,6 +161,12 @@ function isFailedOrRejectedBatchTransaction(tx: TransactionMeta): boolean {
   return FAILED_OR_REJECTED_STATUSES.has(tx.status);
 }
 
+/**
+ * Checks whether any tracked pending-sign transaction from the given address in
+ * the given batch has already reached a post-sign status (signed/submitted/
+ * confirmed) — used to detect and ignore "late rejections" that arrive after
+ * signing already succeeded.
+ */
 function hasSignedTrackedBatchFromAddress(
   batchId: string,
   address: string,
@@ -169,6 +183,12 @@ function hasSignedTrackedBatchFromAddress(
   );
 }
 
+/**
+ * Collects the union of transaction ids that should be cancelled for a batch:
+ * the explicitly tracked pending-sign ids plus any non-terminal (still
+ * cancellable) batch transactions from the given address within the related
+ * batch ids.
+ */
 function getCancellableBatchTxIds(
   address: string | undefined,
   pendingSignTxIds: Iterable<string>,
@@ -191,6 +211,11 @@ function getCancellableBatchTxIds(
   return [...new Set([...pendingSignTxIdList, ...nonTerminalTxIds])];
 }
 
+/**
+ * Gathers every batch id relevant to the current cancellation: the active
+ * batch id, all previously seen batch ids, and any batch ids referenced by the
+ * given transaction ids.
+ */
 function getRelatedBatchIds(
   activeBatchId: string | null | undefined,
   seenBatchIds: ReadonlySet<string>,
@@ -216,6 +241,12 @@ function getRelatedBatchIds(
   return relatedBatchIds;
 }
 
+/**
+ * Rejects all pending ApprovalController approvals that belong to the active
+ * batch (by matching batch id, approval id, or signing address). Returns
+ * whether any approval was actually rejected, so callers can fire cancel
+ * analytics only when relevant.
+ */
 function rejectPendingBatchApprovals({
   address,
   relatedBatchIds,
@@ -251,6 +282,11 @@ function rejectPendingBatchApprovals({
   return hadPendingApprovals;
 }
 
+/**
+ * Returns the set of chain ids that contain failed/rejected batch transactions
+ * from the given address within the related batch ids — used to scope
+ * nonce-clearing wipes on retry.
+ */
 function getFailedBatchTxChainIds(
   address: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
@@ -274,6 +310,11 @@ function getFailedBatchTxChainIds(
   );
 }
 
+/**
+ * Wipes failed/rejected batch transactions (per chain) so their held nonces
+ * don't create gaps that would cause the retry batch to be rejected by the STX
+ * simulator.
+ */
 function wipeFailedBatchTransactions(
   address: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
@@ -297,6 +338,12 @@ function wipeFailedBatchTransactions(
   }
 }
 
+/**
+ * Aborts in-progress signing for the given transaction ids via the
+ * TransactionController. Ids that can no longer be aborted are dropped from the
+ * pending-abort set so the terminal-wait loop doesn't block waiting for an
+ * abort that will never fire.
+ */
 function abortTransactionSignings(
   txIds: string[],
   pendingAbortTxIds: Set<string>,
@@ -320,6 +367,12 @@ function abortTransactionSignings(
   }
 }
 
+/**
+ * Locally marks still-abortable (approved/signed, pre-broadcast) transactions
+ * as `dropped` so they don't linger in activity after a batch cancel.
+ * Submitted transactions are intentionally left untouched — they may still be
+ * pending on-chain.
+ */
 function dropAbortableTransactions(txIds: string[]): void {
   for (const txId of txIds) {
     const tx = getTransactionById(txId);
@@ -339,6 +392,7 @@ function dropAbortableTransactions(txIds: string[]): void {
   }
 }
 
+/** Returns the subset of the given ids that are not yet in a terminal status. */
 function getPendingTransactionIds(txIds: string[]): Set<string> {
   return new Set(
     txIds.filter((id) => {
@@ -348,10 +402,18 @@ function getPendingTransactionIds(txIds: string[]): Set<string> {
   );
 }
 
+/** True if any of the given ids are not yet in a terminal status. */
 function hasPendingTransactions(txIds: string[]): boolean {
   return getPendingTransactionIds(txIds).size > 0;
 }
 
+/**
+ * Returns a promise that resolves once every given transaction id reaches a
+ * terminal status, or after a safety timeout
+ * (`CANCEL_TERMINAL_WAIT_TIMEOUT_MS`), whichever comes first. Subscribes to
+ * TransactionController status updates and cleans up its subscription on
+ * resolve.
+ */
 function waitForTerminalTransactions(txIds: string[]): Promise<void> {
   if (!hasPendingTransactions(txIds)) {
     return Promise.resolve();
@@ -408,6 +470,11 @@ function waitForTerminalTransactions(txIds: string[]): Promise<void> {
   });
 }
 
+/**
+ * Decides whether a single pending approval should be rejected during a batch
+ * cancel. Matches TransactionBatch approvals by id, and Transaction approvals
+ * by the signing address (and batch id when present).
+ */
 function shouldRejectPendingApprovalOnCancel(
   requestId: string,
   request: { type: string },
@@ -445,6 +512,13 @@ function shouldRejectPendingApprovalOnCancel(
   return false;
 }
 
+/**
+ * True if any transaction in the given batch is from the target address.
+ *
+ * Used in `enqueuePendingApprovals` to confirm a TransactionBatch approval
+ * actually belongs to the active hardware wallet before accepting it — guards
+ * against signing batches that contain transactions for other accounts.
+ */
 function hasMatchingBatchTransaction(
   batchId: string,
   targetFrom: string,
@@ -455,12 +529,24 @@ function hasMatchingBatchTransaction(
   );
 }
 
+/**
+ * True if any transaction exists for the given batch id (any address).
+ *
+ * Used as a fallback in `enqueuePendingApprovals`: a batch approval can land
+ * before its child transactions are registered with the TransactionController,
+ * so when the batch is still empty we accept the approval and let the txs
+ * populate on a later event rather than dropping the batch entirely.
+ */
 function hasAnyBatchTransaction(batchId: string): boolean {
   return getTransactions().some(
     (tx: TransactionMeta) => tx.batchId === batchId,
   );
 }
 
+/**
+ * Returns the ids of all `approved` transactions in the given batch that are
+ * from the target address — these are the txs queued for hardware signing.
+ */
 function getApprovedBatchTransactionIds(
   batchId: string,
   targetFrom: string,
@@ -475,6 +561,7 @@ function getApprovedBatchTransactionIds(
     .map((tx: TransactionMeta) => tx.id);
 }
 
+/** Options for {@link useHwBatchSignTracker}. */
 interface UseHwBatchSignTrackerOptions {
   fromAddress: string | undefined;
   isEnabled: boolean;
@@ -518,6 +605,10 @@ interface HwBatchSignTrackerLatestValues {
   >['showHardwareWalletError'];
 }
 
+/**
+ * Builds a fresh tracker state object, seeded with the current retry generation
+ * so the first retry bump is detected correctly.
+ */
 function createInitialBatchSignTrackerState(
   retryGeneration = 0,
 ): HwBatchSignTrackerState {
@@ -539,6 +630,25 @@ function createInitialBatchSignTrackerState(
   };
 }
 
+/**
+ * React hook that drives hardware-wallet (Ledger / Keystone) signing for a
+ * multi-step bridge or swap batch.
+ *
+ * Subscribes to TransactionController and ApprovalController events, dispatches
+ * the signing state machine (`updateHardwareWalletsSwaps`) as each approval is
+ * accepted/signed/rejected, surfaces the active confirmation tx id for the UI,
+ * and exposes `cancelCurrentBatch` to abort and clean up an in-flight batch
+ * (rejecting pending approvals, aborting signings, dropping abortable txs, and
+ * wiping failed txs so retries aren't blocked by nonce gaps).
+ *
+ * The hook tracks an internal mutable batch-generation counter so retries
+ * (signalled by bumping `retryGenerationRef`) invalidate stale in-flight state.
+ *
+ * @param options.fromAddress - The hardware wallet account signing the batch.
+ * @param options.isEnabled - Master switch; when false the hook is inert.
+ * @param options.retryGenerationRef - Ref the caller bumps to trigger a full retry.
+ * @returns `cancelCurrentBatch` to abort the batch, and `confirmationTxId` for UI.
+ */
 export function useHwBatchSignTracker({
   fromAddress,
   isEnabled,

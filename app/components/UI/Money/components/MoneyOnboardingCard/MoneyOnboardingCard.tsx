@@ -48,7 +48,7 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { tokenTotal, isAggregatedBalanceLoading } = useMoneyAccountBalance();
+  const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
@@ -57,14 +57,16 @@ const MoneyOnboardingCard = () => {
   const {
     startLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
     isLinking,
+    isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const isMoneyAccountFunded = Boolean(
-    !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
+    !isBalanceLoading && tokenTotal?.isGreaterThan(0),
   );
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
@@ -75,8 +77,12 @@ const MoneyOnboardingCard = () => {
     isCardLinkedToMoneyAccount,
   });
 
+  const isCardStepBlocked = isResidencyBlocked && !isCardLinkedToMoneyAccount;
+
   const shouldShowLinkCardAction =
-    isCardholder || (isCardAuthenticated && !isCardLinkedToMoneyAccount);
+    !isCardStepBlocked &&
+    (isCardholder ||
+      (isCardAuthenticated && isCardVerified && !isCardLinkedToMoneyAccount));
 
   const handleRedirectToCryptoDeposit = useCallback(async () => {
     await initiateDeposit().catch(() => undefined);
@@ -171,7 +177,9 @@ const MoneyOnboardingCard = () => {
     // - step 1 is complete right now (immediately advance funded users).
     const canEvaluateStep2 = currentStep >= 1 || isStep1Complete;
     const isStep2Complete =
-      canEvaluateStep2 && isCardAuthenticated && isCardLinkedToMoneyAccount;
+      canEvaluateStep2 &&
+      ((isCardAuthenticated && isCardLinkedToMoneyAccount) ||
+        isCardStepBlocked);
 
     if (isStep2Complete) return 2;
     if (isStep1Complete) return 1;
@@ -181,6 +189,7 @@ const MoneyOnboardingCard = () => {
     isMoneyAccountFunded,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
+    isCardStepBlocked,
   ]);
 
   // Prevent a flash of earlier steps by rendering the computed step immediately,
@@ -198,7 +207,7 @@ const MoneyOnboardingCard = () => {
   useEffect(() => {
     if (
       hasTrackedCardStepViewRef.current ||
-      isAggregatedBalanceLoading ||
+      isBalanceLoading ||
       !isCardAnalyticsReady ||
       !isOnboardingCardVisible ||
       !isVisibleAfterAutoSkip ||
@@ -221,7 +230,7 @@ const MoneyOnboardingCard = () => {
     trackEvent,
     createEventBuilder,
     effectiveCurrentStep,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     isCardAnalyticsReady,
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
@@ -328,11 +337,7 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (
-    isAggregatedBalanceLoading ||
-    !isOnboardingCardVisible ||
-    !isVisibleAfterAutoSkip
-  ) {
+  if (isBalanceLoading || !isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
     return null;
   }
 

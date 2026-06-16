@@ -45,6 +45,11 @@ export interface TokenBalanceDeps {
   tokenMarketData: ReturnType<typeof selectTokenMarketData>;
   currencyRates: ReturnType<typeof selectCurrencyRates>;
   allNetworkConfigs?: Record<string, { nativeCurrency?: string } | undefined>;
+  /**
+   * Currency code used to format the fiat display string (e.g. `'usd'`,
+   * `'eur'`). Defaults to USD when omitted.
+   */
+  fiatCurrency?: Parameters<typeof addCurrencySymbol>[1];
   solanaAccount?: { id: string };
   tronAccount?: { id: string };
   bitcoinAccount?: { id: string };
@@ -75,9 +80,11 @@ export interface EnrichTokenBalanceOptions {
  */
 const USD_CURRENCY = 'usd' as Parameters<typeof addCurrencySymbol>[1];
 
-const zeroEnrichment = (): TokenBalanceEnrichment => ({
+const zeroEnrichment = (
+  fiatCurrency: Parameters<typeof addCurrencySymbol>[1] = USD_CURRENCY,
+): TokenBalanceEnrichment => ({
   balance: '0',
-  balanceFiat: addCurrencySymbol('0.00', USD_CURRENCY),
+  balanceFiat: addCurrencySymbol('0.00', fiatCurrency),
   tokenFiatAmount: 0,
   currencyExchangeRate: undefined,
 });
@@ -99,11 +106,12 @@ const priced = (
   balance: string,
   exchangeRate: number,
   balanceNum: number,
+  fiatCurrency: Parameters<typeof addCurrencySymbol>[1] = USD_CURRENCY,
 ): TokenBalanceEnrichment => {
   const tokenFiatAmount = balanceNum * exchangeRate;
   return {
     balance,
-    balanceFiat: addCurrencySymbol(tokenFiatAmount.toFixed(2), USD_CURRENCY),
+    balanceFiat: addCurrencySymbol(tokenFiatAmount.toFixed(2), fiatCurrency),
     tokenFiatAmount,
     currencyExchangeRate: exchangeRate,
   };
@@ -122,9 +130,11 @@ const enrichEvmTokenBalance = (
     tokenMarketData,
     currencyRates,
     allNetworkConfigs,
+    fiatCurrency,
   } = deps;
 
-  const dropOrZero = () => (includeZeroBalance ? zeroEnrichment() : null);
+  const dropOrZero = () =>
+    includeZeroBalance ? zeroEnrichment(fiatCurrency) : null;
 
   if (!accountAddress) return dropOrZero();
 
@@ -177,7 +187,7 @@ const enrichEvmTokenBalance = (
     return includeZeroBalance ? unpricedEnrichment(displayBalance) : null;
   }
 
-  return priced(displayBalance, exchangeRate, balanceNum);
+  return priced(displayBalance, exchangeRate, balanceNum, fiatCurrency);
 };
 
 /**
@@ -201,9 +211,10 @@ const enrichNonEvmTokenBalance = (
   options: EnrichTokenBalanceOptions,
 ): TokenBalanceEnrichment | null => {
   const { includeZeroBalance } = options;
-  const { multichainBalances, multichainRates } = deps;
+  const { multichainBalances, multichainRates, fiatCurrency } = deps;
 
-  const dropOrZero = () => (includeZeroBalance ? zeroEnrichment() : null);
+  const dropOrZero = () =>
+    includeZeroBalance ? zeroEnrichment(fiatCurrency) : null;
 
   const nonEvmAccount = getNonEvmAccount(candidate.chainId, deps);
   if (!nonEvmAccount) return dropOrZero();
@@ -224,7 +235,7 @@ const enrichNonEvmTokenBalance = (
     return includeZeroBalance ? unpricedEnrichment(amountStr) : null;
   }
 
-  return priced(amountStr, rateNum, balanceNum);
+  return priced(amountStr, rateNum, balanceNum, fiatCurrency);
 };
 
 /**

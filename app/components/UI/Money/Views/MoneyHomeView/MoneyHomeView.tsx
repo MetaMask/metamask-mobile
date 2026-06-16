@@ -10,7 +10,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BannerAlert,
+  BannerAlertSeverity,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -107,9 +112,8 @@ const MoneyHomeView = () => {
     totalFiatFormatted,
     totalFiatRaw,
     vaultApyQuery,
-    isAggregatedBalanceLoading,
-    isBalanceFetchError,
-    isBalanceFetching,
+    isBalanceLoading,
+    lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
   } = useMoneyAccountBalance();
@@ -158,25 +162,31 @@ const MoneyHomeView = () => {
   const {
     startLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
     isLinking,
     hasMoneyAccountRequirements,
+    isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
-  } else if (isBalanceFetchError && isBalanceFetching) {
-    displayState = { kind: 'retrying' };
-  } else if (isBalanceFetchError) {
-    displayState = { kind: 'error', onRetry: refetchBalance };
-  } else if (isAggregatedBalanceLoading) {
-    displayState = { kind: 'loading' };
-  } else if (totalFiatFormatted === undefined) {
-    displayState = { kind: 'unavailable' };
-  } else {
+  } else if (totalFiatFormatted !== undefined) {
+    // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else {
+    // No fresh balance (loading, fetch error, or rate not ready). Carry the
+    // cached balance (when valid for this account/currency) so it renders as a
+    // muted "last known" figure; otherwise the slot shows a dash. Either way a
+    // BannerAlert accompanies it.
+    displayState = {
+      kind: 'unavailable',
+      lastKnownValue: lastKnownTotalFiatFormatted,
+    };
   }
+
+  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
@@ -562,9 +572,8 @@ const MoneyHomeView = () => {
         component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });
 
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId: transaction.id },
+      navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
       });
     },
     [navigation, trackActivitySurfaceClicked],
@@ -573,8 +582,12 @@ const MoneyHomeView = () => {
   let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardAuthenticated || isCardholder) {
+  } else if (isResidencyBlocked) {
+    metamaskCardMode = null;
+  } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
     metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
+  } else if (isCardAuthenticated) {
+    metamaskCardMode = null;
   } else {
     metamaskCardMode = 'upsell';
   }
@@ -609,6 +622,19 @@ const MoneyHomeView = () => {
           />
         }
       >
+        {showBalanceUnavailableBanner && (
+          <Box twClassName="px-4 pt-2">
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              title={strings('money.balance_unavailable')}
+              description={strings(
+                'money.balance_unavailable_banner_description',
+              )}
+              style={styles.balanceUnavailableBanner}
+              testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
+            />
+          </Box>
+        )}
         <MoneyBalanceSummary
           apy={apyPercent}
           displayState={displayState}
@@ -636,7 +662,7 @@ const MoneyHomeView = () => {
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
               yearlyEarnings={yearlyEarnings}
-              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+              isLoading={vaultApyQuery.isLoading || isBalanceLoading}
               onInfoPress={handleEarningsInfoPress}
             />
             <Divider />
@@ -710,6 +736,7 @@ const MoneyHomeView = () => {
               showMetalCard={hasMetalCard}
               isLinkDisabled={isLinking}
               cardBalance={cardBalance}
+              isBalanceStale={showBalanceUnavailableBanner}
               apy={apyPercent}
               analyticsScreen={CardScreens.MONEY_HOME}
               analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}

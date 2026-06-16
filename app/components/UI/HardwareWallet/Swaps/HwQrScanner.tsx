@@ -47,6 +47,7 @@ const REQUEST_ID_MISMATCH_ANALYTICS_ERROR =
 const NO_PENDING_SCAN_REQUEST_ANALYTICS_ERROR =
   'no pending scan request found when signature was received';
 
+/** Props for the {@link ScannerRecovery} fallback panel. */
 interface ScannerRecoveryProps {
   title?: string | null;
   message?: string | null;
@@ -54,6 +55,11 @@ interface ScannerRecoveryProps {
   onTryAgain: () => void;
 }
 
+/**
+ * Fallback panel shown by {@link HwQrScanner} when scanning fails or a scanned
+ * QR's request id doesn't match the pending request. Offers "Learn more" and
+ * "Try again" actions.
+ */
 function ScannerRecovery({
   title,
   message,
