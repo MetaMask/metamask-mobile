@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from './useTransakRouting';
+import { extractOrderCode } from '../utils/extractOrderCode';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -28,6 +29,16 @@ jest.mock('../headless', () => ({
     return slashIndex <= 0 ? null : assetId.slice(0, slashIndex);
   },
 }));
+
+const mockSetHeadlessOrderContext = jest.fn();
+jest.mock(
+  '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+  () => ({
+    setHeadlessOrderContext: (
+      ...args: Parameters<typeof mockSetHeadlessOrderContext>
+    ) => mockSetHeadlessOrderContext(...args),
+  }),
+);
 
 const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
 
@@ -1839,6 +1850,12 @@ describe('useTransakRouting', () => {
           region: 'us-ca',
         }),
       );
+      // Writes the headless context for the terminal-failed subscriber
+      // (TRAM-3623 §2), keyed by the same providerOrderId.
+      expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith('order-hs', {
+        rampSurface: 'money_account',
+        region: 'us-ca',
+      });
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -2044,6 +2061,12 @@ describe('useTransakRouting', () => {
           region: 'us-ca',
         }),
       );
+      // Manual-bank headless branch also writes the terminal-failed context
+      // (TRAM-3623 §2), keyed by the same providerOrderId.
+      expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith('order-hs', {
+        rampSurface: 'money_account',
+        region: 'us-ca',
+      });
     });
 
     it('falls back to the regular order-details reset + toast when session id is present but session is missing from registry', async () => {
@@ -2074,6 +2097,117 @@ describe('useTransakRouting', () => {
       );
       expect(mockCloseSession).not.toHaveBeenCalled();
       expect(mockParentPop).not.toHaveBeenCalled();
+      // CRITICAL guard (TRAM-3623 §2): the write is headless-gated, so a
+      // session-less (non-headless UB2-native) order must NOT seed the
+      // registry - otherwise it would wrongly emit a HEADLESS terminal-failed.
+      expect(mockSetHeadlessOrderContext).not.toHaveBeenCalled();
+    });
+
+    it('does not write the headless context for a non-headless webview success (no session)', async () => {
+      // No headless session: useTransakRouting() with no config, getSession
+      // returns undefined (the suite default).
+      mockGetSession.mockReturnValue(undefined);
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+      const handler = capturedHandleNavigationStateChange;
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      mockGetOrder.mockResolvedValue({
+        id: 'order-123',
+        providerOrderId: 'order-123',
+        provider: 'transak-native',
+        walletAddress: MOCK_WALLET_ADDRESS,
+        paymentDetails: {},
+      });
+      mockRefreshOrder.mockResolvedValue({
+        providerOrderId: 'order-123',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '0.05',
+        status: 'Pending',
+        fiatAmount: 100,
+        exchangeRate: 2000,
+        networkFees: 0,
+        partnerFees: 0,
+        totalFeesFiat: 0,
+        paymentMethod: { id: 'card' },
+        network: { chainId: '1', name: 'Ethereum' },
+        fiatCurrency: { symbol: 'USD' },
+      });
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-123',
+        });
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+      );
+      expect(mockSetHeadlessOrderContext).not.toHaveBeenCalled();
+    });
+
+    it('key-parity: the providerOrderId written by the headless CONFIRMED block matches what the subscriber receives for the same order', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { rampSurface: 'money_account' },
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      // The hook writes the context keyed by the order it just created/refreshed.
+      expect(mockSetHeadlessOrderContext).toHaveBeenCalledTimes(1);
+      const writtenOrderId = mockSetHeadlessOrderContext.mock.calls[0][0];
+
+      // The controller-side subscriber receives this same order under the same
+      // providerOrderId (the refreshed order's id). extractOrderCode is applied
+      // on both the registry write and read, so the keys resolve identically -
+      // proving the lookup actually matches in production, not just in synthetic
+      // tests. refreshedOrder.providerOrderId is 'order-hs'.
+      expect(writtenOrderId).toBe('order-hs');
+      expect(extractOrderCode(writtenOrderId)).toBe(
+        extractOrderCode(refreshedOrder.providerOrderId),
+      );
     });
   });
 });
