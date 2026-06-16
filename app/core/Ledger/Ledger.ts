@@ -97,7 +97,6 @@ export const connectLedgerHardware = async (
   throwIfLedgerOperationAborted(abortSignal);
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
-    keyring.setHdPath(LEDGER_LIVE_PATH);
     keyring.setDeviceId(deviceId);
 
     const ledgerBridge = keyring.bridge as LedgerMobileBridge;

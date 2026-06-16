@@ -162,9 +162,12 @@ export const Fallback = (props) => {
   };
 
   const forceSentryReport = async (error) => {
+    // Resolve the view outside the try: the React Compiler cannot yet optimize
+    // "value blocks" (optional chaining / logical expressions) inside try/catch.
+    const view = props.onboardingErrorConfig?.view || 'Unknown';
     try {
       await captureExceptionForced(error, {
-        view: props.onboardingErrorConfig?.view || 'Unknown',
+        view,
         context: 'ErrorBoundary forced report',
       });
     } catch (sentryError) {

@@ -240,9 +240,8 @@ describe('Ledger core', () => {
       expect(value).toBe('appName');
     });
 
-    it('calls keyring.setHdPath and keyring.setDeviceId if deviceId is different', async () => {
+    it('calls keyring.setDeviceId if deviceId is different', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
 
