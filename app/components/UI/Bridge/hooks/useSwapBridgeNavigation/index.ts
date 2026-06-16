@@ -44,22 +44,16 @@ import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settin
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
 import {
-  ARC_USDC_TOKEN_ADDRESS,
-  NETWORKS_CHAIN_ID,
-} from '../../../../../constants/network';
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_BRIDGE_TOKEN,
+} from '../../../../../enablement/assets/arc';
 
 /**
  * Allows to manually set the default Swap token when clicking on the Swap CTA from
  * native token page. If unset, `getNativeAssetForChainId` of bridge-controller is used.
  */
 const NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN: { [key: string]: BridgeToken } = {
-  [NETWORKS_CHAIN_ID.ARC]: {
-    symbol: 'USDC',
-    name: 'USDC',
-    address: ARC_USDC_TOKEN_ADDRESS,
-    chainId: NETWORKS_CHAIN_ID.ARC,
-    decimals: 6, // ERC20, hence 6 decimals
-  },
+  [ARC_HEX_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
 };
 
 /**

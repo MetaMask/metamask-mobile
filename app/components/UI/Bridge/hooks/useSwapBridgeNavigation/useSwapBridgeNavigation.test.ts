@@ -13,6 +13,10 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_ERC20_ADDRESS,
+} from '../../../../../enablement/assets/arc';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -121,10 +125,6 @@ import {
   getDefaultDestToken,
   getNativeSourceToken,
 } from '../../utils/tokenUtils';
-import {
-  ARC_USDC_TOKEN_ADDRESS,
-  NETWORKS_CHAIN_ID,
-} from '../../../../../constants/network';
 
 jest.mock('../../utils/tokenUtils', () => ({
   ...jest.requireActual('../../utils/tokenUtils'),
@@ -729,7 +729,7 @@ describe('useSwapBridgeNavigation', () => {
         symbol: 'SRC_OVERRIDE',
         name: 'Source Override Token',
         decimals: 18,
-        chainId: NETWORKS_CHAIN_ID.ARC,
+        chainId: ARC_HEX_CHAIN_ID,
       };
 
       const { result } = renderHookWithProvider(
@@ -751,8 +751,8 @@ describe('useSwapBridgeNavigation', () => {
           sourceToken: {
             symbol: 'USDC',
             name: 'USDC',
-            address: ARC_USDC_TOKEN_ADDRESS,
-            chainId: NETWORKS_CHAIN_ID.ARC,
+            address: ARC_USDC_ERC20_ADDRESS,
+            chainId: ARC_HEX_CHAIN_ID,
             decimals: 6,
           },
           sourcePage: mockSourcePage,
