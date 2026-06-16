@@ -503,7 +503,7 @@ describe('polymarket utils', () => {
     ]);
   });
 
-  it('does not build outcome groups when enabledSportsMarketTypes is missing', () => {
+  it('defaults outcome groups to supported market types when enabledSportsMarketTypes is missing', () => {
     const event = createNbaGameEvent([
       createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
       createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
@@ -520,6 +520,33 @@ describe('polymarket utils', () => {
     expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
       expect.arrayContaining(['moneyline', 'spreads']),
     );
+    expect(market.outcomeGroups).toEqual([
+      expect.objectContaining({
+        key: 'game_lines',
+        outcomes: [],
+        subgroups: [
+          expect.objectContaining({ key: 'moneyline' }),
+          expect.objectContaining({ key: 'spreads' }),
+        ],
+      }),
+    ]);
+  });
+
+  it('does not build outcome groups when enabledSportsMarketTypes is empty', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: [],
+    });
+
+    expect(market.outcomes).toHaveLength(2);
     expect(market.outcomeGroups).toBeUndefined();
   });
 
