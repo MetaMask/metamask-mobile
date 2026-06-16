@@ -14,6 +14,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import type { JsonValue } from '../../../core/Analytics/MetaMetrics.types';
+
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
   // Using a custom native module that stores the intent and returns "similiar-ish" data to the @react-native-firebase RemoteMessage
@@ -155,7 +156,6 @@ async function processAndHandleNotification(
 
     const notificationData = toRawAPINotification(data);
     const notification = processNotification(notificationData);
-
     await handler(notification);
   } catch (error) {
     // Do Nothing, cannot parse a bad notification

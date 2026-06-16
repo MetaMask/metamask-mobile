@@ -34,6 +34,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
+
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];
 }) {
