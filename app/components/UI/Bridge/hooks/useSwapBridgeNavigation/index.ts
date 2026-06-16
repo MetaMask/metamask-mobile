@@ -7,6 +7,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
   getNativeAssetForChainId,
+  isNativeAddress,
   isNonEvmChainId,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
@@ -42,6 +43,24 @@ import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../../../../constants/network';
+
+/**
+ * Allows to manually set the default Swap token when clicking on the Swap CTA from
+ * native token page. If unset, `getNativeAssetForChainId` of bridge-controller is used.
+ */
+const NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN: { [key: string]: BridgeToken } = {
+  [NETWORKS_CHAIN_ID.ARC]: {
+    symbol: 'USDC',
+    name: 'USDC',
+    address: ARC_USDC_TOKEN_ADDRESS,
+    chainId: NETWORKS_CHAIN_ID.ARC,
+    decimals: 6, // ERC20, hence 6 decimals
+  },
+};
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -249,6 +268,15 @@ export const useSwapBridgeNavigation = ({
       let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
+
+      // Doing this manual override last to ensure it is not overriden by the previous overrides.
+      if (
+        isNativeAddress(sourceToken?.address) &&
+        NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId]
+      ) {
+        sourceToken =
+          NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId];
+      }
 
       if (!sourceToken) {
         // fallback to ETH on mainnet

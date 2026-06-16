@@ -121,6 +121,10 @@ import {
   getDefaultDestToken,
   getNativeSourceToken,
 } from '../../utils/tokenUtils';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../../../../constants/network';
 
 jest.mock('../../utils/tokenUtils', () => ({
   ...jest.requireActual('../../utils/tokenUtils'),
@@ -692,6 +696,45 @@ describe('useSwapBridgeNavigation', () => {
         },
       });
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
+    });
+
+    it('lets sourceTokenOverride be overridden by NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN when applicable (Arc)', () => {
+      const sourceOverride: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'SRC_OVERRIDE',
+        name: 'Source Override Token',
+        decimals: 18,
+        chainId: NETWORKS_CHAIN_ID.ARC,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(sourceOverride);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          // Overridden because native on Arc
+          sourceToken: {
+            symbol: 'USDC',
+            name: 'USDC',
+            address: ARC_USDC_TOKEN_ADDRESS,
+            chainId: NETWORKS_CHAIN_ID.ARC,
+            decimals: 6,
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+        },
+      });
     });
 
     it('falls back to native token when default dest same as source', () => {
