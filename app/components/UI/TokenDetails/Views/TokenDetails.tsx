@@ -304,52 +304,93 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
-  const renderHeader = () => (
-    <>
-      <AssetOverviewContent
-        token={token}
-        balance={balance}
-        mainBalance={fiatBalance ?? ''}
-        secondaryBalance={tokenFormattedBalance}
-        currentPrice={currentPrice}
-        priceDiff={priceDiff}
-        comparePrice={comparePrice}
-        prices={prices}
-        isLoading={isLoading}
-        timePeriod={timePeriod}
-        setTimePeriod={setTimePeriod}
-        chartNavigationButtons={chartNavigationButtons}
-        isPerpsEnabled={isPerpsEnabled}
-        currentCurrency={currentCurrency}
-        onBuy={handleBuy}
-        onSend={handleSend}
-        onReceive={onReceive}
-        onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        onMarketInsightsDisclaimerPress={() =>
-          setIsInsightsDisclaimerVisible(true)
-        }
-        securityData={securityData}
-        isSecurityDataLoading={isSecurityDataLoading}
-        hasSecurityDataError={Boolean(securityDataError)}
-        onPriceDirectionChange={handlePriceDirectionChange}
-        useAmbientColor={useAmbientColor}
-        onExitAction={onCtaClicked}
-        isPricePositive={chartPricePositive}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        stakedTrxAsset={stakedTrxAsset}
-        inLockPeriodBalance={inLockPeriodBalance}
-        readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
-      />
-      {(txLoading || hasTransactions) && (
-        <ActivityHeader
-          asset={{
-            ...token,
-            hasBalanceError: token.hasBalanceError ?? false,
-          }}
+  // The header element must keep a stable identity across renders: it is
+  // passed to a FlashList `ListHeaderComponent` and recreating it on every
+  // render (e.g. when a non-EVM transaction confirms and the activity list
+  // updates) makes FlashList remount/remeasure the large header (chart +
+  // balances) and jump the scroll position back to the top (TSA-656).
+  const header = useMemo(
+    () => (
+      <>
+        <AssetOverviewContent
+          token={token}
+          balance={balance}
+          mainBalance={fiatBalance ?? ''}
+          secondaryBalance={tokenFormattedBalance}
+          currentPrice={currentPrice}
+          priceDiff={priceDiff}
+          comparePrice={comparePrice}
+          prices={prices}
+          isLoading={isLoading}
+          timePeriod={timePeriod}
+          setTimePeriod={setTimePeriod}
+          chartNavigationButtons={chartNavigationButtons}
+          isPerpsEnabled={isPerpsEnabled}
+          currentCurrency={currentCurrency}
+          onBuy={handleBuy}
+          onSend={handleSend}
+          onReceive={onReceive}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+          onMarketInsightsDisclaimerPress={() =>
+            setIsInsightsDisclaimerVisible(true)
+          }
+          securityData={securityData}
+          isSecurityDataLoading={isSecurityDataLoading}
+          hasSecurityDataError={Boolean(securityDataError)}
+          onPriceDirectionChange={handlePriceDirectionChange}
+          useAmbientColor={useAmbientColor}
+          onExitAction={onCtaClicked}
+          isPricePositive={chartPricePositive}
+          ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          stakedTrxAsset={stakedTrxAsset}
+          inLockPeriodBalance={inLockPeriodBalance}
+          readyForWithdrawalBalance={readyForWithdrawalBalance}
+          ///: END:ONLY_INCLUDE_IF
         />
-      )}
-    </>
+        {(txLoading || hasTransactions) && (
+          <ActivityHeader
+            asset={{
+              ...token,
+              hasBalanceError: token.hasBalanceError ?? false,
+            }}
+          />
+        )}
+      </>
+    ),
+    [
+      token,
+      balance,
+      fiatBalance,
+      tokenFormattedBalance,
+      currentPrice,
+      priceDiff,
+      comparePrice,
+      prices,
+      isLoading,
+      timePeriod,
+      setTimePeriod,
+      chartNavigationButtons,
+      isPerpsEnabled,
+      currentCurrency,
+      handleBuy,
+      handleSend,
+      onReceive,
+      onMarketInsightsDisplayResolved,
+      securityData,
+      isSecurityDataLoading,
+      securityDataError,
+      handlePriceDirectionChange,
+      useAmbientColor,
+      onCtaClicked,
+      chartPricePositive,
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      stakedTrxAsset,
+      inLockPeriodBalance,
+      readyForWithdrawalBalance,
+      ///: END:ONLY_INCLUDE_IF
+      txLoading,
+      hasTransactions,
+    ],
   );
 
   const renderLoader = () => (
@@ -374,7 +415,7 @@ const TokenDetails: React.FC<{
         renderLoader()
       ) : txIsNonEvmAsset ? (
         <MultichainTransactionsView
-          header={renderHeader()}
+          header={header}
           transactions={transactions}
           navigation={navigation}
           selectedAddress={selectedAddress}
@@ -385,7 +426,7 @@ const TokenDetails: React.FC<{
         />
       ) : (
         <Transactions
-          header={renderHeader()}
+          header={header}
           assetSymbol={token.symbol}
           navigation={navigation}
           transactions={transactions}
