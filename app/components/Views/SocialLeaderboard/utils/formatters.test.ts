@@ -167,16 +167,32 @@ describe('formatPercent', () => {
 });
 
 describe('formatTradeDate', () => {
-  it('formats a millisecond timestamp', () => {
-    const ms = 1744732800000; // a known fixed date
-    const result = formatTradeDate(ms);
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
+  it('formats a millisecond timestamp as "MMM D at h:mm am/pm"', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).toMatch(/^[A-Z][a-z]{2} \d{1,2} at \d{1,2}:\d{2} (am|pm)$/);
   });
 
   it('converts a seconds timestamp to milliseconds before formatting', () => {
-    const seconds = 1744732800; // same date in seconds
+    const seconds = 1744732800;
     const ms = 1744732800000;
     expect(formatTradeDate(seconds)).toBe(formatTradeDate(ms));
+  });
+
+  it('renders am/pm in lowercase', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).not.toMatch(/AM|PM/);
+    expect(result).toMatch(/am|pm/);
+  });
+
+  it('uses a short (3-letter) month abbreviation, not the full name', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).not.toMatch(
+      /January|February|March|April|May|June|July|August|September|October|November|December/,
+    );
+  });
+
+  it('omits the year', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).not.toMatch(/20\d{2}/);
   });
 });
