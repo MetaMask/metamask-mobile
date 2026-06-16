@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
@@ -33,6 +34,7 @@ import {
 } from '../../constants/mockActivityData';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
@@ -125,6 +127,9 @@ const MoneyActivityView = () => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
 
   const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
     useMoneyAnalytics({
@@ -237,7 +242,9 @@ const MoneyActivityView = () => {
     <MoneyActivityRow
       item={item}
       moneyAddress={moneyAddress}
-      onPress={mockDataEnabled ? undefined : handleItemPress}
+      onPress={
+        mockDataEnabled || !activityDetailsEnabled ? undefined : handleItemPress
+      }
     />
   );
 

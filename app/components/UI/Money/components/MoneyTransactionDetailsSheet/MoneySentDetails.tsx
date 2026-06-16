@@ -53,6 +53,7 @@ import {
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
 import { usePayFiatFormatter } from '../../../../Views/confirmations/hooks/pay/usePayFiatFormatter';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import { getTokenTransferData } from '../../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../../Views/confirmations/utils/transaction';
 import { useAccountNames } from '../../../../hooks/DisplayName/useAccountNames';
@@ -85,6 +86,9 @@ export function MoneySentDetails() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { transactionMeta } = useTransactionDetails();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const blockExplorerLinkEnabled = useSelector(
+    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  );
 
   const chainId = transactionMeta.chainId as Hex;
   const from = transactionMeta.txParams?.from;
@@ -245,14 +249,16 @@ export function MoneySentDetails() {
           </TransactionDetailsRow>
         ) : null}
 
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={styles.button}
-          label={strings('transaction_details.view_on_block_explorer')}
-          onPress={handleViewOnExplorer}
-        />
+        {blockExplorerLinkEnabled && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            style={styles.button}
+            label={strings('transaction_details.view_on_block_explorer')}
+            onPress={handleViewOnExplorer}
+          />
+        )}
       </Box>
     </ScrollView>
   );

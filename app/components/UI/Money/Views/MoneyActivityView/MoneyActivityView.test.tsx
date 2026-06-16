@@ -19,6 +19,16 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableActivityDetailsFlag: jest.fn(),
+}));
+
+const mockedSelectMoneyEnableActivityDetailsFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsFlag,
+);
 
 const mockTrackScreenViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -130,6 +140,7 @@ const CARD_ROW_TEST_ID = `activity-mock-card-${CARD_TX.hash}`;
 describe('MoneyActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedSelectMoneyEnableActivityDetailsFlag.mockReturnValue(true);
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: MOCK_MONEY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
@@ -286,6 +297,16 @@ describe('MoneyActivityView', () => {
     fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not navigate when moneyEnableActivityDetails flag is off', () => {
+    mockedSelectMoneyEnableActivityDetailsFlag.mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders card payment rows merged into the list', () => {

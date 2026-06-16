@@ -3502,6 +3502,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyEnableActivityDetails: {
+    name: 'moneyEnableActivityDetails',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableActivityDetailsBlockexplorerLink: {
+    name: 'moneyEnableActivityDetailsBlockexplorerLink',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableMoneyAccount: {
     name: 'moneyEnableMoneyAccount',
     type: FeatureFlagType.Remote,

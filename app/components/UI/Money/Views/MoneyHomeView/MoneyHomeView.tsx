@@ -50,6 +50,7 @@ import {
   selectHasMetalCard,
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -156,6 +157,9 @@ const MoneyHomeView = () => {
     [allTransactions, cardTransactions, mockDataEnabled],
   );
 
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const hasMetalCard = useSelector(selectHasMetalCard);
@@ -660,7 +664,11 @@ const MoneyHomeView = () => {
           moneyAddress={moneyAddress}
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
-          onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
+          onItemPress={
+            mockDataEnabled || !activityDetailsEnabled
+              ? undefined
+              : handleActivityItemPress
+          }
         />
       ),
     });

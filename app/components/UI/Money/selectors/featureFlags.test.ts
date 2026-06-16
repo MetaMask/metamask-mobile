@@ -2,6 +2,8 @@
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 import {
   selectMoneyActivityMockDataEnabledFlag,
+  selectMoneyEnableActivityDetailsFlag,
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
   selectMoneyDepositTokensBlocklist,
@@ -40,6 +42,98 @@ const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
       },
     },
   },
+});
+
+describe('selectMoneyEnableActivityDetailsFlag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      moneyEnableActivityDetails: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    const result = selectMoneyEnableActivityDetailsFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      moneyEnableActivityDetails: { enabled: false, minimumVersion: '0.0.0' },
+    });
+
+    const result = selectMoneyEnableActivityDetailsFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag is absent', () => {
+    mockedValidate.mockReturnValue(undefined);
+
+    const state = createState({});
+
+    const result = selectMoneyEnableActivityDetailsFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyEnableActivityDetailsBlockexplorerLinkFlag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      moneyEnableActivityDetailsBlockexplorerLink: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectMoneyEnableActivityDetailsBlockexplorerLinkFlag(
+      state as never,
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      moneyEnableActivityDetailsBlockexplorerLink: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectMoneyEnableActivityDetailsBlockexplorerLinkFlag(
+      state as never,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag is absent', () => {
+    mockedValidate.mockReturnValue(undefined);
+
+    const state = createState({});
+
+    const result = selectMoneyEnableActivityDetailsBlockexplorerLinkFlag(
+      state as never,
+    );
+
+    expect(result).toBe(false);
+  });
 });
 
 describe('selectMoneyActivityMockDataEnabledFlag', () => {

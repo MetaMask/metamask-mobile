@@ -4,6 +4,15 @@ import type { Hex } from '@metamask/utils';
 import MoneyCardTransactionDetailsSheet from './MoneyCardTransactionDetailsSheet';
 import { MoneyCardTransactionDetailsSheetTestIds } from './MoneyCardTransactionDetailsSheet.testIds';
 import type { CardTransaction } from '../../types/moneyActivity';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: jest.fn(),
+}));
+
+const mockedSelectBlockexplorerFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+);
 
 const card: CardTransaction = {
   hash: '0x2b45bda071d8feff265c541e251a5e035e5f55270f8ad288dcd80f6740793847' as Hex,
@@ -119,6 +128,7 @@ describe('MoneyCardTransactionDetailsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = { card };
+    mockedSelectBlockexplorerFlag.mockReturnValue(true);
   });
 
   it('renders the outgoing card amount', () => {
@@ -150,6 +160,16 @@ describe('MoneyCardTransactionDetailsSheet', () => {
         },
       }),
     );
+  });
+
+  it('hides the block explorer button when moneyEnableActivityDetailsBlockexplorerLink flag is off', () => {
+    mockedSelectBlockexplorerFlag.mockReturnValue(false);
+
+    const { queryByTestId } = render(<MoneyCardTransactionDetailsSheet />);
+
+    expect(
+      queryByTestId(MoneyCardTransactionDetailsSheetTestIds.EXPLORER_BUTTON),
+    ).toBeNull();
   });
 
   it('pops back and renders nothing when reached without a card param', () => {

@@ -12,6 +12,15 @@ import { useTransactionDetails } from '../../../../Views/confirmations/hooks/act
 import { otherControllersMock } from '../../../../Views/confirmations/__mocks__/controllers/other-controllers-mock';
 import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import { MoneySentDetails } from './MoneySentDetails';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: jest.fn(),
+}));
+
+const mockedSelectBlockexplorerFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+);
 
 jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
   ...jest.requireActual('../../../../../util/analytics/externalLinkTracking'),
@@ -168,7 +177,10 @@ function render(overrides: Partial<TransactionMeta> = {}) {
 }
 
 describe('MoneySentDetails', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedSelectBlockexplorerFlag.mockReturnValue(true);
+  });
 
   it('renders the hero with the negative mUSD amount', () => {
     const { getByTestId, getByText } = render();
@@ -241,5 +253,13 @@ describe('MoneySentDetails', () => {
       metamaskPay: undefined,
     });
     expect(queryByText('Total amount')).toBeNull();
+  });
+
+  it('hides the block explorer button when moneyEnableActivityDetailsBlockexplorerLink flag is off', () => {
+    mockedSelectBlockexplorerFlag.mockReturnValue(false);
+
+    const { queryByText } = render();
+
+    expect(queryByText('View on block explorer')).toBeNull();
   });
 });
