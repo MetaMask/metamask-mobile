@@ -6,6 +6,7 @@ import {
   failSession,
   getActiveSessionId,
   getSession,
+  registerSessionDismiss,
   setStatus,
   toHeadlessBuyError,
 } from './sessionRegistry';
@@ -141,6 +142,43 @@ describe('sessionRegistry', () => {
     });
   });
 
+  describe('registerSessionDismiss', () => {
+    it('sets the dismiss fn on a live session', () => {
+      const session = createSession(baseParams, buildCallbacks());
+      const dismiss = jest.fn();
+
+      registerSessionDismiss(session.id, dismiss);
+
+      expect(getSession(session.id)?.dismiss).toBe(dismiss);
+    });
+
+    it('clears the dismiss fn when called with undefined', () => {
+      const session = createSession(baseParams, buildCallbacks());
+      registerSessionDismiss(session.id, jest.fn());
+
+      registerSessionDismiss(session.id, undefined);
+
+      expect(getSession(session.id)?.dismiss).toBeUndefined();
+    });
+
+    it('is a no-op when the session is absent', () => {
+      expect(() =>
+        registerSessionDismiss('does-not-exist', jest.fn()),
+      ).not.toThrow();
+      expect(getSession('does-not-exist')).toBeUndefined();
+    });
+
+    it('does not resurrect an already-closed session', () => {
+      const callbacks = buildCallbacks();
+      const session = createSession(baseParams, callbacks);
+      closeSession(session.id, { reason: 'user_dismissed' });
+
+      registerSessionDismiss(session.id, jest.fn());
+
+      expect(getSession(session.id)).toBeUndefined();
+    });
+  });
+
   describe('callbacks', () => {
     it('stores the callbacks on the session by reference', () => {
       const callbacks = buildCallbacks();
@@ -185,6 +223,27 @@ describe('sessionRegistry', () => {
       const s = createSession(baseParams, buildCallbacks());
       setStatus(s.id, 'failed');
       expect(getActiveSessionId()).toBeUndefined();
+    });
+
+    it('clears the registered dismiss and fires onClose exactly once', () => {
+      const callbacks = buildCallbacks();
+      const session = createSession(baseParams, callbacks);
+      const dismiss = jest.fn();
+      registerSessionDismiss(session.id, dismiss);
+
+      closeSession(session.id, { reason: 'user_dismissed' });
+
+      expect(session.dismiss).toBeUndefined();
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      // closeSession itself never invokes the dismiss - that is the caller's
+      // job; it only drops the reference so it cannot be reused.
+      expect(dismiss).not.toHaveBeenCalled();
+
+      closeSession(session.id, { reason: 'user_dismissed' });
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -258,6 +317,25 @@ describe('sessionRegistry', () => {
       );
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('clears the registered dismiss and fires onError exactly once', () => {
+      const callbacks = buildCallbacks();
+      const session = createSession(baseParams, callbacks);
+      const dismiss = jest.fn();
+      registerSessionDismiss(session.id, dismiss);
+
+      failSession(session.id, new Error('provider failed'));
+
+      expect(session.dismiss).toBeUndefined();
+      expect(callbacks.onError).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(getSession(session.id)).toBeUndefined();
+
+      // A second failSession on the now-removed session is inert.
+      failSession(session.id, new Error('again'));
+      expect(callbacks.onError).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
   });
 });

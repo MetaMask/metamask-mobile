@@ -27,6 +27,7 @@ import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
+import { redactUrlForAnalytics } from '../utils/redactUrlForAnalytics';
 import { useRampsOrders } from './useRampsOrders';
 import {
   closeSession,
@@ -145,6 +146,16 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const processingOrderIdRef = useRef<string | null>(null);
+  // The quoteId of the Transak quote handed to the payment webview. Captured
+  // in `routeAfterAuthentication` (the same hook instance that later receives
+  // the redirect) so the "Back to app" recovery path can match the active
+  // order strictly by quoteId without re-deriving it from the current render
+  // (TRAM-3637).
+  const quoteIdRef = useRef<string | undefined>(undefined);
+  // Guards the no-orderId recovery branch: set true before the first await so
+  // repeated "Back to app" taps / a second redirect during recovery are
+  // swallowed (only one getActiveOrders call, one terminal callback).
+  const dismissRecoveryStartedRef = useRef<boolean>(false);
   const { addOrder, refreshOrder } = useRampsOrders();
 
   const dismissActiveHeadlessFlow = useCallback(() => {
@@ -158,6 +169,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     getAdditionalRequirements,
     createOrder: transakCreateOrder,
     getOrder,
+    getActiveOrders,
     getUserLimits,
     requestOtt,
     generatePaymentWidgetUrl,
@@ -337,9 +349,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     ({ orderId }: { orderId: string }) => {
       // Headless mode: fire `onOrderCreated`, close the session, and pop
       // out of the ramp stack so the caller regains foreground. The
-      // consumer drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
+      // consumer drives post-order UI themselves - no RAMPS_ORDER_DETAILS.
       const session = getSession(headlessSessionId);
       if (headlessSessionId && session) {
+        // Capture the session-registered dismiss BEFORE closeSession clears
+        // it. Checkout registers its own valid-scope teardown, which works
+        // where the hook-scoped `dismissActiveHeadlessFlow` no-ops once
+        // Checkout is the focused route (TRAM-3637).
+        const dismiss = session.dismiss ?? dismissActiveHeadlessFlow;
         try {
           session.callbacks.onOrderCreated(orderId);
         } catch (callbackError) {
@@ -349,7 +366,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           );
         }
         closeSession(headlessSessionId, { reason: 'completed' });
-        dismissActiveHeadlessFlow();
+        dismiss();
         return;
       }
       navigation.reset({
@@ -391,6 +408,194 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     [navigation, buildBaseRouteEntry],
   );
 
+  const trackOrderConfirmed = useCallback(
+    (rampsOrder: Awaited<ReturnType<typeof refreshOrder>>) => {
+      trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+        ramp_type: 'DEPOSIT',
+        amount_source: Number(rampsOrder.fiatAmount),
+        amount_destination: Number(rampsOrder.cryptoAmount),
+        exchange_rate: Number(rampsOrder.exchangeRate),
+        gas_fee: rampsOrder.networkFees ? Number(rampsOrder.networkFees) : 0,
+        processing_fee: rampsOrder.partnerFees
+          ? Number(rampsOrder.partnerFees)
+          : 0,
+        total_fee: Number(rampsOrder.totalFeesFiat),
+        payment_method_id: rampsOrder.paymentMethod?.id || '',
+        country: regionIsoCode,
+        chain_id: rampsOrder.network?.chainId || '',
+        currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
+        currency_destination_symbol: rampsOrder.cryptoCurrency?.symbol || '',
+        currency_destination_network: rampsOrder.network?.name || '',
+        currency_source: rampsOrder.fiatCurrency?.symbol || '',
+      });
+    },
+    [trackEvent, regionIsoCode],
+  );
+
+  // Shared capture path for a freshly produced Transak order, used by BOTH the
+  // redirect-with-orderId path and the "Back to app" recovery path. `addOrder`
+  // always runs so Activity/Redux stays correct even if the session was torn
+  // down mid-flight (TRAM-3637 Bug 1). For a live headless session it fires
+  // `onOrderCreated`, closes the session as `completed`, and tears the flow
+  // down via the session-registered dismiss LAST. Non-headless callers keep
+  // the toast + RAMPS_ORDER_DETAILS reset unchanged.
+  const processCapturedOrder = useCallback(
+    async (rawOrderId: string) => {
+      // Capture the session and its dismiss BEFORE any await/closeSession so a
+      // dismiss tied to Checkout's scope is not lost when closeSession clears
+      // it.
+      const sessionBefore = getSession(headlessSessionId);
+      const dismiss = sessionBefore?.dismiss ?? dismissActiveHeadlessFlow;
+
+      const depositOrder = await getOrder(rawOrderId, walletAddress || '');
+
+      if (!depositOrder) {
+        throw new Error('Missing order');
+      }
+
+      const providerCode = normalizeProviderCode(
+        String(depositOrder.provider ?? 'transak-native'),
+      );
+      const rampsOrder = await refreshOrder(
+        providerCode,
+        depositOrder.providerOrderId,
+        walletAddress || depositOrder.walletAddress,
+      );
+
+      addOrder({
+        ...rampsOrder,
+        paymentDetails: depositOrder.paymentDetails,
+      });
+
+      const sessionAfter = getSession(headlessSessionId);
+      if (sessionAfter) {
+        // Live headless session: hand the orderId to the consumer, close the
+        // session, track, then dismiss LAST.
+        try {
+          sessionAfter.callbacks.onOrderCreated(rampsOrder.providerOrderId);
+        } catch (callbackError) {
+          Logger.error(
+            callbackError as Error,
+            'useTransakRouting: onOrderCreated callback threw',
+          );
+        }
+        closeSession(headlessSessionId, { reason: 'completed' });
+        trackOrderConfirmed(rampsOrder);
+        dismiss();
+        return;
+      }
+
+      if (sessionBefore) {
+        // The session was live when we started but was closed during the
+        // awaits (e.g. a concurrent dismissal). `addOrder` already ran so
+        // Activity is correct; skip onOrderCreated/closeSession to avoid a
+        // double-fire, and dismiss LAST.
+        dismiss();
+        return;
+      }
+
+      // Non-headless (or a headlessSessionId whose session is already gone):
+      // preserve the existing toast + RAMPS_ORDER_DETAILS reset behavior.
+      showV2OrderToast({
+        orderId: rampsOrder.providerOrderId,
+        cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+        cryptoAmount: rampsOrder.cryptoAmount,
+        status: rampsOrder.status,
+      });
+
+      navigateToOrderProcessingCallback({
+        orderId: rampsOrder.providerOrderId,
+      });
+
+      trackOrderConfirmed(rampsOrder);
+    },
+    [
+      getOrder,
+      walletAddress,
+      addOrder,
+      refreshOrder,
+      navigateToOrderProcessingCallback,
+      trackOrderConfirmed,
+      headlessSessionId,
+      dismissActiveHeadlessFlow,
+    ],
+  );
+
+  // Recovers the order when Transak's "Back to app" redirects with no orderId
+  // while the order is still processing (TRAM-3637 Bug 1). Pulls the active
+  // orders from Transak, matches STRICTLY on the quoteId handed to the webview,
+  // and routes a match through `processCapturedOrder`. Bounded retry covers the
+  // window where Transak has not yet listed the just-created order.
+  const recoverHeadlessOrderWithoutId = useCallback(async () => {
+    if (!headlessSessionId) {
+      // Non-headless redirect without an orderId is a no-op, same as before.
+      return;
+    }
+    const session = getSession(headlessSessionId);
+    if (!session) {
+      return;
+    }
+    // Set BEFORE any await so repeated "Back to app" taps / a second redirect
+    // during recovery are swallowed: only one getActiveOrders sweep and one
+    // terminal callback.
+    if (dismissRecoveryStartedRef.current) {
+      return;
+    }
+    dismissRecoveryStartedRef.current = true;
+
+    const dismiss = session.dismiss ?? dismissActiveHeadlessFlow;
+
+    try {
+      // 3 attempts. The first runs immediately (a just-created order is
+      // usually listed already); failed attempts back off ~200ms then ~400ms
+      // before retrying to cover Transak's eventual-consistency window.
+      const backoffsMs = [200, 400, 800];
+      for (let attempt = 0; attempt < backoffsMs.length; attempt += 1) {
+        // Bail if the session was torn down between attempts.
+        if (!getSession(headlessSessionId)) {
+          return;
+        }
+        const activeOrders = await getActiveOrders();
+        const matchedOrder = activeOrders.find(
+          (o) => o.quoteId === quoteIdRef.current,
+        );
+        if (matchedOrder) {
+          // Re-check liveness before committing the terminal capture.
+          if (!getSession(headlessSessionId)) {
+            return;
+          }
+          await processCapturedOrder(matchedOrder.orderId);
+          return;
+        }
+        if (attempt < backoffsMs.length - 1) {
+          await new Promise<void>((resolve) =>
+            setTimeout(resolve, backoffsMs[attempt]),
+          );
+        }
+      }
+      // No active order matched the quote across retries: treat as a genuine
+      // user dismissal and tear the flow down.
+      closeSession(headlessSessionId, { reason: 'user_dismissed' });
+      dismiss();
+    } catch (e) {
+      // A 401 here just means the session is no longer authenticated; treat it
+      // as a dismissal rather than surfacing an error to the consumer.
+      if (!isHttpUnauthorized(e)) {
+        Logger.error(e as Error, {
+          message:
+            'useTransakRouting: Failed to recover order after Back to app',
+        });
+      }
+      closeSession(headlessSessionId, { reason: 'user_dismissed' });
+      dismiss();
+    }
+  }, [
+    headlessSessionId,
+    dismissActiveHeadlessFlow,
+    getActiveOrders,
+    processCapturedOrder,
+  ]);
+
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
       if (!url.startsWith(REDIRECTION_URL)) return;
@@ -407,11 +612,15 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         return;
       }
 
+      // Diagnostic only: never log the raw url (it carries provider tokens).
+      Logger.log(
+        `useTransakRouting: Transak redirect received (hasOrderId=${Boolean(
+          orderId,
+        )}, url=${redactUrlForAnalytics(url)})`,
+      );
+
       if (!orderId) {
-        if (headlessSessionId) {
-          closeSession(headlessSessionId, { reason: 'user_dismissed' });
-          dismissActiveHeadlessFlow();
-        }
+        await recoverHeadlessOrderWithoutId();
         return;
       }
       if (processingOrderIdRef.current === orderId) {
@@ -420,61 +629,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       processingOrderIdRef.current = orderId;
 
       try {
-        const depositOrder = await getOrder(orderId, walletAddress || '');
-
-        if (!depositOrder) {
-          throw new Error('Missing order');
-        }
-
-        const providerCode = normalizeProviderCode(
-          String(depositOrder.provider ?? 'transak-native'),
-        );
-        const rampsOrder = await refreshOrder(
-          providerCode,
-          depositOrder.providerOrderId,
-          walletAddress || depositOrder.walletAddress,
-        );
-
-        addOrder({
-          ...rampsOrder,
-          paymentDetails: depositOrder.paymentDetails,
-        });
-
-        // Suppress the toast when a headless session is driving this
-        // flow — the consumer handles its own notification UI. Keep
-        // `addOrder` and the analytics event in both modes so Redux
-        // state + telemetry parity is preserved.
-        if (!getSession(headlessSessionId)) {
-          showV2OrderToast({
-            orderId: rampsOrder.providerOrderId,
-            cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
-            cryptoAmount: rampsOrder.cryptoAmount,
-            status: rampsOrder.status,
-          });
-        }
-
-        navigateToOrderProcessingCallback({
-          orderId: rampsOrder.providerOrderId,
-        });
-
-        trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          amount_source: Number(rampsOrder.fiatAmount),
-          amount_destination: Number(rampsOrder.cryptoAmount),
-          exchange_rate: Number(rampsOrder.exchangeRate),
-          gas_fee: rampsOrder.networkFees ? Number(rampsOrder.networkFees) : 0,
-          processing_fee: rampsOrder.partnerFees
-            ? Number(rampsOrder.partnerFees)
-            : 0,
-          total_fee: Number(rampsOrder.totalFeesFiat),
-          payment_method_id: rampsOrder.paymentMethod?.id || '',
-          country: regionIsoCode,
-          chain_id: rampsOrder.network?.chainId || '',
-          currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-          currency_destination_symbol: rampsOrder.cryptoCurrency?.symbol || '',
-          currency_destination_network: rampsOrder.network?.name || '',
-          currency_source: rampsOrder.fiatCurrency?.symbol || '',
-        });
+        await processCapturedOrder(orderId);
       } catch (error) {
         processingOrderIdRef.current = null;
         Logger.error(error as Error, {
@@ -486,13 +641,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       }
     },
     [
-      getOrder,
-      walletAddress,
-      addOrder,
-      refreshOrder,
-      navigateToOrderProcessingCallback,
-      regionIsoCode,
-      trackEvent,
+      processCapturedOrder,
+      recoverHeadlessOrderWithoutId,
       headlessSessionId,
       dismissActiveHeadlessFlow,
     ],
@@ -654,6 +804,13 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 if (!paymentUrl) {
                   throw new Error('Failed to generate payment URL');
                 }
+
+                // Remember which quote this webview is for so a "Back to app"
+                // redirect with no orderId can recover the matching active
+                // order strictly by quoteId (TRAM-3637). Same hook instance
+                // owns the redirect handler, so this ref is the source of
+                // truth - do not re-derive from the current render.
+                quoteIdRef.current = quote.quoteId;
 
                 navigateToWebviewModalCallback({
                   paymentUrl,

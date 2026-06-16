@@ -100,6 +100,7 @@ const mockRequestOtt = jest.fn();
 const mockGeneratePaymentWidgetUrl = jest.fn();
 const mockSubmitPurposeOfUsageForm = jest.fn();
 const mockLogoutFromProvider = jest.fn();
+const mockGetActiveOrders = jest.fn();
 
 let mockUserRegion: unknown = {
   country: { currency: 'USD', isoCode: 'US' },
@@ -122,6 +123,7 @@ jest.mock('./useTransakController', () => ({
     requestOtt: mockRequestOtt,
     generatePaymentWidgetUrl: mockGeneratePaymentWidgetUrl,
     submitPurposeOfUsageForm: mockSubmitPurposeOfUsageForm,
+    getActiveOrders: mockGetActiveOrders,
   }),
 }));
 
@@ -216,6 +218,7 @@ jest.mock('../Views/NativeFlow/KycWebview', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('@metamask/ramps-controller', () => ({
@@ -242,6 +245,7 @@ describe('useTransakRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedHandleNavigationStateChange = null;
+    mockGetActiveOrders.mockResolvedValue([]);
     mockUserRegion = {
       country: { currency: 'USD', isoCode: 'US' },
       regionCode: 'us-ca',
@@ -1768,7 +1772,19 @@ describe('useTransakRouting', () => {
       expect(mockParentPop).toHaveBeenCalled();
     });
 
-    it('treats a Transak redirect without orderId as user dismissal when headless', async () => {
+    it('treats a Transak redirect without orderId as user dismissal when headless and no active order matches', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      // No active order on Transak's side matches the captured quote.
+      mockGetActiveOrders.mockResolvedValue([]);
+
       const handler = await runApprovedFlowHeadless();
       expect(handler).not.toBeNull();
       if (!handler) return;
@@ -1779,6 +1795,7 @@ describe('useTransakRouting', () => {
         });
       });
 
+      expect(mockGetActiveOrders).toHaveBeenCalled();
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'user_dismissed',
       });
@@ -1864,6 +1881,353 @@ describe('useTransakRouting', () => {
       );
       expect(mockCloseSession).not.toHaveBeenCalled();
       expect(mockParentPop).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('headless Back to app recovery (redirect without orderId)', () => {
+    const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+      .getSession as jest.Mock;
+    const mockCloseSession = jest.requireMock('../headless/sessionRegistry')
+      .closeSession as jest.Mock;
+    const mockFailSession = jest.requireMock('../headless/sessionRegistry')
+      .failSession as jest.Mock;
+    const mockShowV2OrderToast = jest.requireMock('../utils/v2OrderToast')
+      .showV2OrderToast as jest.Mock;
+
+    const HEADLESS_CONFIG = {
+      baseRoute: 'RampHeadlessHost',
+      baseRouteParams: { headlessSessionId: 'hs-1' },
+    };
+
+    const NO_ORDER_ID_URL = 'https://redirect.example.com/callback';
+
+    const depositOrder = {
+      id: 'order-hs',
+      providerOrderId: 'order-hs',
+      provider: 'transak-native',
+      walletAddress: MOCK_WALLET_ADDRESS,
+      paymentDetails: {},
+    };
+
+    const refreshedOrder = {
+      providerOrderId: 'order-hs',
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.05',
+      status: 'Pending',
+      fiatAmount: 100,
+      exchangeRate: 2000,
+      networkFees: 0,
+      partnerFees: 0,
+      totalFeesFiat: 0,
+      paymentMethod: { id: 'card' },
+      network: { chainId: '1', name: 'Ethereum' },
+      fiatCurrency: { symbol: 'USD' },
+    };
+
+    const liveSession = (overrides?: { dismiss?: () => void }) => ({
+      id: 'hs-1',
+      status: 'continued',
+      callbacks: {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
+      },
+      ...overrides,
+    });
+
+    // Runs the APPROVED webview flow so the hook captures the quoteId
+    // (`test-quote-id`) in its ref, then returns the redirect handler. Pass the
+    // session the registry should report while routing.
+    const runApprovedFlowAndGetHandler = async (
+      session: ReturnType<typeof liveSession> | undefined,
+    ) => {
+      mockGetSession.mockReturnValue(session);
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+      return capturedHandleNavigationStateChange;
+    };
+
+    beforeEach(() => {
+      mockGetSession.mockReset();
+      mockCloseSession.mockReset();
+      mockFailSession.mockReset();
+      mockParentPop.mockReset();
+      mockGetOrder.mockResolvedValue(depositOrder);
+      mockRefreshOrder.mockResolvedValue(refreshedOrder);
+      mockGetActiveOrders.mockResolvedValue([]);
+    });
+
+    it('captures the active order whose quoteId matches and completes the session', async () => {
+      const session = liveSession();
+      mockGetActiveOrders.mockResolvedValue([
+        { orderId: 'recovered-order', quoteId: 'test-quote-id' },
+        { orderId: 'unrelated', quoteId: 'some-other-quote' },
+      ]);
+
+      const handler = await runApprovedFlowAndGetHandler(session);
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: NO_ORDER_ID_URL });
+      });
+
+      expect(mockGetActiveOrders).toHaveBeenCalledTimes(1);
+      // processCapturedOrder runs against the matched (raw) orderId.
+      expect(mockGetOrder).toHaveBeenCalledWith(
+        'recovered-order',
+        MOCK_WALLET_ADDRESS,
+      );
+      expect(mockAddOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ providerOrderId: 'order-hs' }),
+      );
+      expect(session.callbacks.onOrderCreated).toHaveBeenCalledWith('order-hs');
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockCloseSession).not.toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+    });
+
+    it('treats it as user dismissal when active orders exist but none match the quote', async () => {
+      const session = liveSession();
+      mockGetActiveOrders.mockResolvedValue([
+        { orderId: 'unrelated-1', quoteId: 'other-quote-a' },
+        { orderId: 'unrelated-2', quoteId: 'other-quote-b' },
+      ]);
+
+      const handler = await runApprovedFlowAndGetHandler(session);
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: NO_ORDER_ID_URL });
+      });
+
+      // No wrong-order pickup.
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(session.callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('swallows a second redirect that arrives while getActiveOrders is still pending', async () => {
+      const session = liveSession();
+      let resolveActiveOrders: (orders: unknown[]) => void = () => undefined;
+      mockGetActiveOrders.mockReturnValue(
+        new Promise((resolve) => {
+          resolveActiveOrders = resolve as (orders: unknown[]) => void;
+        }),
+      );
+
+      const handler = await runApprovedFlowAndGetHandler(session);
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        // First redirect kicks off recovery; getActiveOrders stays pending.
+        const firstCall = handler({ url: NO_ORDER_ID_URL });
+        // Second redirect must be swallowed by the termination guard.
+        await handler({ url: NO_ORDER_ID_URL });
+        // Now let the first recovery resolve with a match.
+        resolveActiveOrders([
+          { orderId: 'recovered-order', quoteId: 'test-quote-id' },
+        ]);
+        await firstCall;
+      });
+
+      // Only one sweep, one terminal callback.
+      expect(mockGetActiveOrders).toHaveBeenCalledTimes(1);
+      expect(session.callbacks.onOrderCreated).toHaveBeenCalledTimes(1);
+      expect(mockCloseSession).toHaveBeenCalledTimes(1);
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+    });
+
+    it('keeps addOrder but skips onOrderCreated/closeSession when the session is removed mid-capture', async () => {
+      const session = liveSession();
+      mockGetActiveOrders.mockResolvedValue([
+        { orderId: 'recovered-order', quoteId: 'test-quote-id' },
+      ]);
+      // Simulate another path tearing the session down during the capture's
+      // awaits: the session is live up to refreshOrder, then gone.
+      mockRefreshOrder.mockImplementation(async () => {
+        mockGetSession.mockReturnValue(undefined);
+        return refreshedOrder;
+      });
+
+      const handler = await runApprovedFlowAndGetHandler(session);
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: NO_ORDER_ID_URL });
+      });
+
+      // Activity stays correct.
+      expect(mockAddOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ providerOrderId: 'order-hs' }),
+      );
+      // But the consumer is not notified twice and no extra closeSession fires.
+      expect(session.callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(mockCloseSession).not.toHaveBeenCalled();
+      // Dismiss still runs once.
+      expect(mockParentPop).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries getActiveOrders and recovers when the order appears on a later attempt', async () => {
+      const session = liveSession();
+      mockGetActiveOrders
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { orderId: 'recovered-order', quoteId: 'test-quote-id' },
+        ]);
+
+      const handler = await runApprovedFlowAndGetHandler(session);
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: NO_ORDER_ID_URL });
+      });
+
+      expect(mockGetActiveOrders).toHaveBeenCalledTimes(2);
+      expect(session.callbacks.onOrderCreated).toHaveBeenCalledWith('order-hs');
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+    });
+
+    it('treats a 401 from getActiveOrders as dismissal without failing the session', async () => {
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const mockLoggerError = Logger.error as jest.Mock;
+      const session = liveSession();
+      const unauthorized = new Error('Unauthorized') as Error & {
+        httpStatus: number;
+      };
+      unauthorized.httpStatus = 401;
+      mockGetActiveOrders.mockRejectedValue(unauthorized);
+
+      const handler = await runApprovedFlowAndGetHandler(session);
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: NO_ORDER_ID_URL });
+      });
+
+      expect(mockFailSession).not.toHaveBeenCalled();
+      expect(session.callbacks.onError).not.toHaveBeenCalled();
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      // A 401 is expected here, so it is not logged as an error.
+      expect(mockLoggerError).not.toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message:
+            'useTransakRouting: Failed to recover order after Back to app',
+        }),
+      );
+    });
+
+    it('does nothing for a non-headless redirect without orderId and never calls getActiveOrders', async () => {
+      mockGetSession.mockReturnValue(undefined);
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      // No headless config: plain Unified Buy v2.
+      const { result } = renderHook(() => useTransakRouting());
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+      const handler = capturedHandleNavigationStateChange;
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: NO_ORDER_ID_URL });
+      });
+
+      expect(mockGetActiveOrders).not.toHaveBeenCalled();
+      expect(mockCloseSession).not.toHaveBeenCalled();
+      expect(mockGetOrder).not.toHaveBeenCalled();
+    });
+
+    it('dismisses via the session-registered dismiss AFTER the terminal closeSession', async () => {
+      const sessionDismiss = jest.fn();
+      const session = liveSession({ dismiss: sessionDismiss });
+      mockGetActiveOrders.mockResolvedValue([]);
+
+      const handler = await runApprovedFlowAndGetHandler(session);
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: NO_ORDER_ID_URL });
+      });
+
+      // The registry-scoped dismiss is used, not the hook-scoped pop.
+      expect(sessionDismiss).toHaveBeenCalledTimes(1);
+      expect(mockParentPop).not.toHaveBeenCalled();
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      // closeSession runs before the dismiss.
+      const closeOrder =
+        mockCloseSession.mock.invocationCallOrder[0] ?? Infinity;
+      const dismissOrder = sessionDismiss.mock.invocationCallOrder[0] ?? 0;
+      expect(closeOrder).toBeLessThan(dismissOrder);
     });
   });
 });

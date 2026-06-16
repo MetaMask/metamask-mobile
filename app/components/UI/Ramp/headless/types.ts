@@ -204,6 +204,14 @@ export interface HeadlessSession {
   params: HeadlessBuyParams;
   callbacks: HeadlessBuyCallbacks;
   createdAt: number;
+  /**
+   * Optional teardown for the in-app ramp flow, registered by the screen that
+   * actually owns the mounted navigation (Checkout). The screen-scoped
+   * dismiss is reliable where a hook-scoped `dismissHeadlessFlow` no-ops
+   * once Checkout is the focused route (TRAM-3637). Cleared whenever the
+   * session terminates so a stale dismiss can never be reused.
+   */
+  dismiss?: () => void;
 }
 
 /**
