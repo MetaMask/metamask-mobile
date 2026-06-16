@@ -17,7 +17,8 @@ import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
-import { formatPnl } from '../utils/formatPnl';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { formatSignedAbbreviatedUsd } from '../../../../SocialLeaderboard/utils/formatters';
 import { hasRealAvatar } from '../utils/avatarFallback';
 
 export interface TopTraderCardProps {
@@ -55,7 +56,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const pnlText = formatPnl(trader.pnlValue);
+  const pnlText = formatSignedAbbreviatedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
 
   return (

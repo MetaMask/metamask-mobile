@@ -72,6 +72,7 @@ const TraderPositionView = () => {
     position: positionParam,
     positionId,
     source: sourceParam,
+    notificationSubtype,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
 
@@ -217,8 +218,17 @@ const TraderPositionView = () => {
     track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED, {
       ...followTradingTokenContext,
       [SocialLeaderboardEventProperties.SOURCE]: followTradingTokenSource,
+      ...(notificationSubtype !== undefined && {
+        [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
+          notificationSubtype,
+      }),
     });
-  }, [followTradingTokenContext, followTradingTokenSource, track]);
+  }, [
+    followTradingTokenContext,
+    followTradingTokenSource,
+    notificationSubtype,
+    track,
+  ]);
 
   // Keep a stable ref to the latest context so the dismissed-cleanup effect
   // can read the current value without listing it as a dependency.
