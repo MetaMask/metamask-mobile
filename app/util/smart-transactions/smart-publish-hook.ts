@@ -198,11 +198,6 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      const minedHash = await this.#waitForTransactionHash({ uuid });
-      if (minedHash === null) {
-        throw new Error(STX_NO_HASH_ERROR);
-      }
-
       if (submitTransactionResponse?.txHashes?.length) {
         return {
           results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
@@ -210,7 +205,8 @@ class SmartTransactionHook {
           })),
         };
       }
-      return { results: [{ transactionHash: minedHash }] };
+
+      return { results: [] };
     } catch (error: unknown) {
       Logger.error(
         error as Error,

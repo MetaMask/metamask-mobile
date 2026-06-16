@@ -433,7 +433,7 @@ describe('submitBatchSmartTransactionHook', () => {
     );
   });
 
-  it('returns empty results when submit response has no txHashes (no minedHash from mining)', async () => {
+  it('returns empty results when submit response has no txHashes', async () => {
     withRequest(
       {
         transactions: [
@@ -444,10 +444,18 @@ describe('submitBatchSmartTransactionHook', () => {
         submitSignedTransactionsSpy.mockResolvedValue({
           uuid: stxUuid,
         });
+        const subscribeSpy = jest.spyOn(
+          request.controllerMessenger,
+          'subscribe',
+        );
 
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({ results: [] });
+        expect(subscribeSpy).not.toHaveBeenCalledWith(
+          'SmartTransactionsController:smartTransaction',
+          expect.any(Function),
+        );
       },
     );
   });
@@ -461,35 +469,11 @@ describe('submitBatchSmartTransactionHook', () => {
           { signedTx: mockSignedTx, id: '2', params: {} },
         ],
       },
-      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+      async ({ request, submitSignedTransactionsSpy }) => {
         submitSignedTransactionsSpy.mockResolvedValue({
           uuid: stxUuid,
           txHash: transactionHash,
           txHashes: [transactionHash, transactionHash],
-        });
-
-        setImmediate(() => {
-          controllerMessenger.publish(
-            'SmartTransactionsController:smartTransaction',
-            {
-              status: 'pending',
-              statusMetadata: {
-                minedHash: '',
-              },
-              uuid: 'uuid',
-            } as SmartTransaction,
-          );
-
-          controllerMessenger.publish(
-            'SmartTransactionsController:smartTransaction',
-            {
-              status: 'success',
-              statusMetadata: {
-                minedHash: transactionHash,
-              },
-              uuid: 'uuid',
-            } as SmartTransaction,
-          );
         });
 
         const result = await submitBatchSmartTransactionHook(request);
@@ -539,37 +523,32 @@ describe('submitBatchSmartTransactionHook', () => {
       {
         transactions: [{ signedTx: mockSignedTx, id: '1', params: {} }],
       },
-      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+      async ({ request, submitSignedTransactionsSpy }) => {
         submitSignedTransactionsSpy.mockResolvedValue({
           uuid: stxUuid,
           txHash: transactionHash,
           // No txHashes property
         });
-
-        setImmediate(() => {
-          controllerMessenger.publish(
-            'SmartTransactionsController:smartTransaction',
-            {
-              status: 'success',
-              statusMetadata: {
-                minedHash: transactionHash,
-              },
-              uuid: 'uuid',
-            } as SmartTransaction,
-          );
-        });
+        const subscribeSpy = jest.spyOn(
+          request.controllerMessenger,
+          'subscribe',
+        );
 
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({
           results: [],
         });
+        expect(subscribeSpy).not.toHaveBeenCalledWith(
+          'SmartTransactionsController:smartTransaction',
+          expect.any(Function),
+        );
       },
     );
   });
 });
 
-describe('submitBatch - mining wait', () => {
+describe('submitBatch - batch result contract', () => {
   it('returns immediately with txHashes from submit response without waiting for mining', async () => {
     withRequest(
       {
@@ -594,7 +573,7 @@ describe('submitBatch - mining wait', () => {
         expect(result.results).toHaveLength(2);
         expect(result.results[0].transactionHash).toBe('0xhash1');
         expect(result.results[1].transactionHash).toBe('0xhash2');
-        expect(subscribeSpy).toHaveBeenCalledWith(
+        expect(subscribeSpy).not.toHaveBeenCalledWith(
           'SmartTransactionsController:smartTransaction',
           expect.any(Function),
         );
@@ -622,7 +601,7 @@ describe('submitBatch - mining wait', () => {
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result.results).toEqual([]);
-        expect(subscribeSpy).toHaveBeenCalledWith(
+        expect(subscribeSpy).not.toHaveBeenCalledWith(
           'SmartTransactionsController:smartTransaction',
           expect.any(Function),
         );
