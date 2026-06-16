@@ -48,9 +48,11 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockGetLivePrice = jest.fn();
 
 jest.mock('../../hooks/useLiveMarketPrices', () => ({
-  useLiveMarketPrices: jest.fn(() => ({
-    getPrice: mockGetLivePrice,
-  })),
+  // Cards now read prices from a shared store via `useLivePrices`, which returns
+  // a Map-like with `.get(tokenId)`. `useLiveMarketPricesSubscription` keeps the
+  // single WebSocket subscription warm and holds no state.
+  useLivePrices: jest.fn(() => ({ get: mockGetLivePrice })),
+  useLiveMarketPricesSubscription: jest.fn(),
 }));
 
 const mockOnBuyPress = jest.fn();

@@ -5,8 +5,12 @@ import type {
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
+  PriceUpdate,
 } from '../../types';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import {
+  useLivePrices,
+  useLiveMarketPricesSubscription,
+} from '../../hooks/useLiveMarketPrices';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
@@ -282,7 +286,7 @@ const buildMoneylineButtons = (
   outcomes: PredictOutcome[],
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
-  getPrice?: ReturnType<typeof useLiveMarketPrices>['getPrice'],
+  livePrices?: Map<string, PriceUpdate>,
 ): PredictSportOutcomeButton[] => {
   const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
     (outcome) => outcome.tokens[0] !== undefined,
@@ -290,7 +294,7 @@ const buildMoneylineButtons = (
 
   return sortedWithTokens.map((outcome, i) => {
     const yesToken = outcome.tokens[0];
-    const liveBestAsk = getPrice?.(yesToken.id)?.bestAsk;
+    const liveBestAsk = livePrices?.get(yesToken.id)?.bestAsk;
     const price = isValidPrice(liveBestAsk) ? liveBestAsk : yesToken.price;
 
     return {
@@ -333,10 +337,10 @@ const MoneylineCard = memo(
           .filter((id): id is string => Boolean(id)),
       [outcomes, game],
     );
-    const { getPrice } = useLiveMarketPrices(tokenIds);
+    const livePrices = useLivePrices(tokenIds);
     const buttons = useMemo(
-      () => buildMoneylineButtons(outcomes, onBuyPress, game, getPrice),
-      [outcomes, onBuyPress, game, getPrice],
+      () => buildMoneylineButtons(outcomes, onBuyPress, game, livePrices),
+      [outcomes, onBuyPress, game, livePrices],
     );
 
     return (
@@ -495,6 +499,22 @@ export interface OutcomesTabProps {
 const PredictGameOutcomesTab = memo(
   ({ groupMap, game, activeChipKey, onBuyPress }: OutcomesTabProps) => {
     const selectedGroup = groupMap.get(activeChipKey);
+
+    // Open a single live-price subscription for every outcome rendered in the
+    // active chip, instead of one per card. Each card reads its own token via
+    // `useLivePrices`, so a tick only re-renders the affected card.
+    const liveTokenIds = useMemo(() => {
+      if (!selectedGroup) return [];
+      const outcomes =
+        selectedGroup.subgroups && selectedGroup.subgroups.length > 0
+          ? selectedGroup.subgroups.flatMap((subgroup) => subgroup.outcomes)
+          : selectedGroup.outcomes;
+      return outcomes
+        .map((outcome) => outcome.tokens[0]?.id)
+        .filter((id): id is string => Boolean(id));
+    }, [selectedGroup]);
+
+    useLiveMarketPricesSubscription(liveTokenIds);
 
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>

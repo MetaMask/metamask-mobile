@@ -2,6 +2,9 @@ import { renderHook, act } from '@testing-library/react-native';
 import {
   __resetLiveMarketPricesCacheForTest,
   useLiveMarketPrices,
+  useLiveMarketPricesSubscription,
+  useLivePrice,
+  useLivePrices,
 } from './useLiveMarketPrices';
 import Engine from '../../../../core/Engine';
 import { PriceUpdate } from '../types';
@@ -251,7 +254,7 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(false);
     });
 
-    it('updates connection status on interval', () => {
+    it('samples connection status once on subscribe and does not poll on an interval', () => {
       mockGetConnectionStatus
         .mockReturnValueOnce({ sportsConnected: false, marketConnected: true })
         .mockReturnValueOnce({
@@ -264,10 +267,103 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(true);
 
       act(() => {
-        jest.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(5000);
       });
 
-      expect(result.current.isConnected).toBe(false);
+      // The per-subscriber 1s polling interval was removed (it re-rendered every
+      // card once per second for an unused value), so the status stays at the
+      // value sampled on subscribe.
+      expect(result.current.isConnected).toBe(true);
+    });
+  });
+
+  describe('useLiveMarketPricesSubscription', () => {
+    it('subscribes for the given tokens and unsubscribes on unmount', () => {
+      const { unmount } = renderHook(() =>
+        useLiveMarketPricesSubscription(['token1', 'token2']),
+      );
+
+      expect(mockSubscribeToMarketPrices).toHaveBeenCalledWith(
+        ['token1', 'token2'],
+        expect.any(Function),
+      );
+
+      unmount();
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('does not subscribe when empty or disabled', () => {
+      renderHook(() => useLiveMarketPricesSubscription([]));
+      renderHook(() =>
+        useLiveMarketPricesSubscription(['token1'], { enabled: false }),
+      );
+
+      expect(mockSubscribeToMarketPrices).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useLivePrice selector', () => {
+    it('returns undefined when no price is cached', () => {
+      const { result } = renderHook(() => useLivePrice('token1'));
+
+      expect(result.current).toBeUndefined();
+    });
+
+    it('reflects store updates fed by a subscription', () => {
+      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
+      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => {
+        useLiveMarketPricesSubscription(['token1', 'token2']);
+        return useLivePrice('token1');
+      });
+
+      expect(result.current).toBeUndefined();
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.6, bestBid: 0.59, bestAsk: 0.61 },
+        ]);
+      });
+
+      expect(result.current?.bestAsk).toBe(0.61);
+    });
+  });
+
+  describe('useLivePrices selector', () => {
+    it('keeps a stable Map reference when an unrelated token changes', () => {
+      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
+      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => {
+        useLiveMarketPricesSubscription(['token1', 'other']);
+        return useLivePrices(['token1']);
+      });
+
+      const initial = result.current;
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'other', price: 0.3, bestBid: 0.29, bestAsk: 0.31 },
+        ]);
+      });
+
+      expect(result.current).toBe(initial);
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.7, bestBid: 0.69, bestAsk: 0.71 },
+        ]);
+      });
+
+      expect(result.current).not.toBe(initial);
+      expect(result.current.get('token1')?.bestAsk).toBe(0.71);
     });
   });
 
