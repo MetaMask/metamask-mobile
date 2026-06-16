@@ -10393,9 +10393,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^23.7.0":
-  version: 23.7.0
-  resolution: "@metamask/transaction-pay-controller@npm:23.7.0"
+"@metamask/transaction-pay-controller@npm:^23.8.0":
+  version: 23.8.0
+  resolution: "@metamask/transaction-pay-controller@npm:23.8.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10407,7 +10407,7 @@ __metadata:
     "@metamask/bridge-status-controller": "npm:^72.1.0"
     "@metamask/controller-utils": "npm:^12.2.0"
     "@metamask/gas-fee-controller": "npm:^26.2.2"
-    "@metamask/keyring-controller": "npm:^27.0.0"
+    "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^32.0.0"
@@ -10419,7 +10419,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/71178b4406853c84d8200d6d3399227d7f9104300c98e431c6a851ef70a6a89d17771d6e4c9c744451f0d7fd77ea2fe7383590d8c8719078bd7bee5bfdfcea4c
+  checksum: 10/777e3f8ce2207c606eb45d36bc2c3b96021bb667074f6aae77db13229a1ca3b20ef2816325bb26e17b8262ffdd78fdb90f80bddc0e4040516ffd93d67b438b95
   languageName: node
   linkType: hard
 
@@ -35431,7 +35431,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^68.0.0"
-    "@metamask/transaction-pay-controller": "npm:^23.7.0"
+    "@metamask/transaction-pay-controller": "npm:^23.8.0"
     "@metamask/tron-wallet-snap": "npm:^1.26.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^3.0.0"

@@ -347,7 +347,7 @@
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^68.0.0",
-    "@metamask/transaction-pay-controller": "^23.7.0",
+    "@metamask/transaction-pay-controller": "^23.8.0",
     "@metamask/tron-wallet-snap": "^1.26.0",
     "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^3.0.0",
