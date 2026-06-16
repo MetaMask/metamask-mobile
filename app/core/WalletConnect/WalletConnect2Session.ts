@@ -59,7 +59,7 @@ import {
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
-import { updateWC2Metadata } from '../../actions/sdk';
+import { updateWC2SessionMetadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
 
@@ -691,16 +691,11 @@ class WalletConnect2Session {
 
     const methodParams = requestEvent.params.request.params;
 
-    const currentMetadata = store.getState().sdk.wc2Metadata ?? {
-      id: this.channelId,
-      url: unverifiedOrigin,
-      name: this.session.peer.metadata.name,
-      icon: this.session.peer.metadata.icons?.[0] as string,
-    };
-
+    // Per-connection update keyed by channelId so concurrent sessions
+    // never clobber each other's lastVerifiedUrl. Reducer no-ops if the
+    // entry was already removed (e.g. by an in-flight session_delete).
     store.dispatch(
-      updateWC2Metadata({
-        ...currentMetadata,
+      updateWC2SessionMetadata(this.channelId, {
         lastVerifiedUrl: unverifiedOrigin,
       }),
     );

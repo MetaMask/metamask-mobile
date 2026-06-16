@@ -204,7 +204,13 @@ jest.mock('../../util/networks/global-network', () => ({
 }));
 
 jest.mock('../../actions/sdk', () => ({
-  updateWC2Metadata: jest.fn().mockReturnValue({ type: 'UPDATE_WC2_METADATA' }),
+  updateWC2SessionMetadata: jest
+    .fn()
+    .mockImplementation((channelId, metadata) => ({
+      type: 'UPDATE_WC2_SESSION_METADATA',
+      channelId,
+      metadata,
+    })),
 }));
 
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
@@ -273,12 +279,13 @@ describe('WalletConnect2Session', () => {
         networkId: '1',
       },
       sdk: {
-        wc2Metadata: {
-          id: 'test-channel',
-          url: 'https://example.com',
-          name: 'Test App',
-          icon: 'https://example.com/icon.png',
-          lastVerifiedUrl: 'https://example.com',
+        wc2SessionMetadata: {
+          'test-channel': {
+            url: 'https://example.com',
+            name: 'Test App',
+            icon: 'https://example.com/icon.png',
+            lastVerifiedUrl: 'https://example.com',
+          },
         },
       },
       engine: {
@@ -1158,6 +1165,114 @@ describe('WalletConnect2Session', () => {
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
+    });
+
+    it('dispatches updateWC2SessionMetadata keyed by its own channelId', async () => {
+      const { updateWC2SessionMetadata } = jest.requireMock('../../actions/sdk');
+      updateWC2SessionMetadata.mockClear();
+      (store.dispatch as jest.Mock).mockClear();
+
+      const request: WalletKitTypes.SessionRequest = {
+        id: 1234,
+        topic: mockSession.topic,
+        params: {
+          request: { method: 'personal_sign', params: [{ message: 'test' }] },
+          chainId: testChainCaip,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://example.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      await buildCase(request, testChainId, testChainCaip);
+
+      expect(updateWC2SessionMetadata).toHaveBeenCalledWith(
+        'test-channel',
+        expect.objectContaining({ lastVerifiedUrl: expect.any(String) }),
+      );
+    });
+
+    it('two concurrent sessions update their own keys without clobbering each other', async () => {
+      const { updateWC2SessionMetadata } = jest.requireMock('../../actions/sdk');
+      updateWC2SessionMetadata.mockClear();
+
+      const secondSession = new WalletConnect2Session({
+        web3Wallet: mockClient,
+        session: {
+          ...mockSession,
+          topic: 'second-topic',
+          pairingTopic: 'second-pairing',
+        } as unknown as SessionTypes.Struct,
+        channelId: 'second-channel',
+        deeplink: false,
+        navigation: mockNavigation,
+      });
+      (secondSession as any).topicByRequestId = {};
+
+      const buildRequest = (
+        topic: string,
+      ): WalletKitTypes.SessionRequest => ({
+        id: Math.floor(Math.random() * 1_000_000),
+        topic,
+        params: {
+          request: { method: 'personal_sign', params: [{ message: 'test' }] },
+          chainId: testChainCaip,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://example.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      });
+
+      const r1 = buildRequest(mockSession.topic);
+      const r2 = buildRequest('second-topic');
+      (session as any).topicByRequestId[r1.id] = mockSession.topic;
+      (secondSession as any).topicByRequestId[r2.id] = 'second-topic';
+
+      const {
+        selectNetworkConfigurationsByCaipChainId,
+        selectEvmNetworkConfigurationsByChainId,
+        selectNetworkConfigurations,
+      } = jest.requireMock('../../selectors/networkController');
+      selectNetworkConfigurationsByCaipChainId.mockReturnValue({
+        'eip155:1': { chainId: '0x1' },
+        [testChainCaip]: { chainId: testChainId },
+      });
+      selectEvmNetworkConfigurationsByChainId.mockReturnValue({
+        '0x1': { rpcEndpoints: [{ networkClientId: 'mainnet' }] },
+        [testChainId]: {
+          rpcEndpoints: [{ networkClientId: testNetworkClientId }],
+        },
+      });
+      selectNetworkConfigurations.mockReturnValue({
+        mainnet: { chainId: '0x1' },
+        [testNetworkClientId]: { chainId: testChainId },
+      });
+      (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+      (getGlobalNetworkClientId as jest.Mock).mockReturnValue(
+        testNetworkClientId,
+      );
+
+      await Promise.all([
+        session.handleRequest(r1),
+        secondSession.handleRequest(r2),
+      ]);
+
+      const channelIds = updateWC2SessionMetadata.mock.calls.map(
+        ([channelId]: [string, unknown]) => channelId,
+      );
+      expect(channelIds).toEqual(
+        expect.arrayContaining(['test-channel', 'second-channel']),
+      );
+      // Neither call should target the other session's channelId.
+      expect(channelIds).not.toContain('');
     });
   });
 

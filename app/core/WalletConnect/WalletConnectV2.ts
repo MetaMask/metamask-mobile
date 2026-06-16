@@ -11,7 +11,11 @@ import { Core } from '@walletconnect/core';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
 
-import { updateWC2Metadata } from '../../../app/actions/sdk';
+import {
+  removeWC2SessionMetadata,
+  setWC2SessionMetadata,
+  updateWC2SessionMetadata,
+} from '../../../app/actions/sdk';
 import {
   WC2VerifyContext,
   WC2VerifyValidation,
@@ -85,8 +89,11 @@ export class WC2Manager {
     [pairingTopic: string]: { redirectUrl?: string; origin: string };
   } = {};
 
-  // Serializes proposal handling so concurrent proposals don't fight
-  // over shared state (wc2Metadata, navigation, approval queue).
+  // Serializes proposal handling so concurrent proposals don't fight over
+  // the navigation stack (only one connect screen should be visible at a
+  // time) and the PermissionController approval queue. Per-connection
+  // metadata is now safe under concurrency via `wc2SessionMetadata` keyed
+  // by pairing topic, but navigation/approval serialization still matters.
   private proposalLock: Promise<void> = Promise.resolve();
   // Deduplicates connect() calls for the same pairing topic.
   // Entries auto-expire after SEEN_TOPIC_TTL_MS to allow manual retries.
@@ -126,6 +133,10 @@ export class WC2Manager {
         // Remove session from local list
         this.sessions[event.topic]?.removeListeners();
         delete this.sessions[event.topic];
+        // Drop per-connection metadata so stale entries don't linger.
+        if (session?.pairingTopic) {
+          store.dispatch(removeWC2SessionMetadata(session.pairingTopic));
+        }
       },
     );
 
@@ -401,6 +412,11 @@ export class WC2Manager {
       this.sessions[session.topic]?.removeListeners();
       delete this.sessions[session.topic];
 
+      // Drop per-connection metadata so stale entries don't linger.
+      if (session.pairingTopic) {
+        store.dispatch(removeWC2SessionMetadata(session.pairingTopic));
+      }
+
       // Remove associated permissions
       const permissionsController = (
         Engine.context as {
@@ -447,6 +463,11 @@ export class WC2Manager {
           `WC2::removeAll revokeAllPermissions failed for ${session.pairingTopic}`,
           err,
         );
+      }
+
+      // Drop per-connection metadata so stale entries don't linger.
+      if (session.pairingTopic) {
+        store.dispatch(removeWC2SessionMetadata(session.pairingTopic));
       }
 
       this.web3Wallet
@@ -617,9 +638,16 @@ export class WC2Manager {
       `WC2::session_proposal metadata url=${origin} hostname=${hostname}`,
     );
 
-    // Save connection info to redux store for the approval UI.
+    // Save per-connection metadata for the approval UI, keyed by pairing
+    // topic so concurrent proposals don't clobber each other.
     store.dispatch(
-      updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
+      setWC2SessionMetadata(channelId, {
+        url,
+        name,
+        icon,
+        verifyContext,
+        proposalId: `${id}`,
+      }),
     );
 
     const doesProposalIncludeEip155 = doesProposalOrSessionIncludeNamespace({
@@ -698,10 +726,8 @@ export class WC2Manager {
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
       });
-      // Clear stale metadata so it doesn't bleed into the next proposal.
-      store.dispatch(
-        updateWC2Metadata({ url: '', name: '', icon: '', id: '' }),
-      );
+      // Drop per-connection metadata so a failed proposal doesn't linger.
+      store.dispatch(removeWC2SessionMetadata(channelId));
       return;
     }
 
@@ -801,17 +827,14 @@ export class WC2Manager {
       if (deeplink) {
         session.redirect('onSessionProposal');
       }
+      // Proposal phase is complete; metadata now belongs to the live session.
+      store.dispatch(
+        updateWC2SessionMetadata(channelId, { proposalId: undefined }),
+      );
     } catch (err) {
       console.error(`invalid wallet status`, err);
-    } finally {
-      store.dispatch(
-        updateWC2Metadata({
-          url: '',
-          name: '',
-          icon: '',
-          id: '',
-        }),
-      );
+      // Drop the entry so a failed approve doesn't leave orphan metadata.
+      store.dispatch(removeWC2SessionMetadata(channelId));
     }
   }
 
