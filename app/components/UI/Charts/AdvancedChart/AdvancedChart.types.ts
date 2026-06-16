@@ -515,6 +515,8 @@ export interface AdvancedChartProps {
   successColorOverride?: string;
   /** Override the candlestick down/error color baked into the HTML template (A/B test). */
   errorColorOverride?: string;
+  /** Override the current-price horizontal line color. Does not affect candle or volume colors. */
+  currentPriceLineColorOverride?: string;
 
   /**
    * Opt-in custom DOM legend overlay. When provided with `enabled: true`,
