@@ -40,7 +40,6 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../MoneySheetOptionsList';
@@ -72,7 +71,6 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
-  const hasNativeFiatProvider = useHasNativeFiatProvider();
   const transactions = useSelector(selectTransactions);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
@@ -214,11 +212,9 @@ const MoneyAddMoneySheet: React.FC = () => {
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
-            icon: IconName.Bank,
+            icon: IconName.Card,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-            disabled: !hasNativeFiatProvider,
-            comingSoon: !hasNativeFiatProvider,
           },
         ]
       : []),
@@ -232,6 +228,13 @@ const MoneyAddMoneySheet: React.FC = () => {
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       disabled: !hasMusdBalance,
+    },
+    {
+      label: strings('money.add_money_sheet.bank_account'),
+      icon: IconName.Bank,
+      testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+      disabled: true,
+      comingSoon: true,
     },
     {
       label: strings('money.add_money_sheet.receive_external'),

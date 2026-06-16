@@ -300,11 +300,13 @@ function useTokenBalance(tokenUsdRate: number) {
     return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    return predictBalanceUsd;
+  }
+
   if (paymentOverride === PaymentOverride.MoneyAccount) {
     return totalFiatRaw ? parseFloat(totalFiatRaw) : 0;
   }
 
-  return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-    ? predictBalanceUsd
-    : payTokenBalanceUsd;
+  return payTokenBalanceUsd;
 }

@@ -24,9 +24,16 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectMoneyNoFeeTokens } from '../../selectors/featureFlags';
+import {
+  resolveNoFeeTokens,
+  formatNoFeeTokenBullets,
+  formatBaseStablecoins,
+} from '../../utils/depositFaqTokens';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
 import { COMPONENT_NAMES, SCREEN_NAMES } from '../../constants/moneyEvents';
@@ -126,6 +133,10 @@ const MoneyHowItWorksView = () => {
   const { apyPercent } = useMoneyAccountBalance();
   const percentage = apyPercent ?? FALLBACK_APY;
 
+  const noFeeTokens = resolveNoFeeTokens(useSelector(selectMoneyNoFeeTokens));
+  const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
+  const stablecoins = formatBaseStablecoins(noFeeTokens);
+
   const { trackScreenViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
   });
@@ -224,6 +235,8 @@ const MoneyHowItWorksView = () => {
               })}
               answer={strings(`money.how_it_works_page.faq_a${index + 1}`, {
                 percentage,
+                tokenBullets,
+                stablecoins,
               })}
               testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
             />

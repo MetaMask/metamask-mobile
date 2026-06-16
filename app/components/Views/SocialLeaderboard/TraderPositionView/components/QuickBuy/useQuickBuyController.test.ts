@@ -16,7 +16,11 @@ import {
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 import {
   ImpactMoment,
@@ -205,6 +209,11 @@ jest.mock('../../../../../../selectors/accountsController', () => ({
 
 jest.mock('../../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
+  selectCurrencyRates: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/networkController', () => ({
+  selectNetworkConfigurations: jest.fn(),
 }));
 
 jest.mock('../../../../../../util/address', () => ({
@@ -360,6 +369,15 @@ const setupDefaultMocks = () => {
     selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
   ).mockReturnValue('0xWALLET');
   (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('USD');
+  // Native-currency rates + network configs power the fiat->USD conversion for
+  // `amount_usd` analytics. conversionRate === usdConversionRate keeps the USD
+  // case a 1:1 conversion (entered USD amount == amount_usd).
+  (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+    ETH: { conversionRate: 2000, usdConversionRate: 2000 },
+  });
+  (selectNetworkConfigurations as unknown as jest.Mock).mockReturnValue({
+    '0x1': { nativeCurrency: 'ETH' },
+  });
   (usePriceImpactViewData as jest.Mock).mockReturnValue({
     textColor: TextColor.TextAlternative,
     icon: undefined,
@@ -442,7 +460,7 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('20');
       });
 
-      expect(result.current.usdAmount).toBe('20');
+      expect(result.current.fiatAmount).toBe('20');
     });
 
     it('normalizes a leading decimal without digits', () => {
@@ -454,7 +472,7 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('.');
       });
 
-      expect(result.current.usdAmount).toBe('0.');
+      expect(result.current.fiatAmount).toBe('0.');
       expect(result.current.hasValidAmount).toBe(false);
     });
 
@@ -467,7 +485,7 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('.5');
       });
 
-      expect(result.current.usdAmount).toBe('0.5');
+      expect(result.current.fiatAmount).toBe('0.5');
       expect(result.current.hasValidAmount).toBe(true);
     });
 
@@ -495,13 +513,13 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('25');
       });
 
-      expect(result.current.usdAmount).toBe('25');
+      expect(result.current.fiatAmount).toBe('25');
       expect(result.current.sliderPercent).toBe(0);
     });
   });
 
   describe('handleSliderChange', () => {
-    it('updates display state (sliderPercent, usdAmount) on every 1% tick', () => {
+    it('updates display state (sliderPercent, fiatAmount) on every 1% tick', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
@@ -520,7 +538,7 @@ describe('useQuickBuyController', () => {
       });
 
       expect(result.current.sliderPercent).toBe(50);
-      expect(Number(result.current.usdAmount)).toBeGreaterThan(0);
+      expect(Number(result.current.fiatAmount)).toBeGreaterThan(0);
     });
 
     it('does not fire analytics during drag — only updates display', () => {
@@ -596,6 +614,72 @@ describe('useQuickBuyController', () => {
       });
 
       expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('user-currency (non-USD)', () => {
+    it('formats the headline in the user currency while emitting amount_usd in USD', () => {
+      // EUR display currency; native ETH worth €1,000 / $1,200 → USD = EUR * 1.2.
+      (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('EUR');
+      (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+        ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+      });
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      // Headline is localized to the user's display currency, not hardcoded USD.
+      expect(result.current.fiatAmount).toBe('20');
+      expect(result.current.fiatAmountLabel).toBe('€20.00');
+
+      // Committing via the slider emits analytics in USD (20 EUR * 1.2 = 24 USD).
+      act(() => {
+        result.current.handleSliderDragEnd(20);
+      });
+
+      expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+      expect(mockTrackAmountSelected.mock.calls[0][0]).toBeCloseTo(24);
+    });
+
+    it('uses two-decimal fiat state for JPY (same as Bridge fiat input)', () => {
+      (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('JPY');
+      (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+        ETH: { conversionRate: 1000, usdConversionRate: 1000 },
+      });
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(33);
+      });
+
+      // 33% of a ¥100 cap = ¥33.00 in state (FIAT_INPUT_DECIMALS); headline
+      // still formats via Intl as whole yen.
+      expect(result.current.fiatAmount).toBe('33.00');
+      expect(result.current.fiatAmountLabel).toBe('¥33');
     });
   });
 
@@ -714,7 +798,7 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('25');
       });
 
-      expect(result.current.usdAmount).toBe('25');
+      expect(result.current.fiatAmount).toBe('25');
       expect(result.current.sliderPercent).toBe(0);
 
       act(() => {
@@ -722,7 +806,7 @@ describe('useQuickBuyController', () => {
       });
 
       expect(result.current.selectedSourceToken).toEqual(usdt);
-      expect(result.current.usdAmount).toBe('');
+      expect(result.current.fiatAmount).toBe('');
       expect(result.current.sliderPercent).toBe(0);
     });
   });
@@ -854,7 +938,7 @@ describe('useQuickBuyController', () => {
   });
 
   describe('isConfirmDisabled', () => {
-    it('is disabled when usdAmount is empty', () => {
+    it('is disabled when fiatAmount is empty', () => {
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), jest.fn()),
       );
