@@ -22,6 +22,7 @@ import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
 } from '../../../../../../../selectors/multichain/multichain';
+import { safeToChecksumAddress } from '../../../../../../../util/address';
 import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { calcTokenFiatRate } from '../../../../../../UI/Bridge/utils/exchange-rates';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
@@ -92,6 +93,17 @@ export const usePositionTokenBalance = (
 
     const zeroFiat = formatCurrency(0, currentCurrency);
 
+    // `calcTokenFiatRate` looks up `tokenMarketData` by the raw `token.address`
+    // (keyed by checksummed addresses).
+    const pricedDestToken =
+      isNonEvmChainId(destToken.chainId) || isNativeAddress(destToken.address)
+        ? destToken
+        : {
+            ...destToken,
+            address:
+              safeToChecksumAddress(destToken.address) ?? destToken.address,
+          };
+
     // The fiat rate is delegated to the canonical `calcTokenFiatRate`, so the
     // position token shares the wallet-wide user-currency exchange-rate
     // semantics (EVM native/ERC-20 and non-EVM are all handled there). It
@@ -99,7 +111,7 @@ export const usePositionTokenBalance = (
     // resolvable — in which case we still surface the held balance with a zero
     // fiat value, matching the wallet-wide behaviour (see `calculateEvmBalances`).
     const exchangeRate = calcTokenFiatRate({
-      token: destToken,
+      token: pricedDestToken,
       evmMultiChainMarketData: tokenMarketData,
       networkConfigurationsByChainId: (allNetworkConfigs ?? {}) as Record<
         Hex,

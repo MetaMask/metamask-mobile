@@ -64,13 +64,16 @@ const solanaAccount = { id: 'solana-account-id' };
 const tronAccount = { id: 'tron-account-id' };
 const bitcoinAccount = { id: 'bitcoin-account-id' };
 
-const FAKE_STATE = {
-  engine: {
-    backgroundState: {
-      NetworkController: { networkConfigurationsByChainId: {} },
+const makeState = (
+  networkConfigs: Record<string, { nativeCurrency?: string }> = {},
+) =>
+  ({
+    engine: {
+      backgroundState: {
+        NetworkController: { networkConfigurationsByChainId: networkConfigs },
+      },
     },
-  },
-} as never;
+  }) as never;
 
 const token = (address: string, chainId: string, symbol: string): BridgeToken =>
   ({
@@ -99,6 +102,11 @@ const setup = ({
   accounts = {},
   multichainBalances = {},
   multichainRates = {},
+  accountsByChainId = {},
+  tokenBalances = {},
+  tokenMarketData = {},
+  currencyRates = {},
+  networkConfigs = {},
 }: {
   currency?: string;
   accounts?: Record<string, { id: string; address?: string } | undefined>;
@@ -107,11 +115,20 @@ const setup = ({
     Record<string, { amount?: string } | undefined> | undefined
   >;
   multichainRates?: Record<string, { rate?: string } | undefined>;
+  accountsByChainId?: Record<string, unknown>;
+  tokenBalances?: Record<string, unknown>;
+  tokenMarketData?: Record<string, unknown>;
+  currencyRates?: Record<string, { conversionRate?: number } | undefined>;
+  networkConfigs?: Record<string, { nativeCurrency?: string }>;
 }) => {
-  (selectAccountsByChainId as unknown as jest.Mock).mockReturnValue({});
-  (selectTokensBalances as unknown as jest.Mock).mockReturnValue({});
-  (selectTokenMarketData as unknown as jest.Mock).mockReturnValue({});
-  (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({});
+  (selectAccountsByChainId as unknown as jest.Mock).mockReturnValue(
+    accountsByChainId,
+  );
+  (selectTokensBalances as unknown as jest.Mock).mockReturnValue(tokenBalances);
+  (selectTokenMarketData as unknown as jest.Mock).mockReturnValue(
+    tokenMarketData,
+  );
+  (selectCurrencyRates as unknown as jest.Mock).mockReturnValue(currencyRates);
   (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue(currency);
   (selectMultichainBalances as unknown as jest.Mock).mockReturnValue(
     multichainBalances,
@@ -123,7 +140,7 @@ const setup = ({
     (scope: string) => accounts[scope] ?? undefined,
   );
   mockUseSelector.mockImplementation((selector: (state: never) => unknown) =>
-    selector(FAKE_STATE),
+    selector(makeState(networkConfigs)),
   );
 };
 
@@ -334,5 +351,43 @@ describe('usePositionTokenBalance', () => {
 
     // No on-chain balance configured for the EVM account -> undefined.
     expect(result.current).toBeUndefined();
+  });
+
+  it('prices a held EVM ERC-20 with a lowercase address via checksum-keyed market data', () => {
+    // `tokenMarketData` is keyed by checksummed address, but position tokens can
+    // arrive lowercase; without normalization the price lookup misses and the
+    // token drops to the unpriced path (regression guard).
+    const lowercaseUsdc = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const checksumUsdc = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    setup({
+      accounts: { [EVM_SCOPE]: { id: 'evm', address: '0xAccount' } },
+      // 1 token (1e18) held, keyed by the lowercase token address.
+      tokenBalances: {
+        '0xAccount': { '0x1': { [lowercaseUsdc]: '0xde0b6b3a7640000' } },
+      },
+      // Price is only resolvable under the checksummed key.
+      tokenMarketData: { '0x1': { [checksumUsdc]: { price: 0.5 } } },
+      currencyRates: { ETH: { conversionRate: 2000 } },
+      networkConfigs: { '0x1': { nativeCurrency: 'ETH' } },
+    });
+
+    const evmToken = {
+      address: lowercaseUsdc,
+      chainId: '0x1',
+      symbol: 'USDC',
+      name: 'USDC',
+      decimals: 18,
+    } as BridgeToken;
+
+    const { result } = renderHook(() =>
+      usePositionTokenBalance(targetOn('0x1', lowercaseUsdc), evmToken),
+    );
+
+    expect(result.current).toMatchObject({
+      balance: '1.0',
+      balanceFiat: '$1,000.00',
+      tokenFiatAmount: 1000,
+      currencyExchangeRate: 1000,
+    });
   });
 });
