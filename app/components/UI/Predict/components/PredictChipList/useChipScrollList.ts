@@ -22,7 +22,7 @@ export function useChipScrollList(chipCount: number) {
   );
 
   const scrollToChipAtIndex = useCallback(
-    (chipIndex: number) => {
+    (chipIndex: number, animated = true) => {
       const scrollView = scrollViewRef.current;
       const viewportWidth = viewportWidthRef.current;
       if (!scrollView || viewportWidth === 0) {
@@ -39,7 +39,7 @@ export function useChipScrollList(chipCount: number) {
         return;
       }
 
-      scrollView.scrollTo({ x: scrollX, animated: true });
+      scrollView.scrollTo({ x: scrollX, animated });
     },
     [chipCount],
   );

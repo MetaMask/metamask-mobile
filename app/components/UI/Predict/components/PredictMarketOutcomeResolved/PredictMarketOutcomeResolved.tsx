@@ -48,7 +48,10 @@ const PredictMarketOutcomeResolved: React.FC<
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-1">
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="min-w-0 flex-1 shrink gap-1"
+        >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
@@ -62,6 +65,8 @@ const PredictMarketOutcomeResolved: React.FC<
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             twClassName="font-medium"
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             ${formatVolume(outcome.volume)}{' '}
             {strings('predict.volume_abbreviated')}
@@ -70,12 +75,13 @@ const PredictMarketOutcomeResolved: React.FC<
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          twClassName="shrink-0 gap-1"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={textColor}
             twClassName="font-medium"
+            numberOfLines={1}
           >
             {winnerTitle}
           </Text>

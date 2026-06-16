@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type {
@@ -7,6 +7,8 @@ import type {
   PredictOutcomeGroup,
   PredictOutcomeToken,
   PredictPosition,
+  PriceQuery,
+  PriceUpdate,
 } from '../../types';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
 import PredictPicks from '../PredictPicks/PredictPicks';
@@ -23,6 +25,8 @@ interface PredictGameDetailsTabsContentProps {
   claimablePositions: PredictPosition[];
   groupMap: Map<string, PredictOutcomeGroup>;
   activeChipKey: string;
+  getPrice: (tokenId: string) => PriceUpdate | undefined;
+  onVisiblePriceQueriesChange: (queries: PriceQuery[]) => void;
   onBetPress: (token: PredictOutcomeToken) => void;
 }
 
@@ -37,6 +41,8 @@ const PredictGameDetailsTabsContent = memo(
     claimablePositions,
     groupMap,
     activeChipKey,
+    getPrice,
+    onVisiblePriceQueriesChange,
     onBetPress,
   }: PredictGameDetailsTabsContentProps) => {
     const handleBuyPress = useCallback(
@@ -48,6 +54,13 @@ const PredictGameDetailsTabsContent = memo(
 
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
+    const currentKey = showTabBar ? tabs[activeTab]?.key : 'outcomes';
+
+    useEffect(() => {
+      if (!enabled || currentKey !== 'outcomes') {
+        onVisiblePriceQueriesChange([]);
+      }
+    }, [currentKey, enabled, onVisiblePriceQueriesChange]);
 
     if (!enabled) {
       if (!hasPositions) {
@@ -74,12 +87,12 @@ const PredictGameDetailsTabsContent = memo(
           groupMap={groupMap}
           game={market.game}
           activeChipKey={activeChipKey}
+          getPrice={getPrice}
+          onVisiblePriceQueriesChange={onVisiblePriceQueriesChange}
           onBuyPress={handleBuyPress}
         />
       );
     }
-
-    const currentKey = tabs[activeTab]?.key;
 
     return (
       <>
@@ -101,6 +114,8 @@ const PredictGameDetailsTabsContent = memo(
             groupMap={groupMap}
             game={market.game}
             activeChipKey={activeChipKey}
+            getPrice={getPrice}
+            onVisiblePriceQueriesChange={onVisiblePriceQueriesChange}
             onBuyPress={handleBuyPress}
           />
         )}

@@ -30,8 +30,14 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
+  getSportsMarketTypeGroupKey,
+  getSportsMarketTypeCardSplit,
+  GROUP_ORDER,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
+  isSupportedSportsMarketType,
+  SPORTS_MARKET_TYPE_PRIORITIES,
+  SPORTS_MARKET_TYPE_TO_GROUP,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import type {
@@ -47,10 +53,7 @@ import type {
 import {
   ClobAuthDomain,
   DEFAULT_CLOB_BASE_URL,
-  DEFAULT_GROUP_KEY,
   EIP712Domain,
-  GROUP_ORDER,
-  SPORTS_MARKET_TYPE_PRIORITIES,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS_V2,
   MSG_TO_SIGN,
@@ -59,7 +62,6 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
-  SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
 import {
   ApiKeyCreds,
@@ -85,7 +87,10 @@ import { PredictFeeCollection } from '../../types/flags';
 import { roundToFiveDecimals } from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 
-export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+export {
+  SPORTS_MARKET_TYPE_TO_GROUP,
+  GROUP_ORDER,
+} from '../../constants/sports';
 
 /**
  * Parse a fetch `Response` body as JSON, raising a contextual error when the
@@ -266,6 +271,7 @@ function getClobEndpoint({
 
 const clobMarketInfoCache = new Map<string, ClobMarketInfo>();
 const reportedClobMarketInfoFailures = new Set<string>();
+const loggedUnsupportedSportsMarketTypes = new Set<string>();
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -318,6 +324,7 @@ const getClobMarketInfoFailureContext = (conditionId: string) => ({
 export const clearClobMarketInfoSessionState = () => {
   clobMarketInfoCache.clear();
   reportedClobMarketInfoFailures.clear();
+  loggedUnsupportedSportsMarketTypes.clear();
 };
 
 export const clearClobMarketInfoCache = () => {
@@ -648,31 +655,207 @@ const normalizeSportsMarketType = (type: string): string => {
 const getSportsMarketTypePriority = (type: string): number =>
   SPORTS_MARKET_TYPE_PRIORITIES[type.toLowerCase()] ?? 3;
 
+const isSpreadType = (type: string): boolean =>
+  type.toLowerCase().includes('spread');
+
+// Goal team totals ("Mexico O/U 0.5") get a "Totals" suffix; corner team totals
+// ("Mexico Corners: O/U 4.5") already name their market, so they are excluded.
+const isTeamTotalsType = (type: string): boolean => {
+  const lower = type.toLowerCase();
+  return lower.includes('team_total') && !lower.includes('corner');
+};
+
+// "Goalscorer: <name>" (player goals, 1+)
+const GOALSCORER_PREFIX_PATTERN = /^Goalscorer:\s*(.+)$/i;
+// "<name>: <n>+ <stat>" e.g. "Armando González: 2+ goals", "Alexis Vega: 4+ shots"
+const PLAYER_PROP_SUBJECT_PATTERN = /^(.+?):\s*\d+\+\s+\w+/;
+// "<name>: <stat> O/U <line>" e.g. "Victor Wembanyama: Points O/U 27.5",
+// "Alexis Vega: Shots on Target O/U 1.5"
+const PLAYER_OVER_UNDER_PATTERN = /^(.+?):\s+(.+?)\s+O\/U\b/;
+// "<subject> O/U <line>", "<subject>: O/U <line>", "O/U <line>"
+const OVER_UNDER_SUBJECT_PATTERN = /^(.*?)[:]?\s*O\/U\s*[\d.]+\s*$/;
+
+/**
+ * Returns the subject an outcome belongs to — the team or player name — so that
+ * outcomes for the same subject collapse into a single card. Returns null when
+ * the outcome is not a subject-based market (moneyline, spreads, exact score,
+ * both teams to score, first to score), in which case each outcome is its own
+ * card. Examples: "O/U 2.5" yields "" (whole-game total); "Mexico O/U 0.5"
+ * yields "Mexico" (team total); "Mexico 1st Half O/U 0.5" yields "Mexico 1st
+ * Half"; "Total Corners: O/U 8.5" yields "Total Corners"; "Armando González: 2+
+ * goals" yields "Armando González" (player prop); "Goalscorer: Cho Guesung"
+ * yields "Cho Guesung"; "Mexico (-1.5)" yields null (spread).
+ */
+export const getOutcomeSubject = (outcome: PredictOutcome): string | null => {
+  const raw = outcome.groupItemTitle || outcome.title || '';
+
+  const goalscorer = raw.match(GOALSCORER_PREFIX_PATTERN);
+  if (goalscorer) return goalscorer[1].trim();
+
+  const playerProp = raw.match(PLAYER_PROP_SUBJECT_PATTERN);
+  if (playerProp) return playerProp[1].trim();
+
+  const playerOverUnder = raw.match(PLAYER_OVER_UNDER_PATTERN);
+  if (playerOverUnder) return playerOverUnder[1].trim();
+
+  const overUnder = raw.match(OVER_UNDER_SUBJECT_PATTERN);
+  if (overUnder) return overUnder[1].trim();
+
+  return null;
+};
+
+interface CardSpec {
+  outcomes: PredictOutcome[];
+  title?: string;
+}
+
+export const filterSupportedSportsOutcomes = (
+  outcomes: PredictOutcome[],
+): {
+  filteredOutcomes: PredictOutcome[];
+  unsupportedOutcomes: Map<string, number>;
+} => {
+  const unsupportedOutcomes = new Map<string, number>();
+
+  const filteredOutcomes = outcomes.filter((outcome) => {
+    if (isSupportedSportsMarketType(outcome.sportsMarketType)) {
+      return true;
+    }
+
+    const sportsMarketType = outcome.sportsMarketType?.toLowerCase();
+    if (sportsMarketType) {
+      unsupportedOutcomes.set(
+        sportsMarketType,
+        (unsupportedOutcomes.get(sportsMarketType) ?? 0) + 1,
+      );
+    }
+
+    return false;
+  });
+
+  return { filteredOutcomes, unsupportedOutcomes };
+};
+
+export const logUnsupportedSportsMarketTypesOnce = ({
+  unsupportedOutcomes,
+}: {
+  unsupportedOutcomes: Map<string, number>;
+}): void => {
+  unsupportedOutcomes.forEach((droppedOutcomeCount, sportsMarketType) => {
+    if (loggedUnsupportedSportsMarketTypes.has(sportsMarketType)) {
+      return;
+    }
+
+    loggedUnsupportedSportsMarketTypes.add(sportsMarketType);
+    const message = `Unsupported Predict sports market type: ${sportsMarketType}`;
+
+    Logger.error(new Error(message), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        provider: POLYMARKET_PROVIDER_ID,
+      },
+      context: {
+        name: 'PolymarketUtils',
+        data: {
+          method: 'logUnsupportedSportsMarketTypesOnce',
+          sportsMarketType,
+          droppedOutcomeCount,
+        },
+      },
+    });
+  });
+};
+
+/**
+ * Builds the cards for a single market type within a tab. Moneyline and spread
+ * markets render as one card. Over/Under and player-prop markets split by
+ * subject: a single subject (game totals, corners) yields one card, multiple
+ * subjects (team totals, player props) yield one card per subject. Everything
+ * else (exact score, both teams to score, first to score) yields one card per
+ * outcome.
+ */
+const buildCardsForType = (
+  type: string,
+  typeOutcomes: PredictOutcome[],
+): CardSpec[] => {
+  // Moneyline-style and spreads render as a single aggregate card.
+  if (isMoneylineLikeMarketType(type) || isSpreadType(type)) {
+    return [{ outcomes: typeOutcomes }];
+  }
+
+  const cardSplit = getSportsMarketTypeCardSplit(type);
+
+  // Per-entity markets split into one card per team or player. Only these split
+  // — game-level markets (game totals, corners) stay a single card even when
+  // their title embeds the matchup (e.g. "Team A vs Team B: O/U 4.5").
+  if (cardSplit === 'team' || cardSplit === 'player') {
+    const bySubject = new Map<string, PredictOutcome[]>();
+    for (const outcome of typeOutcomes) {
+      const subject =
+        getOutcomeSubject(outcome) ?? outcome.groupItemTitle ?? outcome.title;
+      const bucket = bySubject.get(subject);
+      if (bucket) {
+        bucket.push(outcome);
+      } else {
+        bySubject.set(subject, [outcome]);
+      }
+    }
+    // Goal team totals get a "<team> Totals" label; corner team totals and
+    // player props already name their subject.
+    const addTotalsSuffix = isTeamTotalsType(type);
+    return [...bySubject.entries()].map(([subject, subjectOutcomes]) => ({
+      outcomes: subjectOutcomes,
+      title: addTotalsSuffix ? `${subject} Totals` : subject,
+    }));
+  }
+
+  // Over/Under line markets (game totals, corners, half totals): one aggregate
+  // card; the view labels it by market type ("Totals", "Corners", ...).
+  if (typeOutcomes.every((outcome) => outcome.line != null)) {
+    return [{ outcomes: typeOutcomes }];
+  }
+
+  // Discrete markets (exact score, both teams to score, odd/even, first
+  // corner): one card per outcome, each titled by its own outcome.
+  return typeOutcomes.map((outcome) => ({
+    outcomes: [outcome],
+    title: outcome.groupItemTitle || outcome.title,
+  }));
+};
+
+/**
+ * Groups a flat list of outcomes into the tab → card hierarchy the game detail
+ * view renders directly. Each top-level group is a tab (derived from the market
+ * type) and each subgroup is a ready-to-render card. All splitting (team totals
+ * per team, player props per player) happens here so the view only has to
+ * render.
+ */
 export function buildOutcomeGroups(
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] {
-  if (outcomes.length === 0) {
+  const { filteredOutcomes, unsupportedOutcomes } =
+    filterSupportedSportsOutcomes(outcomes);
+
+  logUnsupportedSportsMarketTypesOnce({ unsupportedOutcomes });
+
+  if (filteredOutcomes.length === 0) {
     return [];
   }
 
-  const groupMap = new Map<string, PredictOutcome[]>();
+  const tabMap = new Map<string, PredictOutcome[]>();
+  for (const outcome of filteredOutcomes) {
+    const tabKey = getSportsMarketTypeGroupKey(outcome.sportsMarketType);
 
-  for (const outcome of outcomes) {
-    const groupKey =
-      (outcome.sportsMarketType &&
-        SPORTS_MARKET_TYPE_TO_GROUP[outcome.sportsMarketType]) ||
-      DEFAULT_GROUP_KEY;
-
-    const bucket = groupMap.get(groupKey);
+    const bucket = tabMap.get(tabKey);
     if (bucket) {
       bucket.push(outcome);
     } else {
-      groupMap.set(groupKey, [outcome]);
+      tabMap.set(tabKey, [outcome]);
     }
   }
 
-  for (const [, groupOutcomes] of groupMap) {
-    groupOutcomes.sort((a, b) => {
+  for (const [, tabOutcomes] of tabMap) {
+    tabOutcomes.sort((a, b) => {
       const priorityDiff =
         getSportsMarketTypePriority(
           normalizeSportsMarketType(a.sportsMarketType ?? ''),
@@ -689,8 +872,8 @@ export function buildOutcomeGroups(
     });
   }
 
-  const groupEntries = [...groupMap.entries()];
-  groupEntries.sort((a, b) => {
+  const tabEntries = [...tabMap.entries()];
+  tabEntries.sort((a, b) => {
     const aIndex = GROUP_ORDER.indexOf(a[0]);
     const bIndex = GROUP_ORDER.indexOf(b[0]);
     const aPriority = aIndex === -1 ? GROUP_ORDER.length : aIndex;
@@ -701,9 +884,10 @@ export function buildOutcomeGroups(
     return a[0].localeCompare(b[0]);
   });
 
-  return groupEntries.map(([key, groupOutcomes]) => {
+  return tabEntries.map(([key, tabOutcomes]) => {
+    // Bucket by market type, preserving the priority/volume order above.
     const typeMap = new Map<string, PredictOutcome[]>();
-    for (const outcome of groupOutcomes) {
+    for (const outcome of tabOutcomes) {
       const type = outcome.sportsMarketType ?? key;
       const bucket = typeMap.get(type);
       if (bucket) {
@@ -713,25 +897,19 @@ export function buildOutcomeGroups(
       }
     }
 
-    if (typeMap.size < 2) {
-      return { key, outcomes: groupOutcomes };
+    const subgroups: PredictOutcomeGroup[] = [];
+    for (const [type, typeOutcomes] of typeMap) {
+      const cards = buildCardsForType(type, typeOutcomes);
+      cards.forEach((card, index) => {
+        subgroups.push({
+          key: cards.length === 1 ? type : `${type}-${index}`,
+          outcomes: card.outcomes,
+          ...(card.title !== undefined && { title: card.title }),
+        });
+      });
     }
 
-    const subgroupEntries = [...typeMap.entries()];
-    subgroupEntries.sort(
-      (a, b) =>
-        getSportsMarketTypePriority(normalizeSportsMarketType(a[0])) -
-        getSportsMarketTypePriority(normalizeSportsMarketType(b[0])),
-    );
-
-    return {
-      key,
-      outcomes: [],
-      subgroups: subgroupEntries.map(([subKey, subOutcomes]) => ({
-        key: subKey,
-        outcomes: subOutcomes,
-      })),
-    };
+    return { key, outcomes: [], subgroups };
   });
 }
 
@@ -1112,6 +1290,11 @@ export interface ParsePolymarketEventsOptions {
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
+  // Outcome groups (the tab → card hierarchy) are only consumed by the market
+  // detail view. Building them eagerly while parsing feed/list/search results
+  // is wasted work and surfaces "unsupported sports market type" noise for
+  // markets the user never opens, so it's opt-in per call.
+  includeOutcomeGroups?: boolean;
 }
 
 export const parsePolymarketEvents = (
@@ -1124,7 +1307,12 @@ export const parsePolymarketEvents = (
       ? { category: categoryOrOptions, sortMarketsBy }
       : categoryOrOptions;
 
-  const { category, teamLookup, extendedSportsMarketsLeagues } = options;
+  const {
+    category,
+    teamLookup,
+    extendedSportsMarketsLeagues,
+    includeOutcomeGroups = false,
+  } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
   return events.flatMap((event: PolymarketApiEvent) => {
@@ -1174,6 +1362,7 @@ export const parsePolymarketEvents = (
       );
 
       const outcomeGroupingEnabled =
+        includeOutcomeGroups &&
         game &&
         eventLeague &&
         extendedSportsMarketsLeagues?.includes(eventLeague);

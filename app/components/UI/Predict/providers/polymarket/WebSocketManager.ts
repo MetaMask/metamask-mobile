@@ -470,16 +470,13 @@ export class WebSocketManager {
       if (subscriptionCallbacks) {
         subscriptionCallbacks.delete(callback);
         if (subscriptionCallbacks.size === 0) {
+          const previousTokenIds =
+            this.getSubscribedMarketTokenIdsWithOrderbook();
           this.priceSubscriptions.delete(subscriptionKey);
-          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
-          const tokenIdsToUnsubscribe = tokenIds.filter(
-            (tokenId) =>
-              !remainingPriceTokenIds.has(tokenId) &&
-              !this.orderbookSubscriptions.has(tokenId),
+          this.syncMarketSubscriptions(
+            previousTokenIds,
+            this.getSubscribedMarketTokenIdsWithOrderbook(),
           );
-          if (tokenIdsToUnsubscribe.length > 0) {
-            this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
-          }
         }
       }
 
@@ -532,10 +529,10 @@ export class WebSocketManager {
             clearTimeout(pendingTimer);
             this.orderbookEmitTimers.delete(tokenId);
           }
-          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
-          if (!remainingPriceTokenIds.has(tokenId)) {
-            this.sendMarketUnsubscribe([tokenId]);
-          }
+          this.syncMarketSubscriptions(
+            [tokenId, ...this.getSubscribedMarketTokenIdsWithOrderbook()],
+            this.getSubscribedMarketTokenIdsWithOrderbook(),
+          );
         }
       }
 
@@ -705,7 +702,7 @@ export class WebSocketManager {
 
   private ensureMarketConnection(tokenIds: string[]): void {
     if (this.marketWs?.readyState === WebSocket.OPEN) {
-      this.sendMarketSubscribe(tokenIds);
+      this.sendMarketSubscribe(this.getSubscribedMarketTokenIdsWithOrderbook());
       return;
     }
     if (this.marketWs?.readyState === WebSocket.CONNECTING) {
@@ -928,6 +925,20 @@ export class WebSocketManager {
     );
   }
 
+  private syncMarketSubscriptions(
+    previousTokenIds: Iterable<string>,
+    nextTokenIds: Iterable<string>,
+  ): void {
+    const nextTokenIdSet = new Set(nextTokenIds);
+    const tokenIdsToUnsubscribe = [...new Set(previousTokenIds)].filter(
+      (tokenId) => !nextTokenIdSet.has(tokenId),
+    );
+
+    if (tokenIdsToUnsubscribe.length > 0) {
+      this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
+    }
+  }
+
   private getSubscribedMarketTokenIds(): Set<string> {
     const subscribedTokenIds = new Set<string>();
 
@@ -942,14 +953,20 @@ export class WebSocketManager {
     return subscribedTokenIds;
   }
 
-  private resubscribeAllMarkets(): void {
+  private getSubscribedMarketTokenIdsWithOrderbook(): string[] {
     const allTokenIds = this.getSubscribedMarketTokenIds();
     this.orderbookSubscriptions.forEach((_, tokenId) => {
       allTokenIds.add(tokenId);
     });
 
-    if (allTokenIds.size > 0) {
-      this.sendMarketSubscribe(Array.from(allTokenIds));
+    return Array.from(allTokenIds);
+  }
+
+  private resubscribeAllMarkets(): void {
+    const allTokenIds = this.getSubscribedMarketTokenIdsWithOrderbook();
+
+    if (allTokenIds.length > 0) {
+      this.sendMarketSubscribe(allTokenIds);
     }
   }
 

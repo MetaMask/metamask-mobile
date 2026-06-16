@@ -4,6 +4,7 @@ import { PriceUpdate } from '../types';
 
 export interface UseLiveMarketPricesOptions {
   enabled?: boolean;
+  onPriceUpdates?: (updates: PriceUpdate[]) => void;
 }
 
 export interface UseLiveMarketPricesResult {
@@ -63,7 +64,7 @@ export const useLiveMarketPrices = (
   tokenIds: string[],
   options: UseLiveMarketPricesOptions = {},
 ): UseLiveMarketPricesResult => {
-  const { enabled = true } = options;
+  const { enabled = true, onPriceUpdates } = options;
   const [prices, setPrices] = useState<Map<string, PriceUpdate>>(
     () => getCachedPrices(tokenIds).prices,
   );
@@ -74,6 +75,7 @@ export const useLiveMarketPrices = (
 
   const isMountedRef = useRef(true);
   const tokenIdsRef = useRef(tokenIds);
+  const onPriceUpdatesRef = useRef(onPriceUpdates);
 
   // Use JSON.stringify to avoid key collisions if token IDs contain commas
   const tokenIdsKey = useMemo(
@@ -86,6 +88,10 @@ export const useLiveMarketPrices = (
     tokenIdsRef.current = tokenIds;
   }, [tokenIds]);
 
+  useEffect(() => {
+    onPriceUpdatesRef.current = onPriceUpdates;
+  }, [onPriceUpdates]);
+
   const handlePriceUpdates = useCallback((updates: PriceUpdate[]) => {
     if (!isMountedRef.current) return;
 
@@ -94,6 +100,7 @@ export const useLiveMarketPrices = (
     updates.forEach((update) => {
       liveMarketPriceCache.set(update.tokenId, { price: update, updatedAt });
     });
+    onPriceUpdatesRef.current?.(updates);
 
     setPrices((prevPrices) => {
       const newPrices = new Map(prevPrices);

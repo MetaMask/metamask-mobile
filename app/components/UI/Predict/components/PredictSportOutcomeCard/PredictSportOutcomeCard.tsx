@@ -28,6 +28,7 @@ interface PredictSportOutcomeCardProps {
   lines?: number[];
   selectedLine?: number;
   selectedIndex?: number;
+  animateLineSelection?: boolean;
   onSelectLine?: (line: number, index: number) => void;
   buttonLayout?: 'inline' | 'inlineNoSeparator' | 'stacked';
   disabled?: boolean;
@@ -41,6 +42,7 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
   lines,
   selectedLine,
   selectedIndex,
+  animateLineSelection,
   onSelectLine,
   buttonLayout = 'inline',
   disabled = false,
@@ -103,6 +105,7 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
             lines={lines}
             selectedLine={selectedLine}
             selectedIndex={selectedIndex}
+            animateSelection={animateLineSelection}
             onSelectLine={onSelectLine}
             testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR}
           />

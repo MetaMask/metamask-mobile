@@ -12,28 +12,34 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import { usePredictGameDetailsLivePrices } from '../../hooks/usePredictGameDetailsLivePrices';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictChipList from '../PredictChipList';
-import PredictGameChart from '../PredictGameChart';
+import PredictGameChart, {
+  getPredictGameChartPriceQueries,
+} from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
+import PredictGameDetailsOutcomesList from './PredictGameDetailsOutcomesList';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+import type { PriceQuery } from '../../types';
 
 const CHIPS_STICKY_INDEX = 2;
 
@@ -63,6 +69,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
+  const isScreenFocused = useIsFocused();
+  const [visibleOutcomePriceQueries, setVisibleOutcomePriceQueries] = useState<
+    PriceQuery[]
+  >([]);
+  const [isChartLive, setIsChartLive] = useState(game?.status === 'ongoing');
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
@@ -102,6 +113,68 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
   );
+  const chartPriceQueries = useMemo(
+    () => getPredictGameChartPriceQueries(market),
+    [market],
+  );
+  const chartLivePriceQueries = useMemo(
+    () => (isScreenFocused && isChartLive ? chartPriceQueries : []),
+    [chartPriceQueries, isChartLive, isScreenFocused],
+  );
+  const combinedPriceQueries = useMemo(
+    () => [...chartLivePriceQueries, ...visibleOutcomePriceQueries],
+    [chartLivePriceQueries, visibleOutcomePriceQueries],
+  );
+  const { prices, getPrice, priceVersion } = usePredictGameDetailsLivePrices(
+    combinedPriceQueries,
+    {
+      enabled: combinedPriceQueries.length > 0,
+    },
+  );
+  const handleVisiblePriceQueriesChange = useCallback(
+    (queries: PriceQuery[]) => {
+      setVisibleOutcomePriceQueries(queries);
+    },
+    [],
+  );
+  const handleChartLiveStatusChange = useCallback((live: boolean) => {
+    setIsChartLive(live);
+  }, []);
+
+  const gameDetailsHeader = useMemo<React.ReactElement | undefined>(() => {
+    if (!game) {
+      return undefined;
+    }
+
+    return (
+      <>
+        <Box twClassName="px-4 py-2">
+          <PredictSportScoreboard
+            game={game}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
+          />
+        </Box>
+
+        <Box twClassName="mt-4">
+          <PredictGameChart
+            market={market}
+            livePrices={prices}
+            getLivePrice={getPrice}
+            livePriceVersion={priceVersion}
+            onLiveStatusChange={handleChartLiveStatusChange}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
+          />
+        </Box>
+      </>
+    );
+  }, [
+    game,
+    getPrice,
+    handleChartLiveStatusChange,
+    market,
+    priceVersion,
+    prices,
+  ]);
 
   if (!outcome || !game) {
     return null;
@@ -147,65 +220,80 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         <PredictShareButton marketId={market.id} marketSlug={market.slug} />
       </Box>
 
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('pb-4')}
-        stickyHeaderIndices={stickyHeaderIndices}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary.default}
-            colors={[colors.primary.default]}
-          />
-        }
-      >
-        <Box twClassName="px-4 py-2">
-          <PredictSportScoreboard
-            game={game}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
-          />
-        </Box>
-
-        <Box twClassName="mt-4">
-          <PredictGameChart
-            market={market}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
-          />
-        </Box>
-
-        {showStickyHeader && (
-          <Box twClassName="bg-default">
-            {showTabBar && (
-              <PredictMarketDetailsTabBar
-                tabs={tabs}
-                activeTab={activeTab}
-                onTabPress={handleTabPress}
-              />
-            )}
-            {showChips && (
-              <PredictChipList
-                chips={chips}
-                activeChipKey={activeChipKey}
-                onChipSelect={handleChipSelect}
-              />
-            )}
-          </Box>
-        )}
-
-        <PredictGameDetailsTabsContent
+      {hasExtendedOutcomes ? (
+        <PredictGameDetailsOutcomesList
           market={market}
-          activeTab={activeTab}
-          tabs={tabs}
           enabled={tabsEnabled}
-          showTabBar={showTabBar}
-          activePositions={activePositions}
-          claimablePositions={claimablePositions}
           groupMap={groupMap}
           activeChipKey={activeChipKey}
           onBetPress={onBetPress}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          showTabBar={showTabBar}
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabPress={handleTabPress}
+          showChips={showChips}
+          chips={chips}
+          onChipSelect={handleChipSelect}
+          activePositions={activePositions}
+          claimablePositions={claimablePositions}
+          getPrice={getPrice}
+          priceVersion={priceVersion}
+          onVisiblePriceQueriesChange={handleVisiblePriceQueriesChange}
+          listHeaderComponent={gameDetailsHeader}
         />
-      </ScrollView>
+      ) : (
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('pb-4')}
+          stickyHeaderIndices={stickyHeaderIndices}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary.default}
+              colors={[colors.primary.default]}
+            />
+          }
+        >
+          {gameDetailsHeader}
+
+          {showStickyHeader && (
+            <Box twClassName="bg-default">
+              {showTabBar && (
+                <PredictMarketDetailsTabBar
+                  tabs={tabs}
+                  activeTab={activeTab}
+                  onTabPress={handleTabPress}
+                />
+              )}
+              {showChips && (
+                <PredictChipList
+                  chips={chips}
+                  activeChipKey={activeChipKey}
+                  onChipSelect={handleChipSelect}
+                />
+              )}
+            </Box>
+          )}
+
+          <PredictGameDetailsTabsContent
+            market={market}
+            activeTab={activeTab}
+            tabs={tabs}
+            enabled={tabsEnabled}
+            showTabBar={showTabBar}
+            activePositions={activePositions}
+            claimablePositions={claimablePositions}
+            groupMap={groupMap}
+            activeChipKey={activeChipKey}
+            getPrice={getPrice}
+            onVisiblePriceQueriesChange={handleVisiblePriceQueriesChange}
+            onBetPress={onBetPress}
+          />
+        </ScrollView>
+      )}
 
       {showFooter && (
         <PredictGameDetailsFooter

@@ -549,6 +549,23 @@ describe('WebSocketManager', () => {
       );
     });
 
+    it('sends the active token union when adding a subscription to an open socket', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToMarketPrices(['moneyline-token'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].send.mockClear();
+
+      manager.subscribeToMarketPrices(['spread-token'], jest.fn());
+
+      expect(mockWebSocketInstances[0].send).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'market',
+          assets_ids: ['moneyline-token', 'spread-token'],
+        }),
+      );
+    });
+
     it('calls callback with price updates for subscribed tokens', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();

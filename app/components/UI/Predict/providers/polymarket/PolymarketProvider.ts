@@ -845,6 +845,9 @@ export class PolymarketProvider implements PredictProvider {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues,
+        // Outcome groups power the detail view's tab/card hierarchy, so only
+        // build them here (not in feed/list/search/carousel parsing).
+        includeOutcomeGroups: true,
       });
 
       if (!parsedMarket) {
@@ -1111,6 +1114,11 @@ export class PolymarketProvider implements PredictProvider {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        // Series results seed the per-market detail cache
+        // (usePredictSeries -> predictMarketKeys.detail), which the detail view
+        // reads directly. Build outcome groups here so series-resolved game
+        // markets still render their tab/card hierarchy.
+        includeOutcomeGroups: true,
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
