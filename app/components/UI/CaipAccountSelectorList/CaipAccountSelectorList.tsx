@@ -335,8 +335,10 @@ const CaipAccountSelectorList = ({
       data={accounts}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
-      // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
+      initialNumToRender={20}
+      maxToRenderPerBatch={20}
+      windowSize={11}
+      removeClippedSubviews
       testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
