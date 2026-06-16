@@ -98,7 +98,8 @@ const MoneyHomeView = () => {
     useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { startLinkFlow } = useMoneyAccountCardLinkage();
+  const { startLinkFlow, hasMoneyAccountRequirements } =
+    useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -263,11 +264,11 @@ const MoneyHomeView = () => {
     [navigation],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardholderWithMilestone && isUS) {
     metamaskCardMode = 'manage';
   } else if (isCardholderWithMilestone) {
-    metamaskCardMode = 'link';
+    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
   } else {
     metamaskCardMode = 'upsell';
   }
@@ -368,17 +369,21 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyMetaMaskCard
-          mode={metamaskCardMode}
-          onGetNowPress={handleCardPress}
-          onHeaderPress={handleCardPress}
-          onLinkPress={handleLinkCardPress}
-          onManagePress={handleCardPress}
-          showMetalCard={isUS}
-          cardBalance={cardBalance}
-          apy={apyPercent}
-        />
-        <Divider />
+        {metamaskCardMode && (
+          <>
+            <MoneyMetaMaskCard
+              mode={metamaskCardMode}
+              onGetNowPress={handleCardPress}
+              onHeaderPress={handleCardPress}
+              onLinkPress={handleLinkCardPress}
+              onManagePress={handleCardPress}
+              showMetalCard={isUS}
+              cardBalance={cardBalance}
+              apy={apyPercent}
+            />
+            <Divider />
+          </>
+        )}
         {isMilestone && (
           <>
             <MoneyCondensedInfoCards

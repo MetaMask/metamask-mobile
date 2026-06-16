@@ -55,8 +55,45 @@ const mockSelectMoneyAccounts =
     () => Record<string, { address: string }>
   >;
 
+const VEDA_ADDRESS = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae';
+const VEDA_DELEGATION_CONTRACT = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
+
+const makeVedaDelegationSettings = () => ({
+  networks: [
+    {
+      network: 'monad',
+      environment: 'staging',
+      chainId: '143',
+      delegationContract: VEDA_DELEGATION_CONTRACT,
+      tokens: {
+        veda: { symbol: 'veda', decimals: 6, address: VEDA_ADDRESS },
+      },
+    },
+  ],
+  count: 1,
+  _links: { self: '/v1/delegation/chain/config' },
+});
+
+const MONAD_VEDA_FEATURE_FLAG = {
+  chains: {
+    'eip155:143': {
+      enabled: true,
+      tokens: [
+        {
+          address: VEDA_ADDRESS,
+          symbol: 'veda',
+          decimals: 6,
+          enabled: true,
+          name: 'Veda',
+        },
+      ],
+    },
+  },
+};
+
 const createMockRootState = (
   overrides: Partial<CardControllerState> = {},
+  cardFeatureFlag?: unknown,
 ): RootState =>
   ({
     engine: {
@@ -71,6 +108,13 @@ const createMockRootState = (
           cardHomeDataStatus: 'idle',
           ...overrides,
         },
+        ...(cardFeatureFlag !== undefined
+          ? {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: { cardFeature: cardFeatureFlag },
+              },
+            }
+          : {}),
       },
     },
   }) as unknown as RootState;
@@ -647,6 +691,81 @@ describe('selectCardAvailableTokens', () => {
       const tokensB = selectCardAvailableTokens(stateB);
       expect(tokensB).toHaveLength(1);
       expect(tokensB[0]?.walletAddress).toBe(WALLET_B);
+    });
+
+    it('drops a placeholder whose token is not in the cardFeature allowlist', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const homeData = {
+        ...mockCardHomeData,
+        fundingAssets: [],
+        delegationSettings: {
+          networks: [
+            {
+              network: 'linea',
+              environment: 'production',
+              chainId: '59144',
+              delegationContract: '0xdeleg000000000000000000000000000000000004',
+              tokens: {
+                FOO: {
+                  address: '0xfoo0000000000000000000000000000000000099',
+                  symbol: 'FOO',
+                  decimals: 18,
+                },
+              },
+            },
+          ],
+          count: 1,
+          _links: { self: '/v1/delegation/chain/config' },
+        },
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      });
+      expect(selectCardAvailableTokens(state)).toStrictEqual([]);
+    });
+
+    it('drops the veda placeholder when veda is not allowlisted on monad', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const homeData = {
+        ...mockCardHomeData,
+        fundingAssets: [],
+        delegationSettings: makeVedaDelegationSettings(),
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      });
+      expect(selectCardAvailableTokens(state)).toStrictEqual([]);
+    });
+
+    it('keeps the veda placeholder as mUSD when monad+veda is allowlisted in cardFeature', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      mockSelectMoneyAccounts.mockReturnValue({
+        'ma-1': { address: WALLET_A },
+      });
+      const homeData = {
+        ...mockCardHomeData,
+        fundingAssets: [],
+        delegationSettings: makeVedaDelegationSettings(),
+      } as unknown as CardHomeData;
+      const state = createMockRootState(
+        {
+          cardHomeData:
+            homeData as unknown as CardControllerState['cardHomeData'],
+        },
+        MONAD_VEDA_FEATURE_FLAG,
+      );
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(1);
+      expect(tokens[0].displaySymbol).toBe('mUSD');
+      expect(tokens[0].isMoneyAccountEntry).toBe(true);
     });
 
     it('suppresses the placeholder when the current wallet already has a real entry for the same token+chain', () => {

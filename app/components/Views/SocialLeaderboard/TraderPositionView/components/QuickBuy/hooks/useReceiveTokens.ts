@@ -7,12 +7,10 @@ import { selectSelectedInternalAccountByScope } from '../../../../../../../selec
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
 import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
-import {
-  DefaultSwapDestTokens,
-  Bip44TokensForDefaultPairs,
-} from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
+import { Bip44TokensForDefaultPairs } from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
 import { ETH_USDT_ADDRESS } from '../../../../../../../constants/bridge';
 import { NETWORK_CHAIN_ID } from '../../../../../../../util/networks/customNetworks';
+import { getAllChainDefaultDestTokens } from '../../../../../../UI/Bridge/utils/getAllChainDefaultDestTokens';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUtils';
 import { enrichTokenBalance } from './enrichTokenBalance';
@@ -20,13 +18,11 @@ import { isStablecoinSymbol } from './stablecoins';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
- * Static EVM stablecoin candidates for the Sell "Receive" picker, extracted
+ * Static EVM default destination stablecoin candidates for the Sell "Receive" picker, extracted
  * from `DefaultSwapDestTokens` and filtered to mUSD, USDC, and USDT on EVM
  * chains.
  */
-const STABLECOIN_CANDIDATES: BridgeToken[] = Object.values(
-  DefaultSwapDestTokens,
-)
+const STABLECOIN_CANDIDATES: BridgeToken[] = getAllChainDefaultDestTokens()
   .filter(
     (token) =>
       isStablecoinSymbol(token.symbol) &&
