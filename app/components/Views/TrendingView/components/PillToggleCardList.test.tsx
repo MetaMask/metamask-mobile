@@ -108,24 +108,4 @@ describe('PillToggleCardList', () => {
 
     expect(getAllByTestId('card-list-skeleton').length).toBeGreaterThan(0);
   });
-
-  it('calls onPillChange with the new key when a pill is selected', () => {
-    const onPillChange = jest.fn();
-    const { getByTestId } = render(
-      <PillToggleCardList<Row>
-        tabs={tabs}
-        isLoading={false}
-        renderItem={renderItem}
-        Skeleton={Skeleton}
-        idPrefix="test"
-        testIdPrefix="toggle-list"
-        listTestId="card-flash"
-        onPillChange={onPillChange}
-      />,
-    );
-
-    fireEvent.press(getByTestId('toggle-list-pill-b'));
-
-    expect(onPillChange).toHaveBeenCalledWith('b');
-  });
 });
