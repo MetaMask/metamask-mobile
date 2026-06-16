@@ -373,6 +373,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onSkeletonHidden={handleSkeletonHidden}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
+      currentPriceLineColorOverride={colors.text.default}
     />
   );
 };

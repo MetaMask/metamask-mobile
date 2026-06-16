@@ -897,7 +897,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           errorColorOverride === initialErrorColorRef.current &&
           effectiveCurrentPriceColor === initialCurrentPriceColorRef.current;
         themeColorsSentRef.current = true;
-        if (colorsMatch) return;
+        if (colorsMatch && currentPriceLineColorOverride === undefined) return;
       }
       const effectiveSuccessColor =
         successColorOverride ?? theme.colors.success.default;
