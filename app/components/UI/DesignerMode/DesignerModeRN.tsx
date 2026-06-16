@@ -541,10 +541,17 @@ export function DesignerModeRN({
     [edits, addedStyleNames, removedStyleNames],
   );
 
+  const touchSeqRef = useRef(0);
+  const [selectionId, setSelectionId] = useState(0);
   const handleTouch = useCallback(async (touchX: number, touchY: number) => {
+    // Tag this tap; if a newer tap starts before this hit-test resolves, the
+    // stale result is discarded so the most recent tap always wins.
+    const seq = ++touchSeqRef.current;
     const info = await hitTestFromFiberTree(touchX, touchY);
+    if (seq !== touchSeqRef.current) return;
     if (info) {
       setSelected(info);
+      setSelectionId(seq);
       setEdits({});
       setAddedStyleNames([]);
       setRemovedStyleNames([]);
@@ -717,6 +724,9 @@ export function DesignerModeRN({
             {selected.textContent != null && (
               <Section icon={'\u270F\uFE0E'} title="Text Content">
                 <TextInput
+                  // Remount on each new selection so the uncontrolled input
+                  // resets its defaultValue instead of showing stale text.
+                  key={`textContent-${selectionId}`}
                   style={s.textContentInput}
                   defaultValue={
                     edits.__textContent?.current ?? selected.textContent
