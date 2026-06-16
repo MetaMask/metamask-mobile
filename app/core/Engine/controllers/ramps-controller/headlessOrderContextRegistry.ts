@@ -11,12 +11,12 @@ import { extractOrderCode } from '../../../../components/UI/Ramp/utils/extractOr
  * context needed to tag `RAMPS_TRANSACTION_FAILED` (which `ramp_surface`, which
  * `region`) must be carried from order-creation to the terminal event. This
  * module is that carrier: `useTransakRouting` writes the context when a
- * headless order is confirmed, and the headless funnel subscriber reads it when
- * the order later fails.
+ * headless order is confirmed, and `handleOrderStatusChangedForMetrics` reads it
+ * when the order later fails.
  *
  * THIS IS OPTION B (in-memory, same-session only). The map is module state, so
  * it is EMPTY after an app relaunch. Consequence: a headless order that fails
- * AFTER the app has been closed and reopened is NOT tagged - the subscriber
+ * AFTER the app has been closed and reopened is NOT tagged - the handler
  * finds no entry and no-ops (rather than emitting an untagged/mis-tagged
  * event). Same-session terminal failures are fully covered.
  *
@@ -39,7 +39,7 @@ export interface HeadlessOrderContext {
  * Keyed by `extractOrderCode(providerOrderId)`. The key is normalized via
  * `extractOrderCode` on BOTH set and get so a write of a full path (e.g.
  * `/providers/transak/orders/abc-123`) and a later read of the bare code
- * (`abc-123`, the form the RampsController stores and the subscriber receives)
+ * (`abc-123`, the form the RampsController stores and the handler receives)
  * resolve to the same entry.
  */
 const headlessOrderContexts = new Map<string, HeadlessOrderContext>();
@@ -72,9 +72,10 @@ export function getHeadlessOrderContext(
 }
 
 /**
- * Removes the headless context for an order. Called by the subscriber on every
- * terminal status (after emitting on failure, or unconditionally on
- * Completed/Cancelled) so the map does not grow within a session.
+ * Removes the headless context for an order. Called by
+ * `handleOrderStatusChangedForMetrics` on every terminal status of a headless
+ * order (after emitting on failure, and on Completed/Cancelled) so the map does
+ * not grow within a session.
  *
  * @param providerOrderId - The order id (full path or bare code); normalized.
  */
