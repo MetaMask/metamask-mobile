@@ -95,6 +95,19 @@ module.exports = function (baseConfig) {
     mergeConfig(defaultConfig, {
       resolver: {
         unstable_enablePackageExports: true,
+        // Exclude mm CLI daemon artifacts from the file watcher so that
+        // log writes, state updates and test-artifact captures don't
+        // trigger unnecessary Fast Refresh cycles during visual testing.
+        blockList: [
+          ...(Array.isArray(defaultConfig.resolver.blockList)
+            ? defaultConfig.resolver.blockList
+            : defaultConfig.resolver.blockList
+              ? [defaultConfig.resolver.blockList]
+              : []),
+          /\.mm-daemon\.log$/,
+          /\.mm-server/,
+          /test-artifacts\/.*/,
+        ],
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],

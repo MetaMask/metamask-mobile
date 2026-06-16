@@ -58,7 +58,12 @@ ios/GoogleService-Info.plist
 node_modules/
 npm-debug.log
 yarn-error.log
-.yalc
+
+# mm CLI / yalc
+.mm-server
+.mm-daemon.log
+test-artifacts/
+.yalc/
 yalc.lock
 
 # Yarn v2+
