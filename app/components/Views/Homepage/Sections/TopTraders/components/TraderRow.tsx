@@ -20,7 +20,8 @@ import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { TopRankAvatar, TopRankIndicator } from '../topRank';
 import type { TopTrader } from '../types';
-import { formatPnl } from '../utils/formatPnl';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { formatSignedAbbreviatedUsd } from '../../../../SocialLeaderboard/utils/formatters';
 import { hasRealAvatar } from '../utils/avatarFallback';
 
 const AVATAR_SIZE = 40;
@@ -56,7 +57,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
 
   const roiSign = trader.percentageChange >= 0 ? '+' : '';
   const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
-  const pnlText = formatPnl(trader.pnlValue);
+  const pnlText = formatSignedAbbreviatedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
   const isRoiPositive = trader.percentageChange >= 0;
 
