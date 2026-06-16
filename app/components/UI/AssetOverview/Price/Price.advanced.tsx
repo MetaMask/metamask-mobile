@@ -311,12 +311,16 @@ const PriceAdvanced = ({
 
   const chartInterval = displayInterval.toLowerCase();
 
+  const effectiveTimePeriod =
+    INTERVAL_TO_TIME_PERIOD[chartInterval] ?? config.timePeriod;
+
   /**
    * Used to make sure changing time range always sends a full SET_OHLCV_DATA
    */
   const ohlcvSeriesKey = useMemo(
-    () => `${assetId}|${config.timePeriod}|${chartInterval}|${currentCurrency}`,
-    [assetId, config.timePeriod, chartInterval, currentCurrency],
+    () =>
+      `${assetId}|${effectiveTimePeriod}|${chartInterval}|${currentCurrency}`,
+    [assetId, effectiveTimePeriod, chartInterval, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -365,7 +369,7 @@ const PriceAdvanced = ({
     hasEmptyData,
   } = useOHLCVChart({
     assetId,
-    timePeriod: INTERVAL_TO_TIME_PERIOD[chartInterval] ?? config.timePeriod,
+    timePeriod: effectiveTimePeriod,
     interval: chartInterval,
     vsCurrency: currentCurrency,
   });
@@ -454,27 +458,58 @@ const PriceAdvanced = ({
     }),
     [nextCursor, hasMore, assetId, currentCurrency],
   );
-  // Anchor the visible window to the last candle so the timeframe constructor
-  // spans exactly durationMs (e.g. 24 h) and the leftmost rendered bar matches
-  // the reference price used for the header percentage.
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
 
+  // Flag ON: let TradingView auto-fit all returned data.
+  // Flag OFF: anchor visible window to lastBarTime - durationMs so the
+  //           leftmost bar matches the reference price for the header percentage.
   const visibleFromMs = useMemo(() => {
+    if (isTechnicalIndicatorsEnabled) return undefined;
     if (lastBarTime == null) return undefined;
     return lastBarTime - config.durationMs;
-  }, [lastBarTime, config.durationMs]);
+  }, [isTechnicalIndicatorsEnabled, lastBarTime, config.durationMs]);
 
-  const visibleToMs = lastBarTime;
+  const visibleToMs = isTechnicalIndicatorsEnabled ? undefined : lastBarTime;
 
-  const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
+  const dateLabel = isTechnicalIndicatorsEnabled
+    ? strings('asset_overview.chart_time_period.1d')
+    : strings(TIME_RANGE_LABELS[timeRange]);
 
-  // Calculate the current compare price from OHLCV data
+  // Calculate the current compare price from OHLCV data.
+  // Flag ON: find the bar closest to exactly 24 h before the last bar so the
+  // percentage always represents 24H change regardless of selected interval.
+  // Flag OFF: find the first bar within the visible window so the percentage
+  // resets to 0% at the leftmost visible bar.
   const currentComparePrice = useMemo(() => {
-    if (ohlcvData.length === 0 || visibleFromMs == null) return null;
+    if (ohlcvData.length === 0) return null;
+    if (isTechnicalIndicatorsEnabled) {
+      if (lastBarTime == null) return null;
+      const target24h = lastBarTime - 24 * 60 * 60 * 1000;
+      const bar24h = ohlcvData.find((c) => c.time >= target24h) ?? ohlcvData[0];
+      // eslint-disable-next-line no-console
+      console.log('PCT_DBG', {
+        interval: chartInterval,
+        totalBars: ohlcvData.length,
+        firstBarTime: new Date(ohlcvData[0].time).toISOString(),
+        lastBarTime: new Date(lastBarTime).toISOString(),
+        target24h: new Date(target24h).toISOString(),
+        bar24hTime: new Date(bar24h.time).toISOString(),
+        bar24hClose: bar24h.close,
+        lastClose: ohlcvData[ohlcvData.length - 1].close,
+      });
+      return bar24h.close;
+    }
+    if (visibleFromMs == null) return null;
     const firstVisible =
       ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
     return firstVisible.close;
-  }, [ohlcvData, visibleFromMs]);
+  }, [
+    ohlcvData,
+    visibleFromMs,
+    isTechnicalIndicatorsEnabled,
+    lastBarTime,
+    chartInterval,
+  ]);
 
   // Store last good compare price to show during loading
   const stableComparePriceRef = useRef<number | null>(null);
