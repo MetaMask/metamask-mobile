@@ -6,6 +6,12 @@ on:
     - cron: '0 10 * * 1-5'
     # 15:00 UTC (US morning), Monday–Friday
     - cron: '0 15 * * 1-5'
+  # TEMPORARY — remove before merging to main. Lets us test Slack from the PR branch
+  # (workflow_dispatch only works once the workflow exists on main).
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/playwright-test-health-report.yml'
   workflow_dispatch:
     inputs:
       lookback_days:
@@ -22,11 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Playwright test health report
-        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@aaf10ac4b47e503ea2223c51e566757030ec8b7b
+        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@4bb5ba796bad03074f968bb417f5f6429bd08c02
         with:
           repository: ${{ github.event.repository.name }}
           workflow-ids: ci.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          slack-webhook: ${{ secrets.SLACK_WEBHOOK_PLAYWRIGHT_HEALTH_REPORT }}
+          slack-webhook: ${{ secrets.SLACK_WEBHOOK_PLAYWRIGHT_HEALTH_REPORT_TEST }}
           lookback-days: ${{ github.event_name == 'workflow_dispatch' && inputs.lookback_days || '1' }}
           report-title: Playwright Test Health Report (Mobile Appium)
