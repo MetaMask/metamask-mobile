@@ -34,6 +34,10 @@ import {
 
 const EVM_NATIVE_DECIMALS = 18;
 
+const PREDICT_COLLATERAL_DECIMALS = 6;
+const PREDICT_COLLATERAL_SYMBOL = 'USDC';
+const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
+
 // Converts local TransactionController groups into activity items
 export function mapLocalTransaction(
   transactionGroup: TransactionGroup,
@@ -270,6 +274,74 @@ export function mapLocalTransaction(
   const directWrappedTokenActivity = getDirectWrappedTokenActivity();
   if (directWrappedTokenActivity) {
     return directWrappedTokenActivity;
+  }
+
+  const getPredictFundsActivity = (): ActivityListItem | undefined => {
+    const nested = initialTransaction.nestedTransactions;
+    if (!nested?.length) {
+      return undefined;
+    }
+
+    const depositTx = nested.find(
+      (n) =>
+        n.type === TransactionType.predictDeposit ||
+        n.type === TransactionType.predictDepositAndOrder,
+    );
+    const withdrawTx = nested.find(
+      (n) => n.type === TransactionType.predictWithdraw,
+    );
+    const fundsTx = depositTx ?? withdrawTx;
+    if (!fundsTx) {
+      return undefined;
+    }
+
+    const direction: TokenAmount['direction'] = depositTx ? 'in' : 'out';
+    const contractAddress = fundsTx.to;
+
+    // The collateral moves via ERC-20 transfer(address,uint256); the amount is
+    // the second 32-byte word of the calldata.
+    let amount: string | undefined;
+    const data = fundsTx.data;
+    if (
+      data &&
+      data.toLowerCase().startsWith(ERC20_TRANSFER_SELECTOR) &&
+      data.length >= 138
+    ) {
+      try {
+        amount = BigInt(`0x${data.slice(74, 138)}`).toString();
+      } catch {
+        amount = undefined;
+      }
+    }
+
+    const tokenMetadata = contractAddress
+      ? getKnownTokenMetadata(chainId, contractAddress, environment)
+      : undefined;
+    const assetId = contractAddress
+      ? environment.toAssetId(contractAddress, chainId)
+      : undefined;
+
+    const token: TokenAmount = {
+      direction,
+      symbol: tokenMetadata?.symbol ?? PREDICT_COLLATERAL_SYMBOL,
+      decimals: tokenMetadata?.decimals ?? PREDICT_COLLATERAL_DECIMALS,
+      ...(assetId ? { assetId } : {}),
+      ...(amount ? { amount } : {}),
+    };
+
+    return {
+      type: depositTx ? 'predictionsAddFunds' : 'predictionsWithdrawFunds',
+      chainId,
+      status,
+      timestamp,
+      raw: { type: 'localTransaction', data: transactionGroup },
+      data: { hash, token },
+    };
+  };
+
+  const predictFundsActivity = getPredictFundsActivity();
+  if (predictFundsActivity) {
+    return predictFundsActivity;
   }
 
   switch (initialTransaction.type) {

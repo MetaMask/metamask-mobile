@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import {
-  LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
-import { type SharedValue, useSharedValue } from 'react-native-reanimated';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { LayoutChangeEvent } from 'react-native';
+import Animated, {
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -22,21 +23,17 @@ import ActivityTypeFilterSheet, {
   ACTIVITY_TYPE_FILTER_LABEL_KEY,
 } from './components/ActivityTypeFilterSheet';
 import AssetListControlBar from './components/AssetListControlBar';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import ActivityList from '../ActivityList';
+import ActivityList, {
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+  type ActivityListHandle,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../ActivityList';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import { TRENDING_NETWORKS_LIST } from '../../UI/Trending/utils/trendingNetworksList';
 import type { CaipChainId } from '@metamask/utils';
 import { ActivityTypeFilter } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
-
-const updateScrollY = (
-  scrollY: SharedValue<number>,
-  event: NativeSyntheticEvent<NativeScrollEvent>,
-) => {
-  scrollY.value = event.nativeEvent.contentOffset.y;
-};
 
 const ActivityScreen = () => {
   const tw = useTailwind();
@@ -100,6 +97,12 @@ const ActivityScreen = () => {
         })
       : strings('activity_view.filter_all_networks');
 
+  // Perps and Predictions are single-network domains, so network filtering is
+  // meaningless — disable the network chip while either is selected.
+  const isNetworkFilterDisabled =
+    typeFilter === ActivityTypeFilter.Perps ||
+    typeFilter === ActivityTypeFilter.Predictions;
+
   const handleOpenNetworkSheet = useCallback(() => {
     setIsNetworkSheetOpen(true);
   }, []);
@@ -120,43 +123,60 @@ const ActivityScreen = () => {
     navigation.navigate(Routes.HOME_TABS);
   }, [navigation]);
 
-  const handleActivityListScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      updateScrollY(scrollY, event);
+  const activityListRef = useRef<ActivityListHandle>(null);
+
+  const handleHeaderTitlePress = useCallback(() => {
+    activityListRef.current?.scrollToTop();
+  }, []);
+
+  const [isFilterBarPinned, setIsFilterBarPinned] = useState(false);
+
+  useAnimatedReaction(
+    () =>
+      titleSectionHeight.value > 0 && scrollY.value >= titleSectionHeight.value,
+    (pinned, previous) => {
+      if (pinned !== previous) {
+        runOnJS(setIsFilterBarPinned)(pinned);
+      }
     },
-    [scrollY],
   );
+
+  const pinnedFilterStyle = useAnimatedStyle(() => {
+    const section = titleSectionHeight.value;
+    return { opacity: section > 0 && scrollY.value >= section ? 1 : 0 };
+  });
 
   const activityListHeader = useMemo(
     () => (
       <>
-        <Box onLayout={handleTitleLayout} twClassName="pb-4">
-          <Text variant={TextVariant.HeadingLg}>
-            {strings('activity_view.title')}
-          </Text>
+        <Box onLayout={handleTitleLayout}>
+          <Box twClassName="pb-4">
+            <Text variant={TextVariant.HeadingLg}>
+              {strings('activity_view.title')}
+            </Text>
+          </Box>
+
+          <Box twClassName="pb-4">
+            {/* No functionality yet, just a placeholder for the search input */}
+            <TextFieldSearch
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={strings('activity_view.search_placeholder')}
+              onPressClearButton={handleClearSearch}
+              testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
+            />
+          </Box>
         </Box>
 
-        <Box twClassName="pb-4">
-          {/* No functionality yet, just a placeholder for the search input */}
-          <TextFieldSearch
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder={strings('activity_view.search_placeholder')}
-            onPressClearButton={handleClearSearch}
-            testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
-          />
-        </Box>
-
-        <Box>
-          <AssetListControlBar
-            networkLabel={networkFilterLabel}
-            isNetworkFilterActive={isNetworkFilterActive}
-            onNetworkPress={handleOpenNetworkSheet}
-            typeLabel={typeFilterLabel}
-            isTypeFilterActive={isTypeFilterActive}
-            onTypePress={handleOpenTypeSheet}
-          />
-        </Box>
+        <AssetListControlBar
+          networkLabel={networkFilterLabel}
+          isNetworkFilterActive={isNetworkFilterActive}
+          isNetworkFilterDisabled={isNetworkFilterDisabled}
+          onNetworkPress={handleOpenNetworkSheet}
+          typeLabel={typeFilterLabel}
+          isTypeFilterActive={isTypeFilterActive}
+          onTypePress={handleOpenTypeSheet}
+        />
       </>
     ),
     [
@@ -165,6 +185,7 @@ const ActivityScreen = () => {
       handleOpenTypeSheet,
       handleTitleLayout,
       isNetworkFilterActive,
+      isNetworkFilterDisabled,
       isTypeFilterActive,
       networkFilterLabel,
       searchQuery,
@@ -184,18 +205,49 @@ const ActivityScreen = () => {
             testID={ActivityScreenSelectorsIDs.HEADER}
             includesTopInset
             title={strings('activity_view.title')}
+            titleProps={{
+              onPress: handleHeaderTitlePress,
+              suppressHighlighting: true,
+              accessibilityRole: 'button',
+            }}
             scrollY={scrollY}
             titleSectionHeight={titleSectionHeight}
             onBack={handleBackPress}
             backButtonProps={{ testID: ActivityScreenSelectorsIDs.BACK_BUTTON }}
           />
 
-          <ActivityList
-            header={activityListHeader}
-            onScroll={handleActivityListScroll}
-            typeFilter={typeFilter}
-            networkFilter={networkFilter}
-          />
+          <Box twClassName="flex-1">
+            <ActivityList
+              ref={activityListRef}
+              header={activityListHeader}
+              scrollY={scrollY}
+              typeFilter={typeFilter}
+              networkFilter={networkFilter}
+            />
+
+            <Animated.View
+              pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
+              accessibilityElementsHidden={!isFilterBarPinned}
+              importantForAccessibility={
+                isFilterBarPinned ? 'auto' : 'no-hide-descendants'
+              }
+              style={[
+                tw.style('absolute top-0 left-0 right-0 px-4 bg-default'),
+                pinnedFilterStyle,
+              ]}
+            >
+              <AssetListControlBar
+                networkLabel={networkFilterLabel}
+                isNetworkFilterActive={isNetworkFilterActive}
+                isNetworkFilterDisabled={isNetworkFilterDisabled}
+                onNetworkPress={handleOpenNetworkSheet}
+                typeLabel={typeFilterLabel}
+                isTypeFilterActive={isTypeFilterActive}
+                onTypePress={handleOpenTypeSheet}
+                suppressTestIDs
+              />
+            </Animated.View>
+          </Box>
         </Box>
 
         {isTypeSheetOpen ? (

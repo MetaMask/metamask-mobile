@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import ActivityList from './ActivityList';
+import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
@@ -69,6 +69,16 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: () => ({}) }),
 }));
 
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  Reanimated.default.createAnimatedComponent = (
+    Component: React.ComponentType,
+  ) => Component;
+  return Reanimated;
+});
+
+const mockScrollToOffset = jest.fn();
+
 jest.mock('@shopify/flash-list', () => {
   const ReactActual = jest.requireActual('react');
   const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
@@ -104,7 +114,7 @@ jest.mock('@shopify/flash-list', () => {
         ref: React.Ref<{ scrollToOffset: jest.Mock }>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
-          scrollToOffset: jest.fn(),
+          scrollToOffset: mockScrollToOffset,
         }));
         const empty =
           typeof ListEmptyComponent === 'function' ? (
@@ -439,7 +449,6 @@ jest.mock('./hooks/PredictActivitySource', () => {
 const mockNavigate = jest.fn();
 const mockFetchNextPage = jest.fn();
 const mockRefetch = jest.fn(() => Promise.resolve());
-const mockOnScroll = jest.fn();
 
 const selectorValues = {
   bridgeHistory: {
@@ -542,7 +551,7 @@ describe('ActivityList', () => {
   });
 
   it('renders local pending and confirmed rows, refreshes, paginates, and opens the EVM explorer', async () => {
-    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+    render(<ActivityList header={<></>} />);
 
     expect(
       screen.getByTestId(ActivityListSelectorsIDs.CONTAINER),
@@ -554,8 +563,8 @@ describe('ActivityList', () => {
     await waitFor(() => expect(updateIncomingTransactions).toHaveBeenCalled());
     expect(mockRefetch).toHaveBeenCalledTimes(1);
 
+    // Scrolling should not throw (drives the UI-thread scroll handler).
     fireEvent.press(screen.getByTestId('mock-scroll'));
-    expect(mockOnScroll).toHaveBeenCalledTimes(1);
 
     fireEvent.press(screen.getByTestId('mock-viewable'));
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
@@ -576,6 +585,39 @@ describe('ActivityList', () => {
         screen: expect.any(String),
       }),
     );
+  });
+
+  it('exposes a scrollToTop handle that scrolls the list to the top', () => {
+    const ref = React.createRef<ActivityListHandle>();
+    render(<ActivityList ref={ref} header={<></>} />);
+
+    ref.current?.scrollToTop();
+
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 0,
+      animated: true,
+    });
+  });
+
+  it('scrolls to top when the type filter changes (but not on initial render)', () => {
+    const { rerender } = render(
+      <ActivityList
+        header={<></>}
+        typeFilter={ActivityTypeFilter.Transactions}
+      />,
+    );
+
+    // No scroll on initial mount.
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+
+    rerender(
+      <ActivityList header={<></>} typeFilter={ActivityTypeFilter.Perps} />,
+    );
+
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 0,
+      animated: true,
+    });
   });
 
   it('hides rows whose kind does not match the type filter', () => {

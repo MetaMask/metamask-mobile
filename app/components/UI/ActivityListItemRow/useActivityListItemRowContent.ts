@@ -59,18 +59,24 @@ function isPerpsTradeKind(type: ActivityKind): boolean {
   );
 }
 
-/** Rows whose avatar is the HyperLiquid market (single icon, no USD leg). */
 function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
   return isPerpsTradeKind(type) || isPerpsFundingKind(type);
 }
 
-/** Predict trades (placed / cashed out / claimed winnings) — USD-denominated. */
 function isPredictTradeKind(type: ActivityKind): boolean {
   return (
     type === 'predictionPlaced' ||
     type === 'predictionCashedOut' ||
     type === 'predictionClaimWinnings'
   );
+}
+
+function isPredictFundsKind(type: ActivityKind): boolean {
+  return type === 'predictionsAddFunds' || type === 'predictionsWithdrawFunds';
+}
+
+function isDomainFundsKind(type: ActivityKind): boolean {
+  return isPerpsFundsKind(type) || isPredictFundsKind(type);
 }
 
 function withOptionalSymbol(label: string, symbol?: string): string {
@@ -259,9 +265,10 @@ function statusTitle(
 const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   Record<ActivityKind, () => string>
 > = {
-  predictionsAddFunds: () => strings('transactions.tx_review_predict_deposit'),
+  predictionsAddFunds: () =>
+    strings('transactions.activity_prediction_account_funded'),
   predictionsWithdrawFunds: () =>
-    strings('transactions.tx_review_predict_withdraw'),
+    strings('transactions.activity_prediction_withdrawal'),
   predictionClaimWinnings: () => strings('predict.transactions.claim_title'),
   predictionCashedOut: () => strings('predict.transactions.sell_title'),
   // Design board copy: "Prediction placed" (not the legacy "Predicted").
@@ -294,11 +301,28 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   marketCloseShort: () => strings('transactions.activity_market_close_short'),
 };
 
-function resolveFallbackTitle(type: ActivityKind): string {
-  return (
-    ACTIVITY_FALLBACK_TITLE_RESOLVERS[type]?.() ??
-    strings('transactions.interaction')
-  );
+// Domain (perps/predict) rows have no bespoke failed copy, so mark a
+// failed/cancelled status with an em-dash "—Failed" suffix, mirroring the perps
+// severity suffix style (e.g. "Closed short—liquidated"). The failed color is
+// applied separately by the row layout.
+function withDomainStatusSuffix(
+  title: string,
+  status: ActivityListItem['status'],
+): string {
+  if (status === 'failed') {
+    return `${title}—${strings('transaction.failed')}`;
+  }
+  if (status === 'cancelled') {
+    return `${title}—${strings('transaction.cancelled')}`;
+  }
+  return title;
+}
+
+function resolveFallbackTitle(item: ActivityListItem): string {
+  const base =
+    ACTIVITY_FALLBACK_TITLE_RESOLVERS[item.type]?.() ??
+    strings('transactions.interaction');
+  return withDomainStatusSuffix(base, item.status);
 }
 
 function uniqueTokens(tokens: (TokenAmount | undefined)[]): TokenAmount[] {
@@ -718,8 +742,15 @@ function resolveCoreContent(
     case 'perpsAddFunds':
     case 'perpsWithdrawFunds':
       return {
-        title: resolveFallbackTitle(item.type),
+        title: resolveFallbackTitle(item),
         subtitle: strings('transactions.activity_perps_balance'),
+        primaryToken: item.data.token,
+      };
+    case 'predictionsAddFunds':
+    case 'predictionsWithdrawFunds':
+      return {
+        title: resolveFallbackTitle(item),
+        subtitle: strings('transactions.activity_predictions_balance'),
         primaryToken: item.data.token,
       };
     // Predict trades: the subtitle is the market question, carried on `raw`.
@@ -727,13 +758,13 @@ function resolveCoreContent(
     case 'predictionCashedOut':
     case 'predictionClaimWinnings':
       return {
-        title: resolveFallbackTitle(item.type),
+        title: resolveFallbackTitle(item),
         subtitle: predictMarketSubtitle(item),
         primaryToken: item.data.token,
       };
     default:
       return {
-        title: resolveFallbackTitle(item.type),
+        title: resolveFallbackTitle(item),
         subtitle: perpsPositionSubtitle(item) ?? protocolSubtitle(item),
         primaryToken: 'token' in item.data ? item.data.token : undefined,
       };
@@ -960,7 +991,7 @@ function resolveUsdDenominatedFiat({
   return usdFiat ? applyDisplaySign(usdFiat, signPrefix) : undefined;
 }
 
-function perpsCollateralSecondaryAmount(
+function fundsTokenSecondaryAmount(
   token: TokenAmount | undefined,
 ): string | undefined {
   const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
@@ -1007,10 +1038,10 @@ export function useActivityListItemRowContent(
     networkChainId,
   );
 
-  const isPerpsFunds = isPerpsFundsKind(item.type);
   const isPerpsFunding = isPerpsFundingKind(item.type);
+  const isFundsRow = isDomainFundsKind(item.type);
   const isUsdDenominated =
-    isPerpsFunds ||
+    isFundsRow ||
     isPerpsTradeKind(item.type) ||
     isPerpsFunding ||
     isPredictTradeKind(item.type);
@@ -1027,8 +1058,8 @@ export function useActivityListItemRowContent(
   const primaryAmount =
     domainFiatAmount ?? resolveAmount(primaryToken, item.type);
   const secondaryAmount = domainFiatAmount
-    ? isPerpsFunds
-      ? perpsCollateralSecondaryAmount(primaryToken)
+    ? isFundsRow
+      ? fundsTokenSecondaryAmount(primaryToken)
       : undefined
     : (resolveAmount(secondaryToken, item.type) ??
       resolveFiatAmount({

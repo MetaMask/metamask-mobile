@@ -23,7 +23,7 @@ const selectedTypeFilterLabel = (filter: ActivityTypeFilter) =>
 
 describeForPlatforms('ActivityScreen', () => {
   it('updates search text and selected type filter through the real screen controls', async () => {
-    const { getByPlaceholderText, getByTestId, getByText, findByTestId } =
+    const { getByPlaceholderText, getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
 
     const searchInput = getByPlaceholderText(
@@ -41,29 +41,50 @@ describeForPlatforms('ActivityScreen', () => {
 
     fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Money)));
 
+    // The label renders on both the in-list chip and its pinned copy.
     await waitFor(() => {
       expect(
-        getByText(selectedTypeFilterLabel(ActivityTypeFilter.Money)),
-      ).toBeOnTheScreen();
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Money)).length,
+      ).toBeGreaterThan(0);
     });
   });
 
   it('updates the selected network filter through the real network sheet', async () => {
-    const { getByTestId, getByText, findByText } = renderActivityScreenView();
+    const { getByTestId, getAllByText, findByText } =
+      renderActivityScreenView();
 
     fireEvent.press(
       getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
     );
     fireEvent.press(await findByText('Linea'));
 
+    // The label renders on both the in-list chip and its pinned copy.
     await waitFor(() => {
       expect(
-        getByText(
+        getAllByText(
           strings('activity_view.filter_network_selected', {
             label: 'Linea',
           }),
-        ),
-      ).toBeOnTheScreen();
+        ).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  it('disables the network filter chip when a single-network domain (Perps) is selected', async () => {
+    const { getByTestId, findByTestId } = renderActivityScreenView();
+
+    // Network chip starts enabled (default type filter is Transactions).
+    expect(
+      getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    ).toBeEnabled();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Perps)));
+
+    await waitFor(() => {
+      expect(
+        getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      ).toBeDisabled();
     });
   });
 

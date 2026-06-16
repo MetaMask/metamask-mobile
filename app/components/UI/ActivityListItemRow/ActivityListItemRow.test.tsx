@@ -643,6 +643,65 @@ describe('ActivityListItemRow — row content', () => {
     expect(primary).toContain('0.0006');
   });
 
+  it('renders predict funds rows with balance subtitle, fiat primary, and token secondary', () => {
+    const addFunds = {
+      type: 'predictionsAddFunds',
+      chainId: 'eip155:137',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      data: {
+        hash: '0xpredictdep',
+        token: { amount: '4000', symbol: 'USDC', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={addFunds} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xpredictdep').props.children).toBe(
+      strings('transactions.activity_prediction_account_funded'),
+    );
+    expect(getByTestId('activity-subtitle-0xpredictdep').props.children).toBe(
+      strings('transactions.activity_predictions_balance'),
+    );
+    const primary = getByTestId('activity-primary-amount-0xpredictdep').props
+      .children as string;
+    expect(primary.startsWith('+')).toBe(true);
+    expect(primary).toContain('$');
+    expect(
+      getByTestId('activity-secondary-amount-0xpredictdep').props.children,
+    ).toBe('4,000 USDC');
+  });
+
+  it('appends an em-dash "Failed" suffix to a failed domain (predict) row title', () => {
+    const failedWithdraw = {
+      type: 'predictionsWithdrawFunds',
+      chainId: 'eip155:137',
+      status: 'failed',
+      timestamp: 1_700_000_000_000,
+      data: {
+        hash: '0xpredictwdfailed',
+        token: {
+          amount: '1000000',
+          symbol: 'USDC',
+          decimals: 6,
+          direction: 'out',
+        },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={failedWithdraw} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xpredictwdfailed').props.children).toBe(
+      `${strings('transactions.activity_prediction_withdrawal')}—${strings(
+        'transaction.failed',
+      )}`,
+    );
+  });
+
   it('renders predict rows with market subtitle, fiat amount, and market icon', () => {
     const placed = {
       type: 'predictionPlaced',
@@ -1116,8 +1175,12 @@ const EXPECTED_TITLES = {
   contractInteraction: strings('transactions.smart_contract_interaction'),
   contractDeployment: strings('transactions.tx_review_contract_deployment'),
   smartAccountUpgrade: 'Smart account upgraded',
-  predictionsAddFunds: strings('transactions.tx_review_predict_deposit'),
-  predictionsWithdrawFunds: strings('transactions.tx_review_predict_withdraw'),
+  predictionsAddFunds: strings(
+    'transactions.activity_prediction_account_funded',
+  ),
+  predictionsWithdrawFunds: strings(
+    'transactions.activity_prediction_withdrawal',
+  ),
   predictionClaimWinnings: strings('predict.transactions.claim_title'),
   predictionCashedOut: strings('predict.transactions.sell_title'),
   predictionPlaced: strings('transactions.activity_prediction_placed'),
