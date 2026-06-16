@@ -186,49 +186,37 @@ jest.mock('../../../component-library/components/Texts/Text', () => ({
   },
 }));
 
-jest.mock('../../Base/ListItem', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text: TextActual, View } = jest.requireActual('react-native');
+  const { Pressable, View } = jest.requireActual('react-native');
 
-  const ListItem = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-
-  ListItem.Date = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(TextActual, null, children);
-  ListItem.Content = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.Icon = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.Body = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.Title = ({
-    children,
+  const ListItem = ({
+    avatar,
+    description,
+    endAccessory,
+    isInteractive,
+    onPress,
+    title,
     ...rest
   }: {
-    children: React.ReactNode;
-    numberOfLines?: number;
-    style?: object;
-  }) => ReactActual.createElement(TextActual, rest, children);
-  ListItem.Amounts = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.Amount = ({
-    children,
-    ...rest
-  }: {
-    children: React.ReactNode;
-    style?: object;
-    testID?: string;
-  }) => ReactActual.createElement(TextActual, rest, children);
-  ListItem.FiatAmount = ({
-    children,
-    ...rest
-  }: {
-    children: React.ReactNode;
-    style?: object;
-    testID?: string;
-  }) => ReactActual.createElement(TextActual, rest, children);
+    avatar?: React.ReactNode;
+    description?: React.ReactNode;
+    endAccessory?: React.ReactNode;
+    isInteractive?: boolean;
+    onPress?: () => void;
+    title?: React.ReactNode;
+  }) => {
+    const Component = isInteractive ? Pressable : View;
+    return ReactActual.createElement(
+      Component,
+      { onPress, ...rest },
+      avatar,
+      ReactActual.createElement(View, null, title, description),
+      endAccessory,
+    );
+  };
 
-  return ListItem;
+  return { ListItem };
 });
 
 // ---------------------------------------------------------------------------
