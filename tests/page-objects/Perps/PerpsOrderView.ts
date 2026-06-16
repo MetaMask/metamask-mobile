@@ -45,10 +45,8 @@ class PerpsOrderView {
    * Opens Auto close / TPSL from the order form. The row is labeled TP/SL in UI;
    * production uses STOP_LOSS_BUTTON testID on that touchable (see PerpsOrderView.tsx).
    */
-  get takeProfitButton() {
-    return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON,
-    ) as DetoxElement;
+  get takeProfitButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON);
   }
 
   get turnNotificationsOnButton() {
@@ -303,8 +301,19 @@ class PerpsOrderView {
   }
 
   async selectLimitOrderType() {
-    await Gestures.waitAndTap(this.orderTypeLimit, {
-      elemDescription: 'Select Limit order type',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.orderTypeLimit, {
+          elemDescription: 'Select Limit order type',
+        });
+      },
+      appium: async () => {
+        const limitEl = await PlaywrightMatchers.getElementByText('Limit');
+        await PlaywrightGestures.waitAndTap(limitEl, {
+          checkForDisplayed: true,
+          timeout: 15000,
+        });
+      },
     });
   }
 
@@ -332,34 +341,72 @@ class PerpsOrderView {
       },
     );
 
-    const input = Matchers.getElementByID(inputTestId) as DetoxElement;
-    await Gestures.waitAndTap(input, {
-      elemDescription: focusInputElemDescription,
-      checkEnabled: false,
-    });
-
-    for (const ch of price) {
-      const keypadTestId = ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
-      const key = Matchers.getElementByID(keypadTestId) as DetoxElement;
-      await Gestures.waitAndTap(key, {
-        elemDescription: `TPSL keypad key ${ch}`,
-        checkEnabled: false,
-        checkVisibility: false,
-      });
-    }
-
-    const doneButton = Matchers.getElementByText('Done') as DetoxElement;
-    await Gestures.waitAndTap(doneButton, {
-      elemDescription: 'Dismiss TPSL keypad (Done)',
-      checkEnabled: false,
-      checkVisibility: false,
-    });
-
+    const input = Matchers.getElementByID(inputTestId);
+    const doneButton = Matchers.getElementByText('Done');
     const setButton = Matchers.getElementByID(
       PerpsTPSLViewSelectorsIDs.SET_BUTTON,
-    ) as DetoxElement;
-    await Gestures.waitAndTap(setButton, {
-      elemDescription: 'Confirm TP/SL (Set)',
+    );
+
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(input, {
+          elemDescription: focusInputElemDescription,
+          checkEnabled: false,
+        });
+
+        for (const ch of price) {
+          const keypadTestId =
+            ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
+          const key = Matchers.getElementByID(keypadTestId);
+          await Gestures.waitAndTap(key, {
+            elemDescription: `TPSL keypad key ${ch}`,
+            checkEnabled: false,
+            checkVisibility: false,
+          });
+        }
+
+        await Gestures.waitAndTap(doneButton, {
+          elemDescription: 'Dismiss TPSL keypad (Done)',
+          checkEnabled: false,
+          checkVisibility: false,
+        });
+        await Gestures.waitAndTap(setButton, {
+          elemDescription: 'Confirm TP/SL (Set)',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(await asPlaywrightElement(input), {
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+
+        for (const ch of price) {
+          const keypadTestId =
+            ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
+          const key = await asPlaywrightElement(
+            Matchers.getElementByID(keypadTestId),
+          );
+          await PlaywrightGestures.waitAndTap(key, {
+            checkForDisplayed: true,
+            checkForEnabled: false,
+          });
+        }
+
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(doneButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: false,
+          },
+        );
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(setButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          },
+        );
+      },
     });
   }
 
@@ -387,22 +434,64 @@ class PerpsOrderView {
     );
   }
 
+  async setLimitPricePreset(preset: string) {
+    await encapsulatedAction({
+      detox: async () => {
+        const presetButton =
+          preset === 'Mid'
+            ? Matchers.getElementByID(
+                PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
+              )
+            : Matchers.getElementByText(preset);
+        await Gestures.waitAndTap(presetButton, {
+          elemDescription: `Select limit price preset ${preset}`,
+        });
+      },
+      appium: async () => {
+        const presetButton =
+          preset === 'Mid'
+            ? await PlaywrightMatchers.getElementById(
+                PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
+                { exact: true },
+              )
+            : await PlaywrightMatchers.getElementByText(preset);
+        await PlaywrightGestures.scrollIntoView(presetButton);
+        await PlaywrightGestures.waitAndTap(presetButton, {
+          checkForDisplayed: true,
+          timeout: 20000,
+        });
+      },
+    });
+  }
+
+  /** @deprecated Use {@link setLimitPricePreset} */
   async setLimitPricePresetLong(preset: string) {
-    const presetButton =
-      preset === 'Mid'
-        ? (Matchers.getElementByID(
-            PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
-          ) as DetoxElement)
-        : (Matchers.getElementByText(preset) as DetoxElement);
-    await Gestures.waitAndTap(presetButton, {
+    await this.setLimitPricePreset(preset);
+  }
+
+  async setLimitPricePresetNamed(preset: 'Bid' | 'Ask') {
+    const testId =
+      preset === 'Bid'
+        ? PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID
+        : PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK;
+    await Gestures.waitAndTap(Matchers.getElementByID(testId), {
       elemDescription: `Select limit price preset ${preset}`,
+    });
+  }
+
+  async setLimitPricePresetPercent(percentage: number) {
+    const presetButton = Matchers.getElementByID(
+      `${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`,
+    );
+    await Gestures.waitAndTap(presetButton, {
+      elemDescription: `Select limit price preset ${percentage}%`,
     });
   }
 
   async confirmLimitPrice() {
     const setButton = Matchers.getElementByID(
       PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-    ) as DetoxElement;
+    );
     await Gestures.waitAndTap(setButton, {
       elemDescription: 'Confirm limit price',
     });

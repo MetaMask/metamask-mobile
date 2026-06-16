@@ -195,6 +195,19 @@ export default class Matchers {
   }
 
   /**
+   * Scroll container matcher for Gestures.scrollToElement.
+   * Detox: native matcher by testID. Appium: omitted (scrollIntoView on target).
+   */
+  static scrollContainer(
+    selectorString: string,
+  ): Promise<Detox.NativeMatcher | undefined> {
+    if (FrameworkDetector.isAppium()) {
+      return Promise.resolve(undefined);
+    }
+    return this.getIdentifier(selectorString);
+  }
+
+  /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text
    */
   static async getSystemElementByText(

@@ -5,6 +5,8 @@ import {
   PerpsClosePositionViewSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsHomeViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
   getPerpsTPSLViewSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
@@ -14,7 +16,12 @@ import Utilities from '../../framework/Utilities';
 import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
 import PerpsHomeView from './PerpsHomeView';
 import PerpsMarketListView from './PerpsMarketListView';
-import { EncapsulatedElementType } from '../../framework';
+import PerpsMarketDetailsView from './PerpsMarketDetailsView';
+import {
+  EncapsulatedElementType,
+  FrameworkDetector,
+  PlaywrightMatchers,
+} from '../../framework';
 
 /** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
@@ -151,6 +158,39 @@ class PerpsView {
       },
       { interval: 1000, timeout: 30000 },
     );
+  }
+
+  /**
+   * Asserts the open limit order label is no longer shown on Perps portfolio/home.
+   */
+  async expectLimitOrderNotVisibleOnPortfolio(
+    options: PerpsPortfolioLimitFlowExpectOptions,
+  ): Promise<void> {
+    const { symbol, direction } = options;
+    const orderLabel = options.orderLabel ?? `Limit ${direction}`;
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectTextNotDisplayed(orderLabel, {
+          description: `${orderLabel} order cleared from Perps portfolio (${symbol})`,
+          timeout: 5000,
+        });
+      },
+      { interval: 1000, timeout: 30000 },
+    );
+  }
+
+  /**
+   * Taps an open limit order card on Perps portfolio/home to open order details.
+   */
+  async tapLimitOrderOnPortfolio(
+    options: PerpsPortfolioLimitFlowExpectOptions,
+  ): Promise<void> {
+    const orderLabel = options.orderLabel ?? `Limit ${options.direction}`;
+    const orderCard = Matchers.getElementByText(orderLabel);
+    await Gestures.waitAndTap(orderCard, {
+      elemDescription: `Tap ${orderLabel} order on Perps portfolio`,
+      timeout: 15000,
+    });
   }
 
   /**
@@ -402,6 +442,62 @@ class PerpsView {
     });
   }
 
+  /** Perps portfolio home (orders/positions feed), not market details or explore list. */
+  async isOnPerpsPortfolioHome(timeout = 2000): Promise<boolean> {
+    if (FrameworkDetector.isAppium()) {
+      const portfolioMarkers = [
+        'perps-home',
+        PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+        PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      ];
+      for (const testId of portfolioMarkers) {
+        try {
+          const el = await PlaywrightMatchers.getElementById(testId, {
+            exact: true,
+          });
+          await el.unwrap().waitForDisplayed({ timeout });
+          return true;
+        } catch {
+          // Try next marker.
+        }
+      }
+      return false;
+    }
+
+    if (await Utilities.isElementVisible(this.perpsHomeHeader, timeout)) {
+      return true;
+    }
+    if (await Utilities.isElementVisible(PerpsHomeView.backHome, timeout)) {
+      return true;
+    }
+    return false;
+  }
+
+  private async isMarketDetailsBackVisible(timeout = 2000): Promise<boolean> {
+    return this.isTestIdVisible(
+      PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
+      timeout,
+    );
+  }
+
+  private async isTestIdVisible(
+    testId: string,
+    timeout = 2000,
+  ): Promise<boolean> {
+    if (FrameworkDetector.isAppium()) {
+      try {
+        const el = await PlaywrightMatchers.getElementById(testId, {
+          exact: true,
+        });
+        await el.unwrap().waitForDisplayed({ timeout });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    return Utilities.isElementVisible(Matchers.getElementByID(testId), timeout);
+  }
+
   /**
    * After placing an order from market details (explore → market → order), return to Perps
    * portfolio home where open orders are listed. Uses market-details header back, then
@@ -409,30 +505,24 @@ class PerpsView {
    * exists on portfolio home and exits Perps toward wallet).
    */
   async navigateToPerpsPortfolioHomeFromMarketOrderFlow(): Promise<void> {
-    await this.tapBackButtonPositionSheet();
-
-    if (await Utilities.isElementVisible(PerpsHomeView.backHome, 3000)) {
+    if (await this.isOnPerpsPortfolioHome()) {
       return;
     }
 
-    if (
-      await Utilities.isElementVisible(
-        PerpsMarketListView.headerBackButton,
-        3000,
-      )
-    ) {
-      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
+    if (await this.isMarketDetailsBackVisible(3000)) {
+      await PerpsMarketDetailsView.tapBackButton();
+    }
+
+    if (await this.isOnPerpsPortfolioHome()) {
       return;
     }
 
-    if (
-      await Utilities.isElementVisible(
-        this.backButtonPositionSheet as DetoxElement,
-        3000,
-      )
-    ) {
-      await this.tapBackButtonPositionSheet();
+    const marketListBackTestId = `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`;
+    if (await this.isTestIdVisible(marketListBackTestId, 3000)) {
       await PerpsMarketListView.tapHeaderBackToPortfolioHome();
+    }
+
+    if (await this.isOnPerpsPortfolioHome()) {
       return;
     }
 

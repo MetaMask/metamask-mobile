@@ -79,3 +79,22 @@ jobs:
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
+
+  appium-perps-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokePerps'))
+      }}
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-perps-android-smoke
+      platform: android
+      test_suite_tag: SmokePerps
+      split_number: 1
+      total_splits: 1
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

@@ -5,7 +5,7 @@
  * iOS: run-appium-smoke-tests-ios.yml (run-appium-smoke-tests-ios-scheduled.yml).
  * Append a tag here and add a matching job to each orchestrator.
  */
-export const APPIUM_SMOKE_TAGS = ['SmokeAccounts'];
+export const APPIUM_SMOKE_TAGS = ['SmokeAccounts', 'SmokePerps'];
 
 /**
  * @param {string | string[]} selectedTags JSON array string or parsed tags

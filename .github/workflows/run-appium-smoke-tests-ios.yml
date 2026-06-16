@@ -147,3 +147,27 @@ jobs:
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
+
+  appium-perps-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (needs.build-ios-apps.result == 'success' || needs.build-ios-apps.result == 'skipped') &&
+        (needs.prebuild-wda-for-appium-ios.result == 'success' ||
+         needs.prebuild-wda-for-appium-ios.result == 'skipped' ||
+         needs.prebuild-wda-for-appium-ios.result == 'failure') &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokePerps'))
+      }}
+    needs: [build-ios-apps, prebuild-wda-for-appium-ios]
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-perps-ios-smoke
+      platform: ios
+      test_suite_tag: SmokePerps
+      split_number: 1
+      total_splits: 1
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit

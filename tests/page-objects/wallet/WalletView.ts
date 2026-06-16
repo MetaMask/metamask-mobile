@@ -37,8 +37,8 @@ class WalletView {
   }
 
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
-  get walletScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+  get walletScrollViewIdentifier(): Promise<Detox.NativeMatcher | undefined> {
+    return Matchers.scrollContainer(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
   /** Wallet ScrollView as element (for gestures like swipe). */
