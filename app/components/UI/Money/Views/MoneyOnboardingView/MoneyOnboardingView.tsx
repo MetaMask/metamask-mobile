@@ -1,58 +1,78 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import LinearGradient from 'react-native-linear-gradient';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
-import { useDispatch, useSelector } from 'react-redux';
-import { IconColor, TextColor } from '@metamask/design-system-react-native';
+import { useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type {
-  OnboardingStep,
-  RiveConfig,
-} from '../../../RiveOnboardingStepper';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { useTheme } from '../../../../../util/theme';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
-import { AppThemeKey } from '../../../../../util/theme/models';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-
-/** RiveOnboarding Imports */
 import Rive, {
   AutoBind,
   useRive,
   useRiveString,
   useRiveNumber,
   Fit,
+  useRiveTrigger,
 } from 'rive-react-native';
 import { PixelRatio } from 'react-native';
+import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyOnboardingAnimationV3 = require('../../../../../animations/money_account_onboarding_animation_v3.riv');
-const RIVE_STATE_MACHINE_NAME_V2 = 'State Machine 1';
-const CARD_CASHBACK_PERCENTAGE_V2 = 3;
+const MoneyOnboardingAnimationV4 = require('../../../../../animations/money_account_onboarding_animation_v4.riv');
 
-const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {
-  UI1: 0,
-  UI2: 1,
-  UI3: 2,
-  UI4: 3,
+/**
+ * State machine constants must match the Rive file authored for this animation.
+ * Update these if the Rive file's state machine or trigger names change.
+ */
+const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
+const RIVE_ARTBOARD_NAME = 'Money_Account';
+const CARD_CASHBACK_PERCENTAGE = 3;
+const CLOSE_TRIGGER = 'close';
+
+/**
+ * The keys in this mapping refer to the step state names in the Rive file.
+ * Do not change the keys without updating the Rive file.
+ */
+const RIVE_STEP_NAMES = {
+  UI1: 'UI1',
+  APY: 'APY',
+  CARD: 'Card',
+  COINS: 'Coins',
+  FINAL_STATE: 'FinalState',
 };
 
-interface RiveOnboardingProps {
-  onStepViewed: (stepIndex: number) => void;
-  onComplete: (stepIndex: number) => void;
-}
+const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {
+  [RIVE_STEP_NAMES.UI1]: 0,
+  [RIVE_STEP_NAMES.APY]: 1,
+  [RIVE_STEP_NAMES.CARD]: 2,
+  [RIVE_STEP_NAMES.COINS]: 3,
+  [RIVE_STEP_NAMES.FINAL_STATE]: 4,
+};
 
-const RiveOnboarding = ({ onStepViewed, onComplete }: RiveOnboardingProps) => {
+const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
+
+const MoneyOnboardingView = () => {
+  const navigation =
+    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+
+  const dispatch = useDispatch();
+
+  const { trackOnboardingEvent } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
+    component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
+  });
+
   const { apyPercent } = useMoneyAccountBalance();
+
   const [ref, riveRef] = useRive();
+
+  const stepRef = useRef(0);
 
   // --- Text runs (stepText1–4: title, content, footer) ---
   const [, setStep1Title] = useRiveString(riveRef, 'stepText1/title');
@@ -76,31 +96,48 @@ const RiveOnboarding = ({ onStepViewed, onComplete }: RiveOnboardingProps) => {
   const [, setCoinSeq] = useRiveNumber(riveRef, 'coinSeq');
   const [, setCardSeq] = useRiveNumber(riveRef, 'cardSeq');
 
+  // Hardcoded to English to simplify event tracking.
+  const stepTitlesEnglish: string[] = useMemo(
+    () => [
+      strings('money.rive_onboarding.step1_title', { locale: 'en' }),
+      strings('money.rive_onboarding.step2_title', { locale: 'en' }),
+      strings('money.rive_onboarding.step3_title', { locale: 'en' }),
+      strings('money.rive_onboarding.step4_title', { locale: 'en' }),
+      '', // Final step doesn't have a title.
+    ],
+    [],
+  );
+
   useEffect(() => {
     if (!riveRef) return;
 
+    // Step 1
     setStep1Title(strings('money.rive_onboarding.step1_title'));
     setStep1Content(
       strings('money.rive_onboarding.step1_body', { percentage: apyPercent }),
     );
     setStep1Footer(strings('money.rive_onboarding.step1_footer_text'));
 
+    // Step 2
     setStep2Title(strings('money.rive_onboarding.step2_title'));
     setStep2Content(strings('money.rive_onboarding.step2_body'));
     setStep2Footer(strings('money.rive_onboarding.step2_footer_text'));
 
+    // Step 3
     setStep3Title(strings('money.rive_onboarding.step3_title'));
     setStep3Content(
       strings('money.rive_onboarding.step3_body', {
-        percentage: CARD_CASHBACK_PERCENTAGE_V2,
+        percentage: CARD_CASHBACK_PERCENTAGE,
       }),
     );
     setStep3Footer(strings('money.rive_onboarding.step3_footer_text'));
 
+    // Step 4
     setStep4Title(strings('money.rive_onboarding.step4_title'));
     setStep4Content(strings('money.rive_onboarding.step4_body'));
     setStep4Footer(strings('money.rive_onboarding.step4_footer_text'));
 
+    // Config
     setTransitionSpeed(300);
     setCoinSeq(0);
     setCardSeq(0);
@@ -124,164 +161,12 @@ const RiveOnboarding = ({ onStepViewed, onComplete }: RiveOnboardingProps) => {
     setCardSeq,
   ]);
 
-  const handleStateChanged = useCallback(
-    (_stateMachineName: string, stateName: string) => {
-      const stepIndex = RIVE_STATE_TO_STEP_INDEX[stateName];
-      if (stepIndex !== undefined) {
-        onStepViewed(stepIndex);
-        return;
-      }
-
-      if (stateName === 'FinalState') {
-        onComplete(3);
-      }
-    },
-    [onStepViewed, onComplete],
-  );
-
-  return (
-    <Rive
-      ref={ref}
-      source={MoneyOnboardingAnimationV3}
-      artboardName="Money_Account"
-      stateMachineName={RIVE_STATE_MACHINE_NAME_V2}
-      dataBinding={AutoBind(true)}
-      fit={Fit.Layout}
-      layoutScaleFactor={PixelRatio.get()}
-      onStateChanged={handleStateChanged}
-    />
-  );
-};
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyOnboardingAnimation = require('../../../../../animations/money_account_onboarding_animation.riv');
-
-/**
- * State machine constants must match the Rive file authored for this animation.
- * Update these if the Rive file's state machine or trigger names change.
- */
-const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
-const RIVE_TRIGGER_NAME = 'Trig';
-
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const GRADIENT_COLORS = ['#190066', '#3F6FD0'];
-const GRADIENT_START = { x: 0, y: 0 };
-const GRADIENT_END = { x: 0, y: 1 };
-
-const CARD_CASHBACK_PERCENTAGE = 3;
-
-const RIVE_ANIMATION_STYLE = { flex: 1, top: 100 };
-
-const RIVE_CONFIG: RiveConfig = {
-  source: MoneyOnboardingAnimation,
-  stateMachineName: RIVE_STATE_MACHINE_NAME,
-  triggerName: RIVE_TRIGGER_NAME,
-};
-
-export const MONEY_ONBOARDING_STEP_DURATION_MS = 4 * 1000; // 4 seconds
-
-const MoneyOnboardingView = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
-
-  const dispatch = useDispatch();
-
-  const { trackOnboardingEvent } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
-    component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
-  });
-
-  const { colors, themeAppearance } = useTheme();
-
-  const isStepperAnimationEnabled = useSelector(
-    selectMoneyOnboardingStepperAnimationEnabled,
-  );
-
-  const tw = useTailwind();
-
-  const isDarkTheme = themeAppearance === AppThemeKey.dark;
-
-  const progressBarColor = isDarkTheme
-    ? colors.primary.default
-    : colors.primary.inverse;
-
-  // Title and text color
-  const textColor = isDarkTheme
-    ? TextColor.TextDefault
-    : TextColor.PrimaryInverse;
-
-  const footerTextColor = isDarkTheme
-    ? TextColor.TextDefault
-    : TextColor.PrimaryInverse;
-
-  const iconColor = isDarkTheme
-    ? IconColor.IconDefault
-    : IconColor.PrimaryInverse;
-
-  const buttonIsInverse = !isDarkTheme;
-
-  const { apyPercent } = useMoneyAccountBalance();
-
-  const steps: OnboardingStep[] = useMemo(
-    () => [
-      {
-        title: strings('money.rive_onboarding.step1_title'),
-        body: strings('money.rive_onboarding.step1_body', {
-          percentage: apyPercent,
-        }),
-        footerText: strings('money.rive_onboarding.step1_footer_text'),
-        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
-        buttonLabel: strings('money.rive_onboarding.continue'),
-      },
-      {
-        title: strings('money.rive_onboarding.step2_title'),
-        body: strings('money.rive_onboarding.step2_body'),
-        footerText: strings('money.rive_onboarding.step2_footer_text'),
-        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
-        buttonLabel: strings('money.rive_onboarding.continue'),
-      },
-      {
-        title: strings('money.rive_onboarding.step3_title'),
-        body: strings('money.rive_onboarding.step3_body', {
-          percentage: CARD_CASHBACK_PERCENTAGE,
-        }),
-        footerText: strings('money.rive_onboarding.step3_footer_text'),
-        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
-        buttonLabel: strings('money.rive_onboarding.continue'),
-      },
-      {
-        title: strings('money.rive_onboarding.step4_title'),
-        body: strings('money.rive_onboarding.step4_body'),
-        footerText: strings('money.rive_onboarding.step4_footer_text'),
-        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
-        buttonLabel: strings('money.rive_onboarding.continue'),
-      },
-      {
-        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
-        showCloseButton: false,
-      },
-    ],
-    [apyPercent],
-  );
-
-  // Hardcoded to use English step titles to simplify event tracking.
-  const stepTitlesEnglish: string[] = useMemo(
-    () => [
-      strings('money.rive_onboarding.step1_title', { locale: 'en' }),
-      strings('money.rive_onboarding.step2_title', { locale: 'en' }),
-      strings('money.rive_onboarding.step3_title', { locale: 'en' }),
-      strings('money.rive_onboarding.step4_title', { locale: 'en' }),
-      '', // Final step doesn't have a title.
-    ],
-    [],
-  );
-
   const handleClose = useCallback(
     (stepIndex: number) => {
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
-        total_steps: steps.length,
+        total_steps: TOTAL_ONBOARDING_STEPS,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
         redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
@@ -292,13 +177,7 @@ const MoneyOnboardingView = () => {
         params: { screen: Routes.MONEY.HOME },
       });
     },
-    [
-      dispatch,
-      navigation,
-      stepTitlesEnglish,
-      steps.length,
-      trackOnboardingEvent,
-    ],
+    [dispatch, navigation, stepTitlesEnglish, trackOnboardingEvent],
   );
 
   const handleStepViewed = useCallback(
@@ -306,12 +185,12 @@ const MoneyOnboardingView = () => {
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
-        total_steps: steps.length,
+        total_steps: TOTAL_ONBOARDING_STEPS,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
       });
     },
-    [stepTitlesEnglish, steps.length, trackOnboardingEvent],
+    [stepTitlesEnglish, trackOnboardingEvent],
   );
 
   const handleComplete = useCallback(
@@ -320,7 +199,7 @@ const MoneyOnboardingView = () => {
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
-        total_steps: steps.length,
+        total_steps: TOTAL_ONBOARDING_STEPS,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
         redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
@@ -330,31 +209,40 @@ const MoneyOnboardingView = () => {
         params: { screen: Routes.MONEY.HOME },
       });
     },
-    [
-      dispatch,
-      navigation,
-      stepTitlesEnglish,
-      steps.length,
-      trackOnboardingEvent,
-    ],
+    [dispatch, navigation, stepTitlesEnglish, trackOnboardingEvent],
   );
 
-  const renderBackground = useCallback(
-    () => (
-      <LinearGradient
-        colors={GRADIENT_COLORS}
-        start={GRADIENT_START}
-        end={GRADIENT_END}
-        style={tw`absolute inset-0`}
-      />
-    ),
-    [tw],
+  useRiveTrigger(riveRef, CLOSE_TRIGGER, () => {
+    handleClose(stepRef.current);
+  });
+
+  const handleStateChanged = useCallback(
+    (_stateMachineName: string, stateName: string) => {
+      const stepIndex = RIVE_STATE_TO_STEP_INDEX[stateName];
+
+      if (stepIndex !== undefined) {
+        stepRef.current = stepIndex;
+        handleStepViewed(stepIndex);
+      }
+
+      if (stateName === RIVE_STEP_NAMES.FINAL_STATE) {
+        handleComplete(stepRef.current);
+      }
+    },
+    [handleStepViewed, handleComplete],
   );
 
   return (
-    <RiveOnboarding
-      onStepViewed={handleStepViewed}
-      onComplete={handleComplete}
+    <Rive
+      ref={ref}
+      source={MoneyOnboardingAnimationV4}
+      artboardName={RIVE_ARTBOARD_NAME}
+      stateMachineName={RIVE_STATE_MACHINE_NAME}
+      dataBinding={AutoBind(true)}
+      fit={Fit.Layout}
+      layoutScaleFactor={PixelRatio.get()}
+      onStateChanged={handleStateChanged}
+      testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
     />
   );
 };
