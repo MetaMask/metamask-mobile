@@ -976,3 +976,61 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
     expect(result.current.description).toBe('mUSD');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Perps/Predict ↔ Money transfers (matched via the mUSD pay token)
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — Perps/Predict ↔ Money', () => {
+  const MONAD: Hex = '0x8f';
+  const payOnMonad = (extra: Record<string, string>) => ({
+    tokenAddress: MUSD_TOKEN_ADDRESS,
+    chainId: MONAD,
+    ...extra,
+  });
+
+  it('renders a money-funded Perps deposit as an outflow ("Sent")', () => {
+    // Outflow → the debit from the account, including the bridge fee = totalFiat.
+    const tx = makeTx(TransactionType.perpsDeposit, {
+      metamaskPay: payOnMonad({ totalFiat: '0.67157', targetFiat: '0.64' }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.sent');
+    expect(result.current.icon).toBe(IconName.Arrow2UpRight);
+    expect(result.current.description).toBe(
+      'transaction_details.label.perps_account',
+    );
+    expect(result.current.isIncoming).toBe(false);
+    expect(result.current.primaryAmount).toBe('-0.67 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.67');
+  });
+
+  it('renders a Predict withdraw into the Money account as an inflow ("Deposited")', () => {
+    // Inflow → the net amount that lands = targetFiat. Withdraw sits in the
+    // EIP-7702 batch's nested calls.
+    const tx = makeTx(TransactionType.batch, {
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      metamaskPay: payOnMonad({
+        totalFiat: '0.158879',
+        targetFiat: '0.099965',
+      }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.icon).toBe(IconName.Add);
+    expect(result.current.description).toBe(
+      'transaction_details.label.predictions_account',
+    );
+    expect(result.current.isIncoming).toBe(true);
+    expect(result.current.primaryAmount).toBe('+0.10 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.10');
+  });
+});

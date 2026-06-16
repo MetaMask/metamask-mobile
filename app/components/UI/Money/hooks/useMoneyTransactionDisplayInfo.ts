@@ -33,7 +33,12 @@ import {
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
 import { MONEY_WITHDRAW_TOKEN_SYMBOL } from '../constants/moneyTokens';
-import { isMoneyWithdrawTx } from '../utils/moneyTransactionGuards';
+import {
+  isMoneyWithdrawTx,
+  isPerpsPredictMoneyActivity,
+  isPerpsPredictMoneyWithdraw,
+  perpsPredictServiceFamily,
+} from '../utils/moneyTransactionGuards';
 import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
 import {
   classifyMoneyActivity,
@@ -111,6 +116,17 @@ function deriveSubtitle(
   if (explicitSubtitle) {
     return explicitSubtitle;
   }
+
+  // Perps/Predict ↔ Money transfers (either direction) name the service account
+  // instead of a token pair / sender.
+  const serviceFamily = perpsPredictServiceFamily(tx);
+  if (serviceFamily === 'perps') {
+    return strings('transaction_details.label.perps_account');
+  }
+  if (serviceFamily === 'predict') {
+    return strings('transaction_details.label.predictions_account');
+  }
+
   switch (kind) {
     case 'converted':
       return sourceTokenSymbol
@@ -241,6 +257,25 @@ export function useMoneyTransactionDisplayInfo(
           new BigNumber(0),
           currentCurrency,
         )}`;
+      }
+    }
+
+    // Perps/Predict ↔ Money transfers carry no `requiredAssets` and aren't token
+    // transfers, so neither amount path above resolves.
+    if (isPerpsPredictMoneyActivity(tx)) {
+      const fiatStr = isPerpsPredictMoneyWithdraw(tx)
+        ? tx.metamaskPay?.targetFiat
+        : tx.metamaskPay?.totalFiat;
+      const fiat = Number(fiatStr);
+      if (!isNaN(fiat) && fiat > 0) {
+        const amount = new BigNumber(fiat);
+        primaryAmount = formatMusdAmount(amount, isIncoming);
+        if (currentCurrency) {
+          fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatFiat(
+            amount,
+            currentCurrency,
+          )}`;
+        }
       }
     }
 
