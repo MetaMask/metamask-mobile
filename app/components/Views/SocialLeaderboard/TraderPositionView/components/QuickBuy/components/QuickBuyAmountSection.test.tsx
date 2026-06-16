@@ -70,11 +70,14 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText('123.45 ETH')).toBeOnTheScreen();
   });
 
-  it('replaces the secondary label with an ActivityIndicator when isQuoteLoading', () => {
+  it('replaces the secondary label with a spinner when isQuoteLoading', () => {
     render(
       <QuickBuyAmountSection {...defaultProps} isQuoteLoading usdAmount="20" />,
     );
     expect(screen.getByTestId('quick-buy-amount-area')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-amount-loading-spinner'),
+    ).toBeOnTheScreen();
     // Secondary label is replaced by spinner — crypto label should NOT be present
     expect(screen.queryByText('0 ETH')).not.toBeOnTheScreen();
   });

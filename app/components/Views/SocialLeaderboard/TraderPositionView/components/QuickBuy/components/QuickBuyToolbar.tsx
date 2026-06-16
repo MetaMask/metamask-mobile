@@ -20,12 +20,13 @@ const QuickBuyToolbar: React.FC = () => {
     setActiveScreen,
     features,
     isPriceImpactError,
+    hasSellableBalance,
   } = useQuickBuyContext();
 
   // Prefer the quote-derived rate (available once a quote is fetched),
   // fall back to the price-metadata rate for the pre-quote state.
   const rateLabel = formattedRate ?? formattedExchangeRate;
-  const showToggle = features.tradeModes.length > 1;
+  const showToggle = features.tradeModes.length > 1 && hasSellableBalance;
 
   return (
     <Box

@@ -401,6 +401,14 @@ export function useQuickBuyController(
   // ─── Sell mode: position token (what the user is selling) ──────────────
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
 
+  // If the position balance drops to zero while sell mode is active, fall back
+  // to buy so the user is not stranded in a mode they can no longer use.
+  useEffect(() => {
+    if (positionToken === undefined && tradeMode === 'sell') {
+      setTradeMode('buy');
+    }
+  }, [positionToken, tradeMode]);
+
   // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
   const receiveTokenOptions = useReceiveTokens(
     destChainId as string | undefined,
@@ -1417,7 +1425,7 @@ export function useQuickBuyController(
   }
 
   let confirmButtonState: 'idle' | 'loading' | 'success' = 'idle';
-  if (isConfirmLoading) {
+  if (isConfirmLoading || isBlockingQuoteLoad) {
     confirmButtonState = 'loading';
   }
 

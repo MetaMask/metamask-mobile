@@ -48,11 +48,28 @@ describe('QuickBuyToolbar', () => {
       ...baseContext,
       setActiveScreen,
       features: { tradeModes: ['buy', 'sell'] },
+      hasSellableBalance: true,
     });
     render(<QuickBuyToolbar />);
     expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
     expect(
       screen.queryByText('social_leaderboard.quick_buy.buy_mode'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the static buy mode pill when sell is enabled but there is no sellable balance', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      setActiveScreen,
+      features: { tradeModes: ['buy', 'sell'] },
+      hasSellableBalance: false,
+    });
+    render(<QuickBuyToolbar />);
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.buy_mode'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('quick-buy-trade-mode-toggle'),
     ).not.toBeOnTheScreen();
   });
 
