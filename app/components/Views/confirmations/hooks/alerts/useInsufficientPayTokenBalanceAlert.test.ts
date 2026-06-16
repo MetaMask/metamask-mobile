@@ -556,7 +556,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('skips source network fee check when source chain is Monad', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
-        chainId: CHAIN_IDS.MONAD,
+        chainId: CHAIN_IDS.MONAD as Hex,
       } as TransactionMeta);
 
       useTokenWithBalanceMock.mockReturnValue({
