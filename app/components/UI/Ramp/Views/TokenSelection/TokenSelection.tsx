@@ -26,9 +26,9 @@ import {
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
-import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
+import useSearchTokenResults from '../../hooks/useSearchTokenResults';
 import { RampsToken } from '../../hooks/useRampTokens';
-import { useDepositCryptoCurrencyNetworkName } from '../../Deposit/hooks/useDepositCryptoCurrencyNetworkName';
+import { useDepositCryptoCurrencyNetworkName } from '../../hooks/useDepositCryptoCurrencyNetworkName';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';

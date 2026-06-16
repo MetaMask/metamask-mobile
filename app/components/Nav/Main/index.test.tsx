@@ -14,14 +14,11 @@ jest.mock('../../../components/UI/Ramp', () => ({
   default: () => mockReact.createElement('RampOrdersMock'),
 }));
 
-jest.mock('../../../components/UI/Ramp/Deposit/sdk', () => ({
-  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
-  DepositSDKContext: {
-    Provider: ({ children }: { children: React.ReactNode }) => children,
-  },
+jest.mock('../../../components/UI/Ramp/sdk', () => ({
+  DepositSDKNoAuth: {},
 }));
 
-jest.mock('../../../components/UI/Ramp/Deposit/orderProcessor', () => ({}));
+jest.mock('../../../components/UI/Ramp/orderProcessor/depositOrderProcessor', () => ({}));
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '0.0.0'),

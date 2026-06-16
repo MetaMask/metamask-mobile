@@ -3,7 +3,7 @@ import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
-import { processDepositOrder } from '../Deposit/orderProcessor';
+import { processDepositOrder } from './depositOrderProcessor';
 import { processUnifiedOrder } from './unifiedOrderProcessor';
 
 function processOrder(

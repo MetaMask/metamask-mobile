@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
+import useDepositEnabled from '../../../Ramp/hooks/useDepositEnabled';
 import { isBridgeAllowed } from '../../../Bridge/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -27,7 +27,7 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
 
-jest.mock('../../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
+jest.mock('../../../Ramp/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: jest.fn(),
 }));

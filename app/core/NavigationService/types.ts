@@ -70,7 +70,7 @@ import type {
   WebviewModalParams,
   KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
-import type { DepositNavigationParams } from '../../components/UI/Ramp/Deposit/types/navigationParams';
+import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
 
 // Transactions params
 import type {

@@ -3,7 +3,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import processOrder from '.';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
-import { processDepositOrder } from '../Deposit/orderProcessor';
+import { processDepositOrder } from '../orderProcessor/depositOrderProcessor';
 import { processUnifiedOrder } from './unifiedOrderProcessor';
 import { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
@@ -57,7 +57,7 @@ jest.mock('../Aggregator/orderProcessor/aggregator', () => ({
   processAggregatorOrder: jest.fn((order) => order),
 }));
 
-jest.mock('../Deposit/orderProcessor', () => ({
+jest.mock('../orderProcessor/depositOrderProcessor', () => ({
   processDepositOrder: jest.fn((order) => order),
 }));
 

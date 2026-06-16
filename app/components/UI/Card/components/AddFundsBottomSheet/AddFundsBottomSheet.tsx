@@ -23,7 +23,7 @@ import { View } from 'react-native';
 import { CardFundingToken } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
 import { isBridgeAllowed } from '../../../Bridge/utils';
-import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
+import useDepositEnabled from '../../../Ramp/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';

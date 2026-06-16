@@ -33,7 +33,7 @@ import {
   getOrders,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import { TokenDetailsSource } from '../constants/constants';
 import {
   createMockInternalAccount,
@@ -97,7 +97,7 @@ jest.mock('../../../../selectors/rampsController', () => ({
   selectRampsOrdersForSelectedAccountGroup: jest.fn(),
 }));
 
-jest.mock('../../Ramp/Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../Ramp/utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
 }));
 

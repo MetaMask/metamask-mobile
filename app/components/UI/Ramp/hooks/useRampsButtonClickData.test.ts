@@ -9,9 +9,9 @@ import {
 import { Order } from '@consensys/on-ramp-sdk';
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 import initialRootState from '../../../../util/test/initial-root-state';
-import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../utils/ProviderTokenVault';
 
-jest.mock('../Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
 }));
 

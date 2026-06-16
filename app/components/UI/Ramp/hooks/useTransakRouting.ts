@@ -9,8 +9,8 @@ import {
   normalizeProviderCode,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
-import { REDIRECTION_URL } from '../Deposit/constants';
-import { generateThemeParameters } from '../Deposit/utils';
+import { REDIRECTION_URL } from '../constants';
+import { generateThemeParameters } from '../utils/depositUtils';
 import type {
   AddressFormData,
   BasicInfoFormData,
