@@ -36,11 +36,33 @@ export function buildAgentPrompt(
   if (info.ancestorChain.length > 1)
     lines.push(`  Path      : ${info.ancestorChain.join(' > ')}`);
   if (info.textContent) lines.push(`  Text      : ${info.textContent}`);
+  if (info.accessibilityLabel)
+    lines.push(`  A11y Label: ${info.accessibilityLabel}`);
   if (info.filePath)
     lines.push(
       `  File      : ${info.filePath}${info.lineNumber ? `:${info.lineNumber}` : ''}`,
     );
+  if (info.callSiteComponent)
+    lines.push(`  Call Site : <${info.callSiteComponent}> (authored above)`);
   if (info.testID) lines.push(`  Test ID   : ${info.testID}`);
+
+  // Composition chain with source locations — lets the agent target the right
+  // instance instead of editing a shared design-system primitive.
+  if (info.componentChain && info.componentChain.length > 0) {
+    lines.push('', 'Component Chain (tapped → up)');
+    for (const entry of info.componentChain) {
+      const loc = entry.fileName
+        ? ` — ${entry.fileName}${entry.lineNumber ? `:${entry.lineNumber}` : ''}`
+        : '';
+      lines.push(`  ${entry.name}${loc}`);
+    }
+    lines.push(
+      '',
+      'NOTE: If "File" points at a shared primitive (component-library / design-system),',
+      'do NOT edit the primitive. Use the first app-code entry in the chain above',
+      '(the call site) plus Text / A11y Label / Test ID to locate the specific instance.',
+    );
+  }
 
   // Parent component props (the user component wrapping the tapped element)
   const parentPropEntries = formatProps(info.parentProps);

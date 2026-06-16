@@ -6,6 +6,16 @@ export interface RNComponentInfo {
   textContent: string | null;
   filePath: string | null;
   lineNumber: number | null;
+  /** Nearest app-code call site component (e.g. the screen that used a primitive) */
+  callSiteComponent: string | null;
+  /** Composition chain from the tapped element up, each with its source location */
+  componentChain: {
+    name: string;
+    fileName: string | null;
+    lineNumber: number | null;
+  }[];
+  /** accessibilityLabel of the tapped element / owning component, if any */
+  accessibilityLabel: string | null;
   /** Props of the direct (tapped) native fiber */
   props: Record<string, unknown> | null;
   /** Props of the parent user component (e.g. ColorSwatch's color, label) */

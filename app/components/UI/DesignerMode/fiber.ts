@@ -259,6 +259,83 @@ function findDirectComponent(hostFiber: Fiber): {
 }
 
 /**
+ * Source locations inside these directories belong to shared primitives, not to
+ * the application call site we want to point the designer/agent at.
+ */
+function isSharedPrimitivePath(fileName: string): boolean {
+  return (
+    fileName.includes('/component-library/') ||
+    fileName.includes('/node_modules/') ||
+    fileName.includes('/design-system')
+  );
+}
+
+/** True when a source location is app code (a usable call site). */
+function isAppCallSite(fileName: string | null | undefined): boolean {
+  return !!fileName && !isSharedPrimitivePath(fileName);
+}
+
+/**
+ * Walk up from the hit fiber to the nearest component whose element was authored
+ * in application code (e.g. the screen that rendered `<ButtonTertiary>`), rather
+ * than inside a shared design-system primitive. This is what lets the agent edit
+ * the specific instance instead of the global primitive.
+ */
+function findCallSite(hostFiber: Fiber): {
+  name: string;
+  source: { fileName: string; lineNumber: number };
+} | null {
+  let current: Fiber | null = hostFiber;
+  while (current) {
+    try {
+      const name = getComponentName(current.type);
+      const src = current._debugSource;
+      if (name && !isInternalName(name) && src && isAppCallSite(src.fileName)) {
+        return { name, source: src };
+      }
+    } catch {
+      /* skip fibers with problematic types */
+    }
+    current = current.return;
+  }
+  return null;
+}
+
+/**
+ * Build the component composition chain from the tapped element up, each entry
+ * annotated with its source location. Gives the agent the full path
+ * (e.g. View → ButtonBase → ButtonTertiary → SomeScreen) to disambiguate.
+ */
+function buildComponentChain(
+  hostFiber: Fiber,
+): RNComponentInfo['componentChain'] {
+  const chain: RNComponentInfo['componentChain'] = [];
+  const seen = new Set<string>();
+  let current: Fiber | null = hostFiber;
+  while (current && chain.length < 12) {
+    try {
+      const name = getComponentName(current.type);
+      if (name && !isInternalName(name)) {
+        const src = current._debugSource ?? null;
+        const key = `${name}@${src?.fileName ?? ''}:${src?.lineNumber ?? ''}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          chain.push({
+            name,
+            fileName: src?.fileName ?? null,
+            lineNumber: src?.lineNumber ?? null,
+          });
+        }
+      }
+    } catch {
+      /* skip fibers with problematic types */
+    }
+    current = current.return;
+  }
+  return chain;
+}
+
+/**
  * Collect ALL leaf host (native) fibers from the tree.
  */
 function collectAllHostFibers(fiber: Fiber | null, results: Fiber[]) {
@@ -428,8 +505,18 @@ export async function hitTestFromFiberTree(
     }
   }
 
-  // File path: prefer direct component source, fall back to user component
-  const source = directComp?.source ?? userComp?.source ?? null;
+  // File path: prefer the app-code call site (the screen that used the
+  // component) over a shared primitive's internal source.
+  const callSite = findCallSite(best.fiber);
+  const componentChain = buildComponentChain(best.fiber);
+  const source =
+    callSite?.source ?? directComp?.source ?? userComp?.source ?? null;
+
+  // accessibilityLabel helps the agent grep for the specific instance.
+  const accessibilityLabel =
+    (best.fiber.memoizedProps?.accessibilityLabel as string) ??
+    (userComp?.fiber.memoizedProps?.accessibilityLabel as string) ??
+    null;
 
   // Parent component props (user-level props like color, label, onPress)
   const parentProps =
@@ -465,6 +552,9 @@ export async function hitTestFromFiberTree(
     textContent,
     filePath: source?.fileName ?? null,
     lineNumber: source?.lineNumber ?? null,
+    callSiteComponent: callSite?.name ?? null,
+    componentChain,
+    accessibilityLabel,
     props: best.fiber.memoizedProps,
     parentProps,
     testID: (userComp?.fiber.memoizedProps?.testID as string) ?? null,
