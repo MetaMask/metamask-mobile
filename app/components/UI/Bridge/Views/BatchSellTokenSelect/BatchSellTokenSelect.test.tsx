@@ -88,6 +88,26 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
+  useSwitchNetworks: jest.fn(() => ({
+    onSetRpcTarget: jest.fn(),
+    onNonEvmNetworkChange: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../../../selectors/selectedNetworkController', () => ({
+  useNetworkInfo: jest.fn(() => ({
+    chainId: '0x1',
+    domainIsConnectedDapp: false,
+    networkName: 'Ethereum Mainnet',
+  })),
+}));
+
+jest.mock('../../../../../selectors/multichainNetworkController', () => ({
+  selectIsEvmNetworkSelected: jest.fn(() => true),
+  selectSelectedNonEvmNetworkChainId: jest.fn(() => undefined),
+}));
+
 jest.mock('../../hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: (options?: { chainIds?: CaipChainId[] }) =>
     mockUseTokensWithBalance(options),
@@ -111,6 +131,7 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectNativeCurrencyByChainId: jest.fn(
     (_state: unknown, chainId: Hex) => mockNativeCurrencyByChainId[chainId],
   ),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
