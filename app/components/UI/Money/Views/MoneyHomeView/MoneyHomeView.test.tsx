@@ -2100,7 +2100,7 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides the MetaMask Card section when authenticated but not VERIFIED', () => {
+    it('shows the MetaMask Card section with verification banner when authenticated but not VERIFIED', () => {
       mockSelectIsCardholder.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
@@ -2119,11 +2119,15 @@ describe('MoneyHomeView', () => {
         reset: jest.fn(),
       } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, getByText } = renderWithProvider(<MoneyHomeView />);
 
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
+        getByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.metamask_card.verification_pending')),
+      ).toBeOnTheScreen();
     });
 
     it('disables the link button when linkage is in progress', () => {

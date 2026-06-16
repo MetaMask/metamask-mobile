@@ -38,6 +38,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
@@ -579,20 +580,15 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
-  if (isCardLinkedToMoneyAccount) {
-    metamaskCardMode = 'manage';
-  } else if (isCardholder && !isCardAuthenticated) {
-    metamaskCardMode = hasMoneyAccountBaseRequirements ? 'link' : null;
-  } else if (isResidencyBlocked) {
-    metamaskCardMode = null;
-  } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
-    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
-  } else if (isCardAuthenticated) {
-    metamaskCardMode = null;
-  } else {
-    metamaskCardMode = 'upsell';
-  }
+  const metamaskCardMode = deriveMoneyMetaMaskCardMode({
+    isCardLinkedToMoneyAccount,
+    isCardholder,
+    isCardAuthenticated,
+    isCardVerified,
+    isResidencyBlocked,
+    hasMoneyAccountBaseRequirements,
+    hasMoneyAccountRequirements,
+  });
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
