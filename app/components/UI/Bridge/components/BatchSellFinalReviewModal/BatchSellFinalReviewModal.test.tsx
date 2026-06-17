@@ -11,6 +11,9 @@ import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewMod
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
+  callback?.();
+});
 const mockDispatch = jest.fn();
 const mockUpdateBatchSellQuoteParams = jest.fn();
 const mockGetNewQuote = jest.fn();
@@ -143,6 +146,34 @@ const defaultQuoteData: MockBatchSellQuoteData = {
 let mockSelectedTokens = defaultSelectedTokens;
 let mockBatchSellQuoteData = defaultQuoteData;
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+        }: {
+          children?: React.ReactNode;
+          testID?: string;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+
+        return ReactActual.createElement(View, { testID }, children);
+      },
+    ),
+  };
+});
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
@@ -274,6 +305,27 @@ describe('BatchSellFinalReviewModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
+  it('closes the sheet before navigating to activity after submit', async () => {
+    mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
+      callback?.();
+    });
+
+    const { getByTestId } = renderModal();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
+  });
+
   it('blocks Sell all while submitting', () => {
     mockIsSubmittingTx = true;
 
@@ -290,14 +342,15 @@ describe('BatchSellFinalReviewModal', () => {
     ).toBe(true);
   });
 
-  it('closes with navigation when the close button is pressed', () => {
+  it('closes the sheet when the close button is pressed', () => {
     const { getByTestId } = renderModal();
 
     fireEvent.press(
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('starts collapsed and hides token rows while keeping received summary rows visible', () => {

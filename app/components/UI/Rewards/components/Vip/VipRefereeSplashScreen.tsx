@@ -133,7 +133,7 @@ const VipRefereeSplashScreen: React.FC<VipRefereeSplashScreenProps> = ({
         <Box twClassName="gap-[18px] px-4 pb-[18px]">
           {referredByCode ? (
             <Text
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               style={tw.style('text-center', referredByColorStyle)}
               testID={VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY}

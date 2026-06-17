@@ -1107,6 +1107,7 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.isBlockingQuoteLoad).toBe(true);
       expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.confirmButtonState).toBe('loading');
 
       // A single render with the matching quote both clears the loader and
       // enables the CTA — no extra render needed (regression: the button used to
@@ -1841,6 +1842,54 @@ describe('useQuickBuyController', () => {
         // Assert — degrade to the snapshot's fiat rather than blanking out.
         expect(result.current.destBalanceFiat).toBe('$100.00');
       });
+    });
+  });
+
+  describe('sell mode availability', () => {
+    const createPositionToken = () =>
+      createSourceToken({
+        address: '0xDEST',
+        chainId: '0x1',
+        symbol: 'TARGET',
+      });
+
+    it('resets tradeMode to buy when the position token balance becomes zero', () => {
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(
+        createPositionToken(),
+      );
+      const { result, rerender } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.setTradeMode('sell');
+      });
+      expect(result.current.tradeMode).toBe('sell');
+
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      rerender(undefined);
+
+      expect(result.current.tradeMode).toBe('buy');
+    });
+
+    it('exposes hasSellableBalance false when there is no position token', () => {
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.hasSellableBalance).toBe(false);
+    });
+
+    it('exposes hasSellableBalance true when a position token exists', () => {
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(
+        createPositionToken(),
+      );
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.hasSellableBalance).toBe(true);
     });
   });
 

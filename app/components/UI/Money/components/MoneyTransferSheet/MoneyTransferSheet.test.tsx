@@ -21,6 +21,11 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../../../selectors/transactionController', () => ({
+  ...jest.requireActual('../../../../../selectors/transactionController'),
+  selectTransactions: jest.fn(() => []),
+}));
+
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePerpsDeposit = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);

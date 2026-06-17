@@ -128,6 +128,7 @@ import {
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -607,6 +608,11 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -850,8 +856,8 @@ const HomeTabs = () => {
           component={WalletTabStackFlow}
         />
 
-        {/* Activity Tab (replaced by Money when feature flag is on) */}
-        {isMoneyAccountEnabled ? (
+        {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
+        {isMoneyAccountVisible ? (
           <Tab.Screen
             name={Routes.MONEY.ROOT}
             options={options.money}
@@ -1415,7 +1421,10 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={fullScreenModalSlideFromBottomNativeOptions}
+        options={({ route }) => ({
+          ...fullScreenModalSlideFromBottomNativeOptions,
+          animation: route.params?.animation ?? 'slide_from_right',
+        })}
       />
       <NativeStack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

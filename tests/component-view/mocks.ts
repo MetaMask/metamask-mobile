@@ -402,6 +402,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
             szDecimals: 2,
           },
           {
@@ -412,6 +413,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
