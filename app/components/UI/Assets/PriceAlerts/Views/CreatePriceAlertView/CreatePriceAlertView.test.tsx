@@ -404,8 +404,8 @@ describe('CreatePriceAlertView — tiny price token', () => {
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
-    // 0.00000000000001 * 1.05 = 1.05e-14 → must render as plain decimal
-    expect(getByText('$0.0000000000000105')).toBeOnTheScreen();
+    // 0.00000000000001 * 1.05 = 1.05e-14 → capped at 15 decimal places → rounded to "0.000000000000011"
+    expect(getByText('$0.000000000000011')).toBeOnTheScreen();
   });
 
   it('quick-percentage pill produces a non-zero value and reveals the Set button', () => {
@@ -448,5 +448,28 @@ describe('CreatePriceAlertView — tiny price token', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('enforces the 15-decimal cap — typing a 16th decimal digit is blocked', () => {
+    // currentPrice ~1e-10 → dynamic decimal calc would exceed 15 without the cap
+    setRoute({
+      symbol: 'SHIB',
+      ticker: 'SHIB',
+      currentPrice: 0.0000000001,
+      currentCurrency: 'USD',
+      assetId: 'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+    });
+
+    const { getByTestId, getByText } = render(<CreatePriceAlertView />);
+
+    // Enter "0." then 15 digits
+    fireEvent.press(getByTestId('keypad-key-dot'));
+    for (let i = 0; i < 15; i++) {
+      fireEvent.press(getByTestId('keypad-key-1'));
+    }
+    // The 16th digit must be blocked
+    fireEvent.press(getByTestId('keypad-key-2'));
+
+    expect(getByText('$0.111111111111111')).toBeOnTheScreen();
   });
 });
