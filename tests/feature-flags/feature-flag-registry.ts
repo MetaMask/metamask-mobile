@@ -5530,17 +5530,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
-
-  tokenDetailsTechnicalIndicators: {
-    name: 'tokenDetailsTechnicalIndicators',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.83.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
 };
 
 // ============================================================================
