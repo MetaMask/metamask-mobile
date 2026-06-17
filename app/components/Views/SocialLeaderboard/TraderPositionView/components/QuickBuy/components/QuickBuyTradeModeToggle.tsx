@@ -18,6 +18,7 @@ import { useQuickBuyContext } from '../useQuickBuyContext';
 import type { QuickBuyTradeMode } from '../types';
 import { useTheme } from '../../../../../../../util/theme';
 import { playSelection } from '../../../../../../../util/haptics';
+import { brandColor } from '@metamask/design-tokens';
 
 const styles = StyleSheet.create({
   // Inner row owns the relative positioning context. It carries no border or
@@ -72,13 +73,13 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
-  // Transition the slider background from green (buy, translateX 0) to red
+  // Transition the slider background from green (buy, translateX 0) to orange
   // (sell, translateX = buy button width) as it slides across.
   const sliderBackgroundColor =
     buyLayout && buyLayout.width > 0
       ? slideAnim.interpolate({
           inputRange: [0, buyLayout.width],
-          outputRange: [colors.success.default, colors.error.default],
+          outputRange: [colors.success.default, brandColor.orange400],
         })
       : colors.success.default;
 
