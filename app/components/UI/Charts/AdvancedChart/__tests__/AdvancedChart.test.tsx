@@ -1194,12 +1194,16 @@ describe('AdvancedChart', () => {
     );
   });
 
-  it('includes current price color in SET_THEME_COLORS updates', async () => {
+  it('includes current price and volume colors in SET_THEME_COLORS updates', async () => {
     const currentPriceColor = mockTheme.colors.text.default;
+    const volumeSuccessColor = 'rgba(0, 255, 0, 0.3)';
+    const volumeErrorColor = 'rgba(255, 0, 0, 0.3)';
     const { getByTestId } = render(
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         currentPriceLineColorOverride={currentPriceColor}
+        volumeSuccessColorOverride={volumeSuccessColor}
+        volumeErrorColorOverride={volumeErrorColor}
       />,
     );
 
@@ -1217,6 +1221,8 @@ describe('AdvancedChart', () => {
           successColor: mockTheme.colors.success.default,
           errorColor: mockTheme.colors.error.default,
           currentPriceColor,
+          volumeSuccessColor,
+          volumeErrorColor,
         },
       }),
     );
