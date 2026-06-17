@@ -41,7 +41,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 /* Seedless Onboarding: Google Login */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  test.setTimeout(2400000);
+  test.setTimeout(240000);
 
   test(
     'Seedless Onboarding: Google Login New User',
