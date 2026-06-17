@@ -1075,7 +1075,7 @@
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
       "win_rate": "Win rate",
-      "pnl_30d": "30D P&L",
+      "pnl_7d": "7D P&L",
       "hold_time": "Avg. hold",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
@@ -1093,9 +1093,11 @@
     },
     "trader_position": {
       "market_cap": "Market cap",
+      "price": "Price",
       "position": "Position",
       "trades": "Trades",
       "buy": "Buy",
+      "trade": "Trade",
       "bought": "Bought",
       "sold": "Sold",
       "no_trades": "No trades yet",
@@ -1104,7 +1106,11 @@
       "fallback_subtitle": "We couldn't load this position right now.",
       "fallback_back_to_profile": "Back to profile",
       "fallback_back_to_leaderboard": "Back to leaderboard",
-      "sell": "Sell"
+      "sell": "Sell",
+      "long": "Long",
+      "short": "Short",
+      "opened": "Opened",
+      "closed_action": "Closed"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",

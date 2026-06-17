@@ -88,7 +88,7 @@ function shortenAbsCurrency(abs: number): string {
 
 /**
  * Signed USD with K/M/B/T abbreviation for ≥$1K values. Used for compact
- * PnL displays like the 30D Return headline (`+$117.2K`, `+$1.2M`, `-$500`).
+ * PnL displays like the 7D Return headline (`+$117.2K`, `+$1.2M`, `-$500`).
  */
 export function formatSignedAbbreviatedUsd(
   value: number | null | undefined,

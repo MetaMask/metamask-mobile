@@ -42,7 +42,7 @@ export const TOP_TRADER_CARD_WIDTH = 155;
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
  *
- * Lays out the trader's avatar with the username + 30D PnL stacked to its
+ * Lays out the trader's avatar with the username + 7D PnL stacked to its
  * right, and a small Follow / Following toggle pinned below.
  */
 const TopTraderCard: React.FC<TopTraderCardProps> = ({

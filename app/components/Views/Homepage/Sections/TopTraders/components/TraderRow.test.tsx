@@ -11,7 +11,7 @@ const baseTrader: TopTrader = {
   address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
-  username: 'sniperliquid',
+  username: 'alpha.eth',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
@@ -31,17 +31,18 @@ describe('TraderRow', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
-  it('does not render the abbreviated PnL, ROI %, or 30D suffix', () => {
+  it('does not render the abbreviated PnL, ROI %, or timeframe suffix', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.queryByText('+$963.1K')).toBeNull();
     expect(screen.queryByText('+43.0%')).toBeNull();
     expect(screen.queryByText(/30D/)).toBeNull();
+    expect(screen.queryByText(/7D/)).toBeNull();
   });
 
   it('renders a podium medal for ranks 1-3', () => {
@@ -106,12 +107,8 @@ describe('TraderRow', () => {
         onTraderPress={mockOnTraderPress}
       />,
     );
-    fireEvent.press(screen.getByText('sniperliquid'));
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      1,
-    );
+    fireEvent.press(screen.getByText('alpha.eth'));
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
 
   it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
@@ -128,20 +125,16 @@ describe('TraderRow', () => {
       />,
     );
 
-    fireEvent.press(screen.getByText('sniperliquid'));
+    fireEvent.press(screen.getByText('alpha.eth'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      50,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 50);
   });
 
   it('does not fire onTraderPress when the prop is undefined', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    fireEvent.press(screen.getByText('sniperliquid'));
+    fireEvent.press(screen.getByText('alpha.eth'));
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 

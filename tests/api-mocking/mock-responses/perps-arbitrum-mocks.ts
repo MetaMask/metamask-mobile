@@ -73,9 +73,33 @@ const MOCK_COIN_SVG = `<svg width="24" height="24" xmlns="http://www.w3.org/2000
  */
 const HYPERLIQUID_E2E_META_BODY = {
   universe: [
-    { name: 'BTC', szDecimals: 3, maxLeverage: 50, marginTableId: 0 },
-    { name: 'ETH', szDecimals: 4, maxLeverage: 50, marginTableId: 0 },
-    { name: 'SOL', szDecimals: 2, maxLeverage: 50, marginTableId: 0 },
+    {
+      name: 'BTC',
+      szDecimals: 3,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '67000',
+      openInterest: '1000',
+      volume: '5000000',
+    },
+    {
+      name: 'ETH',
+      szDecimals: 4,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '2500',
+      openInterest: '500',
+      volume: '3000000',
+    },
+    {
+      name: 'SOL',
+      szDecimals: 2,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '200',
+      openInterest: '100',
+      volume: '1000000',
+    },
   ],
 } as const;
 
