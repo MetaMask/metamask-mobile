@@ -104,6 +104,12 @@ const useExploreTabNavigationEffect = (opts: {
           previous_tab: previousTabRef.current,
           source: entrySource,
         });
+      } else if (
+        entrySource &&
+        pendingExploreEntrySourceRef.current === entrySource
+      ) {
+        // Tab switch did not run (e.g. tabs not mounted) — discard stale source.
+        pendingExploreEntrySourceRef.current = undefined;
       }
 
       setParams?.({ initialTab: null, source: undefined });
