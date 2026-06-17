@@ -198,18 +198,34 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      if (submitTransactionResponse?.txHashes?.length) {
-        return {
+      const transactionHash = await this.#getTransactionHash(
+        submitTransactionResponse,
+        uuid,
+      );
+      if (transactionHash === null) {
+        throw new Error(
+          'Transaction does not have a transaction hash in the publish batch hook, there was a problem',
+        );
+      }
+
+      let submitBatchResponse;
+      if (submitTransactionResponse?.txHashes) {
+        submitBatchResponse = {
           results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
             transactionHash: txHash,
           })),
         };
+      } else {
+        submitBatchResponse = {
+          results: [],
+        };
       }
 
-      return { results: [] };
-    } catch (error: unknown) {
+      return submitBatchResponse;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       Logger.error(
-        error as Error,
+        error,
         `${LOG_PREFIX} Error in smart transaction publish batch hook`,
       );
       throw error;

@@ -128,6 +128,13 @@ function getTransactionById(txId: string): TransactionMeta | undefined {
   );
 }
 
+function getTransactionGenerationKey({
+  id,
+  batchId,
+}: Pick<TransactionMeta, 'id' | 'batchId'>): string {
+  return `${id}:${batchId ?? ''}`;
+}
+
 /**
  * Returns the current pending ApprovalController approvals (always a plain
  * object, never undefined). Centralized so callers don't have to repeat the
@@ -544,21 +551,19 @@ function hasAnyBatchTransaction(batchId: string): boolean {
 }
 
 /**
- * Returns the ids of all `approved` transactions in the given batch that are
+ * Returns all `approved` transactions in the given batch that are
  * from the target address — these are the txs queued for hardware signing.
  */
-function getApprovedBatchTransactionIds(
+function getApprovedBatchTransactions(
   batchId: string,
   targetFrom: string,
-): string[] {
-  return getTransactions()
-    .filter(
-      (tx: TransactionMeta) =>
-        tx.batchId === batchId &&
-        matchesTx(tx, targetFrom) &&
-        tx.status === TransactionStatus.approved,
-    )
-    .map((tx: TransactionMeta) => tx.id);
+): TransactionMeta[] {
+  return getTransactions().filter(
+    (tx: TransactionMeta) =>
+      tx.batchId === batchId &&
+      matchesTx(tx, targetFrom) &&
+      tx.status === TransactionStatus.approved,
+  );
 }
 
 /** Options for {@link useHwBatchSignTracker}. */
@@ -572,6 +577,8 @@ interface HwBatchSignTrackerState {
   currentBatchId: string | null | undefined;
   seenBatchIds: Set<string>;
   staleBatchIds: Set<string>;
+  staleTransactionKeys: Set<string>;
+  trackedTransactionKeys: Map<string, string>;
   signedBatchIds: Set<string>;
   pendingSignTxIds: Set<string>;
   pendingAbortTxIds: Set<string>;
@@ -616,6 +623,8 @@ function createInitialBatchSignTrackerState(
     currentBatchId: undefined,
     seenBatchIds: new Set(),
     staleBatchIds: new Set(),
+    staleTransactionKeys: new Set(),
+    trackedTransactionKeys: new Map(),
     signedBatchIds: new Set(),
     pendingSignTxIds: new Set(),
     pendingAbortTxIds: new Set(),
@@ -702,15 +711,32 @@ export function useHwBatchSignTracker({
 
   const invalidateBatchStateForRetry = useCallback(() => {
     const trackerState = trackerStateRef.current;
+    const staleBatchIds = new Set(trackerState.seenBatchIds);
+    if (typeof trackerState.currentBatchId === 'string') {
+      staleBatchIds.add(trackerState.currentBatchId);
+    }
+
+    const addStaleTransactionKey = (id: string) => {
+      const transactionGenerationKey =
+        trackerState.trackedTransactionKeys.get(id);
+      if (transactionGenerationKey) {
+        trackerState.staleTransactionKeys.add(transactionGenerationKey);
+      }
+    };
+    trackerState.pendingSignTxIds.forEach(addStaleTransactionKey);
+    trackerState.handledTxIds.forEach(addStaleTransactionKey);
+    trackerState.signingDispatchedTxIds.forEach(addStaleTransactionKey);
+
     trackerState.acceptedApprovalIds = new Set();
     trackerState.approvalQueue = [];
     trackerState.signedBatchIds = new Set();
     trackerState.pendingSignTxIds = new Set();
     trackerState.handledTxIds = new Set();
     trackerState.signingDispatchedTxIds = new Set();
+    trackerState.trackedTransactionKeys = new Map();
     trackerState.batchGeneration += 1;
 
-    for (const id of trackerState.seenBatchIds) {
+    for (const id of staleBatchIds) {
       trackerState.staleBatchIds.add(id);
     }
     trackerState.seenBatchIds = new Set();
@@ -1101,6 +1127,31 @@ export function useHwBatchSignTracker({
       }
     };
 
+    const trackTransactionGeneration = (transactionMeta: TransactionMeta) => {
+      trackerStateRef.current.trackedTransactionKeys.set(
+        transactionMeta.id,
+        getTransactionGenerationKey(transactionMeta),
+      );
+    };
+
+    const trackBatchId = (batchId: string) => {
+      const trackerState = trackerStateRef.current;
+      trackerState.seenBatchIds.add(batchId);
+      if (
+        !trackerState.currentBatchId &&
+        !trackerState.staleBatchIds.has(batchId)
+      ) {
+        trackerState.currentBatchId = batchId;
+      }
+    };
+
+    const trackBatchForTransaction = (transactionMeta: TransactionMeta) => {
+      trackTransactionGeneration(transactionMeta);
+      if (transactionMeta.batchId) {
+        trackBatchId(transactionMeta.batchId);
+      }
+    };
+
     const enqueuePendingApprovals = () => {
       detectAndApplyRetryGeneration();
       const pendingApprovals = getPendingApprovals();
@@ -1118,24 +1169,55 @@ export function useHwBatchSignTracker({
           if (
             txMeta &&
             matchesTx(txMeta, targetFrom) &&
+            !trackerState.staleTransactionKeys.has(
+              getTransactionGenerationKey(txMeta),
+            ) &&
             isTransactionFromCurrentBatch(txMeta)
           ) {
             trackerState.acceptedApprovalIds.add(requestId);
             if (txMeta.status === TransactionStatus.approved) {
+              trackBatchForTransaction(txMeta);
               trackerState.pendingSignTxIds.add(txMeta.id);
             }
             trackerState.approvalQueue.push(requestId);
           }
-        } else if (
-          request.type === ApprovalType.TransactionBatch &&
-          isBatchIdFromCurrentBatch(requestId) &&
-          (hasMatchingBatchTransaction(requestId, targetFrom) ||
-            !hasAnyBatchTransaction(requestId))
-        ) {
-          trackerState.acceptedApprovalIds.add(requestId);
-          getApprovedBatchTransactionIds(requestId, targetFrom).forEach(
-            (txId) => trackerState.pendingSignTxIds.add(txId),
+        } else if (request.type === ApprovalType.TransactionBatch) {
+          const approvedBatchTransactions = getApprovedBatchTransactions(
+            requestId,
+            targetFrom,
           );
+          const freshApprovedBatchTransactions =
+            approvedBatchTransactions.filter(
+              (tx) =>
+                !trackerState.staleTransactionKeys.has(
+                  getTransactionGenerationKey(tx),
+                ),
+            );
+          const acceptsRetryBatchApproval =
+            trackerState.staleBatchIds.has(requestId) &&
+            !trackerState.currentBatchId &&
+            freshApprovedBatchTransactions.length > 0;
+          if (
+            !(
+              isBatchIdFromCurrentBatch(requestId) || acceptsRetryBatchApproval
+            ) ||
+            !(
+              hasMatchingBatchTransaction(requestId, targetFrom) ||
+              !hasAnyBatchTransaction(requestId)
+            )
+          ) {
+            continue;
+          }
+
+          if (acceptsRetryBatchApproval) {
+            trackerState.staleBatchIds.delete(requestId);
+          }
+          trackBatchId(requestId);
+          trackerState.acceptedApprovalIds.add(requestId);
+          freshApprovedBatchTransactions.forEach((tx) => {
+            trackBatchForTransaction(tx);
+            trackerState.pendingSignTxIds.add(tx.id);
+          });
           trackerState.approvalQueue.push(requestId);
         }
       }
@@ -1148,32 +1230,44 @@ export function useHwBatchSignTracker({
       latestValuesRef.current.dispatch(updateHardwareWalletsSwaps(event));
     };
 
-    const hasPendingApprovalForTransactionMeta = (
+    const shouldAcceptRetryApprovalForStaleBatch = (
       transactionMeta: TransactionMeta,
     ): boolean => {
+      const transactionGenerationKey =
+        getTransactionGenerationKey(transactionMeta);
+      if (
+        transactionMeta.status !== TransactionStatus.approved ||
+        trackerStateRef.current.staleTransactionKeys.has(
+          transactionGenerationKey,
+        ) ||
+        !transactionMeta.batchId ||
+        !trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId)
+      ) {
+        return false;
+      }
+
       const pendingApprovals = getPendingApprovals();
       const transactionApproval = pendingApprovals[transactionMeta.id];
       if (transactionApproval?.type === ApprovalType.Transaction) {
         return true;
       }
 
-      const { batchId } = transactionMeta;
-      if (!batchId) {
+      const batchApproval = pendingApprovals[transactionMeta.batchId];
+      if (batchApproval?.type !== ApprovalType.TransactionBatch) {
         return false;
       }
 
-      return pendingApprovals[batchId]?.type === ApprovalType.TransactionBatch;
-    };
-
-    const shouldAcceptRetryApprovalForStaleBatch = (
-      transactionMeta: TransactionMeta,
-    ): boolean =>
-      transactionMeta.status === TransactionStatus.approved &&
-      Boolean(
-        transactionMeta.batchId &&
-          trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId) &&
-          hasPendingApprovalForTransactionMeta(transactionMeta),
+      return getApprovedBatchTransactions(
+        transactionMeta.batchId,
+        targetFrom,
+      ).some(
+        (tx) =>
+          tx.id === transactionMeta.id &&
+          !trackerStateRef.current.staleTransactionKeys.has(
+            getTransactionGenerationKey(tx),
+          ),
       );
+    };
 
     const completeTrackedTx = (txId: string) => {
       trackerStateRef.current.handledTxIds.add(txId);
@@ -1199,6 +1293,13 @@ export function useHwBatchSignTracker({
       if (trackerStateRef.current.handledTxIds.has(transactionMeta.id)) {
         return true;
       }
+      if (
+        trackerStateRef.current.staleTransactionKeys.has(
+          getTransactionGenerationKey(transactionMeta),
+        )
+      ) {
+        return true;
+      }
       if (!isTransactionFromCurrentBatch(transactionMeta)) return true;
       if (trackerStateRef.current.pendingAbortTxIds.has(transactionMeta.id)) {
         trackerStateRef.current.pendingAbortTxIds.delete(transactionMeta.id);
@@ -1221,10 +1322,11 @@ export function useHwBatchSignTracker({
       // retry's batch — they would otherwise race against the new batch's
       // events and confuse the UI.
       const didAdvanceRetryGeneration = detectAndApplyRetryGeneration();
-      if (didAdvanceRetryGeneration && transactionMeta.batchId) {
+      if (transactionMeta.batchId) {
         if (shouldAcceptRetryApprovalForStaleBatch(transactionMeta)) {
           trackerStateRef.current.staleBatchIds.delete(transactionMeta.batchId);
         } else if (
+          didAdvanceRetryGeneration &&
           trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId)
         ) {
           return;
@@ -1236,24 +1338,27 @@ export function useHwBatchSignTracker({
       const stepKind = getStepKind(type);
 
       if (status === TransactionStatus.approved) {
+        const transactionGenerationKey =
+          getTransactionGenerationKey(transactionMeta);
+        if (
+          trackerStateRef.current.staleTransactionKeys.has(
+            transactionGenerationKey,
+          )
+        ) {
+          return;
+        }
         if (!isTransactionFromCurrentBatch(transactionMeta)) {
           return;
         }
+        trackerStateRef.current.staleTransactionKeys.delete(
+          transactionGenerationKey,
+        );
         if (
           trackerStateRef.current.signingDispatchedTxIds.has(transactionMeta.id)
         ) {
           return;
         }
-        if (transactionMeta.batchId) {
-          const trackerState = trackerStateRef.current;
-          trackerState.seenBatchIds.add(transactionMeta.batchId);
-          if (
-            !trackerState.currentBatchId &&
-            !trackerState.staleBatchIds.has(transactionMeta.batchId)
-          ) {
-            trackerState.currentBatchId = transactionMeta.batchId;
-          }
-        }
+        trackBatchForTransaction(transactionMeta);
         trackerStateRef.current.signingDispatchedTxIds.add(transactionMeta.id);
         trackerStateRef.current.pendingSignTxIds.add(transactionMeta.id);
         setConfirmationTxId(transactionMeta.id);
@@ -1266,6 +1371,7 @@ export function useHwBatchSignTracker({
         if (shouldIgnoreTerminalTx(transactionMeta)) {
           return;
         }
+        trackTransactionGeneration(transactionMeta);
         if (transactionMeta.batchId) {
           trackerStateRef.current.signedBatchIds.add(transactionMeta.batchId);
         }
@@ -1278,11 +1384,13 @@ export function useHwBatchSignTracker({
         if (shouldIgnoreTerminalTx(transactionMeta)) {
           return;
         }
+        trackTransactionGeneration(transactionMeta);
         completeTrackedTx(transactionMeta.id);
       } else if (status === TransactionStatus.dropped) {
         if (shouldIgnoreTerminalTx(transactionMeta)) {
           return;
         }
+        trackTransactionGeneration(transactionMeta);
         trackTransactionCancelledEvent();
         dispatchSwapEvent({
           type: HardwareWalletsSwapsEventType.Rejected,
@@ -1302,6 +1410,7 @@ export function useHwBatchSignTracker({
       const { type } = transactionMeta;
       if (!isBatchTransactionType(type)) return;
       const stepKind = getStepKind(type);
+      trackTransactionGeneration(transactionMeta);
       trackTransactionCancelledEvent();
       dispatchSwapEvent({
         type: HardwareWalletsSwapsEventType.Rejected,
@@ -1317,6 +1426,7 @@ export function useHwBatchSignTracker({
     }) => {
       if (shouldIgnoreTerminalTx(transactionMeta)) return;
 
+      trackTransactionGeneration(transactionMeta);
       dispatchSwapEvent({
         type: HardwareWalletsSwapsEventType.TransactionFailed,
       });
