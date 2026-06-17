@@ -36,8 +36,13 @@ export const isBridgeTxHistoryItemBridge = (
 
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
+  is7702Batch: boolean = false,
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
+
+  if (bridgeTxHistoryItem.featureId === 'batch_sell' && is7702Batch) {
+    return 'Batch sell';
+  }
 
   // Swap
   if (!isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)) {
