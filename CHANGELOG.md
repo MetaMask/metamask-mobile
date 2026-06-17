@@ -11,7 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- chore: Enhance PredictMarketRowItem with endAccessory prop and remove NBA champion discovery references. (#31923)
+- Enhance PredictMarketRowItem with endAccessory prop and remove NBA champion discovery references. (#31923)
+
+### Fixed                                                                                                   
+                                                                                                              
+- Fix odds prices stale on feed cards and event page during live markets (#31922)                           
+- Fix extended sports outcome grouping, spread ordering, and live pricing (#31934)
 
 ## [7.81.1]
 
