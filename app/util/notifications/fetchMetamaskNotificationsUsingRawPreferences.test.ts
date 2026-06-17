@@ -1,4 +1,5 @@
-import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
+import { processNotification } from '@metamask/notification-services-controller/notification-services';
+import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
 import Engine from '../../core/Engine';
 import {
   getEnabledWalletActivityAddresses,
@@ -6,6 +7,11 @@ import {
 } from './ensureAgenticCliNotificationPreferencesMigrated';
 import { isAgenticCliInAppNotificationsEnabled } from './agenticCliNotificationFilter';
 import { supplementNotificationsFromRawPreferences } from './fetchMetamaskNotificationsUsingRawPreferences';
+import { updateNotificationServicesControllerState } from './updateNotificationServicesControllerState';
+
+jest.mock('./updateNotificationServicesControllerState', () => ({
+  updateNotificationServicesControllerState: jest.fn(),
+}));
 
 jest.mock('./ensureAgenticCliNotificationPreferencesMigrated', () => ({
   getEnabledWalletActivityAddresses: jest.fn(),
@@ -91,9 +97,7 @@ describe('supplementNotificationsFromRawPreferences', () => {
     await supplementNotificationsFromRawPreferences();
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(
-      Engine.context.NotificationServicesController.update,
-    ).toHaveBeenCalled();
+    expect(updateNotificationServicesControllerState).toHaveBeenCalled();
   });
 
   it('skips supplement when validated preferences already produced on-chain items', async () => {
@@ -128,15 +132,7 @@ describe('supplementNotificationsFromRawPreferences', () => {
     });
 
     Engine.context.NotificationServicesController.state.metamaskNotificationsList =
-      [
-        {
-          id: 'existing',
-          type: TRIGGER_TYPES.PLATFORM,
-          createdAt: '2026-06-01T00:00:00.000Z',
-          isRead: false,
-          data: {},
-        },
-      ];
+      [processNotification(createMockNotificationEthSent())];
 
     await supplementNotificationsFromRawPreferences();
 

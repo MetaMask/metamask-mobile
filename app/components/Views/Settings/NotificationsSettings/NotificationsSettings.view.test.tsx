@@ -86,18 +86,6 @@ function renderSettingsWithSectionRoute(
 }
 
 describeForPlatforms('Notifications settings (toggles + visibility)', () => {
-  const originalAgenticCliBuildFlag =
-    process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED;
-
-  beforeAll(() => {
-    process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED = 'true';
-  });
-
-  afterAll(() => {
-    process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED =
-      originalAgenticCliBuildFlag;
-  });
-
   beforeEach(() => {
     const controllerMessengerCall = Engine.controllerMessenger.call.bind(
       Engine.controllerMessenger,
@@ -134,29 +122,13 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(3);
+    await waitFor(async () => {
+      expect(await findAllByText('Push, In app')).toHaveLength(3);
+    });
+    expect(getByText('Push')).toBeOnTheScreen();
     expect(getByText('Off')).toBeOnTheScreen();
-  });
-
-  it('renders agentic CLI section when agentic CLI notifications flag is enabled', async () => {
-    const { findByText } = renderSettings({
-      agentic_cli_notifications_enabled: true,
-    });
-
-    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
-    expect(await findByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
-    // Push-only status (other rows use the combined "Push, In app" label).
-    expect(await findByText('Push')).toBeOnTheScreen();
-  });
-
-  it('hides agentic CLI section when agentic CLI notifications flag is disabled', async () => {
-    const { queryByText, findByText } = renderSettings({
-      agentic_cli_notifications_enabled: false,
-    });
-
-    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
-    expect(queryByText(SECTION_TITLES.agenticCli)).toBeNull();
   });
 
   it('hides social AI section when social leaderboard feature flag is disabled', async () => {
@@ -166,8 +138,11 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(2);
+    await waitFor(async () => {
+      expect(await findAllByText('Push, In app')).toHaveLength(2);
+    });
   });
 
   it('hides notification sections when main toggle is off', async () => {
@@ -185,6 +160,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     });
     expect(queryByText(SECTION_TITLES.perps)).toBeNull();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
+    expect(queryByText(SECTION_TITLES.agenticCli)).toBeNull();
     expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
   });
 

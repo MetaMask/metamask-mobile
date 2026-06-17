@@ -2,9 +2,9 @@ import {
   TRIGGER_TYPES,
   type INotification,
 } from '@metamask/notification-services-controller/notification-services';
-import Engine from '../../core/Engine';
 import { readNotificationPreferencesForUpdate } from './ensureAgenticCliNotificationPreferencesMigrated';
 import { resolveAgenticCliPreference } from './agenticCliNotificationPreferences';
+import { updateNotificationServicesControllerState } from './updateNotificationServicesControllerState';
 
 /** Matches "Agentic CLI", "agentic_cli", "agentic-cli", etc. */
 const AGENTIC_CLI_TEXT_PATTERN = /agentic[\s_-]*cli/i;
@@ -71,8 +71,7 @@ export const applyAgenticCliInAppInboxFilterToController =
       return;
     }
 
-    const controller = Engine.context.NotificationServicesController;
-    controller.update((state) => {
+    updateNotificationServicesControllerState((state) => {
       state.metamaskNotificationsList =
         filterAgenticCliNotificationsForInAppPreference(
           state.metamaskNotificationsList,

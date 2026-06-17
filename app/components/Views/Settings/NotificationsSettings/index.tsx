@@ -11,7 +11,6 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectAgenticCliNotificationsEnabled } from '../../../../selectors/featureFlagController/agenticCliNotifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
@@ -103,9 +102,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const isAgenticCliNotificationsEnabled = useSelector(
-    selectAgenticCliNotificationsEnabled,
-  );
 
   const { preferences } = useNotificationStoragePreferences();
 
@@ -181,27 +177,23 @@ const NotificationsSettings = ({ navigation }: Props) => {
               />
             )}
 
-            {isAgenticCliNotificationsEnabled && (
-              <NotificationRow
-                title={strings(
-                  'app_settings.notifications_opts.agentic_cli_title',
-                )}
-                status={getStatusText(
-                  preferences?.agenticCli ??
-                    resolveAgenticCliPreference(preferences ?? null),
-                )}
-                iconName={IconName.Code}
-                onPress={() =>
-                  navigateToSection(
-                    AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
-                    strings(
-                      'app_settings.notifications_opts.agentic_cli_title',
-                    ),
-                    strings('app_settings.notifications_opts.agentic_cli_desc'),
-                  )
-                }
-              />
-            )}
+            <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.agentic_cli_title',
+              )}
+              status={getStatusText(
+                preferences?.agenticCli ??
+                  resolveAgenticCliPreference(preferences ?? null),
+              )}
+              iconName={IconName.Code}
+              onPress={() =>
+                navigateToSection(
+                  AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
+                  strings('app_settings.notifications_opts.agentic_cli_title'),
+                  strings('app_settings.notifications_opts.agentic_cli_desc'),
+                )
+              }
+            />
 
             <NotificationRow
               title={strings('app_settings.notifications_opts.marketing_title')}

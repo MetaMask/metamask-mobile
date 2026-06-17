@@ -16,6 +16,7 @@ import {
   getEnabledWalletActivityAddresses,
   readValidatedNotificationPreferences,
 } from './ensureAgenticCliNotificationPreferencesMigrated';
+import { updateNotificationServicesControllerState } from './updateNotificationServicesControllerState';
 
 const NOTIFICATION_API_BASE: Record<'dev' | 'prod', string> = {
   dev: 'https://notification.dev-api.cx.metamask.io',
@@ -164,7 +165,7 @@ export const supplementNotificationsFromRawPreferences =
         new Date(notificationA.createdAt).getTime(),
     );
 
-    controller.update((state) => {
+    updateNotificationServicesControllerState((state) => {
       state.metamaskNotificationsList = metamaskNotifications;
     });
 

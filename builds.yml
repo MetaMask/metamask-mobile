@@ -371,7 +371,6 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
@@ -387,7 +386,6 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
     secrets:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
@@ -408,7 +406,6 @@ builds:
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
@@ -434,7 +431,6 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
       # TODO: Decouple configuration, profile, and build type
       PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
@@ -463,7 +459,6 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
       IS_SIM_BUILD: 'true'
       IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
@@ -558,7 +553,6 @@ builds:
       RAMP_INTERNAL_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
       IS_SIM_BUILD: 'true'
       CONFIGURATION: 'Debug'
       DEV_OAUTH_CONFIG: 'true'

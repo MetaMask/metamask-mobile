@@ -1,4 +1,7 @@
-import type { AgenticCliPreference } from '@metamask/authenticated-user-storage';
+import type {
+  AgenticCliPreference,
+  NotificationPreferences,
+} from '@metamask/authenticated-user-storage';
 import { DEFAULT_AGENTIC_CLI_PREFERENCES } from '@metamask/notification-services-controller';
 
 /**
@@ -14,9 +17,12 @@ export const DEFAULT_AGENTIC_CLI_PREFERENCE: AgenticCliPreference = {
   ...DEFAULT_AGENTIC_CLI_PREFERENCES,
 };
 
-interface PreferencesWithOptionalAgenticCli {
+type PreferencesWithOptionalAgenticCli = Omit<
+  NotificationPreferences,
+  'agenticCli'
+> & {
   agenticCli?: AgenticCliPreference;
-}
+};
 
 export const isNotificationPreferencesMissingAgenticCli = (
   preferences: PreferencesWithOptionalAgenticCli | null | undefined,

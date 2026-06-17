@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { DEFAULT_AGENTIC_CLI_PREFERENCES } from '@metamask/notification-services-controller';
 import Logger from '../../../../../util/Logger';
 import {
   DEFAULT_TX_AMOUNT_LIMIT,
@@ -46,6 +47,7 @@ const buildStoragePreferences = (socialAIOverrides = {}) => ({
     mutedTraderProfileIds: [],
     ...socialAIOverrides,
   },
+  agenticCli: DEFAULT_AGENTIC_CLI_PREFERENCES,
 });
 
 describe('useNotificationPreferences', () => {

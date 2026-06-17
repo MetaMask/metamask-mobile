@@ -74,10 +74,15 @@ const resolveSectionPreferences = <
 >(
   preferences: NotificationPreferences,
   type: PreferenceType,
-): NotificationPreferences[PreferenceType] =>
-  type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION
-    ? resolveAgenticCliPreference(preferences)
-    : preferences[type];
+): NotificationPreferences[PreferenceType] => {
+  if (type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION) {
+    return resolveAgenticCliPreference(
+      preferences,
+    ) as NotificationPreferences[PreferenceType];
+  }
+
+  return preferences[type];
+};
 
 export const useNotificationStoragePreferences =
   (): UseNotificationStoragePreferencesResult => {
@@ -190,7 +195,9 @@ export const useNotificationStoragePreferences =
           );
           return persistedPreferences;
         });
-        writeChainRef.current = persistWrite.catch(() => undefined);
+        writeChainRef.current = persistWrite
+          .then(() => undefined)
+          .catch(() => undefined);
 
         try {
           const persistedPreferences = await persistWrite;
