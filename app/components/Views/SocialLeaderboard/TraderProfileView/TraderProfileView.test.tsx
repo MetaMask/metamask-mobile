@@ -824,11 +824,11 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      // Sum is 1,000,000 — hyperliquid is included; rendered with the shared
-      // abbreviated formatter (main): 1,000,000 → +$1M
-      expect(screen.getByText('+$1M')).toBeOnTheScreen();
+      // Sum is 1,000,000 — hyperliquid is included; rendered with the full
+      // no-decimals formatter: 1,000,000 → +$1,000,000
+      expect(screen.getByText('+$1,000,000')).toBeOnTheScreen();
       // And the trader's global pnl7d (999,999) is NOT what we display
-      expect(screen.queryByText('+$999,999.00')).not.toBeOnTheScreen();
+      expect(screen.queryByText('+$999,999')).not.toBeOnTheScreen();
     });
 
     it('shows the Hyperliquid PnL for a perps-only trader (regression: was 0)', () => {
@@ -847,9 +847,9 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      // 1,474,000 rendered with the shared abbreviated formatter (main) → +$1.5M
-      expect(screen.getByText('+$1.5M')).toBeOnTheScreen();
-      expect(screen.queryByText('+$0.00')).not.toBeOnTheScreen();
+      // 1,474,000 rendered with the full no-decimals formatter → +$1,474,000
+      expect(screen.getByText('+$1,474,000')).toBeOnTheScreen();
+      expect(screen.queryByText('$0')).not.toBeOnTheScreen();
     });
 
     it('sums negative per-chain values (incl. hyperliquid) into a negative total', () => {
@@ -872,8 +872,8 @@ describe('TraderProfileView', () => {
       renderWithProvider(<TraderProfileView />);
 
       // -1000 + -2500 + 500 + -50000 = -53000 (hyperliquid included);
-      // rendered with the shared abbreviated formatter (main): -53,000 → -$53K
-      expect(screen.getByText('-$53K')).toBeOnTheScreen();
+      // rendered with the full no-decimals formatter: -53,000 → -$53,000
+      expect(screen.getByText('-$53,000')).toBeOnTheScreen();
     });
 
     it('treats a missing chain entry as 0', () => {
@@ -890,7 +890,7 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$7.5K')).toBeOnTheScreen();
+      expect(screen.getByText('+$7,500')).toBeOnTheScreen();
     });
 
     it('falls back to the global stats.pnl7d when perChainPnl7d is empty', () => {
@@ -907,7 +907,7 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$20.6K')).toBeOnTheScreen();
+      expect(screen.getByText('+$20,610')).toBeOnTheScreen();
     });
   });
 });

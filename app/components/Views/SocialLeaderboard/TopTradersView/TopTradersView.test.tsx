@@ -227,14 +227,14 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('renders the rank for the top trader', () => {
+  it('renders a podium medal for the top trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('1')).toBeOnTheScreen();
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
   });
 
-  it('renders the ROI for the first trader', () => {
+  it('renders the full PnL for the first trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('calls toggleFollow with analytics context when Follow button is pressed', () => {

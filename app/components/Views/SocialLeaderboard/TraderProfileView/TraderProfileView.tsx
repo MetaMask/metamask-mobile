@@ -388,7 +388,6 @@ const TraderProfileView = () => {
                 profile={profile.profile}
                 followerCount={profile.followerCount}
                 twitterHandle={profile.socialHandles?.twitter}
-                rank={traderRank}
               />
             )}
 

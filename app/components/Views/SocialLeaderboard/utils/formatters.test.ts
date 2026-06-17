@@ -2,6 +2,7 @@ import {
   formatUsd,
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
+  formatSignedFullUsdNoDecimals,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -87,6 +88,29 @@ describe('formatSignedAbbreviatedUsd', () => {
   it('returns an em dash for null and undefined', () => {
     expect(formatSignedAbbreviatedUsd(null)).toBe('\u2014');
     expect(formatSignedAbbreviatedUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatSignedFullUsdNoDecimals', () => {
+  it('formats the full number with commas and no decimals, signed', () => {
+    expect(formatSignedFullUsdNoDecimals(82610666)).toBe('+$82,610,666');
+  });
+
+  it('rounds away fractional digits', () => {
+    expect(formatSignedFullUsdNoDecimals(782360.66)).toBe('+$782,361');
+  });
+
+  it('prefixes negative values with -', () => {
+    expect(formatSignedFullUsdNoDecimals(-1234)).toBe('-$1,234');
+  });
+
+  it('renders zero without a sign', () => {
+    expect(formatSignedFullUsdNoDecimals(0)).toBe('$0');
+  });
+
+  it('returns an em dash for null and undefined', () => {
+    expect(formatSignedFullUsdNoDecimals(null)).toBe('\u2014');
+    expect(formatSignedFullUsdNoDecimals(undefined)).toBe('\u2014');
   });
 });
 
