@@ -382,6 +382,50 @@ describe('BatchSellQuoteDetailsModal', () => {
     ).toBeNull();
   });
 
+  it('renders summary skeletons when isLoading is true', () => {
+    const { getByTestId, queryByText } = render(
+      <BatchSellQuoteDetails {...defaultDetailsProps} isLoading />,
+    );
+
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('7,638.23 USDC')).toBeNull();
+    expect(queryByText('7,485.47 USDC')).toBeNull();
+  });
+
+  it('shows row skeleton instead of unavailable text when both loading and quote unavailable', () => {
+    const { getByTestId, queryByText } = render(
+      <BatchSellQuoteDetails
+        {...defaultDetailsProps}
+        tokenData={[
+          {
+            key: 'eth',
+            tokenSymbol: 'ETH',
+            slippage: '0.5%',
+            receivedAmount: '-- USDC',
+            isLoading: true,
+            isQuoteUnavailable: true,
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      getByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('No quote available')).toBeNull();
+  });
+
   it('hides quote rows when token details are collapsed', () => {
     const props: BatchSellQuoteDetailsProps = {
       ...defaultDetailsProps,
@@ -397,6 +441,31 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
     expect(getByText('Min. received:')).toBeOnTheScreen();
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
+  });
+
+  it('hides quote rows but renders summary skeletons when collapsed and loading', () => {
+    const { getByTestId, queryByText } = render(
+      <BatchSellQuoteDetails
+        {...defaultDetailsProps}
+        isTokenDetailsExpanded={false}
+        isLoading
+      />,
+    );
+
+    expect(queryByText('ETH • 0.5% slippage')).toBeNull();
+    expect(queryByText('UNI • 0.5% slippage')).toBeNull();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('7,638.23 USDC')).toBeNull();
+    expect(queryByText('7,485.47 USDC')).toBeNull();
   });
 
   it('calls onMinimumReceivedInfoPress when the info button is pressed', () => {
