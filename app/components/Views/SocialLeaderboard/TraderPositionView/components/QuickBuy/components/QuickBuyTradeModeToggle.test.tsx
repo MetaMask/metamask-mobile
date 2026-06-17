@@ -74,4 +74,23 @@ describe('QuickBuyTradeModeToggle', () => {
     renderToggle('buy');
     expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
   });
+
+  it('renders only Buy with selected styling in buy-only mode', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      tradeMode: 'buy',
+      setTradeMode,
+      hasSellableBalance: false,
+    });
+    render(<QuickBuyTradeModeToggle buyOnly />);
+    expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.buy_label'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('quick-buy-trade-mode-sell'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('quick-buy-trade-mode-buy'),
+    ).not.toBeOnTheScreen();
+  });
 });

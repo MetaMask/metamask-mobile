@@ -302,7 +302,8 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
         ) as Hex;
         const assetAddress = toChecksumHexAddress(
           metadata.type === 'native'
-            ? getNativeTokenAddress(hexChainId)
+            ? // TokenBalancesController always uses zero address for native tokens
+              '0x0000000000000000000000000000000000000000'
             : assetType.assetReference,
         ) as Hex;
 

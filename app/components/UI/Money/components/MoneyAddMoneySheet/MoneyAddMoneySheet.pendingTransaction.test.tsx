@@ -15,7 +15,6 @@ import { addTransactionBatch } from '../../../../../util/transaction-controller'
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
@@ -154,9 +153,6 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
   selectHasAnyNonZeroTokenBalance: jest.fn(),
 }));
-jest.mock('../../../Ramp/hooks/useHasNativeFiatProvider', () => ({
-  useHasNativeFiatProvider: jest.fn(),
-}));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
@@ -214,7 +210,6 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: jest.fn(),
       trackSurfaceClicked: jest.fn(),

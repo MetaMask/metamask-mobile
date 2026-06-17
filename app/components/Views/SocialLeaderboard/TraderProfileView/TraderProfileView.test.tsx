@@ -816,7 +816,7 @@ describe('TraderProfileView', () => {
       renderWithProvider(<TraderProfileView />);
 
       // Sum is 100,000 — hyperliquid contribution ignored
-      expect(screen.getByText('+$100,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('+$100K')).toBeOnTheScreen();
       // And the trader's global pnl30d (999,999) is NOT what we display
       expect(screen.queryByText('+$999,999.00')).not.toBeOnTheScreen();
     });
@@ -840,7 +840,7 @@ describe('TraderProfileView', () => {
       renderWithProvider(<TraderProfileView />);
 
       // -1000 + -2500 + 500 = -3000
-      expect(screen.getByText('-$3,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('-$3K')).toBeOnTheScreen();
     });
 
     it('treats a missing chain entry as 0', () => {
@@ -856,7 +856,7 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$7,500.00')).toBeOnTheScreen();
+      expect(screen.getByText('+$7.5K')).toBeOnTheScreen();
     });
 
     it('falls back to the global stats.pnl30d when perChainPnl is empty', () => {
@@ -872,7 +872,7 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
+      expect(screen.getByText('+$20.6K')).toBeOnTheScreen();
     });
   });
 });
