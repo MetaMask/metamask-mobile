@@ -143,7 +143,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
     cryptoPredictions.isLoading || cryptoPredictions.data.length > 0;
 
   const sectionLayout = useMemo(() => {
-    const sections: Array<{ key: string; isVerticalList: boolean }> = [];
+    const sections: { key: string; isVerticalList: boolean }[] = [];
     if (showTokens) sections.push({ key: 'tokens', isVerticalList: true });
     if (showCryptoPerps) {
       sections.push({ key: 'crypto_perps', isVerticalList: false });

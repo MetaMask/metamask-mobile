@@ -105,7 +105,7 @@ const MacroTabContent: React.FC<TabProps> = ({
     isPerpsEnabled && (macroPerps.isLoading || macroPerps.data.length > 0);
 
   const sectionLayout = useMemo(() => {
-    const sections: Array<{ key: string; isVerticalList: boolean }> = [];
+    const sections: { key: string; isVerticalList: boolean }[] = [];
     if (showPredictions) {
       sections.push({ key: 'predictions', isVerticalList: false });
     }

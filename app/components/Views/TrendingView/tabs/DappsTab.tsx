@@ -73,7 +73,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showSites = sites.isLoading || sites.data.length > 0;
 
   const sectionLayout = useMemo(() => {
-    const sections: Array<{ key: string; isVerticalList: boolean }> = [];
+    const sections: { key: string; isVerticalList: boolean }[] = [];
     if (showRecents) sections.push({ key: 'recents', isVerticalList: false });
     if (showFavorites) {
       sections.push({ key: 'favorites', isVerticalList: true });
