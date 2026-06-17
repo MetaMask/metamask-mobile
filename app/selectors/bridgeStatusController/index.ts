@@ -57,5 +57,6 @@ export const selectBridgeHistoryForAccount = createSelector(
 export const selectBatchSellHistoryItemsForTxHash = createSelector(
   [selectBridgeHistoryForAccount, (_, txHash?: string) => txHash],
 
-  (bridgeHistory, txHash) => getBatchSellHistoryItemsForTxHash(bridgeHistory, txHash),
+  (bridgeHistory, txHash) =>
+    getBatchSellHistoryItemsForTxHash(bridgeHistory, txHash),
 );
