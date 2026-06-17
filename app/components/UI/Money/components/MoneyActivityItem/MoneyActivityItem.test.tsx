@@ -17,6 +17,12 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
 }));
 
+// useSelector is mocked to call the selector directly (no store needed) so
+// mockReturnValue on selectMoneyEnableActivityDetailsFlag is always applied.
+jest.mock('react-redux', () => ({
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
 const mockedSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
 );
