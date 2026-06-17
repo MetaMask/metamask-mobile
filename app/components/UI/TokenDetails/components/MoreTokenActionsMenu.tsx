@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import BottomSheet, {
@@ -17,7 +17,13 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import {
+  Hex,
+  isCaipAssetType,
+  parseCaipAssetType,
+  type CaipAssetType,
+  type CaipChainId,
+} from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
@@ -29,6 +35,12 @@ import { TokenDetailsAction } from '../constants/constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import { errorCodes } from '@metamask/rpc-errors';
+import { StellarClassicTrustlineErrorBanner } from '../../Stellar/StellarClassicTrustlineErrorBanner';
+import { useStellarTrustlineDisplay } from '../../Stellar/hooks/useStellarTrustlineDisplay';
+import { requestStellarChangeTrustOptDelete } from '../../../../util/stellar/stellar-snap-client-requests';
+///: END:ONLY_INCLUDE_IF
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -83,6 +95,19 @@ const MoreTokenActionsMenu = () => {
     selectSelectedInternalAccountByScope,
   );
   const { handleHideToken } = useAssetVisibility(asset);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  const { account: stellarAccount, hasStellarClassicTrustlineToRemove } =
+    useStellarTrustlineDisplay(asset);
+  const [trustlineRemoveErrorMessage, setTrustlineRemoveErrorMessage] =
+    useState<string | null>(null);
+  const [isRemovingStellarTrustline, setIsRemovingStellarTrustline] =
+    useState(false);
+
+  const dismissTrustlineRemoveError = useCallback(() => {
+    setTrustlineRemoveErrorMessage(null);
+  }, []);
+  ///: END:ONLY_INCLUDE_IF
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -219,6 +244,60 @@ const MoreTokenActionsMenu = () => {
     onActionTapped,
   ]);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  const handleRemoveStellarTrustline = useCallback(async () => {
+    if (
+      !hasStellarClassicTrustlineToRemove ||
+      !stellarAccount ||
+      !asset.chainId ||
+      !isCaipAssetType(asset.address)
+    ) {
+      return;
+    }
+
+    setTrustlineRemoveErrorMessage(null);
+    setIsRemovingStellarTrustline(true);
+    try {
+      await requestStellarChangeTrustOptDelete({
+        accountId: stellarAccount.id,
+        assetId: asset.address as CaipAssetType,
+        scope: asset.chainId as CaipChainId,
+      });
+      await Engine.context.MultichainBalancesController.updateBalance(
+        stellarAccount.id,
+      );
+      sheetRef.current?.onCloseBottomSheet();
+    } catch (error: unknown) {
+      const errorCode = (error as { code?: number })?.code;
+      const isUserRejection =
+        errorCode === errorCodes.provider.userRejectedRequest;
+      if (!isUserRejection) {
+        const balanceValue = parseFloat(asset.balance || '0');
+        const hasNonZeroTokenBalance = Number.isFinite(balanceValue)
+          ? balanceValue > 0
+          : false;
+        setTrustlineRemoveErrorMessage(
+          hasNonZeroTokenBalance
+            ? strings('stellarClassicTrustlineRemoveNonZeroBalanceError', {
+                balance: asset.balance,
+                symbol: asset.symbol,
+              })
+            : strings('stellarClassicTrustlineRemoveError'),
+        );
+      }
+    } finally {
+      setIsRemovingStellarTrustline(false);
+    }
+  }, [
+    asset.address,
+    asset.balance,
+    asset.chainId,
+    asset.symbol,
+    hasStellarClassicTrustlineToRemove,
+    stellarAccount,
+  ]);
+  ///: END:ONLY_INCLUDE_IF
+
   const tokenIsInAccount = !!useSelector((state: RootState) =>
     selectAsset(state, {
       address: asset.address,
@@ -279,6 +358,28 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    if (
+      hasStellarClassicTrustlineToRemove &&
+      stellarAccount &&
+      asset.chainId &&
+      isCaipAssetType(asset.address)
+    ) {
+      actions.push({
+        type: 'stellar-deactivate-trustline',
+        label: strings('stellarClassicDeactivateOnStellar', {
+          symbol: asset.symbol,
+        }),
+        description: strings('stellarClassicDeactivateOnStellarDetail'),
+        iconName: IconName.Trash,
+        testID: 'more-actions-stellar-deactivate-trustline',
+        isVisible: true,
+        isDisabled: isRemovingStellarTrustline,
+        onPress: handleRemoveStellarTrustline,
+      });
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     return actions;
   }, [
     asset.address,
@@ -295,7 +396,24 @@ const MoreTokenActionsMenu = () => {
     handleBuy,
     handleViewOnBlockExplorer,
     handleRemoveToken,
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    handleRemoveStellarTrustline,
+    hasStellarClassicTrustlineToRemove,
+    isRemovingStellarTrustline,
+    stellarAccount,
+    ///: END:ONLY_INCLUDE_IF
   ]);
+
+  let trustlineRemoveErrorBanner: React.ReactNode = null;
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  trustlineRemoveErrorBanner = (
+    <StellarClassicTrustlineErrorBanner
+      message={trustlineRemoveErrorMessage}
+      onDismiss={dismissTrustlineRemoveError}
+      testID="stellar-classic-trustline-remove-error-banner"
+    />
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -314,6 +432,7 @@ const MoreTokenActionsMenu = () => {
               />
             ),
         )}
+        {trustlineRemoveErrorBanner}
       </Box>
     </BottomSheet>
   );

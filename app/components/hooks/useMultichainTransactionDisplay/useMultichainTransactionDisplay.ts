@@ -8,6 +8,14 @@ import { formatWithThreshold } from '../../../util/assets';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { isTransactionIncomplete } from '../../../util/transactions';
 
+/**
+ * Custom labels for non-EVM transactions mapped from `transaction.details.typeLabel`.
+ */
+export enum CustomTransactionTypeLabel {
+  TrustlineApprove = 'trustline-approve',
+  TrustlineDisapprove = 'trustline-disapprove',
+}
+
 interface Asset {
   unit: string;
   type: `${string}:${string}/${string}:${string}`;
@@ -39,6 +47,7 @@ export interface MultichainTransactionDisplayData {
   baseFee?: AggregatedMovementDisplayData;
   priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
+  shouldShowAmountOrUnit: boolean;
 }
 
 export function useMultichainTransactionDisplay(
@@ -94,15 +103,41 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Unknown]: strings('transactions.interaction'),
   };
 
+  const typeLabel = transaction.details?.typeLabel;
+  const isTrustlineType = [
+    CustomTransactionTypeLabel.TrustlineApprove,
+    CustomTransactionTypeLabel.TrustlineDisapprove,
+  ].includes(typeLabel as CustomTransactionTypeLabel);
+
+  let title = isRedeposit
+    ? strings('transactions.redeposit')
+    : typeToTitle[transaction.type];
+
+  if (typeLabel) {
+    switch (typeLabel) {
+      case CustomTransactionTypeLabel.TrustlineApprove:
+        title = from?.unit
+          ? `${strings('trustlineApprove')}: ${from.unit}`
+          : strings('trustlineApprove');
+        break;
+      case CustomTransactionTypeLabel.TrustlineDisapprove:
+        title = from?.unit
+          ? `${strings('trustlineDisapprove')}: ${from.unit}`
+          : strings('trustlineDisapprove');
+        break;
+      default:
+        break;
+    }
+  }
+
   return {
-    title: isRedeposit
-      ? strings('transactions.redeposit')
-      : typeToTitle[transaction.type],
+    title,
     from,
     to,
     baseFee,
     priorityFee,
     isRedeposit,
+    shouldShowAmountOrUnit: !isTrustlineType,
   };
 }
 

@@ -49,7 +49,14 @@ const MultichainTransactionListItem = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
-  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
+  const {
+    title,
+    to,
+    priorityFee,
+    baseFee,
+    isRedeposit,
+    shouldShowAmountOrUnit,
+  } = displayData;
 
   const handlePress = useCallback(() => {
     trackEvent(
@@ -108,6 +115,10 @@ const MultichainTransactionListItem = ({
   };
 
   const displayAmount = () => {
+    if (!shouldShowAmountOrUnit) {
+      return '';
+    }
+
     if (isRedeposit) {
       return `${priorityFee?.amount} ${priorityFee?.unit}`;
     }

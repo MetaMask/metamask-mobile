@@ -85,6 +85,7 @@ jest.mock('../../../util/date', () => ({
 const mockDisplayData: MultichainTransactionDisplayData = {
   title: 'Send ETH',
   isRedeposit: false,
+  shouldShowAmountOrUnit: true,
   from: {
     address: '0xabc123def456abc123def456abc123def456abc1',
     amount: '0.5',
@@ -152,6 +153,20 @@ describe('MultichainTransactionDetailsSheet', () => {
     const { getByText } = renderSheet();
     expect(getByText('Amount')).toBeOnTheScreen();
     expect(getByText('0.5 ETH')).toBeOnTheScreen();
+  });
+
+  it('hides the amount row for trustline transactions', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        displayData: {
+          ...mockDisplayData,
+          shouldShowAmountOrUnit: false,
+        },
+        transaction: mockTransaction,
+      },
+    });
+    const { queryByText } = renderSheet();
+    expect(queryByText('Amount')).toBeNull();
   });
 
   it('renders the network fee row', () => {

@@ -63,7 +63,12 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import {
+  isCaipAssetType,
+  type CaipAssetType,
+  type CaipChainId,
+  type Hex,
+} from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -98,6 +103,13 @@ import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import { StellarClassicTrustlineActivateCard } from '../../Stellar/StellarClassicTrustlineActivateCard';
+import { StellarNativeBalanceSection } from '../../Stellar/StellarNativeBalanceSection';
+import { StellarTrustlineInactiveBadge } from '../../Stellar/StellarTrustlineInactiveBadge';
+import { useStellarTrustlineDisplay } from '../../Stellar/hooks/useStellarTrustlineDisplay';
+import { isStellarNativeToken } from '../utils/isStellarNativeToken';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -270,6 +282,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  const stellarNativeToken = isStellarNativeToken(token) ? token : null;
+  const {
+    account: stellarAccount,
+    showStellarClassicTrustlineActivate,
+    showStellarInactiveAssetHeader,
+    showStellarNativeBalanceSection,
+    stellarNativeBaseReserve,
+  } = useStellarTrustlineDisplay(token);
+  ///: END:ONLY_INCLUDE_IF
 
   const {
     hasPerpsMarket,
@@ -720,6 +742,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     <StockBadge token={token as BridgeToken} />
                   </Box>
                 )}
+                {
+                  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+                  showStellarInactiveAssetHeader ? (
+                    <Box twClassName="shrink-0">
+                      <StellarTrustlineInactiveBadge />
+                    </Box>
+                  ) : null
+                  ///: END:ONLY_INCLUDE_IF
+                }
               </Box>
               {token.name ? (
                 <Box
@@ -800,8 +831,38 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             </View>
           ) : null}
           {
+            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+            showStellarClassicTrustlineActivate &&
+            stellarAccount &&
+            token.chainId ? (
+              <StellarClassicTrustlineActivateCard
+                visible
+                account={stellarAccount}
+                chainId={token.chainId as CaipChainId}
+                assetId={token.address as CaipAssetType}
+                symbol={token.symbol}
+              />
+            ) : null
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && <TronEnergyBandwidthDetail />
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+            showStellarNativeBalanceSection &&
+            stellarNativeToken &&
+            stellarNativeBaseReserve ? (
+              <StellarNativeBalanceSection
+                totalBalance={String(mainBalance)}
+                symbol={stellarNativeToken.symbol}
+                baseReserve={stellarNativeBaseReserve}
+                fiatValue={secondaryBalance}
+                showFiat={Boolean(secondaryBalance)}
+              />
+            ) : null
             ///: END:ONLY_INCLUDE_IF
           }
           {balance != null && (

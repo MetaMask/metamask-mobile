@@ -92,6 +92,10 @@ import {
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import { StellarTrustlineInactiveBadge } from '../../../Stellar/StellarTrustlineInactiveBadge';
+import { useStellarTrustlineDisplay } from '../../../Stellar/hooks/useStellarTrustlineDisplay';
+///: END:ONLY_INCLUDE_IF
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -183,6 +187,10 @@ export const TokenListItem = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    const { isStellarTrustlineInactive } = useStellarTrustlineDisplay(asset);
+    ///: END:ONLY_INCLUDE_IF
 
     const { isStockToken } = useRWAToken();
 
@@ -554,7 +562,12 @@ export const TokenListItem = React.memo(
         {'-'}
       </Text>
     );
-    if (!hideFiatForScamWarning) {
+    if (
+      !hideFiatForScamWarning &&
+      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+      !isStellarTrustlineInactive
+      ///: END:ONLY_INCLUDE_IF
+    ) {
       secondaryBalanceElement = secondaryBalanceDisplay.onPress ? (
         <TouchableOpacity
           accessible={false}
@@ -695,6 +708,13 @@ export const TokenListItem = React.memo(
                       caipAssetId={caipAssetIdForSecurity}
                     />
                   )}
+                {
+                  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+                  isStellarTrustlineInactive ? (
+                    <StellarTrustlineInactiveBadge />
+                  ) : null
+                  ///: END:ONLY_INCLUDE_IF
+                }
               </View>
 
               {renderEarnCta()}
@@ -714,27 +734,33 @@ export const TokenListItem = React.memo(
                 setShowScamWarningModal={setShowScamWarningModal}
               />
             ) : (
-              <SensitiveText
-                variant={
-                  asset?.hasBalanceError ||
-                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
-                  hideFiatForTestnet
-                    ? TextVariant.BodySm
-                    : TextVariant.BodyMd
-                }
-                fontWeight={
-                  asset?.hasBalanceError ||
-                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
-                  hideFiatForTestnet
-                    ? undefined
-                    : FontWeight.Medium
-                }
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                testID={BALANCE_TEST_ID}
-              >
-                {fiatBalanceDisplay}
-              </SensitiveText>
+              ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+              !isStellarTrustlineInactive && (
+                ///: END:ONLY_INCLUDE_IF
+                <SensitiveText
+                  variant={
+                    asset?.hasBalanceError ||
+                    asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                    hideFiatForTestnet
+                      ? TextVariant.BodySm
+                      : TextVariant.BodyMd
+                  }
+                  fontWeight={
+                    asset?.hasBalanceError ||
+                    asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                    hideFiatForTestnet
+                      ? undefined
+                      : FontWeight.Medium
+                  }
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                  testID={BALANCE_TEST_ID}
+                >
+                  {fiatBalanceDisplay}
+                </SensitiveText>
+                ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+              )
+              ///: END:ONLY_INCLUDE_IF
             )}
           </Box>
 
@@ -746,38 +772,65 @@ export const TokenListItem = React.memo(
           >
             {/* Token price and percentage change */}
             <View style={styles.percentageChange}>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-                twClassName="uppercase"
-              >
-                {tokenPriceInFiat && !hideFiatForScamWarning
-                  ? formatPriceWithSubscriptNotation(
-                      tokenPriceInFiat,
-                      currentCurrency,
-                    )
-                  : '-'}
-                {' \u2022 '}
-              </Text>
+              {
+                ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+                isStellarTrustlineInactive ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                    twClassName="uppercase"
+                  >
+                    {strings('account_creation.headers.stellar')}
+                  </Text>
+                ) : (
+                  ///: END:ONLY_INCLUDE_IF
+                  <>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
+                    >
+                      {tokenPriceInFiat && !hideFiatForScamWarning
+                        ? formatPriceWithSubscriptNotation(
+                            tokenPriceInFiat,
+                            currentCurrency,
+                          )
+                        : '-'}
+                      {' \u2022 '}
+                    </Text>
 
-              {secondaryBalanceElement}
+                    {secondaryBalanceElement}
+                  </>
+                  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+                )
+                ///: END:ONLY_INCLUDE_IF
+              }
             </View>
 
             {/* Token balance */}
-            <Box twClassName="shrink">
-              <SensitiveText
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                style={styles.secondaryBalance}
-                length={SensitiveTextLength.Short}
-                isHidden={privacyMode}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {tokenBalance}
-              </SensitiveText>
-            </Box>
+            {
+              ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+              !isStellarTrustlineInactive && (
+                ///: END:ONLY_INCLUDE_IF
+                <Box twClassName="shrink">
+                  <SensitiveText
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    style={styles.secondaryBalance}
+                    length={SensitiveTextLength.Short}
+                    isHidden={privacyMode}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {tokenBalance}
+                  </SensitiveText>
+                </Box>
+                ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+              )
+              ///: END:ONLY_INCLUDE_IF
+            }
           </Box>
         </Box>
       </TouchableOpacity>
