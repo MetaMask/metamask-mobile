@@ -117,7 +117,10 @@ function getTitle(
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
   ) {
     if (isMoneyContext) {
-      return getConversionTitle(transactionMeta.status);
+      const isFiatDeposit = Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
+      return isFiatDeposit
+        ? getFiatDepositTitle(transactionMeta.status)
+        : getConversionTitle(transactionMeta.status);
     }
     return strings('transaction_details.title.money_account_deposit');
   }
@@ -168,6 +171,18 @@ function getTitle(
       return strings('transaction_details.title.perps_deposit');
     default:
       return strings('transaction_details.title.default');
+  }
+}
+
+function getFiatDepositTitle(status: TransactionStatus): string {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return strings('transaction_details.title.deposited_musd');
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return strings('transaction_details.title.deposit_failed');
+    default:
+      return strings('transaction_details.title.depositing_musd');
   }
 }
 

@@ -154,6 +154,13 @@ export function TransactionDetailsHero() {
     hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
 
   if (showTokenIcon) {
+    const isFiatDeposit =
+      isMoneyContext &&
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]) &&
+      Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
+
     return (
       <Box
         testID="transaction-details-hero"
@@ -168,7 +175,11 @@ export function TransactionDetailsHero() {
           symbol={tokenMeta.symbol}
           showNetwork={false}
         />
-        <Text variant={TextVariant.DisplayMD}>
+        <Text
+          variant={TextVariant.DisplayMD}
+          color={isFiatDeposit ? TextColor.Success : undefined}
+        >
+          {isFiatDeposit ? '+' : ''}
           {tokenMeta.amount} {tokenMeta.symbol}
         </Text>
       </Box>
