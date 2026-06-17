@@ -1,6 +1,8 @@
 import {
+  FeatureId,
   formatChainIdToCaip,
   formatChainIdToHex,
+  isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
@@ -40,8 +42,8 @@ export const getSwapBridgeTxActivityTitle = (
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
-  if (bridgeTxHistoryItem.featureId === 'batch_sell' && is7702Batch) {
-    return 'Batch sell';
+  if (bridgeTxHistoryItem.featureId === FeatureId.BATCH_SELL && is7702Batch) {
+    return strings('bridge.batch_sell_transaction_label');
   }
 
   // Swap
@@ -244,7 +246,67 @@ export const decodeSwapsTx = (args: {
     ...summary,
   };
 
-  return [transactionElement, transactionDetails];
+  return [
+    {
+      ...transactionElement,
+      actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem),
+    },
+    transactionDetails,
+  ];
+};
+
+export const decodeBatchSellTx = (args: {
+  tx: TransactionMeta;
+  currentCurrency: string;
+  conversionRate: number; // gas token to current currency rate
+  bridgeTxHistoryData: {
+    bridgeTxHistoryItem: BridgeHistoryItem;
+    batchTotalDestAmount: number;
+    is7702Batch: boolean;
+  };
+  txChainId: Hex;
+  ticker: string; // the gas token symbol
+  contractExchangeRates: Record<string, { price: number }>; // token to gas token rate
+  primaryCurrency: string; // Settings > General > Primary Currency
+}) => {
+  const {
+    currentCurrency,
+    contractExchangeRates,
+    conversionRate,
+    bridgeTxHistoryData,
+  } = args;
+
+  const { bridgeTxHistoryItem, batchTotalDestAmount, is7702Batch } =
+    bridgeTxHistoryData;
+
+  const { destAsset } = bridgeTxHistoryItem.quote;
+  const destAmount = parseFloat(
+    ethers.utils.formatUnits(batchTotalDestAmount, destAsset.decimals),
+  );
+
+  const destExchangeRate = isNativeAddress(destAsset.address)
+    ? 1
+    : contractExchangeRates?.[toFormattedAddress(destAsset.address)]?.price;
+
+  const destAmountFiatNumber = balanceToFiatNumber(
+    destAmount,
+    conversionRate,
+    destExchangeRate,
+  );
+
+  const destFiatValue = addCurrencySymbol(
+    destAmountFiatNumber,
+    currentCurrency,
+  );
+
+  return [
+    {
+      value: `${destAmount} ${destAsset.symbol}`,
+      fiatValue: destFiatValue,
+      actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch),
+    },
+    {},
+  ];
 };
 
 export const handleUnifiedSwapsTxHistoryItemClick = ({

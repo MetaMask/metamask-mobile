@@ -66,8 +66,11 @@ export function useBridgeTxHistoryData({
   return {
     bridgeTxHistoryItem: bridgeHistoryItem,
     batchSellHistoryItems: historyItems,
-    is7702Batch,
-    batchTotalDestAmount: historyItems?.reduce((acc, item) => acc + parseFloat(item.quote.destTokenAmount), 0),
+    is7702Batch: (evmTxMeta?.nestedTransactions?.length ?? 0) > 1,
+    batchTotalDestAmount: historyItems?.reduce(
+      (acc, item) => acc + parseFloat(item.quote.destTokenAmount),
+      0,
+    ),
     isBridgeComplete,
   };
 }
