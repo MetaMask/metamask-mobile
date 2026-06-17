@@ -184,8 +184,27 @@ const useMoneyToasts = (): {
     [toastRef],
   );
 
-  const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(
-    () => ({
+  const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(() => {
+    const buildSendToast = (
+      base: MoneyToastOptions,
+      primaryKey: string,
+      secondaryKey: string,
+      secondaryParams?: Record<string, string>,
+    ): MoneyToastOptions => ({
+      ...base,
+      labelOptions: getMoneyToastLabels({
+        primary: strings(primaryKey),
+        primaryIsBold: true,
+        secondary: (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings(secondaryKey, secondaryParams)}
+          </Text>
+        ),
+      }),
+      closeButtonOptions,
+    });
+
+    return {
       deposit: {
         inProgress: (params?: DepositInProgressParams) => ({
           ...moneyBaseToastOptions.inProgress,
@@ -314,70 +333,40 @@ const useMoneyToasts = (): {
         }),
       },
       send: {
-        inProgress: () => ({
-          ...moneyBaseToastOptions.inProgress,
-          labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.send_in_progress_title'),
-            primaryIsBold: true,
-            secondary: (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.toasts.in_progress_body')}
-              </Text>
-            ),
-          }),
-          closeButtonOptions,
-        }),
-        success: ({ amountFiat, destination }: SendSuccessParams) => ({
-          ...moneyBaseToastOptions.success,
-          labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.send_success_title'),
-            primaryIsBold: true,
-            secondary: (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {amountFiat
-                  ? strings('money.toasts.send_success_body', {
-                      amount: amountFiat,
-                      destination,
-                    })
-                  : strings('money.toasts.send_success_body_no_amount', {
-                      destination,
-                    })}
-              </Text>
-            ),
-          }),
-          closeButtonOptions,
-        }),
-        failed: () => ({
-          ...moneyBaseToastOptions.error,
-          labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.send_failed_title'),
-            primaryIsBold: true,
-            secondary: (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.toasts.send_failed_body')}
-              </Text>
-            ),
-          }),
-          closeButtonOptions,
-        }),
+        inProgress: () =>
+          buildSendToast(
+            moneyBaseToastOptions.inProgress,
+            'money.toasts.send_in_progress_title',
+            'money.toasts.in_progress_body',
+          ),
+        success: ({ amountFiat, destination }: SendSuccessParams) =>
+          amountFiat
+            ? buildSendToast(
+                moneyBaseToastOptions.success,
+                'money.toasts.send_success_title',
+                'money.toasts.send_success_body',
+                { amount: amountFiat, destination },
+              )
+            : buildSendToast(
+                moneyBaseToastOptions.success,
+                'money.toasts.send_success_title',
+                'money.toasts.send_success_body_no_amount',
+                { destination },
+              ),
+        failed: () =>
+          buildSendToast(
+            moneyBaseToastOptions.error,
+            'money.toasts.send_failed_title',
+            'money.toasts.send_failed_body',
+          ),
       },
-    }),
-    [
-      closeButtonOptions,
-      moneyBaseToastOptions.error,
-      moneyBaseToastOptions.inProgress,
-      moneyBaseToastOptions.success,
-    ],
-  );
+    };
+  }, [
+    closeButtonOptions,
+    moneyBaseToastOptions.error,
+    moneyBaseToastOptions.inProgress,
+    moneyBaseToastOptions.success,
+  ]);
 
   return { showToast, MoneyToastOptions };
 };
