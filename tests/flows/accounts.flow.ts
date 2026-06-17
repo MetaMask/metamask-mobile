@@ -1,6 +1,8 @@
 import ImportSrpView from '../page-objects/importSrp/ImportSrpView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../page-objects/wallet/AddAccountBottomSheet';
+import ImportAccountView from '../page-objects/importAccount/ImportAccountView';
+import SuccessImportAccountView from '../page-objects/importAccount/SuccessImportAccountView';
 import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import SRPListItemComponent from '../page-objects/wallet/MultiSrp/Common/SRPListItemComponent';
@@ -10,6 +12,7 @@ import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import SettingsView from '../page-objects/Settings/SettingsView';
 import SecurityAndPrivacyView from '../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
+import EditAccountName from '../page-objects/MultichainAccounts/EditAccountName';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
 import PlaywrightAssertions from '../framework/PlaywrightAssertions';
@@ -18,6 +21,7 @@ import {
   EncapsulatedElementType,
 } from '../framework/EncapsulatedElement';
 import { AssertionOptions } from '../framework/types';
+import Utilities from '../framework/Utilities';
 
 const PASSWORD = '123123123';
 
@@ -46,12 +50,16 @@ async function expectTextVisible(
   await Assertions.expectTextDisplayed(text, options);
 }
 
-export const goToImportSrp = async () => {
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+export const openImportSrpFromAccountList = async (): Promise<void> => {
   await AccountListBottomSheet.tapAddAccountButton();
   await AddAccountBottomSheet.tapImportSrp();
   await Assertions.expectElementToBeVisible(ImportSrpView.container);
+};
+
+export const goToImportSrp = async () => {
+  await WalletView.tapIdenticon();
+  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await openImportSrpFromAccountList();
 };
 
 export const inputSrp = async (mnemonic: string) => {
@@ -103,11 +111,63 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await RevealSecretRecoveryPhrase.tapDoneButton();
 };
 
+export const openAccountActionsFromAccountList = async (
+  accountIndex: number,
+): Promise<void> => {
+  await AccountListBottomSheet.tapAccountEllipsisButtonV2(accountIndex);
+  await AccountDetails.tapAccountSrpLink();
+};
+
 export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await openAccountActionsFromAccountList(accountIndex);
+};
+
+/** Imports an account via the add-account → import private key flow. */
+export const importAccountViaPrivateKey = async (
+  privateKey: string,
+): Promise<void> => {
+  await AccountListBottomSheet.tapAddWalletButton();
+  await AddAccountBottomSheet.tapImportAccount();
+  await Assertions.expectElementToBeVisible(ImportAccountView.container);
+  await ImportAccountView.enterPrivateKey(privateKey);
+  await Assertions.expectElementToBeVisible(SuccessImportAccountView.container);
+  await SuccessImportAccountView.tapCloseButton();
+  if (FrameworkDetector.isAppium()) {
+    await AddAccountBottomSheet.tapBackToWalletView();
+  }
+};
+
+export const renameAccountAtIndex = async (
+  accountIndex: number,
+  newName: string,
+): Promise<void> => {
   await AccountListBottomSheet.tapAccountEllipsisButtonV2(accountIndex);
-  await AccountDetails.tapAccountSrpLink();
+  await AccountDetails.tapEditAccountName();
+  await EditAccountName.updateAccountName(newName);
+  await EditAccountName.tapSave();
+  await AccountDetails.tapBackButton();
+};
+
+export const assertAccountCount = async (
+  accountName: string,
+  expectedCount: number,
+): Promise<void> => {
+  await Utilities.executeWithRetry(
+    async () => {
+      const accountElements =
+        await AccountListBottomSheet.getAccountElementsByAccountNameV2(
+          accountName,
+        );
+      return accountElements.length === expectedCount;
+    },
+    {
+      description: `Count accounts with name "${accountName}" in the account list`,
+      timeout: 5000,
+      interval: 500,
+    },
+  );
 };
 
 export const startExportForKeyring = async (keyringId: string) => {
