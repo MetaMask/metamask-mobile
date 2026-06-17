@@ -1,12 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  SegmentButton,
+  SegmentGroup,
+} from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import FilterTabBar, {
-  FilterTab,
-} from '../../../../component-library/components-temp/FilterTabBar';
 
 import {
   NotificationCategoryId,
@@ -14,11 +15,18 @@ import {
 } from './NotificationsCategory.types';
 import { NotificationsCategorySelectorsIDs } from './NotificationsCategory.testIds';
 
+interface CategoryTab {
+  key: NotificationCategoryId;
+  label: string;
+  testID: string;
+}
+
 /**
- * Horizontally scrollable category filter for the notifications list. The set
- * of categories is gated by feature flags: the activity-related categories only
- * appear when MetaMask notifications are enabled, and "Trading Signals" only
- * when the social leaderboard flag is on.
+ * Horizontally scrollable category filter for the notifications list, built on
+ * the design-system `SegmentGroup` / `SegmentButton`. The set of categories is
+ * gated by feature flags: the activity-related categories only appear when
+ * MetaMask notifications are enabled, and "Trading Signals" only when the social
+ * leaderboard flag is on.
  */
 const NotificationsCategory = ({
   onSelect,
@@ -34,8 +42,8 @@ const NotificationsCategory = ({
   const [selectedCategory, setSelectedCategory] =
     useState<NotificationCategoryId>(NotificationCategoryId.All);
 
-  const tabs = useMemo<FilterTab[]>(() => {
-    const items: FilterTab[] = [
+  const tabs = useMemo<CategoryTab[]>(() => {
+    const items: CategoryTab[] = [
       {
         key: NotificationCategoryId.All,
         label: strings('app_settings.notifications_opts.all_title'),
@@ -87,12 +95,18 @@ const NotificationsCategory = ({
   );
 
   return (
-    <FilterTabBar
-      tabs={tabs}
-      selectedKey={selectedCategory}
-      onSelect={handleSelect}
+    <SegmentGroup
+      value={selectedCategory}
+      onChange={handleSelect}
+      twClassName="gap-2 px-4 py-1"
       testID={testID ?? NotificationsCategorySelectorsIDs.CONTAINER}
-    />
+    >
+      {tabs.map((tab) => (
+        <SegmentButton key={tab.key} value={tab.key} testID={tab.testID}>
+          {tab.label}
+        </SegmentButton>
+      ))}
+    </SegmentGroup>
   );
 };
 
