@@ -56,7 +56,8 @@ export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   SKELETON: 'rewards-vip-referee-view-skeleton',
   ERROR: 'rewards-vip-referee-view-error',
   REFERRED_BY_CARD: 'rewards-vip-referee-view-referred-by-card',
-  VOLUME: 'rewards-vip-referee-view-volume',
+  SWAPS_VOLUME: 'rewards-vip-referee-view-swaps-volume',
+  PERPS_VOLUME: 'rewards-vip-referee-view-perps-volume',
   POINTS_TO: 'rewards-vip-referee-view-points-to',
   LAST_UPDATED: 'rewards-vip-referee-view-last-updated',
   CONTACT_SUPPORT_BUTTON: 'rewards-vip-referee-view-contact-support-button',
@@ -196,13 +197,18 @@ const RewardsVipRefereeViewContent: React.FC = () => {
 
                 <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
                   <Box twClassName="flex-1 gap-1">
-                    <Skeleton style={tw.style('h-4 w-20 rounded-lg')} />
+                    <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
                     <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
                   </Box>
                   <Box twClassName="flex-1 gap-1">
-                    <Skeleton style={tw.style('h-4 w-28 rounded-lg')} />
-                    <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
+                    <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
+                    <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
                   </Box>
+                </Box>
+
+                <Box twClassName="gap-1">
+                  <Skeleton style={tw.style('h-4 w-28 rounded-lg')} />
+                  <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
                 </Box>
 
                 <Skeleton style={tw.style('h-4 w-36 rounded-lg')} />
@@ -263,40 +269,58 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                 <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
                   <Box
                     twClassName="flex-1"
-                    testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VOLUME}
+                    testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME}
                   >
                     <Text
                       variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
                     >
-                      {strings('rewards.vip.referee_volume_label')}
+                      {strings('rewards.vip.referee_swaps_volume_label')}
                     </Text>
                     <Text
                       variant={TextVariant.HeadingSm}
                       fontWeight={FontWeight.Bold}
                     >
-                      {formatUsd(dashboard.swapsVolume + dashboard.perpsVolume)}
+                      {formatUsd(dashboard.swapsVolume)}
                     </Text>
                   </Box>
                   <Box
                     twClassName="flex-1"
-                    testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO}
+                    testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME}
                   >
                     <Text
                       variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
                     >
-                      {strings('rewards.vip.referee_points_to_label', {
-                        code: dashboard.referredByCode ?? '',
-                      })}
+                      {strings('rewards.vip.referee_perps_volume_label')}
                     </Text>
                     <Text
                       variant={TextVariant.HeadingSm}
                       fontWeight={FontWeight.Bold}
                     >
-                      {formatNumber(dashboard.points)}
+                      {formatUsd(dashboard.perpsVolume)}
                     </Text>
                   </Box>
+                </Box>
+
+                <Box
+                  twClassName="flex-1"
+                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('rewards.vip.referee_points_to_label', {
+                      code: dashboard.referredByCode ?? '',
+                    })}
+                  </Text>
+                  <Text
+                    variant={TextVariant.HeadingSm}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {formatNumber(dashboard.points)}
+                  </Text>
                 </Box>
 
                 {dashboard.computedAt ? (

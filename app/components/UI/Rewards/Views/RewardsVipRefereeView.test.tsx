@@ -142,7 +142,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.referee_page_title': 'VIP Pilot',
       'rewards.vip.referee_stats_title': 'Stats',
       'rewards.vip.referee_period_last_30d': 'Last 30d',
-      'rewards.vip.referee_volume_label': 'Volume',
+      'rewards.vip.referee_swaps_volume_label': 'Swaps volume',
+      'rewards.vip.referee_perps_volume_label': 'Perps volume',
       'rewards.vip.referee_error_title': 'Error title',
       'rewards.vip.referee_error_description': 'Error description',
       'rewards.vip.referee_contact_support': 'Contact support',
@@ -281,10 +282,14 @@ describe('RewardsVipRefereeView', () => {
     ).toBeOnTheScreen();
     expect(getByText('VIP Pilot')).toBeOnTheScreen();
     expect(getByText('Referred by TESTCODE')).toBeOnTheScreen();
-    expect(getByText('Volume')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
+    expect(getByText('Perps volume')).toBeOnTheScreen();
     expect(getByText('Points to TESTCODE')).toBeOnTheScreen();
     expect(
-      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VOLUME),
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME),
     ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO),
@@ -295,12 +300,15 @@ describe('RewardsVipRefereeView', () => {
     });
   });
 
-  it('displays combined swaps and perps volume in the volume stat cell', () => {
+  it('displays swaps and perps volume in separate stat cells', () => {
     const { getByTestId } = render(<RewardsVipRefereeView />);
 
     expect(
-      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VOLUME),
-    ).toHaveTextContent(/\$3,000/);
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME),
+    ).toHaveTextContent(/\$1,000/);
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME),
+    ).toHaveTextContent(/\$2,000/);
   });
 
   it('displays dashboard points in the points-to stat cell', () => {
