@@ -1552,6 +1552,9 @@ class AuthenticationService {
    * Delegates to SeedlessOnboardingController.runMigrations() which handles
    * version tracking and migration logic. Called before adding new secret data
    * to ensure data type consistency and correct ordering.
+   *
+   * Migration failures are logged and reported but do not propagate, so the
+   * caller's primary operation (e.g. import SRP / private key) can continue.
    */
   runSeedlessOnboardingMigrations = async (): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
@@ -1619,7 +1622,10 @@ class AuthenticationService {
         );
       }
 
-      throw migrationError;
+      Logger.error(
+        migrationError,
+        'Seedless onboarding migration failed; continuing primary operation',
+      );
     }
   };
 
