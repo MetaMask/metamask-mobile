@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- chore: Enhance PredictMarketRowItem with endAccessory prop and remove NBA champion discovery references. (#31923)         
+- chore: Enhance PredictMarketRowItem with endAccessory prop and remove NBA champion discovery references. (#31923)
 
 ## [7.81.1]
 
