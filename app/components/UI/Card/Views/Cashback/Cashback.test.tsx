@@ -10,6 +10,10 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({ event: 'built' }),
 };
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '99.0.0'),
+}));
+
 jest.mock('../../../../../component-library/components/Toast', () => {
   const React = jest.requireActual('react');
   const ToastContext = React.createContext({ toastRef: null });
@@ -35,6 +39,9 @@ jest.mock('../../../../../core/Analytics', () => ({
 jest.mock('../../util/metrics', () => ({
   CardActions: {
     CASHBACK_BUTTON: 'CASHBACK_BUTTON',
+  },
+  CardEntryPoint: {
+    CASHBACK: 'CASHBACK',
   },
 }));
 
@@ -78,6 +85,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need at least one approved funding source on Linea before redeeming cashback.',
       'card.cashback_screen.funding_required.confirm_button_label':
         'Set up funding',
+      'card.cashback_screen.money_account_required.title':
+        'Set up Money Account',
+      'card.cashback_screen.money_account_required.description':
+        'You need a linked Money Account before redeeming cashback.',
+      'card.cashback_screen.money_account_required.confirm_button_label':
+        'Set up Money Account',
     };
     return translations[key] ?? key;
   },
@@ -86,6 +99,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 const mockWithdraw = jest.fn();
 const mockFetchEstimation = jest.fn().mockResolvedValue(undefined);
 const mockResetWithdraw = jest.fn();
+const mockStartLinkFlow = jest.fn();
+
+jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: jest.fn(() => ({
+    startLinkFlow: mockStartLinkFlow,
+  })),
+}));
 
 let mockHookReturn = {
   cashbackWallet: null as {
@@ -125,6 +145,10 @@ import Cashback from './Cashback';
 import { CashbackSelectors } from './Cashback.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FundingAssetStatus } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { MOCK_KEYRING_CONTROLLER } from '../../../../../selectors/keyringController/testUtils';
+import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
+import { CASHBACK_MONEY_ACCOUNT_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 
 const mockToastRef = {
   current: {
@@ -177,13 +201,110 @@ const mockCardHomeData = {
   delegationSettings: mockLineaUsdcDelegationSettings,
 };
 
+const MA_ADDRESS = '0xma000000000000000000000000000000000000aa';
+const VEDA_ADDRESS = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae';
+const VEDA_CAIP = 'eip155:143';
+const VEDA_DELEGATION_CONTRACT = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
+
+const makeVedaDelegationSettings = () => ({
+  networks: [
+    {
+      network: 'monad',
+      environment: 'staging',
+      chainId: '143',
+      delegationContract: VEDA_DELEGATION_CONTRACT,
+      tokens: {
+        veda: { symbol: 'veda', decimals: 6, address: VEDA_ADDRESS },
+      },
+    },
+  ],
+  count: 1,
+  _links: { self: '/v1/delegation/chain/config' },
+});
+
+const mockMoneyAccount = {
+  id: 'money-account-1',
+  address: MA_ADDRESS,
+  type: 'eip155:eoa',
+  scopes: [],
+  methods: [],
+  options: {
+    entropy: {
+      type: 'mnemonic',
+      id: MOCK_KEYRING_CONTROLLER.keyrings[2].metadata.id,
+      derivationPath: `${MONEY_DERIVATION_PATH}/0`,
+      groupIndex: 0,
+    },
+    exportable: false,
+  },
+};
+
+const mockVedaFundingAsset = {
+  symbol: 'veda',
+  name: 'veda',
+  address: VEDA_ADDRESS,
+  walletAddress: MA_ADDRESS,
+  decimals: 6,
+  chainId: VEDA_CAIP,
+  spendableBalance: '0',
+  spendingCap: '0',
+  priority: 1,
+  status: FundingAssetStatus.Active,
+};
+
+const MONEY_ACCOUNT_ENABLED_FLAG = {
+  moneyEnableMoneyAccount: { enabled: true, minimumVersion: '0.0.0' },
+};
+
+const UK_BLOCKED_FLAGS = {
+  earnMusdConversionGeoBlockedCountries: { blockedRegions: ['GB'] },
+  ...MONEY_ACCOUNT_ENABLED_FLAG,
+};
+
+const mockUsAccount = {
+  verificationStatus: 'VERIFIED',
+  provisioningEligible: false,
+  holderName: 'Test User',
+  shippingAddress: null,
+  countryOfResidence: 'US',
+  usState: 'NY',
+};
+
+const mockGbAccount = {
+  ...mockUsAccount,
+  countryOfResidence: 'GB',
+  usState: null,
+};
+
+const createMoneyAccountDelegatedCardHomeData = () => ({
+  ...mockCardHomeData,
+  primaryFundingAsset: mockVedaFundingAsset,
+  fundingAssets: [mockVedaFundingAsset],
+  availableFundingAssets: [mockVedaFundingAsset],
+  delegationSettings: makeVedaDelegationSettings(),
+});
+
 const CashbackWithToast = () => (
   <ToastContext.Provider value={{ toastRef: mockToastRef }}>
     <Cashback />
   </ToastContext.Provider>
 );
 
-function render(cardControllerOverrides = {}) {
+function render(
+  options: {
+    cardControllerOverrides?: Record<string, unknown>;
+    remoteFeatureFlags?: Record<string, unknown>;
+    moneyAccountOverrides?: Record<string, unknown>;
+    includeKeyringController?: boolean;
+  } = {},
+) {
+  const {
+    cardControllerOverrides = {},
+    remoteFeatureFlags = {},
+    moneyAccountOverrides = {},
+    includeKeyringController = false,
+  } = options;
+
   return renderScreen(
     CashbackWithToast,
     {
@@ -193,13 +314,29 @@ function render(cardControllerOverrides = {}) {
       state: {
         engine: {
           backgroundState: {
+            ...backgroundState,
             PreferencesController: {
+              ...backgroundState.PreferencesController,
               isIpfsGatewayEnabled: true,
             },
-            MoneyAccountController: {
-              moneyAccounts: {},
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...remoteFeatureFlags,
+              },
             },
+            MoneyAccountController: {
+              ...backgroundState.MoneyAccountController,
+              moneyAccounts: {},
+              ...moneyAccountOverrides,
+            },
+            ...(includeKeyringController
+              ? { KeyringController: MOCK_KEYRING_CONTROLLER }
+              : {}),
             CardController: {
+              ...backgroundState.CardController,
               selectedCountry: null,
               activeProviderId: 'baanx',
               isAuthenticated: true,
@@ -220,6 +357,7 @@ describe('Cashback Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+    mockStartLinkFlow.mockReset();
 
     mockHookReturn = {
       cashbackWallet: null,
@@ -424,9 +562,11 @@ describe('Cashback Component', () => {
   describe('Linea funding requirement', () => {
     it('shows a warning when the user has no approved Linea funding', () => {
       render({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: [],
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...mockCardHomeData,
+            fundingAssets: [],
+          },
         },
       });
 
@@ -443,9 +583,11 @@ describe('Cashback Component', () => {
 
     it('navigates to Spending Limit with USDC on Linea pre-selected', () => {
       render({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: [],
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...mockCardHomeData,
+            fundingAssets: [],
+          },
         },
       });
 
@@ -475,9 +617,11 @@ describe('Cashback Component', () => {
       };
 
       render({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: [],
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...mockCardHomeData,
+            fundingAssets: [],
+          },
         },
       });
 
@@ -501,8 +645,10 @@ describe('Cashback Component', () => {
       };
 
       render({
-        cardHomeData: null,
-        cardHomeDataStatus: 'error',
+        cardControllerOverrides: {
+          cardHomeData: null,
+          cardHomeDataStatus: 'error',
+        },
       });
 
       expect(
@@ -519,6 +665,238 @@ describe('Cashback Component', () => {
 
       expect(mockWithdraw).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Money Account funding requirement (supported regions)', () => {
+    const setWithdrawableWallet = () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+    };
+
+    it('shows a Money Account warning and starts link flow when no Money Account is delegated', () => {
+      setWithdrawableWallet();
+
+      render({
+        remoteFeatureFlags: MONEY_ACCOUNT_ENABLED_FLAG,
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...mockCardHomeData,
+            account: mockUsAccount,
+            fundingAssets: [],
+          },
+        },
+      });
+
+      expect(
+        screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getAllByText('Set up Money Account').length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.getByText(
+          'You need a linked Money Account before redeeming cashback.',
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('confirm-button'));
+
+      expect(mockStartLinkFlow).toHaveBeenCalledWith(
+        CASHBACK_MONEY_ACCOUNT_ORIGIN,
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('blocks withdrawal when no Money Account is delegated in a supported region', () => {
+      setWithdrawableWallet();
+
+      render({
+        remoteFeatureFlags: MONEY_ACCOUNT_ENABLED_FLAG,
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...mockCardHomeData,
+            account: mockUsAccount,
+            fundingAssets: [],
+          },
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('allows withdrawal when Money Account is delegated in a supported region', () => {
+      setWithdrawableWallet();
+
+      render({
+        remoteFeatureFlags: MONEY_ACCOUNT_ENABLED_FLAG,
+        includeKeyringController: true,
+        moneyAccountOverrides: {
+          moneyAccounts: { [mockMoneyAccount.id]: mockMoneyAccount },
+        },
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...createMoneyAccountDelegatedCardHomeData(),
+            account: mockUsAccount,
+          },
+        },
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+  });
+
+  describe('UK / restricted region funding requirement', () => {
+    const setWithdrawableWallet = () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+    };
+
+    it('allows withdrawal when only Linea funding is approved', () => {
+      setWithdrawableWallet();
+
+      render({
+        remoteFeatureFlags: UK_BLOCKED_FLAGS,
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...mockCardHomeData,
+            account: mockGbAccount,
+          },
+        },
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+
+    it('allows withdrawal when only Money Account is delegated', () => {
+      setWithdrawableWallet();
+
+      render({
+        remoteFeatureFlags: UK_BLOCKED_FLAGS,
+        includeKeyringController: true,
+        moneyAccountOverrides: {
+          moneyAccounts: { [mockMoneyAccount.id]: mockMoneyAccount },
+        },
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...createMoneyAccountDelegatedCardHomeData(),
+            account: mockGbAccount,
+            fundingAssets: [mockVedaFundingAsset],
+          },
+        },
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+
+    it('shows Linea warning and redirects to Spending Limit when neither destination is configured', () => {
+      setWithdrawableWallet();
+
+      render({
+        remoteFeatureFlags: UK_BLOCKED_FLAGS,
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...mockCardHomeData,
+            account: mockGbAccount,
+            fundingAssets: [],
+          },
+        },
+      });
+
+      expect(
+        screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Set up Linea funding')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByText('Set up funding'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'enable',
+        selectedToken: expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+        }),
+      });
+      expect(mockStartLinkFlow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Money Account feature flag disabled', () => {
+    it('uses the UK-style Linea or Money Account gate when the Money Account FF is off', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render({
+        includeKeyringController: true,
+        moneyAccountOverrides: {
+          moneyAccounts: { [mockMoneyAccount.id]: mockMoneyAccount },
+        },
+        cardControllerOverrides: {
+          cardHomeData: {
+            ...createMoneyAccountDelegatedCardHomeData(),
+            account: mockUsAccount,
+            fundingAssets: [mockVedaFundingAsset],
+          },
+        },
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
     });
   });
 
