@@ -45,16 +45,14 @@ export const selectIsUserInUS = createSelector(
 );
 
 /**
- * Gate for the Money account education / warning screen.
- *
- * Shown when a US user has neither authenticated with the card service nor
- * become a cardholder, so they see the explainer before proceeding.
+ * Whether the user is in the US, not authenticated with the card service, and
+ * not a cardholder.
  *
  * Cardholder status is evaluated wallet-wide (any account) rather than for the
- * currently selected account, so an existing card customer never sees the
- * first-time education screen after switching accounts.
+ * currently selected account, so an existing card customer never matches this
+ * condition after switching accounts.
  */
-export const selectShouldShowMoneyEducation = createSelector(
+export const selectIsUsUnauthenticatedNonCardholder = createSelector(
   selectIsUserInUS,
   selectIsCardAuthenticated,
   selectHasCardholderAccounts,

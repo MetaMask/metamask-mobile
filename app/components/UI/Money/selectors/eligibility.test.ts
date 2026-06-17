@@ -1,7 +1,7 @@
 import {
   selectIsMoneyAccountGeoEligible,
   selectIsUserInUS,
-  selectShouldShowMoneyEducation,
+  selectIsUsUnauthenticatedNonCardholder,
 } from './eligibility';
 import {
   selectIsCardAuthenticated,
@@ -209,7 +209,7 @@ describe('selectIsUserInUS', () => {
   });
 });
 
-describe('selectShouldShowMoneyEducation', () => {
+describe('selectIsUsUnauthenticatedNonCardholder', () => {
   const createState = (geolocation: string | null | undefined) =>
     ({
       engine: {
@@ -229,27 +229,35 @@ describe('selectShouldShowMoneyEducation', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
     mockSelectHasCardholderAccounts.mockReturnValue(false);
 
-    expect(selectShouldShowMoneyEducation(createState('US'))).toBe(true);
+    expect(selectIsUsUnauthenticatedNonCardholder(createState('US'))).toBe(
+      true,
+    );
   });
 
   it('returns false when the user is not in the US', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
     mockSelectHasCardholderAccounts.mockReturnValue(false);
 
-    expect(selectShouldShowMoneyEducation(createState('GB'))).toBe(false);
+    expect(selectIsUsUnauthenticatedNonCardholder(createState('GB'))).toBe(
+      false,
+    );
   });
 
   it('returns false when the US user is authenticated', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(true);
     mockSelectHasCardholderAccounts.mockReturnValue(false);
 
-    expect(selectShouldShowMoneyEducation(createState('US'))).toBe(false);
+    expect(selectIsUsUnauthenticatedNonCardholder(createState('US'))).toBe(
+      false,
+    );
   });
 
   it('returns false when any wallet account is a cardholder', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
     mockSelectHasCardholderAccounts.mockReturnValue(true);
 
-    expect(selectShouldShowMoneyEducation(createState('US'))).toBe(false);
+    expect(selectIsUsUnauthenticatedNonCardholder(createState('US'))).toBe(
+      false,
+    );
   });
 });
