@@ -48,13 +48,14 @@ import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
   SocialLeaderboardEventProperties,
-  SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
+import { isPerpPosition } from '../utils/perp';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -72,6 +73,7 @@ const TraderPositionView = () => {
     position: positionParam,
     positionId,
     source: sourceParam,
+    isClosed: isClosedParam,
     notificationSubtype,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
@@ -106,10 +108,15 @@ const TraderPositionView = () => {
   const traderAddress =
     traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
 
-  const positionData = useTraderPositionData(resolvedPosition, tokenSymbol);
+  const positionData = useTraderPositionData(
+    resolvedPosition,
+    tokenSymbol,
+    isClosedParam,
+  );
   const {
     symbol,
     marketCap,
+    currentPrice,
     historicalPrices,
     priceDiff,
     isPricesLoading,
@@ -271,24 +278,8 @@ const TraderPositionView = () => {
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_BUY_CLICKED,
         followTradingTokenContext,
       );
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
-        ...followTradingTokenContext,
-        [SocialLeaderboardEventProperties.MARKET_CAP]:
-          typeof marketCap === 'number' ? marketCap : undefined,
-        [SocialLeaderboardEventProperties.SOURCE]: quickBuySource,
-        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: isClosed
-          ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL
-          : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
-      });
     }
-  }, [
-    resolvedPosition,
-    followTradingTokenContext,
-    marketCap,
-    quickBuySource,
-    isClosed,
-    track,
-  ]);
+  }, [resolvedPosition, followTradingTokenContext, track]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -297,6 +288,25 @@ const TraderPositionView = () => {
   const handleChartIndexChange = useCallback((_index: number) => {
     // TODO: update displayed price on scrub.
   }, []);
+
+  // Perp positions surface Long/Short CTAs instead of Buy. Hyperliquid has no
+  // long/short preselect param on the market page (direction only exists on the
+  // funded trade-entry flow), so both CTAs land the user on that market's Perps
+  // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
+  // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
+  const isPerp = resolvedPosition ? isPerpPosition(resolvedPosition) : false;
+  const handlePerpActionPress = useCallback(() => {
+    if (!resolvedPosition) return;
+    playImpact(ImpactMoment.PrimaryCTA);
+    const market = {
+      symbol: resolvedPosition.tokenSymbol,
+      name: resolvedPosition.tokenSymbol,
+    } as PerpsMarketData;
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: { market, source: 'social_leaderboard' },
+    });
+  }, [navigation, resolvedPosition]);
 
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
@@ -311,6 +321,7 @@ const TraderPositionView = () => {
       <TraderPositionHeader
         traderName={traderName}
         traderImageUrl={traderImageUrl}
+        traderAddress={traderAddress}
         onBack={handleBack}
         onTraderPress={handleTraderPress}
         backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
@@ -338,6 +349,7 @@ const TraderPositionView = () => {
               symbol={symbol}
               position={resolvedPosition}
               marketCap={marketCap}
+              currentPrice={currentPrice}
               pricePercentChange={pricePercentChange}
               activeTimePeriodLabel={activeTimePeriod}
               onCopyTokenAddress={handleCopyTokenAddress}
@@ -372,29 +384,49 @@ const TraderPositionView = () => {
               trades={allTrades}
               traderName={traderName}
               traderImageUrl={traderImageUrl}
+              traderAddress={traderAddress}
             />
           </ScrollView>
 
-          <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleBuyPress}
-              testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-            >
-              {strings('social_leaderboard.trader_position.buy')}
-            </Button>
-          </Box>
+          {isPerp ? (
+            <Box twClassName="px-4 py-3">
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={handlePerpActionPress}
+                testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+              >
+                {strings('social_leaderboard.trader_position.trade')}
+              </Button>
+            </Box>
+          ) : (
+            <>
+              <Box twClassName="px-4 py-3">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('social_leaderboard.trader_position.buy')}
+                </Button>
+              </Box>
 
-          <TraderPositionQuickBuy
-            isVisible={isQuickBuyVisible}
-            position={resolvedPosition ?? null}
-            onClose={handleQuickBuyClose}
-            traderAddress={traderAddress}
-            marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-            source={quickBuySource}
-          />
+              <TraderPositionQuickBuy
+                isVisible={isQuickBuyVisible}
+                position={resolvedPosition ?? null}
+                onClose={handleQuickBuyClose}
+                traderAddress={traderAddress}
+                marketCap={
+                  typeof marketCap === 'number' ? marketCap : undefined
+                }
+                source={quickBuySource}
+                isTraderPositionClosed={isClosed}
+              />
+            </>
+          )}
         </>
       )}
     </SafeAreaView>

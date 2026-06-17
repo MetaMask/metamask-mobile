@@ -1114,10 +1114,7 @@ function updateCustomCrosshairLabels(params) {
     return;
   }
   elP.textContent = formatCrosshairPrice(params.price);
-  var tSec =
-    params.userTime !== undefined && params.userTime !== null
-      ? params.userTime
-      : params.time;
+  var tSec = params.time;
   elT.textContent = formatCrosshairTime(tSec);
   elP.style.display = 'flex';
   elT.style.display = 'flex';

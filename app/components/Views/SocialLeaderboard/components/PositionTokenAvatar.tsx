@@ -5,12 +5,11 @@ import {
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { chainNameToId } from '../utils/chainMapping';
+import { chainNameToId, getPositionNetworkBadge } from '../utils/chainMapping';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import { getNetworkImageSource } from '../../../../util/networks';
 
 export interface PositionTokenAvatarProps {
   position: Position;
@@ -33,6 +32,13 @@ const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
 }) => {
   const caipChainId = useMemo(
     () => chainNameToId(position.chain),
+    [position.chain],
+  );
+
+  // Resolved separately from `caipChainId` so Hyperliquid (perps) — which is
+  // intentionally absent from the spot chain map — still gets its network badge.
+  const networkBadge = useMemo(
+    () => getPositionNetworkBadge(position.chain),
     [position.chain],
   );
 
@@ -87,14 +93,14 @@ const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
     />
   );
 
-  if (showChainBadge && caipChainId) {
+  if (showChainBadge && networkBadge) {
     return (
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <BadgeNetwork
-            name={position.chain}
-            imageSource={getNetworkImageSource({ chainId: caipChainId })}
+            name={networkBadge.name}
+            imageSource={networkBadge.imageSource}
           />
         }
       >
