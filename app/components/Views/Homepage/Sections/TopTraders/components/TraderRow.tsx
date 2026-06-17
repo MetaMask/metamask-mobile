@@ -140,7 +140,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                {' 30D'}
+                {' 7D'}
               </Text>
             </Text>
           </Box>

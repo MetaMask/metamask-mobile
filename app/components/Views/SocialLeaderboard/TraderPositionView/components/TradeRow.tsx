@@ -11,6 +11,8 @@ import {
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { formatUsd, formatTradeDate } from '../../utils/formatters';
+import PerpBadges from '../../components/PerpBadges';
+import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
@@ -30,6 +32,26 @@ const TradeRow: React.FC<TradeRowProps> = ({
   traderAddress,
 }) => {
   const isEntry = trade.intent === 'enter';
+  const isPerp = isPerpTrade(trade);
+  const perpDirection = getPerpTradeDirection(trade);
+
+  // Perp fills read as "opened"/"closed" (vs spot "bought"/"sold").
+  const actionLabel = isPerp
+    ? isEntry
+      ? strings('social_leaderboard.trader_position.opened', {
+          name: traderName,
+        })
+      : strings('social_leaderboard.trader_position.closed_action', {
+          name: traderName,
+        })
+    : isEntry
+      ? strings('social_leaderboard.trader_position.bought', {
+          name: traderName,
+        })
+      : strings('social_leaderboard.trader_position.sold', {
+          name: traderName,
+        });
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -49,20 +71,28 @@ const TradeRow: React.FC<TradeRowProps> = ({
           size={AVATAR_SIZE}
         />
         <Box twClassName="flex-1 min-w-0">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            {isEntry
-              ? strings('social_leaderboard.trader_position.bought', {
-                  name: traderName,
-                })
-              : strings('social_leaderboard.trader_position.sold', {
-                  name: traderName,
-                })}
-          </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+              twClassName="shrink"
+            >
+              {actionLabel}
+            </Text>
+            {perpDirection ? (
+              <PerpBadges
+                direction={perpDirection}
+                leverage={trade.perpLeverage}
+                testID={`trade-row-perp-badges-${trade.transactionHash}`}
+              />
+            ) : null}
+          </Box>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
