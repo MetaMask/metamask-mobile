@@ -62,14 +62,14 @@ import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
-type ChainFilter = 'all' | 'tokens' | 'perps';
+type TabFilter = 'all' | 'tokens' | 'perps';
 
 const LEADERBOARD_LIMIT = 50;
 
 const ALL_CHAINS = [...SPOT_CHAINS, 'hyperliquid'];
 const PERP_CHAINS = ['hyperliquid'];
 
-const getChainFilters = (): { key: ChainFilter; label: string }[] => [
+const getTabFilters = (): { key: TabFilter; label: string }[] => [
   {
     key: 'all',
     label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
@@ -112,14 +112,14 @@ const styles = StyleSheet.create({
   },
 });
 
-interface ChainPillProps {
-  filterKey: ChainFilter;
+interface TabPillProps {
+  filterKey: TabFilter;
   label: string;
   isSelected: boolean;
   onPress: () => void;
 }
 
-const ChainPill: React.FC<ChainPillProps> = ({
+const TabPill: React.FC<TabPillProps> = ({
   filterKey,
   label,
   isSelected,
@@ -129,7 +129,7 @@ const ChainPill: React.FC<ChainPillProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      testID={`chain-filter-${filterKey}`}
+      testID={`tab-filter-${filterKey}`}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
       style={[
@@ -165,7 +165,7 @@ const TopTradersView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
 
-  const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
+  const [selectedTab, setSelectedTab] = useState<TabFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
@@ -194,7 +194,7 @@ const TopTradersView = () => {
     enabled: isEnabled,
   });
 
-  const resultsByChain = useMemo(
+  const resultsByTab = useMemo(
     () => ({
       all: allResult,
       tokens: tokensResult,
@@ -203,7 +203,7 @@ const TopTradersView = () => {
     [allResult, tokensResult, perpsResult],
   );
 
-  const activeResult = resultsByChain[selectedChain];
+  const activeResult = resultsByTab[selectedTab];
   const { traders, isLoading, toggleFollow } = activeResult;
 
   useEffect(() => {
@@ -217,23 +217,23 @@ const TopTradersView = () => {
     hasFiredScreenViewedRef.current = true;
     track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED, {
       [SocialLeaderboardEventProperties.SOURCE]: source,
-      [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+      [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedTab,
     });
-    // selectedChain is intentionally captured at mount-time so subsequent
+    // selectedTab is intentionally captured at mount-time so subsequent
     // pill changes only fire the chain-filter-changed event.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEnabled, source, track]);
 
-  const handleChainFilterPress = useCallback(
-    (next: ChainFilter) => {
-      if (selectedChain === next) return;
+  const handleTabPress = useCallback(
+    (next: TabFilter) => {
+      if (selectedTab === next) return;
       track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED, {
         [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
-        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedChain,
+        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedTab,
       });
-      setSelectedChain(next);
+      setSelectedTab(next);
     },
-    [selectedChain, track],
+    [selectedTab, track],
   );
 
   const handleFollowPress = useCallback(
@@ -315,7 +315,7 @@ const TopTradersView = () => {
           [SocialLeaderboardEventProperties.TRADER_ADDRESS]: trader.address,
           [SocialLeaderboardEventProperties.TRADER_USERNAME]: trader.username,
           [SocialLeaderboardEventProperties.TRADER_RANK]: trader.rank,
-          [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+          [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedTab,
         });
       }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
@@ -326,7 +326,7 @@ const TopTradersView = () => {
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders, selectedChain, track],
+    [navigation, traders, selectedTab, track],
   );
 
   return (
@@ -369,13 +369,13 @@ const TopTradersView = () => {
         style={styles.filterScrollView}
         contentContainerStyle={styles.filterRow}
       >
-        {getChainFilters().map(({ key, label }) => (
-          <ChainPill
+        {getTabFilters().map(({ key, label }) => (
+          <TabPill
             key={key}
             filterKey={key}
             label={label}
-            isSelected={selectedChain === key}
-            onPress={() => handleChainFilterPress(key)}
+            isSelected={selectedTab === key}
+            onPress={() => handleTabPress(key)}
           />
         ))}
       </ScrollView>

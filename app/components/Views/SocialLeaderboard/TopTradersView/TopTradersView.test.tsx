@@ -69,7 +69,7 @@ const fixtureTraders: TopTrader[] = [
   },
 ];
 
-type ChainKey = 'all' | 'tokens' | 'perps';
+type TabKey = 'all' | 'tokens' | 'perps';
 
 const buildResult = (
   overrides: Partial<UseTopTradersResult> = {},
@@ -83,26 +83,23 @@ const buildResult = (
   ...overrides,
 });
 
-const mockResultsByChain: Record<ChainKey, UseTopTradersResult> = {
+const mockResultsByTab: Record<TabKey, UseTopTradersResult> = {
   all: buildResult(),
   tokens: buildResult(),
   perps: buildResult(),
 };
 
-const setChainResult = (
-  chain: ChainKey,
-  overrides: Partial<UseTopTradersResult>,
-) => {
-  mockResultsByChain[chain] = buildResult(overrides);
+const setTabResult = (tab: TabKey, overrides: Partial<UseTopTradersResult>) => {
+  mockResultsByTab[tab] = buildResult(overrides);
 };
 
-const resetChainResults = () => {
-  (Object.keys(mockResultsByChain) as ChainKey[]).forEach((key) => {
-    mockResultsByChain[key] = buildResult();
+const resetTabResults = () => {
+  (Object.keys(mockResultsByTab) as TabKey[]).forEach((key) => {
+    mockResultsByTab[key] = buildResult();
   });
 };
 
-const resolveChainKey = (chains?: string[]): ChainKey => {
+const resolveTabKey = (chains?: string[]): TabKey => {
   if (!chains) return 'all';
   if (chains.length === 1 && chains[0] === 'hyperliquid') return 'perps';
   return chains.includes('hyperliquid') ? 'all' : 'tokens';
@@ -110,7 +107,7 @@ const resolveChainKey = (chains?: string[]): ChainKey => {
 
 const mockUseTopTradersHook = jest.fn(
   (options?: { chains?: string[] }): UseTopTradersResult =>
-    mockResultsByChain[resolveChainKey(options?.chains)],
+    mockResultsByTab[resolveTabKey(options?.chains)],
 );
 
 const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
@@ -148,10 +145,10 @@ jest.mock('../analytics', () => {
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetChainResults();
+    resetTabResults();
     mockUseTopTradersHook.mockImplementation(
       (options?: { chains?: string[] }) =>
-        mockResultsByChain[resolveChainKey(options?.chains)],
+        mockResultsByTab[resolveTabKey(options?.chains)],
     );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
@@ -299,13 +296,13 @@ describe('TopTradersView', () => {
   it('renders the three asset-class filter pills', () => {
     renderWithProvider(<TopTradersView />);
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_PERPS),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
     ).toBeOnTheScreen();
   });
 
@@ -325,7 +322,7 @@ describe('TopTradersView', () => {
   });
 
   it('renders the Tokens tab’s traders when the Tokens pill is tapped', () => {
-    setChainResult('tokens', {
+    setTabResult('tokens', {
       traders: [
         { ...fixtureTraders[0], rank: 1 },
         { ...fixtureTraders[2], rank: 2 },
@@ -334,7 +331,7 @@ describe('TopTradersView', () => {
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     );
 
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
@@ -343,13 +340,13 @@ describe('TopTradersView', () => {
   });
 
   it('shows the Perps tab’s (hyperliquid) traders when selected', () => {
-    setChainResult('perps', {
+    setTabResult('perps', {
       traders: [{ ...fixtureTraders[2], rank: 1 }],
     });
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_PERPS),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
     );
 
     expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
@@ -357,13 +354,13 @@ describe('TopTradersView', () => {
   });
 
   it('uses the per-tab rank when navigating to a profile', () => {
-    setChainResult('tokens', {
+    setTabResult('tokens', {
       traders: [{ ...fixtureTraders[0], rank: 2 }],
     });
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     );
     fireEvent.press(screen.getByText('alpha.eth'));
 
@@ -377,10 +374,10 @@ describe('TopTradersView', () => {
   });
 
   it('renders skeletons during initial load when no traders are cached', () => {
-    setChainResult('all', { isLoading: true, traders: [] });
+    setTabResult('all', { isLoading: true, traders: [] });
     renderWithProvider(<TopTradersView />);
     expect(
-      screen.queryByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
     ).toBeOnTheScreen();
     expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
   });
@@ -400,7 +397,7 @@ describe('TopTradersView', () => {
     it('fires Trader Leaderboard Chain Filter Changed when a pill is selected', () => {
       renderWithProvider(<TopTradersView />);
       fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
+        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
       );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED,
