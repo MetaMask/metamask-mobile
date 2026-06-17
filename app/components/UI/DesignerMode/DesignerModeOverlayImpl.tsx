@@ -3,9 +3,9 @@ import { Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
 import { DesignerModeRN } from './DesignerModeRN';
 import { getDefaultRelayUrl } from './relayUrl';
 
-// Fixed dark dev-tooling chrome; expressed as rgb() (not hex) and centralized
-// so the stylesheet never embeds color literals.
-const FAB_BG = 'rgb(44, 44, 44)';
+// Fixed dev-tooling chrome; expressed as rgb() (not hex) and centralized so the
+// stylesheet never embeds color literals. MetaMask brand blue.
+const FAB_BG = 'rgb(3, 125, 214)';
 const FAB_SHADOW = 'rgb(0, 0, 0)';
 
 const styles = StyleSheet.create({
