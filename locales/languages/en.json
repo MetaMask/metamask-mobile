@@ -4126,6 +4126,15 @@
     "once_label": "Once",
     "no_alerts": "No price alerts set for this asset."
   },
+  "share_token": {
+    "title": "Share token info",
+    "copy": "Copy",
+    "more": "More",
+    "copied": "Link copied to clipboard",
+    "share_via": "Share via",
+    "capture_error": "Could not share card",
+    "branding_tagline": "Jumpstart your crypto journey!"
+  },
   "asset_overview": {
     "market_closed": "Market closed",
     "send_button": "Send",

@@ -438,6 +438,7 @@
     "expo-local-authentication": "~17.0.8",
     "expo-screen-orientation": "~9.0.8",
     "expo-sensors": "~15.0.8",
+    "expo-sharing": "^56.0.17",
     "expo-splash-screen": "~31.0.13",
     "expo-updates": "~29.0.16",
     "expo-web-browser": "~15.0.10",

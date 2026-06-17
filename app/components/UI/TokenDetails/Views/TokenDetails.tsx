@@ -41,6 +41,7 @@ import {
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import ShareTokenSheet from '../components/ShareTokenSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import {
   TokenDetailsSource,
@@ -161,6 +162,7 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const [isShareSheetVisible, setIsShareSheetVisible] = useState(false);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
@@ -363,6 +365,7 @@ const TokenDetails: React.FC<{
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
+        onSharePress={() => setIsShareSheetVisible(true)}
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled && currentPrice > 0 && caip19AssetId
             ? handlePriceAlertPress
@@ -425,6 +428,18 @@ const TokenDetails: React.FC<{
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
+      {isShareSheetVisible && (
+        <ShareTokenSheet
+          token={token}
+          caip19AssetId={caip19AssetId}
+          currentPrice={currentPrice}
+          priceDiff={priceDiff}
+          comparePrice={comparePrice}
+          currentCurrency={currentCurrency}
+          prices={prices}
+          onClose={() => setIsShareSheetVisible(false)}
         />
       )}
       {quickBuySheet}
