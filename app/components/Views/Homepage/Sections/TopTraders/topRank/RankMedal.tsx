@@ -1,11 +1,13 @@
 import React from 'react';
 import type { SvgProps } from 'react-native-svg';
-import { isTopRank } from './topRank.colors';
 import RankBadge1 from './assets/rank-badge-1.svg';
 import RankBadge2 from './assets/rank-badge-2.svg';
 import RankBadge3 from './assets/rank-badge-3.svg';
 
 type SvgComponent = React.FC<SvgProps & { name: string }>;
+
+/** Whether `rank` is a podium position (1, 2 or 3). */
+export const isTopRank = (rank: number): boolean => rank >= 1 && rank <= 3;
 
 /**
  * RankMedal — the leaderboard podium badge (medallion + ribbon + rank numeral)

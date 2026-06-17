@@ -1,1 +1,1 @@
-export { default as RankMedal } from './RankMedal';
+export { default as RankMedal, isTopRank } from './RankMedal';

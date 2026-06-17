@@ -1,6 +1,16 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import RankMedal from './RankMedal';
+import RankMedal, { isTopRank } from './RankMedal';
+
+describe('isTopRank', () => {
+  it.each([1, 2, 3])('returns true for podium rank %s', (rank) => {
+    expect(isTopRank(rank)).toBe(true);
+  });
+
+  it.each([0, 4, 5, 100, -1])('returns false for rank %s', (rank) => {
+    expect(isTopRank(rank)).toBe(false);
+  });
+});
 
 describe('RankMedal', () => {
   it.each([1, 2, 3])('renders a medal for podium rank %s', (rank) => {

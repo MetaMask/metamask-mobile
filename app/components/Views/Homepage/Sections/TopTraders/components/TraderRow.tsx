@@ -15,8 +15,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { RankMedal } from '../topRank';
-import { isTopRank } from '../topRank/topRank.colors';
+import { RankMedal, isTopRank } from '../topRank';
 import type { TopTrader } from '../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
@@ -91,7 +90,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
             {showMedal ? (
               // Offset so the medal bottom (incl. its 2px border) sits ~10px
               // below the avatar's bottom edge.
-              <View style={tw.style('absolute -bottom-[10px] -right-1')}>
+              <View style={tw.style('absolute -bottom-[10px] -right-2')}>
                 <RankMedal rank={trader.rank} />
               </View>
             ) : null}
