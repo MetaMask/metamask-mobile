@@ -30,6 +30,7 @@ import TradingViewChart, {
   type TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import { getPerpsVolumeColors } from '../../utils/chartColors';
 import performance from 'react-native-performance';
 
 export interface PerpsAdvancedChartProps {
@@ -187,6 +188,8 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     () => getPerpsPositionLineColors(colors),
     [colors],
   );
+
+  const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
 
   // ---- Crosshair + haptics ----
 
@@ -374,6 +377,8 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
       currentPriceLineColorOverride={colors.text.default}
+      volumeSuccessColorOverride={volumeColors.success}
+      volumeErrorColorOverride={volumeColors.error}
     />
   );
 };

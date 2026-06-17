@@ -114,6 +114,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       legendOverlay,
       currentPriceLineColorOverride,
       labelStyleOverrides,
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
     },
     ref,
   ) => {
@@ -174,6 +176,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         themeSuccessDefault: theme.colors.success.default,
       }),
     );
+    const initialVolumeSuccessColorRef = useRef(volumeSuccessColorOverride);
+    const initialVolumeErrorColorRef = useRef(volumeErrorColorOverride);
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
@@ -192,6 +196,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
+      initialVolumeSuccessColorRef.current = volumeSuccessColorOverride;
+      initialVolumeErrorColorRef.current = volumeErrorColorOverride;
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
@@ -203,6 +209,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         currentPriceLineColorOverride,
         labelStyleOverrides,
         legendOverlay,
+        volumeSuccessColorOverride,
+        volumeErrorColorOverride,
       });
       // lineColorOverride/successColorOverride/errorColorOverride/currentPriceLineColorOverride
       // intentionally excluded — color changes hot-swap via SET_THEME_COLORS without
@@ -832,9 +840,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           lineColorOverride === initialLineColorRef.current &&
           successColorOverride === initialSuccessColorRef.current &&
           errorColorOverride === initialErrorColorRef.current &&
-          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current;
+          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
+          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
+          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
         themeColorsSentRef.current = true;
-        if (colorsMatch && currentPriceLineColorOverride === undefined) return;
+        if (
+          colorsMatch &&
+          currentPriceLineColorOverride === undefined &&
+          volumeSuccessColorOverride === undefined &&
+          volumeErrorColorOverride === undefined
+        )
+          return;
       }
       const effectiveSuccessColor =
         successColorOverride ?? theme.colors.success.default;
@@ -848,6 +864,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
+      const effectiveVolumeSuccessColor =
+        volumeSuccessColorOverride ?? effectiveSuccessColor;
+      const effectiveVolumeErrorColor =
+        volumeErrorColorOverride ?? effectiveErrorColor;
       postMessage({
         type: 'SET_THEME_COLORS',
         payload: {
@@ -855,6 +875,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           successColor: effectiveSuccessColor,
           errorColor: effectiveErrorColor,
           currentPriceColor: effectiveCurrentPriceColor,
+          volumeSuccessColor: effectiveVolumeSuccessColor,
+          volumeErrorColor: effectiveVolumeErrorColor,
         },
       });
     }, [
@@ -863,6 +885,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       errorColorOverride,
       currentPriceLineColorOverride,
       labelStyleOverrides?.lastValuePillColor,
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
       webViewLoaded,
       postMessage,
       theme.colors.success.default,

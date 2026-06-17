@@ -6,6 +6,7 @@ import {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
+import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
 import type { Colors } from '../../../../../../util/theme/models';
 import { mockTheme } from '../../../../../../util/theme';
@@ -77,6 +78,8 @@ describe('PerpsAdvancedChart', () => {
   });
 
   it('passes the visible current-price token to AdvancedChart', () => {
+    const volumeColors = getPerpsVolumeColors(mockTheme.colors as Colors);
+
     render(
       <PerpsAdvancedChart
         symbol="BTC"
@@ -90,6 +93,8 @@ describe('PerpsAdvancedChart', () => {
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
         currentPriceLineColorOverride: mockTheme.colors.text.default,
+        volumeSuccessColorOverride: volumeColors.success,
+        volumeErrorColorOverride: volumeColors.error,
       }),
     );
   });
@@ -177,6 +182,17 @@ describe('getPerpsPositionLineColors', () => {
       takeProfit: 'token-success-default',
       stopLoss: 'token-warning-default',
       liquidation: 'token-error-default',
+    });
+  });
+});
+
+describe('getPerpsVolumeColors', () => {
+  it('matches the Lightweight chart 30% opacity volume colors', () => {
+    const colors = mockTheme.colors as Colors;
+
+    expect(getPerpsVolumeColors(colors)).toEqual({
+      success: hexToRgba(colors.success.default, 0.3),
+      error: hexToRgba(colors.error.default, 0.3),
     });
   });
 });

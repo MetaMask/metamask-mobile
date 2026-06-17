@@ -1122,6 +1122,16 @@ function getCurrentPriceVisualColor() {
   return theme.currentPriceColor || theme.lineColor || theme.successColor;
 }
 
+function getVolumeSuccessColor() {
+  var theme = (window.CONFIG && window.CONFIG.theme) || {};
+  return theme.volumeSuccessColor || theme.successColor;
+}
+
+function getVolumeErrorColor() {
+  var theme = (window.CONFIG && window.CONFIG.theme) || {};
+  return theme.volumeErrorColor || theme.errorColor;
+}
+
 /**
  * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
  * WebView. Uses TradingView's documented runtime APIs in one pass:
@@ -1140,6 +1150,12 @@ function handleSetThemeColors(payload) {
   if (payload.errorColor != null) theme.errorColor = payload.errorColor;
   if (payload.currentPriceColor != null) {
     theme.currentPriceColor = payload.currentPriceColor;
+  }
+  if (payload.volumeSuccessColor != null) {
+    theme.volumeSuccessColor = payload.volumeSuccessColor;
+  }
+  if (payload.volumeErrorColor != null) {
+    theme.volumeErrorColor = payload.volumeErrorColor;
   }
 
   if (!window.chartWidget || !window.isChartReady) return;
@@ -1171,8 +1187,8 @@ function handleSetThemeColors(payload) {
   if (window.volumeStudyId) {
     try {
       chart.getStudyById(window.volumeStudyId).applyOverrides({
-        'volume.color.0': theme.errorColor,
-        'volume.color.1': theme.successColor,
+        'volume.color.0': getVolumeErrorColor(),
+        'volume.color.1': getVolumeSuccessColor(),
       });
     } catch (e) {}
   }
@@ -4175,12 +4191,12 @@ function createVolumeStudy(useOverlay) {
 
   try {
     const chart = window.chartWidget.activeChart();
-    const t = window.CONFIG.theme;
     const overrides = {
       showLegendValues: false,
+      'volume ma.display': 0,
+      'volume.color.0': getVolumeErrorColor(),
+      'volume.color.1': getVolumeSuccessColor(),
       'volume.transparency': useOverlay ? 70 : 0,
-      'volume.color.0': t.errorColor,
-      'volume.color.1': t.successColor,
     };
     const promise = useOverlay
       ? chart.createStudy('Volume', true, false, {}, overrides, {

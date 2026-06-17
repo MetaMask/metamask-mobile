@@ -1,6 +1,10 @@
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button as DSButton,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonVariant,
@@ -64,7 +68,6 @@ import {
 } from '../../Perps.testIds';
 import HeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated';
 import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
-import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
@@ -1307,11 +1310,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         }}
         endButtonIconProps={[
           {
-            iconName: IconName.Expand,
-            onPress: handleFullscreenChartOpen,
-            testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
-          },
-          {
             iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
             onPress: handleWatchlistPress,
             testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
@@ -1343,19 +1341,27 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             testID={PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER}
             onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
           >
-            <TitleSubpage
-              startAccessory={
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={3}
+              twClassName="px-4 pt-1 pb-3"
+            >
+              <Box>
                 <PerpsTokenLogo symbol={market.symbol} size={40} />
-              }
-              title={displayTitle}
-              titleAccessory={
-                market.maxLeverage ? (
-                  <Box twClassName="ml-1">
-                    <PerpsLeverage maxLeverage={market.maxLeverage} />
-                  </Box>
-                ) : undefined
-              }
-              bottomAccessory={
+              </Box>
+              <Box twClassName="flex-1">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                >
+                  <Text variant={TextVariant.HeadingMd}>{displayTitle}</Text>
+                  {market.maxLeverage ? (
+                    <Box twClassName="ml-1">
+                      <PerpsLeverage maxLeverage={market.maxLeverage} />
+                    </Box>
+                  ) : undefined}
+                </Box>
                 <LivePriceHeader
                   symbol={market.symbol}
                   currentPrice={chartCurrentPrice}
@@ -1367,9 +1373,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   }
                   throttleMs={1000}
                 />
-              }
-              twClassName="px-4 pt-1 pb-3"
-            />
+              </Box>
+              <ButtonIcon
+                iconName={IconName.Expand}
+                size={ButtonIconSize.Md}
+                onPress={handleFullscreenChartOpen}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
+                accessibilityLabel="Fullscreen chart"
+              />
+            </Box>
           </Box>
 
           {/* TradingView Chart Section */}

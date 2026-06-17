@@ -476,17 +476,27 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Header and chart actions', () => {
-    it('renders back button and fullscreen chart button', async () => {
+    it('renders back button and a single fullscreen chart button in the title section', async () => {
       renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
       expect(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
         screen.getByTestId(
           `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
         ),
       ).toBeOnTheScreen();
+      expect(
+        screen.getAllByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+        ),
+      ).toHaveLength(1);
     });
 
     it('renders header and title section with market title', async () => {

@@ -337,6 +337,8 @@ export interface SetThemeColorsPayload {
   errorColor: string;
   /** Last-value scale pill and native price line (ambient on token details). */
   currentPriceColor?: string;
+  volumeSuccessColor: string;
+  volumeErrorColor: string;
 }
 
 /**
@@ -723,6 +725,10 @@ export interface AdvancedChartProps {
    * Omitted → follows `lineColorOverride` (or success green). Hot-swapped via `SET_THEME_COLORS`.
    */
   currentPriceLineColorOverride?: string;
+  /** Override the volume up color. Does not affect candle colors. */
+  volumeSuccessColorOverride?: string;
+  /** Override the volume down color. Does not affect candle colors. */
+  volumeErrorColorOverride?: string;
 
   /**
    * Optional TV built-in label colors. Omitted fields use theme tokens from the active

@@ -63,6 +63,8 @@ interface ChartFeatures {
   errorColorOverride?: string;
   currentPriceLineColorOverride?: string;
   labelStyleOverrides?: ChartLabelStyleOverrides;
+  volumeSuccessColorOverride?: string;
+  volumeErrorColorOverride?: string;
   legendOverlay?: LegendOverlayConfig;
 }
 
@@ -96,6 +98,9 @@ const createConfigScript = (
     successColorOverride: features.successColorOverride,
     themeSuccessDefault: getChartSuccessColor(theme),
   });
+  const volumeSuccessColor =
+    features.volumeSuccessColorOverride ?? successColor;
+  const volumeErrorColor = features.volumeErrorColorOverride ?? errorColor;
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
@@ -112,6 +117,8 @@ window.CONFIG = {
     successColor: '${successColor}',
     lineColor: '${lineColor}',
     errorColor: '${errorColor}',
+    volumeSuccessColor: '${volumeSuccessColor}',
+    volumeErrorColor: '${volumeErrorColor}',
     primaryColor: '${theme.colors.primary.default}',
     currentPriceColor: '${resolvedCurrentPriceColor}'
   },
