@@ -3,6 +3,7 @@ import {
   Easing,
   runOnJS,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { WALLET_HOME_ONBOARDING_CHECKLIST_PROGRESS_BAR_MS } from './walletHomeOnboardingChecklistRive';
 import {
@@ -23,6 +24,9 @@ jest.mock('react-native-reanimated', () => ({
   },
 }));
 
+const createProgressRatio = (initial: number): SharedValue<number> =>
+  ({ value: initial }) as unknown as SharedValue<number>;
+
 describe('walletHomeOnboardingProgressTimingConfig', () => {
   it('returns duration and easing for the given duration', () => {
     const config = walletHomeOnboardingProgressTimingConfig(420);
@@ -34,11 +38,11 @@ describe('walletHomeOnboardingProgressTimingConfig', () => {
 });
 
 describe('animateWalletHomeOnboardingProgressRatio', () => {
-  const progressRatio = { value: 0 };
+  let progressRatio: SharedValue<number>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    progressRatio.value = 0;
+    progressRatio = createProgressRatio(0);
   });
 
   it('cancels any in-flight animation before updating', () => {

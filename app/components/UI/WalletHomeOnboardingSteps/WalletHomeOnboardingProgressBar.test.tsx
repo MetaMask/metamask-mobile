@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { useAnimatedStyle } from 'react-native-reanimated';
+import { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import WalletHomeOnboardingProgressBar from './WalletHomeOnboardingProgressBar';
 
 jest.mock('react-native-reanimated', () => {
@@ -16,13 +16,16 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+const createProgressRatio = (value: number): SharedValue<number> =>
+  ({ value }) as unknown as SharedValue<number>;
+
 describe('WalletHomeOnboardingProgressBar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders the progress track with accessibility props', () => {
-    const progressRatio = { value: 0.25 };
+    const progressRatio = createProgressRatio(0.25);
 
     render(
       <WalletHomeOnboardingProgressBar
@@ -37,7 +40,7 @@ describe('WalletHomeOnboardingProgressBar', () => {
   });
 
   it('derives fill width from the shared progress ratio', () => {
-    const progressRatio = { value: 0.4 };
+    const progressRatio = createProgressRatio(0.4);
 
     render(
       <WalletHomeOnboardingProgressBar
