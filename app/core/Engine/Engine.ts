@@ -189,6 +189,7 @@ import { socialServiceInit } from './controllers/social-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
+import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
@@ -404,6 +405,7 @@ export class Engine {
         SocialController: socialControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
+        QrSyncController: qrSyncControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
         ChompApiService: chompApiServiceInit,
@@ -639,6 +641,7 @@ export class Engine {
       SocialController: socialController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
+      QrSyncController: messengerClientsByName.QrSyncController,
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
