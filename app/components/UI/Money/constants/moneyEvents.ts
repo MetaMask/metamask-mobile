@@ -16,6 +16,7 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY = 'money_activity',
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
+  MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
 }
 
 export enum BOTTOM_SHEET_NAMES {

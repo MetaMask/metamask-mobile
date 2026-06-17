@@ -9,7 +9,10 @@ import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
-import { isMoneyAccountTx } from '../utils/moneyTransactionGuards';
+import {
+  isMoneyAccountTx,
+  isPerpsPredictMoneyActivity,
+} from '../utils/moneyTransactionGuards';
 import Logger from '../../../../util/Logger';
 import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 
@@ -87,10 +90,17 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
   useEffect(() => {
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
-      if (!isMoneyAccountTx(transactionMeta)) return;
 
       const address = selectPrimaryMoneyAccount(store.getState())?.address;
       if (!address) return;
+
+      // Direct Money txs (deposit/withdraw) plus Perps/Predict transfers to or
+      // from the Money account (paid with mUSD via MetaMask Pay), which also
+      // move mUSD and so must refresh the balance.
+      const affectsMoneyBalance =
+        isMoneyAccountTx(transactionMeta) ||
+        isPerpsPredictMoneyActivity(transactionMeta);
+      if (!affectsMoneyBalance) return;
 
       refreshMoneyBalanceQueries(address).catch((error) => {
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
