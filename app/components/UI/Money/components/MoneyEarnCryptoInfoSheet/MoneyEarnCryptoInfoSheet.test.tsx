@@ -201,13 +201,20 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     });
   });
 
-  it('falls back to a baseline APY when the live value is unavailable', () => {
+  it('renders the body when APY is unavailable', () => {
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: undefined,
     });
-    const { getByTestId } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyEarnCryptoInfoSheet />,
+    );
 
     expect(getByTestId(MoneyEarnCryptoInfoSheetTestIds.BODY)).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('money.earn_crypto_info_sheet.body', { percentage: '-' }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   describe('analytics', () => {
