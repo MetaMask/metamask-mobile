@@ -1421,7 +1421,10 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={fullScreenModalSlideFromBottomNativeOptions}
+        options={({ route }) => ({
+          ...fullScreenModalSlideFromBottomNativeOptions,
+          animation: route.params?.animation ?? 'slide_from_right',
+        })}
       />
       <NativeStack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
