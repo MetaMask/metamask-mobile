@@ -255,11 +255,7 @@ describe('TradingViewChart — incremental update routing', () => {
 
     act(() => {
       rerender(
-        <TradingViewChart
-          candleData={liveTick}
-          symbol="BTC"
-          testID={testID}
-        />,
+        <TradingViewChart candleData={liveTick} symbol="BTC" testID={testID} />,
       );
     });
 
