@@ -17,8 +17,6 @@ import { strings } from '../../../../../../locales/i18n';
 import type { TraderProfile } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { TopRankAvatar } from '../../../Homepage/Sections/TopTraders/topRank';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
 const AVATAR_SIZE = 40;
@@ -27,18 +25,12 @@ export interface ProfileHeaderProps {
   profile: TraderProfile;
   followerCount: number;
   twitterHandle?: string | null;
-  /**
-   * Optional leaderboard rank used to render the top-rank decoration
-   * (gradient ring + crown emoji) around the avatar for ranks 1-3.
-   */
-  rank?: number;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
   followerCount,
   twitterHandle,
-  rank,
 }) => {
   const handleTwitterPress = useCallback(() => {
     if (twitterHandle) {
@@ -54,13 +46,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       gap={4}
       testID={TraderProfileViewSelectorsIDs.HEADER}
     >
-      <TopRankAvatar rank={rank ?? 0}>
-        <TraderAvatar
-          imageUrl={profile.imageUrl}
-          address={profile.address}
-          size={AVATAR_SIZE}
-        />
-      </TopRankAvatar>
+      <TraderAvatar
+        imageUrl={profile.imageUrl}
+        address={profile.address}
+        size={AVATAR_SIZE}
+      />
 
       <Box twClassName="flex-1 min-w-0">
         <Box

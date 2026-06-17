@@ -1074,9 +1074,9 @@
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
-      "win_rate": "win rate",
-      "pnl_7d": "7D Return",
-      "hold_time": "hold time",
+      "win_rate": "Win rate",
+      "pnl_7d": "7D P&L",
+      "hold_time": "Avg. hold",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
       "hold_time_days": "{{count}} days",
@@ -1098,8 +1098,8 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
-      "bought": "{{name}} bought",
-      "sold": "{{name}} sold",
+      "bought": "Bought",
+      "sold": "Sold",
       "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
@@ -1109,8 +1109,8 @@
       "sell": "Sell",
       "long": "Long",
       "short": "Short",
-      "opened": "{{name}} opened",
-      "closed_action": "{{name}} closed"
+      "opened": "Opened",
+      "closed_action": "Closed"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",

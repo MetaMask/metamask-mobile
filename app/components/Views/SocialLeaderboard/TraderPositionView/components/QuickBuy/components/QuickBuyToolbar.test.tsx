@@ -87,14 +87,14 @@ describe('QuickBuyToolbar', () => {
   it('prefers formattedRate (quote-based) over formattedExchangeRate when a quote is available', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      formattedRate: '1 ETH = 4381.23 REPPO',
-      formattedExchangeRate: '1 ETH = 1000 USDC',
+      formattedRate: '1 SOL = 25,738.44 GIGA',
+      formattedExchangeRate: '1 SOL = 23,529 GIGA',
       setActiveScreen,
     });
 
     render(<QuickBuyToolbar />);
-    expect(screen.getByText('1 ETH = 4381.23 REPPO')).toBeOnTheScreen();
-    expect(screen.queryByText('1 ETH = 1000 USDC')).not.toBeOnTheScreen();
+    expect(screen.getByText('1 SOL = 25,738.44 GIGA')).toBeOnTheScreen();
+    expect(screen.queryByText('1 SOL = 23,529 GIGA')).not.toBeOnTheScreen();
   });
 
   it('shows formattedRate even when formattedExchangeRate is undefined', () => {
