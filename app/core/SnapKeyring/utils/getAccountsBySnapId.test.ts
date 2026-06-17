@@ -1,7 +1,12 @@
 import { SnapId } from '@metamask/snaps-sdk';
+import { Keyring as KeyringV2 } from '@metamask/keyring-api/v2';
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
 import Engine from '../../../core/Engine';
 import { getAccountsBySnapId } from './getAccountsBySnapId';
+import {
+  KeyringMetadata,
+  KeyringSelectorV2,
+} from '@metamask/keyring-controller';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -30,10 +35,15 @@ const mockKeyringWithAccounts = (
   const keyring = {
     snapId,
     getAccounts: jest.fn().mockResolvedValue(accounts),
-  };
+  } as unknown as KeyringV2; // Partial implementation.
   mockWithKeyringV2.mockImplementation(
-    (_opts: unknown, callback: (arg: { keyring: typeof keyring }) => unknown) =>
-      callback({ keyring }),
+    (
+      _selector: KeyringSelectorV2,
+      callback: (arg: {
+        keyring: KeyringV2;
+        metadata: KeyringMetadata;
+      }) => Promise<unknown>,
+    ) => callback({ keyring, metadata: {} as KeyringMetadata }),
   );
   return keyring;
 };
