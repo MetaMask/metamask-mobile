@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TextInput } from 'react-native';
+import { TextInput } from 'react-native';
 import {
   Box,
   Text,
@@ -14,10 +14,6 @@ import {
 } from '@metamask/design-system-react-native';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
-
-const styles = StyleSheet.create({
-  amountText: { fontSize: 48, lineHeight: 52 },
-});
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -86,7 +82,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       testID="quick-buy-amount-area"
     >
       <Text
-        style={styles.amountText}
+        variant={TextVariant.DisplayMd}
         fontWeight={FontWeight.Bold}
         color={TextColor.TextDefault}
       >
@@ -101,9 +97,9 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         />
       ) : (
         <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
+          variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
         >
           {secondaryLabel}
         </Text>
