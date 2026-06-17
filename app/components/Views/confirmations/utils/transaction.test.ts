@@ -229,7 +229,7 @@ describe('getTransactionType', () => {
     const txMeta = {
       type: TransactionType.perpsDeposit,
       nestedTransactions: [],
-    } as TransactionMeta;
+    } as unknown as TransactionMeta;
 
     expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
   });
