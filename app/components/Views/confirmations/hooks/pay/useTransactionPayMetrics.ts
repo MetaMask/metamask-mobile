@@ -128,6 +128,7 @@ function useHighestBalanceCaipChainId(): string | undefined {
   const tokens = useAccountTokens();
 
   return useMemo(() => {
+    // Aggregate fiat balances by chainId
     const balanceByChain = tokens.reduce<Record<string, number>>(
       (acc, token) => {
         const { chainId, fiat } = token;
