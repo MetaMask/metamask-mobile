@@ -81,9 +81,8 @@ describe('CardActivityItem', () => {
     props.onPress?.(card.hash);
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyModals', {
-      screen: 'MoneyCardTransactionDetailsSheet',
-      params: { card },
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      card,
     });
   });
 });

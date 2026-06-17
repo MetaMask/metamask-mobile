@@ -34,9 +34,8 @@ const CardActivityItem = ({
   );
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.CARD_TRANSACTION_DETAILS_SHEET,
-      params: { card },
+    navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
+      card,
     });
   }, [navigation, card]);
 

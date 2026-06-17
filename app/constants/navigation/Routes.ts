@@ -463,6 +463,7 @@ const Routes = {
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     ONBOARDING: 'MoneyOnboarding',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
+    CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
