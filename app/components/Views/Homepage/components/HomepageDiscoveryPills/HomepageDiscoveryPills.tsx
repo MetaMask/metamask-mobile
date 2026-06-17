@@ -84,7 +84,7 @@ const HomepageDiscoveryPills: React.FC<HomepageDiscoveryPillsProps> = ({
       contentContainerStyle={tw.style('flex-row items-center gap-2 px-4')}
       testID={HomepageDiscoveryPillsTestIds.CONTAINER}
     >
-      {visiblePillIds.map((pillId, index) => (
+      {visiblePillIds.map((pillId) => (
         <ButtonToggle
           key={pillId}
           label={
@@ -107,7 +107,9 @@ const HomepageDiscoveryPills: React.FC<HomepageDiscoveryPillsProps> = ({
             </Box>
           }
           isActive={false}
-          onPress={() => handlePillPress(pillId, index)}
+          onPress={() =>
+            handlePillPress(pillId, HOMEPAGE_DISCOVERY_PILL_IDS.indexOf(pillId))
+          }
           size={ButtonSize.Md}
           style={tw.style('rounded-xl py-2 px-3')}
           testID={HomepageDiscoveryPillsTestIds.pill(pillId)}

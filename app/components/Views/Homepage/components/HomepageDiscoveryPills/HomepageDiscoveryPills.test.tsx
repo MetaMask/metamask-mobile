@@ -178,4 +178,13 @@ describe('HomepageDiscoveryPills', () => {
     expect(onPillPress).toHaveBeenCalledWith('crypto', 3);
     expect(mockNavigate).toHaveBeenCalled();
   });
+
+  it('reports fixed pill position when perps and predict pills are hidden', () => {
+    mockSelectorState({ isPerpsEnabled: false, isPredictEnabled: false });
+    const { getByTestId } = render(<HomepageDiscoveryPills iconStyle="gray" />);
+
+    fireEvent.press(getByTestId(HomepageDiscoveryPillsTestIds.pill('crypto')));
+
+    expect(mockTrackPillTapped).toHaveBeenCalledWith('crypto', 3);
+  });
 });
