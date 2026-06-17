@@ -1,5 +1,23 @@
-import { selectIsMoneyAccountGeoEligible } from './eligibility';
+import {
+  selectIsMoneyAccountGeoEligible,
+  selectIsUserInUS,
+  selectShouldShowMoneyEducation,
+} from './eligibility';
+import {
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+} from '../../../../selectors/cardController';
 import type { RootState } from '../../../../reducers';
+
+jest.mock('../../../../selectors/cardController', () => ({
+  selectIsCardAuthenticated: jest.fn(),
+  selectIsCardholder: jest.fn(),
+}));
+
+const mockSelectIsCardAuthenticated =
+  selectIsCardAuthenticated as unknown as jest.MockedFunction<() => boolean>;
+const mockSelectIsCardholder =
+  selectIsCardholder as unknown as jest.MockedFunction<() => boolean>;
 
 describe('selectIsMoneyAccountGeoEligible', () => {
   const createStateWithGeolocation = (
@@ -151,5 +169,87 @@ describe('selectIsMoneyAccountGeoEligible', () => {
     if (originalEnv !== undefined) {
       process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES = originalEnv;
     }
+  });
+});
+
+describe('selectIsUserInUS', () => {
+  const createStateWithGeolocation = (geolocation: string | null | undefined) =>
+    ({
+      engine: {
+        backgroundState: {
+          GeolocationController: {
+            location: geolocation,
+          },
+        },
+      },
+    }) as unknown as RootState;
+
+  it('returns true for a plain US country code', () => {
+    expect(selectIsUserInUS(createStateWithGeolocation('US'))).toBe(true);
+  });
+
+  it('returns true for a US country-region code', () => {
+    expect(selectIsUserInUS(createStateWithGeolocation('US-CA'))).toBe(true);
+  });
+
+  it('is case-insensitive', () => {
+    expect(selectIsUserInUS(createStateWithGeolocation('us'))).toBe(true);
+  });
+
+  it('returns false for a non-US country', () => {
+    expect(selectIsUserInUS(createStateWithGeolocation('GB'))).toBe(false);
+  });
+
+  it('returns false when geolocation is unknown', () => {
+    expect(selectIsUserInUS(createStateWithGeolocation('UNKNOWN'))).toBe(false);
+  });
+
+  it('returns false when geolocation is undefined', () => {
+    expect(selectIsUserInUS(createStateWithGeolocation(undefined))).toBe(false);
+  });
+});
+
+describe('selectShouldShowMoneyEducation', () => {
+  const createState = (geolocation: string | null | undefined) =>
+    ({
+      engine: {
+        backgroundState: {
+          GeolocationController: {
+            location: geolocation,
+          },
+        },
+      },
+    }) as unknown as RootState;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true for a US user who is not authenticated and not a cardholder', () => {
+    mockSelectIsCardAuthenticated.mockReturnValue(false);
+    mockSelectIsCardholder.mockReturnValue(false);
+
+    expect(selectShouldShowMoneyEducation(createState('US'))).toBe(true);
+  });
+
+  it('returns false when the user is not in the US', () => {
+    mockSelectIsCardAuthenticated.mockReturnValue(false);
+    mockSelectIsCardholder.mockReturnValue(false);
+
+    expect(selectShouldShowMoneyEducation(createState('GB'))).toBe(false);
+  });
+
+  it('returns false when the US user is authenticated', () => {
+    mockSelectIsCardAuthenticated.mockReturnValue(true);
+    mockSelectIsCardholder.mockReturnValue(false);
+
+    expect(selectShouldShowMoneyEducation(createState('US'))).toBe(false);
+  });
+
+  it('returns false when the US user is a cardholder', () => {
+    mockSelectIsCardAuthenticated.mockReturnValue(false);
+    mockSelectIsCardholder.mockReturnValue(true);
+
+    expect(selectShouldShowMoneyEducation(createState('US'))).toBe(false);
   });
 });
