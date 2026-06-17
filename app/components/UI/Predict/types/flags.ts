@@ -22,6 +22,7 @@ export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
 export interface PredictExtendedSportsMarketsFlag
   extends VersionGatedFeatureFlag {
   leagues: string[];
+  enabledSportsMarketTypes: string[];
 }
 
 export interface PredictWorldCupStageConfig {
@@ -49,6 +50,7 @@ export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
   extendedSportsMarketsLeagues: string[];
+  enabledSportsMarketTypes: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
