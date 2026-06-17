@@ -9,23 +9,28 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
-  AvatarBase,
-  AvatarBaseSize,
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
 } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { formatUsd, formatTradeDate } from '../../utils/formatters';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { hasRealAvatar } from '../../../Homepage/Sections/TopTraders/utils/avatarFallback';
 
 export interface TradeRowProps {
   trade: Trade;
   traderName: string;
   traderImageUrl?: string;
+  traderAddress?: string;
 }
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
   traderName,
   traderImageUrl,
+  traderAddress,
 }) => {
   const tw = useTailwind();
   const isEntry = trade.intent === 'enter';
@@ -42,16 +47,18 @@ const TradeRow: React.FC<TradeRowProps> = ({
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        {traderImageUrl ? (
+        {hasRealAvatar(traderImageUrl) ? (
           <Image
             source={{ uri: traderImageUrl }}
             style={tw.style('w-[32px] h-[32px] rounded-full bg-muted')}
             resizeMode="cover"
           />
         ) : (
-          <AvatarBase
-            size={AvatarBaseSize.Md}
-            fallbackText={traderName.charAt(0).toUpperCase()}
+          <AvatarAccount
+            variant={AvatarAccountVariant.Maskicon}
+            address={traderAddress ?? ''}
+            size={AvatarAccountSize.Md}
+            twClassName="rounded-full"
           />
         )}
         <Box twClassName="flex-1 min-w-0">
