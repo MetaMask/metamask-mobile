@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
-import { VIP_REFEREE_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipRefereeSplashScreen';
+import { VIP_REFEREE_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreenLayout';
 import RewardsVipRefereeSplashView from './RewardsVipRefereeSplashView';
 
 const mockNavigateDispatch = jest.fn();
@@ -102,11 +102,11 @@ jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, opts?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'rewards.vip.referee_splash_title': 'WELCOME\nTO MOCK\nFOX VIP',
-      'rewards.vip.referee_splash_description':
+      'rewards.vip.splash_title': 'WELCOME\nTO MOCK\nFOX COLLECTIVE',
+      'rewards.vip.splash_description':
         'Placeholder referee splash copy for tests only.',
       'rewards.vip.referee_splash_continue': 'Continue',
-      'rewards.vip.referee_splash_not_now': 'Not now',
+      'rewards.vip.splash_not_now': 'Not now',
     };
     if (key === 'rewards.vip.referee_referred_by') {
       return `Referred by ${opts?.code ?? ''}`;
@@ -165,7 +165,9 @@ describe('RewardsVipRefereeSplashView', () => {
     expect(
       getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
-    expect(getAllByText('WELCOME\nTO MOCK\nFOX VIP')[0]).toBeOnTheScreen();
+    expect(
+      getAllByText('WELCOME\nTO MOCK\nFOX COLLECTIVE')[0],
+    ).toBeOnTheScreen();
     expect(getByText('Referred by TESTCODE')).toBeOnTheScreen();
   });
 
