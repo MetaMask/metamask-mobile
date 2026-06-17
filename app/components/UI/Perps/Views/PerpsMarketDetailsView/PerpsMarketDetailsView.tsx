@@ -158,6 +158,7 @@ interface MarketDetailsRouteParams {
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
+  source_section?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
