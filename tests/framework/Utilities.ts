@@ -358,8 +358,6 @@ export default class Utilities {
     if (isWebElement) {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       await (expect(el) as any).toExist();
-    } else if (device.getPlatform() === 'ios') {
-      await waitFor(el).toExist().withTimeout(timeout);
     } else {
       await waitFor(el).toBeVisible().withTimeout(timeout);
     }

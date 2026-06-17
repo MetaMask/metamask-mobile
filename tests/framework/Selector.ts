@@ -16,6 +16,11 @@ export type Selector =
       androidAppiumTestID: string;
       iosAppiumTestID: string;
     }
+  | {
+      detoxTestID: string;
+      androidAppiumTestID: string;
+      iosAppiumXPath: string;
+    }
   | { testID: string; iosAppiumTestID: string; index?: number };
 
 /**
@@ -23,6 +28,21 @@ export type Selector =
  * This can also be used in the original Matchers, Assertions, and Gestures methods that currently return DetoxElements to make them cross-framework compatible without page-object changes.
  */
 export function resolve(selector: Selector): EncapsulatedElementType {
+  if ('iosAppiumXPath' in selector) {
+    return encapsulated({
+      detox: () =>
+        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(selector.androidAppiumTestID, {
+            exact: true,
+          }),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(selector.iosAppiumXPath),
+      },
+    });
+  }
+
   if ('androidAppiumTestID' in selector) {
     return encapsulated({
       detox: () =>
@@ -182,6 +202,7 @@ export function isSelector(value: unknown): value is Selector {
     'textPattern' in v ||
     'detoxTestID' in v ||
     'androidAppiumTestID' in v ||
-    'iosAppiumTestID' in v
+    'iosAppiumTestID' in v ||
+    'iosAppiumXPath' in v
   );
 }

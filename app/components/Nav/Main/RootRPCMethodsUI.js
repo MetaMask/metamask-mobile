@@ -181,12 +181,12 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [handleUnapprovedTransaction]);
 
+  // TODO: Verify if this ever gets called since RootRPCMethodsUI is never unmounted.
   useEffect(
     () =>
       function cleanup() {
         Engine.context.TokensController?.hub?.removeAllListeners();
       },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 

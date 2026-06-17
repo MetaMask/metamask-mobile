@@ -135,6 +135,7 @@ export interface PriceAdvancedProps {
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+  hasInsufficientCoverage?: boolean;
 }
 
 const PriceAdvanced = ({
@@ -150,6 +151,7 @@ const PriceAdvanced = ({
   setTimePeriod,
   onPriceDirectionChange,
   useAmbientColor = false,
+  hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -427,16 +429,17 @@ const PriceAdvanced = ({
     ? LIGHT_MODE_SUCCESS_GREEN
     : theme.colors.success.default;
 
-  // Initial ambient color for chart/buttons - based on non-crosshair price diff
-  // This stays constant even when user hovers crosshair
+  // Price diff used for the ambient color of the chart line/candles, time-range
+  // selector, back button, and sticky footer.  Includes realtimeClose so the
+  // chart color updates when WS ticks flip the price direction — the chart
+  // itself hot-swaps colors via SET_THEME_COLORS postMessage (no WebView rebuild).
   const initialPriceDiff = useMemo(() => {
-    const rtClose = realtimeBar?.close;
     const lbClose = ohlcvData[ohlcvData.length - 1]?.close;
-    const currentDisplayPrice = rtClose ?? lbClose ?? currentPrice;
+    const currentDisplayPrice = realtimeClose ?? lbClose ?? currentPrice;
 
     if (dynamicComparePrice === null) return null;
     return currentDisplayPrice - dynamicComparePrice;
-  }, [realtimeBar, ohlcvData, currentPrice, dynamicComparePrice]);
+  }, [ohlcvData, currentPrice, dynamicComparePrice, realtimeClose]);
 
   const initialAmbientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
@@ -558,6 +561,7 @@ const PriceAdvanced = ({
         isLoading={isLoading}
         onPriceDirectionChange={onPriceDirectionChange}
         useAmbientColor={useAmbientColor}
+        hasInsufficientCoverage={hasInsufficientCoverage}
       />
     );
   }

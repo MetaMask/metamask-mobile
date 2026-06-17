@@ -47,6 +47,7 @@ import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 
@@ -82,6 +83,11 @@ const V2BasicInfo = (): JSX.Element => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
+
+  // Headless deposit (TRAM-3623): tag RAMPS_BASIC_INFO_ENTERED with
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
+  // part of a headless buy flow; keep 'DEPOSIT' otherwise.
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -176,7 +182,7 @@ const V2BasicInfo = (): JSX.Element => {
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: regionIsoCode,
-      ramp_type: 'DEPOSIT',
+      ...headlessDepositRampProps,
       kyc_type: 'SIMPLE',
     });
 
@@ -249,6 +255,7 @@ const V2BasicInfo = (): JSX.Element => {
     headlessSessionId,
     regionIsoCode,
     trackEvent,
+    headlessDepositRampProps,
   ]);
 
   const enterEmailParamsForLogout = useMemo(

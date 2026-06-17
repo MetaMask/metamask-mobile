@@ -14,12 +14,14 @@ export interface TraderTradesSectionProps {
   trades: Trade[];
   traderName: string;
   traderImageUrl?: string;
+  traderAddress?: string;
 }
 
 const TraderTradesSection: React.FC<TraderTradesSectionProps> = ({
   trades,
   traderName,
   traderImageUrl,
+  traderAddress,
 }) => (
   <>
     <Box twClassName="px-4 mt-5">
@@ -42,6 +44,7 @@ const TraderTradesSection: React.FC<TraderTradesSectionProps> = ({
           trade={trade}
           traderName={traderName}
           traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
         />
       ))
     ) : (

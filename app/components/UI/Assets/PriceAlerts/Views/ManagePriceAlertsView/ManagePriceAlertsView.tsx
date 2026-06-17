@@ -1,6 +1,18 @@
-import React, { useCallback, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { ActivityIndicator, FlatList, Switch, View } from 'react-native';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Switch,
+  View,
+} from 'react-native';
 import {
   useNavigation,
   useRoute,
@@ -25,6 +37,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
@@ -33,11 +49,19 @@ import {
   PriceAlert,
   PriceAlertRouteParams,
 } from '../../constants';
-import { fetchAlerts } from '../../api';
+import { fetchAlerts, deleteAlert, updateAlert } from '../../api';
+
+const priceAlertsQueryKey = (assetId: string) => ['priceAlerts', assetId];
+
+const styles = StyleSheet.create({
+  switchDisabled: { opacity: 0.5 },
+});
 
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const { colors, brandColors } = useTheme();
+  const queryClient = useQueryClient();
+  const { toastRef } = useContext(ToastContext);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const route =
@@ -50,12 +74,22 @@ const ManagePriceAlertsView: React.FC = () => {
   const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
 
+  const hasResolvedInitialFetch = useRef(false);
+  const [deletingIds, setDeletingIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const [togglingIds, setTogglingIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const inFlightDeletes = useRef(new Set<string>());
+  const inFlightToggles = useRef(new Set<string>());
+
   const {
     data: alerts = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['priceAlerts', assetId],
+    queryKey: priceAlertsQueryKey(assetId),
     queryFn: async (): Promise<PriceAlert[]> => {
       const response = await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -67,7 +101,11 @@ const ManagePriceAlertsView: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!isLoading && (isError || alerts.length === 0)) {
+    if (isLoading || hasResolvedInitialFetch.current) {
+      return;
+    }
+    hasResolvedInitialFetch.current = true;
+    if (isError || alerts.length === 0) {
       navigation.replace(Routes.CREATE_PRICE_ALERT, {
         symbol,
         ticker,
@@ -100,60 +138,161 @@ const ManagePriceAlertsView: React.FC = () => {
       currentCurrency,
       assetId,
       fromManage: true,
+      existingThresholds: alerts.map((a) => a.threshold),
     });
-  }, [navigation, symbol, ticker, currentPrice, currentCurrency, assetId]);
+  }, [
+    navigation,
+    symbol,
+    ticker,
+    currentPrice,
+    currentCurrency,
+    assetId,
+    alerts,
+  ]);
 
-  const renderItem = ({ item }: { item: PriceAlert }) => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 py-3 border-b border-muted"
-      testID={`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-${item.id}`}
-    >
-      <Box twClassName="flex-1 mr-3">
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {strings('price_alerts.reaches_threshold', {
-            threshold: formatPriceWithSubscriptNotation(
-              item.threshold,
-              currentCurrency,
-            ),
-          })}
-        </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {item.recurring
-            ? strings('price_alerts.recurring')
-            : strings('price_alerts.once_label')}
-        </Text>
-      </Box>
+  const handleDeleteAlert = useCallback(
+    async (id: string) => {
+      if (inFlightDeletes.current.has(id)) return;
+      inFlightDeletes.current.add(id);
+      setDeletingIds((prev) => new Set(prev).add(id));
 
-      <ButtonIcon
-        onPress={() => {
-          // TODO: delete alert
-        }}
-        size={ButtonIconSize.Md}
-        iconName={IconName.Trash}
-        testID={`${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${item.id}`}
-        accessibilityLabel="Delete alert"
-        style={tw.style('self-center')}
-      />
+      const queryKey = priceAlertsQueryKey(assetId);
+      const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
 
-      <Switch
-        value={item.active}
-        onValueChange={() => {
-          // TODO: toggle alert active state
-        }}
-        trackColor={{
-          true: colors.primary.default,
-          false: colors.border.muted,
-        }}
-        thumbColor={colors.background.default}
-        ios_backgroundColor={colors.border.muted}
-        testID={`${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${item.id}`}
-        style={tw.style('ml-3 self-center')}
-      />
-    </Box>
+      try {
+        const response = await deleteAlert(id);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const next = previous.filter((a) => a.id !== id);
+        queryClient.setQueryData(queryKey, next);
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Trash,
+          iconColor: colors.text.default,
+          labelOptions: [{ label: strings('price_alerts.delete_success') }],
+          hasNoTimeout: false,
+        });
+        if (next.length === 0) {
+          navigation.goBack();
+        }
+      } catch {
+        const response = await fetchAlerts(assetId).catch(() => null);
+        if (response?.ok) {
+          const data: PriceAlert[] = await response.json().catch(() => []);
+          queryClient.setQueryData(queryKey, data);
+        } else {
+          queryClient.setQueryData(queryKey, previous);
+        }
+      } finally {
+        inFlightDeletes.current.delete(id);
+        setDeletingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }
+    },
+    [navigation, assetId, queryClient, toastRef, colors],
   );
+
+  const handleToggleAlert = useCallback(
+    async (id: string, newValue: boolean) => {
+      if (inFlightToggles.current.has(id)) return;
+      inFlightToggles.current.add(id);
+      setTogglingIds((prev) => new Set(prev).add(id));
+
+      const queryKey = priceAlertsQueryKey(assetId);
+      const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      queryClient.setQueryData(
+        queryKey,
+        previous.map((a) => (a.id === id ? { ...a, active: newValue } : a)),
+      );
+
+      try {
+        const response = await updateAlert(id, { active: newValue });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      } catch {
+        queryClient.setQueryData(
+          queryKey,
+          previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
+        );
+      } finally {
+        inFlightToggles.current.delete(id);
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }
+    },
+    [assetId, queryClient],
+  );
+
+  const renderItem = ({ item }: { item: PriceAlert }) => {
+    const isDeleting = deletingIds.has(item.id);
+    const isToggling = togglingIds.has(item.id);
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 py-3 border-b border-muted"
+        testID={`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-${item.id}`}
+      >
+        <Box twClassName="flex-1 mr-3">
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {strings('price_alerts.reaches_threshold', {
+              threshold: formatPriceWithSubscriptNotation(
+                item.threshold,
+                currentCurrency,
+              ),
+            })}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {item.recurring
+              ? strings('price_alerts.recurring')
+              : strings('price_alerts.once_label')}
+          </Text>
+        </Box>
+
+        {isDeleting ? (
+          <ActivityIndicator
+            size="small"
+            color={colors.primary.default}
+            testID={`${ManagePriceAlertsTestIds.ALERT_DELETE_SPINNER_PREFIX}-${item.id}`}
+            style={tw.style('self-center')}
+          />
+        ) : (
+          <ButtonIcon
+            onPress={() => handleDeleteAlert(item.id)}
+            size={ButtonIconSize.Md}
+            iconName={IconName.Trash}
+            testID={`${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${item.id}`}
+            accessibilityLabel="Delete alert"
+            style={tw.style('self-center')}
+          />
+        )}
+
+        <Switch
+          value={item.active}
+          onValueChange={(v) => handleToggleAlert(item.id, v)}
+          disabled={isToggling}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={brandColors.white}
+          ios_backgroundColor={colors.border.muted}
+          testID={`${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${item.id}`}
+          style={[
+            tw.style('ml-3 self-center'),
+            isToggling && styles.switchDisabled,
+          ]}
+        />
+      </Box>
+    );
+  };
 
   return (
     <SafeAreaView

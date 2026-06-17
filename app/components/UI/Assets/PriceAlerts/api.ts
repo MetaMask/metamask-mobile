@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
-import type { SaveAlertParams } from './constants';
+import type { SaveAlertParams, UpdateAlertParams } from './constants';
 
 const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/alerts`;
 
@@ -27,6 +27,19 @@ export const fetchAlerts = (assetId: string): Promise<Response> =>
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   authenticatedFetch(ALERTS_URL, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+export const deleteAlert = (id: string): Promise<Response> =>
+  authenticatedFetch(`${ALERTS_URL}/${id}`, { method: 'DELETE' });
+
+export const updateAlert = (
+  id: string,
+  params: UpdateAlertParams,
+): Promise<Response> =>
+  authenticatedFetch(`${ALERTS_URL}/${id}`, {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
