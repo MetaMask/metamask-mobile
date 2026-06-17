@@ -81,18 +81,20 @@ The test suite is configured in `tests/playwright.config.ts`, which defines mult
 
 ### Available Projects
 
-| Project Name                      | Platform | Environment     | Test Scope                 |
-| --------------------------------- | -------- | --------------- | -------------------------- |
-| `android`                         | Android  | Local Emulator  | All performance tests      |
-| `ios`                             | iOS      | Local Simulator | All performance tests      |
-| `browserstack-android`            | Android  | BrowserStack    | Login tests only           |
-| `browserstack-ios`                | iOS      | BrowserStack    | Login tests only           |
-| `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only      |
-| `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only      |
-| `mm-connect-android-local`        | Android  | Local Emulator  | connection-multichain only |
-| `mm-connect-android-browserstack` | Android  | BrowserStack    | connection-multichain only |
-| `mm-connect-ios-local`            | iOS      | Local Simulator | MM Connect tests           |
-| `mm-connect-ios-browserstack`     | iOS      | BrowserStack    | MM Connect tests           |
+| Project Name                      | Platform | Environment     | Test Scope                     |
+| --------------------------------- | -------- | --------------- | ------------------------------ |
+| `android`                         | Android  | Local Emulator  | All performance tests          |
+| `ios`                             | iOS      | Local Simulator | All performance tests          |
+| `browserstack-android`            | Android  | BrowserStack    | Login tests only               |
+| `browserstack-ios`                | iOS      | BrowserStack    | Login tests only               |
+| `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only          |
+| `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only          |
+| `mm-connect-android-local`        | Android  | Local Emulator  | _(removed — use Appium smoke)_ |
+| `mm-connect-android-browserstack` | Android  | BrowserStack    | _(removed — use Appium smoke)_ |
+| `mm-connect-ios-local`            | iOS      | Local Simulator | _(removed — use Appium smoke)_ |
+| `mm-connect-ios-browserstack`     | iOS      | BrowserStack    | _(removed — use Appium smoke)_ |
+
+> MM Connect specs moved to `tests/smoke-appium/mm-connect/` (`SmokeMMConnect`). Run: `yarn appium-smoke:mmconnect:android`
 
 ### Configuration Details
 
@@ -143,9 +145,7 @@ yarn run-playwright:android-onboarding-bs  # Run onboarding tests on BrowserStac
 yarn run-playwright:ios-onboarding-bs      # Run onboarding tests on BrowserStack iOS
 
 # MM Connect (Multichain API + local Browser Playground dapp)
-yarn run-playwright:mm-connect-android-local    # Local Android emulator (dapp on 10.0.2.2:8090)
-yarn run-playwright:mm-connect-android-bs       # BrowserStack Android (same Playwright project as below)
-yarn run-playwright:mm-connect-android-bs-local # BrowserStack Android (alias; tunnel still required — see below)
+yarn appium-smoke:mmconnect:android              # MM Connect Appium smoke (local emulator)
 ```
 
 #### MM Connect on BrowserStack (local dapp)
@@ -322,21 +322,15 @@ Tests for prediction market features:
 - `predict-deposit.spec.ts`
 - `predict-market-details.spec.ts`
 
-### MM Connect Tests (`tests/performance/mm-connect/`)
+### MM Connect Tests (moved to Appium smoke)
 
-Integration tests for MetaMask Connect:
+MM Connect E2E specs now live in [`tests/smoke-appium/mm-connect/`](../smoke-appium/mm-connect/) under the **`SmokeMMConnect`** tag. Run locally:
 
-- `connection-evm.spec.ts` - EVM connection performance
-- `connection-multichain.spec.ts` - Multichain connection performance
-- `connection-wagmi.spec.ts` - Wagmi integration performance
-- `multichain-rn-connect.spec.ts` - Multichain + Solana via the React Native Playground APK
-- `legacy-evm-rn-connect.spec.ts` - Legacy EVM connection via the React Native Playground APK
+```bash
+yarn appium-smoke:mmconnect:android
+```
 
-> The RN playground tests require a separate APK built from the
-> [`playground/react-native-playground`](https://github.com/MetaMask/connect-monorepo/tree/main/playground/react-native-playground)
-> directory of the [connect-monorepo](https://github.com/MetaMask/connect-monorepo).
-> The APK must be installed on the emulator before running.
-> See [`tests/performance/mm-connect/README.md`](mm-connect/README.md) for full setup instructions.
+See [`tests/smoke-appium/mm-connect/README.md`](../smoke-appium/mm-connect/README.md) for setup (Browser Playground dapp server, RN playground APK, etc.).
 
 ## Performance Tracking System
 

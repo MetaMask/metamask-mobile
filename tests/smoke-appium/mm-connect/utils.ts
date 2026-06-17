@@ -36,7 +36,7 @@ export async function unlockIfLockScreenVisible(): Promise<void> {
       asPlaywrightElement(LoginView.container),
       { timeout: UNLOCK_WAIT_MS },
     );
-    await loginToAppPlaywright();
+    await loginToAppPlaywright({ scenarioType: 'e2e' });
   } catch {
     // Unlock screen not shown within timeout; continue
   }
@@ -148,7 +148,7 @@ function resolvePlaygroundApkPath(): string {
       '     cd playground/react-native-playground && npx expo prebuild --platform android\n' +
       '     cd android && ./gradlew assembleRelease\n' +
       '  3. Set RN_PLAYGROUND_APK_PATH to the APK location\n\n' +
-      'See tests/performance/mm-connect/README.md for full setup instructions.',
+      'See tests/smoke-appium/mm-connect/README.md for full setup instructions.',
   );
 }
 
@@ -166,7 +166,7 @@ export async function ensureAccountGroupsFinishedLoading(
   );
   await PlaywrightGestures.terminateApp(currentDeviceDetails);
   await PlaywrightGestures.activateApp(currentDeviceDetails);
-  await loginToAppPlaywright();
+  await loginToAppPlaywright({ scenarioType: 'e2e' });
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(WalletView.container),
     { timeout: 15000 },
@@ -175,7 +175,7 @@ export async function ensureAccountGroupsFinishedLoading(
   await AccountListBottomSheet.waitForAccountSyncToComplete();
   await PlaywrightGestures.terminateApp(currentDeviceDetails);
   await PlaywrightGestures.activateApp(currentDeviceDetails);
-  await loginToAppPlaywright();
+  await loginToAppPlaywright({ scenarioType: 'e2e' });
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(WalletView.container),
     { timeout: 15000 },

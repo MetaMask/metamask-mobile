@@ -9,7 +9,7 @@
  * Handles:
  * - Imported Wallet Tests: *-imported-wallet-test-results-*
  * - Onboarding Tests: *-onboarding-flow-test-results-*
- * - MM-Connect Tests: *-mm-connect-test-results-*
+ * - MM-Connect Tests (legacy): *-mm-connect-test-results-* (pre-migration BrowserStack runs)
  */
 
 import fs from 'fs';

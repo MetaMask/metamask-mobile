@@ -264,6 +264,13 @@ jobs:
         env:
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
 
+      - name: Fetch RN Playground APK for SmokeMMConnect
+        if: ${{ inputs.test_suite_tag == 'SmokeMMConnect' && inputs.platform == 'android' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
+        run: ./tests/scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
+
       - name: Run Appium smoke tests (Android)
         id: run-tests-android
         if: ${{ inputs.platform == 'android' }}
