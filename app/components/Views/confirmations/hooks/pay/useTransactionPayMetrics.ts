@@ -19,6 +19,8 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
+import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -44,6 +46,10 @@ export function useTransactionPayMetrics() {
   const storedMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, transactionId),
   );
+
+  const hasPayToken = !!payToken;
+  const source = usePaySectionSourceMetrics(hasPayToken);
+  const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
 
   const hasQuotes = (quotes?.length ?? 0) > 0;
 
@@ -82,6 +88,16 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
+
+    properties.mm_pay_section_source_presented = source.presented;
+    properties.mm_pay_section_source_selected = source.selected;
+    properties.mm_pay_section_source_switch_count = source.switchCount;
+
+    properties.mm_pay_section_recipient_presented = recipient.presented;
+    properties.mm_pay_section_recipient_selected = recipient.selected;
+    properties.mm_pay_section_recipient_switch_count = recipient.switchCount;
+
+    properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
   }
 
   if (
@@ -112,7 +128,6 @@ function useHighestBalanceCaipChainId(): string | undefined {
   const tokens = useAccountTokens();
 
   return useMemo(() => {
-    // Aggregate fiat balances by chainId
     const balanceByChain = tokens.reduce<Record<string, number>>(
       (acc, token) => {
         const { chainId, fiat } = token;
@@ -145,4 +160,46 @@ function useHighestBalanceCaipChainId(): string | undefined {
 
     return highestChainId;
   }, [tokens]);
+}
+
+type MmPayEntryPoint =
+  | 'money_account'
+  | 'perps'
+  | 'predict'
+  | 'money_hub'
+  | 'activity';
+
+const ENTRY_POINT_MAP: [TransactionType[], MmPayEntryPoint][] = [
+  [
+    [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.perpsWithdraw,
+    ],
+    'perps',
+  ],
+  [
+    [
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+      TransactionType.predictWithdraw,
+    ],
+    'predict',
+  ],
+  [
+    [TransactionType.moneyAccountDeposit, TransactionType.moneyAccountWithdraw],
+    'money_account',
+  ],
+  [[TransactionType.musdConversion], 'money_hub'],
+];
+
+function getEntryPoint(
+  transactionMeta: Parameters<typeof hasTransactionType>[0],
+): MmPayEntryPoint | undefined {
+  for (const [types, entryPoint] of ENTRY_POINT_MAP) {
+    if (hasTransactionType(transactionMeta, types)) {
+      return entryPoint;
+    }
+  }
+  return undefined;
 }
