@@ -18,14 +18,12 @@ const AVATAR_SIZE = 32;
 
 export interface TradeRowProps {
   trade: Trade;
-  traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
 }
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
-  traderName,
   traderImageUrl,
   traderAddress,
 }) => {
@@ -56,12 +54,8 @@ const TradeRow: React.FC<TradeRowProps> = ({
             numberOfLines={1}
           >
             {isEntry
-              ? strings('social_leaderboard.trader_position.bought', {
-                  name: traderName,
-                })
-              : strings('social_leaderboard.trader_position.sold', {
-                  name: traderName,
-                })}
+              ? strings('social_leaderboard.trader_position.bought')
+              : strings('social_leaderboard.trader_position.sold')}
           </Text>
           <Text
             variant={TextVariant.BodySm}

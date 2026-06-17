@@ -39,15 +39,15 @@ describe('StatsRow', () => {
     expect(screen.getByText('0%')).toBeOnTheScreen();
   });
 
-  it('abbreviates positive PnL with K suffix', () => {
+  it('renders the full positive PnL with no decimals (no abbreviation)', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
-    expect(screen.getByText('+$20.6K')).toBeOnTheScreen();
+    expect(screen.getByText('+$20,610')).toBeOnTheScreen();
   });
 
-  it('abbreviates large positive PnL with M suffix', () => {
+  it('renders large positive PnL in full with no decimals', () => {
     const stats = { ...baseStats, pnl30d: 1_170_000 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('+$1.2M')).toBeOnTheScreen();
+    expect(screen.getByText('+$1,170,000')).toBeOnTheScreen();
   });
 
   it('renders dash when pnl30d is null', () => {
@@ -57,22 +57,22 @@ describe('StatsRow', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('abbreviates negative PnL with K suffix', () => {
+  it('renders negative PnL in full with a leading minus', () => {
     const stats = { ...baseStats, pnl30d: -5000 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('-$5K')).toBeOnTheScreen();
+    expect(screen.getByText('-$5,000')).toBeOnTheScreen();
   });
 
-  it('renders sub-$1K PnL with two decimal places (no abbreviation)', () => {
+  it('renders sub-$1K PnL without decimals', () => {
     const stats = { ...baseStats, pnl30d: 500 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('+$500.00')).toBeOnTheScreen();
+    expect(screen.getByText('+$500')).toBeOnTheScreen();
   });
 
-  it('rounds sub-$1K PnL to two decimal places', () => {
+  it('rounds fractional PnL to a whole dollar', () => {
     const stats = { ...baseStats, pnl30d: 500.236 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('+$500.24')).toBeOnTheScreen();
+    expect(screen.getByText('+$500')).toBeOnTheScreen();
   });
 
   it('renders both null winRate and null pnl as dashes', () => {
@@ -115,21 +115,21 @@ describe('StatsRow', () => {
     });
   });
 
-  it('renders win rate label', () => {
+  it('renders the win rate label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('win rate')).toBeOnTheScreen();
+    expect(screen.getByText('Win rate')).toBeOnTheScreen();
   });
 
-  it('renders 30D Return label', () => {
+  it('renders the 30D P&L label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('30D Return')).toBeOnTheScreen();
+    expect(screen.getByText('30D P&L')).toBeOnTheScreen();
   });
 
-  it('renders hold time label', () => {
+  it('renders the avg. hold label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('hold time')).toBeOnTheScreen();
+    expect(screen.getByText('Avg. hold')).toBeOnTheScreen();
   });
 });

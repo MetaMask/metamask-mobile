@@ -72,6 +72,38 @@ const BRONZE: MedalColors = {
   gradientLocations: CHROME_LOCATIONS,
 };
 
+/**
+ * Solid fill palette for the leaderboard rank medal (the new medallion + ribbon
+ * badge that replaces the crown emoji / gradient ring). Sourced from Figma nodes
+ * `2521:11941` (1st), `2521:11960` (2nd) and `2521:11978` (3rd).
+ */
+export interface RankMedalColors {
+  /** Ribbon body color. */
+  ribbonDark: string;
+  /** Ribbon highlight (front fold) color. */
+  ribbonLight: string;
+  /** Medallion disc color. */
+  medallion: string;
+}
+
+const RANK_MEDAL_COLORS: Readonly<Record<1 | 2 | 3, RankMedalColors>> = {
+  1: { ribbonDark: '#9EAAFF', ribbonLight: '#C7CEFF', medallion: '#F6CD7F' },
+  2: { ribbonDark: '#FF8A96', ribbonLight: '#FFB2BB', medallion: '#DADADA' },
+  3: { ribbonDark: '#89B0FF', ribbonLight: '#CCE7FF', medallion: '#FFA680' },
+};
+
+/** Dark medal backing fill (shared by all ranks). */
+export const RANK_MEDAL_BACKING = '#252628';
+/** Dark medal outline / rank-numeral color (`warning-inverse`). */
+export const RANK_MEDAL_OUTLINE = '#131416';
+
+/**
+ * Returns the medallion/ribbon colors for a podium rank, or `null` for ranks
+ * outside 1–3.
+ */
+export const getRankMedalColors = (rank: number): RankMedalColors | null =>
+  RANK_MEDAL_COLORS[rank as 1 | 2 | 3] ?? null;
+
 /** Whether `rank` is a podium position (1, 2 or 3). */
 export const isTopRank = (rank: number): boolean => rank >= 1 && rank <= 3;
 

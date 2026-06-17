@@ -33,6 +33,28 @@ export function formatSignedUsd(value: number | null | undefined): string {
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
 }
 
+/**
+ * Signed USD with the full (non-abbreviated) number, thousands separators and
+ * no fractional digits. Used for the profile 30D P&L headline
+ * (e.g. `+$82,610,666`). Zero renders without a sign.
+ */
+export function formatSignedFullUsdNoDecimals(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  if (value === 0) {
+    return formatPerpsFiat(0, { minimumDecimals: 0, maximumDecimals: 0 });
+  }
+  const sign = value > 0 ? '+' : '-';
+  return (
+    sign +
+    formatPerpsFiat(Math.abs(value), {
+      minimumDecimals: 0,
+      maximumDecimals: 0,
+    })
+  );
+}
+
 // Ordered largest → smallest. Walk down and promote when rounding pushes a
 // value past the bucket boundary (e.g. `999_999` rounds to `1000K`, which
 // we want as `$1M`, not `$1000K`).

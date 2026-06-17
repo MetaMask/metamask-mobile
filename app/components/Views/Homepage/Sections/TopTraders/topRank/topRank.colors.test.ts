@@ -1,5 +1,10 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
-import { getMedalColors, isTopRank, PODIUM_EMOJI } from './topRank.colors';
+import {
+  getMedalColors,
+  getRankMedalColors,
+  isTopRank,
+  PODIUM_EMOJI,
+} from './topRank.colors';
 
 describe('isTopRank', () => {
   it.each([1, 2, 3])('returns true for podium rank %s', (rank) => {
@@ -31,6 +36,30 @@ describe('getMedalColors', () => {
 
   it.each([0, 4, 5, 100, -1])('returns null for rank %s', (rank) => {
     expect(getMedalColors(rank)).toBeNull();
+  });
+});
+
+describe('getRankMedalColors', () => {
+  it('returns the gold medallion + ribbon palette for rank 1', () => {
+    const colors = getRankMedalColors(1);
+
+    expect(colors).toEqual({
+      ribbonDark: '#9EAAFF',
+      ribbonLight: '#C7CEFF',
+      medallion: '#F6CD7F',
+    });
+  });
+
+  it('returns the silver medallion for rank 2', () => {
+    expect(getRankMedalColors(2)?.medallion).toBe('#DADADA');
+  });
+
+  it('returns the bronze medallion for rank 3', () => {
+    expect(getRankMedalColors(3)?.medallion).toBe('#FFA680');
+  });
+
+  it.each([0, 4, 5, 100, -1])('returns null for rank %s', (rank) => {
+    expect(getRankMedalColors(rank)).toBeNull();
   });
 });
 

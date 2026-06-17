@@ -70,12 +70,14 @@ describe('PositionRow', () => {
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
-  it('renders unrealized $ PnL alongside the percent on the bottom-right', () => {
+  it('renders only the bare percent on the bottom-right (no absolute PnL)', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    expect(screen.getByText('+$1,059.96 (+182%)')).toBeOnTheScreen();
+    expect(screen.getByText('+182%')).toBeOnTheScreen();
+    expect(screen.queryByText('+$1,059.96 (+182%)')).toBeNull();
+    expect(screen.queryByText('+$1,059.96')).toBeNull();
   });
 
-  it('renders negative unrealized $ PnL with the percent', () => {
+  it('renders the negative percent without the absolute PnL', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: -250,
@@ -83,10 +85,11 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('-$250.00 (-25%)')).toBeOnTheScreen();
+    expect(screen.getByText('-25%')).toBeOnTheScreen();
+    expect(screen.queryByText('-$250.00 (-25%)')).toBeNull();
   });
 
-  it('falls back to just the percent when pnlValueUsd is missing', () => {
+  it('renders the percent even when pnlValueUsd is missing', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: null,
@@ -119,7 +122,7 @@ describe('PositionRow', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders zero unrealized $ PnL with zero percent', () => {
+  it('renders zero percent when unrealized PnL is zero', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: 0,
@@ -127,7 +130,8 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('$0.00 (+0%)')).toBeOnTheScreen();
+    expect(screen.getByText('+0%')).toBeOnTheScreen();
+    expect(screen.queryByText('$0.00 (+0%)')).toBeNull();
   });
 
   it('renders negative USD value', () => {

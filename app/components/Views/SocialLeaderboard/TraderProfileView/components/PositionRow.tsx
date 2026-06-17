@@ -93,9 +93,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
       twClassName={pnlColorClass}
       color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
-      {position.pnlValueUsd != null
-        ? `${formatSignedUsd(position.pnlValueUsd)} (${formatPercent(displayPnlPercent)})`
-        : formatPercent(displayPnlPercent)}
+      {formatPercent(displayPnlPercent)}
     </Text>
   );
 

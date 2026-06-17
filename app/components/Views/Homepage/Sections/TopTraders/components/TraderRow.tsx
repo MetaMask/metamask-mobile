@@ -13,12 +13,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TopRankAvatar, TopRankIndicator } from '../topRank';
+import { RankMedal } from '../topRank';
+import { isTopRank } from '../topRank/topRank.colors';
 import type { TopTrader } from '../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedAbbreviatedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
 import TraderAvatar from './TraderAvatar';
 
 const AVATAR_SIZE = 40;
@@ -41,8 +42,8 @@ export interface TraderRowProps {
 /**
  * TraderRow -- a single row in the Top Traders leaderboard.
  *
- * Displays the trader's rank, avatar, username, performance stats,
- * and a Follow / Following toggle button.
+ * Displays the trader's avatar (with a podium medal badge for ranks 1–3),
+ * username, 30D PnL, and a Follow / Following toggle button.
  */
 const TraderRow: React.FC<TraderRowProps> = ({
   trader,
@@ -52,11 +53,9 @@ const TraderRow: React.FC<TraderRowProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const roiSign = trader.percentageChange >= 0 ? '+' : '';
-  const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
-  const pnlText = formatSignedAbbreviatedUsd(trader.pnlValue);
+  const pnlText = formatSignedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
-  const isRoiPositive = trader.percentageChange >= 0;
+  const showMedal = isTopRank(trader.rank);
 
   return (
     <Box
@@ -83,18 +82,18 @@ const TraderRow: React.FC<TraderRowProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={3}
         >
-          <TopRankIndicator
-            rank={trader.rank}
-            podiumRank={trader.overallRank}
-          />
-
-          <TopRankAvatar rank={trader.overallRank}>
+          <View>
             <TraderAvatar
               imageUrl={trader.avatarUri}
               address={trader.address}
               size={AVATAR_SIZE}
             />
-          </TopRankAvatar>
+            {showMedal ? (
+              <View style={tw.style('absolute -bottom-1 -right-1')}>
+                <RankMedal rank={trader.rank} />
+              </View>
+            ) : null}
+          </View>
 
           <Box twClassName="flex-1 min-w-0">
             <Text
@@ -109,39 +108,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
+              twClassName={
+                isPnlPositive ? 'text-success-default' : 'text-error-default'
+              }
             >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isRoiPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {roiText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {' \u00B7 '}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {pnlText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {' 30D'}
-              </Text>
+              {pnlText}
             </Text>
           </Box>
         </Box>

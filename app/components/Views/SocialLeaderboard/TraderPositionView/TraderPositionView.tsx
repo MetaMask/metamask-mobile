@@ -354,7 +354,6 @@ const TraderPositionView = () => {
 
             <TraderTradesSection
               trades={allTrades}
-              traderName={traderName}
               traderImageUrl={traderImageUrl}
               traderAddress={traderAddress}
             />
