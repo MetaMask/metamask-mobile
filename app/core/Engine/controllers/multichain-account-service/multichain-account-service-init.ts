@@ -6,8 +6,6 @@ import {
   TRX_ACCOUNT_PROVIDER_NAME,
 } from '@metamask/multichain-account-service';
 import { MessengerClientInitFunction } from '../../types';
-import Engine from '../../Engine';
-import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 
 /**
@@ -62,21 +60,6 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
       /// END:ONLY_INCLUDE_IF
     },
   });
-
-  // TODO: Move this logic to the SnapKeyring directly.
-  initMessenger.subscribe(
-    'MultichainAccountService:multichainAccountGroupUpdated',
-    (group) => {
-      const { AccountTreeController } = Engine.context;
-
-      // If the current group gets updated, then maybe there are more accounts being "selected"
-      // now, so we have to forward them to the Snap keyring too!
-      if (AccountTreeController.getSelectedAccountGroup() === group.id) {
-        // eslint-disable-next-line no-void
-        void forwardSelectedAccountGroupToSnapKeyring(group.id);
-      }
-    },
-  );
 
   return { controller, memStateKey: null, persistedStateKey: null };
 };

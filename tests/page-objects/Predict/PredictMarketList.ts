@@ -2,6 +2,7 @@ import {
   Matchers,
   PlaywrightMatchers,
   UnifiedGestures,
+  Utilities,
   encapsulated,
   type EncapsulatedElementType,
 } from '../../framework';
@@ -216,8 +217,31 @@ class PredictMarketList {
   }
 
   async tapCategoryTab(category: CategoryTab): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getCategoryTab(category), {
+    const firstTab = encapsulated({
+      detox: () => Matchers.getElementByID(getPredictFeedSelector.tab(0)),
+      appium: () =>
+        PlaywrightMatchers.getElementById(getPredictFeedSelector.tab(0)),
+    });
+    const tab = this.getCategoryTab(category);
+    await Utilities.executeWithRetry(
+      async () => {
+        if (!(await Utilities.isElementVisible(tab, 1000))) {
+          await UnifiedGestures.swipe(firstTab, 'left', {
+            description: `Swipe tabs to reveal ${category}`,
+            speed: 'slow',
+            percentage: 0.5,
+          });
+        }
+        await Utilities.waitForElementToBeVisible(tab, 2000);
+      },
+      {
+        timeout: 15000,
+        description: `Scroll to ${category} category tab`,
+      },
+    );
+    await UnifiedGestures.waitAndTap(tab, {
       description: `${category} category tab`,
+      checkStability: true,
     });
   }
 

@@ -1,12 +1,12 @@
 import {
   formatPerpsFiat,
   formatPercentage,
-  formatTransactionDate,
 } from '../../../UI/Perps/utils/formatUtils';
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
 } from '../../../../util/number';
+import { toDateFormat } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
 
 const EM_DASH = '\u2014';
@@ -104,8 +104,10 @@ export function formatPercent(value: number | null | undefined): string {
 
 /**
  * Trade timestamps from the social API may be seconds or milliseconds.
+ * Delegates to the shared `toDateFormat` so we render the same short
+ * convention used by the activity list (e.g. `Jun 16 at 11:38 am`).
  */
 export function formatTradeDate(timestamp: number): string {
   const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;
-  return formatTransactionDate(ms);
+  return toDateFormat(ms);
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
 import {
   Box,
   Text,
@@ -8,6 +8,9 @@ import {
   FontWeight,
   BoxAlignItems,
   BoxJustifyContent,
+  IconColor,
+  IconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
@@ -91,7 +94,11 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       </Text>
 
       {isQuoteLoading ? (
-        <ActivityIndicator size="small" />
+        <Spinner
+          color={IconColor.IconDefault}
+          spinnerIconProps={{ size: IconSize.Sm }}
+          testID="quick-buy-amount-loading-spinner"
+        />
       ) : (
         <Text
           variant={TextVariant.BodyMd}
