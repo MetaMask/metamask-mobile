@@ -225,7 +225,6 @@ describe('usePayWithMoneyAccountSection', () => {
           title: 'Money account',
           subtitle: '$100.00 available',
           isSelected: false,
-          isLastUsed: false,
           trailingElement: 'none',
           testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
         }),

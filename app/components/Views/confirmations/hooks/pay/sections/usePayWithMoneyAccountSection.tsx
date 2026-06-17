@@ -109,7 +109,6 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      isLastUsed: false,
       trailingElement: isMoneyAccountSelected ? 'checkmark' : 'none',
       onPress: handlePress,
       testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
