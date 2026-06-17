@@ -20,6 +20,7 @@ const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigateToMarketList = jest.fn();
 const mockUsePerpsMarkets = jest.fn();
+const mockUsePerpsLivePrices = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -30,6 +31,10 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: (...args: unknown[]) => mockUsePerpsMarkets(...args),
+}));
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: (...args: unknown[]) => mockUsePerpsLivePrices(...args),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -100,10 +105,7 @@ jest.mock('../PerpsPillItem', () => {
       <Text>{item.market.change24hPercent}</Text>
     </TouchableOpacity>
   );
-  return {
-    PerpsPillItem: MockPill,
-    PerpsPillItemWithLiveData: MockPill,
-  };
+  return { PerpsPillItem: MockPill };
 });
 
 const createMarket = (
@@ -132,6 +134,7 @@ describe('PerpsRelatedMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsMarkets.mockReturnValue(mockMarketsResult([]));
+    mockUsePerpsLivePrices.mockReturnValue({});
   });
 
   it('renders pills in a scrollable grid without sparklines', () => {
@@ -254,5 +257,47 @@ describe('PerpsRelatedMarkets', () => {
         [RELATED_MARKETS_EVENT_PROPERTY.POSITION]: 8,
       }),
     );
+  });
+
+  it('subscribes to live prices for all related market symbols', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([createMarket('FET'), createMarket('TAO')]),
+    );
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
+
+    expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbols: ['FET', 'TAO'],
+        throttleMs: 3000,
+      }),
+    );
+  });
+
+  it('merges live percentChange24h into pills', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([createMarket('FET'), createMarket('TAO')]),
+    );
+    mockUsePerpsLivePrices.mockReturnValue({
+      FET: { symbol: 'FET', percentChange24h: '7.89', timestamp: Date.now() },
+    });
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
+
+    expect(screen.getByText('+7.89%')).toBeOnTheScreen();
+    expect(screen.getByText('+1.00%')).toBeOnTheScreen();
+  });
+
+  it('falls back to snapshot when live percentChange24h is missing', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([createMarket('FET')]),
+    );
+    mockUsePerpsLivePrices.mockReturnValue({
+      FET: { symbol: 'FET', price: '1.00', timestamp: Date.now() },
+    });
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
+
+    expect(screen.getByText('+1.00%')).toBeOnTheScreen();
   });
 });

@@ -19,10 +19,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
-import { PerpsPillItemWithLiveData } from '../PerpsPillItem';
+import { PerpsPillItem } from '../PerpsPillItem';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import { formatPercentage } from '../../utils/formatUtils';
 import { PerpsRelatedMarketsSelectorsIDs } from '../../Perps.testIds';
 import {
   getRelatedMarketsForMarket,
@@ -39,6 +41,7 @@ export interface PerpsRelatedMarketsProps {
 
 const MAX_PILLS = 12;
 const ROW_COUNT = 2;
+const LIVE_PRICES_THROTTLE_MS = 3000;
 
 const styles = StyleSheet.create({
   rail: {
@@ -72,9 +75,35 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   const collectionId = relatedMarketsResult?.collection.id;
   const markets = relatedMarketsResult?.markets;
 
-  const feedItems: PerpsFeedItem[] = useMemo(
-    () => (markets ?? []).map((market) => ({ market, isWatchlisted: false })),
+  const symbols = useMemo(
+    () => (markets ?? []).map((m) => m.symbol),
     [markets],
+  );
+  const livePrices = usePerpsLivePrices({
+    symbols,
+    throttleMs: LIVE_PRICES_THROTTLE_MS,
+  });
+
+  const feedItems: PerpsFeedItem[] = useMemo(
+    () =>
+      (markets ?? []).map((market) => {
+        const livePrice = livePrices[market.symbol];
+        if (!livePrice?.percentChange24h) {
+          return { market, isWatchlisted: false };
+        }
+        const changePercent = Number.parseFloat(livePrice.percentChange24h);
+        if (Number.isNaN(changePercent)) {
+          return { market, isWatchlisted: false };
+        }
+        return {
+          market: {
+            ...market,
+            change24hPercent: formatPercentage(changePercent),
+          },
+          isWatchlisted: false,
+        };
+      }),
+    [markets, livePrices],
   );
 
   const handleMarketPress = useCallback(
@@ -121,7 +150,7 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
 
   const renderPill = useCallback(
     (item: PerpsFeedItem, index: number) => (
-      <PerpsPillItemWithLiveData
+      <PerpsPillItem
         item={item}
         onNavigateToMarketDetails={() => handleMarketPress(item.market, index)}
       />
