@@ -71,8 +71,8 @@ describe('usePredictActivityItems', () => {
       status: 'success',
       timestamp: 200_000, // entry.timestamp (200s) → ms
       raw: { type: 'predictActivity', data: buyActivity },
+      hash: 'predict-buy',
       data: {
-        hash: 'predict-buy',
         token: {
           amount: '100',
           symbol: 'USDC',
@@ -90,7 +90,8 @@ describe('usePredictActivityItems', () => {
 
     expect(result.current.items[0]).toMatchObject({
       type: 'predictionClaimWinnings',
-      data: { hash: 'predict-claim', token: { direction: 'in' } },
+      hash: 'predict-claim',
+      data: { token: { direction: 'in' } },
     });
   });
 

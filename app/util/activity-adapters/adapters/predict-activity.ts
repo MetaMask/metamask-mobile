@@ -71,9 +71,9 @@ export function mapPredictActivity({
         chainId,
         status: 'success',
         timestamp,
+        hash: id,
         raw,
         data: {
-          hash: id,
           token: toFiatToken(entry.amount, 'out', quoteAsset),
         },
       };
@@ -84,9 +84,9 @@ export function mapPredictActivity({
         chainId,
         status: 'success',
         timestamp,
+        hash: id,
         raw,
         data: {
-          hash: id,
           token: toFiatToken(entry.amount, 'in', quoteAsset),
         },
       };
@@ -97,9 +97,9 @@ export function mapPredictActivity({
         chainId,
         status: 'success',
         timestamp,
+        hash: id,
         raw,
         data: {
-          hash: id,
           token: toFiatToken(entry.amount, 'in', quoteAsset),
         },
       };

@@ -116,9 +116,9 @@ describe('mapPerpsTransaction', () => {
         chainId: ARBITRUM,
         status: 'success',
         timestamp: base.timestamp,
+        hash: 'tx-1',
         raw: { type: 'perpsTransaction', data: transaction },
         data: {
-          hash: 'tx-1',
           token: {
             amount: '43.99',
             symbol: 'USD',
@@ -247,7 +247,7 @@ describe('mapPerpsTransaction', () => {
         });
         expect(result?.type).toBe('perpsAddFunds');
         expect(result?.status).toBe(expectedStatus);
-        expect(result?.data.hash).toBe('0xdeadbeef'); // prefers on-chain hash
+        expect(result?.hash).toBe('0xdeadbeef'); // prefers on-chain hash
         expect(tokenOf(result)).toEqual({
           amount: '500',
           symbol: 'USDC',
@@ -257,19 +257,19 @@ describe('mapPerpsTransaction', () => {
       },
     );
 
-    it('maps withdrawal → perpsWithdrawFunds with out-direction USDC', () => {
+    it('maps withdrawal → perpsWithdraw with out-direction USDC', () => {
       const result = mapPerpsTransaction({
         transaction: withdrawalTx,
         chainId: ARBITRUM,
       });
       expect(result).toEqual({
-        type: 'perpsWithdrawFunds',
+        type: 'perpsWithdraw',
         chainId: ARBITRUM,
         status: 'success',
         timestamp: base.timestamp,
+        hash: '0xfeedface',
         raw: { type: 'perpsTransaction', data: withdrawalTx },
         data: {
-          hash: '0xfeedface',
           token: {
             amount: '250',
             symbol: 'USDC',
@@ -303,7 +303,7 @@ describe('mapPerpsTransaction', () => {
         transaction: tx,
         chainId: ARBITRUM,
       });
-      expect(result?.data.hash).toBe('tx-1');
+      expect(result?.hash).toBe('tx-1');
     });
   });
 

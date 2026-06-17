@@ -197,8 +197,8 @@ describe('usePerpsActivityItems', () => {
         status: 'success',
         timestamp: 300,
         raw: { type: 'perpsTransaction', data: openLongTx },
+        hash: 'trade-open-long',
         data: {
-          hash: 'trade-open-long',
           token: {
             amount: '43.99',
             symbol: 'USD',
@@ -230,8 +230,8 @@ describe('usePerpsActivityItems', () => {
 
     expect(result.current.items[0]).toMatchObject({
       type: 'perpsReceivedFundingFees',
+      hash: 'funding-received',
       data: {
-        hash: 'funding-received',
         token: { amount: '1.5', direction: 'in' },
       },
     });
@@ -245,8 +245,8 @@ describe('usePerpsActivityItems', () => {
     expect(result.current.items[0]).toMatchObject({
       type: 'perpsAddFunds',
       status: 'success',
+      hash: '0xdeposithash',
       data: {
-        hash: '0xdeposithash',
         token: { amount: '100', symbol: 'USDC', direction: 'in' },
       },
     });

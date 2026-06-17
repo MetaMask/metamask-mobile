@@ -39,7 +39,7 @@ import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
-  return type === 'perpsAddFunds' || type === 'perpsWithdrawFunds';
+  return type === 'perpsAddFunds' || type === 'perpsWithdraw';
 }
 
 function isPerpsFundingKind(type: ActivityKind): boolean {
@@ -271,7 +271,7 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   // Design board copy: "Prediction placed" (not the legacy "Predicted").
   predictionPlaced: () => strings('transactions.activity_prediction_placed'),
   perpsAddFunds: () => strings('transactions.activity_perps_account_funded'),
-  perpsWithdrawFunds: () => strings('transactions.activity_perps_withdrawal'),
+  perpsWithdraw: () => strings('transactions.activity_perps_withdrawal'),
   perpsOpenLong: () => strings('transactions.activity_perps_open_long'),
   perpsCloseLong: () => strings('transactions.activity_perps_close_long'),
   perpsCloseLongLiquidated: () =>
@@ -737,7 +737,7 @@ function resolveCoreContent(
         primaryToken: item.data.token,
       };
     case 'perpsAddFunds':
-    case 'perpsWithdrawFunds':
+    case 'perpsWithdraw':
       return {
         title: resolveFallbackTitle(item),
         subtitle: strings('transactions.activity_perps_balance'),

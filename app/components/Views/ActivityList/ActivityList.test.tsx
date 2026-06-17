@@ -15,6 +15,7 @@ import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -183,6 +184,17 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    createEventBuilder: jest.fn(),
+    trackEvent: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+
 jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
   const ReactActual = jest.requireActual('react');
   const PriceChartContext = {
@@ -233,17 +245,17 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     onPress,
     title,
   }: {
-    item: { data: { hash?: string } };
+    item: { hash?: string };
     onPress: (item: unknown) => void;
     title?: string;
   }) => {
     const { Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
       <TouchableOpacity
-        testID={`row-${item.data.hash ?? 'no-hash'}`}
+        testID={`row-${item.hash ?? 'no-hash'}`}
         onPress={() => onPress(item)}
       >
-        <Text>{title ?? item.data.hash}</Text>
+        <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
     );
   },
@@ -352,6 +364,7 @@ jest.mock('../../../util/networks', () => ({
     title: 'Configured Explorer',
     url: 'https://configured.explorer/address/0xevm',
   })),
+  getBlockExplorerName: jest.fn(() => 'Configured'),
 }));
 
 jest.mock('./helpers/adapters', () => ({
@@ -372,7 +385,8 @@ jest.mock('./helpers/transformations', () => {
         chainId: tx.chain,
         status: 'success',
         timestamp: 2,
-        data: { hash: tx.id },
+        hash: tx.id,
+        data: {},
         raw: { type: 'keyringTransaction', data: tx },
       })),
     ),
@@ -487,8 +501,8 @@ const confirmedItem = {
   chainId: 'eip155:1',
   status: 'success',
   timestamp: 3,
+  hash: '0xconfirmed',
   data: {
-    hash: '0xconfirmed',
     from: '0xevm',
     to: '0xto',
     token: { symbol: 'ETH' },
@@ -504,7 +518,8 @@ const localPendingItem = {
   chainId: 'eip155:1',
   status: 'pending',
   timestamp: 4,
-  data: { hash: '0xlocal' },
+  hash: '0xlocal',
+  data: {},
   raw: {
     type: 'localTransaction',
     data: {
@@ -659,7 +674,8 @@ describe('ActivityList', () => {
           chainId: 'eip155:42161',
           status: 'success',
           timestamp: 5,
-          data: { hash: 'perps-fill-1', token: { symbol: 'USD' } },
+          hash: 'perps-fill-1',
+          data: { token: { symbol: 'USD' } },
         },
       ],
       isLoading: false,
@@ -681,7 +697,8 @@ describe('ActivityList', () => {
           chainId: 'eip155:42161',
           status: 'success',
           timestamp: 5,
-          data: { hash: 'perps-fill-1', token: { symbol: 'USD' } },
+          hash: 'perps-fill-1',
+          data: { token: { symbol: 'USD' } },
         },
       ],
       isLoading: false,
@@ -702,7 +719,8 @@ describe('ActivityList', () => {
           chainId: 'eip155:137',
           status: 'success',
           timestamp: 6,
-          data: { hash: 'predict-1', token: { symbol: 'USDC' } },
+          hash: 'predict-1',
+          data: { token: { symbol: 'USDC' } },
         },
       ],
       isLoading: false,
@@ -723,7 +741,8 @@ describe('ActivityList', () => {
           chainId: 'eip155:137',
           status: 'success',
           timestamp: 6,
-          data: { hash: 'predict-1', token: { symbol: 'USDC' } },
+          hash: 'predict-1',
+          data: { token: { symbol: 'USDC' } },
         },
       ],
       isLoading: false,
@@ -746,7 +765,8 @@ describe('ActivityList', () => {
           status: 'success',
           timestamp: 5,
           raw: { type: 'perpsTransaction', data: perpsTx },
-          data: { hash: 'perps-fill-1', token: { symbol: 'USD' } },
+          hash: 'perps-fill-1',
+          data: { token: { symbol: 'USD' } },
         },
       ],
       isLoading: false,
@@ -772,7 +792,8 @@ describe('ActivityList', () => {
           status: 'success',
           timestamp: 5,
           raw: { type: 'perpsTransaction', data: perpsTx },
-          data: { hash: 'perps-funding-1', token: { symbol: 'USD' } },
+          hash: 'perps-funding-1',
+          data: { token: { symbol: 'USD' } },
         },
       ],
       isLoading: false,
@@ -804,7 +825,8 @@ describe('ActivityList', () => {
           status: 'success',
           timestamp: 1_700_000_000_000,
           raw: { type: 'predictActivity', data: predictActivity },
-          data: { hash: 'predict-1', token: { symbol: 'USDC' } },
+          hash: 'predict-1',
+          data: { token: { symbol: 'USDC' } },
         },
       ],
       isLoading: false,

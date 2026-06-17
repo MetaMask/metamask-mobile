@@ -61,9 +61,9 @@ describe('mapPredictActivity', () => {
       chainId: POLYGON,
       status: 'success',
       timestamp: 1_700_000_000_000,
+      hash: 'activity-1',
       raw: { type: 'predictActivity', data: baseBuy },
       data: {
-        hash: 'activity-1',
         token: {
           amount: '100',
           symbol: 'USDC',
@@ -86,9 +86,9 @@ describe('mapPredictActivity', () => {
       chainId: POLYGON,
       status: 'success',
       timestamp: 1_700_000_100_000,
+      hash: 'activity-2',
       raw: { type: 'predictActivity', data: baseSell },
       data: {
-        hash: 'activity-2',
         token: {
           amount: '75',
           symbol: 'USDC',
@@ -111,9 +111,9 @@ describe('mapPredictActivity', () => {
       chainId: POLYGON,
       status: 'success',
       timestamp: 1_700_000_200_000,
+      hash: 'activity-3',
       raw: { type: 'predictActivity', data: baseClaim },
       data: {
-        hash: 'activity-3',
         token: {
           amount: '250',
           symbol: 'USDC',

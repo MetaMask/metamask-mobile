@@ -34,7 +34,7 @@ export function ActivityListItemRowLayout({
   subtitle?: string;
   title: string;
 }) {
-  const testIdSuffix = item.data.hash ?? index;
+  const testIdSuffix = item.hash ?? index;
   const titleSeverityStyle =
     isFailed || titleSeverity === 'error'
       ? styles.listItemTitleFailed

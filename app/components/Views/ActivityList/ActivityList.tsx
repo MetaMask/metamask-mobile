@@ -44,7 +44,12 @@ import {
 import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
-import { getBlockExplorerAddressUrl } from '../../../util/networks';
+import {
+  getBlockExplorerAddressUrl,
+  getBlockExplorerName,
+} from '../../../util/networks';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import { useStyles } from '../../hooks/useStyles';
@@ -130,7 +135,7 @@ const updateIncomingTransactions = () =>
   ).updateIncomingTransactions();
 
 const generateKey = (item: ActivityListItem): string => {
-  const hash = item.data.hash;
+  const hash = item.hash;
   if (hash) {
     return `${item.chainId}:${hash}`;
   }
@@ -176,6 +181,13 @@ const formatDateHeader = (timestamp: number) => {
 };
 
 const noop = () => undefined;
+
+const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
+  const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
+  const prefix = strings('transactions.view_full_history_on');
+
+  return blockExplorerName ? `${prefix} ${blockExplorerName}` : prefix;
+};
 
 const getActivityValue = (item: ActivityListItem) => {
   const { data } = item;
@@ -227,6 +239,7 @@ export interface ActivityListHandle {
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
   ({ header, chainId, location, scrollY, typeFilter, networkFilter }, ref) => {
     const navigation = useNavigation();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
     const tw = useTailwind();
     const { styles } = useStyles(styleSheet, {});
@@ -357,7 +370,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       // Filter local items to enabled EVM chains only, also deduplicate against confirmed
       const confirmedHashes = new Set(
         allConfirmedForEnabledChains
-          .map((item) => item.data.hash?.toLowerCase())
+          .map((item) => item.hash?.toLowerCase())
           .filter(Boolean) as string[],
       );
 
@@ -462,7 +475,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         localDomainKindHashes.size === 0
           ? allConfirmedForEnabledChains
           : allConfirmedForEnabledChains.filter((item) => {
-              const hash = item.data.hash?.toLowerCase();
+              const hash = item.hash?.toLowerCase();
               return !(hash && localDomainKindHashes.has(hash));
             });
 
@@ -580,6 +593,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           : undefined;
       }
 
+      if (!url) {
+        return;
+      }
+
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'activity_tab',
+        text: getBlockExplorerTrackingText(url, title),
+        url,
+      });
+
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: { url, title },
@@ -592,6 +615,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       enabledEVMChainIds,
       configBlockExplorerUrl,
       hasEvmChainsEnabled,
+      trackEvent,
+      createEventBuilder,
     ]);
 
     const allNonEvmChainsAreSolana = useMemo(
@@ -624,11 +649,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const onViewNonEvmExplorer = useCallback(() => {
       if (!nonEvmExplorerUrl) return;
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'activity_tab',
+        text: getBlockExplorerTrackingText(nonEvmExplorerUrl),
+        url: nonEvmExplorerUrl,
+      });
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: { url: nonEvmExplorerUrl },
       });
-    }, [navigation, nonEvmExplorerUrl]);
+    }, [navigation, nonEvmExplorerUrl, trackEvent, createEventBuilder]);
 
     const footerComponent = useMemo(() => {
       if (isFetchingNextPage) {
@@ -747,9 +777,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        const itemBridgeHistoryItem = getBridgeHistoryItemByHash(
-          item.data.hash,
-        );
+        const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
         const actionKey = resolveActivityListItemTitle(
           item,
           itemBridgeHistoryItem
@@ -826,7 +854,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               value,
             },
             transactionDetails: {
-              hash: item.data.hash,
+              hash: item.hash,
               renderFrom: from,
               renderTo: to,
               renderValue: value,
@@ -1041,7 +1069,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       // Preserve the legacy Activity title for swap/bridge rows (e.g.
       // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
       // history, mirroring TransactionElement. Falls back to the kind-based title.
-      const bridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
+      const bridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
       const title = bridgeHistoryItem
         ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
         : undefined;

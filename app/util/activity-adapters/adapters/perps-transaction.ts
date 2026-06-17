@@ -142,13 +142,13 @@ export function mapPerpsTransaction({
     }
     const isDeposit = transaction.type === 'deposit';
     return {
-      type: isDeposit ? 'perpsAddFunds' : 'perpsWithdrawFunds',
+      type: isDeposit ? 'perpsAddFunds' : 'perpsWithdraw',
       chainId,
       status: mapDepositWithdrawalStatus(dw.status),
       timestamp,
+      hash: dw.txHash || id,
       raw: { type: 'perpsTransaction', data: transaction },
       data: {
-        hash: dw.txHash || id,
         token: {
           ...toAssetToken(
             String(dw.amountNumber),
@@ -172,9 +172,9 @@ export function mapPerpsTransaction({
       chainId,
       status: 'success',
       timestamp,
+      hash: id,
       raw: { type: 'perpsTransaction', data: transaction },
       data: {
-        hash: id,
         token: toToken(f.feeNumber, direction, quoteAsset),
         // Market the funding accrued on (e.g. BTC) — rows render it as the
         // subtitle. No amount: funding is denominated in the quote currency.
@@ -201,9 +201,9 @@ export function mapPerpsTransaction({
       chainId,
       status: 'success',
       timestamp,
+      hash: id,
       raw: { type: 'perpsTransaction', data: transaction },
       data: {
-        hash: id,
         token: toToken(fill.amountNumber, direction, quoteAsset),
         // Position leg (e.g. "2.01 ETH") — rows render it as the subtitle.
         sourceToken: {

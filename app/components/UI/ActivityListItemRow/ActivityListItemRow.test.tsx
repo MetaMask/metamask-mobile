@@ -245,6 +245,7 @@ const makeItem = (
     chainId: (overrides.chainId ?? 'eip155:1') as ActivityListItem['chainId'],
     status,
     timestamp: 1_700_000_000_000,
+    hash: overrides.hash ?? '0xabc',
     isEarliestNonce: overrides.isEarliestNonce,
   };
 
@@ -253,7 +254,6 @@ const makeItem = (
       ...base,
       type,
       data: {
-        hash: overrides.hash ?? '0xabc',
         from: overrides.from ?? '0xfrom',
         to: overrides.to ?? '0xto',
         token: overrides.token as never,
@@ -282,7 +282,6 @@ const makeItem = (
           }
         : undefined,
       data: {
-        hash: overrides.hash ?? '0xabc',
         sourceToken: overrides.sourceToken as never,
         destinationToken: overrides.destinationToken as never,
       },
@@ -301,7 +300,6 @@ const makeItem = (
         }
       : undefined,
     data: {
-      hash: overrides.hash ?? '0xabc',
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
       token: overrides.token as never,
@@ -477,7 +475,7 @@ describe('ActivityListItemRow — row content', () => {
 
   it('renders perps withdrawals with fiat primary and signed token secondary', () => {
     const withdrawFunds = makeItem({
-      type: 'perpsWithdrawFunds',
+      type: 'perpsWithdraw',
       status: 'success',
       hash: '0xperpswd',
       token: { amount: '4000', symbol: 'USDC', direction: 'out' },
@@ -507,8 +505,8 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:42161',
       status: 'success',
       timestamp: 1_700_000_000_000,
+      hash: '0xlong',
       data: {
-        hash: '0xlong',
         token: { amount: '4000', symbol: 'USD', direction: 'out' },
         sourceToken: { amount: '2.01', symbol: 'ETH', direction: 'in' },
       },
@@ -544,8 +542,8 @@ describe('ActivityListItemRow — row content', () => {
         chainId: 'eip155:42161',
         status: 'success',
         timestamp: 1_700_000_000_000,
+        hash,
         data: {
-          hash,
           token: { amount: '300', symbol: 'USD', direction: 'out' },
           sourceToken: { amount: '2.01', symbol: 'ETH', direction: 'out' },
         },
@@ -587,8 +585,8 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:42161',
       status: 'success',
       timestamp: 1_700_000_000_000,
+      hash: '0xbuilder',
       data: {
-        hash: '0xbuilder',
         token: { amount: '0.02', symbol: 'USD', direction: 'out' },
         sourceToken: { amount: '0.002', symbol: 'xyz:GOLD', direction: 'in' },
       },
@@ -609,8 +607,8 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:42161',
       status: 'success',
       timestamp: 1_700_000_000_000,
+      hash: '0xfunding',
       data: {
-        hash: '0xfunding',
         token: { amount: '0.0006', symbol: 'USD', direction: 'out' },
         sourceToken: { symbol: 'BTC', direction: 'out' },
       },
@@ -637,8 +635,8 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:137',
       status: 'success',
       timestamp: 1_700_000_000_000,
+      hash: '0xpredictdep',
       data: {
-        hash: '0xpredictdep',
         token: { amount: '4000', symbol: 'USDC', direction: 'in' },
       },
     } as unknown as ActivityListItem;
@@ -668,8 +666,8 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:137',
       status: 'failed',
       timestamp: 1_700_000_000_000,
+      hash: '0xpredictwdfailed',
       data: {
-        hash: '0xpredictwdfailed',
         token: {
           amount: '1000000',
           symbol: 'USDC',
@@ -706,8 +704,8 @@ describe('ActivityListItemRow — row content', () => {
           entry: { type: 'buy', timestamp: 1, amount: 3 },
         },
       },
+      hash: 'predict-1',
       data: {
-        hash: 'predict-1',
         token: { amount: '3', symbol: 'USDC', direction: 'out' },
       },
     } as unknown as ActivityListItem;
@@ -734,8 +732,8 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:42161',
       status: 'success',
       timestamp: 1_700_000_000_000,
+      hash: '0xtiny',
       data: {
-        hash: '0xtiny',
         token: { amount: '0.00005', symbol: 'USD', direction: 'out' },
         sourceToken: { symbol: 'BTC', direction: 'out' },
       },
@@ -1122,7 +1120,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'predictionCashedOut',
   'predictionPlaced',
   'perpsAddFunds',
-  'perpsWithdrawFunds',
+  'perpsWithdraw',
   'perpsOpenLong',
   'perpsCloseLong',
   'perpsCloseLongLiquidated',
@@ -1173,7 +1171,7 @@ const EXPECTED_TITLES = {
   predictionCashedOut: strings('predict.transactions.sell_title'),
   predictionPlaced: strings('transactions.activity_prediction_placed'),
   perpsAddFunds: strings('transactions.activity_perps_account_funded'),
-  perpsWithdrawFunds: strings('transactions.activity_perps_withdrawal'),
+  perpsWithdraw: strings('transactions.activity_perps_withdrawal'),
   perpsOpenLong: strings('transactions.activity_perps_open_long'),
   perpsCloseLong: strings('transactions.activity_perps_close_long'),
   perpsCloseLongLiquidated: strings(
