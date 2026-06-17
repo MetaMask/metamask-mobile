@@ -8,7 +8,6 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -61,10 +60,6 @@ jest.mock(
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
   selectHasAnyNonZeroTokenBalance: jest.fn(),
-}));
-
-jest.mock('../../../Ramp/hooks/useHasNativeFiatProvider', () => ({
-  useHasNativeFiatProvider: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/transactionController', () => ({
@@ -125,22 +120,33 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
   });
 
-  it('renders all four options', () => {
-    const { getByText, getByTestId } = renderWithProvider(
+  it('renders all options', () => {
+    const { getByText, getAllByText, getByTestId } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
-    expect(getByText('Debit card or bank account')).toBeOnTheScreen();
+    expect(getByText('Debit card or Apple Pay')).toBeOnTheScreen();
     expect(getByText('$1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('Bank account')).toBeOnTheScreen();
     expect(getByText('External address')).toBeOnTheScreen();
-    expect(getByText('Coming soon')).toBeOnTheScreen();
+    // Bank account and External address are both coming soon.
+    expect(getAllByText('Coming soon')).toHaveLength(2);
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the Bank account row as a coming-soon, non-pressable option', () => {
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
+    expect(bankRow).toBeOnTheScreen();
+
+    fireEvent.press(bankRow);
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
   it('renders the "Add funds" title', () => {
@@ -345,9 +351,7 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('shows the Deposit funds option enabled when a native provider is available', () => {
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
-
+  it('navigates to MM Pay with autoSelectFiatPayment when Debit card or Apple Pay is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(
@@ -359,21 +363,20 @@ describe('MoneyAddMoneySheet', () => {
     });
   });
 
-  it('shows the Deposit funds option disabled with "Coming soon" when no native provider serves the region', () => {
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
-
+  it('keeps Debit card or Apple Pay active, with only Bank account and External address coming soon', () => {
     const { getByTestId, getAllByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
+
+    expect(getAllByText('Coming soon')).toHaveLength(2);
 
     fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     );
 
-    // Two "Coming soon" tags now: the disabled Deposit row + Receive external.
-    expect(getAllByText('Coming soon')).toHaveLength(2);
-    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      autoSelectFiatPayment: true,
+    });
   });
 
   // Returns the option-row testIDs in rendered order. Each row carries its
@@ -401,8 +404,6 @@ describe('MoneyAddMoneySheet', () => {
   };
 
   it('keeps the original order when all options are enabled', () => {
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
-
     const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
     const order = getOptionOrder(UNSAFE_root);
 
@@ -413,32 +414,18 @@ describe('MoneyAddMoneySheet', () => {
     ]);
   });
 
-  it('moves the disabled Deposit funds (Coming soon) row to the bottom of the options', () => {
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
-
-    const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
-    const order = getOptionOrder(UNSAFE_root);
-
-    expect(order).toEqual([
-      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
-      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-    ]);
-  });
-
-  it('groups multiple disabled options at the bottom preserving their relative order', () => {
+  it('moves a disabled option (Convert crypto) to the bottom of the order', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       false,
     );
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
 
     const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
     const order = getOptionOrder(UNSAFE_root);
 
     expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
-      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     ]);
   });
 

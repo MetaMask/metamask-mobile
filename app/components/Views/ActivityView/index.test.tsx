@@ -4,7 +4,7 @@ import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { cleanup, fireEvent } from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';

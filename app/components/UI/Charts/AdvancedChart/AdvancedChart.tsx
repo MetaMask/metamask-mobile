@@ -97,6 +97,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
+      currentPriceLineColorOverride,
     },
     ref,
   ) => {
@@ -130,29 +131,50 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const tradingViewOpenInterceptRef = useRef(0);
     const skeletonHiddenReportedRef = useRef(false);
 
-    // Capture the color overrides baked into the HTML template so the
+    // Track the color overrides baked into the current HTML template so the
     // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
+    // Refs are updated synchronously inside the useMemo below (not in a post-render
+    // effect) so the snapshot is always in sync with what was actually baked, even
+    // when multiple deps change in the same render cycle.
     const initialLineColorRef = useRef(lineColorOverride);
     const initialSuccessColorRef = useRef(successColorOverride);
     const initialErrorColorRef = useRef(errorColorOverride);
     const themeColorsSentRef = useRef(false);
 
-    const htmlContent = useMemo(
-      () =>
-        createAdvancedChartTemplate(theme, {
-          enableDrawingTools,
-          disabledFeatures,
-          lineChrome,
-          lineColorOverride: initialLineColorRef.current,
-          successColorOverride: initialSuccessColorRef.current,
-          errorColorOverride: initialErrorColorRef.current,
-        }),
-      // Color overrides intentionally excluded — hot-swapped via SET_THEME_COLORS.
+    const htmlContent = useMemo(() => {
+      // Snapshot current prop values at the moment the template is created.
+      // This must happen inside useMemo (not in a separate effect) so the refs
+      // reflect what is actually baked, preventing a stale-color race where a
+      // simultaneous non-color dep change causes the SET_THEME_COLORS effect to
+      // see "colors already match" and skip a needed hot-swap.
+      initialLineColorRef.current = lineColorOverride;
+      initialSuccessColorRef.current = successColorOverride;
+      initialErrorColorRef.current = errorColorOverride;
+      return createAdvancedChartTemplate(theme, {
+        enableDrawingTools,
+        disabledFeatures,
+        lineChrome,
+        lineColorOverride,
+        successColorOverride,
+        errorColorOverride,
+        currentPriceLineColorOverride,
+      });
+      // lineColorOverride/successColorOverride/errorColorOverride intentionally excluded —
+      // color changes hot-swap via SET_THEME_COLORS without rebuilding the WebView.
+      // currentPriceLineColorOverride is a direct dep: it is theme-derived and changes
+      // only with theme, so the initial-ref indirection would introduce a stale-color race.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [theme, enableDrawingTools, disabledFeatures, lineChrome],
-    );
+    }, [
+      theme,
+      enableDrawingTools,
+      disabledFeatures,
+      lineChrome,
+      currentPriceLineColorOverride,
+    ]);
 
-    // Reset all chart state when the WebView reloads due to htmlContent changes
+    // Reset all chart state when the WebView reloads due to htmlContent changes.
+    // Color refs are intentionally omitted here — they are snapshotted synchronously
+    // inside the useMemo above.
     useEffect(() => {
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
@@ -166,9 +188,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
       themeColorsSentRef.current = false;
-      initialLineColorRef.current = lineColorOverride;
-      initialSuccessColorRef.current = successColorOverride;
-      initialErrorColorRef.current = errorColorOverride;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----

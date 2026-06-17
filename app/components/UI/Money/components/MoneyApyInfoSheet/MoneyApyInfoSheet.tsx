@@ -62,6 +62,9 @@ const MoneyApyInfoSheet = () => {
         <Text variant={TextVariant.BodyMd}>
           {strings('money.apy_tooltip.paragraph_3')}
         </Text>
+        <Text variant={TextVariant.BodyMd}>
+          {strings('money.apy_tooltip.paragraph_4')}
+        </Text>
       </>
     );
 

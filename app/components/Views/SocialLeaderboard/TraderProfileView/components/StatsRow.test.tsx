@@ -39,9 +39,15 @@ describe('StatsRow', () => {
     expect(screen.getByText('0%')).toBeOnTheScreen();
   });
 
-  it('renders formatted PnL when pnl30d is non-null and positive', () => {
+  it('abbreviates positive PnL with K suffix', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
-    expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
+    expect(screen.getByText('+$20.6K')).toBeOnTheScreen();
+  });
+
+  it('abbreviates large positive PnL with M suffix', () => {
+    const stats = { ...baseStats, pnl30d: 1_170_000 };
+    renderWithProvider(<StatsRow stats={stats} />);
+    expect(screen.getByText('+$1.2M')).toBeOnTheScreen();
   });
 
   it('renders dash when pnl30d is null', () => {
@@ -51,19 +57,19 @@ describe('StatsRow', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('renders negative PnL correctly', () => {
+  it('abbreviates negative PnL with K suffix', () => {
     const stats = { ...baseStats, pnl30d: -5000 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('-$5,000.00')).toBeOnTheScreen();
+    expect(screen.getByText('-$5K')).toBeOnTheScreen();
   });
 
-  it('renders PnL for small values without K suffix', () => {
+  it('renders sub-$1K PnL with two decimal places (no abbreviation)', () => {
     const stats = { ...baseStats, pnl30d: 500 };
     renderWithProvider(<StatsRow stats={stats} />);
     expect(screen.getByText('+$500.00')).toBeOnTheScreen();
   });
 
-  it('rounds decimal PnL values to two places', () => {
+  it('rounds sub-$1K PnL to two decimal places', () => {
     const stats = { ...baseStats, pnl30d: 500.236 };
     renderWithProvider(<StatsRow stats={stats} />);
     expect(screen.getByText('+$500.24')).toBeOnTheScreen();
