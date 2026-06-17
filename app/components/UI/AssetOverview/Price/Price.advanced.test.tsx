@@ -969,6 +969,13 @@ describe('PriceAdvanced', () => {
           rangeStatus: 'applied',
           rangeApplyRetryCount: 0,
           webViewRemounted: false,
+          seriesStartToWebViewLoadEndMs: 20,
+          seriesStartToChartReadyMs: 40,
+          seriesStartToSetOhlcvDataMs: 50,
+          seriesStartToRangeAppliedMs: 75,
+          seriesStartToSkeletonHiddenMs: 90,
+          webViewLoadEndToChartReadyMs: 20,
+          setOhlcvDataToRangeAppliedMs: 25,
         });
       });
 
@@ -979,6 +986,8 @@ describe('PriceAdvanced', () => {
             latestBarVisible: true,
             rangeStatus: 'applied',
             webViewRemounted: false,
+            seriesStartToSkeletonHiddenMs: 90,
+            setOhlcvDataToRangeAppliedMs: 25,
           }),
         }),
       );

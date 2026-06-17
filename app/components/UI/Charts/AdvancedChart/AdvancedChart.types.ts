@@ -355,6 +355,13 @@ export interface ChartRangeSettlePayload {
   rangeApplyRetryCount?: number;
   webViewRemounted?: boolean;
   reason?: string;
+  seriesStartToWebViewLoadEndMs?: number;
+  seriesStartToChartReadyMs?: number;
+  seriesStartToSetOhlcvDataMs?: number;
+  seriesStartToRangeAppliedMs?: number;
+  seriesStartToSkeletonHiddenMs?: number;
+  webViewLoadEndToChartReadyMs?: number;
+  setOhlcvDataToRangeAppliedMs?: number;
 }
 
 export interface ErrorPayload {
@@ -437,6 +444,62 @@ function parseChartRangeSettlePayload(
       ? { webViewRemounted: obj.webViewRemounted }
       : {}),
     ...(typeof obj.reason === 'string' ? { reason: obj.reason } : {}),
+    ...(getOptionalNumber(obj, 'seriesStartToWebViewLoadEndMs') !== undefined
+      ? {
+          seriesStartToWebViewLoadEndMs: getOptionalNumber(
+            obj,
+            'seriesStartToWebViewLoadEndMs',
+          ),
+        }
+      : {}),
+    ...(getOptionalNumber(obj, 'seriesStartToChartReadyMs') !== undefined
+      ? {
+          seriesStartToChartReadyMs: getOptionalNumber(
+            obj,
+            'seriesStartToChartReadyMs',
+          ),
+        }
+      : {}),
+    ...(getOptionalNumber(obj, 'seriesStartToSetOhlcvDataMs') !== undefined
+      ? {
+          seriesStartToSetOhlcvDataMs: getOptionalNumber(
+            obj,
+            'seriesStartToSetOhlcvDataMs',
+          ),
+        }
+      : {}),
+    ...(getOptionalNumber(obj, 'seriesStartToRangeAppliedMs') !== undefined
+      ? {
+          seriesStartToRangeAppliedMs: getOptionalNumber(
+            obj,
+            'seriesStartToRangeAppliedMs',
+          ),
+        }
+      : {}),
+    ...(getOptionalNumber(obj, 'seriesStartToSkeletonHiddenMs') !== undefined
+      ? {
+          seriesStartToSkeletonHiddenMs: getOptionalNumber(
+            obj,
+            'seriesStartToSkeletonHiddenMs',
+          ),
+        }
+      : {}),
+    ...(getOptionalNumber(obj, 'webViewLoadEndToChartReadyMs') !== undefined
+      ? {
+          webViewLoadEndToChartReadyMs: getOptionalNumber(
+            obj,
+            'webViewLoadEndToChartReadyMs',
+          ),
+        }
+      : {}),
+    ...(getOptionalNumber(obj, 'setOhlcvDataToRangeAppliedMs') !== undefined
+      ? {
+          setOhlcvDataToRangeAppliedMs: getOptionalNumber(
+            obj,
+            'setOhlcvDataToRangeAppliedMs',
+          ),
+        }
+      : {}),
   };
 }
 

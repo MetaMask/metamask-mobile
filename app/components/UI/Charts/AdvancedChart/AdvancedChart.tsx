@@ -12,6 +12,7 @@ import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import performance from 'react-native-performance';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
@@ -73,6 +74,14 @@ const INDICATORS_SYNC_FALLBACK_MS = 500;
 
 /** Debounce TradingView external opens (redirect chains can fire multiple navigation requests). */
 const TRADINGVIEW_OPEN_DEBOUNCE_MS = 800;
+
+interface ChartTimingSnapshot {
+  seriesStartMs: number;
+  webViewLoadEndMs?: number;
+  chartReadyMs?: number;
+  setOhlcvDataMs?: number;
+  rangeAppliedMs?: number;
+}
 
 const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
@@ -160,6 +169,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const markNextGenerationAsRemountedRef = useRef(false);
     const [webViewRemountNonce, setWebViewRemountNonce] = useState(0);
     const resolvedWebViewKey = `${webViewInstanceKey ?? 'default'}-${webViewRemountNonce}`;
+    const chartTimingRef = useRef<ChartTimingSnapshot>({
+      seriesStartMs: performance.now(),
+    });
 
     // Track the color overrides baked into the current HTML template so the
     // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
@@ -259,6 +271,113 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }, INDICATORS_SYNC_FALLBACK_MS);
     }, [clearIndicatorsSyncFallback, markIndicatorsSyncReady]);
 
+    const resetChartTiming = useCallback(() => {
+      chartTimingRef.current = { seriesStartMs: performance.now() };
+    }, []);
+
+    const getRoundedDuration = useCallback(
+      (startMs: number | undefined, endMs: number | undefined) => {
+        if (startMs === undefined || endMs === undefined) {
+          return undefined;
+        }
+        return Math.max(0, Math.round(endMs - startMs));
+      },
+      [],
+    );
+
+    const getChartTimingPayload = useCallback(
+      (
+        options: {
+          rangeAppliedMs?: number;
+          skeletonHiddenMs?: number;
+        } = {},
+      ): Partial<ChartRangeSettlePayload> => {
+        const {
+          seriesStartMs,
+          webViewLoadEndMs,
+          chartReadyMs,
+          setOhlcvDataMs,
+        } = chartTimingRef.current;
+        const rangeAppliedMs =
+          options.rangeAppliedMs ?? chartTimingRef.current.rangeAppliedMs;
+
+        return {
+          ...(getRoundedDuration(seriesStartMs, webViewLoadEndMs) !== undefined
+            ? {
+                seriesStartToWebViewLoadEndMs: getRoundedDuration(
+                  seriesStartMs,
+                  webViewLoadEndMs,
+                ),
+              }
+            : {}),
+          ...(getRoundedDuration(seriesStartMs, chartReadyMs) !== undefined
+            ? {
+                seriesStartToChartReadyMs: getRoundedDuration(
+                  seriesStartMs,
+                  chartReadyMs,
+                ),
+              }
+            : {}),
+          ...(getRoundedDuration(seriesStartMs, setOhlcvDataMs) !== undefined
+            ? {
+                seriesStartToSetOhlcvDataMs: getRoundedDuration(
+                  seriesStartMs,
+                  setOhlcvDataMs,
+                ),
+              }
+            : {}),
+          ...(getRoundedDuration(seriesStartMs, rangeAppliedMs) !== undefined
+            ? {
+                seriesStartToRangeAppliedMs: getRoundedDuration(
+                  seriesStartMs,
+                  rangeAppliedMs,
+                ),
+              }
+            : {}),
+          ...(getRoundedDuration(seriesStartMs, options.skeletonHiddenMs) !==
+          undefined
+            ? {
+                seriesStartToSkeletonHiddenMs: getRoundedDuration(
+                  seriesStartMs,
+                  options.skeletonHiddenMs,
+                ),
+              }
+            : {}),
+          ...(getRoundedDuration(webViewLoadEndMs, chartReadyMs) !== undefined
+            ? {
+                webViewLoadEndToChartReadyMs: getRoundedDuration(
+                  webViewLoadEndMs,
+                  chartReadyMs,
+                ),
+              }
+            : {}),
+          ...(getRoundedDuration(setOhlcvDataMs, rangeAppliedMs) !== undefined
+            ? {
+                setOhlcvDataToRangeAppliedMs: getRoundedDuration(
+                  setOhlcvDataMs,
+                  rangeAppliedMs,
+                ),
+              }
+            : {}),
+        };
+      },
+      [getRoundedDuration],
+    );
+
+    const withChartTimingPayload = useCallback(
+      (
+        payload: ChartRangeSettlePayload,
+        options?: {
+          rangeAppliedMs?: number;
+          skeletonHiddenMs?: number;
+        },
+      ): ChartRangeSettlePayload => ({
+        ...payload,
+        ...getChartTimingPayload(options),
+      }),
+      [getChartTimingPayload],
+    );
+
     const resetWebViewRuntimeState = useCallback(() => {
       skeletonHiddenReportedRef.current = false;
       activeSettleGenerationRef.current = null;
@@ -281,7 +400,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
       themeColorsSentRef.current = false;
-    }, [clearLayoutSettleTimeout, clearIndicatorsSyncFallback]);
+      resetChartTiming();
+    }, [
+      clearLayoutSettleTimeout,
+      clearIndicatorsSyncFallback,
+      resetChartTiming,
+    ]);
 
     // Reset all chart state when the WebView reloads due to htmlContent changes.
     useEffect(() => {
@@ -312,13 +436,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
               seriesGeneration,
               rangeStatus: 'fallback',
               webViewRemounted: remounted,
+              ...getChartTimingPayload(),
             };
             webViewRemountedGenerationsRef.current.delete(seriesGeneration);
           }
           setLayoutSettling(false);
         }, LAYOUT_SETTLE_FALLBACK_MS);
       },
-      [isChartReady, clearLayoutSettleTimeout],
+      [isChartReady, clearLayoutSettleTimeout, getChartTimingPayload],
     );
 
     const completeLayoutSettle = useCallback(
@@ -379,12 +504,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (ohlcvSeriesKey === undefined) {
         return;
       }
+      resetChartTiming();
       beginPendingSeriesSettle();
       ohlcvSeriesStaleSnapshotRef.current =
         prevOhlcvSeriesKeyRef.current !== undefined
           ? prevOhlcvDataRef.current
           : null;
-    }, [ohlcvSeriesKey, beginPendingSeriesSettle]);
+    }, [ohlcvSeriesKey, resetChartTiming, beginPendingSeriesSettle]);
 
     // Remount only for explicit WebView instance changes (asset/currency) or fallback.
     useEffect(() => {
@@ -420,6 +546,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         activeSettleGenerationRef.current = seriesGeneration;
         activeSettleRequiresRangeProofRef.current =
           visibleFromMsRef.current !== undefined;
+        chartTimingRef.current.setOhlcvDataMs = performance.now();
         if (markNextGenerationAsRemountedRef.current) {
           markNextGenerationAsRemountedRef.current = false;
           webViewRemountedGenerationsRef.current.add(seriesGeneration);
@@ -515,6 +642,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
         switch (message.type) {
           case 'CHART_READY':
+            chartTimingRef.current.chartReadyMs = performance.now();
             activeIndicatorsRef.current.clear();
             setAppliedIndicatorCount(0);
             setLegendRendered(false);
@@ -532,14 +660,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
 
           case 'CHART_LAYOUT_SETTLED':
-            completeLayoutSettle(message.payload);
+            completeLayoutSettle(
+              message.payload
+                ? withChartTimingPayload(message.payload)
+                : message.payload,
+            );
             markIndicatorsSyncReady();
             onChartLayoutSettled?.();
             break;
 
           case 'CHART_RANGE_APPLIED':
             if (message.payload.latestBarVisible !== false) {
-              completeLayoutSettle(message.payload);
+              const rangeAppliedMs = performance.now();
+              chartTimingRef.current.rangeAppliedMs = rangeAppliedMs;
+              completeLayoutSettle(
+                withChartTimingPayload(message.payload, { rangeAppliedMs }),
+              );
             }
             break;
 
@@ -548,6 +684,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
               activeSettleGenerationRef.current ===
               message.payload.seriesGeneration
             ) {
+              chartTimingRef.current.rangeAppliedMs = performance.now();
               requestFallbackRemount();
             }
             break;
@@ -613,6 +750,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onCrosshairMove,
         onChartInteracted,
         handleTradingViewOpen,
+        withChartTimingPayload,
       ],
     );
 
@@ -630,6 +768,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
 
     const handleLoadEnd = useCallback(() => {
+      chartTimingRef.current.webViewLoadEndMs = performance.now();
       setWebViewLoaded(true);
       webViewLoadedRef.current = true;
     }, []);
@@ -955,7 +1094,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       // Hide skeleton
       if (skeletonHiddenReportedRef.current) return;
       skeletonHiddenReportedRef.current = true;
-      onSkeletonHidden(rangeSettlePayloadRef.current);
+      onSkeletonHidden(
+        rangeSettlePayloadRef.current
+          ? withChartTimingPayload(rangeSettlePayloadRef.current, {
+              skeletonHiddenMs: performance.now(),
+            })
+          : rangeSettlePayloadRef.current,
+      );
     }, [
       isLoading,
       isChartReady,
@@ -966,6 +1111,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       appliedIndicatorCount,
       legendOverlay,
       legendRendered,
+      withChartTimingPayload,
     ]);
 
     // ---- Render ----

@@ -7,6 +7,22 @@ import {
 } from './useOHLCVChart';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../../util/trace', () => ({
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+  TraceName: {
+    TokenOverviewAdvancedChartOhlcvFetch:
+      'Token Overview Advanced Chart OHLCV Fetch',
+  },
+  TraceOperation: {
+    TokenOverviewAdvancedChartOhlcvFetch:
+      'token_overview.advanced_chart_ohlcv_fetch',
+  },
+}));
+
 const OHLCV_HOST = 'https://price.api.cx.metamask.io';
 
 const ASSET_ID = 'eip155:1/slip44:60';
@@ -66,6 +82,11 @@ function arrangeDefaultOptions(): Parameters<typeof useOHLCVChart>[0] {
 function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
   return renderHook(() => useOHLCVChart(options));
 }
+
+beforeEach(() => {
+  mockTrace.mockClear();
+  mockEndTrace.mockClear();
+});
 
 describe('useOHLCVChart - initial load', () => {
   beforeEach(() => {
@@ -155,6 +176,85 @@ describe('useOHLCVChart - initial load', () => {
     expect(scope.isDone()).toBe(false);
     expect(result.current.ohlcvData).toEqual([]);
     expect(result.current.hasEmptyData).toBe(false);
+  });
+});
+
+describe('useOHLCVChart - performance tracing', () => {
+  beforeEach(() => {
+    nock.disableNetConnect();
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+    jest.restoreAllMocks();
+  });
+
+  it('traces OHLCV fetch with success metadata', async () => {
+    arrangeNockOhlcvAPISuccessResponse(
+      createSuccessBody({
+        data: [
+          createAPICandle({ timestamp: 1 }),
+          createAPICandle({ timestamp: 2 }),
+        ],
+        hasNext: true,
+        nextCursor: 'next-page',
+      }),
+    );
+
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Token Overview Advanced Chart OHLCV Fetch',
+        op: 'token_overview.advanced_chart_ohlcv_fetch',
+        id: `${ASSET_ID}|1d||`,
+        data: expect.objectContaining({
+          assetId: ASSET_ID,
+          timePeriod: '1d',
+          interval: '',
+          vsCurrency: '',
+        }),
+      }),
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Token Overview Advanced Chart OHLCV Fetch',
+        id: `${ASSET_ID}|1d||`,
+        data: expect.objectContaining({
+          success: true,
+          hasEmptyData: false,
+          barCount: 2,
+          hasMore: true,
+        }),
+      }),
+    );
+  });
+
+  it('traces OHLCV fetch with error metadata', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    arrangeNockOhlcvAPI404Response();
+
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Token Overview Advanced Chart OHLCV Fetch',
+        id: `${ASSET_ID}|1d||`,
+        data: expect.objectContaining({
+          success: false,
+          aborted: false,
+          errorMessage: 'OHLCV API error: 404',
+        }),
+      }),
+    );
   });
 });
 

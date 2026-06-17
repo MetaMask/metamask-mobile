@@ -512,11 +512,17 @@ describe('AdvancedChart', () => {
     });
 
     expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
-    expect(onSkeletonHidden).toHaveBeenCalledWith({
-      seriesGeneration: 2,
-      latestBarVisible: true,
-      rangeStatus: 'applied',
-    });
+    expect(onSkeletonHidden).toHaveBeenCalledWith(
+      expect.objectContaining({
+        seriesGeneration: 2,
+        latestBarVisible: true,
+        rangeStatus: 'applied',
+        seriesStartToSetOhlcvDataMs: expect.any(Number),
+        seriesStartToRangeAppliedMs: expect.any(Number),
+        seriesStartToSkeletonHiddenMs: expect.any(Number),
+        setOhlcvDataToRangeAppliedMs: expect.any(Number),
+      }),
+    );
   });
 
   it('ignores stale range-settled events for an older generation', () => {

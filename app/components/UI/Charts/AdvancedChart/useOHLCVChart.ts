@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+  type TraceValue,
+} from '../../../../util/trace';
 import type { OHLCVBar } from './AdvancedChart.types';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
@@ -47,6 +54,29 @@ const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
   close: candle.close,
   volume: candle.volume,
 });
+
+function getOhlcvSeriesTraceId({
+  assetId,
+  timePeriod,
+  interval,
+  vsCurrency,
+}: UseOHLCVChartOptions): string {
+  return `${assetId}|${timePeriod}|${interval ?? ''}|${vsCurrency ?? ''}`;
+}
+
+function getOhlcvFetchTraceData({
+  assetId,
+  timePeriod,
+  interval,
+  vsCurrency,
+}: UseOHLCVChartOptions): Record<string, TraceValue> {
+  return {
+    assetId,
+    timePeriod,
+    interval: interval ?? '',
+    vsCurrency: vsCurrency ?? '',
+  };
+}
 
 async function fetchOHLCV(
   assetId: string,
@@ -122,12 +152,35 @@ export const useOHLCVChart = ({
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    const traceId = getOhlcvSeriesTraceId({
+      assetId,
+      timePeriod,
+      interval,
+      vsCurrency,
+    });
+    const traceData = getOhlcvFetchTraceData({
+      assetId,
+      timePeriod,
+      interval,
+      vsCurrency,
+    });
+    let endTraceData: Record<string, TraceValue> = {
+      ...traceData,
+      success: false,
+    };
 
     setIsLoading(true);
     setError(null);
     setNextCursor(null);
     setHasMore(false);
     setHasEmptyData(false);
+
+    trace({
+      name: TraceName.TokenOverviewAdvancedChartOhlcvFetch,
+      op: TraceOperation.TokenOverviewAdvancedChartOhlcvFetch,
+      id: traceId,
+      data: traceData,
+    });
 
     try {
       const result = await fetchOHLCV(
@@ -136,19 +189,38 @@ export const useOHLCVChart = ({
         controller.signal,
       );
 
+      const isEmpty = result.data.length === 0;
+      endTraceData = {
+        ...traceData,
+        success: true,
+        hasEmptyData: isEmpty,
+        barCount: result.data.length,
+        hasMore: result.hasNext,
+      };
+
       if (!controller.signal.aborted) {
-        const isEmpty = result.data.length === 0;
         setHasEmptyData(isEmpty);
         setOhlcvData(result.data.map(mapCandle));
         setNextCursor(result.nextCursor || null);
         setHasMore(result.hasNext);
       }
     } catch (e) {
+      endTraceData = {
+        ...traceData,
+        success: false,
+        aborted: controller.signal.aborted,
+        errorMessage: e instanceof Error ? e.message.slice(0, 200) : String(e),
+      };
       if (!controller.signal.aborted) {
         setOhlcvData([]); // Clear data on error to show error state
         setError(e instanceof Error ? e.message : 'Unknown error');
       }
     } finally {
+      endTrace({
+        name: TraceName.TokenOverviewAdvancedChartOhlcvFetch,
+        id: traceId,
+        data: endTraceData,
+      });
       if (!controller.signal.aborted) {
         setIsLoading(false);
       }

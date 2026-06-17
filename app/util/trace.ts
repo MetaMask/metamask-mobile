@@ -69,6 +69,8 @@ export enum TraceName {
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
   TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
+  /** Token overview advanced chart: OHLCV API fetch for initial load or time range change. */
+  TokenOverviewAdvancedChartOhlcvFetch = 'Token Overview Advanced Chart OHLCV Fetch',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -281,6 +283,8 @@ export enum TraceOperation {
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
   TokenOverviewAdvancedChartTimeRange = 'token_overview.advanced_chart_time_range',
+  /** Token overview OHLCV API fetch */
+  TokenOverviewAdvancedChartOhlcvFetch = 'token_overview.advanced_chart_ohlcv_fetch',
 }
 
 const ID_DEFAULT = 'default';
