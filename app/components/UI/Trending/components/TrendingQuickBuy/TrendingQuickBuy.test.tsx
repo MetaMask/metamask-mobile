@@ -5,8 +5,6 @@ import TrendingQuickBuy from './TrendingQuickBuy';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { SocialLeaderboardEventProperties } from '../../../../Views/SocialLeaderboard/analytics';
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
-
 const mockTrack = jest.fn();
 jest.mock(
   '../../../../Views/SocialLeaderboard/analytics/useSocialLeaderboardAnalytics',
