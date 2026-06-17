@@ -83,11 +83,6 @@ const buildResult = (
   ...overrides,
 });
 
-// Each tab drives its own query (one per asset class), so the hook is mocked
-// to return a distinct result per tab. Tabs are keyed by ChainKey:
-//   - all:    `chains: ['base', 'solana', 'ethereum', 'hyperliquid']`
-//   - tokens: `chains: ['base', 'solana', 'ethereum']`
-//   - perps:  `chains: ['hyperliquid']`
 const mockResultsByChain: Record<ChainKey, UseTopTradersResult> = {
   all: buildResult(),
   tokens: buildResult(),
@@ -107,11 +102,6 @@ const resetChainResults = () => {
   });
 };
 
-// The tabs each pass a distinct chains array — distinguish by content so the
-// mock returns the matching fixture:
-//   - 4 chains including 'hyperliquid' → All
-//   - 3 chains, spot only             → Tokens
-//   - ['hyperliquid']                 → Perps
 const resolveChainKey = (chains?: string[]): ChainKey => {
   if (!chains) return 'all';
   if (chains.length === 1 && chains[0] === 'hyperliquid') return 'perps';
@@ -264,8 +254,6 @@ describe('TopTradersView', () => {
   });
 
   it('invalidates every tab query when the scroll view is pulled down', async () => {
-    // Each tab's result wraps the shared mockRefresh — pull-to-refresh
-    // should call it once per tab (all, tokens, perps).
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
