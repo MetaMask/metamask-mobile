@@ -64,8 +64,15 @@ interface ExploreFeedRouteParams {
 const useExploreTabNavigationEffect = (opts: {
   tabsListRef: React.RefObject<TabsListRef | null>;
   tabNames: ExploreTabName[];
+  pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
+  previousTabRef: React.MutableRefObject<ExploreTabName>;
 }) => {
-  const { tabsListRef, tabNames } = opts;
+  const {
+    tabsListRef,
+    tabNames,
+    pendingExploreEntrySourceRef,
+    previousTabRef,
+  } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
   const { setParams } = useNavigation();
@@ -80,19 +87,35 @@ const useExploreTabNavigationEffect = (opts: {
         return;
       }
 
+      const destinationTab = tabNames[initialTabIndex];
+      if (entrySource) {
+        pendingExploreEntrySourceRef.current = entrySource;
+      }
+
+      const currentIndex = tabsListRef.current?.getCurrentIndex();
       tabsListRef.current?.goToTabIndex(initialTabIndex);
 
-      const destinationTab = tabNames[initialTabIndex];
-      if (entrySource && destinationTab) {
+      // goToTabIndex only invokes onChangeTab when the tab actually changes.
+      if (entrySource && destinationTab && currentIndex === initialTabIndex) {
+        pendingExploreEntrySourceRef.current = undefined;
         trackExploreInteracted({
           interaction_type: 'tab_switched',
           tab_name: destinationTab,
+          previous_tab: previousTabRef.current,
           source: entrySource,
         });
       }
 
       setParams?.({ initialTab: null, source: undefined });
-    }, [entrySource, initialTabIndex, setParams, tabNames, tabsListRef]),
+    }, [
+      entrySource,
+      initialTabIndex,
+      pendingExploreEntrySourceRef,
+      previousTabRef,
+      setParams,
+      tabNames,
+      tabsListRef,
+    ]),
   );
 };
 
@@ -103,9 +126,30 @@ export const ExploreFeed: React.FC = () => {
   const tabProps = useExploreRefresh();
   const tabsListRef = useRef<TabsListRef>(null);
   const sessionManager = TrendingFeedSessionManager.getInstance();
+  const previousTabRef = useRef<ExploreTabName>('Now');
+  const pendingExploreEntrySourceRef = useRef<string | undefined>(undefined);
+
+  const handleTabChange = useCallback(({ i }: { i: number }) => {
+    const destinationTab = TAB_NAMES[i];
+    if (!destinationTab) return;
+    const source = pendingExploreEntrySourceRef.current;
+    pendingExploreEntrySourceRef.current = undefined;
+    trackExploreInteracted({
+      interaction_type: 'tab_switched',
+      tab_name: destinationTab,
+      previous_tab: previousTabRef.current,
+      ...(source ? { source } : {}),
+    });
+    previousTabRef.current = destinationTab;
+  }, []);
 
   // Handle tab navigation from route params
-  useExploreTabNavigationEffect({ tabsListRef, tabNames: TAB_NAMES });
+  useExploreTabNavigationEffect({
+    tabsListRef,
+    tabNames: TAB_NAMES,
+    pendingExploreEntrySourceRef,
+    previousTabRef,
+  });
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
@@ -152,19 +196,6 @@ export const ExploreFeed: React.FC = () => {
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
-
-  const previousTabRef = useRef<ExploreTabName>('Now');
-
-  const handleTabChange = useCallback(({ i }: { i: number }) => {
-    const destinationTab = TAB_NAMES[i];
-    if (!destinationTab) return;
-    trackExploreInteracted({
-      interaction_type: 'tab_switched',
-      tab_name: destinationTab,
-      previous_tab: previousTabRef.current,
-    });
-    previousTabRef.current = destinationTab;
-  }, []);
 
   return (
     <SafeAreaView
