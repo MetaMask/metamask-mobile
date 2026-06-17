@@ -77,6 +77,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Products section with category pills to Perps home screen and expanded market category filters to include Pre-IPO, (#31058)
   Indices, and ETFs
 - Fixed QuickBuy showing networks the user hasn't enabled and labeling some networks as "Unknown network". (#31092)
+## [7.81.0]
+
+### Added
+
 - Add Arc as Default Network (network/native logo + native price + multicall) (#30879)
 - Adds top movers section to perps home (#30897)
 - Added QR login flow for MetaMask Agent CLI, including OTP pairing and dashboard project selection in a WebView. (#30911)
@@ -195,6 +199,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in progress
 - Updated the transfer bottom sheet copy to clarify the transfer destination (#31135)
 - Fixed Batch Sell review allowing Review and stale quotes when all token sliders are set to 0% (#31107)
+- Updated the onboarding interest questionnaire layout to a two-column grid with refreshed option labels. (#30753)
+- Show transfers in the money account account activity list (#30537)
+- Added the client version to the transaction metadata (#30726)
+- Improve UX around when toasts are shown for requests made via MetaMask Connect (#30702)
+- Updated the homepage to hide the NFTs section when users have no NFTs and added import token, import NFT, and contact (#30593)
+  support actions.
+- Improved the wallet home onboarding **Trade** step to open swaps with sensible default tokens (mUSD→ETH or ETH→BTC) when the (#30697)
+  user has matching mainnet balances.
+- Added haptic feedback to the Trade button in the What's Happening detail card. (#30669)
+- Improved Money balance refresh reliability after deposits/withdrawals and added clearer unavailable/retry states on Money (#30650)
+  screens.
+- Fixed a misleading "No payment methods available" error in Buy when entering an amount outside a provider's limits. Unavailable (#30617)
+  payment methods and providers are now shown greyed out with the specific
+  reason (e.g. "Amount below minimum 25 USD") instead of being hidden.
+- Improves MM Connect deeplink handling (#30346)
+- Added address poisoning detection warning to the send flow, alerting users when a recipient address is suspiciously similar to (#27294)
+  a known address
+- Improved the Card experience for Money Account users — Card Home and Asset Selection now display "Money account" instead of the (#30571)
+  raw address, Add Funds routes to the Money Account add-funds sheet, and
+  Manage Limit can update or revoke the delegation cap on an
+  already-linked Money Account.
+- Added the ability to enter swap and bridge source amounts in fiat (#29756)
+- Disabled smart account on gas fees sponsored network (#30429)
+- Fixed Telegram login configuration for Flask builds (#30578)
+- Added in-app toasts for Money Account deposit and withdrawal transactions, including a "Try again" action when a (#30420)
+  transaction fails.
+- Fixed order type bottom sheet dismissal incorrectly closing the order screen (#30561)
+- Refactored the Money onboarding stepper; created generic StepperCard and SegmentedProgressBar component (#30226)
+- Added token details closed event (#30792)
+- Add gainers and losers section in Explore/Now (#30837)
+- Added a new Positions screen for Predict users to view active positions and history (#30718)
+- Track explore conversions in swaps (#30720)
+
+
+### Changed
+- Updated the Sei native token icon to Sei's maroon token mark. (#31038)
+- Updated the Sei network and token logo to Sei's new brand mark. (#30892)
+- Improve crypto movers section in explore (#30809)
+- Show even zero APY values on money home (#30630)
+- chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
+
+### Fixed
+
 - Fixed token balances not updating immediately after a swap when the unified assets state is enabled. (#31091)
 - Fixed a crash during social login onboarding when completing wallet creation (#31076)
 - Added an "Earn up to X% APY" prompt on the Money account input screen empty state. (#31064)
@@ -241,6 +288,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where the marketing consent notification pre-prompt could reappear after turning marketing consent off in (#30808)
   Settings.
 - Fixed a crash affecting some Android social-login users by removing the onboarding success animation in that flow. (#30765)
+- Fixed the "Add mUSD" option in the Money account "Add money" sheet so it opens the deposit flow with mUSD pre-selected, and (#30741)
+  corrected the in-progress / success / failed toast copy for both the
+  Convert and Add flows.
+- Adds chart_type property in chart_interaction events (#30746)
+- Fixed Money Account → Card linking failing when the money account holds no MON, by routing the link approve through the (#30554)
+  gas-sponsored 7702 relay.
+- Redirect user to home screen after forgetting qr hardware wallet. (#30673)
+- Fixes the hardware wallet icons in dark and light mode (#30672)
+- Fixes chart interactions (#30495)
+- Updated the Money Account Add and Transfer confirmation screens with corrected headings ("Add funds" / "Transfer funds"), a (#30306)
+  conversion tooltip on the Add screen, and a unified parametrised
+  projected-balance copy.
+- Updated the Money home "How it works" description copy. (#30683)
+- Explore browser icon opens blank page. (#30641)
+- Add explore entrypoint attribution in predict (#30627)
+- Fixed the Money Account Home Card showing two primary CTAs on Home when the onboarding stepper is visible, and showing a (#30596)
+  non-primary "Add" CTA when no other primary CTA exists.
+- Fixed a bug that could delay prediction bet placement from large market details screens. (#30609)
+- Fixed a UI clash on the mUSD conversion confirmation screen where a duplicate network-fee toast was shown. (#28909)
+- Fixed limit order price displaying `<$0.01` instead of actual price on order cards and detail screens (#30615)
+- Fixed a misleading "Deposit failed" toast that appeared when users backed out of the deposit confirmation screen. (#30628)
+- Fixed a bug where the Activity tab underline could get stuck on the wrong tab after changing networks. (#30640)
+- Fixed a bug where the Tokens full view sort preference would silently reset to "Declining balance" when opening the Sort bottom (#30654)
+  sheet.
+- Update icon for line chart (#30525)
+- Fixed an issue where the per-trader notifications toggle could briefly snap back to its previous value while saving, and (#30632)
+  removed the redundant Save button in favor of immediate save.
+- Fixed screen transition from market detail to order entry to use horizontal push animation instead of vertical modal (#30572)
+  animation
+- Dismiss AddWallet sheet before entering HW flow to fix post-connect navigation (#30623)
+- Remove inconsistencies on token import flow (#30791)
+- chore(pure black): fix elevated surface token use background.alternative for first-level sheets (#30696)
 
 ## [7.80.0]
 
@@ -12147,6 +12226,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.0...HEAD
 [7.82.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.80.0...v7.82.0
 [7.80.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.1...v7.80.0
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.0...HEAD
+[7.81.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.1...v7.81.0
 [7.79.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.0...v7.79.1
 [7.79.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.1...v7.79.0
 [7.78.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...v7.78.1
