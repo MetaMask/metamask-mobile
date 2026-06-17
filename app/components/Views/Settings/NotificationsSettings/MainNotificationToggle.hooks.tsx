@@ -5,16 +5,18 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { useOptimisticToggleValue } from './hooks/useOptimisticToggleValue';
 
 export function useMainNotificationToggle() {
-  const { data: currentVal, switchNotifications: onChange } =
+  const { data: notificationsEnabled, switchNotifications } =
     useNotificationsToggle();
+  const remoteValue = notificationsEnabled ?? false;
   const navigation = useNavigation();
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
-  const onToggle = useCallback(() => {
+  const onToggleBlocked = useCallback(() => {
     // Navigate to basic functionality if content is not set.
     if (!basicFunctionalityEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -23,12 +25,19 @@ export function useMainNotificationToggle() {
           caller: Routes.SETTINGS.NOTIFICATIONS,
         },
       });
-      return;
     }
+  }, [basicFunctionalityEnabled, navigation]);
 
-    const newVal = !currentVal;
-    onChange(newVal);
-  }, [basicFunctionalityEnabled, currentVal, navigation, onChange]);
+  const {
+    value,
+    onValueChange: onToggle,
+    pendingWrites,
+  } = useOptimisticToggleValue({
+    remoteValue,
+    onPersist: switchNotifications,
+    isToggleEnabled: () => basicFunctionalityEnabled,
+    onToggleBlocked,
+  });
 
-  return { onToggle, value: currentVal };
+  return { onToggle, value, isUpdating: pendingWrites > 0 };
 }

@@ -47,6 +47,7 @@ import {
 import type { PredictFeatureFlags } from '../types/flags';
 
 import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { PredictEventValues } from '../constants/eventNames';
 import {
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -9253,6 +9254,50 @@ describe('PredictController', () => {
     it('calls analytics.trackEvent for trackActivityViewed', () => {
       withController(({ controller }) => {
         controller.trackActivityViewed({ activityType: 'all' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPortfolioPositionsButtonTapped', () => {
+      withController(({ controller }) => {
+        controller.trackPortfolioPositionsButtonTapped({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPortfolioTransactionInitiated', () => {
+      withController(({ controller }) => {
+        controller.trackPortfolioTransactionInitiated({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionsScreenViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionsScreenViewed({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+          openPositionsCount: 2,
+          claimablePositionsCount: 1,
+          hasClaimableWinnings: true,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionsTabViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionsTabViewed({
+          predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+          openPositionsCount: 2,
+          claimablePositionsCount: 1,
+          hasClaimableWinnings: true,
+        });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
     });

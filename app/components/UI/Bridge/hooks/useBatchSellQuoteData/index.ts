@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../../reducers';
 import BigNumber from 'bignumber.js';
 import { CaipAssetType } from '@metamask/utils';
 import {
@@ -19,6 +20,7 @@ import {
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import formatFiat from '../../../../../util/formatFiat';
 import Logger from '../../../../../util/Logger';
 import { formatTokenBalance } from '../../utils';
@@ -29,6 +31,7 @@ import {
 import type { BridgeToken } from '../../types';
 import { hasValidBatchSellSourceAmounts } from '../useBatchSellQuoteRequest';
 import { getQuoteRefreshRate, isQuoteExpired } from '../../utils/quoteUtils';
+import { getMaybeHexChainId } from '../../../../../util/bridge';
 
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
@@ -224,6 +227,10 @@ export function useBatchSellQuoteData({
   const batchSellTrades = useSelector(selectBatchSellTrades);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
+  const isSmartTransaction = useSelector((state: RootState) =>
+    selectShouldUseSmartTransaction(state, batchSellChainId),
+  );
   const priceImpactWarningThreshold =
     bridgeFeatureFlags?.priceImpactThreshold?.warning ??
     AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD;
@@ -317,6 +324,7 @@ export function useBatchSellQuoteData({
   const hasAnyQuote = availableRecommendedQuotes.length > 0;
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
   const isBatchSellTradesLoading = Boolean(batchSellTrades.isLoading);
+  const isNetworkFeeUnavailable = !isBatchSellTradesLoading && !totalNetworkFee;
 
   // Quote-level gasless params are not reliable for Batch Sell because gasless
   // behavior is only simulated when the controller calls obtainGaslessBatch.
@@ -450,6 +458,7 @@ export function useBatchSellQuoteData({
 
     Engine.context.BridgeController.updateBatchSellTrades(
       availableRecommendedQuotes,
+      isSmartTransaction,
     ).catch((error) => {
       Logger.error(error, 'Failed to update Batch Sell trades');
     });
@@ -459,6 +468,7 @@ export function useBatchSellQuoteData({
     hasAnyQuote,
     hasPendingQuoteRows,
     hasStaleDestinationQuotes,
+    isSmartTransaction,
     shouldUpdateBatchSellTrades,
   ]);
 
@@ -519,6 +529,7 @@ export function useBatchSellQuoteData({
     isGasless,
     isBatchSellTradeAvailable: batchSellTrades.isBatchSellTradeAvailable,
     isBatchSellTradesLoading,
+    isNetworkFeeUnavailable,
     hasAnyQuote,
     hasPendingQuoteRows,
     needsNewQuote,

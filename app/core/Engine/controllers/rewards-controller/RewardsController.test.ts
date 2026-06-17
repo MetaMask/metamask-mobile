@@ -24,6 +24,7 @@ import {
   type OndoGmPortfolioState,
   type OndoGmActivityState,
   type PerpsTradingCampaignLeaderboardPositionState,
+  type PredictThePitchPositionsDto,
   type SubscriptionBenefitsState,
   type SubscriptionBenefitDto,
   type OffDeviceSubscriptionAccountsState,
@@ -3317,6 +3318,23 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns null when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result = await vipDisabledController.getPerpsDiscountForAccount(
+        CAIP_ACCOUNT_1,
+        10,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
     it('returns null for accounts the controller has never seen (unhydrated)', async () => {
       const result = await controller.getPerpsDiscountForAccount(
         CAIP_ACCOUNT_2,
@@ -3870,6 +3888,21 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns null when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVipTierForAccount(CAIP_ACCOUNT_1);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
     it('returns null for accounts the controller has never seen (unhydrated)', async () => {
       const result = await controller.getVipTierForAccount(CAIP_ACCOUNT_2);
       expect(result).toBeNull();
@@ -3919,6 +3952,51 @@ describe('RewardsController', () => {
       const result = disabledController.isRewardsFeatureEnabled();
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('isVipFeatureEnabled', () => {
+    it('returns true when neither rewards nor VIP is disabled', () => {
+      const enabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => false,
+      });
+
+      expect(enabledController.isVipFeatureEnabled()).toBe(true);
+    });
+
+    it('returns false when VIP is disabled via isVipDisabled callback', () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      expect(vipDisabledController.isVipFeatureEnabled()).toBe(false);
+    });
+
+    it('returns false when rewards is disabled even if VIP is enabled', () => {
+      const rewardsDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isVipDisabled: () => false,
+      });
+
+      expect(rewardsDisabledController.isVipFeatureEnabled()).toBe(false);
+    });
+
+    it('defaults to enabled when isVipDisabled is not provided', () => {
+      const defaultController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      expect(defaultController.isVipFeatureEnabled()).toBe(true);
     });
   });
 
@@ -6521,6 +6599,8 @@ describe('RewardsController', () => {
         referralCode: 'REF456',
         totalReferees: 10,
         referredByCode: 'REFERRER200',
+        isVipReferee: false,
+        referredByVipCode: null,
         lastFetched: recentTime,
       };
 
@@ -6567,6 +6647,7 @@ describe('RewardsController', () => {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
         referredByCode: 'REFERRER500',
+        isVipReferee: false,
       };
 
       controller = new RewardsController({
@@ -6607,6 +6688,184 @@ describe('RewardsController', () => {
       expect(result?.totalReferees).toBe(25);
       expect(result?.referredByCode).toBe('REFERRER500');
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
+    });
+
+    it('maps isVipReferee and referredByVipCode when the VIP feature is enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'NEWFRESH123',
+        totalReferees: 25,
+        referredByCode: 'REFERRER500',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'VIPCODE' },
+      });
+
+      const result = await controller.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(true);
+      expect(result?.referredByVipCode).toBe('VIPCODE');
+    });
+
+    it('forces isVipReferee=false and clears referredByVipCode when the VIP feature is disabled', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'NEWFRESH123',
+        totalReferees: 25,
+        referredByCode: 'REFERRER500',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'VIPCODE' },
+      });
+
+      const result =
+        await vipDisabledController.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
+    });
+
+    it('clears VIP referee fields on a fresh cache hit when the VIP feature is disabled', async () => {
+      const recentTime = Date.now() - 10000; // within the 1-minute fresh threshold
+      // Cache was written while VIP was enabled, so it still holds VIP fields.
+      const cachedVipReferralDetails: SubscriptionReferralDetailState = {
+        referralCode: 'REF456',
+        totalReferees: 10,
+        referredByCode: 'REFERRER200',
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+        lastFetched: recentTime,
+      };
+
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {
+            [mockSubscriptionId]: cachedVipReferralDetails,
+          },
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getReferralDetails(mockSubscriptionId);
+
+      // The cache read path must not surface stale VIP fields once VIP is off.
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
+      // Non-VIP fields are still returned from the fresh cache hit untouched.
+      expect(result?.referralCode).toBe('REF456');
+      expect(result?.referredByCode).toBe('REFERRER200');
+      // No fresh fetch should have been triggered (cache was fresh).
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getReferralDetails',
+        expect.anything(),
+      );
+    });
+
+    it('preserves VIP referee fields on a fresh cache hit when the VIP feature is enabled', async () => {
+      const recentTime = Date.now() - 10000; // within the 1-minute fresh threshold
+      const cachedVipReferralDetails: SubscriptionReferralDetailState = {
+        referralCode: 'REF456',
+        totalReferees: 10,
+        referredByCode: 'REFERRER200',
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+        lastFetched: recentTime,
+      };
+
+      const vipEnabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: true } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {
+            [mockSubscriptionId]: cachedVipReferralDetails,
+          },
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+        isVipDisabled: () => false,
+      });
+
+      const result =
+        await vipEnabledController.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(true);
+      expect(result?.referredByVipCode).toBe('VIPCODE');
     });
 
     it('updates state when fetching fresh referral details', async () => {
@@ -6614,6 +6873,7 @@ describe('RewardsController', () => {
         referralCode: 'UPDATED789',
         totalReferees: 15,
         referredByCode: 'REFERRER300',
+        isVipReferee: false,
       };
 
       controller = new RewardsController({
@@ -6730,6 +6990,51 @@ describe('RewardsController', () => {
       await expect(
         controller.getReferralDetails(mockSubscriptionId),
       ).rejects.toEqual(404);
+    });
+
+    it('maps isVipReferee and referredByVipCode when the VIP feature is enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'MYCODE',
+        totalReferees: 0,
+        referredByCode: 'TESTCODE',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'TESTCODE' },
+      });
+
+      const result = await controller.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(true);
+      expect(result?.referredByVipCode).toBe('TESTCODE');
+    });
+
+    it('forces isVipReferee=false and clears referredByVipCode when the VIP feature is disabled', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'MYCODE',
+        totalReferees: 0,
+        referredByCode: 'TESTCODE',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'TESTCODE' },
+      });
+
+      const result =
+        await vipDisabledController.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
     });
   });
 
@@ -6898,63 +7203,68 @@ describe('RewardsController', () => {
     const createMockVIPDashboard = (
       overrides: Partial<VipDashboardDto> = {},
     ): VipDashboardDto => ({
-      program: { id: 'vip', name: 'VIP Pilot' },
+      program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
       period: {
-        start: '2026-03-31T00:00:00.000Z',
-        end: '2026-04-30T23:59:59.999Z',
+        start: '2099-06-01T00:00:00.000Z',
+        end: '2099-06-30T23:59:59.999Z',
       },
-      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      computedAt: '2099-06-30T14:52:00.000Z',
+      currentTier: {
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
+        tier: 3,
+      },
+      nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
       progress: {
-        percent: 72,
-        remainingPointsToNextTier: 800000,
+        percent: 42,
+        remainingPointsToNextTier: 123456,
         status: 'on_track',
       },
       fees: {
-        revenueShareBps: 150,
-        swapsBps: 15,
-        perpsBps: 4,
-        nextTierRevenueShareBps: 200,
-        nextTierSwapsBps: 12,
-        nextTierPerpsBps: 3,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        nextTierRevenueShareBps: 88,
+        nextTierSwapsBps: 9,
+        nextTierPerpsBps: 6,
       },
       volume: {
-        swapsUsd: 4100000,
-        perpsUsd: 2300000,
-        points: 24400000,
-        pointsFromReferrals: 500000,
-        referrals: 2,
-        referralsCap: 10,
+        swapsUsd: 1234567,
+        perpsUsd: 9876543,
+        points: 5555555,
+        pointsFromReferrals: 111111,
+        referrals: 3,
+        referralsCap: 7,
       },
       pointsAllocation: {
-        earned: 24400000,
-        threshold: 100000000,
-        percent: 24.4,
+        earned: 5555555,
+        threshold: 7777777,
+        percent: 71.4,
       },
       tiers: [
         {
-          id: 'gold-fox-vip-3',
-          name: 'Gold Fox 3',
+          id: 'mock-tier-alpha-3',
+          name: 'Mock Tier Alpha 3',
           tier: 3,
-          pointsRequirement: 750000,
-          revenueShareBps: 150,
-          swapsBps: 15,
-          perpsBps: 4,
-          referralCarryoverBps: 2000,
+          pointsRequirement: 321000,
+          revenueShareBps: 99,
+          swapsBps: 11,
+          perpsBps: 7,
+          referralCarryoverBps: 4242,
           status: 'current',
         },
       ],
       localizedText: {
-        periodTitle: 'Mar 31 - Apr 30',
+        periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
-        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 6 bps next tier',
         revenueShareTitle: 'Revenue share',
         referralPointsTitle: 'Referral points',
-        nextTierRevenueShareDelta: '↑ 2% next tier',
-        nextTierReferralPointsDelta: '↑ 20% next tier',
+        nextTierRevenueShareDelta: '↑ 1% next tier',
+        nextTierReferralPointsDelta: '↑ 42% next tier',
         topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
         pointsTitle: 'Points',
@@ -6975,8 +7285,8 @@ describe('RewardsController', () => {
       const cachedState: VipDashboardState = {
         ...createMockVIPDashboard({
           currentTier: {
-            id: 'gold-fox-vip-2',
-            name: 'Gold Fox VIP 2',
+            id: 'mock-tier-alpha-2',
+            name: 'Mock Tier Alpha 2',
             tier: 2,
           },
         }),
@@ -7033,6 +7343,24 @@ describe('RewardsController', () => {
         ...apiDashboard,
         lastFetched: 123,
       });
+    });
+
+    it('returns null without fetching when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVIPDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        mockSubscriptionId,
+      );
     });
 
     it('persists fetched VIP dashboard to vipDashboard state', async () => {
@@ -7171,6 +7499,82 @@ describe('RewardsController', () => {
       expect(
         controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
       ).toBe(false);
+    });
+  });
+
+  describe('getVipRefereeDashboard', () => {
+    const mockSubscriptionId = 'sub-referee';
+    // Obviously-synthetic fixture — never real VIP codes/figures.
+    const apiReferee = {
+      referredByCode: 'TESTCODE',
+      points: 1234,
+      swapsVolume: 1000,
+      perpsVolume: 2000,
+      computedAt: '2099-06-30T14:52:00.000Z',
+    };
+
+    it('returns null without fetching when VIP is disabled', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVipRefereeDashboard',
+        mockSubscriptionId,
+      );
+    });
+
+    it('fetches and persists the referee dashboard when enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiReferee);
+
+      const result =
+        await controller.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipRefereeDashboard',
+        mockSubscriptionId,
+      );
+      expect(result).toEqual({ ...apiReferee, lastFetched: 123 });
+      expect(controller.state.vipRefereeDashboard[mockSubscriptionId]).toEqual({
+        ...apiReferee,
+        lastFetched: 123,
+      });
+    });
+
+    it('returns null and clears cache when the API says not a referee', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipRefereeDashboard: {
+            [mockSubscriptionId]: { ...apiReferee, lastFetched: -900000 },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result =
+        await controller.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(
+        controller.state.vipRefereeDashboard[mockSubscriptionId],
+      ).toBeUndefined();
     });
   });
 
@@ -8456,7 +8860,7 @@ describe('RewardsController', () => {
       const result = await disabledController.validateReferralCode('ABC123');
 
       // Assert
-      expect(result).toBe(false);
+      expect(result).toEqual({ valid: false, isVipCode: false });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         expect.anything(),
@@ -8465,9 +8869,9 @@ describe('RewardsController', () => {
 
     it('returns false for empty or whitespace-only codes and does not call data service', async () => {
       // Act & Assert
-      expect(await controller.validateReferralCode('')).toBe(false);
-      expect(await controller.validateReferralCode('   ')).toBe(false);
-      expect(await controller.validateReferralCode('\t\n')).toBe(false);
+      expect((await controller.validateReferralCode('')).valid).toBe(false);
+      expect((await controller.validateReferralCode('   ')).valid).toBe(false);
+      expect((await controller.validateReferralCode('\t\n')).valid).toBe(false);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         expect.anything(),
@@ -8488,7 +8892,7 @@ describe('RewardsController', () => {
       const result = await controller.validateReferralCode('BANKLESS');
 
       // Assert: vanity code is forwarded regardless of length or charset
-      expect(result).toBe(true);
+      expect(result.valid).toBe(true);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'BANKLESS',
@@ -8506,7 +8910,9 @@ describe('RewardsController', () => {
       });
 
       // Act & Assert
-      expect(await controller.validateReferralCode('ABCIOU')).toBe(false);
+      expect((await controller.validateReferralCode('ABCIOU')).valid).toBe(
+        false,
+      );
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'ABCIOU',
@@ -8527,7 +8933,7 @@ describe('RewardsController', () => {
       const result = await controller.validateReferralCode('ABC234'); // Using valid Base32 code
 
       // Assert
-      expect(result).toBe(true);
+      expect(result.valid).toBe(true);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'ABC234',
@@ -8548,7 +8954,7 @@ describe('RewardsController', () => {
       const result = await controller.validateReferralCode('XYZ567'); // Using valid Base32 code
 
       // Assert
-      expect(result).toBe(false);
+      expect(result.valid).toBe(false);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'XYZ567',
@@ -8569,12 +8975,59 @@ describe('RewardsController', () => {
         });
 
         const result = await controller.validateReferralCode(code);
-        expect(result).toBe(true);
+        expect(result.valid).toBe(true);
         expect(mockMessenger.call).toHaveBeenCalledWith(
           'RewardsDataService:validateReferralCode',
           code,
         );
       }
+    });
+
+    it('returns isVipCode true when service marks code as VIP', async () => {
+      // Arrange
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true, isVipCode: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('VIPREF');
+
+      // Assert
+      expect(result).toEqual({ valid: true, isVipCode: true });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'VIPREF',
+      );
+    });
+
+    it('returns isVipCode false when service marks code as VIP but VIP feature is disabled', async () => {
+      // Arrange — backend says VIP, but the VIP feature flag is disabled locally
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isVipDisabled: () => true,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true, isVipCode: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await vipDisabledController.validateReferralCode('VIPREF');
+
+      // Assert — valid code is still honored, but VIP status is gated off
+      expect(result).toEqual({ valid: true, isVipCode: false });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'VIPREF',
+      );
     });
 
     it('handles service errors and throw error', async () => {
@@ -9523,44 +9976,53 @@ describe('RewardsController', () => {
           },
           vipDashboard: {
             [subscriptionId]: {
-              program: { id: 'vip', name: 'VIP Pilot' },
-              period: { start: '2026-03-31', end: '2026-04-30' },
-              currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
-              nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
+              program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
+              period: { start: '2099-06-01', end: '2099-06-30' },
+              computedAt: '2099-06-30T14:52:00.000Z',
+              currentTier: {
+                id: 'mock-tier-alpha-3',
+                name: 'Mock Tier Alpha 3',
+                tier: 3,
+              },
+              nextTier: {
+                id: 'mock-tier-alpha-4',
+                name: 'Mock Tier Alpha 4',
+                tier: 4,
+              },
               progress: {
-                percent: 72,
-                remainingPointsToNextTier: 800000,
+                percent: 42,
+                remainingPointsToNextTier: 123456,
                 status: 'on_track',
               },
               fees: {
-                revenueShareBps: 150,
-                swapsBps: 15,
-                perpsBps: 4,
-                nextTierRevenueShareBps: 200,
-                nextTierSwapsBps: 12,
-                nextTierPerpsBps: 3,
+                revenueShareBps: 99,
+                swapsBps: 11,
+                perpsBps: 7,
+                nextTierRevenueShareBps: 88,
+                nextTierSwapsBps: 9,
+                nextTierPerpsBps: 6,
               },
               volume: {
-                swapsUsd: 4100000,
-                perpsUsd: 2300000,
-                points: 24400000,
-                pointsFromReferrals: 500000,
-                referrals: 2,
-                referralsCap: 10,
+                swapsUsd: 1234567,
+                perpsUsd: 9876543,
+                points: 5555555,
+                pointsFromReferrals: 111111,
+                referrals: 3,
+                referralsCap: 7,
               },
               pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
               tiers: [],
               localizedText: {
-                periodTitle: 'Mar 31 - Apr 30',
+                periodTitle: 'Jun 1 - Jun 30',
                 memberIdTitle: 'Member ID',
                 swapsFeeTitle: 'Swaps fee',
                 perpsFeeTitle: 'Perps fee',
-                nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-                nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+                nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+                nextTierPerpsFeeDelta: '↓ 6 bps next tier',
                 revenueShareTitle: 'Revenue share',
                 referralPointsTitle: 'Referral points',
-                nextTierRevenueShareDelta: '↑ 2% next tier',
-                nextTierReferralPointsDelta: '↑ 20% next tier',
+                nextTierRevenueShareDelta: '↑ 1% next tier',
+                nextTierReferralPointsDelta: '↑ 42% next tier',
                 topTierDescription: 'Top tier reached',
                 statsTitle: 'Volume',
                 pointsTitle: 'Points',
@@ -10023,6 +10485,7 @@ describe('RewardsController', () => {
               referralCode: 'REF123',
               totalReferees: 5,
               referredByCode: 'REFERRER100',
+              isVipReferee: false,
               lastFetched: Date.now(),
             },
           },
@@ -16433,6 +16896,10 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
+      predictThePitchLeaderboard: {},
+      predictThePitchLeaderboardPositions: {},
+      predictThePitchPositions: {},
+      predictThePitchPrizePool: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       seasonStatuses: {},
@@ -16442,6 +16909,7 @@ describe('RewardsController', () => {
       subscriptions: {},
       unlockedRewards: {},
       vipDashboard: {},
+      vipRefereeDashboard: {},
       vipPerpsFees: {},
     });
   });
@@ -16465,6 +16933,10 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
+      predictThePitchLeaderboard: {},
+      predictThePitchLeaderboardPositions: {},
+      predictThePitchPositions: {},
+      predictThePitchPrizePool: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       rewardsEnvUrl: null,
@@ -16475,6 +16947,7 @@ describe('RewardsController', () => {
       subscriptions: {},
       unlockedRewards: {},
       vipDashboard: {},
+      vipRefereeDashboard: {},
       vipPerpsFees: {},
     });
   });
@@ -16502,6 +16975,10 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
+      predictThePitchLeaderboard: {},
+      predictThePitchLeaderboardPositions: {},
+      predictThePitchPositions: {},
+      predictThePitchPrizePool: {},
       pointsEvents: {},
       rewardsEnvUrl: null,
       seasonStatuses: {},
@@ -16511,6 +16988,7 @@ describe('RewardsController', () => {
       subscriptions: {},
       unlockedRewards: {},
       vipDashboard: {},
+      vipRefereeDashboard: {},
     });
   });
 
@@ -17038,6 +17516,7 @@ describe('RewardsController', () => {
         referralCode: 'REF123',
         totalReferees: 5,
         referredByCode: 'REFERRER123',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
@@ -17137,6 +17616,7 @@ describe('RewardsController', () => {
         referralCode: 'REF1',
         totalReferees: 3,
         referredByCode: 'REFERRER1',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17358,12 +17838,14 @@ describe('RewardsController', () => {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.subscriptionReferralDetails[subscriptionId2] = {
         referralCode: 'REF2',
         totalReferees: 3,
         referredByCode: 'REFERRER2',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17445,6 +17927,7 @@ describe('RewardsController', () => {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey2] = {
@@ -17553,6 +18036,7 @@ describe('RewardsController', () => {
         referralCode: 'REF_123',
         totalReferees: 1,
         referredByCode: 'REFERRER_123',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
@@ -21288,6 +21772,255 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
+    });
+  });
+
+  describe('Predict The Pitch data methods', () => {
+    let predictMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'predict-campaign-1';
+    const mockSubscriptionId = 'sub-predict-1';
+    const compositeKey = `${mockSubscriptionId}:${mockCampaignId}`;
+    const mockLeaderboard = {
+      campaignId: mockCampaignId,
+      computedAt: '2026-06-30T12:00:00.000Z',
+      entries: [],
+      totalParticipants: 0,
+    };
+    const mockPosition = {
+      rank: 1,
+      totalParticipants: 10,
+      roi: 0.5,
+      pnl: 100,
+      volume: 200,
+      eligible: true,
+      neighbors: [],
+      computedAt: '2026-06-30T12:00:00.000Z',
+      marketsTraded: 3,
+      minimumMarketsTraded: 3,
+    };
+    const mockPositions: PredictThePitchPositionsDto = {
+      openPositions: [
+        {
+          outcomeAssetId: 'token-1',
+          outcomeAsset: 'Yes',
+          conditionId: '0xcondition',
+          conditionName: 'Brazil vs Argentina',
+          conditionSlug: 'brazil-vs-argentina',
+          eventId: '0xnav',
+          eventSlug: 'world-cup',
+          iconUrl: null,
+          capitalDeployed: 100,
+          pnl: 25,
+          roi: 0.25,
+          status: 'open',
+          fillShares: 50,
+          fillSharesBought: 50,
+          fillSharesSold: 0,
+          fillPrice: 2,
+          fillDate: '2026-06-30T12:00:00.000Z',
+        },
+      ],
+      resolvedPositions: [],
+      computedAt: '2026-06-30T12:00:00.000Z',
+    };
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'pending' as const,
+      winnerVerificationCode: 'PITCH-123',
+      rank: 1,
+    };
+    const mockPrizePool = {
+      totalVolumeUsd: 1000,
+      unlockedPoolUsd: 500,
+      thresholdsUsd: [0, 1000],
+      poolScheduleUsd: [250, 500],
+      breakdown: [{ rank: 1, amountUsd: 500 }],
+      computedAt: null,
+    };
+
+    beforeEach(() => {
+      predictMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('caches public leaderboard and prize pool in state', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockLeaderboard)
+        .mockResolvedValueOnce(mockPrizePool);
+
+      await expect(
+        ctrl.getPredictThePitchLeaderboard(mockCampaignId),
+      ).resolves.toEqual(mockLeaderboard);
+      await expect(
+        ctrl.getPredictThePitchPrizePool(mockCampaignId),
+      ).resolves.toEqual(mockPrizePool);
+
+      expect(
+        ctrl.state.predictThePitchLeaderboard[mockCampaignId],
+      ).toMatchObject(mockLeaderboard);
+      expect(ctrl.state.predictThePitchPrizePool[mockCampaignId]).toMatchObject(
+        mockPrizePool,
+      );
+
+      predictMessenger.call.mockClear();
+
+      await ctrl.getPredictThePitchLeaderboard(mockCampaignId);
+      await ctrl.getPredictThePitchPrizePool(mockCampaignId);
+
+      expect(predictMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('stores authenticated leaderboard position and positions by subscription/campaign key', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockPosition)
+        .mockResolvedValueOnce(mockPositions);
+
+      await expect(
+        ctrl.getPredictThePitchLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toEqual(mockPosition);
+      await expect(
+        ctrl.getPredictThePitchPositions(mockCampaignId, mockSubscriptionId),
+      ).resolves.toEqual(mockPositions);
+
+      expect(
+        ctrl.state.predictThePitchLeaderboardPositions[compositeKey],
+      ).toMatchObject(mockPosition);
+      expect(ctrl.state.predictThePitchPositions[compositeKey]).toMatchObject(
+        mockPositions,
+      );
+    });
+
+    it('caches not-found leaderboard positions', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call.mockResolvedValueOnce(null);
+
+      await expect(
+        ctrl.getPredictThePitchLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toBeNull();
+
+      expect(
+        ctrl.state.predictThePitchLeaderboardPositions[compositeKey],
+      ).toMatchObject({ notFound: true });
+    });
+
+    it('clears Predict private caches on subscription cache invalidation', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockPosition)
+        .mockResolvedValueOnce(mockPositions)
+        .mockResolvedValueOnce(mockOutcome);
+
+      await ctrl.getPredictThePitchLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      await ctrl.getPredictThePitchPositions(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      await ctrl.getPredictThePitchParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      ctrl.invalidateSubscriptionCache({
+        subscriptionId: mockSubscriptionId,
+        campaignId: mockCampaignId,
+      });
+
+      expect(
+        ctrl.state.predictThePitchLeaderboardPositions[compositeKey],
+      ).toBeUndefined();
+      expect(ctrl.state.predictThePitchPositions[compositeKey]).toBeUndefined();
+
+      predictMessenger.call.mockClear();
+      predictMessenger.call.mockResolvedValueOnce({
+        ...mockOutcome,
+        winnerVerificationCode: 'PITCH-456',
+      });
+
+      await expect(
+        ctrl.getPredictThePitchParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toMatchObject({ winnerVerificationCode: 'PITCH-456' });
+      expect(predictMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPredictThePitchParticipantOutcome',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+    });
+
+    it('clears Predict public and private caches on resetState', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockLeaderboard)
+        .mockResolvedValueOnce(mockPrizePool)
+        .mockResolvedValueOnce(mockOutcome);
+
+      await ctrl.getPredictThePitchLeaderboard(mockCampaignId);
+      await ctrl.getPredictThePitchPrizePool(mockCampaignId);
+      await ctrl.getPredictThePitchParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      ctrl.resetState();
+
+      expect(ctrl.state.predictThePitchLeaderboard).toEqual({});
+      expect(ctrl.state.predictThePitchPrizePool).toEqual({});
+
+      predictMessenger.call.mockClear();
+      predictMessenger.call.mockResolvedValueOnce({
+        ...mockOutcome,
+        winnerVerificationCode: 'PITCH-RESET',
+      });
+
+      await expect(
+        ctrl.getPredictThePitchParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toMatchObject({ winnerVerificationCode: 'PITCH-RESET' });
+      expect(predictMessenger.call).toHaveBeenCalledTimes(1);
     });
   });
 });

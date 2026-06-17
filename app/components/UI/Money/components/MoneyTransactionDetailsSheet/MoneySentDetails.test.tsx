@@ -13,6 +13,11 @@ import { otherControllersMock } from '../../../../Views/confirmations/__mocks__/
 import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import { MoneySentDetails } from './MoneySentDetails';
 
+jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
 
 jest.mock(
@@ -221,6 +226,13 @@ describe('MoneySentDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'Webview',
       expect.objectContaining({ screen: 'SimpleWebview' }),
+    );
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'money_transaction_details',
+      }),
     );
   });
 

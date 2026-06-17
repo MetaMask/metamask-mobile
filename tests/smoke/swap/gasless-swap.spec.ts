@@ -28,7 +28,7 @@ describe(SmokeSwap('Gasless Swap - '), (): void => {
     jest.setTimeout(180000);
   });
 
-  it.skip('completes a gasless ETH to MUSD swap', async (): Promise<void> => {
+  it('completes a gasless ETH to MUSD swap', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -107,7 +107,7 @@ describe(SmokeSwap('Gasless Swap - '), (): void => {
     );
   });
 
-  it.skip('completes a gasless USDC to MUSD swap (ERC-20 source with approval)', async (): Promise<void> => {
+  it('completes a gasless USDC to MUSD swap (ERC-20 source with approval)', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -187,7 +187,7 @@ describe(SmokeSwap('Gasless Swap - '), (): void => {
     );
   });
 
-  it.skip('completes a gasless 7702 ETH to MUSD swap (native source)', async (): Promise<void> => {
+  it('completes a gasless 7702 ETH to MUSD swap (native source)', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {

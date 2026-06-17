@@ -1,4 +1,6 @@
 import React, { useCallback } from 'react';
+import { ScrollView, View } from 'react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details.styles';
@@ -6,7 +8,6 @@ import { TransactionDetailDivider } from '../transaction-detail-divider/transact
 import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
 import { useNavigation } from '@react-navigation/native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { TransactionDetailsPaidWithRow } from '../transaction-details-paid-with-row';
 import { TransactionDetailsSummary } from '../transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero';
@@ -20,9 +21,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
 import { hasTransactionType } from '../../../utils/transaction';
-import { ScrollView, View } from 'react-native';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
+import { TransactionDetailsToRow } from '../transaction-details-to-row';
+import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -38,7 +40,6 @@ export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { transactionMeta } = useTransactionDetails();
-
   const title = getTitle(transactionMeta);
 
   const handleBack = useCallback(() => {
@@ -58,31 +59,40 @@ export function TransactionDetails() {
         backButtonProps={{ testID: 'transaction-details-back-button' }}
         includesTopInset
       />
-      <ScrollView>
-        <Box style={styles.container} gap={12}>
-          <TransactionDetailsHero />
-          <TransactionDetailsStatusRow />
-          <TransactionDetailsDateRow />
-          <TransactionDetailsAccountRow />
-          <TransactionDetailDivider />
-          <TransactionDetailsPaidWithRow />
-          <TransactionDetailsNetworkFeeRow />
-          <TransactionDetailsBridgeFeeRow />
-          <TransactionDetailsTotalRow />
-          {showSummarySection && (
-            <>
-              <TransactionDetailDivider />
-              <TransactionDetailsSummary />
-              <TransactionDetailsRetry />
-            </>
-          )}
-        </Box>
-      </ScrollView>
+      {transactionMeta ? (
+        <ScrollView>
+          <Box style={styles.container} gap={12}>
+            <TransactionDetailsHero />
+            {showSummarySection && <TransactionDetailDivider />}
+            <TransactionDetailsStatusRow />
+            <TransactionDetailsDateRow />
+            <TransactionDetailsAccountRow />
+            <TransactionDetailDivider />
+            <TransactionDetailsToRow />
+            <TransactionDetailsFiatOrderIdRow />
+            <TransactionDetailsPaidWithRow />
+            <TransactionDetailsNetworkFeeRow />
+            <TransactionDetailsBridgeFeeRow />
+            <TransactionDetailsTotalRow />
+            {showSummarySection && (
+              <>
+                <TransactionDetailDivider />
+                <TransactionDetailsSummary />
+                <TransactionDetailsRetry />
+              </>
+            )}
+          </Box>
+        </ScrollView>
+      ) : null}
     </View>
   );
 }
 
-function getTitle(transactionMeta: TransactionMeta) {
+function getTitle(transactionMeta: TransactionMeta | undefined) {
+  if (!transactionMeta) {
+    return strings('transaction_details.title.default');
+  }
+
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
   ) {

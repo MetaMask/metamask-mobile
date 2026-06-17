@@ -14,6 +14,8 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import { usePerpsLivePrices } from '../../../UI/Perps/hooks/stream';
+import { formatPercentage } from '../../../UI/Perps/utils/formatUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -78,6 +80,12 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     withTileExtras: false,
   });
 
+  const symbols = useMemo(
+    () => perps.data.map(({ market }) => market.symbol),
+    [perps.data],
+  );
+  const livePrices = usePerpsLivePrices({ symbols, throttleMs: 3000 });
+
   const moverPills: PillOption[] = [
     {
       key: 'gainers',
@@ -99,14 +107,33 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     const feedItemsBySymbol = new Map(
       perps.data.map((item) => [item.market.symbol, item]),
     );
+    const marketsWithLivePrices = perps.data.map(({ market }) => {
+      const livePrice = livePrices[market.symbol];
+      if (!livePrice?.percentChange24h) {
+        return market;
+      }
+
+      const changePercent = parseFloat(livePrice.percentChange24h);
+      if (Number.isNaN(changePercent)) {
+        return market;
+      }
+
+      return {
+        ...market,
+        change24hPercent: formatPercentage(changePercent),
+      };
+    });
     const markets = filterAndSortByPriceChangeDirection(
-      perps.data.map((item) => item.market),
+      marketsWithLivePrices,
       activeMoverDirection,
     );
     return markets
-      .map((market) => feedItemsBySymbol.get(market.symbol))
+      .map((market) => {
+        const item = feedItemsBySymbol.get(market.symbol);
+        return item ? { ...item, market } : undefined;
+      })
       .filter((item): item is PerpsFeedItem => item !== undefined);
-  }, [activeMoverDirection, perps.data]);
+  }, [activeMoverDirection, livePrices, perps.data]);
   const pillData =
     data.length === 0 &&
     perps.data.length > 0 &&
@@ -241,7 +268,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
   const whatsHappeningSection = isWhatsHappeningEnabled ? (
-    <Box key="whats-happening" twClassName="-mx-4" marginBottom={6}>
+    <Box key="whats-happening" twClassName="-mx-4">
       <WhatsHappeningSection
         ref={whatsHappeningRef}
         source={WhatsHappeningSource.Explore}

@@ -4,6 +4,14 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { SCREEN_NAMES } from '../../constants/moneyEvents';
+
+const mockTrackScreenViewed = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 
@@ -40,7 +48,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.',
       'money.how_it_works_page.description_3':
         'Money account is powered by Monad.',
-      'money.how_it_works_page.faq_title': 'Frequently asked questions',
+      'money.how_it_works_page.faq_title': 'FAQs',
       'money.how_it_works_page.faq_q1': 'What is a MetaMask Money Account?',
       'money.how_it_works_page.faq_a1': 'Money Account answer 1',
       'money.how_it_works_page.faq_q2': 'Is MetaMask Money Account safe?',
@@ -75,6 +83,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('MoneyHowItWorksView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackScreenViewed: mockTrackScreenViewed,
+    });
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
@@ -126,10 +137,10 @@ describe('MoneyHowItWorksView', () => {
     );
   });
 
-  it('renders the "Frequently asked questions" FAQ header', () => {
+  it('renders the "FAQs" FAQ header', () => {
     const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
 
-    expect(getByText('Frequently asked questions')).toBeOnTheScreen();
+    expect(getByText('FAQs')).toBeOnTheScreen();
   });
 
   it('reveals the matching answer when a FAQ item is expanded', () => {
@@ -197,5 +208,21 @@ describe('MoneyHowItWorksView', () => {
     fireEvent.press(firstFaq);
 
     expect(firstFaq).toBeOnTheScreen();
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_HOW_IT_WORKS screen_name', () => {
+      renderWithProvider(<MoneyHowItWorksView />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        screen_name: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
+      });
+    });
+
+    it('calls trackScreenViewed on mount', () => {
+      renderWithProvider(<MoneyHowItWorksView />);
+
+      expect(mockTrackScreenViewed).toHaveBeenCalledTimes(1);
+    });
   });
 });

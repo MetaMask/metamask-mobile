@@ -2,7 +2,7 @@
 
 ## Overview
 
-MetaMetrics uses **8 consolidated events** with discriminating properties (vs 38+ Sentry traces). Optimizes Segment costs by grouping similar actions into generic events with type properties.
+MetaMetrics uses **9 consolidated events** with discriminating properties (vs 38+ Sentry traces). Optimizes Segment costs by grouping similar actions into generic events with type properties.
 
 **Example:** `PERPS_SCREEN_VIEWED` with `screen_type: 'trading' | 'withdrawal' | ...` instead of 9 separate screen events.
 
@@ -61,7 +61,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 });
 ```
 
-## 8 Events
+## 9 Events
 
 ### 1. PERPS_SCREEN_VIEWED
 
@@ -74,7 +74,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
   - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
   - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
-  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'` | `'cancel_trade_with_token_toast'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from
@@ -84,8 +84,9 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Market list sources:** `'perps_market_list_all'` | `'perps_market_list_crypto'` | `'perps_market_list_stocks'`
   - **Trade/Position sources:** `'trade_screen'` | `'position_screen'` | `'tp_sl_view'` | `'trade_menu_action'` | `'open_position'` | `'trade_details'`
   - **Explore source:** `'explore'` (from Explore/Trending page)
-  - **Other sources:** `'tutorial'` | `'perps_tutorial'` | `'close_toast'` | `'position_close_toast'` | `'tooltip'` | `'magnifying_glass'` | `'crypto_button'` | `'stocks_button'` | `'order_book'` | `'full_screen_chart'` | `'stop_loss_prompt_banner'` | `'wallet_home'` | `'wallet_main_action_menu'` | `'homescreen_tab'` | `'perps_asset_screen_no_funds'`
-  - **Geo-block sources:** `'deposit_button'` | `'withdraw_button'` | `'trade_action'` | `'add_funds_action'` | `'cancel_order'` | `'asset_detail_screen'` | `'close_position_action'` | `'modify_position_action'` | `'order_book_long_button'` | `'order_book_short_button'` | `'order_book_close_button'` | `'order_book_modify_button'` | `'auto_close_action'` | `'adjust_margin_action'` | `'stop_loss_prompt_add_margin'` | `'stop_loss_prompt_set_sl'` | `'close_all_positions_button'`
+  - **Discovery sources:** `'related_markets'` (from Related markets rail on asset details)
+  - **Other sources:** `'tutorial'` | `'perps_tutorial'` | `'close_toast'` | `'position_close_toast'` | `'tooltip'` | `'magnifying_glass'` | `'crypto_button'` | `'stocks_button'` | `'order_book'` | `'full_screen_chart'` | `'stop_loss_prompt_banner'` | `'wallet_home'` | `'wallet_main_action_menu'` | `'homescreen_tab'` | `'perps_asset_screen_no_funds'` | `'home_section'` | `'market_insights'`
+  - **Geo-block sources:** `'deposit_button'` | `'withdraw_button'` | `'trade_action'` | `'add_funds_action'` | `'cancel_order'` | `'asset_detail_screen'` | `'close_position_action'` | `'modify_position_action'` | `'order_book_long_button'` | `'order_book_short_button'` | `'order_book_close_button'` | `'order_book_modify_button'` | `'auto_close_action'` | `'adjust_margin_action'` | `'stop_loss_prompt_add_margin'` | `'stop_loss_prompt_set_sl'` | `'close_all_positions_button'` | `'cancel_all_orders_button'`
 - `open_position` (optional): Number of open positions (used for homepage_perps_tab, perps_home, asset_details, order_book, trading, close_all_positions screens; number)
 - `open_order` (optional): Number of open orders (used for wallet_home_perps_tab, perps_home, asset_details screens; number)
 - `market_category` (optional): Currently active market filter tab (e.g., `'All'`, `'Crypto'`, `'Stocks'`, `'Commodities'`, `'Forex'`; used for market_list screen)
@@ -98,6 +99,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `button_clicked` (optional): Button that led to this screen (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
+- `market_insights_displayed` (optional): Whether market insights content is displayed on the screen (boolean, used for asset_details screen)
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
@@ -114,8 +116,10 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Watchlist interactions:** `'favorite_toggled'` (add/remove from watchlist)
   - **Position management:** `'add_margin'` | `'remove_margin'` | `'increase_exposure'` | `'reduce_exposure'` | `'flip_position'` | `'contact_support'` | `'stop_loss_one_click_prompt'`
   - **Hero card interactions:** `'display_hero_card'` | `'share_pnl_hero_card'`
-  - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'`
-- `action` (optional): Specific action performed: `'connection_retry'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
+  - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'` | `'cancel_trade_with_token'`
+  - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
+  - **Discovery interactions:** `'related_market_clicked'`
+- `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
@@ -123,14 +127,24 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `order_size` (optional): Size of the order in tokens (number)
 - `leverage_used` (optional): Leverage value being used (number)
 - `order_type` (optional): `'market' | 'limit'`
-- `setting_type` (optional): Type of setting changed (e.g., `'leverage'`)
+- `setting_type` (optional): Type of setting changed: `'leverage'` | `'slippage'`
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
+- `section_viewed` (optional): Section viewed through a slide interaction; includes `'related_markets'` for the asset details Related markets rail.
+- `source_market` (optional): Source asset symbol for Related markets tile taps.
+- `market` (optional): Destination asset symbol for Related markets tile taps.
+- `category` (optional): Collection/List identifier for Related markets tile taps.
+- `position` (optional): 1-based tile position in the Related markets rail.
 - `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'` | `'competition_banner_engage'` | `'competition_banner_close'`
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
+- `max_slippage_pct` (optional): Current max slippage percentage (number, used with slippage interactions)
+- `max_slippage_source` (optional): How the slippage value was set: `'default' | 'user_configured'` (used with slippage interactions)
+- `estimated_slippage_pct` (optional): Estimated slippage percentage (number, used with `slippage_limit_blocked_order`)
+- `section_viewed` (optional): Home section scrolled into view (e.g., `'perps_home_explore_crypto'`, `'perps_home_explore_stocks'`, `'perps_home_activity'`; used with `slide` interaction)
+- `location` (optional): Location context for scroll tracking (e.g., `'perps_home'`)
 - `source` (optional): Source context for favorites (e.g., `'perp_asset_screen'`)
 - `tab_name` (optional): Tab being viewed (e.g., `'trades'` | `'orders'` | `'funding'` | `'deposits'`)
 - `screen_name` (optional): Screen name context (e.g., `'connection_error'` | `'perps_hero_card'` | `'perps_activity_history'`)
@@ -252,9 +266,36 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 
 **Note:** This event is used for both errors (with `error_type` + `error_message`) and warnings (with `warning_message`). Use `PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY` for standardized error message keys (e.g., `insufficient_balance`, `order_failed`, `geo_restriction`).
 
+### 9. PERPS_ACCOUNT_SETUP
+
+Tracks unified account (HIP-3) migration lifecycle on HyperLiquid. Fired from the controller's `HyperLiquidProvider` during account abstraction mode transitions. Not used directly from UI components.
+
+**Properties:**
+
+- `status` (required): Migration outcome
+  - `'not_applicable'` - Wallet has no HyperLiquid account yet (nothing to migrate)
+  - `'already_enabled'` - Account is already in a compatible mode (`unifiedAccount` or `portfolioMargin`)
+  - `'migration_required'` - Account needs migration from a legacy mode
+  - `'success'` - Migration completed successfully
+  - `'failed'` - Migration failed (user rejected signature or network error)
+- `abstraction_mode` (required): Current or target account abstraction mode (string, e.g., `'unifiedAccount'`, `'dexAbstraction'`, `'default'`, `'disabled'`)
+- `previous_abstraction_mode` (optional): Account mode before migration attempt (string, included on success/failure)
+- `error_message` (optional): Error description when status is `'failed'` or `'not_applicable'` (e.g., `'no_hl_account'`)
+
+**Usage (controller-side only):**
+
+```typescript
+// Inside HyperLiquidProvider (via trackPerpsEvent)
+this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+  [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+  [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
+  [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: 'unifiedAccount',
+});
+```
+
 ## Quick Reference
 
-> **Note:** In code, property names and values are accessed via `PERPS_EVENT_PROPERTY` and `PERPS_EVENT_VALUE` from `@metamask/perps-controller` (defined in `app/controllers/perps/constants/eventNames.ts`). The string values shown in the event sections above are what actually gets sent to Segment.
+> **Note:** In code, property names and values are accessed via `PERPS_EVENT_PROPERTY` and `PERPS_EVENT_VALUE` from `@metamask/perps-controller` (source: `packages/perps-controller/src/constants/eventNames.ts` in the [MetaMask/core](https://github.com/MetaMask/core) monorepo). The string values shown in the event sections above are what actually gets sent to Segment.
 
 ## Adding Events
 
@@ -446,24 +487,24 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 
 ### Button Clicked Values
 
-| Value                         | Description                                               |
-| ----------------------------- | --------------------------------------------------------- |
-| `'deposit'`                   | Add funds / deposit button                                |
-| `'withdraw'`                  | Withdraw funds button                                     |
-| `'perps_home'`                | Navigate to perps home button                             |
-| `'tutorial'`                  | Learn more / tutorial button                              |
-| `'tooltip'`                   | Got it button in tooltip bottom sheets                    |
-| `'market_list'`               | Market list navigation button                             |
-| `'open_position'`             | Tap on a position card                                    |
-| `'magnifying_glass'`          | Search icon button                                        |
-| `'crypto'`                    | Crypto tab in market list                                 |
-| `'stocks'`                    | Stocks & Commodities tab in market list                   |
-| `'commodities'`               | Commodities tab                                           |
-| `'forex'`                     | Forex tab                                                 |
-| `'new'`                       | New markets                                               |
-| `'give_feedback'`             | Give feedback button                                      |
-| `'competition_banner_engage'` | User tapped the competition banner to navigate to rewards |
-| `'competition_banner_close'`  | User dismissed the competition banner                     |
+| Value                         | Description                                                                                                           |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `'deposit'`                   | Add funds / deposit button                                                                                            |
+| `'withdraw'`                  | Withdraw funds button                                                                                                 |
+| `'perps_home'`                | Navigate to perps home button                                                                                         |
+| `'tutorial'`                  | Learn more / tutorial button                                                                                          |
+| `'tooltip'`                   | Got it button in tooltip bottom sheets                                                                                |
+| `'market_list'`               | Market list navigation button                                                                                         |
+| `'open_position'`             | Tap on a position card                                                                                                |
+| `'magnifying_glass'`          | Search icon button                                                                                                    |
+| `'crypto'`                    | Crypto tab in market list                                                                                             |
+| `'stocks'`                    | Stocks & Commodities tab in market list                                                                               |
+| `'commodities'`               | Commodities tab                                                                                                       |
+| `'forex'`                     | Forex tab                                                                                                             |
+| `'new'`                       | New markets                                                                                                           |
+| `'give_feedback'`             | Give feedback button                                                                                                  |
+| `'competition_banner_engage'` | User tapped the competition banner to navigate to rewards _(local constant, pending addition to `PERPS_EVENT_VALUE`)_ |
+| `'competition_banner_close'`  | User dismissed the competition banner _(local constant, pending addition to `PERPS_EVENT_VALUE`)_                     |
 
 ### Button Location Values
 
@@ -622,7 +663,7 @@ const showAccessRestrictedModal = useCallback(() => {
 
 | Sentry                | MetaMetrics             |
 | --------------------- | ----------------------- |
-| 38+ traces            | 8 events                |
+| 38+ traces            | 9 events                |
 | Performance           | Behavior                |
 | Technical metrics     | Business metrics        |
 | `usePerpsMeasurement` | `usePerpsEventTracking` |
@@ -631,7 +672,7 @@ const showAccessRestrictedModal = useCallback(() => {
 
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
-- **Properties & Values**: `app/controllers/perps/constants/eventNames.ts` (exported via `@metamask/perps-controller` as `PERPS_EVENT_PROPERTY`, `PERPS_EVENT_VALUE`)
+- **Properties & Values**: Exported from `@metamask/perps-controller` as `PERPS_EVENT_PROPERTY`, `PERPS_EVENT_VALUE` (source: `packages/perps-controller/src/constants/eventNames.ts` in the [MetaMask/core](https://github.com/MetaMask/core) monorepo)
 - **Metrics Adapter**: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` (maps `trackPerpsEvent` to MetaMetrics)
-- **Controller**: `app/controllers/perps/PerpsController.ts`
-- **Trading Service**: `app/controllers/perps/services/TradingService.ts`
+- **Controller**: `@metamask/perps-controller` (`PerpsController`, `HyperLiquidProvider`, `TradingService`, `AccountService`)
+- **Asset Viewed Funnel**: `app/core/Analytics/trade-transaction-funnel/assetViewedAnalytics.ts` (parallel `ASSET_VIEWED` emission for Perps)

@@ -13,6 +13,9 @@ import {
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionDetailsHero } from '../transaction-details-hero';
+import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
+import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../transaction-details-hero', () => ({
@@ -26,6 +29,12 @@ jest.mock('../transaction-details-date-row', () => ({
 }));
 jest.mock('../transaction-details-account-row', () => ({
   TransactionDetailsAccountRow: jest.fn(() => null),
+}));
+jest.mock('../transaction-details-to-row', () => ({
+  TransactionDetailsToRow: jest.fn(() => null),
+}));
+jest.mock('../transaction-details-fiat-order-id-row', () => ({
+  TransactionDetailsFiatOrderIdRow: jest.fn(() => null),
 }));
 jest.mock('../transaction-details-paid-with-row', () => ({
   TransactionDetailsPaidWithRow: jest.fn(() => null),
@@ -310,6 +319,32 @@ describe('TransactionDetails', () => {
       expect(
         getByText(strings('transaction_details.title.default')),
       ).toBeTruthy();
+    });
+
+    it('renders default title when transaction metadata is missing', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: undefined as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(
+        getByText(strings('transaction_details.title.default')),
+      ).toBeTruthy();
+    });
+
+    it('does not mount detail rows when transaction metadata is missing', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: undefined as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(jest.mocked(TransactionDetailsHero)).not.toHaveBeenCalled();
+      expect(jest.mocked(TransactionDetailsStatusRow)).not.toHaveBeenCalled();
+      expect(jest.mocked(TransactionDetailsDateRow)).not.toHaveBeenCalled();
+      expect(mockTransactionDetailsSummary).not.toHaveBeenCalled();
+      expect(mockTransactionDetailsRetry).not.toHaveBeenCalled();
     });
   });
 

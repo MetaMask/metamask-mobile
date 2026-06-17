@@ -432,12 +432,51 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('passes null fetch options in the query key when no limit is given', () => {
+    it('passes null fetch options in the query key when neither limit nor chains are given', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['SocialService:fetchLeaderboard', null],
+        }),
+      );
+    });
+
+    it('includes chains in the query key when provided', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['base'] },
+          ],
+        }),
+      );
+    });
+
+    it('builds distinct query keys per chain so each tab caches independently', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['solana'] }));
+      renderHook(() => useTopTraders({ limit: 50, chains: ['ethereum'] }));
+
+      const keys = mockUseQuery.mock.calls.map((c) => c[0].queryKey);
+      expect(keys).toEqual(
+        expect.arrayContaining([
+          ['SocialService:fetchLeaderboard', { limit: 50, chains: ['solana'] }],
+          [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['ethereum'] },
+          ],
+        ]),
+      );
+    });
+
+    it('includes chains alone in the query key when no limit is given', () => {
+      renderHook(() => useTopTraders({ chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['SocialService:fetchLeaderboard', { chains: ['base'] }],
         }),
       );
     });

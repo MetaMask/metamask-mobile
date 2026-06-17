@@ -4,6 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import type { CardTransaction } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import { moneyFormatFiat } from './moneyFormatFiat';
+import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
 
 export function cardTransactionDisplayInfo(
   card: CardTransaction,
@@ -15,7 +16,7 @@ export function cardTransactionDisplayInfo(
     new BigNumber(10).pow(card.token.decimals),
   );
 
-  const primaryAmount = `-${usdValue.toFixed(2)} ${card.token.symbol}`;
+  const primaryAmount = `-${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`;
 
   const fiatAmount =
     usdToCurrentCurrencyRate && usdToCurrentCurrencyRate > 0
@@ -29,5 +30,6 @@ export function cardTransactionDisplayInfo(
     fiatAmount,
     isIncoming: false,
     icon: IconName.Card,
+    status: 'confirmed', // card spends only surface once settled
   };
 }
