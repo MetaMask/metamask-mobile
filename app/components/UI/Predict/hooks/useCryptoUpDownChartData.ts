@@ -18,8 +18,6 @@ const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
 const LIVE_CHART_MAX_POINTS = LIVE_CHART_RETENTION_SECS * 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
-const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
-const CONNECTION_ERROR_TIMEOUT_MS = 12000;
 
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
@@ -85,12 +83,6 @@ export interface UseCryptoUpDownChartDataResult {
   loading: boolean;
   isLive: boolean;
   window: number;
-  /**
-   * True when a live market has produced no renderable data for a sustained
-   * grace period (upstream data outage). The UI should show a connection-error
-   * state instead of an indefinite loading spinner.
-   */
-  connectionError: boolean;
 }
 
 interface UseCryptoUpDownChartDataOptions {
@@ -132,14 +124,6 @@ export const useCryptoUpDownChartData = (
   const hasFrozenLiveData = frozenMarketId === market.id;
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
-  const [liveStreamStale, setLiveStreamStale] = useState(true);
-  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
-  const [connectionError, setConnectionError] = useState(false);
-  const connectionErrorTimerRef = useRef<
-    ReturnType<typeof setTimeout> | undefined
-  >(undefined);
   const [liveValue, setLiveValue] = useState(0);
   const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
@@ -197,72 +181,46 @@ export const useCryptoUpDownChartData = (
     setFrozenMarketId(market.id);
   }, [enabled, frozenMarketId, hasExpiredLiveData, market.id]);
 
-  const markLiveStreamFresh = useCallback(() => {
-    setLiveStreamStale(false);
-    if (staleTimerRef.current) {
-      clearTimeout(staleTimerRef.current);
+  const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
+    if (!enabledRef.current) return;
+    const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
+      liveMarketRef.current;
+    const currentMarketId = marketIdRef.current;
+    if (
+      liveMarketId !== currentMarketId ||
+      prevMarketIdRef.current !== currentMarketId
+    ) {
+      return;
     }
-    staleTimerRef.current = setTimeout(() => {
-      setLiveStreamStale(true);
-    }, LIVE_STREAM_STALE_TIMEOUT_MS);
+
+    const shouldFreezeAfterUpdate =
+      typeof currentLiveEndDateMs === 'number' &&
+      Date.now() >= currentLiveEndDateMs;
+
+    if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
+      return;
+    }
+
+    setLiveValue(update.price);
+    setLivePoints((points) => {
+      const timeSecs = getLivePointTime(update.timestamp, points.at(-1)?.time);
+      const point: LivelinePoint = {
+        time: timeSecs,
+        value: update.price,
+      };
+      const nextPoints = mergeLivelinePoints(points, [point]);
+      return trimLivePoints(nextPoints, timeSecs);
+    });
+    if (liveLoadingRef.current) {
+      liveLoadingRef.current = false;
+      setLiveLoading(false);
+    }
+    if (shouldFreezeAfterUpdate) {
+      frozenRef.current = true;
+      frozenMarketIdRef.current = currentMarketId;
+      setFrozenMarketId(currentMarketId);
+    }
   }, []);
-
-  const handleLiveUpdate = useCallback(
-    (update: CryptoPriceUpdate) => {
-      if (!enabledRef.current) return;
-      const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
-        liveMarketRef.current;
-      const currentMarketId = marketIdRef.current;
-      if (
-        liveMarketId !== currentMarketId ||
-        prevMarketIdRef.current !== currentMarketId
-      ) {
-        return;
-      }
-
-      const shouldFreezeAfterUpdate =
-        typeof currentLiveEndDateMs === 'number' &&
-        Date.now() >= currentLiveEndDateMs;
-
-      if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
-        return;
-      }
-
-      markLiveStreamFresh();
-      setLiveValue(update.price);
-      setLivePoints((points) => {
-        const timeSecs = getLivePointTime(
-          update.timestamp,
-          points.at(-1)?.time,
-        );
-        const point: LivelinePoint = {
-          time: timeSecs,
-          value: update.price,
-        };
-        const nextPoints = mergeLivelinePoints(points, [point]);
-        return trimLivePoints(nextPoints, timeSecs);
-      });
-      if (liveLoadingRef.current) {
-        liveLoadingRef.current = false;
-        setLiveLoading(false);
-      }
-      if (shouldFreezeAfterUpdate) {
-        frozenRef.current = true;
-        frozenMarketIdRef.current = currentMarketId;
-        setFrozenMarketId(currentMarketId);
-      }
-    },
-    [markLiveStreamFresh],
-  );
-
-  useEffect(
-    () => () => {
-      if (staleTimerRef.current) {
-        clearTimeout(staleTimerRef.current);
-      }
-    },
-    [],
-  );
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
   const shouldStreamLive = isLive && liveUpdatesEnabled;
@@ -354,24 +312,6 @@ export const useCryptoUpDownChartData = (
   );
   const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
   const hasRenderableChartData = chartData.length >= 2;
-  const newestLivePointTime = livePoints.at(-1)?.time;
-  const liveWindowStartSecs =
-    typeof newestLivePointTime === 'number'
-      ? newestLivePointTime - LIVE_CHART_WINDOW_SECS
-      : undefined;
-  const liveWindowPointCount =
-    typeof liveWindowStartSecs === 'number' &&
-    typeof newestLivePointTime === 'number'
-      ? chartData.reduce(
-          (count, point) =>
-            point.time >= liveWindowStartSecs &&
-            point.time <= newestLivePointTime
-              ? count + 1
-              : count,
-          0,
-        )
-      : 0;
-  const hasRenderableLiveWindow = liveWindowPointCount >= 2;
   const displayedLiveValue =
     liveLoadingRef.current && typeof historicalValue === 'number'
       ? historicalValue
@@ -389,42 +329,6 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, historicalValue, isCurrentMarket, isLive]);
 
-  useEffect(() => {
-    if (connectionErrorTimerRef.current) {
-      clearTimeout(connectionErrorTimerRef.current);
-      connectionErrorTimerRef.current = undefined;
-    }
-    setConnectionError(false);
-  }, [market.id]);
-
-  const isAwaitingLiveData =
-    enabled && isLive && (!hasRenderableLiveWindow || liveStreamStale);
-  useEffect(() => {
-    if (!isAwaitingLiveData) {
-      if (connectionErrorTimerRef.current) {
-        clearTimeout(connectionErrorTimerRef.current);
-        connectionErrorTimerRef.current = undefined;
-      }
-      setConnectionError(false);
-      return undefined;
-    }
-
-    if (connectionErrorTimerRef.current) {
-      return undefined;
-    }
-    connectionErrorTimerRef.current = setTimeout(() => {
-      setConnectionError(true);
-    }, CONNECTION_ERROR_TIMEOUT_MS);
-
-    return () => {
-      if (connectionErrorTimerRef.current) {
-        clearTimeout(connectionErrorTimerRef.current);
-        connectionErrorTimerRef.current = undefined;
-      }
-    };
-    // `market.id` restarts the grace window when switching markets.
-  }, [isAwaitingLiveData, market.id]);
-
   if (!enabled) {
     return {
       data: EMPTY_DATA,
@@ -432,7 +336,6 @@ export const useCryptoUpDownChartData = (
       loading: false,
       isLive: false,
       window: durationSecs,
-      connectionError: false,
     };
   }
 
@@ -443,7 +346,6 @@ export const useCryptoUpDownChartData = (
       loading: historicalQuery.isFetching && stableHistoricalData.length === 0,
       isLive: false,
       window: durationSecs,
-      connectionError: false,
     };
   }
 
@@ -451,16 +353,9 @@ export const useCryptoUpDownChartData = (
     return {
       data: chartData,
       value: displayedLiveValue,
-      // While live, treat a stalled stream (no recent tick) as loading so the
-      // chart shows the spinner instead of a blank canvas once the last point
-      // scrolls out of the live window. Frozen/expired data only "loads" when
-      // there is genuinely nothing renderable.
-      loading: isLive
-        ? !symbol || !hasRenderableLiveWindow || liveStreamStale
-        : !hasRenderableChartData,
+      loading: isLive && (!symbol || !hasRenderableChartData),
       isLive,
       window: LIVE_CHART_WINDOW_SECS,
-      connectionError: isLive ? connectionError : false,
     };
   }
 
@@ -470,6 +365,5 @@ export const useCryptoUpDownChartData = (
     loading: historicalQuery.isFetching,
     isLive: false,
     window: durationSecs,
-    connectionError: false,
   };
 };

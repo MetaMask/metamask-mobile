@@ -71,11 +71,11 @@ const MoneyMoreSheet = () => {
   const handleWhatYouGet = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
-      redirect_target: MONEY_URLS.MONEY_LANDING,
+      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
     });
 
     closeAndNavigate(() => {
-      Linking.openURL(AppConstants.URLS.MONEY_LANDING);
+      Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
     });
   }, [closeAndNavigate, trackSurfaceClicked]);
 

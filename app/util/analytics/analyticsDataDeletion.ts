@@ -2,6 +2,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../Logger';
 import {
   ANALYTICS_DATA_DELETION_DATE,
+  ANALYTICS_DATA_RECORDED,
   METAMETRICS_DELETION_REGULATION_ID,
 } from '../../constants/storage';
 import {
@@ -23,6 +24,7 @@ const SEGMENT_HEADERS = {
 let cached: {
   deleteRegulationId: DataDeleteRegulationId;
   deleteRegulationDate: DataDeleteDate;
+  dataRecorded: boolean;
 } | null = null;
 
 /** Reset cache (for tests only). */
@@ -31,13 +33,16 @@ export function __resetCacheForTests(): void {
 }
 
 async function loadCacheFromStorage(): Promise<void> {
-  const [deleteRegulationId, deleteRegulationDate] = await Promise.all([
-    StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID),
-    StorageWrapper.getItem(ANALYTICS_DATA_DELETION_DATE),
-  ]);
+  const [deleteRegulationId, deleteRegulationDate, dataRecordedStr] =
+    await Promise.all([
+      StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID),
+      StorageWrapper.getItem(ANALYTICS_DATA_DELETION_DATE),
+      StorageWrapper.getItem(ANALYTICS_DATA_RECORDED),
+    ]);
   cached = {
     deleteRegulationId: deleteRegulationId ?? undefined,
     deleteRegulationDate: deleteRegulationDate ?? undefined,
+    dataRecorded: dataRecordedStr === 'true',
   };
 }
 
@@ -45,16 +50,20 @@ function setCache(
   updates: Partial<{
     deleteRegulationId: DataDeleteRegulationId;
     deleteRegulationDate: DataDeleteDate;
+    dataRecorded: boolean;
   }>,
 ): void {
   cached ??= {
     deleteRegulationId: undefined,
     deleteRegulationDate: undefined,
+    dataRecorded: false,
   };
   if (updates.deleteRegulationId !== undefined)
     cached.deleteRegulationId = updates.deleteRegulationId;
   if (updates.deleteRegulationDate !== undefined)
     cached.deleteRegulationDate = updates.deleteRegulationDate;
+  if (updates.dataRecorded !== undefined)
+    cached.dataRecorded = updates.dataRecorded;
 }
 
 /**
@@ -120,11 +129,13 @@ export async function createDataDeletionTask(): Promise<IDeleteRegulationRespons
     await Promise.all([
       StorageWrapper.setItem(METAMETRICS_DELETION_REGULATION_ID, regulateId),
       StorageWrapper.setItem(ANALYTICS_DATA_DELETION_DATE, deletionDate),
+      StorageWrapper.setItem(ANALYTICS_DATA_RECORDED, 'false'),
     ]);
 
     setCache({
       deleteRegulationId: regulateId,
       deleteRegulationDate: deletionDate,
+      dataRecorded: false,
     });
 
     return { status: DataDeleteResponseStatus.ok };
@@ -141,7 +152,7 @@ export async function createDataDeletionTask(): Promise<IDeleteRegulationRespons
 }
 
 /**
- * Check deletion task status via Segment API. Loads regulation id/date from storage and updates cache.
+ * Check deletion task status via Segment API. Loads regulation id/date/recorded from storage and updates cache.
  */
 export async function checkDataDeleteStatus(): Promise<IDeleteRegulationStatus> {
   try {
@@ -153,11 +164,15 @@ export async function checkDataDeleteStatus(): Promise<IDeleteRegulationStatus> 
   const regulationId = cached?.deleteRegulationId;
   const segmentRegulationEndpoint = process.env.SEGMENT_REGULATIONS_ENDPOINT;
 
+  // Only populate date and data-recorded when a deletion was previously requested (matches old MetaMetrics guard).
   const status: IDeleteRegulationStatus = {
     deletionRequestDate: regulationId
       ? cached?.deleteRegulationDate
       : undefined,
     dataDeletionRequestStatus: DataDeleteStatus.unknown,
+    hasCollectedDataSinceDeletionRequest: regulationId
+      ? (cached?.dataRecorded ?? false)
+      : false,
   };
 
   if (!regulationId || !segmentRegulationEndpoint) {
@@ -204,4 +219,24 @@ export function getDeleteRegulationCreationDate(): DataDeleteDate {
  */
 export function getDeleteRegulationId(): DataDeleteRegulationId {
   return cached?.deleteRegulationId;
+}
+
+/**
+ * Whether events have been recorded since the last deletion request. Returns cached value (default false).
+ */
+export function isDataRecorded(): boolean {
+  return cached?.dataRecorded ?? false;
+}
+
+/**
+ * Update the data recording flag (e.g. after tracking). Persists to storage and updates cache.
+ */
+export function updateDataRecordingFlag(saveDataRecording = true): void {
+  if (!saveDataRecording || (cached?.dataRecorded ?? false)) {
+    return;
+  }
+  setCache({ dataRecorded: true });
+  StorageWrapper.setItem(ANALYTICS_DATA_RECORDED, 'true')?.catch((error) => {
+    Logger.error(error, 'Analytics Data Record Error');
+  });
 }

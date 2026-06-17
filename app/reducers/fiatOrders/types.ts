@@ -35,6 +35,7 @@ import {
   updateOnRampNetworks,
   setFiatSellTxHash,
   removeFiatSellTxHash,
+  setRampRoutingDecision,
   setHasAgreedTransakNativePolicy,
 } from '.';
 import {
@@ -107,6 +108,7 @@ export interface FiatOrdersState {
   hasAgreedTransakNativePolicy: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
+  rampRoutingDecision: UnifiedRampRoutingType | null;
 }
 
 export const ACTIONS = {
@@ -135,6 +137,7 @@ export const ACTIONS = {
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
   FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
+  FIAT_SET_RAMP_ROUTING_DECISION: 'FIAT_SET_RAMP_ROUTING_DECISION',
   FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY:
     'FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY',
 } as const;
@@ -163,6 +166,7 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
   | ReturnType<typeof removeFiatSellTxHash>
+  | ReturnType<typeof setRampRoutingDecision>
   | ReturnType<typeof setHasAgreedTransakNativePolicy>;
 
 export type Region = Country & State;
@@ -170,4 +174,11 @@ export type Region = Country & State;
 export enum RampType {
   BUY = 'buy',
   SELL = 'sell',
+}
+
+export enum UnifiedRampRoutingType {
+  DEPOSIT = 'DEPOSIT',
+  AGGREGATOR = 'AGGREGATOR',
+  UNSUPPORTED = 'UNSUPPORTED',
+  ERROR = 'ERROR',
 }

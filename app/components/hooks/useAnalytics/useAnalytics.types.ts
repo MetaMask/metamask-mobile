@@ -46,11 +46,16 @@ export interface UseAnalyticsHook {
    * Associate traits to the current user
    */
   identify(userTraits: AnalyticsUserTraits): Promise<void>;
-  trackEvent(event: AnalyticsTrackingEvent): void;
+  /**
+   * @deprecated Use {@link identify} instead
+   */
+  addTraitsToUser(userTraits: AnalyticsUserTraits): Promise<void>;
+  trackEvent(event: AnalyticsTrackingEvent, saveDataRecording?: boolean): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
   checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
   getDeleteRegulationCreationDate(): DataDeleteDate;
   getDeleteRegulationId(): string | undefined;
+  isDataRecorded(): boolean;
   getAnalyticsId(): Promise<string | undefined>;
   createEventBuilder(
     event: string | IMetaMetricsEvent | ITrackingEvent | AnalyticsTrackingEvent,

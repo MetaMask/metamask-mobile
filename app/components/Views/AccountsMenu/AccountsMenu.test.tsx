@@ -13,6 +13,7 @@ import {
   getMetamaskNotificationsReadCount,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -64,6 +65,11 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+  __esModule: true,
+  default: jest.fn(() => false),
+}));
+
 jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
 
 const mockGoToBuy = jest.fn();
@@ -75,6 +81,7 @@ jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
 
 jest.mock('../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => ({
+    ramp_routing: 'test_routing',
     is_authenticated: true,
     preferred_provider: 'test_provider',
     order_count: 5,
@@ -167,7 +174,9 @@ describe('AccountsMenu', () => {
   });
 
   describe('Buy Button', () => {
-    it('renders the Buy button unconditionally', () => {
+    it('render Buy button when rampUnifiedV1Enabled is true', () => {
+      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
+
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
       expect(getByText('accounts_menu.buy')).toBeOnTheScreen();
@@ -176,7 +185,20 @@ describe('AccountsMenu', () => {
       ).toBeOnTheScreen();
     });
 
+    it('does NOT render Buy button when rampUnifiedV1Enabled is false', () => {
+      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(false);
+
+      const { queryByText, queryByTestId } = render(<AccountsMenu />);
+
+      expect(queryByText('accounts_menu.buy')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('navigate to buy flow and track analytics when Buy is pressed', () => {
+      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
+
       // Clear previous calls
       mockGoToBuy.mockClear();
       mockTrackEvent.mockClear();
@@ -196,6 +218,8 @@ describe('AccountsMenu', () => {
     });
 
     it('track RAMPS_BUTTON_CLICKED event with correct properties when Buy is pressed', () => {
+      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
+
       mockCreateEventBuilder.mockClear();
       mockTrackEvent.mockClear();
 
@@ -221,9 +245,10 @@ describe('AccountsMenu', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         button_text: 'Buy',
         location: 'AccountsMenu',
-        ramp_type: 'BUY',
+        ramp_type: 'UNIFIED_BUY',
         chain_id_destination: null,
         region: 'US',
+        ramp_routing: 'test_routing',
         is_authenticated: true,
         preferred_provider: 'test_provider',
         order_count: 5,

@@ -19,7 +19,10 @@ import {
   KeyringControllerState,
 } from '@metamask/keyring-controller';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
-import { TransactionController } from '@metamask/transaction-controller';
+import {
+  TransactionController,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { AcceptOptions } from '@metamask/approval-controller';
 import {
@@ -125,6 +128,7 @@ import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
+import { ApprovalControllerInit } from './controllers/approval-controller';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -323,6 +327,7 @@ export class Engine {
         AssetsContractController: assetsContractControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
+        ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
@@ -420,7 +425,7 @@ export class Engine {
       messengerClientsByName.RemoteFeatureFlagController;
     const accountsController = messengerClientsByName.AccountsController;
     const accountTreeController = messengerClientsByName.AccountTreeController;
-    const approvalController = this.#wallet.getInstance('ApprovalController');
+    const approvalController = messengerClientsByName.ApprovalController;
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
     const accountTrackerController =
@@ -655,6 +660,13 @@ export class Engine {
     });
 
     this.controllerMessenger.subscribe(
+      'TransactionController:incomingTransactionsReceived',
+      (incomingTransactions: TransactionMeta[]) => {
+        NotificationManager.gotIncomingTransaction(incomingTransactions);
+      },
+    );
+
+    this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       (state: NetworkState) => {
         if (
@@ -743,6 +755,8 @@ export class Engine {
             } catch {
               // Chain may not be configured locally — skip balance refresh
             }
+
+            this.context.TransactionController.updateIncomingTransactions();
           }
         } catch (error) {
           console.error(
@@ -828,6 +842,7 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
+    this.startPolling();
     this.handleVaultBackup();
 
     Engine.instance = this;
@@ -856,6 +871,15 @@ export class Engine {
           });
       },
     );
+  }
+
+  startPolling() {
+    const { TransactionController } = this.context;
+
+    TransactionController.stopIncomingTransactionPolling();
+
+    // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
+    TransactionController.startIncomingTransactionPolling();
   }
 
   configureControllersOnNetworkChange() {

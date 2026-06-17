@@ -127,7 +127,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await CreatePasswordView.reEnterPassword(password);
         await PlaywrightGestures.hideKeyboard();
 
-        await CreatePasswordView.ensureMarketingOptInChecked();
+        await CreatePasswordView.tapIUnderstandCheckBox();
         await PlaywrightGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
 

@@ -13,7 +13,7 @@ export const useSyncSRPs = () => {
       return;
     }
 
-    const syncSRPs = async () => {
+    (async () => {
       try {
         setLoading(true);
         await Authentication.syncSeedPhrases();
@@ -22,9 +22,7 @@ export const useSyncSRPs = () => {
       } finally {
         setLoading(false);
       }
-    };
-
-    syncSRPs();
+    })();
   }, [isSocialLoginEnabled]);
 
   return { loading };

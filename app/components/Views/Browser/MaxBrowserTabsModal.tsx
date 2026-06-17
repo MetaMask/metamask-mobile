@@ -4,6 +4,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import styleSheet from './MaxBrowserTabsModal.styles';
 import { useStyles } from '../../../component-library/hooks';
@@ -11,12 +16,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  Text,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
+import { Text } from '@metamask/design-system-react-native';
 
 const MaxBrowserTabsModal = () => {
   const {
@@ -44,13 +44,12 @@ const MaxBrowserTabsModal = () => {
           {strings('browser.max_tabs_desc')}
         </Text>
         <Button
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariants.Primary}
+          label={strings('browser.got_it')}
+          width={ButtonWidthTypes.Full}
           size={ButtonSize.Lg}
-          isFullWidth
           onPress={dismissModal}
-        >
-          {strings('browser.got_it')}
-        </Button>
+        />
       </View>
     </BottomSheet>
   );

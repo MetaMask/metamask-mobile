@@ -176,25 +176,6 @@ export default class PlaywrightMatchers {
   }
 
   /**
-   * Get all elements matching an XPath selector.
-   * Returns an empty array when no element matches — use this when the count
-   * itself is the thing under test.
-   * @param xpath - The XPath selector to search for
-   * @returns The wrapped elements
-   */
-  static async getAllElementsByXPath(
-    xpath: string,
-  ): Promise<PlaywrightElement[]> {
-    this.logFind('all elements by xpath', xpath);
-    const drv = getDriver();
-    if (!drv) throw new Error('Driver is not available');
-    const elements = await drv.$$(xpath);
-    return elements.map((el) =>
-      wrapElement(el as unknown as ChainablePromiseElement),
-    );
-  }
-
-  /**
    * Get a lazy element reference by XPath without requiring the element to
    * exist in the DOM. Unlike getElementByXPath, this does NOT throw when the
    * element is absent — use this for negative assertions where the element may

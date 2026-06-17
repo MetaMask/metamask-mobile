@@ -41,6 +41,7 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { useTheme } from '../../../util/theme';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
@@ -552,7 +553,7 @@ const UnifiedTransactionsView = ({
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refetch();
+      await Promise.all([updateIncomingTransactions(), refetch()]);
     } finally {
       setRefreshing(false);
     }

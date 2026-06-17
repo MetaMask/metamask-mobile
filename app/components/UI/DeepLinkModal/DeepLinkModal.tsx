@@ -14,6 +14,11 @@ import styleSheet from './DeepLinkModal.styles';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../component-library/components/Checkbox';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Box } from '../../../components/UI/Box/Box';
@@ -35,9 +40,6 @@ import {
   Text,
   TextVariant,
   TextColor,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
@@ -236,15 +238,16 @@ const DeepLinkModal = () => {
         </Box>
       )}
       <Button
-        variant={ButtonVariant.Primary}
+        variant={ButtonVariants.Primary}
         size={ButtonSize.Lg}
-        isFullWidth
+        width={ButtonWidthTypes.Full}
+        label={
+          LINK_TYPE_MAP[linkType].buttonLabel ||
+          strings('deep_link_modal.continue_button')
+        }
         onPress={onPrimaryButtonPressed}
         style={styles.actionButtonMargin}
-      >
-        {LINK_TYPE_MAP[linkType].buttonLabel ||
-          strings('deep_link_modal.continue_button')}
-      </Button>
+      />
     </BottomSheet>
   );
 };

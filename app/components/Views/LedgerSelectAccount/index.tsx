@@ -162,9 +162,6 @@ const LedgerSelectAccount = () => {
           const isReady = await ensureDeviceReady();
 
           if (isReady) {
-            // We default to the Ledger Live path BEFORE fetching accounts.
-            await setHDPath(LEDGER_LIVE_PATH);
-
             DevLogger.log(
               '[LedgerSelectAccount] Device ready - fetching accounts',
             );

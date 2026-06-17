@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Fundos insuficientes",
-      "message": "Você não tem {{nativeCurrency}} suficiente em sua conta para pagar as taxas de rede.",
-      "buy_action": "Comprar {{nativeCurrency}}"
+      "message": "Você não tem %{nativeCurrency} suficiente em sua conta para pagar as taxas de rede.",
+      "buy_action": "Comprar %{nativeCurrency}"
     },
     "signed_or_submitted": {
       "title": "Transação em andamento",
@@ -142,7 +142,7 @@
       "message": "O endereço do destinatário pode não aceitar transferências diretas de tokens, o que pode resultar na perda de fundos. Prossiga apenas se tiver certeza de que este contrato pode receber sua transferência."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Esta rede específica requer que você mantenha uma reserva de {{minBalance}} {{nativeTokenSymbol}} em sua conta.",
+      "message": "Esta rede específica requer que você mantenha uma reserva de %{minBalance} %{nativeTokenSymbol} em sua conta.",
       "title": "É obrigatório ter saldo de reserva"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "Esqueceu a senha?",
     "cant_proceed": "Você só poderá prosseguir depois de digitar a palavra \"Excluir\". Com essa ação, você está optando por excluir sua carteira atual.",
     "invalid_password": "Senha incorreta. Tente novamente.",
-    "type_delete": "Digite “{{erase}}” para confirmar",
+    "type_delete": "Digite “%{erase}” para confirmar",
     "erase_my": "Sim, redefinir carteira",
     "cancel": "Cancelar",
     "are_you_sure": "Tem certeza?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "Não foi possível cancelar seu pedido. Tente novamente."
     },
     "webview_modal": {
-      "error": "O WebView recebeu este erro: {{code}}"
+      "error": "O WebView recebeu este erro: %{code}"
     },
     "notifications": {
       "deposit_failed_title": "O depósito de {{currency}} falhou! Tente de novo. Desculpe a inconveniência!",
@@ -2041,6 +2041,8 @@
       "stocks_and_commodities": "Explorar ações e commodities",
       "tabs": {
         "crypto": "Cripto",
+        "stocks": "Ações",
+        "commodities": "Commodities",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
         "new": "Nova",
@@ -3564,13 +3566,13 @@
     "general_heading": "Geral",
     "privacy_heading": "Privacidade",
     "failed_to_fetch_chain_id": "Não foi possível buscar o ID da cadeia. Seu URL da RPC está correto?",
-    "endpoint_returned_different_chain_id": "O terminal retornou um ID de cadeia diferente: {{chainIdReturned}}",
+    "endpoint_returned_different_chain_id": "O terminal retornou um ID de cadeia diferente: %{chainIdReturned}",
     "chain_id_required": "O ID da cadeia é obrigatório. Ele deve coincidir com o ID de cadeia retornado pela rede. Você pode inserir um número decimal ou um hexadecimal com o prefixo '0x'.",
     "invalid_hex_number": "Número hexadecimal inválido.",
     "invalid_hex_number_leading_zeros": "Número hexadecimal inválido. Remova os zeros à esquerda.",
     "invalid_number": "Número inválido. Insira um número decimal ou um hexadecimal com o prefixo '0x'.",
     "invalid_number_leading_zeros": "Número inválido. Remova os zeros à esquerda.",
-    "invalid_number_range": "Número inválido. Insira um número entre 1 e {{maxSafeChainId}}",
+    "invalid_number_range": "Número inválido. Insira um número entre 1 e %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Ocultar tokens sem saldo",
     "hide_zero_balance_tokens_desc": "Evita que tokens sem saldo sejam exibidos na sua listagem de tokens.",
     "haptic_feedback_title": "Feedback háptico",
@@ -4444,8 +4446,8 @@
     "confusable_msg": "Detectamos um caractere ambíguo no nome ENS. Verifique o nome ENS para evitar um possível golpe.",
     "similar_to": "é similar a",
     "contains_zero_width": "contém caractere de largura zero",
-    "dapp_suggested_gas": "Essa taxa de gás foi sugerida por {{origin}}. Ela usa uma estimativa legada de gás que pode estar incorreta. No entanto, editar essa taxa de gás pode causar um problema na sua transação. Entre em contato com {{origin}} caso tenha alguma dúvida.",
-    "dapp_suggested_eip1559_gas": "Essa taxa de gás foi sugerida por {{origin}}. Substituir esse valor pode causar um problema na sua transação. Entre em contato com {{origin}} caso tenha alguma dúvida.",
+    "dapp_suggested_gas": "Essa taxa de gás foi sugerida por %{origin}. Ela usa uma estimativa legada de gás que pode estar incorreta. No entanto, editar essa taxa de gás pode causar um problema na sua transação. Entre em contato com %{origin} caso tenha alguma dúvida.",
+    "dapp_suggested_eip1559_gas": "Essa taxa de gás foi sugerida por %{origin}. Substituir esse valor pode causar um problema na sua transação. Entre em contato com %{origin} caso tenha alguma dúvida.",
     "address_invalid": "O endereço do destinatário é inválido.",
     "ens_not_found": "Nenhum endereço foi configurado para esse nome.",
     "unknown_qr_code": "Código QR inválido. Tente novamente.",
@@ -6216,7 +6218,7 @@
     }
   },
   "invalid_network": {
-    "title": "O ID de cadeia da rede personalizada \n {{network}} \n precisa ser reinserido.",
+    "title": "O ID de cadeia da rede personalizada \n %{network} \n precisa ser reinserido.",
     "message": "Para proteger você contra provedores de rede mal-intencionados ou defeituosos, os IDs de cadeia agora são exigidos para todas as redes personalizadas.",
     "hint": "Você pode encontrar os IDs de cadeia das redes mais populares em",
     "edit_network_button": "Editar rede",
@@ -6248,7 +6250,7 @@
     "cancel": "Cancelar",
     "approve": "Aprovar",
     "unrecognized_chain": "Essa rede personalizada não foi reconhecida",
-    "invalid_chain": "A {{rpcUrl}} deste ID de cadeia não coincide com a lista de chainid.network",
+    "invalid_chain": "A %{rpcUrl} deste ID de cadeia não coincide com a lista de chainid.network",
     "alert_recommend": "Recomendamos que você",
     "alert_verify": "verifique o ID da cadeia",
     "warning_subtext_new": {
@@ -9216,6 +9218,43 @@
       "stats_error_title": "Não foi possível carregar estatísticas",
       "stats_error_description": "Tivemos um problema ao carregar suas estatísticas. Tente novamente.",
       "stats_retry": "Tentar novamente"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "Predict The Pitch",
+      "stats_title": "Estatísticas",
+      "label_rank": "Classificação",
+      "label_your_rank": "Sua classificação",
+      "label_roi": "ROI",
+      "label_total_volume": "Valor total",
+      "label_pnl": "PnL",
+      "predict_now_cta": "Predict now",
+      "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
+      "positions_error": "Failed to load predictions",
+      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_retry": "Tentar novamente",
+      "positions_last_updated": "Última atualização: {{time}}",
+      "positions_empty": "Nenhuma previsão ainda",
+      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "leaderboard_title": "Tabela de classificação",
+      "leaderboard_total_participants": "{{count}} participantes",
+      "last_updated": "Última atualização: {{time}}",
+      "leaderboard_error_loading": "Falha ao carregar a tabela de classificação",
+      "leaderboard_error_loading_description": "Ocorreu um erro ao carregar a tabela de classificação. Tente novamente.",
+      "leaderboard_not_yet_computed": "A tabela de classificação ainda não foi calculada. Volte mais tarde.",
+      "stats_error_title": "Não foi possível carregar estatísticas",
+      "stats_error_description": "Tivemos um problema ao carregar suas estatísticas. Tente novamente.",
+      "label_markets_traded": "Markets traded",
+      "stats_retry": "Tentar novamente",
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",

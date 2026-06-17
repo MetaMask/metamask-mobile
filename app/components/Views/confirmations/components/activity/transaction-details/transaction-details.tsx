@@ -23,8 +23,6 @@ import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fe
 import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
-import { TransactionDetailsToRow } from '../transaction-details-to-row';
-import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -63,13 +61,10 @@ export function TransactionDetails() {
         <ScrollView>
           <Box style={styles.container} gap={12}>
             <TransactionDetailsHero />
-            {showSummarySection && <TransactionDetailDivider />}
             <TransactionDetailsStatusRow />
             <TransactionDetailsDateRow />
             <TransactionDetailsAccountRow />
             <TransactionDetailDivider />
-            <TransactionDetailsToRow />
-            <TransactionDetailsFiatOrderIdRow />
             <TransactionDetailsPaidWithRow />
             <TransactionDetailsNetworkFeeRow />
             <TransactionDetailsBridgeFeeRow />

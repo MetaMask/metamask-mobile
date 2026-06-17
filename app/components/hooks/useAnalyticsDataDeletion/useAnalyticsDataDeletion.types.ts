@@ -7,11 +7,13 @@ import type {
 
 /**
  * Return type of useAnalyticsDataDeletion hook.
- * Proxies the four analytics data deletion util functions.
+ * Proxies the six analytics data deletion util functions.
  */
 export interface UseAnalyticsDataDeletionHook {
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
   checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
   getDeleteRegulationCreationDate(): DataDeleteDate;
   getDeleteRegulationId(): DataDeleteRegulationId;
+  isDataRecorded(): boolean;
+  updateDataRecordingFlag(saveDataRecording?: boolean): void;
 }

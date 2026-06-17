@@ -1,7 +1,6 @@
 import {
   formatAddressToAssetId,
   formatChainIdToHex,
-  isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import {
@@ -71,8 +70,7 @@ export const useQuickBuySetup = (
   // are served from the chain's native asset registry. Token references
   // (`erc20`, `token`, `spl`, `trc20`, …) get their bare address forwarded to
   // `useAssetMetadata`. Bare hex/base58 addresses (legacy EVM shape) fall
-  // through unchanged — except the EVM native sentinel (`0x0…0`), which Token
-  // Details passes for natives like MON on Monad or HYPE on HyperEVM.
+  // through unchanged.
   const { metadataQuery, isNativeAsset, parsedTokenAddress } = useMemo(() => {
     const fallback = {
       metadataQuery: position?.tokenAddress ?? '',
@@ -84,13 +82,6 @@ export const useQuickBuySetup = (
     }
     const parsed = parseAssetType(position.tokenAddress);
     if (!parsed) {
-      if (isNativeAddress(position.tokenAddress)) {
-        return {
-          metadataQuery: '',
-          isNativeAsset: true,
-          parsedTokenAddress: undefined,
-        };
-      }
       return fallback;
     }
     if (parsed.namespace === 'slip44') {

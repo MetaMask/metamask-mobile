@@ -41,9 +41,6 @@ export interface HardwareWalletBottomSheetProps {
   deviceSelection: DeviceSelectionState;
   walletType: HardwareWalletType | null;
 
-  /** When true, the bottom sheet returns null regardless of connection state. */
-  forceHideBottomSheet?: boolean;
-
   retryEnsureDeviceReady: () => Promise<void>;
   selectDevice: (device: DiscoveredDevice) => void;
   rescan: () => void;
@@ -80,7 +77,6 @@ export const HardwareWalletBottomSheet: React.FC<
   connectionState,
   deviceSelection,
   walletType,
-  forceHideBottomSheet,
   retryEnsureDeviceReady,
   selectDevice,
   rescan,
@@ -101,7 +97,6 @@ export const HardwareWalletBottomSheet: React.FC<
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
   const shouldShow = useMemo(() => {
-    if (forceHideBottomSheet) return false;
     if (!walletType) return false;
     switch (connectionState.status) {
       case ConnectionStatus.Scanning:
@@ -115,7 +110,7 @@ export const HardwareWalletBottomSheet: React.FC<
       default:
         return false;
     }
-  }, [connectionState.status, walletType, forceHideBottomSheet]);
+  }, [connectionState.status, walletType]);
 
   useEffect(() => {
     DevLogger.log(
@@ -268,7 +263,6 @@ export const HardwareWalletBottomSheet: React.FC<
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return (
     <BottomSheet
       ref={bottomSheetRef}

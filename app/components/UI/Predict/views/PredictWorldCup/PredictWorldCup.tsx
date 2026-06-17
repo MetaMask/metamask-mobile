@@ -7,12 +7,7 @@ import React, {
 } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  type LayoutChangeEvent,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import {
   Theme,
@@ -86,7 +81,6 @@ interface WorldCupTabButtonProps {
   tab: PredictWorldCupAvailableTab;
   isActive: boolean;
   onPress: () => void;
-  onLayout: (event: LayoutChangeEvent) => void;
 }
 
 const WorldCupLiveTabLabelContent = ({ label }: { label: string }) => {
@@ -131,14 +125,12 @@ const WorldCupTabButton = ({
   tab,
   isActive,
   onPress,
-  onLayout,
 }: WorldCupTabButtonProps) => {
   const tw = useTailwind();
 
   return (
     <Pressable
       onPress={onPress}
-      onLayout={onLayout}
       style={tw.style(
         'min-w-[51px] flex-row items-center justify-center gap-2 rounded-xl bg-muted p-2',
         isActive && 'bg-icon-default',
@@ -291,11 +283,6 @@ const WorldCupTabContent = ({
 const PredictWorldCup: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const tabsScrollViewRef = useRef<ScrollView>(null);
-  const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
-    {},
-  );
-  const hasScrolledToInitialTabRef = useRef(false);
   const hasTrackedInitialFeedViewed = useRef(false);
   const feedSessionId = useMemo(() => uuidv4(), []);
   const feedSessionStartTime = useMemo(() => Date.now(), []);
@@ -391,35 +378,6 @@ const PredictWorldCup: React.FC = () => {
     });
   }, [navigation, route.params?.entryPoint, transactionActiveAbTests]);
 
-  const scrollActiveTabIntoView = useCallback(
-    (tabKey: PredictWorldCupTabKey, animated: boolean) => {
-      const layout = tabLayoutsRef.current[tabKey];
-      if (!layout || !tabsScrollViewRef.current) {
-        return;
-      }
-
-      // Offset so the pill isn't flush against the screen edge (matches px-4).
-      const targetX = Math.max(layout.x - 16, 0);
-      tabsScrollViewRef.current.scrollTo({ x: targetX, animated });
-    },
-    [],
-  );
-
-  const handleTabLayout = useCallback(
-    (tabKey: PredictWorldCupTabKey, event: LayoutChangeEvent) => {
-      const { x, width } = event.nativeEvent.layout;
-      tabLayoutsRef.current[tabKey] = { x, width };
-
-      // The initial tab can be off-screen (e.g. a late-stage bracket); bring it
-      // into view once its layout is measured.
-      if (!hasScrolledToInitialTabRef.current && tabKey === activeTab) {
-        hasScrolledToInitialTabRef.current = true;
-        scrollActiveTabIntoView(tabKey, false);
-      }
-    },
-    [activeTab, scrollActiveTabIntoView],
-  );
-
   const handleTabPress = useCallback(
     (tabKey: PredictWorldCupTabKey) => {
       if (tabKey === activeTab) {
@@ -442,13 +400,6 @@ const PredictWorldCup: React.FC = () => {
     [activeTab, entryPoint, feedSessionId, feedSessionStartTime],
   );
 
-  useEffect(() => {
-    // Keep the active pill visible when the tab changes (tap or resolved
-    // initial tab). On first mount the layout may not be measured yet, in which
-    // case `handleTabLayout` performs the initial scroll instead.
-    scrollActiveTabIntoView(activeTab, true);
-  }, [activeTab, scrollActiveTabIntoView]);
-
   if (!isScreenEnabled) {
     return null;
   }
@@ -467,7 +418,6 @@ const PredictWorldCup: React.FC = () => {
 
       <Box twClassName="flex-1">
         <ScrollView
-          ref={tabsScrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           style={tw.style('grow-0')}
@@ -480,7 +430,6 @@ const PredictWorldCup: React.FC = () => {
               tab={tab}
               isActive={activeTab === tab.key}
               onPress={() => handleTabPress(tab.key)}
-              onLayout={(event) => handleTabLayout(tab.key, event)}
             />
           ))}
         </ScrollView>

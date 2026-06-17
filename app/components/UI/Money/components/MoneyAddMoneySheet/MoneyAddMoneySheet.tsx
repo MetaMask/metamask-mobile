@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
@@ -20,10 +20,16 @@ import {
   BottomSheet,
   BottomSheetHeader,
   type BottomSheetRef,
+  FontWeight,
+  Icon,
   IconName,
+  IconSize,
+  IconColor,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
@@ -41,9 +47,10 @@ import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
-import MoneySheetOptionsList, {
-  type MoneySheetOption,
-} from '../MoneySheetOptionsList';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -55,6 +62,15 @@ import {
 } from '../../constants/moneyEvents';
 
 const log = createProjectLogger('money-add-money-sheet');
+
+interface Option {
+  label: string;
+  icon: IconName;
+  onPress: () => void;
+  testID: string;
+  disabled?: boolean;
+  comingSoon?: boolean;
+}
 
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -72,6 +88,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const hasNativeFiatProvider = useHasNativeFiatProvider();
   const transactions = useSelector(selectTransactions);
   const isFiatDepositEnabled = useMemo(
@@ -202,7 +219,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
     : strings('money.add_money_sheet.add_musd');
 
-  const baseOptions: MoneySheetOption[] = [
+  const baseOptions: Option[] = [
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -210,7 +227,8 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled
+    ...(isFiatDepositEnabled &&
+    rampRoutingDecision !== UnifiedRampRoutingType.UNSUPPORTED
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
@@ -224,7 +242,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       : []),
   ];
 
-  const options: MoneySheetOption[] = [
+  const options: Option[] = [
     ...baseOptions,
     {
       label: moveMusdLabel,
@@ -233,13 +251,11 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       disabled: !hasMusdBalance,
     },
-    {
-      label: strings('money.add_money_sheet.receive_external'),
-      icon: IconName.QrCode,
-      testID: MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
-      disabled: true,
-      comingSoon: true,
-    },
+  ];
+
+  const orderedOptions: Option[] = [
+    ...options.filter((option) => !option.disabled),
+    ...options.filter((option) => option.disabled),
   ];
 
   return (
@@ -256,7 +272,71 @@ const MoneyAddMoneySheet: React.FC = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
-        <MoneySheetOptionsList options={options} />
+        {orderedOptions.map((item) => (
+          <TouchableOpacity
+            key={item.testID}
+            disabled={item.disabled}
+            onPress={item.disabled ? undefined : item.onPress}
+            style={styles.row}
+            testID={item.testID}
+          >
+            <Icon
+              name={item.icon}
+              size={IconSize.Lg}
+              color={
+                item.disabled ? IconColor.IconMuted : IconColor.IconDefault
+              }
+            />
+            {item.comingSoon ? (
+              <View style={styles.disabledRowContent}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {item.label}
+                </Text>
+                <Tag
+                  label={strings('money.add_money_sheet.coming_soon')}
+                  style={styles.comingSoonTag}
+                />
+              </View>
+            ) : (
+              <View style={styles.rowLabelContainer}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={item.disabled ? TextColor.TextAlternative : undefined}
+                >
+                  {item.label}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+        <View
+          style={styles.row}
+          testID={MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW}
+        >
+          <Icon
+            name={IconName.Arrow2Down}
+            size={IconSize.Lg}
+            color={IconColor.IconMuted}
+          />
+          <View style={styles.disabledRowContent}>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {strings('money.add_money_sheet.receive_external')}
+            </Text>
+            <Tag
+              label={strings('money.add_money_sheet.coming_soon')}
+              style={styles.comingSoonTag}
+            />
+          </View>
+        </View>
       </View>
     </BottomSheet>
   );

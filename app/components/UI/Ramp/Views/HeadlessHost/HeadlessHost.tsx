@@ -119,10 +119,7 @@ function HeadlessHost() {
   const chainId = session
     ? (getChainIdFromAssetId(session.params.assetId) as CaipChainId | null)
     : null;
-  const resolvedWalletAddress = useRampAccountAddress(
-    chainId ?? ('' as CaipChainId),
-  );
-  const walletAddress = session?.params.walletAddress ?? resolvedWalletAddress;
+  const walletAddress = useRampAccountAddress(chainId ?? ('' as CaipChainId));
 
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the

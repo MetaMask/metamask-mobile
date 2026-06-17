@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "8.0.0",
+  "version": "7.82.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -213,7 +213,7 @@
     "react-native-quick-base64@npm:^2.0.5": "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch",
     "@metamask/permission-controller": "^13.1.1",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
-    "@metamask/transaction-controller": "68.0.0",
+    "@metamask/transaction-controller": "67.1.0",
     "@metamask/keyring-controller": "^26.0.0",
     "@metamask/accounts-controller": "^39.0.0"
   },
@@ -314,7 +314,7 @@
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^3.1.0",
-    "@metamask/profile-sync-controller": "^28.2.0",
+    "@metamask/profile-sync-controller": "^28.1.0",
     "@metamask/ramps-controller": "^14.1.0",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
@@ -346,11 +346,11 @@
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/transaction-controller": "^68.0.0",
-    "@metamask/transaction-pay-controller": "^23.6.0",
+    "@metamask/transaction-controller": "^67.1.0",
+    "@metamask/transaction-pay-controller": "^23.5.0",
     "@metamask/tron-wallet-snap": "^1.25.6",
     "@metamask/utils": "^11.11.0",
-    "@metamask/wallet": "^3.0.0",
+    "@metamask/wallet": "^2.0.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.32.2",
@@ -498,7 +498,6 @@
     "react-native-keychain": "^9.0.0",
     "react-native-level-fs": "3.0.1",
     "react-native-linear-gradient": "^2.8.3",
-    "react-native-localize": "^3.4.1",
     "react-native-material-textfield": "0.16.1",
     "react-native-mmkv": "^3.2.0",
     "react-native-modal": "^14.0.0-rc.1",
@@ -625,7 +624,6 @@
     "@walletconnect/types": "^2.23.0",
     "@wdio/protocols": "^9.27.0",
     "@welldone-software/why-did-you-render": "^8.0.1",
-    "@yarnpkg/types": "^4.0.1",
     "agent-device": "^0.14.8",
     "appium": "^2.5.4",
     "appium-adb": "^9.11.4",
@@ -811,7 +809,7 @@
       "@metamask/transaction-pay-controller>@metamask/bridge-status-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
     }
   },
-  "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
+  "packageManager": "yarn@4.14.1",
   "foundryup": {
     "binaries": [
       "anvil"

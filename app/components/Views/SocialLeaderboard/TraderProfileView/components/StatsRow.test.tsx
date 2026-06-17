@@ -115,10 +115,10 @@ describe('StatsRow', () => {
     expect(screen.getByText('win rate')).toBeOnTheScreen();
   });
 
-  it('renders 30D Return label', () => {
+  it('renders 30D P&L label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('30D Return')).toBeOnTheScreen();
+    expect(screen.getByText('30D P&L')).toBeOnTheScreen();
   });
 
   it('renders hold time label', () => {

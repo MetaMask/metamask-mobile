@@ -73,39 +73,3 @@ export const isVedaToken = (
     token.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY
   );
 };
-
-/**
- * True when the Money Account spending token (VEDA) is present and enabled in
- * the cardFeature allowlist for VEDA's chain.
- */
-export const isMoneyAccountCardTokenAllowlisted = (
-  chains:
-    | Record<
-        string,
-        | {
-            tokens?:
-              | {
-                  address?: string | null;
-                  symbol?: string | null;
-                  enabled?: boolean | null;
-                }[]
-              | null;
-          }
-        | undefined
-      >
-    | null
-    | undefined,
-  vedaConfig: VedaTokenConfig | null | undefined,
-): boolean => {
-  if (!chains || !vedaConfig) {
-    return false;
-  }
-  const target = vedaConfig.address.toLowerCase();
-  const chain = chains[vedaConfig.caipChainId];
-  return (chain?.tokens ?? []).some(
-    (token) =>
-      token?.enabled !== false &&
-      (token?.address?.toLowerCase() === target ||
-        token?.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY),
-  );
-};

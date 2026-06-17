@@ -103,6 +103,9 @@ jest.mock('../components/MoneyLinkCardSheet', () => () => (
 jest.mock('../components/MoneyEarnCryptoInfoSheet', () => () => (
   <MockView testID="mock-money-earn-crypto-info-sheet" />
 ));
+jest.mock('../components/MoneyTransactionDetailsSheet', () => () => (
+  <MockView testID="mock-money-transaction-details-sheet" />
+));
 jest.mock('../../../Views/confirmations/components/confirm', () => ({
   Confirm: () => <MockView testID="mock-confirm" />,
 }));
@@ -263,6 +266,16 @@ describe('MoneyModalStack', () => {
 
     expect(
       getByTestId('money-screen-MoneyEarnCryptoInfoSheet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('registers the Transaction details sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      getByTestId('money-screen-MoneyTransactionDetailsSheet'),
     ).toBeOnTheScreen();
   });
 });

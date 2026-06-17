@@ -20,14 +20,12 @@ const PerpsRedirect: React.FC = () => {
       // 2. Mount the Wallet component
       // 3. Make navigation context available for setParams
       // Without this delay, the tab selection will fail
-      const timerId = setTimeout(() => {
+      setTimeout(() => {
         NavigationService.navigation.setParams({
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
       }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
-
-      return () => clearTimeout(timerId);
     }
   }, [isConnected, isInitialized]);
 

@@ -14,10 +14,7 @@ import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagC
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { hasTransactionType } from '../../../utils/transaction';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
@@ -71,8 +68,6 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     (isPerps && enablePerpsMoneyAccountTransactions) ||
     (isPredict && enablePredictMoneyAccountTransactions);
 
-  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-
   const handlePress = useCallback(() => {
     if (transactionId) {
       Engine.context.TransactionPayController.setTransactionConfig(
@@ -80,14 +75,14 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
         (config) => {
           (config as Record<string, unknown>).paymentOverride =
             PaymentOverride.MoneyAccount;
-          if (moneyAccount?.address && !isWithdraw) {
+          if (moneyAccount?.address) {
             config.refundTo = moneyAccount.address as Hex;
           }
         },
       );
     }
     navigation.goBack();
-  }, [isWithdraw, moneyAccount?.address, navigation, transactionId]);
+  }, [moneyAccount?.address, navigation, transactionId]);
 
   return useMemo(() => {
     if (!isEnabled || !moneyAccount) {

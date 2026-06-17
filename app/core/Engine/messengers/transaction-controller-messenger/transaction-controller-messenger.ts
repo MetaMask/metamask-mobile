@@ -95,6 +95,9 @@ export function getTransactionControllerMessenger(
     ],
     events: [
       'AccountActivityService:transactionUpdated',
+      'AccountActivityService:statusChanged',
+      'AccountsController:selectedAccountChange',
+      'BackendWebSocketService:connectionStateChanged',
       'NetworkController:stateChange',
     ],
     messenger,

@@ -175,6 +175,7 @@ export interface FiatOrdersState {
   selectedRegionAgg?: unknown;
   selectedPaymentMethodAgg?: string;
   detectedGeolocation?: string;
+  rampRoutingDecision?: string;
   networks?: unknown[];
   [key: string]: unknown;
 }

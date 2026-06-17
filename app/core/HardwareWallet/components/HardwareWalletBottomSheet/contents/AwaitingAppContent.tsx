@@ -5,11 +5,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
+  ButtonVariants,
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
@@ -117,15 +117,14 @@ export const AwaitingAppContent: React.FC<AwaitingAppContentProps> = ({
       footer={
         onContinue ? (
           <Button
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
+            label={strings('hardware_wallet.common.continue')}
             onPress={onContinue}
-            isLoading={isLoading}
+            loading={isLoading}
             isDisabled={isLoading}
-          >
-            {strings('hardware_wallet.common.continue')}
-          </Button>
+          />
         ) : undefined
       }
     />

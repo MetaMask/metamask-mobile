@@ -24,7 +24,9 @@ import Input from '../../../component-library/components/Form/TextField/foundati
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewAccount.styles';
 import { useSelector } from 'react-redux';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import SRPList from '../../UI/SRPList';
 import Logger from '../../../util/Logger';
 import {
@@ -227,23 +229,23 @@ const AddNewAccount = ({
               <View style={styles.footerContainer}>
                 <Button
                   testID={AddNewAccountIds.CANCEL}
-                  isLoading={isLoading}
+                  loading={isLoading}
                   style={styles.button}
-                  variant={ButtonVariant.Secondary}
+                  variant={ButtonVariants.Secondary}
                   onPress={handleOnBack}
-                >
-                  {strings('accounts.cancel')}
-                </Button>
+                  labelTextVariant={TextVariant.BodyMD}
+                  label={strings('accounts.cancel')}
+                />
                 <Button
                   testID={AddNewAccountIds.CONFIRM}
-                  isLoading={isLoading}
+                  loading={isLoading}
                   isDisabled={isLoading || isDuplicateName}
                   style={styles.button}
-                  variant={ButtonVariant.Primary}
+                  variant={ButtonVariants.Primary}
                   onPress={onSubmit}
-                >
-                  {strings('accounts.add')}
-                </Button>
+                  labelTextVariant={TextVariant.BodyMD}
+                  label={strings('accounts.add')}
+                />
               </View>
               {error && (
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>

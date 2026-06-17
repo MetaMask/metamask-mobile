@@ -4,7 +4,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyEarnCryptoInfoSheet from './MoneyEarnCryptoInfoSheet';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
@@ -21,10 +20,6 @@ const mockGoBack = jest.fn();
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
-}));
-
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -97,12 +92,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-
 describe('MoneyEarnCryptoInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseParams.mockReturnValue({});
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
     });
@@ -159,46 +151,6 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     fireEvent.press(getByTestId('bottom-sheet-go-back-trigger'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not render the deposit title without a variant', () => {
-    const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-    expect(
-      queryByText(strings('money.earn_crypto_info_sheet.deposit_title')),
-    ).toBeNull();
-  });
-
-  describe('when variant is deposit', () => {
-    beforeEach(() => {
-      mockUseParams.mockReturnValue({ variant: 'deposit' });
-    });
-
-    it('renders the deposit title', () => {
-      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        getByText(strings('money.earn_crypto_info_sheet.deposit_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render the default title', () => {
-      const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        queryByText(strings('money.earn_crypto_info_sheet.title')),
-      ).toBeNull();
-    });
-
-    it('renders the body paragraph', () => {
-      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        getByText(
-          strings('money.earn_crypto_info_sheet.body', { percentage: 4 }),
-        ),
-      ).toBeOnTheScreen();
-    });
   });
 
   it('falls back to a baseline APY when the live value is unavailable', () => {

@@ -1,9 +1,4 @@
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-  useMemo,
-} from 'react';
+import React, { forwardRef, useImperativeHandle, useEffect } from 'react';
 import { View, ViewProps } from 'react-native';
 
 /** Shared so tests can assert `fireState` across Rive remounts when props change. */
@@ -36,7 +31,6 @@ type MockRiveProps = ViewProps & {
   autoplay?: boolean;
   stateMachineName?: string;
   onPlay?: () => void;
-  onError?: (error: unknown) => void;
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -58,18 +52,8 @@ const updateLastMockedMethods = (methods: RiveRef) => {
 };
 
 const RiveMock = forwardRef<RiveRef, MockRiveProps>(
-  (
-    { testID = DEFAULT_TEST_ID, mockedMethods, onPlay, onError, ...viewProps },
-    ref,
-  ) => {
-    const methods = useMemo(
-      () =>
-        ({
-          ...createMockedMethods(mockedMethods),
-          onError,
-        }) as RiveRef,
-      [mockedMethods, onError],
-    );
+  ({ testID = DEFAULT_TEST_ID, mockedMethods, onPlay, ...viewProps }, ref) => {
+    const methods = createMockedMethods(mockedMethods);
     updateLastMockedMethods(methods);
 
     useImperativeHandle(ref, () => methods, [methods]);

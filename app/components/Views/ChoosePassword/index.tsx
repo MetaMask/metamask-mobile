@@ -100,7 +100,6 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 
 interface KeyringState {
   type: string;
@@ -134,9 +133,7 @@ const ChoosePassword = () => {
   const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
-  const [isSelected, setIsSelected] = useState(() =>
-    getDefaultMarketingOptInChecked(route.params?.oauthLoginSuccess === true),
-  );
+  const [isSelected, setIsSelected] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);

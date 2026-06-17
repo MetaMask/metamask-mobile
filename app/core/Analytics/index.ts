@@ -1,3 +1,4 @@
+import MetaMetrics from './MetaMetrics';
 import { MetaMetricsEvents, EVENT_NAME } from './MetaMetrics.events';
 import {
   DataDeleteStatus,
@@ -6,6 +7,7 @@ import {
 } from './MetaMetrics.types';
 
 export {
+  MetaMetrics,
   MetaMetricsEvents,
   DataDeleteStatus,
   DataDeleteResponseStatus,

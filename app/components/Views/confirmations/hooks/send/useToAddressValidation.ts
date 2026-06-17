@@ -45,9 +45,10 @@ export const useToAddressValidation = () => {
         return {};
       }
 
-      // Accept any valid 20-byte hex address regardless of case (parity with
-      // Extension); EIP-55 checksum casing is not enforced for recipients.
-      if (isEvmSendType && isValidHexAddress(toAddress)) {
+      if (
+        isEvmSendType &&
+        isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
+      ) {
         return await validateHexAddress(
           toAddress,
           chainId as Hex,

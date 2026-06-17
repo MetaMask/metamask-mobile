@@ -123,11 +123,10 @@ describe('sortPositions', () => {
       lastTradeAt: 2_000,
     });
 
-    it('sorts by realized $ P&L descending when sortKey is value', () => {
-      // realizedPnl: a=100, b=30, c=500 → c, a, b
+    it('sorts by soldUsd descending when sortKey is value', () => {
       const result = sortPositions([a, b, c], 'value', 'closed');
 
-      expect(result.map((p) => p.positionId)).toEqual(['c', 'a', 'b']);
+      expect(result.map((p) => p.positionId)).toEqual(['b', 'c', 'a']);
     });
 
     it('sorts by realized P&L percent descending when sortKey is pnl', () => {

@@ -19,7 +19,10 @@ import { TransactionDetailLocation } from '../../../core/Analytics/events/transa
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
 import NotificationManager from '../../../core/NotificationManager';
-import { speedUpTransaction } from '../../../util/transaction-controller';
+import {
+  updateIncomingTransactions,
+  speedUpTransaction,
+} from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
@@ -63,6 +66,7 @@ jest.mock('../../../core/NotificationManager', () => ({
 }));
 
 jest.mock('../../../util/transaction-controller', () => ({
+  updateIncomingTransactions: jest.fn(),
   speedUpTransaction: jest.fn(),
   getPreviousGasFromController: jest.fn(() => undefined),
 }));
@@ -255,6 +259,10 @@ const mockNotificationManagerGetTransactionToView =
   NotificationManager.getTransactionToView as jest.MockedFunction<
     typeof NotificationManager.getTransactionToView
   >;
+const mockUpdateIncomingTransactions =
+  updateIncomingTransactions as jest.MockedFunction<
+    typeof updateIncomingTransactions
+  >;
 const mockSpeedUpTransaction = speedUpTransaction as jest.MockedFunction<
   typeof speedUpTransaction
 >;
@@ -290,6 +298,7 @@ describe('Transactions', () => {
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
+    mockUpdateIncomingTransactions.mockResolvedValue(undefined);
     mockExecuteHardwareWalletOperation.mockResolvedValue(true);
   });
 
@@ -441,6 +450,13 @@ describe('Transactions', () => {
 
       expect(mockIsHardwareAccount('0x123')).toBe(true);
       expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+    });
+
+    it('refreshes transactions', async () => {
+      mockUpdateIncomingTransactions.mockResolvedValue(undefined);
+
+      await mockUpdateIncomingTransactions();
+      expect(mockUpdateIncomingTransactions).toHaveBeenCalled();
     });
 
     it('manages block explorer state', () => {
@@ -632,6 +648,11 @@ describe('Transactions', () => {
       expect(isLedgerHardware).toBe(false);
     });
 
+    it('should test updateIncomingTransactions is available', () => {
+      expect(mockUpdateIncomingTransactions).toBeDefined();
+      expect(typeof mockUpdateIncomingTransactions).toBe('function');
+    });
+
     it('should test hardware account detection function', () => {
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount.mockReturnValue(true);
@@ -713,6 +734,11 @@ describe('Transactions', () => {
       const address = '0x1234567890abcdef1234567890abcdef12345678';
       expect(address.length).toBe(42);
       expect(address.startsWith('0x')).toBe(true);
+    });
+
+    it('should test component refresh functionality', async () => {
+      await mockUpdateIncomingTransactions();
+      expect(mockUpdateIncomingTransactions).toHaveBeenCalled();
     });
 
     it('should test component error handling', () => {
@@ -798,6 +824,7 @@ describe('Transactions', () => {
       mockIsNonEvmChainId.mockReturnValue(false);
       mockIsHardwareAccount.mockReturnValue(false);
       mockNotificationManagerGetTransactionToView.mockReturnValue(null);
+      mockUpdateIncomingTransactions.mockResolvedValue(undefined);
       mockGetBlockExplorerAddressUrl.mockReturnValue({
         url: 'https://etherscan.io/address/0x123',
         title: 'Etherscan',
@@ -1356,6 +1383,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
+    mockUpdateIncomingTransactions.mockResolvedValue(undefined);
   });
 
   it('should render loading state when loading prop is true', () => {
@@ -1445,6 +1473,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
+    mockUpdateIncomingTransactions.mockResolvedValue(undefined);
 
     // Create a component instance for direct method testing
     instance = new UnconnectedTransactions(defaultTestProps);
@@ -1531,6 +1560,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     await instance.onRefresh();
 
     expect(instance.setState).toHaveBeenCalledWith({ refreshing: true });
+    expect(mockUpdateIncomingTransactions).toHaveBeenCalled();
     expect(instance.setState).toHaveBeenCalledWith({ refreshing: false });
   });
 
@@ -1796,6 +1826,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockNotificationManagerGetTransactionToView.mockReturnValue('tx-123');
     const txToView = mockNotificationManagerGetTransactionToView();
     expect(txToView).toBe('tx-123');
+
+    // Test update incoming transactions
+    expect(mockUpdateIncomingTransactions).toBeDefined();
+    expect(typeof mockUpdateIncomingTransactions).toBe('function');
   });
 
   it('should test component method patterns for coverage', () => {

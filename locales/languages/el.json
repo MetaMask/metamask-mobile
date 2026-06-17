@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Ανεπαρκές ποσό",
-      "message": "Δεν έχετε αρκετά {{nativeCurrency}} στον λογαριασμό σας για να πληρώσετε τα τέλη δικτύου.",
-      "buy_action": "Αγοράστε {{nativeCurrency}}"
+      "message": "Δεν έχετε αρκετά %{nativeCurrency} στον λογαριασμό σας για να πληρώσετε τα τέλη δικτύου.",
+      "buy_action": "Αγοράστε %{nativeCurrency}"
     },
     "signed_or_submitted": {
       "title": "Συναλλαγή σε εξέλιξη",
@@ -142,7 +142,7 @@
       "message": "Η διεύθυνση παραλήπτη ενδέχεται να μην υποστηρίζει άμεσες μεταφορές tokens, γεγονός που μπορεί να οδηγήσει σε απώλεια κεφαλαίων. Συνεχίστε μόνο εάν είστε βέβαιοι ότι το συγκεκριμένο συμβόλαιο μπορεί να λάβει τη μεταφορά."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Αυτό το συγκεκριμένο δίκτυο απαιτεί τη διατήρηση ενός αποθεματικού ύψους {{minBalance}} {{nativeTokenSymbol}} στον λογαριασμό σας.",
+      "message": "Αυτό το συγκεκριμένο δίκτυο απαιτεί τη διατήρηση ενός αποθεματικού ύψους %{minBalance} %{nativeTokenSymbol} στον λογαριασμό σας.",
       "title": "Απαιτείται υπόλοιπο ως αποθεματικό"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "Ξεχάσατε τον κωδικό πρόσβασης;",
     "cant_proceed": "Δεν μπορείτε να προχωρήσετε μέχρι να πληκτρολογήσετε τη λέξη \"Διαγραφή\". Με αυτήν την ενέργεια επιλέγετε να διαγράψετε το τρέχον πορτοφόλι σας.",
     "invalid_password": "Ο κωδικός πρόσβασης είναι λανθασμένος, προσπαθήστε ξανά.",
-    "type_delete": "Πληκτρολογήστε ‘{{erase}}’ για επιβεβαίωση",
+    "type_delete": "Πληκτρολογήστε ‘%{erase}’ για επιβεβαίωση",
     "erase_my": "Ναι, επαναφορά πορτοφολιού",
     "cancel": "Ακύρωση",
     "are_you_sure": "Είστε σίγουροι;",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "Δεν καταφέραμε να ακυρώσουμε την εντολή σας. Προσπαθήστε ξανά."
     },
     "webview_modal": {
-      "error": "Προέκυψε σφάλμα στο Webview: {{code}}"
+      "error": "Προέκυψε σφάλμα στο Webview: %{code}"
     },
     "notifications": {
       "deposit_failed_title": "Η κατάθεση σε {{currency}} απέτυχε! Παρακαλούμε δοκιμάστε ξανά, συγγνώμη για την ταλαιπωρία!",
@@ -2041,6 +2041,8 @@
       "stocks_and_commodities": "Εξερευνήστε μετοχές και εμπορεύματα",
       "tabs": {
         "crypto": "Κρύπτο",
+        "stocks": "Μετοχές",
+        "commodities": "Εμπορεύματα",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
         "new": "Νέα",
@@ -3564,13 +3566,13 @@
     "general_heading": "Γενικά",
     "privacy_heading": "Απόρρητο",
     "failed_to_fetch_chain_id": "Δεν ήταν δυνατή η λήψη του αναγνωριστικού αλυσίδας. Είναι σωστή η διευθύνση URL του RPC;",
-    "endpoint_returned_different_chain_id": "Το τελικό σημείο επέστρεψε ένα διαφορετικό αναγνωριστικό αλυσίδας: {{chainIdReturned}}",
+    "endpoint_returned_different_chain_id": "Το τελικό σημείο επέστρεψε ένα διαφορετικό αναγνωριστικό αλυσίδας: %{chainIdReturned}",
     "chain_id_required": "Απαιτείται αναγνωριστικό αλυσίδας. Πρέπει να ταιριάζει με το αναγνωριστικό αλυσίδας που επιστρέφεται από το δίκτυο. Μπορείτε να εισαγάγετε έναν δεκαδικό ή δεκαεξαδικό αριθμό με πρόθεμα '0x'.",
     "invalid_hex_number": "Μη έγκυρος δεκαεξαδικός αριθμός.",
     "invalid_hex_number_leading_zeros": "Μη έγκυρος δεκαεξαδικός αριθμός. Αφαιρέστε τα αρχικά μηδενικά.",
     "invalid_number": "Μη έγκυρος αριθμός. Εισαγάγετε έναν δεκαδικό ή προκαθορισμένο δεκαεξαδικό αριθμό '0x'.",
     "invalid_number_leading_zeros": "Μη έγκυρος αριθμός. Αφαιρέστε τα αρχικά μηδενικά.",
-    "invalid_number_range": "Μη έγκυρος αριθμός. Εισαγάγετε έναν αριθμό μεταξύ 1 και {{maxSafeChainId}}",
+    "invalid_number_range": "Μη έγκυρος αριθμός. Εισαγάγετε έναν αριθμό μεταξύ 1 και %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Απόκρυψη tokens χωρίς διαθέσιμο υπόλοιπο",
     "hide_zero_balance_tokens_desc": "Αποτρέπει την εμφάνιση των tokens χωρίς υπόλοιπο στην λίστα των tokens σας.",
     "haptic_feedback_title": "Απτική ανάδραση",
@@ -4444,8 +4446,8 @@
     "confusable_msg": "Εντοπίσαμε έναν άγνωστο χαρακτήρα στο όνομα ENS. Ελέγξτε το όνομα ENS για να αποφύγετε πιθανή απάτη.",
     "similar_to": "είναι παρόμοιο με",
     "contains_zero_width": "περιλαμβάνει χαρακτήρα μηδενικού πλάτους",
-    "dapp_suggested_gas": "Αυτό το τέλος συναλλαγής έχει προταθεί από το {{origin}}. Χρησιμοποιεί παλαιού τύπου υπολογισμό τέλους συναλλαγής ο οποίος μπορεί να είναι ανακριβής. Ωστόσο, η επεξεργασία του τέλους συναλλαγής ίσως προκαλέσει πρόβλημα με την συναλλαγή σας. Παρακαλούμε απευθυνθείτε στο {{origin}} εάν έχετε ερωτήσεις.",
-    "dapp_suggested_eip1559_gas": "Αυτό το τέλος συναλλαγής έχει προταθεί από το {{origin}}. Εάν το παραβλέψετε ίσως προκληθεί πρόβλημα με την συναλλαγή σας. Παρακαλούμε απευθυνθείτε στο {{origin}} εάν έχετε ερωτήσεις.",
+    "dapp_suggested_gas": "Αυτό το τέλος συναλλαγής έχει προταθεί από το %{origin}. Χρησιμοποιεί παλαιού τύπου υπολογισμό τέλους συναλλαγής ο οποίος μπορεί να είναι ανακριβής. Ωστόσο, η επεξεργασία του τέλους συναλλαγής ίσως προκαλέσει πρόβλημα με την συναλλαγή σας. Παρακαλούμε απευθυνθείτε στο %{origin} εάν έχετε ερωτήσεις.",
+    "dapp_suggested_eip1559_gas": "Αυτό το τέλος συναλλαγής έχει προταθεί από το %{origin}. Εάν το παραβλέψετε ίσως προκληθεί πρόβλημα με την συναλλαγή σας. Παρακαλούμε απευθυνθείτε στο %{origin} εάν έχετε ερωτήσεις.",
     "address_invalid": "Η διεύθυνση παραλήπτη δεν είναι έγκυρη.",
     "ens_not_found": "Δεν έχει ορισθεί καμιά διεύθυνση γ' αυτό το όνομα.",
     "unknown_qr_code": "Μη έγκυρος κωδικός QR. Προσπαθήστε ξανά.",
@@ -6216,7 +6218,7 @@
     }
   },
   "invalid_network": {
-    "title": "Το αναγνωριστικό αλυσίδας για το προσαρμοσμένο δίκτυο \n {{network}} \n πρέπει να εισαχθεί ξανά.",
+    "title": "Το αναγνωριστικό αλυσίδας για το προσαρμοσμένο δίκτυο \n %{network} \n πρέπει να εισαχθεί ξανά.",
     "message": "Για να σας προστατέψουμε από κακόβουλους ή προβληματικούς παρόχους δικτύων, απαιτούνται πλέον τα αναγνωριστικά αλυσίδας για όλα τα προσαρμοσμένα δίκτυα.",
     "hint": "Μπορείτε να βρείτε τα αναγνωριστικά αλυσίδας των πιο γνωστών δικτύων στο",
     "edit_network_button": "Επεξεργασία δικτύου",
@@ -6248,7 +6250,7 @@
     "cancel": "Άκυρο",
     "approve": "Έγκριση",
     "unrecognized_chain": "Αυτό το προσαρμοσμένο δίκτυο δεν αναγνωρίζεται",
-    "invalid_chain": "Το {{rpcUrl}} για αυτό το αναγνωριστικό αλυσίδας δεν ταιριάζει με την καταχώριση chainid.network",
+    "invalid_chain": "Το %{rpcUrl} για αυτό το αναγνωριστικό αλυσίδας δεν ταιριάζει με την καταχώριση chainid.network",
     "alert_recommend": "Σας συστήνουμε",
     "alert_verify": "να επαληθεύσετε το αναγνωριστικό αλυσίδας",
     "warning_subtext_new": {
@@ -9216,6 +9218,43 @@
       "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
       "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Προσπαθήστε ξανά.",
       "stats_retry": "Επανάληψη"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "Predict The Pitch",
+      "stats_title": "Στατιστικά",
+      "label_rank": "Κατάταξη",
+      "label_your_rank": "Η κατάταξή σας",
+      "label_roi": "ROI",
+      "label_total_volume": "Συνολικός όγκος συναλλαγών",
+      "label_pnl": "Κέρδη & Ζημιές",
+      "predict_now_cta": "Predict now",
+      "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
+      "positions_error": "Failed to load predictions",
+      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_retry": "Επανάληψη",
+      "positions_last_updated": "Τελευταία ενημέρωση: {{time}}",
+      "positions_empty": "Δεν υπάρχουν ακόμη προβλέψεις",
+      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "leaderboard_title": "Πίνακας κατάταξης",
+      "leaderboard_total_participants": "{{count}} συμμετέχοντες",
+      "last_updated": "Τελευταία ενημέρωση: {{time}}",
+      "leaderboard_error_loading": "Δεν ήταν δυνατή η φόρτωση του πίνακα κατάταξης",
+      "leaderboard_error_loading_description": "Κάτι πήγε στραβά κατά τη φόρτωση του πίνακα κατάταξης. Παρακαλούμε προσπαθήστε πάλι.",
+      "leaderboard_not_yet_computed": "Ο πίνακας κατάταξης δεν έχει υπολογιστεί ακόμη. Ελέγξτε ξανά σύντομα.",
+      "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
+      "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Προσπαθήστε ξανά.",
+      "label_markets_traded": "Markets traded",
+      "stats_retry": "Επανάληψη",
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",

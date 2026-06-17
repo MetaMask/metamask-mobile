@@ -6,7 +6,6 @@ import {
   AvatarIconSize,
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
@@ -14,6 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Hex } from '@metamask/utils';
+import { strings } from '../../../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -25,12 +25,12 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
-import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 
 export interface ActivityRowViewProps {
   id: string;
   display: MoneyTransactionDisplayInfo;
+  isFailed: boolean;
   chainId?: Hex;
   onPress?: (id: string) => void;
   showNetworkBadge?: boolean;
@@ -39,14 +39,12 @@ export interface ActivityRowViewProps {
 const ActivityRowView = ({
   id,
   display,
+  isFailed,
   chainId,
   onPress,
   showNetworkBadge = false,
 }: ActivityRowViewProps) => {
   const tw = useTailwind();
-
-  const isFailed = display.status === 'failed';
-  const isPending = display.status === 'pending';
 
   const networkImageSource = useMemo(
     () =>
@@ -105,25 +103,24 @@ const ActivityRowView = ({
         </Box>
       )}
       <Box twClassName="min-w-0 flex-1 gap-0.5">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
         >
+          {display.label}
+        </Text>
+        {isFailed ? (
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            color={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
+            color={TextColor.ErrorDefault}
             numberOfLines={1}
-            twClassName="shrink"
           >
-            {display.label}
+            {strings('money.transaction.failed')}
           </Text>
-          {isPending ? (
-            <PendingSpinner testID={MoneyActivityItemTestIds.PENDING_SPINNER} />
-          ) : null}
-        </Box>
-        {display.description ? (
+        ) : display.description ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}

@@ -76,6 +76,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
   is_authenticated: false,
   preferred_provider: undefined,
   order_count: 0,
@@ -246,6 +247,7 @@ describe('AddFundsBottomSheet', () => {
         location: 'CardHome',
         chain_id_destination: '59144',
         ramp_type: 'UNIFIED_BUY_2',
+        ramp_routing: undefined,
         is_authenticated: false,
         preferred_provider: undefined,
         order_count: 0,

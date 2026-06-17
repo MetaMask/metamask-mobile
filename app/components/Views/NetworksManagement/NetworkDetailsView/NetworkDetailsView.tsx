@@ -22,9 +22,6 @@ import {
   TextVariant,
   FontWeight,
   HeaderStandard,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 import { CaipChainId } from '@metamask/utils';
@@ -44,6 +41,11 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import InfoModal from '../../../Base/InfoModal';
 import DeleteNetworkModal from '../components/DeleteNetworkModal';
@@ -362,21 +364,22 @@ const NetworkDetailsView = () => {
       {/* Save / Add button — sticky footer */}
       <Box twClassName="px-4 pt-2 pb-4">
         <Button
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariants.Primary}
           onPress={handleSave}
+          label={
+            isCustomMainnet
+              ? strings('app_settings.networks_default_cta')
+              : strings('app_settings.network_save')
+          }
           size={ButtonSize.Lg}
           isDisabled={isActionDisabled}
-          isFullWidth
+          width={ButtonWidthTypes.Full}
           testID={
             isCustomMainnet
               ? NetworkDetailsViewSelectorsIDs.USE_THIS_NETWORK_BUTTON
               : NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON
           }
-        >
-          {isCustomMainnet
-            ? strings('app_settings.networks_default_cta')
-            : strings('app_settings.network_save')}
-        </Button>
+        />
       </Box>
 
       {/* RPC & Block Explorer modals — only in edit mode */}

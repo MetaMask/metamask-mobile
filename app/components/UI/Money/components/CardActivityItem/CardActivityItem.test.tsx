@@ -44,14 +44,10 @@ const card: CardTransaction = {
 
 interface CapturedRowProps {
   id: string;
+  isFailed: boolean;
   chainId: string;
   onPress?: (id: string) => void;
-  display: {
-    icon: IconName;
-    primaryAmount: string;
-    fiatAmount: string;
-    status: string;
-  };
+  display: { icon: IconName; primaryAmount: string; fiatAmount: string };
 }
 
 describe('CardActivityItem', () => {
@@ -65,8 +61,8 @@ describe('CardActivityItem', () => {
     expect(mockRowView).toHaveBeenCalledTimes(1);
     const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
     expect(props.id).toBe(card.hash);
+    expect(props.isFailed).toBe(false);
     expect(props.chainId).toBe('0x8f');
-    expect(props.display.status).toBe('confirmed');
     expect(props.display.icon).toBe(IconName.Card);
     expect(props.display.primaryAmount).toBe('-5.38 mUSD');
     expect(props.display.fiatAmount).toContain('5.38');

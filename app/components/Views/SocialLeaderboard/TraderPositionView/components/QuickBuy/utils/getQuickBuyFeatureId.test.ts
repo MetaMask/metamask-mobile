@@ -10,9 +10,6 @@ describe('getQuickBuyFeatureId', () => {
     expect(getQuickBuyFeatureId('market_insights')).toBe(
       FeatureId.QUICK_BUY_TOKEN_DETAILS,
     );
-    expect(getQuickBuyFeatureId('security_trust')).toBe(
-      FeatureId.QUICK_BUY_TOKEN_DETAILS,
-    );
   });
 
   it('maps follow-trading surfaces to QUICK_BUY_FOLLOW_TRADING', () => {

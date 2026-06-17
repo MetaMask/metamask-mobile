@@ -41,5 +41,6 @@ export type DataDeleteRegulationId = string | undefined;
 
 export interface IDeleteRegulationStatus {
   deletionRequestDate?: DataDeleteDate;
+  hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
 }

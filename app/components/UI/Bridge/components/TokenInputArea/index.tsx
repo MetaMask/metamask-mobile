@@ -109,6 +109,10 @@ const createStyles = ({
       alignItems: 'center',
       gap: 8,
     },
+    amountTypeToggle: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     currencyContainer: {
       flex: 1,
     },
@@ -408,29 +412,26 @@ export const TokenInputArea = forwardRef<
             ) : (
               <>
                 <Box style={styles.currencyContainer}>
-                  <TouchableOpacity
-                    style={styles.secondaryValueContainer}
-                    onPress={onAmountTypeTogglePress}
-                    disabled={!onAmountTypeTogglePress}
-                    testID={
-                      onAmountTypeTogglePress
-                        ? amountTypeToggleTestID
-                        : undefined
-                    }
-                  >
+                  <Box style={styles.secondaryValueContainer}>
                     {shouldShowSecondaryAmount ? (
                       <Text color={TextColor.Alternative}>
                         {secondaryAmountDisplayValue}
                       </Text>
                     ) : null}
                     {onAmountTypeTogglePress ? (
-                      <Icon
-                        name={IconName.SwapVertical}
-                        size={IconSize.Sm}
-                        color={IconColor.Alternative}
-                      />
+                      <TouchableOpacity
+                        style={styles.amountTypeToggle}
+                        onPress={onAmountTypeTogglePress}
+                        testID={amountTypeToggleTestID}
+                      >
+                        <Icon
+                          name={IconName.SwapVertical}
+                          size={IconSize.Sm}
+                          color={IconColor.Alternative}
+                        />
+                      </TouchableOpacity>
                     ) : null}
-                  </TouchableOpacity>
+                  </Box>
                 </Box>
                 <Box
                   flexDirection={

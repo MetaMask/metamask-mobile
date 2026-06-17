@@ -8,6 +8,8 @@ import {
   checkDataDeleteStatus,
   getDeleteRegulationCreationDate,
   getDeleteRegulationId,
+  isDataRecorded,
+  updateDataRecordingFlag,
 } from './analyticsDataDeletion';
 
 const mockSetItem = jest.fn();
@@ -82,7 +84,7 @@ describe('analyticsDataDeletion', () => {
       expect(result.error).toBeDefined();
     });
 
-    it('POSTs to Segment and persists id/date on success', async () => {
+    it('POSTs to Segment and persists id/date/recorded on success', async () => {
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: async () => ({ data: { regulateId: 'reg-123' } }),
@@ -108,6 +110,7 @@ describe('analyticsDataDeletion', () => {
         expect.any(String),
         expect.stringMatching(/\d{1,2}\/\d{1,2}\/\d{4}/),
       );
+      expect(mockSetItem).toHaveBeenCalledWith(expect.any(String), 'false');
     });
 
     it('returns error when response is not ok', async () => {
@@ -146,12 +149,27 @@ describe('analyticsDataDeletion', () => {
   });
 
   describe('checkDataDeleteStatus', () => {
-    it('returns unknown status when no regulation id in storage', async () => {
+    it('returns unknown status and hasCollectedDataSinceDeletionRequest false when no regulation id in storage', async () => {
       mockGetItem.mockResolvedValue(undefined);
 
       const status = await checkDataDeleteStatus();
 
       expect(status.dataDeletionRequestStatus).toBe(DataDeleteStatus.unknown);
+      expect(status.deletionRequestDate).toBeUndefined();
+      expect(status.hasCollectedDataSinceDeletionRequest).toBe(false);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns hasCollectedDataSinceDeletionRequest false when data was recorded but no regulation id exists', async () => {
+      // No regulation ID, no date, but data has been recorded
+      mockGetItem
+        .mockResolvedValueOnce(undefined) // regulation id
+        .mockResolvedValueOnce(undefined) // date
+        .mockResolvedValueOnce('true'); // data recorded
+
+      const status = await checkDataDeleteStatus();
+
+      expect(status.hasCollectedDataSinceDeletionRequest).toBe(false);
       expect(status.deletionRequestDate).toBeUndefined();
       expect(global.fetch).not.toHaveBeenCalled();
     });
@@ -162,13 +180,15 @@ describe('analyticsDataDeletion', () => {
       const status = await checkDataDeleteStatus();
 
       expect(status.dataDeletionRequestStatus).toBe(DataDeleteStatus.unknown);
+      expect(status.hasCollectedDataSinceDeletionRequest).toBe(false);
       expect(status.deletionRequestDate).toBeUndefined();
     });
 
     it('loads from storage and calls Segment GET when regulation id exists', async () => {
       mockGetItem
         .mockResolvedValueOnce('reg-456')
-        .mockResolvedValueOnce('10/2/2025');
+        .mockResolvedValueOnce('10/2/2025')
+        .mockResolvedValueOnce('true');
 
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
@@ -181,6 +201,7 @@ describe('analyticsDataDeletion', () => {
 
       expect(status.dataDeletionRequestStatus).toBe(DataDeleteStatus.finished);
       expect(status.deletionRequestDate).toBe('10/2/2025');
+      expect(status.hasCollectedDataSinceDeletionRequest).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('regulations/reg-456'),
         expect.objectContaining({
@@ -193,7 +214,8 @@ describe('analyticsDataDeletion', () => {
     it('returns unknown when fetch fails', async () => {
       mockGetItem
         .mockResolvedValueOnce('reg-789')
-        .mockResolvedValueOnce('1/1/2025');
+        .mockResolvedValueOnce('1/1/2025')
+        .mockResolvedValueOnce('false');
 
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
 
@@ -201,6 +223,7 @@ describe('analyticsDataDeletion', () => {
 
       expect(status.dataDeletionRequestStatus).toBe(DataDeleteStatus.unknown);
       expect(status.deletionRequestDate).toBe('1/1/2025');
+      expect(status.hasCollectedDataSinceDeletionRequest).toBe(false);
     });
   });
 
@@ -212,7 +235,8 @@ describe('analyticsDataDeletion', () => {
     it('returns date after checkDataDeleteStatus has run', async () => {
       mockGetItem
         .mockResolvedValueOnce('reg-1')
-        .mockResolvedValueOnce('5/6/2025');
+        .mockResolvedValueOnce('5/6/2025')
+        .mockResolvedValueOnce('false');
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -233,7 +257,8 @@ describe('analyticsDataDeletion', () => {
     it('returns id after checkDataDeleteStatus has run', async () => {
       mockGetItem
         .mockResolvedValueOnce('reg-abc')
-        .mockResolvedValueOnce('1/1/2025');
+        .mockResolvedValueOnce('1/1/2025')
+        .mockResolvedValueOnce('false');
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: async () => ({ data: { regulation: {} } }),
@@ -241,6 +266,50 @@ describe('analyticsDataDeletion', () => {
 
       await checkDataDeleteStatus();
       expect(getDeleteRegulationId()).toBe('reg-abc');
+    });
+  });
+
+  describe('isDataRecorded', () => {
+    it('returns false when cache not yet populated', () => {
+      expect(isDataRecorded()).toBe(false);
+    });
+
+    it('returns value from storage after checkDataDeleteStatus', async () => {
+      mockGetItem
+        .mockResolvedValueOnce('reg-1')
+        .mockResolvedValueOnce('1/1/2025')
+        .mockResolvedValueOnce('true');
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: { regulation: {} } }),
+      });
+
+      await checkDataDeleteStatus();
+      expect(isDataRecorded()).toBe(true);
+    });
+  });
+
+  describe('updateDataRecordingFlag', () => {
+    it('calls setItem with "true" when saveDataRecording is true and cache is false', async () => {
+      mockGetItem
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce('false');
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: { regulation: {} } }),
+      });
+      await checkDataDeleteStatus();
+      mockSetItem.mockClear();
+
+      updateDataRecordingFlag(true);
+
+      expect(mockSetItem).toHaveBeenCalledWith(expect.any(String), 'true');
+    });
+
+    it('does not call setItem when saveDataRecording is false', () => {
+      updateDataRecordingFlag(false);
+      expect(mockSetItem).not.toHaveBeenCalled();
     });
   });
 });

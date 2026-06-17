@@ -21,6 +21,11 @@ import { RootState } from '../../../reducers';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -33,9 +38,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -199,9 +201,10 @@ const DeleteWalletModal: React.FC = () => {
           </View>
 
           <Button
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
-            isFullWidth
+            label={strings('login.reset_wallet')}
+            width={ButtonWidthTypes.Full}
             isDanger
             onPress={() => {
               setIsResetWallet(true);
@@ -210,9 +213,7 @@ const DeleteWalletModal: React.FC = () => {
               });
             }}
             testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
-          >
-            {strings('login.reset_wallet')}
-          </Button>
+          />
         </View>
       ) : (
         <View style={styles.container}>
@@ -269,27 +270,25 @@ const DeleteWalletModal: React.FC = () => {
             </View>
             <View style={styles.buttonContainer}>
               <Button
-                variant={ButtonVariant.Primary}
+                variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 onPress={deleteWallet}
-                isFullWidth
+                label={strings('login.erase_my')}
+                width={ButtonWidthTypes.Full}
                 isDanger
                 testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
-                isLoading={isDeletingWallet}
+                loading={isDeletingWallet}
                 isDisabled={isDeletingWallet}
-              >
-                {strings('login.erase_my')}
-              </Button>
+              />
               <Button
-                variant={ButtonVariant.Secondary}
+                variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 onPress={triggerClose}
-                isFullWidth
+                label={strings('login.cancel')}
+                width={ButtonWidthTypes.Full}
                 testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
                 isDisabled={isDeletingWallet}
-              >
-                {strings('login.cancel')}
-              </Button>
+              />
             </View>
           </View>
         </View>

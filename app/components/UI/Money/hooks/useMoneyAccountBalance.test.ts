@@ -4,10 +4,6 @@ import { useQueries } from '@tanstack/react-query';
 import useMoneyAccountBalance, {
   getLiveVedaVaultExchangeRate,
 } from './useMoneyAccountBalance';
-import {
-  selectLastKnownMoneyBalance,
-  setLastKnownMoneyBalance,
-} from '../../../../core/redux/slices/moneyBalance';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
@@ -17,11 +13,9 @@ import {
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 
-const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-  useDispatch: () => mockDispatch,
 }));
 
 jest.mock('@tanstack/react-query', () => ({
@@ -83,16 +77,7 @@ const MOCK_NETWORK_CONFIGURATIONS = {
   [MAINNET_CHAIN_ID]: { nativeCurrency: 'ETH' },
 };
 
-function setupDefaultSelectors({
-  lastKnownBalance = null,
-}: {
-  lastKnownBalance?: {
-    address: string;
-    value: string;
-    currency: string;
-    updatedAt: number;
-  } | null;
-} = {}) {
+function setupDefaultSelectors() {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPrimaryMoneyAccount) {
       return { address: MOCK_ADDRESS };
@@ -108,9 +93,6 @@ function setupDefaultSelectors({
     }
     if (selector === selectCurrentCurrency) {
       return 'usd';
-    }
-    if (selector === selectLastKnownMoneyBalance) {
-      return lastKnownBalance;
     }
     return undefined;
   });
@@ -295,43 +277,6 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.musdFiatFormatted).toBeUndefined();
     expect(result.current.musdSHFvdFiatFormatted).toBeUndefined();
     expect(result.current.totalFiatRaw).toBeUndefined();
-  });
-
-  it('returns $0.00 (not unavailable) when the balance is zero and the rate is missing', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrimaryMoneyAccount) {
-        return { address: MOCK_ADDRESS };
-      }
-      if (selector === selectTokenMarketData) {
-        // No price data available → musdFiatRate cannot be computed.
-        return {};
-      }
-      if (selector === selectCurrencyRates) {
-        return MOCK_CURRENCY_RATES;
-      }
-      if (selector === selectNetworkConfigurations) {
-        return MOCK_NETWORK_CONFIGURATIONS;
-      }
-      if (selector === selectCurrentCurrency) {
-        return 'usd';
-      }
-      return undefined;
-    });
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        musdBalance: { data: { balance: '0' }, isLoading: false },
-        musdEquivalentBalance: {
-          data: { balanceOfInAssets: '0' },
-          isLoading: false,
-        },
-      }),
-    );
-
-    const { result } = renderHook(() => useMoneyAccountBalance());
-
-    expect(result.current.totalFiatFormatted).toBe('$0.00');
-    expect(result.current.totalFiatRaw).toBe('0');
-    expect(result.current.isBalanceUnavailable).toBe(false);
   });
 
   it('returns formatted total fiat when all data is available', () => {
@@ -540,87 +485,6 @@ describe('useMoneyAccountBalance', () => {
 
       expect(mockMusdRefetch).toHaveBeenCalledTimes(1);
       expect(mockEquivalentRefetch).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('last known balance', () => {
-    const persistedBalance = {
-      address: MOCK_ADDRESS,
-      value: '$2,384.34',
-      currency: 'usd',
-      updatedAt: 1,
-    };
-
-    it('isBalanceUnavailable is false on a successful fetch', () => {
-      const { result } = renderHook(() => useMoneyAccountBalance());
-
-      expect(result.current.isBalanceUnavailable).toBe(false);
-    });
-
-    it('isBalanceUnavailable is true on a balance fetch error', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
-
-      const { result } = renderHook(() => useMoneyAccountBalance());
-
-      expect(result.current.isBalanceUnavailable).toBe(true);
-    });
-
-    it('persists the balance on a successful fetch', () => {
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: setLastKnownMoneyBalance.type,
-          payload: expect.objectContaining({
-            address: MOCK_ADDRESS,
-            currency: 'usd',
-          }),
-        }),
-      );
-    });
-
-    it('does not persist the balance on a fetch error', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
-
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockDispatch).not.toHaveBeenCalled();
-    });
-
-    it('exposes the persisted balance when it matches the account and currency', () => {
-      setupDefaultSelectors({ lastKnownBalance: persistedBalance });
-
-      const { result } = renderHook(() => useMoneyAccountBalance());
-
-      expect(result.current.lastKnownTotalFiatFormatted).toBe('$2,384.34');
-    });
-
-    it('ignores a persisted balance from a different currency', () => {
-      setupDefaultSelectors({
-        lastKnownBalance: { ...persistedBalance, currency: 'eur' },
-      });
-
-      const { result } = renderHook(() => useMoneyAccountBalance());
-
-      expect(result.current.lastKnownTotalFiatFormatted).toBeUndefined();
-    });
-
-    it('ignores a persisted balance from a different account', () => {
-      setupDefaultSelectors({
-        lastKnownBalance: { ...persistedBalance, address: '0xother' },
-      });
-
-      const { result } = renderHook(() => useMoneyAccountBalance());
-
-      expect(result.current.lastKnownTotalFiatFormatted).toBeUndefined();
     });
   });
 });

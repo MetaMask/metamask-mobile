@@ -5,6 +5,7 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -18,18 +19,15 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
-type MoneyApyInfoSheetVariant = 'default' | 'deposit';
-
 interface MoneyApyInfoSheetParams {
   apy: number;
-  variant?: MoneyApyInfoSheetVariant;
 }
 
 const MoneyApyInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { apy, variant = 'default' } = useParams<MoneyApyInfoSheetParams>();
+  const { apy } = useParams<MoneyApyInfoSheetParams>();
   const surfaceClass = useElevatedSurface();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
@@ -46,25 +44,6 @@ const MoneyApyInfoSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const body =
-    variant === 'deposit' ? (
-      <Text variant={TextVariant.BodyMd}>
-        {strings('money.apy_tooltip.deposit_body')}
-      </Text>
-    ) : (
-      <>
-        <Text variant={TextVariant.BodyMd}>
-          {strings('money.apy_tooltip.paragraph_1', { percentage: apy })}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>
-          {strings('money.apy_tooltip.paragraph_2')}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>
-          {strings('money.apy_tooltip.paragraph_3')}
-        </Text>
-      </>
-    );
-
   return (
     <BottomSheet
       ref={sheetRef}
@@ -78,7 +57,17 @@ const MoneyApyInfoSheet = () => {
           {strings('money.apy_tooltip.title')}
         </Text>
       </BottomSheetHeader>
-      <View style={styles.content}>{body}</View>
+      <View style={styles.content}>
+        <Text variant={TextVariant.BodyMd}>
+          {strings('money.apy_tooltip.paragraph_1', { percentage: apy })}
+        </Text>
+        <Text variant={TextVariant.BodyMd}>
+          {strings('money.apy_tooltip.paragraph_2')}
+        </Text>
+        <Text variant={TextVariant.BodyMd}>
+          {strings('money.apy_tooltip.paragraph_3')}
+        </Text>
+      </View>
     </BottomSheet>
   );
 };

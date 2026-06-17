@@ -4,6 +4,7 @@ import { filterEvents } from '../helpers';
 import { getRegionLocationCode } from '../../../framework/types';
 import { RampsRegions, RampsRegionsEnum } from '../../../framework/Constants';
 import { CustomNetworks } from '../../../resources/networks.e2e';
+import { UnifiedRampRoutingType } from '../../../../app/reducers/fiatOrders/types';
 
 const RAMPS_BUTTON_CLICKED = 'Ramps Button Clicked';
 const RAMPS_TOKEN_SELECTED = 'Ramps Token Selected';
@@ -33,6 +34,7 @@ export const onrampReturningUserBuyExpectations: AnalyticsExpectations = {
         'chain_id_destination',
         'ramp_type',
         'region',
+        'ramp_routing',
       ],
       containProperties: {
         location: 'FundActionMenu',
@@ -52,6 +54,7 @@ export const onrampReturningUserBuyExpectations: AnalyticsExpectations = {
         is_authenticated: 'boolean',
         token_caip19: 'string',
         token_symbol: 'string',
+        ramp_routing: 'string',
       },
       containProperties: {
         token_symbol: 'ETH',
@@ -60,6 +63,7 @@ export const onrampReturningUserBuyExpectations: AnalyticsExpectations = {
         currency_destination_symbol: 'ETH',
         currency_destination_network:
           CustomNetworks.Tenderly.Mainnet.providerConfig.nickname,
+        ramp_routing: UnifiedRampRoutingType.DEPOSIT,
       },
     },
   ],

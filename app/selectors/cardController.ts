@@ -137,16 +137,6 @@ export const selectCardHomeData = createSelector(
     (cardState?.cardHomeData as unknown as CardHomeData | null) ?? null,
 );
 
-export const selectCardVerificationStatus = createSelector(
-  selectCardHomeData,
-  (data): string | null => data?.account?.verificationStatus ?? null,
-);
-
-export const selectIsCardVerified = createSelector(
-  selectCardVerificationStatus,
-  (status) => status === 'VERIFIED',
-);
-
 export const selectCardHomeDataStatus = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeDataStatus =>
@@ -235,15 +225,12 @@ export const selectCardAvailableTokens = createSelector(
 
     const placeholders = buildDelegationTokenList({
       delegationSettings,
-      enforceSupportList: true,
       getSupportedTokensByChainId: (chainId) =>
-        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? [])
-          .filter((t) => t?.enabled !== false)
-          .map((t) => ({
-            address: t.address ?? undefined,
-            symbol: t.symbol ?? undefined,
-            name: t.name ?? undefined,
-          })),
+        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? []).map((t) => ({
+          address: t.address ?? undefined,
+          symbol: t.symbol ?? undefined,
+          name: t.name ?? undefined,
+        })),
     })
       .filter(
         (placeholder) =>

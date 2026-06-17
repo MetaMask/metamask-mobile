@@ -1,6 +1,7 @@
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 import { MINIMUM_DISPLAY_THRESHOLD } from '../../../../../../../util/number/bigint';
-import { formatQuickBuyRateValue } from './formatQuickBuyRateValue';
+import I18n from '../../../../../../../../locales/i18n';
 
 /**
  * Formats a human-readable exchange rate between destination and source tokens.
@@ -32,12 +33,11 @@ export function formatExchangeRate(
     return `1 ${destToken.symbol} = < ${MINIMUM_DISPLAY_THRESHOLD} ${sourceToken.symbol}`;
   }
 
-  const formattedRate = formatQuickBuyRateValue(
-    sourcePerDest,
-    sourcePerDest > 1
+  const formatter = getIntlNumberFormatter(I18n.locale, {
+    ...(sourcePerDest > 1
       ? { maximumFractionDigits: 2 }
-      : { maximumSignificantDigits: 3 },
-  );
+      : { maximumSignificantDigits: 3 }),
+  });
 
-  return `1 ${destToken.symbol} = ${formattedRate} ${sourceToken.symbol}`;
+  return `1 ${destToken.symbol} = ${formatter.format(sourcePerDest)} ${sourceToken.symbol}`;
 }

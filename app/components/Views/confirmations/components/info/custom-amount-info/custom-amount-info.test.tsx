@@ -90,7 +90,7 @@ jest.mock('../../PayAccountSelector', () => {
     default: () => <View testID="pay-account-selector" />,
   };
 });
-jest.mock('../../../../../UI/Money/components/BalanceProjection', () => ({
+jest.mock('../../balance-projection', () => ({
   BalanceProjection: () => null,
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
@@ -598,7 +598,7 @@ describe('CustomAmountInfo', () => {
     });
 
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: strings('confirm.custom_amount.insufficient_funds'),
+      alertTitle: strings('alert_system.account_no_funds.message'),
       alertMessage: strings('alert_system.account_no_funds.message'),
     });
 

@@ -40,7 +40,6 @@ import {
   getResultTypeConfig,
 } from '../utils/securityUtils';
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
-import { useStickyQuickBuy } from '../../TokenDetails/hooks/useStickyQuickBuy';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -90,11 +89,6 @@ const SecurityTrustScreen: React.FC = () => {
       nonEvmNetworkConfigurations,
     });
   }, [params?.chainId, evmNetworkConfigurations, nonEvmNetworkConfigurations]);
-
-  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
-    token: params,
-    source: 'security_trust',
-  });
 
   // Track page view once
   useEffect(() => {
@@ -722,9 +716,7 @@ const SecurityTrustScreen: React.FC = () => {
         sourcePage="SecurityTrustView"
         isPricePositive={params.isPricePositive}
         useAmbientColor={params.useAmbientColor}
-        onQuickBuyPress={onQuickBuyPress}
       />
-      {quickBuySheet}
     </View>
   );
 };

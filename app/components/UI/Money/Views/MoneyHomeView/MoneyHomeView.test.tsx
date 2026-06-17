@@ -20,7 +20,6 @@ import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedI
 import { MoneyMusdTokenRowTestIds } from '../../components/MoneyMusdTokenRow/MoneyMusdTokenRow.testIds';
 import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import { strings } from '../../../../../../locales/i18n';
@@ -38,11 +37,9 @@ import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedir
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
-  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
-  MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -173,7 +170,6 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   useMoneyAccountCardLinkage: jest.fn(() => ({
     hasMoneyAccountRequirements: false,
     isCardAuthenticated: false,
-    isCardVerified: false,
     isCardLinkedToMoneyAccount: false,
     primaryMoneyAccount: undefined,
     moneyAccountCardToken: null,
@@ -208,12 +204,11 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 }));
 
 const mockTrackButtonClicked = jest.fn();
-const mockTrackSurfaceClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: mockTrackButtonClicked,
     trackTooltipClicked: jest.fn(),
-    trackSurfaceClicked: mockTrackSurfaceClicked,
+    trackSurfaceClicked: jest.fn(),
     trackTokenButtonClicked: jest.fn(),
     trackTokenSurfaceClicked: jest.fn(),
     trackActivitySurfaceClicked: jest.fn(),
@@ -227,6 +222,18 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
   useMoneyAccountWithdrawal: jest.fn(() => ({
     initiateWithdrawal: jest.fn(() => Promise.resolve()),
+  })),
+}));
+
+const mockRouteAddMoney = jest.fn();
+let mockHasMusdBalance = false;
+jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
+  useMoneyAccountAddRouting: jest.fn(() => ({
+    hasMusdBalance: mockHasMusdBalance,
+    convertCrypto: jest.fn(),
+    depositFunds: jest.fn(),
+    moveMusd: jest.fn(),
+    routeAddMoney: mockRouteAddMoney,
   })),
 }));
 
@@ -320,11 +327,10 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 describe('MoneyHomeView', () => {
-  let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
-
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
+    mockHasMusdBalance = false;
 
     mockUseMoneyAccountCardTransactions.mockReturnValue({
       cardTransactions: [],
@@ -344,7 +350,6 @@ describe('MoneyHomeView', () => {
     mockUseMoneyAccountCardLinkage.mockReturnValue({
       hasMoneyAccountRequirements: false,
       isCardAuthenticated: false,
-      isCardVerified: false,
       isCardLinkedToMoneyAccount: false,
       primaryMoneyAccount: undefined,
       moneyAccountCardToken: null,
@@ -364,7 +369,7 @@ describe('MoneyHomeView', () => {
       },
     } as ReturnType<typeof useMoneyAccountInfo>);
 
-    defaultMoneyAccountBalance = {
+    mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
       musdFiatFormatted: '$1.00',
       musdSHFvdFiatFormatted: '$2.00',
@@ -374,8 +379,6 @@ describe('MoneyHomeView', () => {
       isAggregatedBalanceLoading: false,
       isBalanceFetchError: false,
       isBalanceFetching: false,
-      isBalanceUnavailable: false,
-      lastKnownTotalFiatFormatted: undefined,
       refetchBalance: mockRefetchBalance,
       apyDecimal: 0.05,
       apyPercent: 5,
@@ -394,8 +397,7 @@ describe('MoneyHomeView', () => {
         },
         isLoading: false,
       },
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>;
-    mockUseMoneyAccountBalance.mockReturnValue(defaultMoneyAccountBalance);
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
     mockUseMusdBalance.mockReturnValue({
       hasMusdBalanceOnAnyChain: true,
@@ -512,8 +514,6 @@ describe('MoneyHomeView', () => {
         isAggregatedBalanceLoading: false,
         isBalanceFetchError: true,
         isBalanceFetching: false,
-        isBalanceUnavailable: true,
-        lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -561,14 +561,13 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the unavailable slot whenever there is no fresh balance', () => {
+    it('error takes precedence over loading and balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
         isAggregatedBalanceLoading: true,
         isBalanceFetchError: true,
         isBalanceFetching: false,
-        lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -581,7 +580,7 @@ describe('MoneyHomeView', () => {
       );
 
       expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_ERROR),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
@@ -700,8 +699,6 @@ describe('MoneyHomeView', () => {
           isAggregatedBalanceLoading: false,
           isBalanceFetchError: false,
           isBalanceFetching: false,
-          isBalanceUnavailable: true,
-          lastKnownTotalFiatFormatted: undefined,
           refetchBalance: jest.fn(),
           apyPercent: 5,
           vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -795,58 +792,6 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  describe('balance unavailable banner', () => {
-    const unavailableMock = (lastKnownTotalFiatFormatted?: string) =>
-      ({
-        totalFiatFormatted: undefined,
-        totalFiatRaw: undefined,
-        isAggregatedBalanceLoading: false,
-        isBalanceFetchError: true,
-        isBalanceFetching: false,
-        isBalanceUnavailable: true,
-        lastKnownTotalFiatFormatted,
-        refetchBalance: jest.fn(),
-        apyPercent: 5,
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
-      }) as unknown as ReturnType<typeof useMoneyAccountBalance>;
-
-    it('shows the banner with a dash when no last known balance exists', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock());
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        getByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
-      ).toHaveTextContent(strings('money.balance_unavailable_value'));
-    });
-
-    it('shows the banner alongside the last known balance when cached', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock('$2,384.34'));
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        getByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
-      ).toHaveTextContent('$2,384.34');
-    });
-
-    it('hides the banner when the balance loads successfully', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        queryByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   it('hides the how it works section in funded state', () => {
     const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
     expect(
@@ -923,27 +868,13 @@ describe('MoneyHomeView', () => {
   });
 
   describe('transfer button disabled state', () => {
-    beforeEach(() => {
-      mockUseMoneyAccountTransactions.mockReturnValue({
-        allTransactions: [],
-        deposits: [],
-        transfers: [],
-        submittedTransactions: [],
-        moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
-      });
-    });
-
     it('disables Transfer button when initial balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
-        totalFiatFormatted: undefined,
-        totalFiatRaw: undefined,
+        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
         tokenTotal: undefined,
         isAggregatedBalanceLoading: true,
         isBalanceFetchError: false,
         isBalanceFetching: true,
-        isBalanceUnavailable: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -956,7 +887,7 @@ describe('MoneyHomeView', () => {
 
     it('disables Transfer button when account has zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
+        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
         isAggregatedBalanceLoading: false,
@@ -974,7 +905,7 @@ describe('MoneyHomeView', () => {
 
     it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
+        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
         isAggregatedBalanceLoading: false,
@@ -1112,7 +1043,7 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
   });
 
-  it('opens the Money landing URL when learn more is pressed in unfunded state', () => {
+  it('opens the MUSD learn more URL when learn more is pressed in unfunded state', () => {
     const mockOpenURL = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
@@ -1144,7 +1075,6 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
     expect(mockOpenURL).toHaveBeenCalledTimes(1);
-    expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
     mockOpenURL.mockRestore();
   });
 
@@ -1308,53 +1238,6 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('navigates to HowItWorks when the condensed how-it-works card is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(
-        getByTestId(MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
-    });
-
-    it('opens the mUSD price URL when the condensed mUSD card is pressed', () => {
-      const mockOpenURL = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_CARD));
-
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
-        redirect_target: MONEY_URLS.MUSD_PRICE,
-      });
-      mockOpenURL.mockRestore();
-    });
-
-    it('opens the Money landing URL when the condensed What you get card is pressed', () => {
-      const mockOpenURL = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(
-        getByTestId(MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_CARD),
-      );
-
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
-      mockOpenURL.mockRestore();
-    });
-
-    it('renders a single bottom Add money footer', () => {
-      const { getAllByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
-    });
-
     it('hides expanded HowItWorks section', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
@@ -1389,22 +1272,6 @@ describe('MoneyHomeView', () => {
         mockDataEnabled: false,
       });
       mockSelectIsCardholder.mockReturnValue(true);
-      // Money Account ↔ card requirements met (incl. VEDA allowlisted) so the
-      // link CTA is offered.
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: true,
-        isCardAuthenticated: false,
-        isCardLinkedToMoneyAccount: false,
-        primaryMoneyAccount: { address: '0xabc' },
-        moneyAccountCardToken: { symbol: 'veda' },
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
     });
 
     it('renders MetaMask Card section in link mode', () => {
@@ -1498,7 +1365,6 @@ describe('MoneyHomeView', () => {
         mockUseMoneyAccountCardLinkage.mockReturnValue({
           hasMoneyAccountRequirements: true,
           isCardAuthenticated: true,
-          isCardVerified: true,
           isCardLinkedToMoneyAccount: false,
           primaryMoneyAccount: { address: '0xabc' },
           moneyAccountCardToken: { symbol: 'USDC' },
@@ -1586,71 +1452,33 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('hides MoneyEarnings for a brand-new account with no activity', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        queryByTestId(MoneyEarningsTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders a single Add money footer alongside the mUSD token row', () => {
-      const { getAllByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER)).toBeOnTheScreen();
-      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
-    });
-
-    it('opens the Add money sheet from the empty-state footer', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.footer.add_money',
-        component_name: COMPONENT_NAMES.MONEY_FOOTER,
-        redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
-      });
-    });
-
-    it('initiates a deposit without preselection when the mUSD row Add button is pressed', () => {
+    it('routes directly via useMoneyAccountAddRouting when the mUSD row Add button is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
-      expect(mockInitiateDeposit).toHaveBeenCalledWith();
+      expect(mockRouteAddMoney).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
     });
 
-    it('logs an error when the mUSD row deposit rejects', async () => {
-      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
-      const Logger = jest.requireMock('../../../../../util/Logger');
-
+    it('tracks the mUSD row Add click with the Buy flow redirect target when there is no mUSD balance', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-      await Promise.resolve();
-
-      expect(Logger.default.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: expect.stringContaining('mUSD row'),
-        }),
-      );
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.musd_row.add',
+        component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+        redirect_target: SCREEN_NAMES.RAMP_BUY,
+      });
     });
 
-    it('tracks the mUSD row Add click with the deposit redirect target', () => {
+    it('tracks the mUSD row Add click with the deposit redirect target when there is an mUSD balance', () => {
+      mockHasMusdBalance = true;
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
@@ -1664,25 +1492,19 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('opens the mUSD price URL when the mUSD token row is pressed', () => {
+    it('navigates to Asset details when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(
         '../../../../../core/NavigationService',
       ).default;
-      const mockOpenURL = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
-      expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-        redirect_target: MONEY_URLS.MUSD_PRICE,
-      });
-      mockOpenURL.mockRestore();
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({ source: expect.any(String) }),
+      );
     });
 
     it('navigates to HowItWorks when its section header is pressed', () => {
@@ -1693,16 +1515,15 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
     });
 
-    it('opens the Money landing URL when Learn more is pressed', () => {
-      const mockOpenURL = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
+    it('opens the Learn more URL when Learn more is pressed', () => {
+      const { Linking: MockLinking } = jest.requireMock('react-native');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
-      mockOpenURL.mockRestore();
+      expect(MockLinking.openURL).toHaveBeenCalledWith(
+        expect.stringContaining('http'),
+      );
     });
   });
 
@@ -1783,16 +1604,6 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
       ).toBeOnTheScreen();
-    });
-
-    it('renders MoneyEarnings when balance is zero but activity exists', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
-    });
-
-    it('renders a single bottom Add money footer', () => {
-      const { getAllByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
     });
 
     it('hides expanded HowItWorks section', () => {
@@ -1921,20 +1732,6 @@ describe('MoneyHomeView', () => {
 
     it('selects mode="link" when cardholder but not linked', () => {
       mockSelectIsCardholder.mockReturnValue(true);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: true,
-        isCardAuthenticated: false,
-        isCardLinkedToMoneyAccount: false,
-        primaryMoneyAccount: { address: '0xabc' },
-        moneyAccountCardToken: { symbol: 'veda' },
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1943,49 +1740,8 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides the card section when cardholder but VEDA is not allowlisted (cannot link)', () => {
-      mockSelectIsCardholder.mockReturnValue(true);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: false,
-        isCardAuthenticated: true,
-        isCardLinkedToMoneyAccount: false,
-        primaryMoneyAccount: { address: '0xabc' },
-        moneyAccountCardToken: null,
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
-
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
     it('selects mode="link" for cardholder even with zero transactions', () => {
       mockSelectIsCardholder.mockReturnValue(true);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: true,
-        isCardAuthenticated: false,
-        isCardLinkedToMoneyAccount: false,
-        primaryMoneyAccount: { address: '0xabc' },
-        moneyAccountCardToken: { symbol: 'veda' },
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
         deposits: [],
@@ -2012,12 +1768,11 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('selects mode="link" when card-authenticated and VERIFIED even if selected wallet is not a cardholder account', () => {
+    it('selects mode="link" when card-authenticated even if selected wallet is not a cardholder account', () => {
       mockSelectIsCardholder.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
         isCardAuthenticated: true,
-        isCardVerified: true,
         isCardLinkedToMoneyAccount: false,
         primaryMoneyAccount: { address: '0xabc' },
         moneyAccountCardToken: { symbol: 'USDC' },
@@ -2037,39 +1792,14 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides the MetaMask Card section when authenticated but not VERIFIED', () => {
-      mockSelectIsCardholder.mockReturnValue(false);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: true,
-        isCardAuthenticated: true,
-        isCardVerified: false,
-        isCardLinkedToMoneyAccount: false,
-        primaryMoneyAccount: { address: '0xabc' },
-        moneyAccountCardToken: { symbol: 'USDC' },
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
-
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
     it('disables the link button when linkage is in progress', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: true,
+        hasMoneyAccountRequirements: false,
         isCardAuthenticated: false,
         isCardLinkedToMoneyAccount: false,
-        primaryMoneyAccount: { address: '0xabc' },
-        moneyAccountCardToken: { symbol: 'veda' },
+        primaryMoneyAccount: undefined,
+        moneyAccountCardToken: null,
         canLink: false,
         status: 'idle',
         isLinking: true,
@@ -2201,20 +1931,6 @@ describe('MoneyHomeView', () => {
     it('uses 3% cashback copy in link mode when user holds a Metal card', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockSelectHasMetalCard.mockReturnValue(true);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: true,
-        isCardAuthenticated: false,
-        isCardLinkedToMoneyAccount: false,
-        primaryMoneyAccount: { address: '0xabc' },
-        moneyAccountCardToken: { symbol: 'veda' },
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
       const { getByText } = renderWithProvider(<MoneyHomeView />);
 

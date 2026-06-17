@@ -7,11 +7,9 @@ import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 
 export function PerpsWithdrawInfo() {
   useNavbar(strings('confirm.title.perps_withdraw'));
-  useDefaultPaySelectedSection();
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 

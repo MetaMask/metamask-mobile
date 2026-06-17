@@ -1,10 +1,54 @@
 import { useMemo } from 'react';
-import { CaipAssetType } from '@metamask/utils';
-import { isNonEvmChainId } from '@metamask/bridge-controller';
+import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { constants } from 'ethers';
+import {
+  isNonEvmChainId,
+  formatChainIdToHex,
+} from '@metamask/bridge-controller';
 import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { BalancesByAssetId } from './useBalancesByAssetId';
-import { convertAPITokensToBridgeTokens } from '../utils/tokenUtils';
 import { ARC_NATIVE_ASSET_ID } from '../../../hooks/useArcDefaultTokens';
+
+/**
+ * Converts API tokens to BridgeTokens with proper address and chainId formatting
+ * based on whether the chain is EVM or non-EVM
+ */
+const convertAPITokensToBridgeTokens = (
+  apiTokens?: (PopularToken | IncludeAsset)[] | null,
+): (BridgeToken & { assetId: CaipAssetType })[] =>
+  (Array.isArray(apiTokens) ? apiTokens : []).map((token) => {
+    const { assetReference, chainId, assetNamespace } = parseCaipAssetType(
+      token.assetId,
+    );
+    const isNonEvm = isNonEvmChainId(chainId);
+    const isNative = assetNamespace === 'slip44';
+
+    // For non-EVM chains, keep the full assetId as the address to properly match balances
+    // For EVM native tokens, use the zero address (required by useLatestBalance)
+    // For EVM ERC20 tokens, use the asset reference (the actual contract address)
+    let address: string;
+    if (isNonEvm) {
+      address = token.assetId;
+    } else if (isNative) {
+      address = constants.AddressZero;
+    } else {
+      address = assetReference;
+    }
+
+    // For EVM chains, convert chainId to Hex format for useLatestBalance to work correctly
+    // For non-EVM chains, keep CAIP format
+    const formattedChainId = isNonEvm ? chainId : formatChainIdToHex(chainId);
+
+    // Destructure to exclude iconUrl from spread, prevents navigation issues
+    const { iconUrl, ...tokenWithoutIconUrl } = token;
+
+    return {
+      ...tokenWithoutIconUrl,
+      address,
+      chainId: formattedChainId,
+      image: iconUrl, // Map API's iconUrl to BridgeToken's image
+    };
+  });
 
 /**
  * Merges API tokens with balance data from the selector

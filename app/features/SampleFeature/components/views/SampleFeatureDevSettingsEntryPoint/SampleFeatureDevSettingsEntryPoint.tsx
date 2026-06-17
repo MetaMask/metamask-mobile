@@ -6,11 +6,11 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import styleSheet from './SampleFeatureDevSettingsEntryPoint.styles';
@@ -39,14 +39,15 @@ function NavigateToSampleFeature() {
         {strings('app_settings.developer_options.sample_feature_desc')}
       </Text>
       <Button
-        variant={ButtonVariant.Secondary}
+        variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
+        label={strings(
+          'app_settings.developer_options.navigate_to_sample_feature',
+        )}
         onPress={onPressNavigate}
-        isFullWidth
+        width={ButtonWidthTypes.Full}
         style={styles.accessory}
-      >
-        {strings('app_settings.developer_options.navigate_to_sample_feature')}
-      </Button>
+      />
     </>
   );
 }

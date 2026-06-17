@@ -6,15 +6,18 @@ import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import { navigateToPerpsOrderEntry } from '../../flows/perps.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-
+import Utilities from '../../framework/Utilities';
 describe(SmokePerps('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
     await withFixtures(
@@ -61,7 +64,18 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
         // This is needed due to disable animations
         await device.disableSynchronization();
 
-        await navigateToPerpsOrderEntry('ETH', 'long');
+        // Navigate to Perps via homepage section (same click path as smoke perps tests)
+        await WalletView.scrollAndTapPerpsSection();
+        await PerpsHomeView.tapExploreCryptoIfVisible();
+
+        // Select ETH market and tap Long
+        await Utilities.executeWithRetry(
+          async () => {
+            await PerpsMarketListView.selectMarket('ETH');
+            await PerpsMarketDetailsView.tapLongButton();
+          },
+          { interval: 1000, timeout: 30000 },
+        );
 
         // Open order type selector and select Limit using Page Object
         await PerpsOrderView.openOrderTypeSelector();

@@ -4,19 +4,17 @@ import React, { useRef } from 'react';
 // External dependencies
 import { View } from 'react-native';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './ConnectionDetails.styles';
-import {
-  Text,
-  TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface ConnectionDetailsProps {
   route: {
@@ -59,13 +57,12 @@ const ConnectionDetails = (props: ConnectionDetailsProps) => {
         </View>
         <View style={styles.buttonsContainer}>
           <Button
+            label={strings('permissions.got_it')}
             style={styles.button}
             size={ButtonSize.Lg}
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariants.Primary}
             onPress={onDismiss}
-          >
-            {strings('permissions.got_it')}
-          </Button>
+          />
         </View>
       </View>
     </BottomSheet>

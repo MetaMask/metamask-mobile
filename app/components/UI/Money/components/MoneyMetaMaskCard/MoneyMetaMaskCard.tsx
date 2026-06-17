@@ -57,11 +57,6 @@ interface MoneyMetaMaskCardProps {
   /** User's available card balance (manage mode only). */
   cardBalance?: string;
   /**
-   * When true, the real-time balance could not be retrieved, so the available
-   * balance is the last known value and is rendered muted (manage mode only).
-   */
-  isBalanceStale?: boolean;
-  /**
    * Live vault APY used to interpolate the link-mode subtitle and the APY
    * bullet. When `undefined`, the component falls back to APY-less copy
    * (drops the APY clause from the subtitle and omits the APY bullet).
@@ -98,7 +93,7 @@ const CardRow = ({
     justifyContent={BoxJustifyContent.Between}
     alignItems={BoxAlignItems.Center}
     testID={testID}
-    twClassName="pt-3"
+    twClassName="py-3"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -236,7 +231,6 @@ const ManageRow = ({
   imageSource,
   title,
   subtitle,
-  isBalanceStale = false,
   cashbackPercentage,
   ctaLabel,
   onPress,
@@ -247,7 +241,6 @@ const ManageRow = ({
   imageSource: ImageSourcePropType;
   title: string;
   subtitle?: string;
-  isBalanceStale?: boolean;
   cashbackPercentage: string;
   ctaLabel: string;
   onPress: () => void;
@@ -260,7 +253,7 @@ const ManageRow = ({
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={containerTestID}
-    twClassName="pt-3 gap-3"
+    twClassName="py-3 gap-3"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -277,11 +270,6 @@ const ManageRow = ({
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              color={
-                isBalanceStale
-                  ? TextColor.TextAlternative
-                  : TextColor.TextDefault
-              }
               testID={subtitleTestID}
             >
               {subtitle}
@@ -308,12 +296,10 @@ const ManageRow = ({
 
 const ManageContent = ({
   cardBalance,
-  isBalanceStale,
   onManagePress,
   showMetalCard,
 }: {
   cardBalance: string;
-  isBalanceStale: boolean;
   onManagePress: () => void;
   showMetalCard: boolean;
 }) => (
@@ -322,7 +308,6 @@ const ManageContent = ({
       imageSource={showMetalCard ? mmCardMetal : mmCardRegular}
       title={strings('money.metamask_card.avail_balance')}
       subtitle={cardBalance}
-      isBalanceStale={isBalanceStale}
       cashbackPercentage={showMetalCard ? '3' : '1'}
       ctaLabel={strings('money.metamask_card.manage_card')}
       onPress={onManagePress}
@@ -342,7 +327,6 @@ const MoneyMetaMaskCard = ({
   showMetalCard = false,
   isLinkDisabled = false,
   cardBalance,
-  isBalanceStale = false,
   apy,
   hideCardImage = false,
   analyticsScreen,
@@ -458,7 +442,6 @@ const MoneyMetaMaskCard = ({
     content = (
       <ManageContent
         cardBalance={cardBalance ?? ''}
-        isBalanceStale={isBalanceStale}
         onManagePress={handleManagePress}
         showMetalCard={showMetalCard}
       />

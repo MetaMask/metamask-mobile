@@ -4,6 +4,10 @@ import React, { useRef } from 'react';
 // External dependencies
 import { View } from 'react-native';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -11,13 +15,7 @@ import BottomSheet, {
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PermittedNetworksInfoSheet.styles';
 import { PermittedNetworksInfoSheetTestIds } from './PermittedNetworksInfoSheet.constants';
-import {
-  Text,
-  TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const PermittedNetworksInfoSheet = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -50,14 +48,13 @@ const PermittedNetworksInfoSheet = () => {
           testID={PermittedNetworksInfoSheetTestIds.BUTTONS_CONTAINER}
         >
           <Button
+            label={strings('permissions.got_it')}
             style={styles.button}
             size={ButtonSize.Lg}
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariants.Primary}
             onPress={onDismiss}
             testID={PermittedNetworksInfoSheetTestIds.GOT_IT_BUTTON}
-          >
-            {strings('permissions.got_it')}
-          </Button>
+          />
         </View>
       </View>
     </BottomSheet>

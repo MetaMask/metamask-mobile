@@ -6,6 +6,7 @@ import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
+import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -35,7 +36,9 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 interface CustomTestState {
-  fiatOrders?: Record<string, unknown>;
+  fiatOrders?: {
+    rampRoutingDecision?: UnifiedRampRoutingType;
+  };
 }
 
 function renderWithProvider(
@@ -53,6 +56,7 @@ function renderWithProvider(
           backgroundState,
         },
         fiatOrders: {
+          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
           ...customState?.fiatOrders,
         },
       },

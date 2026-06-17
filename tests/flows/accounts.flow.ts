@@ -89,10 +89,7 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
 
-  if (
-    PlatformDetector.isIOS() ||
-    (PlatformDetector.isAndroid() && FrameworkDetector.isAppium())
-  ) {
+  if (PlatformDetector.isIOS()) {
     // For some reason, the QR code is visible on Android but detox cannot find it
     await expectElementVisible(
       RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
@@ -106,7 +103,7 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
 export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
-  await AccountListBottomSheet.tapAccountEllipsisButtonV2(accountIndex);
+  await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
   await AccountDetails.tapAccountSrpLink();
 };
 

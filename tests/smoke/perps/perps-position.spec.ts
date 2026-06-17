@@ -2,7 +2,9 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { navigateToPerpsOrderEntry } from '../../flows/perps.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
@@ -49,7 +51,6 @@ describe(SmokePerps('Perps Position'), () => {
           .withPopularNetworks()
           .build(),
         restartDevice: true,
-        permissions: { notifications: 'YES' },
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
@@ -67,7 +68,12 @@ describe(SmokePerps('Perps Position'), () => {
         // streaming/network activity can block Detox idling.
         await device.disableSynchronization();
 
-        await navigateToPerpsOrderEntry('ETH', 'long');
+        // Navigate to Perps via homepage section (same click path as smoke perps tests)
+        await WalletView.scrollAndTapPerpsSection();
+        await PerpsHomeView.tapExploreCryptoIfVisible();
+
+        await PerpsMarketListView.selectMarket('ETH');
+        await PerpsMarketDetailsView.tapLongButton();
 
         // Custom TP trigger above mock ETH mark (~2500) for a long
         await PerpsOrderView.tapTakeProfitButton();

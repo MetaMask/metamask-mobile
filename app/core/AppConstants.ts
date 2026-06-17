@@ -10,10 +10,8 @@ import {
   MISSING_TOKENS_URL,
   MM_ANDROID_BUNDLE_ID,
   MM_UNIVERSAL_LINK_HOST,
-  MONEY_LANDING_URL,
   MULTICHAIN_ACCOUNTS_URL,
   MUSD_LEARN_MORE_URL,
-  MUSD_PRICE_URL,
   PRIVACY_BEST_PRACTICES_URL,
   PROFILE_SYNC_URL,
   SMART_ACCOUNTS_URL,
@@ -33,10 +31,6 @@ const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
 
-const PRICE_ALERTS_API_URL =
-  process.env.PRICE_ALERTS_API_URL ??
-  'https://price-alerts.dev-api.cx.metamask.io';
-
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
@@ -51,9 +45,6 @@ export default {
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
   SECURITY_ALERTS_API: {
     URL: SECURITY_ALERTS_API_URL,
-  },
-  PRICE_ALERTS_API: {
-    URL: PRICE_ALERTS_API_URL,
   },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
@@ -231,8 +222,6 @@ export default {
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
     MUSD_LEARN_MORE: MUSD_LEARN_MORE_URL,
-    MONEY_LANDING: MONEY_LANDING_URL,
-    MUSD_PRICE: MUSD_PRICE_URL,
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||

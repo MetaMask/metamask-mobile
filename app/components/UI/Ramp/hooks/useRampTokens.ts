@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { handleFetch } from '@metamask/controller-utils';
 import type { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import {
+  getRampRoutingDecision,
+  getDetectedGeolocation,
+  UnifiedRampRoutingType,
+} from '../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import Logger from '../../../../util/Logger';
 
@@ -49,7 +53,7 @@ interface UseRampTokensOptions {
 }
 
 /**
- * Hook to fetch available tokens for ramp flows based on the detected user region.
+ * Hook to fetch available tokens for ramp flows based on user region and routing decision.
  *
  * @returns An object containing top tokens, all tokens, loading state, and error state
  */
@@ -61,6 +65,7 @@ export function useRampTokens(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -76,6 +81,19 @@ export function useRampTokens(
       return;
     }
 
+    // Don't fetch for invalid routing decisions
+    if (
+      !rampRoutingDecision ||
+      rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED ||
+      rampRoutingDecision === UnifiedRampRoutingType.ERROR
+    ) {
+      setRawTopTokens(null);
+      setRawAllTokens(null);
+      setIsLoading(false);
+      setError(null);
+      return;
+    }
+
     try {
       setError(null);
       setIsLoading(true);
@@ -83,12 +101,18 @@ export function useRampTokens(
       // Determine base URL based on environment
       const baseUrl = getBaseUrl();
 
+      // Map routing decision to action parameter
+      const action =
+        rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR
+          ? 'buy'
+          : 'deposit';
+
       // Build URL using URL and searchParams
       const url = new URL(
         `/regions/${detectedGeolocation.toLowerCase()}/tokens`,
         baseUrl,
       );
-      url.searchParams.set('action', 'buy');
+      url.searchParams.set('action', action);
       url.searchParams.set('sdk', SDK_VERSION);
 
       // Fetch tokens from API
@@ -105,7 +129,7 @@ export function useRampTokens(
     } finally {
       setIsLoading(false);
     }
-  }, [detectedGeolocation]);
+  }, [detectedGeolocation, rampRoutingDecision]);
 
   useEffect(() => {
     if (fetchOnMount) {

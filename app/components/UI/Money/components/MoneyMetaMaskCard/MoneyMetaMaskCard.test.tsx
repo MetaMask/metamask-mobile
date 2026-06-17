@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyMetaMaskCard from './MoneyMetaMaskCard';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
@@ -411,25 +410,6 @@ describe('MoneyMetaMaskCard', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
       ).toHaveTextContent('$2,342.86');
-    });
-
-    it('renders the available balance muted when the balance is stale', () => {
-      const { getByTestId, rerender } = render(
-        <MoneyMetaMaskCard {...props} />,
-      );
-      const balanceColor = () =>
-        StyleSheet.flatten(
-          getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.style,
-        ).color;
-      const defaultColor = balanceColor();
-
-      rerender(<MoneyMetaMaskCard {...props} isBalanceStale />);
-
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
-      ).toHaveTextContent('$2,342.86');
-      expect(balanceColor()).toBeDefined();
-      expect(balanceColor()).not.toBe(defaultColor);
     });
 
     it('calls onManagePress when Manage is tapped', () => {

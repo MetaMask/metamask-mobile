@@ -28,16 +28,13 @@ import { useTheme } from '../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
-  selectIsCardVerified,
   selectIsCardholder,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
-  selectMoneyAccountVedaTokenConfig,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -50,7 +47,6 @@ import {
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
-import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -80,7 +76,6 @@ export interface LinkFlowOrigin {
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
   isCardAuthenticated: boolean;
-  isCardVerified: boolean;
   isCardLinkedToMoneyAccount: boolean;
   primaryMoneyAccount: MoneyAccount | undefined;
   moneyAccountCardToken: CardFundingToken | null;
@@ -121,11 +116,8 @@ export const useMoneyAccountCardLinkage =
       selectMoneyEnableMoneyAccountFlag,
     );
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
-    const isCardVerified = useSelector(selectIsCardVerified);
     const isCardholder = useSelector(selectIsCardholder);
     const delegationSettings = useSelector(selectCardDelegationSettings);
-    const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
-    const cardFeatureFlag = useSelector(selectCardFeatureFlag);
     const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
     const isAlreadyDelegated = useSelector(
       selectIsMoneyAccountDelegatedForCard,
@@ -141,32 +133,20 @@ export const useMoneyAccountCardLinkage =
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
 
-    const rawMoneyAccountCardToken = useMemo(
+    const moneyAccountCardToken = useMemo(
       () => resolveMoneyAccountCardToken(delegationSettings),
       [delegationSettings],
     );
 
-    const isMoneyAccountCardSupported = useMemo(
-      () =>
-        isMoneyAccountCardTokenAllowlisted(cardFeatureFlag?.chains, vedaConfig),
-      [cardFeatureFlag, vedaConfig],
-    );
-
-    const moneyAccountCardToken = isMoneyAccountCardSupported
-      ? rawMoneyAccountCardToken
-      : null;
-
-    const hasRequirements =
-      hasMoneyAccountCardRequirements({
-        isMoneyAccountEnabled,
-        vaultConfig,
-        moneyAccountAddress: primaryMoneyAccount?.address,
-      }) && isMoneyAccountCardSupported;
+    const hasRequirements = hasMoneyAccountCardRequirements({
+      isMoneyAccountEnabled,
+      vaultConfig,
+      moneyAccountAddress: primaryMoneyAccount?.address,
+    });
 
     const canSubmitDelegation = Boolean(
       hasRequirements &&
         isCardAuthenticated &&
-        isCardVerified &&
         moneyAccountCardToken &&
         isMonadSponsorshipEnabled,
     );
@@ -313,10 +293,6 @@ export const useMoneyAccountCardLinkage =
         }
 
         if (isCardAuthenticated) {
-          if (!isCardVerified) {
-            return;
-          }
-
           if (isAlreadyDelegated) {
             return;
           }
@@ -360,7 +336,6 @@ export const useMoneyAccountCardLinkage =
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
         isCardAuthenticated,
-        isCardVerified,
         isAlreadyDelegated,
         isCardholder,
         openLinkCardSheet,
@@ -373,16 +348,6 @@ export const useMoneyAccountCardLinkage =
     useEffect(() => {
       if (!pendingMoneyAccountCardLinkEntryPoint) return;
       if (!isCardAuthenticated) return;
-
-      if (!isCardVerified) {
-        if (
-          cardHomeDataStatus === 'success' ||
-          cardHomeDataStatus === 'error'
-        ) {
-          dispatch(setPendingMoneyAccountCardLink(null));
-        }
-        return;
-      }
 
       if (!hasRequirements || !primaryMoneyAccount?.address) {
         dispatch(setPendingMoneyAccountCardLink(null));
@@ -410,7 +375,6 @@ export const useMoneyAccountCardLinkage =
     }, [
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
-      isCardVerified,
       hasRequirements,
       moneyAccountCardToken,
       primaryMoneyAccount?.address,
@@ -544,7 +508,6 @@ export const useMoneyAccountCardLinkage =
     return {
       hasMoneyAccountRequirements: hasRequirements,
       isCardAuthenticated,
-      isCardVerified,
       isCardLinkedToMoneyAccount: isAlreadyDelegated,
       primaryMoneyAccount,
       moneyAccountCardToken,

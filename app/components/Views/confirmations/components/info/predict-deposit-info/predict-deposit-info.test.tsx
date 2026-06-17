@@ -5,7 +5,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { POLYGON_PUSD, PREDICT_CURRENCY } from '../../../constants/predict';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
+import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../confirm/confirm-component';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -13,7 +13,7 @@ import { PredictDepositInfo } from './predict-deposit-info';
 
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
-jest.mock('../../../hooks/pay/useDefaultPaySelectedSection');
+jest.mock('../../../hooks/pay/useMoneyAccountPaymentOverride');
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(),
@@ -74,9 +74,9 @@ describe('PredictDepositInfo', () => {
     );
   });
 
-  it('calls useDefaultPaySelectedSection', () => {
+  it('calls useMoneyAccountPaymentOverride', () => {
     render(<PredictDepositInfo />);
 
-    expect(useDefaultPaySelectedSection).toHaveBeenCalled();
+    expect(useMoneyAccountPaymentOverride).toHaveBeenCalled();
   });
 });

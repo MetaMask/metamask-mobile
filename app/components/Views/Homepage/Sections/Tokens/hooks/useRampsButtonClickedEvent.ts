@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useRampsButtonClickData } from '../../../../../UI/Ramp/hooks/useRampsButtonClickData';
+import useRampsUnifiedV1Enabled from '../../../../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../../../../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import { getDetectedGeolocation } from '../../../../../../reducers/fiatOrders';
 
@@ -15,12 +16,17 @@ import { getDetectedGeolocation } from '../../../../../../reducers/fiatOrders';
 export const useRampsButtonClickedEvent = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const buttonClickData = useRampsButtonClickData();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const region = useSelector(getDetectedGeolocation);
 
   const trackBuyButtonClicked = useCallback(
     (assetSymbol?: string) => {
-      const rampType = isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY';
+      const rampType = isV2UnifiedEnabled
+        ? 'UNIFIED_BUY_2'
+        : rampUnifiedV1Enabled
+          ? 'UNIFIED_BUY'
+          : 'BUY';
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
@@ -29,6 +35,7 @@ export const useRampsButtonClickedEvent = () => {
             location: 'TokensSection',
             ramp_type: rampType,
             region,
+            ramp_routing: buttonClickData.ramp_routing,
             is_authenticated: buttonClickData.is_authenticated,
             preferred_provider: buttonClickData.preferred_provider,
             order_count: buttonClickData.order_count,
@@ -41,6 +48,7 @@ export const useRampsButtonClickedEvent = () => {
       trackEvent,
       createEventBuilder,
       isV2UnifiedEnabled,
+      rampUnifiedV1Enabled,
       region,
       buttonClickData,
     ],

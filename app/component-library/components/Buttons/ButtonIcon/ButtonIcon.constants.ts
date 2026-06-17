@@ -13,9 +13,9 @@ import {
 
 // Mappings
 export const ICONSIZE_BY_BUTTONICONSIZE: IconSizeByButtonIconSize = {
-  [ButtonIconSizes.Sm]: IconSize.Md,
-  [ButtonIconSizes.Md]: IconSize.Lg,
-  [ButtonIconSizes.Lg]: IconSize.Xl,
+  [ButtonIconSizes.Sm]: IconSize.Sm,
+  [ButtonIconSizes.Md]: IconSize.Md,
+  [ButtonIconSizes.Lg]: IconSize.Lg,
 };
 
 // Defaults
