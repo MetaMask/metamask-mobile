@@ -1,13 +1,3 @@
-// TrendingQuickBuy — unit tests
-//
-// Covers:
-// - Inert (hidden) when no token is provided
-// - Visible when a token is provided
-// - Correct QuickBuyTarget mapping from TrendingAsset (ERC-20 + native)
-// - SOCIAL_QUICK_BUY_SHEET_VIEWED fired once per open with explore_search source
-// - Event NOT re-fired while the same token stays open
-// - analyticsContext source forwarded to QuickBuy.Root
-
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -58,14 +48,10 @@ const makeToken = (overrides: Partial<TrendingAsset> = {}): TrendingAsset => ({
   ...overrides,
 });
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
 describe('TrendingQuickBuy', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  // ── Visibility ──────────────────────────────────────────────────────────────
 
   it('renders QuickBuy.Root with isVisible=false when token is null', () => {
     render(<TrendingQuickBuy token={null} onClose={jest.fn()} />);
@@ -82,8 +68,6 @@ describe('TrendingQuickBuy', () => {
       expect.objectContaining({ isVisible: true }),
     );
   });
-
-  // ── Target mapping: ERC-20 ───────────────────────────────────────────────────
 
   it('maps an ERC-20 TrendingAsset to the correct QuickBuyTarget', () => {
     const token = makeToken({
@@ -106,8 +90,6 @@ describe('TrendingQuickBuy', () => {
     );
   });
 
-  // ── Target mapping: native token ─────────────────────────────────────────────
-
   it('maps a native (slip44) TrendingAsset to the zero address', () => {
     const token = makeToken({
       assetId: 'eip155:1/slip44:60',
@@ -127,8 +109,6 @@ describe('TrendingQuickBuy', () => {
     );
   });
 
-  // ── Analytics context ────────────────────────────────────────────────────────
-
   it('passes analyticsContext with source=explore_search to QuickBuy.Root', () => {
     render(<TrendingQuickBuy token={makeToken()} onClose={jest.fn()} />);
 
@@ -138,8 +118,6 @@ describe('TrendingQuickBuy', () => {
       }),
     );
   });
-
-  // ── Sheet-viewed event ───────────────────────────────────────────────────────
 
   it('fires SOCIAL_QUICK_BUY_SHEET_VIEWED when token transitions from null to non-null', () => {
     const token = makeToken();
@@ -202,8 +180,6 @@ describe('TrendingQuickBuy', () => {
       }),
     );
   });
-
-  // ── onClose forwarded ────────────────────────────────────────────────────────
 
   it('forwards onClose to QuickBuy.Root', () => {
     const onClose = jest.fn();

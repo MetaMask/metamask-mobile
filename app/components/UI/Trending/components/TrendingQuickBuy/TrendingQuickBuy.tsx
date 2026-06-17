@@ -15,14 +15,6 @@ interface TrendingQuickBuyProps {
   onClose: () => void;
 }
 
-/**
- * Adapter that maps a `TrendingAsset` into the `QuickBuyTarget` format and
- * renders `QuickBuy.Root`. Lives in the UI layer so route directories such as
- * `TrendingView` can import it without violating ADR-0020.
- *
- * Fires `SOCIAL_QUICK_BUY_SHEET_VIEWED` with `source: 'explore_search'` each
- * time the sheet is opened so all downstream QuickBuy events are attributed.
- */
 const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
   token,
   onClose,
@@ -46,7 +38,6 @@ const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
     };
   }, [token]);
 
-  // Fire sheet-viewed event once per open (when token goes null → non-null).
   useEffect(() => {
     if (token && !prevTokenRef.current) {
       track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
