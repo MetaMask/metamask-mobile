@@ -38,6 +38,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
@@ -166,6 +167,7 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
     isLinking,
     hasMoneyAccountRequirements,
+    hasMoneyAccountBaseRequirements,
     isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
 
@@ -354,8 +356,7 @@ const MoneyHomeView = () => {
 
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+      ...MONEY_HOME_CARD_ORIGIN,
       entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     });
   }, [startLinkFlow]);
@@ -579,18 +580,15 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
-  if (isCardLinkedToMoneyAccount) {
-    metamaskCardMode = 'manage';
-  } else if (isResidencyBlocked) {
-    metamaskCardMode = null;
-  } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
-    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
-  } else if (isCardAuthenticated) {
-    metamaskCardMode = null;
-  } else {
-    metamaskCardMode = 'upsell';
-  }
+  const metamaskCardMode = deriveMoneyMetaMaskCardMode({
+    isCardLinkedToMoneyAccount,
+    isCardholder,
+    isCardAuthenticated,
+    isCardVerified,
+    isResidencyBlocked,
+    hasMoneyAccountBaseRequirements,
+    hasMoneyAccountRequirements,
+  });
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
@@ -601,6 +599,34 @@ const MoneyHomeView = () => {
   });
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+
+  const metamaskCardSection = metamaskCardMode
+    ? {
+        key: 'metamask-card',
+        node: (
+          <MoneyMetaMaskCard
+            mode={metamaskCardMode}
+            onGetNowPress={navigateToCardHome}
+            onHeaderPress={handleCardHeaderPress}
+            onLinkPress={handleLinkCardPress}
+            onManagePress={navigateToCardHome}
+            showMetalCard={hasMetalCard}
+            isLinkDisabled={isLinking}
+            cardBalance={cardBalance}
+            isBalanceStale={showBalanceUnavailableBanner}
+            apy={apyPercent}
+            analyticsScreen={CardScreens.MONEY_HOME}
+            analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+            analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+            analyticsCardState={cardState}
+            analyticsReady={isCardAnalyticsReady}
+          />
+        ),
+      }
+    : null;
+
+  const shouldShowMetaMaskCardEarly =
+    metamaskCardMode !== null && metamaskCardMode !== 'upsell';
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
@@ -649,6 +675,10 @@ const MoneyHomeView = () => {
     });
   }
 
+  if (shouldShowMetaMaskCardEarly && metamaskCardSection) {
+    contentSections.push(metamaskCardSection);
+  }
+
   if (showCardActivityLoading || activityItems.length >= 1) {
     contentSections.push({
       key: 'activity',
@@ -684,29 +714,8 @@ const MoneyHomeView = () => {
     });
   }
 
-  if (metamaskCardMode) {
-    contentSections.push({
-      key: 'metamask-card',
-      node: (
-        <MoneyMetaMaskCard
-          mode={metamaskCardMode}
-          onGetNowPress={navigateToCardHome}
-          onHeaderPress={handleCardHeaderPress}
-          onLinkPress={handleLinkCardPress}
-          onManagePress={navigateToCardHome}
-          showMetalCard={hasMetalCard}
-          isLinkDisabled={isLinking}
-          cardBalance={cardBalance}
-          isBalanceStale={showBalanceUnavailableBanner}
-          apy={apyPercent}
-          analyticsScreen={CardScreens.MONEY_HOME}
-          analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
-          analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-          analyticsCardState={cardState}
-          analyticsReady={isCardAnalyticsReady}
-        />
-      ),
-    });
+  if (!shouldShowMetaMaskCardEarly && metamaskCardSection) {
+    contentSections.push(metamaskCardSection);
   }
 
   if (isFunded) {

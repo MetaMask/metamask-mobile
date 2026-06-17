@@ -7099,7 +7099,8 @@
       "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
-      "avail_balance": "Avail. balance"
+      "avail_balance": "Avail. balance",
+      "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
       "title": "What you get",
