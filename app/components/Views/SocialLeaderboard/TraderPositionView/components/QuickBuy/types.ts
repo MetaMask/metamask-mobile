@@ -39,6 +39,7 @@ export interface QuickBuyAnalyticsContext {
   traderAddress?: string;
   marketCap?: number;
   source?: QuickBuySheetSource;
+  traderTradeType?: 'buy' | 'sell';
 }
 
 export interface QuickBuySheetProps {
