@@ -95,12 +95,6 @@ export function getHardwareWalletTypeForAddress(
 export async function getDeviceIdForAddress(
   address: NoEmptyAddress<string>, // !This value cannot be an empty string.
 ): Promise<string | undefined> {
-  if (!address) {
-    throw new Error(
-      '[getDeviceIdForAddress] Address cannot be an empty string.',
-    );
-  }
-
   const walletType = getHardwareWalletTypeForAddress(address);
 
   switch (walletType) {
