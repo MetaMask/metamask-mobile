@@ -33,7 +33,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
@@ -139,7 +139,7 @@ const MoneyHomeView = () => {
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();

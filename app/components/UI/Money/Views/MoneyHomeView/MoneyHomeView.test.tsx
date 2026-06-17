@@ -91,15 +91,13 @@ const mockDepositTokens = [
   },
 ];
 
-const mockUseMoneyDepositTokens = jest.fn(() => ({
+const mockUseMoneyEarnableTokens = jest.fn(() => ({
   tokens: mockDepositTokens as ReturnType<typeof Array.from>,
   isNoFeeToken: jest.fn(() => false),
-  isEligibleToken: jest.fn(() => false),
-  filterAllowedTokens: jest.fn((t) => t),
 }));
 
-jest.mock('../../hooks/useMoneyDepositTokens', () => ({
-  useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
+jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
+  useMoneyEarnableTokens: () => mockUseMoneyEarnableTokens(),
 }));
 
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
@@ -1113,7 +1111,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMoneyDepositTokens.mockReturnValueOnce({
+    mockUseMoneyEarnableTokens.mockReturnValueOnce({
       tokens: Array.from({ length: 6 }, (_, i) => ({
         ...mockDepositTokens[0],
         address:
@@ -1121,8 +1119,6 @@ describe('MoneyHomeView', () => {
         fiat: { balance: 5000 },
       })),
       isNoFeeToken: jest.fn(() => false),
-      isEligibleToken: jest.fn(() => false),
-      filterAllowedTokens: jest.fn((t) => t),
     });
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1817,7 +1813,7 @@ describe('MoneyHomeView', () => {
 
   describe('navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMoneyDepositTokens.mockReturnValueOnce({
+      mockUseMoneyEarnableTokens.mockReturnValueOnce({
         tokens: Array.from({ length: 6 }, (_, i) => ({
           ...mockDepositTokens[0],
           address:
@@ -1825,8 +1821,6 @@ describe('MoneyHomeView', () => {
           fiat: { balance: 5000 },
         })),
         isNoFeeToken: jest.fn(() => false),
-        isEligibleToken: jest.fn(() => false),
-        filterAllowedTokens: jest.fn((t) => t),
       });
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
