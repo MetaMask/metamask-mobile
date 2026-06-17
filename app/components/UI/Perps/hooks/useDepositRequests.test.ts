@@ -839,9 +839,7 @@ describe('useDepositRequests', () => {
         | undefined;
 
       mockUsePerpsSelector.mockImplementation((selector) => {
-        capturedSelector = selector as (
-          state: PerpsControllerState,
-        ) => unknown;
+        capturedSelector = selector as (state: PerpsControllerState) => unknown;
         return selector({
           depositRequests: mockPendingDeposits,
         } as Partial<PerpsControllerState> as PerpsControllerState);
