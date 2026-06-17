@@ -25,6 +25,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import {
@@ -42,6 +43,7 @@ import {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
+import { isValidPrice } from '../../utils/prices';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -294,6 +296,21 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     market.status === PredictMarketStatus.OPEN &&
     !gameEnded &&
     buttonItems.length > 0;
+  const tokenIds = useMemo(
+    () => buttonItems.map((item) => item.token.id),
+    [buttonItems],
+  );
+  const { getPrice } = useLiveMarketPrices(tokenIds, {
+    enabled: showBuyButtons,
+  });
+
+  const getDisplayPrice = useCallback(
+    (token: PredictOutcomeToken): number => {
+      const liveBestAsk = getPrice(token.id)?.bestAsk;
+      return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+    },
+    [getPrice],
+  );
 
   const getButtonTextColorClass = (item: SportOutcomeButtonItem): string => {
     if (item.teamColor) return 'text-white';
@@ -381,7 +398,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                         getButtonTextColorClass(item),
                       )}
                     >
-                      {item.label.toUpperCase()} {formatCents(item.token.price)}
+                      {item.label.toUpperCase()}{' '}
+                      {formatCents(getDisplayPrice(item.token))}
                     </Text>
                   </Button>
                 </Box>

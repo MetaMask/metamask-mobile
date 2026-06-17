@@ -47,6 +47,12 @@ jest.mock('../../hooks/useLiveGameUpdates', () => ({
   useLiveGameUpdates: () => ({ gameUpdate: null }),
 }));
 
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: jest.fn(() => undefined),
+  })),
+}));
+
 jest.mock('../../constants/sportLeagueConfigs', () => ({
   getLeagueConfig: () => ({}),
 }));

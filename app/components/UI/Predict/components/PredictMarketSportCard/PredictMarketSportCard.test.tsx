@@ -51,6 +51,13 @@ jest.mock('../../hooks/useLiveGameUpdates', () => ({
   useLiveGameUpdates: () => ({ gameUpdate: mockGameUpdate }),
 }));
 
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
+}));
+
 jest.mock('../../constants/sportLeagueConfigs', () => ({
   getLeagueConfig: () => ({}),
 }));
@@ -130,6 +137,7 @@ describe('PredictMarketSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFromTrending.mockReturnValue(false);
+    mockGetLivePrice.mockReturnValue(undefined);
     mockGameUpdate = null;
   });
 
@@ -156,6 +164,29 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('SPA 60¢')).toBeOnTheScreen();
     expect(getByText('DRAW 15¢')).toBeOnTheScreen();
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
+  });
+
+  it('renders live Moneyline best ask prices when available', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk:
+        tokenId === 'token-home'
+          ? 0.71
+          : tokenId === 'token-draw'
+            ? 0.12
+            : 0.29,
+    }));
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 71¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 12¢')).toBeOnTheScreen();
+    expect(getByText('ENG 29¢')).toBeOnTheScreen();
   });
 
   it('uses the main moneyline outcome when extended sports markets are present', () => {
