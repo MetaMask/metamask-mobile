@@ -14,28 +14,46 @@ import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { PredictEventValues } from '../../../../constants/eventNames';
+import { resolvePredictFeedDynamicFilterConfig } from '../../../../constants/feedConfig';
 import { usePredictFilterOptions } from '../../../../hooks/usePredictFilterOptions';
-import type { PredictFilterOption } from '../../../../types';
+import type {
+  PredictFilterOption,
+  PredictFilterOptionsParams,
+} from '../../../../types';
 import type {
   PredictFeedRouteParams,
   PredictNavigationParamList,
 } from '../../../../types/navigation';
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
+/**
+ * Max number of filter chips rendered on the home section. The full
+ * `popular-today` feed shows the complete list; the home rail shows a compact
+ * prefix of the same ordered list.
+ */
 const POPULAR_TODAY_FILTER_LIMIT = 10;
 const SKELETON_COUNT = 8;
 const DEFAULT_CHIP_ROW_COUNT = 2;
 
-const POPULAR_TODAY_FILTER_PARAMS = {
-  source: 'related-tags',
-  baseTagSlug: 'all',
-  baseParams: {
-    status: 'open',
-    order: 'volume24hr',
-    limit: 12,
-  },
-  limit: POPULAR_TODAY_FILTER_LIMIT,
-} as const;
+/**
+ * Derive the section's filter-options params from the canonical `popular-today`
+ * feed registry so there is a single source of truth. Crucially, we do NOT pass
+ * a top-level `limit` here: that keeps the React Query cache key identical to
+ * the full feed's `usePredictFilterOptions` call (which omits `limit`), so the
+ * home section and the feed share the same cached related-tags request instead
+ * of firing two. The display cap is applied client-side via
+ * `POPULAR_TODAY_FILTER_LIMIT` when slicing the returned options.
+ */
+const POPULAR_TODAY_FILTER_PARAMS: PredictFilterOptionsParams = (() => {
+  const dynamicConfig = resolvePredictFeedDynamicFilterConfig('popular-today');
+
+  return {
+    source: dynamicConfig?.source ?? 'related-tags',
+    baseTagSlug: dynamicConfig?.baseTagSlug,
+    baseParams: dynamicConfig?.baseParams,
+    limit: dynamicConfig?.limit,
+  };
+})();
 
 export const PREDICT_POPULAR_TODAY_SECTION_TEST_IDS = {
   SECTION: PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION,
@@ -98,7 +116,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
 
   const chips = useMemo(
     () =>
-      filterOptions.map((option) => ({
+      filterOptions.slice(0, POPULAR_TODAY_FILTER_LIMIT).map((option) => ({
         key: option.id,
         label: option.label,
         option,
