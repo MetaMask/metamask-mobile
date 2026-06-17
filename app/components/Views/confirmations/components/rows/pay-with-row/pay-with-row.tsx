@@ -89,7 +89,9 @@ export function PayWithRow({
     paymentOverride === PaymentOverride.MoneyAccount ||
     (isDefaultMoneyAccount && !overrideApplied.current)
   ) {
-    return <PayWithRowMoneyAccount onSelectorOpen={onSelectorOpen} />;
+    if (!(isResultReady && isDefaultMoneyAccount)) {
+      return <PayWithRowMoneyAccount onSelectorOpen={onSelectorOpen} />;
+    }
   }
 
   return <PayWithRowInteractive onSelectorOpen={onSelectorOpen} />;

@@ -16,10 +16,10 @@ export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
 export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
 export const PAY_HARDWARE_ENABLED_DEFAULT = false;
 export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;
-export const PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
-export const PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
-export const PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT = false;
-export const PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT = false;
+export const PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT: Record<
+  string,
+  boolean
+> = {};
 export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT: string | undefined =
   undefined;
 export const SLIPPAGE_DEFAULT = 0.005;
@@ -62,10 +62,7 @@ export interface MetaMaskPayFlags {
 
 export interface MetaMaskPayExtendedFlags {
   enableDepositWalletWithdraw: boolean;
-  enablePerpsMoneyAccountTransactions: boolean;
-  enablePredictMoneyAccountTransactions: boolean;
-  enableMoneyHomePagePerpsTransaction: boolean;
-  enableMoneyHomePagePredictTransaction: boolean;
+  enableMoneyAccountTransactions: Record<string, boolean>;
   defaultPaySelectedSection?: string;
 }
 
@@ -140,21 +137,11 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.enableDepositWalletWithdraw as boolean) ??
       PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT;
 
-    const enablePerpsMoneyAccountTransactions =
-      (metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
-
-    const enablePredictMoneyAccountTransactions =
-      (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
-
-    const enableMoneyHomePagePerpsTransaction =
-      (metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT;
-
-    const enableMoneyHomePagePredictTransaction =
-      (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT;
+    const enableMoneyAccountTransactions =
+      (metaMaskPayExtendedFlags?.enableMoneyAccountTransactions as Record<
+        string,
+        boolean
+      >) ?? PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
 
     const defaultPaySelectedSection =
       (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
@@ -168,10 +155,7 @@ export const selectMetaMaskPayFlags = createSelector(
       slippage,
       stxDisabled,
       enableDepositWalletWithdraw,
-      enablePerpsMoneyAccountTransactions,
-      enablePredictMoneyAccountTransactions,
-      enableMoneyHomePagePerpsTransaction,
-      enableMoneyHomePagePredictTransaction,
+      enableMoneyAccountTransactions,
       defaultPaySelectedSection,
     };
   },

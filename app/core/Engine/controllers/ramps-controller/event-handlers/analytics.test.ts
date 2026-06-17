@@ -4,6 +4,11 @@ import {
 } from '@metamask/ramps-controller';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Logger from '../../../../../util/Logger';
+import {
+  __resetHeadlessOrderContextRegistryForTests,
+  getHeadlessOrderContext,
+  setHeadlessOrderContext,
+} from '../headlessOrderContextRegistry';
 import { handleOrderStatusChangedForMetrics } from './analytics';
 
 const mockTrackEvent = jest.fn();
@@ -22,6 +27,7 @@ jest.mock('../../../../Analytics', () => ({
     OFFRAMP_PURCHASE_COMPLETED: { category: 'Off-ramp Purchase Completed' },
     OFFRAMP_PURCHASE_FAILED: { category: 'Off-ramp Purchase Failed' },
     OFFRAMP_PURCHASE_CANCELLED: { category: 'Off-ramp Purchase Cancelled' },
+    RAMPS_TRANSACTION_FAILED: { category: 'Ramps Transaction Failed' },
   },
 }));
 
@@ -68,6 +74,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
+    // MANDATORY: clear the module-level registry so a headless context seeded
+    // by one test cannot leak into the BUY/SELL/missing-fields tests and flip
+    // their expected events (they assume no entry).
+    __resetHeadlessOrderContextRegistryForTests();
   });
 
   describe('BUY orders', () => {
@@ -205,6 +215,286 @@ describe('handleOrderStatusChangedForMetrics', () => {
           name: 'Off-ramp Purchase Cancelled',
           properties: expect.objectContaining({ order_type: 'SELL' }),
         }),
+      );
+    });
+  });
+
+  describe('headless orders (TRAM-3623 AC5)', () => {
+    // A headless order carries a context entry (written at confirm time by
+    // useTransakRouting). When such an order reaches a terminal failure, this
+    // metrics handler - the SINGLE orderStatusChanged metrics subscriber - emits
+    // the tagged RAMPS_TRANSACTION_FAILED and suppresses the generic emit, so it
+    // cannot double-emit with the generic buy/deposit failure event.
+    const createHeadlessOrder = (
+      overrides: Partial<RampsOrder> = {},
+    ): RampsOrder =>
+      createMockOrder({
+        success: false,
+        orderType: 'DEPOSIT',
+        status: Status.Failed,
+        statusDescription: 'Payment was declined by the bank',
+        exchangeRate: 2000,
+        networkFees: 1,
+        partnerFees: 2,
+        cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+        ...overrides,
+      });
+
+    it('emits EXACTLY ONE event, RAMPS_TRANSACTION_FAILED (tagged HEADLESS) and NOT OFFRAMP_PURCHASE_FAILED, for a headless Failed order', () => {
+      setHeadlessOrderContext('order-1', {
+        rampSurface: 'money_account',
+        region: 'us-ca',
+      });
+      const order = createHeadlessOrder({ status: Status.Failed });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      // The core de-dup guarantee: a single emit, the tagged failure event, and
+      // never the mis-classified off-ramp event the generic path would produce.
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.name).toBe('Ramps Transaction Failed');
+      expect(trackedEvent.properties).toEqual({
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'money_account',
+        region: 'us-ca',
+        country: 'us-ca',
+        error_message: 'Payment was declined by the bank',
+        provider_onramp: 'Transak',
+        amount_source: 100,
+        amount_destination: 0.5,
+        exchange_rate: 2000,
+        gas_fee: 1,
+        processing_fee: 2,
+        total_fee: 5,
+        payment_method_id: 'card-1',
+        chain_id: 'eip155:1',
+        currency_destination: 'eip155:1/slip44:60',
+        currency_source: 'USD',
+      });
+      expect(getHeadlessOrderContext('order-1')).toBeUndefined();
+    });
+
+    it('emits for IdExpired too and deletes the entry', () => {
+      setHeadlessOrderContext('order-1', {
+        rampSurface: 'perps',
+        region: 'fr',
+      });
+      const order = createHeadlessOrder({ status: Status.IdExpired });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'perps',
+        }),
+      );
+      expect(getHeadlessOrderContext('order-1')).toBeUndefined();
+    });
+
+    it('falls back to a token error_message when statusDescription is absent', () => {
+      setHeadlessOrderContext('order-1', { region: 'us-ca' });
+      const order = createHeadlessOrder({
+        status: Status.Failed,
+        statusDescription: undefined,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent.mock.calls[0][0].properties.error_message).toBe(
+        'transaction_failed',
+      );
+    });
+
+    it('emits provider_onramp as an empty string when provider is missing', () => {
+      setHeadlessOrderContext('order-1', { region: 'us-ca' });
+      const order = createHeadlessOrder({
+        status: Status.Failed,
+        provider: undefined,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent.mock.calls[0][0].properties.provider_onramp).toBe(
+        '',
+      );
+    });
+
+    it('does NOT emit RAMPS_TRANSACTION_FAILED for an order with no context entry: a BUY order still emits ONRAMP', () => {
+      const order = createMockOrder({ status: Status.Failed });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      // No registry entry: the fold is inert and the generic emit runs.
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.name).toBe('On-ramp Purchase Failed');
+      expect(trackedEvent.name).not.toBe('Ramps Transaction Failed');
+    });
+
+    it('is idempotent: a second identical Failed event finds no entry and does not re-emit the tagged event', () => {
+      setHeadlessOrderContext('order-1', {
+        rampSurface: 'money_account',
+        region: 'us-ca',
+      });
+      const order = createHeadlessOrder({ status: Status.Failed });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      // Emit-then-delete: the tagged failure event fires exactly once. The
+      // second call finds no entry, so it never re-emits RAMPS_TRANSACTION_FAILED
+      // (the de-dup). (In real runtime the controller never re-fires a terminal
+      // Failed; this synthetic double call only proves the registry guard.)
+      const taggedEmits = mockTrackEvent.mock.calls.filter(
+        (call) => call[0].name === 'Ramps Transaction Failed',
+      );
+      expect(taggedEmits).toHaveLength(1);
+      expect(getHeadlessOrderContext('order-1')).toBeUndefined();
+    });
+
+    it('still deletes the entry even when trackEvent throws (no double-emit on retry) and logs', () => {
+      setHeadlessOrderContext('order-1', { region: 'us-ca' });
+      mockTrackEvent.mockImplementationOnce(() => {
+        throw new Error('tracking failed');
+      });
+      const order = createHeadlessOrder({ status: Status.Failed });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect((Logger as jest.Mocked<typeof Logger>).error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message:
+            'RampsController: Failed to track headless RAMPS_TRANSACTION_FAILED',
+        }),
+      );
+      expect(getHeadlessOrderContext('order-1')).toBeUndefined();
+
+      // A retried poll of the same failed order finds no entry, so it never
+      // re-emits the tagged event (even though the first emit threw).
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+      const taggedEmits = mockTrackEvent.mock.calls.filter(
+        (call) => call[0].name === 'Ramps Transaction Failed',
+      );
+      expect(taggedEmits).toHaveLength(1);
+    });
+
+    it('deletes the entry on Completed and (Option B) still fires the generic completion event', () => {
+      setHeadlessOrderContext('order-1', { region: 'us-ca' });
+      const order = createHeadlessOrder({ status: Status.Completed });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      // Option B: the generic completion emit still fires (no tagged COMPLETED).
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].name).not.toBe(
+        'Ramps Transaction Failed',
+      );
+      expect(getHeadlessOrderContext('order-1')).toBeUndefined();
+    });
+
+    it('deletes the entry on Cancelled and (Option B) falls through to the generic emit', () => {
+      setHeadlessOrderContext('order-1', { region: 'us-ca' });
+      const order = createHeadlessOrder({ status: Status.Cancelled });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].name).not.toBe(
+        'Ramps Transaction Failed',
+      );
+      expect(getHeadlessOrderContext('order-1')).toBeUndefined();
+    });
+
+    it('keeps the entry and does not emit on a non-terminal status', () => {
+      setHeadlessOrderContext('order-1', { region: 'us-ca' });
+      const order = createHeadlessOrder({ status: Status.Pending });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Created,
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(getHeadlessOrderContext('order-1')).toEqual({ region: 'us-ca' });
+    });
+
+    it('matches a full-path set against the bare providerOrderId the subscriber receives', () => {
+      // Confirm-time write used a full path; the controller delivers the bare code.
+      setHeadlessOrderContext('/providers/transak/orders/order-1', {
+        rampSurface: 'prediction',
+        region: 'de',
+      });
+      const order = createHeadlessOrder({
+        status: Status.Failed,
+        providerOrderId: 'order-1',
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'prediction',
+          region: 'de',
+        }),
+      );
+    });
+
+    it('no-ops on a headless Failed order when the registry is empty (simulating an app relaunch)', () => {
+      // No setHeadlessOrderContext call: the module Map is empty as it would be
+      // after the app process restarts. Under Option B the same-session-only gap
+      // is by design; the handler must NOT emit a tagged event - but the generic
+      // emit still runs for the DEPOSIT order (no double-emit, no tagged event).
+      const order = createHeadlessOrder({ status: Status.Failed });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent.mock.calls[0]?.[0]?.name).not.toBe(
+        'Ramps Transaction Failed',
       );
     });
   });

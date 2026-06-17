@@ -67,6 +67,7 @@ import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
@@ -142,6 +143,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       useMoneyDepositFunnelMetrics();
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
+    const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens: hasAvailableTokens } =
@@ -336,7 +338,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
+              hasMax={
+                (hasMax || isMoneyDepositNoFee) &&
+                (isWithdraw || !isNativePayToken)
+              }
             />
           )}
           {!hasPaymentOption && !hasAccountNoFunds && <BuySection />}
