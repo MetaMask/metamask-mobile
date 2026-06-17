@@ -22,6 +22,10 @@ jest.mock('../../../utils/transaction', () => ({
   ...jest.requireActual('../../../utils/transaction'),
   parseStandardTokenTransactionData: jest.fn(),
 }));
+jest.mock(
+  '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
+  () => () => null,
+);
 jest.mock('../../../../../UI/Name/Name', () => {
   const { Text } = jest.requireActual('react-native');
   return {
@@ -134,5 +138,31 @@ describe('TransactionDetailsToRow', () => {
 
     const { getByText } = render();
     expect(getByText('To')).toBeDefined();
+  });
+
+  it('renders "Money account" label for perpsWithdraw in money context', () => {
+    const { useIsMoneyAccountContext: useIsMoneyAccountContextMock } =
+      jest.requireMock('../../../hooks/activity/useIsMoneyAccountContext');
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: createTransactionMeta(TransactionType.perpsWithdraw),
+    });
+
+    const { getByText } = render();
+    expect(getByText('Money account')).toBeDefined();
+  });
+
+  it('renders "Money account" label for predictWithdraw in money context', () => {
+    const { useIsMoneyAccountContext: useIsMoneyAccountContextMock } =
+      jest.requireMock('../../../hooks/activity/useIsMoneyAccountContext');
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: createTransactionMeta(TransactionType.predictWithdraw),
+    });
+
+    const { getByText } = render();
+    expect(getByText('Money account')).toBeDefined();
   });
 });

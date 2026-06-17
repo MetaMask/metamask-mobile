@@ -13,6 +13,10 @@ import { strings } from '../../../../../../../locales/i18n';
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/activity/useIsMoneyAccountContext');
 jest.mock('../../../hooks/gas/useFeeCalculations');
+jest.mock('../../token-icon', () => ({
+  TokenIcon: () => null,
+  TokenIconVariant: { Row: 'row' },
+}));
 
 const PAY_FEE_MOCK = '123.45';
 const CALCULATED_FEE_MOCK = '234.56';
@@ -109,5 +113,23 @@ describe('TransactionDetailsNetworkFeeRow', () => {
     const { getByText } = render();
 
     expect(getByText(strings('transactions.paid_by_metamask'))).toBeDefined();
+  });
+
+  it('renders TokenIcon next to fee in money context (non-sponsored)', () => {
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.moneyAccountWithdraw,
+        metamaskPay: {
+          networkFeeFiat: '5.00',
+          chainId: '0x1',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText, queryByTestId } = render();
+
+    expect(getByText('$5')).toBeDefined();
+    expect(queryByTestId('paid-by-metamask')).toBeNull();
   });
 });

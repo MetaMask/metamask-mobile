@@ -160,4 +160,89 @@ describe('TransactionDetailsAccountRow', () => {
       getByText(strings('transaction_details.label.money_account')),
     ).toBeDefined();
   });
+
+  describe('money context inflow/outflow paths', () => {
+    const { useIsMoneyAccountContext: useIsMoneyAccountContextMock } =
+      jest.requireMock('../../../hooks/activity/useIsMoneyAccountContext');
+
+    afterEach(() => {
+      useIsMoneyAccountContextMock.mockReturnValue(false);
+    });
+
+    it('renders "From" with "Perps Account 1" for perpsWithdraw in money context', () => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      const { getByText } = render();
+      expect(
+        getByText(strings('transaction_details.label.from')),
+      ).toBeDefined();
+      expect(
+        getByText(strings('transaction_details.label.perps_account')),
+      ).toBeDefined();
+    });
+
+    it('renders "From" with "Predictions Account 1" for predictWithdraw in money context', () => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.predictWithdraw,
+        },
+      });
+
+      const { getByText } = render();
+      expect(
+        getByText(strings('transaction_details.label.from')),
+      ).toBeDefined();
+      expect(
+        getByText(strings('transaction_details.label.predictions_account')),
+      ).toBeDefined();
+    });
+
+    it('renders "From" with "Money account" for perpsDeposit in money context', () => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsDeposit,
+        },
+      });
+
+      const { getByText } = render();
+      expect(
+        getByText(strings('transaction_details.label.from')),
+      ).toBeDefined();
+      expect(
+        getByText(strings('transaction_details.label.money_account')),
+      ).toBeDefined();
+    });
+
+    it('renders "From" with "Money account" for predictDeposit in money context', () => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.predictDeposit,
+        },
+      });
+
+      const { getByText } = render();
+      expect(
+        getByText(strings('transaction_details.label.from')),
+      ).toBeDefined();
+      expect(
+        getByText(strings('transaction_details.label.money_account')),
+      ).toBeDefined();
+    });
+  });
 });
