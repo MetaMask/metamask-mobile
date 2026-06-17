@@ -235,9 +235,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         return initialUrl;
       }
 
-      // Temporary workaround for Android 16 Safer Intents
-      // Telegram do no need return data from oauth login
-      // Login is done in kratos
+      // Temporary workaround for Android 16 Safer Intents which prevents Chrome from handling custom scheme URLs directly
+      // by force to return https url with universal link which is allowed and let the app handle the redirect as usual
+      // Currently Telegram login flow is not using params in the redirect url, so it should not cause any issue
+      // TODO: a proper solution would be to make the callback URL return a webpage with a deeplink to open the app
       if (Device.isAndroid()) {
         return this.redirectUri;
       }
