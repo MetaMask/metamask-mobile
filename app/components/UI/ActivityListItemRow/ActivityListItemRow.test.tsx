@@ -2,7 +2,7 @@
  * Tests for ActivityListItemRow content mapping.
  */
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import type { ActivityListItem, Status } from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
 import { strings } from '../../../../locales/i18n';
@@ -218,6 +218,56 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return { ListItem };
 });
+
+jest.mock('../StyledButton', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text: TextActual } = jest.requireActual('react-native');
+  return ({
+    children,
+    onPress,
+  }: {
+    children: React.ReactNode;
+    onPress?: () => void;
+  }) => ReactActual.createElement(TextActual, { onPress }, children);
+});
+
+jest.mock('../../Base/StatusText', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text: TextActual } = jest.requireActual('react-native');
+  const StatusText = ({
+    status,
+    testID,
+  }: {
+    status: string;
+    testID?: string;
+  }) => ReactActual.createElement(TextActual, { testID }, status);
+  return { __esModule: true, default: StatusText };
+});
+
+jest.mock('../Money/components/PendingSpinner/PendingSpinner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+});
+
+jest.mock('../../../component-library/components/Icons/Icon', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const Icon = ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+  return {
+    __esModule: true,
+    default: Icon,
+    IconColor: { Alternative: 'alternative', Default: 'default' },
+    IconName: { Pending: 'Pending' },
+    IconSize: { Sm: '16' },
+  };
+});
+
+jest.mock('../../Views/confirmations/utils/transaction', () => ({
+  hasGasFeeTokenSelected: jest.fn(() => false),
+}));
 
 // ---------------------------------------------------------------------------
 // Helper to build minimal ActivityListItem
@@ -917,5 +967,123 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 
     expect(getByText('Swap ETH to USDC')).toBeOnTheScreen();
     expect(queryByText(strings('transactions.swaps_transaction'))).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pending rows — spinner on title, queued subtitle prefix, no inline actions
+// ---------------------------------------------------------------------------
+
+interface MakePendingLocalItemOptions {
+  txStatus?: string;
+  isEarliestNonce?: boolean;
+}
+
+const makePendingLocalItem = ({
+  txStatus = 'submitted',
+  isEarliestNonce = true,
+}: MakePendingLocalItemOptions = {}): ActivityListItem =>
+  ({
+    type: 'send',
+    chainId: 'eip155:1',
+    status: 'pending',
+    timestamp: 1_700_000_000_000,
+    hash: '0xabc',
+    isEarliestNonce,
+    raw: {
+      type: 'localTransaction',
+      data: {
+        primaryTransaction: {
+          id: 'tx-1',
+          status: txStatus,
+        },
+      },
+    },
+    data: {
+      from: '0xfrom',
+      to: '0x1234567890',
+      token: { amount: '1', symbol: 'ETH', direction: 'out' },
+    },
+  }) as unknown as ActivityListItem;
+
+const makePendingRemoteItem = (): ActivityListItem =>
+  ({
+    type: 'receive',
+    chainId: 'eip155:1',
+    status: 'pending',
+    timestamp: 1_700_000_000_000,
+    hash: '0xdef',
+    data: {
+      from: '0xfrom',
+      to: '0xto',
+      token: { amount: '1', symbol: 'ETH', direction: 'in' },
+    },
+  }) as unknown as ActivityListItem;
+
+const pendingHandlers = () => ({
+  onSpeedUpAction: jest.fn(),
+  onCancelAction: jest.fn(),
+  signQRTransaction: jest.fn(),
+  signLedgerTransaction: jest.fn(),
+  cancelUnsignedQRTransaction: jest.fn(),
+});
+
+describe('ActivityListItemRow — pending rows', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders the pending title, spinner, and normal subtitle', () => {
+    const item = makePendingLocalItem({ txStatus: 'submitted' });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sending ETH',
+    );
+    expect(getByTestId('activity-pending-spinner-0xabc')).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: 0x1234...',
+    );
+  });
+
+  it('renders queued rows with an hourglass prefix and no title spinner', () => {
+    const item = makePendingLocalItem({ isEarliestNonce: false });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sending ETH',
+    );
+    expect(queryByTestId('activity-pending-spinner-0xabc')).toBeNull();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `${strings('transaction.queued')} • To: 0x1234...`,
+    );
+  });
+
+  it('does not render speed-up or cancel actions for pending rows', () => {
+    const item = makePendingLocalItem({ txStatus: 'submitted' });
+    const { queryByText } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+  });
+
+  it('shows a spinner and normal subtitle for non-local pending rows', () => {
+    const item = makePendingRemoteItem();
+    const { getByTestId, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(getByTestId('activity-pending-spinner-0xdef')).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xdef').props.children).toBe(
+      'From: 0xfrom...',
+    );
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
   });
 });
