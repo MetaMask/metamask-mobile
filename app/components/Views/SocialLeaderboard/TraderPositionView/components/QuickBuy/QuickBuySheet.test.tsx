@@ -41,6 +41,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
+    // Stub the overlay — its Animated fade uses useNativeDriver which isn't
+    // available in the test environment.
+    BottomSheetOverlay: () =>
+      ReactMock.createElement(View, { testID: 'mock-bottom-sheet-overlay' }),
     BottomSheetDialog: ReactMock.forwardRef(
       (
         {
