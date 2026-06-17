@@ -7,11 +7,24 @@ import {
   type SortField,
 } from '@metamask/perps-controller';
 
+// Captures props passed to FlashList so tests can assert on them. `key` is a
+// special React prop and never appears here, which is precisely why filter
+// changes must flow through `extraData` instead.
+const mockFlashListProps: Record<string, unknown>[] = [];
+
+// Tracks how many times a market row is mounted, used to prove that changing
+// the filter re-renders rows without tearing them down (no remount).
+const mockRowMountCount = { value: 0 };
+
 // Mock dependencies
 jest.mock('@shopify/flash-list', () => {
+  const ReactActual = jest.requireActual('react');
   const { FlatList } = jest.requireActual('react-native');
   return {
-    FlashList: FlatList,
+    FlashList: (props: Record<string, unknown>) => {
+      mockFlashListProps.push(props);
+      return ReactActual.createElement(FlatList, props);
+    },
   };
 });
 
@@ -26,6 +39,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('../PerpsMarketRowItem', () => {
+  const ReactActual = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return function MockPerpsMarketRowItem({
     market,
@@ -38,6 +52,9 @@ jest.mock('../PerpsMarketRowItem', () => {
     iconSize?: number;
     displayMetric?: SortField;
   }) {
+    ReactActual.useEffect(() => {
+      mockRowMountCount.value += 1;
+    }, []);
     return (
       <TouchableOpacity
         onPress={onPress}
@@ -95,6 +112,8 @@ describe('PerpsMarketList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFlashListProps.length = 0;
+    mockRowMountCount.value = 0;
   });
 
   afterEach(() => {
@@ -576,6 +595,48 @@ describe('PerpsMarketList', () => {
         screen.queryByTestId('perps-market-list-empty'),
       ).not.toBeOnTheScreen();
       expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Filter changes (no remount)', () => {
+    it('passes filterKey via extraData instead of keying the FlashList', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="perps"
+        />,
+      );
+
+      const lastProps = mockFlashListProps[mockFlashListProps.length - 1];
+      expect(lastProps.extraData).toBe('perps');
+      // `key` is consumed by React and must never be forwarded as a prop here.
+      expect(lastProps.key).toBeUndefined();
+    });
+
+    it('does not remount rows when filterKey changes', () => {
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="perps"
+        />,
+      );
+
+      const mountsAfterInitialRender = mockRowMountCount.value;
+      expect(mountsAfterInitialRender).toBe(mockMarkets.length);
+
+      rerender(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="spot"
+        />,
+      );
+
+      // No additional mounts means rows (and their live-price subscriptions)
+      // survived the filter change.
+      expect(mockRowMountCount.value).toBe(mountsAfterInitialRender);
     });
   });
 

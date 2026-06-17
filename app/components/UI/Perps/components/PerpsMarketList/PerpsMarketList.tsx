@@ -80,8 +80,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   return (
     <FlashList
-      key={filterKey}
       data={markets}
+      extraData={filterKey}
       renderItem={renderItem}
       keyExtractor={(item: PerpsMarketData) => item.symbol}
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
