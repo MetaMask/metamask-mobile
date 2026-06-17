@@ -68,7 +68,7 @@ const makeDefaultPosition = (): Position => ({
 
 let mockRouteParams: MockRouteParams = {
   traderId: 'trader-1',
-  traderName: 'dutchiono',
+  traderName: 'trader1',
   traderAddress: '0xabc',
   tokenSymbol: 'PEPE',
   position: makeDefaultPosition(),
@@ -224,7 +224,7 @@ describe('TraderPositionView', () => {
     mockGetAssetImageUrl.mockReturnValue('https://example.com/token.png');
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderAddress: '0xabc',
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
@@ -237,7 +237,7 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -271,7 +271,7 @@ describe('TraderPositionView', () => {
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -619,7 +619,7 @@ describe('TraderPositionView', () => {
   it('refreshes profile on pull even when name and image came via nav params', async () => {
     mockRouteParams = {
       ...mockRouteParams,
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderImageUrl: 'https://example.com/avatar.png',
     };
 
@@ -642,7 +642,7 @@ describe('TraderPositionView', () => {
   it('does not render the refresh control in the fallback state', () => {
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       tokenSymbol: 'PEPE',
       position: undefined,
     };
