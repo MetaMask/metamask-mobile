@@ -162,7 +162,7 @@ let mockRouteParams: {
   traderRank?: number;
 } = {
   traderId: 'trader-1',
-  traderName: 'dutchiono',
+  traderName: 'trader1',
   traderAddress: '0xabc',
   source: 'leaderboard',
   traderRank: 1,
@@ -182,7 +182,7 @@ const fixtureProfile: TraderProfileResponse = {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'dutchiono',
+    name: 'trader1',
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
@@ -337,7 +337,7 @@ describe('TraderProfileView', () => {
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderAddress: '0xabc',
       source: 'leaderboard',
       traderRank: 1,
@@ -353,7 +353,7 @@ describe('TraderProfileView', () => {
 
   it('displays the trader name', () => {
     renderWithProvider(<TraderProfileView />);
-    const visibleTraderNames = screen.getAllByText('dutchiono');
+    const visibleTraderNames = screen.getAllByText('trader1');
     expect(visibleTraderNames).toHaveLength(1);
     expect(visibleTraderNames[0]).toBeOnTheScreen();
   });
@@ -408,7 +408,7 @@ describe('TraderProfileView', () => {
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         traderImageUrl: 'https://example.com/avatar.png',
         traderAddress: '0xabc',
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
@@ -616,7 +616,7 @@ describe('TraderProfileView', () => {
     it('defaults source to deep_link when source param is absent', () => {
       mockRouteParams = {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         traderAddress: '0xabc',
         traderRank: 1,
       };
@@ -632,7 +632,7 @@ describe('TraderProfileView', () => {
     it('falls back to profile address when traderAddress route param is absent', () => {
       mockRouteParams = {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         source: 'leaderboard',
         traderRank: 1,
       };
@@ -644,7 +644,7 @@ describe('TraderProfileView', () => {
     });
 
     it('does not track tab change when traderAddress is absent and profile has no address', () => {
-      mockRouteParams = { traderId: 'trader-1', traderName: 'dutchiono' };
+      mockRouteParams = { traderId: 'trader-1', traderName: 'trader1' };
       mockProfileResult = {
         ...mockProfileResult,
         profile: {
@@ -672,7 +672,7 @@ describe('TraderProfileView', () => {
         MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
         expect.objectContaining({
           trader_address: '0xabc',
-          trader_username: 'dutchiono',
+          trader_username: 'trader1',
           source: 'leaderboard',
           is_following: false,
           trader_rank: 1,
@@ -687,7 +687,7 @@ describe('TraderProfileView', () => {
         expect.objectContaining({
           source: 'trader_profile',
           traderAddress: '0xabc',
-          traderUsername: 'dutchiono',
+          traderUsername: 'trader1',
         }),
       );
     });
