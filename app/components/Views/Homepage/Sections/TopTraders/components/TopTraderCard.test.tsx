@@ -119,11 +119,7 @@ describe('TopTraderCard', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'alpha.eth',
-      1,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
 
   it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
@@ -142,11 +138,7 @@ describe('TopTraderCard', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'alpha.eth',
-      50,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 50);
   });
 
   it('does not call onTraderPress when the prop is not provided', () => {

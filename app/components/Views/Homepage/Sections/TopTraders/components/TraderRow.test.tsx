@@ -84,11 +84,7 @@ describe('TraderRow', () => {
       />,
     );
     fireEvent.press(screen.getByText('alpha.eth'));
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'alpha.eth',
-      1,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
 
   it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
@@ -107,11 +103,7 @@ describe('TraderRow', () => {
 
     fireEvent.press(screen.getByText('alpha.eth'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'alpha.eth',
-      50,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 50);
   });
 
   it('does not fire onTraderPress when the prop is undefined', () => {
