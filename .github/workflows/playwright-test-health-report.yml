@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Playwright test health report
-        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@b7346fa7c8bdc730d414506cfc66a0b11cb9a3fe
+        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@fc0a23ff72bf01736bb4117bc10c60d1d7410943
         with:
           repository: ${{ github.event.repository.name }}
           workflow-ids: ci.yml
