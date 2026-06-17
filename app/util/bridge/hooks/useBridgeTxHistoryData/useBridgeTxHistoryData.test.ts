@@ -36,6 +36,9 @@ describe('useBridgeTxHistoryData', () => {
       expect(result.current).toEqual({
         bridgeTxHistoryItem: undefined,
         isBridgeComplete: null,
+        batchSellHistoryItems: [],
+        is7702Batch: false,
+        batchTotalDestAmount: 0,
       });
     });
   });
@@ -101,6 +104,9 @@ describe('useBridgeTxHistoryData', () => {
           estimatedProcessingTimeInSeconds: 300,
         },
         isBridgeComplete: true,
+        batchSellHistoryItems: [],
+        is7702Batch: false,
+        batchTotalDestAmount: 0,
       });
     });
   });
@@ -131,6 +137,9 @@ describe('useBridgeTxHistoryData', () => {
     await waitFor(() => {
       expect(result.current.bridgeTxHistoryItem?.txMetaId).toBe(mockTxId);
       expect(result.current.isBridgeComplete).toBe(true);
+      expect(result.current.batchSellHistoryItems).toStrictEqual([]);
+      expect(result.current.is7702Batch).toBe(false);
+      expect(result.current.batchTotalDestAmount).toBe(0);
     });
   });
 
@@ -229,6 +238,9 @@ describe('useBridgeTxHistoryData', () => {
           estimatedProcessingTimeInSeconds: 300,
         },
         isBridgeComplete: true,
+        batchSellHistoryItems: [],
+        is7702Batch: false,
+        batchTotalDestAmount: 0,
       });
     });
   });
@@ -259,6 +271,9 @@ describe('useBridgeTxHistoryData', () => {
       expect(result.current).toEqual({
         bridgeTxHistoryItem: undefined,
         isBridgeComplete: null,
+        batchSellHistoryItems: [],
+        is7702Batch: false,
+        batchTotalDestAmount: 0,
       });
     });
   });
@@ -376,6 +391,9 @@ describe('useBridgeTxHistoryData', () => {
           estimatedProcessingTimeInSeconds: 180,
         },
         isBridgeComplete: true,
+        batchSellHistoryItems: [],
+        is7702Batch: false,
+        batchTotalDestAmount: 0,
       });
     });
   });
