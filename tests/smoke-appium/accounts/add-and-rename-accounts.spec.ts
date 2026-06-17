@@ -1,5 +1,4 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright/types.js';
 import { SmokeAccounts } from '../../tags.js';
 import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
@@ -16,24 +15,9 @@ import {
 } from '../../smoke/identity/utils/user-storage/userStorageMockttpController.js';
 import { createUserStorageController } from '../../smoke/identity/utils/mocks.js';
 import { IDENTITY_TEAM_IMPORTED_PRIVATE_KEY } from '../../smoke/identity/utils/constants.js';
-import {
-  USER_STORAGE_GROUPS_FEATURE_KEY,
-  USER_STORAGE_WALLETS_FEATURE_KEY,
-} from '@metamask/account-tree-controller';
 import Assertions from '../../framework/Assertions.js';
 import { sleep } from '../../framework/Utilities.js';
-
-const identityFixtureOptions = (
-  sharedUserStorageController: UserStorageMockttpController,
-  currentDeviceDetails: CurrentDeviceDetails,
-) => ({
-  userStorageFeatures: [
-    USER_STORAGE_GROUPS_FEATURE_KEY,
-    USER_STORAGE_WALLETS_FEATURE_KEY,
-  ],
-  sharedUserStorageController,
-  currentDeviceDetails,
-});
+import { identityFixtureOptions } from './identity-fixture-options.js';
 
 appiumTest.describe(SmokeAccounts('Add and rename accounts'), () => {
   let sharedUserStorageController: UserStorageMockttpController;

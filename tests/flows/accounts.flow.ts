@@ -10,7 +10,10 @@ import SrpQuizModal from '../page-objects/Settings/SecurityAndPrivacy/SrpQuizMod
 import RevealSecretRecoveryPhrase from '../page-objects/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import SettingsView from '../page-objects/Settings/SettingsView';
+import BackupAndSyncView from '../page-objects/Settings/BackupAndSyncView';
 import SecurityAndPrivacyView from '../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import AccountMenu from '../page-objects/AccountMenu/AccountMenu';
+import CommonView from '../page-objects/CommonView';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
 import EditAccountName from '../page-objects/MultichainAccounts/EditAccountName';
 import { PlatformDetector } from '../framework/PlatformLocator';
@@ -139,11 +142,31 @@ export const importAccountViaPrivateKey = async (
   }
 };
 
+export const disableAccountSyncViaSettings = async (): Promise<void> => {
+  await TabBarComponent.tapSettings();
+  await Assertions.expectElementToBeVisible(
+    SettingsView.backupAndSyncSectionButton,
+    { description: 'Backup and Sync section should be visible in Settings' },
+  );
+  await SettingsView.tapBackupAndSync();
+  await Assertions.expectElementToBeVisible(
+    BackupAndSyncView.backupAndSyncToggle,
+    { description: 'Backup and Sync toggle should be visible' },
+  );
+  await BackupAndSyncView.toggleAccountSync();
+  await CommonView.tapBackButton();
+  await SettingsView.tapBackButton();
+  await AccountMenu.tapBack();
+};
+
 export const renameAccountAtIndex = async (
   accountIndex: number,
   newName: string,
+  options: { shouldWait?: boolean } = {},
 ): Promise<void> => {
-  await AccountListBottomSheet.tapAccountEllipsisButtonV2(accountIndex);
+  await AccountListBottomSheet.tapAccountEllipsisButtonV2(accountIndex, {
+    shouldWait: options.shouldWait ?? false,
+  });
   await AccountDetails.tapEditAccountName();
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
@@ -153,6 +176,7 @@ export const renameAccountAtIndex = async (
 export const assertAccountCount = async (
   accountName: string,
   expectedCount: number,
+  timeout: number = 5000,
 ): Promise<void> => {
   await Utilities.executeWithRetry(
     async () => {
@@ -164,7 +188,7 @@ export const assertAccountCount = async (
     },
     {
       description: `Count accounts with name "${accountName}" in the account list`,
-      timeout: 5000,
+      timeout,
       interval: 500,
     },
   );
