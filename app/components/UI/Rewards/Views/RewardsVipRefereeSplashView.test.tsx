@@ -169,6 +169,38 @@ describe('RewardsVipRefereeSplashView', () => {
       getAllByText('WELCOME\nTO MOCK\nFOX COLLECTIVE')[0],
     ).toBeOnTheScreen();
     expect(getByText('Referred by TESTCODE')).toBeOnTheScreen();
+    expect(
+      getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the referred-by footer when no referral code is available', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+
+      return (
+        selector as (state: {
+          rewards: {
+            isVipReferee: boolean;
+            referredByVipCode: string | null;
+            vipRefereeSplashAccepted: Record<string, boolean>;
+          };
+        }) => unknown
+      )({
+        rewards: {
+          isVipReferee: mockIsVipReferee,
+          referredByVipCode: null,
+          vipRefereeSplashAccepted: mockVipRefereeSplashAccepted,
+        },
+      });
+    });
+
+    const { queryByTestId } = render(<RewardsVipRefereeSplashView />);
+
+    expect(
+      queryByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY),
+    ).toBeNull();
   });
 
   it('replaces with the referee view when continue is pressed', () => {

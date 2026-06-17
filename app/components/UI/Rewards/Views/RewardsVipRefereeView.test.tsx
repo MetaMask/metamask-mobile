@@ -295,6 +295,36 @@ describe('RewardsVipRefereeView', () => {
     });
   });
 
+  it('displays combined swaps and perps volume in the volume stat cell', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VOLUME),
+    ).toHaveTextContent(/\$3,000/);
+  });
+
+  it('displays dashboard points in the points-to stat cell', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO),
+    ).toHaveTextContent(/1,234/);
+  });
+
+  it('renders an empty points-to label when referredByCode is missing', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: { ...defaultDashboard, referredByCode: null },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByText } = render(<RewardsVipRefereeView />);
+
+    expect(getByText('Points to ')).toBeOnTheScreen();
+  });
+
   it('renders the "Last updated" row when computedAt is present', () => {
     const { getByTestId } = render(<RewardsVipRefereeView />);
 
