@@ -20,6 +20,7 @@ const card: CardTransaction = {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 let mockRouteParams: { card?: CardTransaction } | undefined;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
@@ -58,11 +59,23 @@ jest.mock('../../../../../util/networks', () => ({
 // Heavy presentational deps reduced to passthroughs / stubs.
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
   return {
     ...actual,
-    BottomSheet: ({ children }: { children: React.ReactNode }) => (
-      <View>{children}</View>
+    // Forward a ref exposing `onCloseBottomSheet`, mirroring the real sheet:
+    // it runs the post-close callback once the close animation finishes (here,
+    // synchronously) so navigation-on-close can be asserted.
+    BottomSheet: ReactActual.forwardRef(
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+        return <View>{children}</View>;
+      },
     ),
     BottomSheetHeader: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
@@ -129,7 +142,7 @@ describe('MoneyCardTransactionDetailsSheet', () => {
     ).toHaveTextContent('-5.38 mUSD');
   });
 
-  it('opens the block explorer for the tx hash on press', () => {
+  it('closes the sheet before opening the block explorer for the tx hash on press', () => {
     const { getByTestId } = render(<MoneyCardTransactionDetailsSheet />);
 
     fireEvent.press(
@@ -141,6 +154,9 @@ describe('MoneyCardTransactionDetailsSheet', () => {
       card.hash,
       'https://monadscan.com',
     );
+    // The sheet must dismiss first — navigating while the transparent modal is
+    // still presented leaves the WebView behind it and strands the overlay.
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       'Webview',
       expect.objectContaining({

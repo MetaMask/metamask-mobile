@@ -31,7 +31,7 @@ import {
   HeaderStandard,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import {
   closeSession,
   failSession,
@@ -102,6 +102,7 @@ const Checkout = () => {
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { userRegion } = useRampsUserRegion();
   const {
     url: uri,
     providerName,
@@ -116,6 +117,34 @@ const Checkout = () => {
     headlessSessionId,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
+
+  // Headless deposit (TRAM-3623): when a headless session drives this Checkout,
+  // every `buildBaseProps` funnel event is tagged `ramp_type: 'HEADLESS'` plus
+  // the seeded `ramp_surface`/`region`; non-headless UB2 keeps its defaults.
+  const headlessRampSurface =
+    getSession(headlessSessionId)?.params?.rampSurface;
+  const regionCode = userRegion?.regionCode || undefined;
+  const headlessBaseOverrides = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            rampType: 'HEADLESS' as const,
+            rampSurface: headlessRampSurface,
+            region: regionCode,
+          }
+        : {},
+    [headlessSessionId, headlessRampSurface, regionCode],
+  );
+  // The non-`buildBaseProps` Checkout emits (RAMPS_SCREEN_VIEWED,
+  // RAMPS_CLOSE_BUTTON_CLICKED) default to 'UNIFIED_BUY_2'; flip them the same
+  // way (TRAM-3623).
+  const headlessRampProps = useMemo(
+    () =>
+      headlessSessionId
+        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessRampSurface }
+        : { ramp_type: 'UNIFIED_BUY_2' as const },
+    [headlessSessionId, headlessRampSurface],
+  );
 
   const initialUriRef = useRef(uri);
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
@@ -162,7 +191,8 @@ const Checkout = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
           .addProperties({
             location: 'Checkout',
-            ramp_type: 'UNIFIED_BUY_2',
+            ...headlessRampProps,
+            ...(headlessSessionId ? { region: regionCode } : {}),
           })
           .build(),
       );
@@ -172,6 +202,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
+              ...headlessBaseOverrides,
             }),
             initial_url_path: redactUrlForAnalytics(uri),
             has_callback_flow: hasCallbackFlow,
@@ -188,6 +219,10 @@ const Checkout = () => {
     providerName,
     hasCallbackFlow,
     effectiveOrderId,
+    headlessRampProps,
+    headlessBaseOverrides,
+    headlessSessionId,
+    regionCode,
   ]);
 
   const dismissActiveHeadlessFlow = useCallback(() => {
@@ -196,17 +231,55 @@ const Checkout = () => {
 
   const failHeadlessCheckout = useCallback(
     (checkoutError: unknown) => {
-      if (
-        hasTerminatedHeadlessSessionRef.current ||
-        !failSession(headlessSessionId, checkoutError)
-      ) {
+      if (hasTerminatedHeadlessSessionRef.current) {
         return false;
+      }
+      // Snapshot the session BEFORE failSession tears it down so the HEADLESS
+      // RAMPS_ORDER_FAILED event (TRAM-3623 §7) can carry the seeded
+      // ramp_surface and quote/amount context; failSession can't emit itself.
+      const session = getSession(headlessSessionId);
+      if (!failSession(headlessSessionId, checkoutError)) {
+        return false;
+      }
+      if (session) {
+        const quoteRecord = session.params?.quote?.quote;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
+            .addProperties({
+              ramp_type: 'HEADLESS',
+              ramp_surface: session.params?.rampSurface,
+              amount_source: Number(
+                quoteRecord?.amountIn ?? session.params?.amount ?? 0,
+              ),
+              amount_destination: Number(quoteRecord?.amountOut ?? 0),
+              payment_method_id: quoteRecord?.paymentMethod ?? '',
+              region: regionCode ?? '',
+              chain_id: network ?? '',
+              currency_destination: params?.cryptocurrency ?? '',
+              currency_source: params?.currency ?? '',
+              error_message:
+                checkoutError instanceof Error
+                  ? checkoutError.message
+                  : String(checkoutError),
+              is_authenticated: true,
+            })
+            .build(),
+        );
       }
       hasTerminatedHeadlessSessionRef.current = true;
       dismissActiveHeadlessFlow();
       return true;
     },
-    [headlessSessionId, dismissActiveHeadlessFlow],
+    [
+      headlessSessionId,
+      dismissActiveHeadlessFlow,
+      trackEvent,
+      createEventBuilder,
+      regionCode,
+      network,
+      params?.cryptocurrency,
+      params?.currency,
+    ],
   );
 
   useEffect(() => {
@@ -255,6 +328,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
+              ...headlessBaseOverrides,
             }),
             url_path: redacted,
             previous_url_path: urlHistoryRef.current.previous ?? undefined,
@@ -272,6 +346,7 @@ const Checkout = () => {
       checkoutSessionId,
       providerName,
       effectiveOrderId,
+      headlessBaseOverrides,
     ],
   );
 
@@ -294,6 +369,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
+              ...headlessBaseOverrides,
             }),
             url_path: redactUrlForAnalytics(navState.url),
             order_id: effectiveOrderId ?? undefined,
@@ -405,6 +481,7 @@ const Checkout = () => {
       checkoutSessionId,
       providerName,
       effectiveOrderId,
+      headlessBaseOverrides,
     ],
   );
 
@@ -414,11 +491,11 @@ const Checkout = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
         .addProperties({
           location: 'Checkout',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, trackEvent, headlessRampProps]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     if (headlessSessionId) {
@@ -472,6 +549,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
+              ...headlessBaseOverrides,
             }),
             url_path: redactedLoadedUrl,
             load_duration_ms: durationMs,
@@ -487,6 +565,7 @@ const Checkout = () => {
       providerName,
       headlessSessionId,
       navigation,
+      headlessBaseOverrides,
     ],
   );
 
@@ -522,6 +601,7 @@ const Checkout = () => {
           ...buildBaseProps({
             checkoutSessionId,
             providerName,
+            ...headlessBaseOverrides,
           }),
           close_source: closeSourceRef.current ?? 'background',
           order_id: effectiveOrderId ?? undefined,
@@ -622,10 +702,15 @@ const Checkout = () => {
                   ...buildBaseProps({
                     checkoutSessionId,
                     providerName,
+                    ...headlessBaseOverrides,
                   }),
                   url_path: redactUrlForAnalytics(errorUrl),
                   status_code: nativeEvent.statusCode,
                   is_initial_url: isInitialUrl,
+                  error_message: strings(
+                    'fiat_on_ramp_aggregator.webview_received_error',
+                    { code: nativeEvent.statusCode },
+                  ),
                 })
                 .build(),
             );
