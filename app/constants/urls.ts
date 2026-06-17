@@ -44,6 +44,8 @@ export const MULTICHAIN_ACCOUNTS_URL = `https://support.metamask.io/configure/ac
 
 // Tokens & Swaps
 export const MUSD_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/tokens/musd/${MOBILE_UTM}`;
+export const MONEY_LANDING_URL = `https://metamask.io/money${MOBILE_UTM}`;
+export const MUSD_PRICE_URL = `https://metamask.io/price/metamask-usd${MOBILE_UTM}`;
 export const MISSING_TOKENS_URL = `https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/${MOBILE_UTM}`;
 export const SWAP_ISSUES_URL = `https://support.metamask.io/token-swaps/error-fetching-quote/${MOBILE_UTM}`;
 
@@ -54,6 +56,21 @@ export const LENDING_FAQ_URL = `https://support.metamask.io/manage-crypto/earn/l
 
 // Rewards
 export const REWARDS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/metamask-rewards/${MOBILE_UTM}`;
+
+// Builds the priority-support help-center URL for VIP users. Includes a fixed
+// `priority=vip` tag so the support-side automation can fast-path the request to a
+// human, plus the user's account address so that automation can verify enrollment via
+// the existing support API (GET /support/subscriptions/check?account=, which keys off
+// the account address and returns tier/subscription status).
+// NOTE: `priority=vip` is a placeholder value pending support/Intercom confirmation;
+// `account` matches the support endpoint's query-param name.
+export const buildVipPrioritySupportUrl = (
+  account: string,
+  baseUrl: string = METAMASK_SUPPORT_URL,
+) => {
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}priority=vip&account=${encodeURIComponent(account)}`;
+};
 
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;

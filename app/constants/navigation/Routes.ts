@@ -112,6 +112,8 @@ const Routes = {
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
+  REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
+  REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
   REWARDS_MUSD_CALCULATOR_VIEW: 'RewardsMusdCalculatorView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
@@ -349,6 +351,7 @@ const Routes = {
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
+    HW_QR_SCANNER: 'HardwareWalletQRScanner',
   },
   PERPS: {
     ROOT: 'Perps',
@@ -459,6 +462,7 @@ const Routes = {
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     ONBOARDING: 'MoneyOnboarding',
+    TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -563,6 +567,8 @@ const Routes = {
     CONFIRM: 'AgenticCliDashboardConfirmation',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  CREATE_PRICE_ALERT: 'CreatePriceAlert',
+  MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',

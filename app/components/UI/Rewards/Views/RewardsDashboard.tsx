@@ -19,6 +19,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
   selectHasAcceptedVipInvite,
+  selectHasAcceptedVipRefereeInvite,
+  selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
   selectPendingDeeplink,
@@ -65,6 +67,10 @@ const RewardsDashboard: React.FC = () => {
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
     selectHasAcceptedVipInvite(subscriptionId),
+  );
+  const isVipReferee = useSelector(selectIsVipReferee);
+  const hasAcceptedVipRefereeInvite = useSelector(
+    selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -338,6 +344,15 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipInvite, navigation]);
 
+  const handleVipRefereePress = useCallback(() => {
+    navigateToRewardsRoute(
+      navigation,
+      hasAcceptedVipRefereeInvite
+        ? Routes.REWARDS_VIP_REFEREE_VIEW
+        : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipRefereeInvite, navigation]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -356,6 +371,16 @@ const RewardsDashboard: React.FC = () => {
         <HeaderRoot
           endAccessory={
             <Box twClassName="flex-row gap-2">
+              {isVipProgramEnabled && isVipReferee && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={handleVipRefereePress}
+                  style={tw.style('h-8 w-8 items-center justify-center')}
+                  testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
+                >
+                  <VipIcon width={24} height={24} name="VipIcon" />
+                </Pressable>
+              )}
               {isVipProgramEnabled && isVipEnabled && (
                 <Pressable
                   accessibilityRole="button"

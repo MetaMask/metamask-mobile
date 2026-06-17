@@ -31,9 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 4,
     },
-    listContent: {
-      paddingHorizontal: 16,
-    },
+    listContent: {},
     // Empty state
     emptyStateContainer: {
       paddingHorizontal: 16,
@@ -42,7 +40,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     // Suggested sub-section
     suggestedSection: {
-      paddingHorizontal: 16,
       paddingTop: 4,
       paddingBottom: 8,
     },
@@ -57,9 +54,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 4,
       marginBottom: 8,
     },
-    showMoreButtonContainer: {
-      paddingHorizontal: 16,
-    },
+    showMoreButtonContainer: {},
   });
 };
 

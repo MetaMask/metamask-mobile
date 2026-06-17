@@ -28,7 +28,7 @@ describe('cardTransactionDisplayInfo', () => {
     expect(info.isIncoming).toBe(false);
     expect(info.icon).toBe(IconName.Card);
     expect(info.description).toBeUndefined();
-    expect(info.primaryAmount).toBe('-5.38 USDC');
+    expect(info.primaryAmount).toBe('-5.38 mUSD');
     expect(info.fiatAmount).toContain('5.38');
     expect(info.fiatAmount.startsWith('-')).toBe(true);
   });
@@ -41,7 +41,7 @@ describe('cardTransactionDisplayInfo', () => {
     });
 
     // Assert
-    expect(info.primaryAmount).toBe('-5.38 USDC');
+    expect(info.primaryAmount).toBe('-5.38 mUSD');
     expect(info.fiatAmount).toContain('10.76');
   });
 });

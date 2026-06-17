@@ -41,6 +41,8 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
   selectHasAcceptedVipInvite: jest.fn(),
+  selectHasAcceptedVipRefereeInvite: jest.fn(),
+  selectIsVipReferee: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
   selectPendingDeeplink: jest.fn(),
@@ -65,6 +67,8 @@ jest.mock(
 import {
   selectActiveTab,
   selectHasAcceptedVipInvite,
+  selectHasAcceptedVipRefereeInvite,
+  selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
   selectPendingDeeplink,
@@ -86,7 +90,15 @@ const mockSelectHasAcceptedVipInvite =
   selectHasAcceptedVipInvite as jest.MockedFunction<
     typeof selectHasAcceptedVipInvite
   >;
+const mockSelectHasAcceptedVipRefereeInvite =
+  selectHasAcceptedVipRefereeInvite as jest.MockedFunction<
+    typeof selectHasAcceptedVipRefereeInvite
+  >;
+const mockSelectIsVipReferee = selectIsVipReferee as jest.MockedFunction<
+  typeof selectIsVipReferee
+>;
 const mockHasAcceptedVipInviteSelector = jest.fn();
+const mockHasAcceptedVipRefereeInviteSelector = jest.fn();
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
@@ -382,7 +394,12 @@ describe('RewardsDashboard', () => {
     mockSelectHasAcceptedVipInvite.mockReturnValue(
       mockHasAcceptedVipInviteSelector,
     );
+    mockSelectHasAcceptedVipRefereeInvite.mockReturnValue(
+      mockHasAcceptedVipRefereeInviteSelector,
+    );
+    mockSelectIsVipReferee.mockReturnValue(false);
     mockHasAcceptedVipInviteSelector.mockReturnValue(false);
+    mockHasAcceptedVipRefereeInviteSelector.mockReturnValue(false);
 
     // Setup hook mocks
     mockUseRewardOptinSummary.mockReturnValue(
@@ -411,6 +428,8 @@ describe('RewardsDashboard', () => {
       if (selector === selectSelectedAccountGroup)
         return defaultSelectorValues.selectedAccountGroup;
       if (selector === mockHasAcceptedVipInviteSelector) return false;
+      if (selector === selectIsVipReferee) return false;
+      if (selector === mockHasAcceptedVipRefereeInviteSelector) return false;
       return undefined;
     });
   });
@@ -620,6 +639,103 @@ describe('RewardsDashboard', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
         screen: Routes.REWARDS_VIP_VIEW,
+        params: undefined,
+      });
+    });
+
+    it('does not render the VIP referee button when the user is not a VIP referee', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders the VIP referee button when the user is a VIP referee', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled)
+          return defaultSelectorValues.isVipEnabled;
+        if (selector === selectVipProgramEnabled) return true;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === mockHasAcceptedVipInviteSelector) return false;
+        if (selector === selectIsVipReferee) return true;
+        if (selector === mockHasAcceptedVipRefereeInviteSelector) return false;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to VIP referee splash when the invite has not been accepted', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled)
+          return defaultSelectorValues.isVipEnabled;
+        if (selector === selectVipProgramEnabled) return true;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === mockHasAcceptedVipInviteSelector) return false;
+        if (selector === selectIsVipReferee) return true;
+        if (selector === mockHasAcceptedVipRefereeInviteSelector) return false;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<RewardsDashboard />);
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
+        params: undefined,
+      });
+    });
+
+    it('navigates to VIP referee view without splash when the invite was accepted', () => {
+      mockHasAcceptedVipRefereeInviteSelector.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled)
+          return defaultSelectorValues.isVipEnabled;
+        if (selector === selectVipProgramEnabled) return true;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === mockHasAcceptedVipInviteSelector) return false;
+        if (selector === selectIsVipReferee) return true;
+        if (selector === mockHasAcceptedVipRefereeInviteSelector) return true;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<RewardsDashboard />);
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_VIP_REFEREE_VIEW,
         params: undefined,
       });
     });

@@ -152,6 +152,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     fromCard,
     fromWhatsHappening,
   }) => {
+    // Opted out of the React Compiler since it's a large component and we don't want to risk breaking changes.
+    'use no memo';
     const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);

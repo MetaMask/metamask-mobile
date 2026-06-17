@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Image, Linking, Pressable } from 'react-native';
+import { Linking, Pressable } from 'react-native';
 import {
   Box,
   Text,
@@ -8,19 +8,18 @@ import {
   TextColor,
   BoxFlexDirection,
   BoxAlignItems,
-  AvatarBase,
-  AvatarBaseSize,
   Icon,
   IconName,
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderProfile } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TopRankAvatar } from '../../../Homepage/Sections/TopTraders/topRank';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
 const AVATAR_SIZE = 40;
 
@@ -41,8 +40,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   twitterHandle,
   rank,
 }) => {
-  const tw = useTailwind();
-
   const handleTwitterPress = useCallback(() => {
     if (twitterHandle) {
       Linking.openURL(`https://x.com/${twitterHandle}`);
@@ -58,20 +55,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       testID={TraderProfileViewSelectorsIDs.HEADER}
     >
       <TopRankAvatar rank={rank ?? 0}>
-        {profile.imageUrl ? (
-          <Image
-            source={{ uri: profile.imageUrl }}
-            style={tw.style(
-              `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-            )}
-            resizeMode="cover"
-          />
-        ) : (
-          <AvatarBase
-            size={AvatarBaseSize.Lg}
-            fallbackText={profile.name.charAt(0).toUpperCase()}
-          />
-        )}
+        <TraderAvatar
+          imageUrl={profile.imageUrl}
+          address={profile.address}
+          size={AVATAR_SIZE}
+        />
       </TopRankAvatar>
 
       <Box twClassName="flex-1 min-w-0">

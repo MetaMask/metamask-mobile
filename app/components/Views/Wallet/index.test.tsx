@@ -86,6 +86,11 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
+const mockMoneyAccountGeoEligible = true;
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
+}));
+
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
 jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
   const ReactMock = jest.requireActual('react');

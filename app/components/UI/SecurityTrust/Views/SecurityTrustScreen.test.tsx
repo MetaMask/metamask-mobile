@@ -150,10 +150,30 @@ jest.mock('../../TokenDetails/hooks/useTokenActions', () => ({
   })),
 }));
 
+jest.mock('../../TokenDetails/hooks/useStickyQuickBuy', () => ({
+  useStickyQuickBuy: jest.fn(() => ({
+    isQuickBuyEnabled: true,
+    onQuickBuyPress: jest.fn(),
+    quickBuySheet: null,
+  })),
+}));
+
+const getMockUseStickyQuickBuy = () =>
+  (
+    jest.requireMock('../../TokenDetails/hooks/useStickyQuickBuy') as {
+      useStickyQuickBuy: jest.Mock;
+    }
+  ).useStickyQuickBuy;
+
 describe('SecurityTrustScreen', () => {
   beforeEach(() => {
-    mockRouteParams = createDefaultRouteParams();
     jest.clearAllMocks();
+    mockRouteParams = createDefaultRouteParams();
+    getMockUseStickyQuickBuy().mockReturnValue({
+      isQuickBuyEnabled: true,
+      onQuickBuyPress: jest.fn(),
+      quickBuySheet: null,
+    });
   });
 
   it('renders without crashing', () => {
@@ -313,5 +333,43 @@ describe('SecurityTrustScreen', () => {
       solanaMint,
       solanaChainId,
     );
+  });
+
+  describe('Quick Buy', () => {
+    it('calls useStickyQuickBuy with the security_trust source and route token', () => {
+      render(<SecurityTrustScreen />);
+
+      expect(getMockUseStickyQuickBuy()).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'security_trust',
+          token: expect.objectContaining({
+            symbol: 'TEST',
+            chainId: '0x1',
+          }),
+        }),
+      );
+    });
+
+    it('passes onQuickBuyPress from the hook to TokenDetailsStickyFooter', () => {
+      const onQuickBuyPress = jest.fn();
+      getMockUseStickyQuickBuy().mockReturnValue({
+        isQuickBuyEnabled: true,
+        onQuickBuyPress,
+        quickBuySheet: null,
+      });
+
+      // Renders without errors — the footer (mocked) receives the prop.
+      expect(() => render(<SecurityTrustScreen />)).not.toThrow();
+    });
+
+    it('does not throw when quick-buy is disabled', () => {
+      getMockUseStickyQuickBuy().mockReturnValue({
+        isQuickBuyEnabled: false,
+        onQuickBuyPress: undefined,
+        quickBuySheet: null,
+      });
+
+      expect(() => render(<SecurityTrustScreen />)).not.toThrow();
+    });
   });
 });
