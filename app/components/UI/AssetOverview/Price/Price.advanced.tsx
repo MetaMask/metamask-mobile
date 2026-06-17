@@ -428,6 +428,18 @@ const PriceAdvanced = ({
     !hasEmptyData &&
     !chartError;
 
+  /**
+   * Only show technical indicators UI when we're certain the advanced chart is being used.
+   * This prevents a confusing flash where interval/indicator bars appear then disappear
+   * when falling back to legacy chart.
+   */
+  const shouldShowTechnicalIndicators =
+    isTechnicalIndicatorsEnabled &&
+    !chartLoading &&
+    ohlcvData.length >= CHART_DATA_THRESHOLD &&
+    !hasEmptyData &&
+    !chartError;
+
   const { latestBar } = useOHLCVRealtime({
     assetId,
     interval: chartInterval,
@@ -488,30 +500,13 @@ const PriceAdvanced = ({
       if (lastBarTime == null) return null;
       const target24h = lastBarTime - 24 * 60 * 60 * 1000;
       const bar24h = ohlcvData.find((c) => c.time >= target24h) ?? ohlcvData[0];
-      // eslint-disable-next-line no-console
-      console.log('PCT_DBG', {
-        interval: chartInterval,
-        totalBars: ohlcvData.length,
-        firstBarTime: new Date(ohlcvData[0].time).toISOString(),
-        lastBarTime: new Date(lastBarTime).toISOString(),
-        target24h: new Date(target24h).toISOString(),
-        bar24hTime: new Date(bar24h.time).toISOString(),
-        bar24hClose: bar24h.close,
-        lastClose: ohlcvData[ohlcvData.length - 1].close,
-      });
       return bar24h.close;
     }
     if (visibleFromMs == null) return null;
     const firstVisible =
       ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
     return firstVisible.close;
-  }, [
-    ohlcvData,
-    visibleFromMs,
-    isTechnicalIndicatorsEnabled,
-    lastBarTime,
-    chartInterval,
-  ]);
+  }, [ohlcvData, visibleFromMs, isTechnicalIndicatorsEnabled, lastBarTime]);
 
   // Store last good compare price to show during loading
   const stableComparePriceRef = useRef<number | null>(null);
@@ -786,7 +781,7 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      {isTechnicalIndicatorsEnabled && (
+      {shouldShowTechnicalIndicators && (
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <IntervalBar
@@ -799,7 +794,7 @@ const PriceAdvanced = ({
         </View>
       )}
       <Box
-        twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+        twClassName={shouldShowTechnicalIndicators ? 'w-full' : 'mt-3 w-full'}
       >
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
@@ -855,7 +850,7 @@ const PriceAdvanced = ({
           )}
         </View>
       </Box>
-      {isTechnicalIndicatorsEnabled && chartType === ChartType.Candles ? (
+      {shouldShowTechnicalIndicators && chartType === ChartType.Candles ? (
         <Box twClassName="w-full mb-6">
           <IndicatorBar
             maLabel={maLabel}
@@ -864,7 +859,7 @@ const PriceAdvanced = ({
             onIndicatorToggle={handleIndicatorToggle}
           />
         </Box>
-      ) : !isTechnicalIndicatorsEnabled ? (
+      ) : !shouldShowTechnicalIndicators ? (
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector
