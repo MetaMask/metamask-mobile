@@ -3527,6 +3527,8 @@
       "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
       "perps_title": "Trading Activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
+      "agentic_cli_title": "MetaMask CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates",
       "social_ai_title": "Trading Signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
       "marketing_title": "Updates and Rewards",
