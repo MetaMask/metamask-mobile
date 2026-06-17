@@ -207,7 +207,7 @@ export function useTransactionCustomAmount({
       // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
       // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
       // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // musdSHFvd fiat total). Keeping isMaxAmount false routes the typed
+      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
       // amount through as token.amountRaw.
       const shouldSetMax =
         percentage === 100 &&
@@ -307,11 +307,13 @@ function useTokenBalance(tokenUsdRate: number) {
     return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    return predictBalanceUsd;
+  }
+
   if (paymentOverride === PaymentOverride.MoneyAccount) {
     return totalFiatRaw ? parseFloat(totalFiatRaw) : 0;
   }
 
-  return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-    ? predictBalanceUsd
-    : payTokenBalanceUsd;
+  return payTokenBalanceUsd;
 }

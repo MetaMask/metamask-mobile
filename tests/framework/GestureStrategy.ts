@@ -28,6 +28,8 @@ export interface UnifiedGestureOptions {
   scrollAmount?: number;
   /** Delay before tapping (ms) */
   delay?: number;
+  /** Wait for element position to stabilize before tapping — Detox only */
+  checkStability?: boolean;
   /** Check if the element is displayed — Appium only; Detox ignores this */
   checkForDisplayed?: boolean;
   /** Check if the element is enabled — Appium only; Detox ignores this */
@@ -154,6 +156,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.waitAndTap(asDetoxElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description,
+      delay: opts?.delay,
+      checkStability: opts?.checkStability,
     });
   }
 

@@ -366,14 +366,14 @@ describe('MoneyHomeView', () => {
 
     defaultMoneyAccountBalance = {
       totalFiatFormatted: '$3.00',
-      musdFiatFormatted: '$1.00',
-      musdSHFvdFiatFormatted: '$2.00',
       totalFiatRaw: '3',
       tokenTotal: new BigNumber('3'),
       withdrawableMusd: undefined,
-      isAggregatedBalanceLoading: false,
+      isBalanceLoading: false,
       isBalanceFetchError: false,
       isBalanceFetching: false,
+      isBalanceUnavailable: false,
+      lastKnownTotalFiatFormatted: undefined,
       refetchBalance: mockRefetchBalance,
       apyDecimal: 0.05,
       apyPercent: 5,
@@ -382,13 +382,11 @@ describe('MoneyHomeView', () => {
         data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
-      musdBalanceQuery: {
-        data: { balance: '1000000' },
-        isLoading: false,
-      },
-      musdEquivalentBalanceQuery: {
+      moneyBalanceQuery: {
         data: {
-          balanceOfInAssets: '2000000',
+          musdBalance: '1000000',
+          vmusdValueInMusd: '2000000',
+          totalBalance: '3000000',
         },
         isLoading: false,
       },
@@ -502,21 +500,20 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
-        musdFiatFormatted: undefined,
-        musdSHFvdFiatFormatted: undefined,
         totalFiatRaw: undefined,
         tokenTotal: undefined,
         withdrawableMusd: undefined,
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: true,
         isBalanceFetching: false,
+        isBalanceUnavailable: true,
+        lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
     });
 
@@ -557,18 +554,18 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('error takes precedence over loading and balance', () => {
+    it('renders the unavailable slot whenever there is no fresh balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
-        isAggregatedBalanceLoading: true,
+        isBalanceLoading: true,
         isBalanceFetchError: true,
         isBalanceFetching: false,
+        lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -576,7 +573,7 @@ describe('MoneyHomeView', () => {
       );
 
       expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_ERROR),
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
@@ -597,14 +594,13 @@ describe('MoneyHomeView', () => {
         mockUseMoneyAccountBalance.mockReturnValue({
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
-          isAggregatedBalanceLoading: false,
+          isBalanceLoading: false,
           isBalanceFetchError: false,
           isBalanceFetching: false,
           refetchBalance: jest.fn(),
           apyPercent: 5,
           vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-          musdBalanceQuery: { data: undefined, isLoading: false },
-          musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+          moneyBalanceQuery: { data: undefined, isLoading: false },
         } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       });
 
@@ -636,12 +632,10 @@ describe('MoneyHomeView', () => {
     describe('dust threshold gating', () => {
       const dustMock = {
         totalFiatFormatted: '$0.00',
-        musdFiatFormatted: '$0.00',
-        musdSHFvdFiatFormatted: '$0.00',
         // 0.0001 < DUST_THRESHOLD (0.01) — displays as $0.00 but is above zero
         totalFiatRaw: '0.0001',
         withdrawableMusd: undefined,
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
         refetchBalance: jest.fn(),
@@ -649,8 +643,7 @@ describe('MoneyHomeView', () => {
         apyPercent: 5,
         apyPercentFormatted: '5%',
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>;
 
       beforeEach(() => {
@@ -692,14 +685,15 @@ describe('MoneyHomeView', () => {
         mockUseMoneyAccountBalance.mockReturnValue({
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
-          isAggregatedBalanceLoading: false,
+          isBalanceLoading: false,
           isBalanceFetchError: false,
           isBalanceFetching: false,
+          isBalanceUnavailable: true,
+          lastKnownTotalFiatFormatted: undefined,
           refetchBalance: jest.fn(),
           apyPercent: 5,
           vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-          musdBalanceQuery: { data: undefined, isLoading: false },
-          musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+          moneyBalanceQuery: { data: undefined, isLoading: false },
         } as unknown as ReturnType<typeof useMoneyAccountBalance>);
         mockUseMoneyAccountTransactions.mockReturnValue({
           allTransactions: [],
@@ -761,14 +755,13 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -784,6 +777,58 @@ describe('MoneyHomeView', () => {
       // hasBalanceValue is false in noAccount state, so unfunded sections are hidden.
       expect(
         queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('balance unavailable banner', () => {
+    const unavailableMock = (lastKnownTotalFiatFormatted?: string) =>
+      ({
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        isAggregatedBalanceLoading: false,
+        isBalanceFetchError: true,
+        isBalanceFetching: false,
+        isBalanceUnavailable: true,
+        lastKnownTotalFiatFormatted,
+        refetchBalance: jest.fn(),
+        apyPercent: 5,
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      }) as unknown as ReturnType<typeof useMoneyAccountBalance>;
+
+    it('shows the banner with a dash when no last known balance exists', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock());
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent(strings('money.balance_unavailable_value'));
+    });
+
+    it('shows the banner alongside the last known balance when cached', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock('$2,384.34'));
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent('$2,384.34');
+    });
+
+    it('hides the banner when the balance loads successfully', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
       ).not.toBeOnTheScreen();
     });
   });
@@ -878,10 +923,13 @@ describe('MoneyHomeView', () => {
     it('disables Transfer button when initial balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
         tokenTotal: undefined,
-        isAggregatedBalanceLoading: true,
+        isBalanceLoading: true,
         isBalanceFetchError: false,
         isBalanceFetching: true,
+        isBalanceUnavailable: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -897,7 +945,7 @@ describe('MoneyHomeView', () => {
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
@@ -915,7 +963,7 @@ describe('MoneyHomeView', () => {
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
@@ -1059,14 +1107,13 @@ describe('MoneyHomeView', () => {
       totalFiatFormatted: '$0.00',
       totalFiatRaw: '0',
       tokenTotal: new BigNumber(0),
-      isAggregatedBalanceLoading: false,
+      isBalanceLoading: false,
       isBalanceFetchError: false,
       isBalanceFetching: false,
       refetchBalance: mockRefetchBalance,
       apyPercent: 5,
       vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-      musdBalanceQuery: { data: undefined, isLoading: false },
-      musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      moneyBalanceQuery: { data: undefined, isLoading: false },
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: [],
@@ -1118,16 +1165,13 @@ describe('MoneyHomeView', () => {
       // for all values, exercising the no-plus-prefix path.
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: '$3.00',
-        musdFiatFormatted: '$1.00',
-        musdSHFvdFiatFormatted: '$2.00',
         totalFiatRaw: '3',
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1146,11 +1190,9 @@ describe('MoneyHomeView', () => {
       mockMoneyFormatFiat.mockReturnValue('$0.00');
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
-        musdFiatFormatted: undefined,
-        musdSHFvdFiatFormatted: undefined,
         totalFiatRaw: undefined,
         tokenTotal: undefined,
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
         refetchBalance: jest.fn(),
@@ -1158,8 +1200,7 @@ describe('MoneyHomeView', () => {
         apyPercent: 5,
         apyPercentFormatted: '5%',
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1474,12 +1515,10 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: '$0.00',
-        musdFiatFormatted: '$0.00',
-        musdSHFvdFiatFormatted: '$0.00',
         totalFiatRaw: '0',
         tokenTotal: new BigNumber(0),
         withdrawableMusd: undefined,
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
@@ -1487,8 +1526,7 @@ describe('MoneyHomeView', () => {
         apyPercent: 5,
         apyPercentFormatted: '5%',
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -1649,14 +1687,13 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
-        isAggregatedBalanceLoading: true,
+        isBalanceLoading: true,
         isBalanceFetchError: false,
         isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -1687,12 +1724,10 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: '$0.00',
-        musdFiatFormatted: '$0.00',
-        musdSHFvdFiatFormatted: '$0.00',
         totalFiatRaw: '0',
         tokenTotal: new BigNumber(0),
         withdrawableMusd: undefined,
-        isAggregatedBalanceLoading: false,
+        isBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
@@ -1700,8 +1735,7 @@ describe('MoneyHomeView', () => {
         apyPercent: 5,
         apyPercentFormatted: '5%',
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: Array.from({ length: 3 }, (_, index) => ({
@@ -1906,6 +1940,61 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('hides the card section when residency is blocked', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: true,
+        isCardVerified: true,
+        isCardLinkedToMoneyAccount: false,
+        isResidencyBlocked: true,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'veda' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('still shows manage mode when residency is blocked but card is already linked', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: true,
+        isCardVerified: true,
+        isCardLinkedToMoneyAccount: true,
+        isResidencyBlocked: true,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'veda' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('selects mode="link" for cardholder even with zero transactions', () => {

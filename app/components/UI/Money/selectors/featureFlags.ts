@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import {
   validatedVersionGatedFeatureFlag,
+  parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
@@ -151,5 +152,48 @@ export const selectMoneyTokensSortMode = createSelector(
       return remote as MoneyTokensSortMode;
     }
     return 'fiatBalanceDesc';
+  },
+);
+
+/** Default blocked countries for Money account when no remote flag is configured. */
+export const DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES = ['GB'];
+
+/**
+ * Selects the geo-blocked countries for the Money account from remote config or local fallback.
+ * Returns an array of ISO 3166-1 alpha-2 country codes (e.g., ['GB', 'US']).
+ *
+ * The Ramps geolocation API returns country codes like "GB" or "US-CA" (country-region).
+ * Matching uses startsWith to handle both country-only and country-region formats.
+ *
+ * Remote flag takes precedence over local env var.
+ *
+ * Examples:
+ * - Remote: { "blockedRegions": ["GB"] }      - Block users in Great Britain
+ * - Remote: { "blockedRegions": ["GB", "US"] } - Block users in GB and US
+ * - Local env: "GB,US,FR"                        - Block users in GB, US, and FR
+ *
+ * If both remote and local are unavailable or invalid, defaults to blocking Great Britain.
+ */
+export const selectMoneyAccountGeoBlockedCountries = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    // Try remote flag first (takes precedence)
+    const remoteFlag = remoteFeatureFlags?.moneyAccountGeoBlockedCountries as
+      | { blockedRegions?: string[] }
+      | undefined;
+
+    if (Array.isArray(remoteFlag?.blockedRegions)) {
+      return remoteFlag.blockedRegions;
+    }
+
+    // Fallback to local env var
+    const envBlockedCountries = parseBlockedCountriesEnv(
+      process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES,
+    );
+
+    // If env var is also empty, use default blocked countries
+    return envBlockedCountries.length > 0
+      ? envBlockedCountries
+      : DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES;
   },
 );

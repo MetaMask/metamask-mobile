@@ -93,6 +93,12 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
     mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
 
+const mockSelectIsMoneyAccountGeoEligible = jest.fn().mockReturnValue(true);
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: (state: unknown) =>
+    mockSelectIsMoneyAccountGeoEligible(state),
+}));
+
 describe('MainNavigator', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
