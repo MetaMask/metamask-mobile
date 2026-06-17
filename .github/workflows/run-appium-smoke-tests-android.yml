@@ -98,6 +98,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       test-timeout-minutes: 35
+      android-tag: google_apis
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}

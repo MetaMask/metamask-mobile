@@ -325,6 +325,10 @@ The other three spec files (`connection-evm`, `connection-multichain`,
 Playground dApp in Chrome. These tests do not require a separate APK — the dApp
 server is started automatically in `test.beforeAll`.
 
+**CI:** `appium-mmconnect-android-smoke` uses the `google_apis` Android system
+image so Chrome (`com.android.chrome`) is preinstalled. The default Appium smoke
+image (`default` / AOSP) does not include Chrome.
+
 On **BrowserStack**, the tunnel (**BrowserStack Local**) must be running and
 `BROWSERSTACK_LOCAL=true` must be set so devices can reach that server (see the
 parent README). CI enables the tunnel **only** for mm-connect performance jobs.
