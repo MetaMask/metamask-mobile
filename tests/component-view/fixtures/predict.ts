@@ -70,11 +70,11 @@ export const MOCK_PREDICT_LIVE_SPORT_MARKET: PredictMarket = {
   game: {
     id: 'game-live-1',
     startTime: '2026-06-08T21:30:00Z',
-    status: 'live',
+    status: 'ongoing',
     league: 'fifwc',
     elapsed: "45'",
     period: '1H',
-    score: { home: 1, away: 0 },
+    score: { home: 1, away: 0, raw: '0-1' },
     awayTeam: {
       id: 'england',
       name: 'England',
