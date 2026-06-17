@@ -48,6 +48,27 @@ describe('ProfileHeader', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the podium medal badge for a top-3 rank', () => {
+    renderWithProvider(
+      <ProfileHeader profile={baseProfile} followerCount={45} rank={2} />,
+    );
+    expect(screen.getByTestId('rank-medal-2')).toBeOnTheScreen();
+  });
+
+  it('does not render a medal badge for ranks outside 1-3', () => {
+    renderWithProvider(
+      <ProfileHeader profile={baseProfile} followerCount={45} rank={4} />,
+    );
+    expect(screen.queryByTestId('rank-medal-4')).toBeNull();
+  });
+
+  it('does not render a medal badge when rank is undefined', () => {
+    renderWithProvider(
+      <ProfileHeader profile={baseProfile} followerCount={45} />,
+    );
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+  });
+
   it('renders Maskicon fallback when imageUrl is falsy', () => {
     const profileNoImage = { ...baseProfile, imageUrl: '' };
     renderWithProvider(
