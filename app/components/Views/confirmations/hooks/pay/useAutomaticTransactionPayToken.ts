@@ -30,7 +30,8 @@ import {
   selectMetaMaskPayTokensFlags,
   PreferredToken,
   getPreferredTokensForTransactionType,
- selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
+  selectRelayFixedSpread,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import {
   isSubsidizedSource,
   RelayFixedSpreadConfig,
