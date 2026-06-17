@@ -7020,6 +7020,10 @@
         }
       }
     },
+    "first_time_deposit": {
+      "title": "First deposit, done",
+      "content": "Your funds are on the way to your account and will start earning soon."
+    },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
       "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
