@@ -56,6 +56,11 @@ export interface WithdrawSuccessParams {
   destination: string;
 }
 
+export interface SendSuccessParams {
+  amountFiat?: string;
+  destination: string;
+}
+
 export interface MoneyToastOptionsConfig {
   deposit: {
     inProgress: (params?: DepositInProgressParams) => MoneyToastOptions;
@@ -65,6 +70,11 @@ export interface MoneyToastOptionsConfig {
   withdraw: {
     inProgress: () => MoneyToastOptions;
     success: (params: WithdrawSuccessParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
+  };
+  send: {
+    inProgress: () => MoneyToastOptions;
+    success: (params: SendSuccessParams) => MoneyToastOptions;
     failed: () => MoneyToastOptions;
   };
 }
@@ -297,6 +307,63 @@ const useMoneyToasts = (): {
                 color={TextColor.TextAlternative}
               >
                 {strings('money.toasts.withdraw_failed_body')}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
+        }),
+      },
+      send: {
+        inProgress: () => ({
+          ...moneyBaseToastOptions.inProgress,
+          labelOptions: getMoneyToastLabels({
+            primary: strings('money.toasts.send_in_progress_title'),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.toasts.in_progress_body')}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
+        }),
+        success: ({ amountFiat, destination }: SendSuccessParams) => ({
+          ...moneyBaseToastOptions.success,
+          labelOptions: getMoneyToastLabels({
+            primary: strings('money.toasts.send_success_title'),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {amountFiat
+                  ? strings('money.toasts.send_success_body', {
+                      amount: amountFiat,
+                      destination,
+                    })
+                  : strings('money.toasts.send_success_body_no_amount', {
+                      destination,
+                    })}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
+        }),
+        failed: () => ({
+          ...moneyBaseToastOptions.error,
+          labelOptions: getMoneyToastLabels({
+            primary: strings('money.toasts.send_failed_title'),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.toasts.send_failed_body')}
               </Text>
             ),
           }),
