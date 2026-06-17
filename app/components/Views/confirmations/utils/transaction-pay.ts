@@ -16,7 +16,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
-import type {
+import {
   BlockedTokensListConfig,
   BlockedTokensConfig,
 } from '../../../../selectors/featureFlagController/confirmations';
@@ -25,11 +25,15 @@ import Logger from '../../../../util/Logger';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 
-const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
-
 interface ResolvedPayTokenRequest {
   address: Hex;
   chainId: Hex;
+}
+
+const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
+
+function toAddressWord(address: string): string {
+  return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
 }
 
 /**
@@ -132,10 +136,6 @@ export function getTokenTransferData(
   }
 
   return undefined;
-}
-
-function toAddressWord(address: string): string {
-  return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
 }
 
 export function getTokenAddress(

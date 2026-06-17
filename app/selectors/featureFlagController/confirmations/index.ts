@@ -82,18 +82,6 @@ export interface PayPostQuoteFlags {
   overrides?: Record<string, PayPostQuoteConfig>;
 }
 
-export interface GasFeeTokenFlags {
-  gasFeeTokens: {
-    [chainId: Hex]: {
-      name: string;
-      tokens: {
-        name: string;
-        address: Hex;
-      }[];
-    };
-  };
-}
-
 export interface MetaMaskPayFiatFlags {
   enabledTransactionTypes: TransactionType[];
   maxDelayMinutesForPaymentMethods: number;
@@ -264,25 +252,6 @@ export const selectNonZeroUnusedApprovalsAllowList = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>) =>
     remoteFeatureFlags?.nonZeroUnusedApprovals ?? [],
-);
-
-export const selectGasFeeTokenFlags = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): GasFeeTokenFlags => {
-    const gasFeeTokenFlags =
-      remoteFeatureFlags?.confirmations_gas_fee_tokens as
-        | Record<string, Json>
-        | undefined;
-
-    const gasFeeTokens =
-      (gasFeeTokenFlags?.gasFeeTokens as
-        | GasFeeTokenFlags['gasFeeTokens']
-        | undefined) ?? {};
-
-    return {
-      gasFeeTokens,
-    };
-  },
 );
 
 export const selectMetaMaskPayFiatFlags = createSelector(
