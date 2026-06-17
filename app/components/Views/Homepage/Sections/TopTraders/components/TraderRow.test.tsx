@@ -27,14 +27,38 @@ describe('TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank, username, ROI, and PnL', () => {
+  it('renders username and the full (non-abbreviated) PnL', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('1')).toBeOnTheScreen();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
-    expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+  });
+
+  it('does not render the abbreviated PnL, ROI %, or timeframe suffix', () => {
+    renderWithProvider(
+      <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.queryByText('+$963.1K')).toBeNull();
+    expect(screen.queryByText('+43.0%')).toBeNull();
+    expect(screen.queryByText(/30D/)).toBeNull();
+    expect(screen.queryByText(/7D/)).toBeNull();
+  });
+
+  it('renders a podium medal for ranks 1-3', () => {
+    renderWithProvider(
+      <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
+  });
+
+  it('does not render a podium medal for ranks outside 1-3', () => {
+    const offPodium = { ...baseTrader, rank: 4 };
+    renderWithProvider(
+      <TraderRow trader={offPodium} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.queryByTestId('rank-medal-4')).toBeNull();
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
   });
 
   it('renders avatar image when avatarUri is present', () => {
@@ -114,7 +138,7 @@ describe('TraderRow', () => {
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
-  it('displays negative ROI and PnL values', () => {
+  it('displays negative PnL values with a leading minus', () => {
     const negativeTrader: TopTrader = {
       ...baseTrader,
       percentageChange: -15.3,
@@ -123,7 +147,6 @@ describe('TraderRow', () => {
     renderWithProvider(
       <TraderRow trader={negativeTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('-15.3%')).toBeOnTheScreen();
     expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 
@@ -168,16 +191,15 @@ describe('TraderRow', () => {
     it('renders the stats line with numberOfLines=1 so it does not wrap when the button grows', () => {
       const trader: TopTrader = {
         ...baseTrader,
-        percentageChange: 28233,
         pnlValue: 407000,
       };
       renderWithProvider(
         <TraderRow trader={trader} onFollowPress={mockOnFollowPress} />,
       );
 
-      const roiSegment = screen.getByText('+28233.0%');
+      const pnlSegment = screen.getByText('+$407,000.00');
       const statsText = findAncestor(
-        roiSegment,
+        pnlSegment,
         (node) => node.props?.numberOfLines === 1,
       );
 
@@ -197,24 +219,6 @@ describe('TraderRow', () => {
 
       expect(buttonWithMinWidth).not.toBeNull();
       expect(resolveMinWidth(buttonWithMinWidth as ReactTestInstance)).toBe(96);
-    });
-
-    it('renders the rank on a single line so the trailing dot does not wrap for double-digit ranks', () => {
-      const doubleDigitTrader: TopTrader = {
-        ...baseTrader,
-        rank: 20,
-        overallRank: 20,
-      };
-      renderWithProvider(
-        <TraderRow
-          trader={doubleDigitTrader}
-          onFollowPress={mockOnFollowPress}
-        />,
-      );
-
-      const rankText = screen.getByText('20');
-
-      expect(rankText.props.numberOfLines).toBe(1);
     });
 
     it('vertically centers the Follow button so it sits in the middle of the row (overrides ButtonBase self-start default)', () => {

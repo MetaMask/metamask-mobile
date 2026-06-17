@@ -28,6 +28,8 @@ jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
 }));
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
+// Mirrors the host sheet: closes first, then runs the deferred navigation.
+const mockCloseSheet = jest.fn((navigate: () => void) => navigate());
 
 jest.mock(
   '../../../../Views/confirmations/hooks/activity/useTransactionDetails',
@@ -171,9 +173,12 @@ function render(overrides: Partial<TransactionMeta> = {}) {
       ...overrides,
     } as TransactionMeta,
   });
-  return renderWithProvider(<MoneySentDetails />, {
-    state: merge({}, otherControllersMock),
-  });
+  return renderWithProvider(
+    <MoneySentDetails onCloseSheet={mockCloseSheet} />,
+    {
+      state: merge({}, otherControllersMock),
+    },
+  );
 }
 
 describe('MoneySentDetails', () => {
@@ -232,9 +237,12 @@ describe('MoneySentDetails', () => {
     expect(getByText('$34.54')).toBeOnTheScreen();
   });
 
-  it('navigates to the block explorer when the button is pressed', () => {
+  it('closes the sheet before navigating to the block explorer when the button is pressed', () => {
     const { getByText } = render();
     fireEvent.press(getByText('View on block explorer'));
+    // The sheet must dismiss first — navigating while its transparent modal is
+    // still presented leaves the WebView behind it and strands the overlay.
+    expect(mockCloseSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       'Webview',
       expect.objectContaining({ screen: 'SimpleWebview' }),

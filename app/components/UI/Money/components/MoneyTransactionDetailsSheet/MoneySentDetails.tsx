@@ -80,7 +80,17 @@ function useRecipient(): Hex | undefined {
   }, [transactionMeta]);
 }
 
-export function MoneySentDetails() {
+interface MoneySentDetailsProps {
+  /**
+   * Closes the host bottom sheet and runs `navigate` once it has finished
+   * dismissing. Navigating while the sheet's transparent modal is still
+   * presented pushes the WebView behind it and strands the overlay, so the
+   * explorer link must defer navigation until after the sheet is gone.
+   */
+  onCloseSheet: (navigate: () => void) => void;
+}
+
+export function MoneySentDetails({ onCloseSheet }: MoneySentDetailsProps) {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -130,15 +140,18 @@ export function MoneySentDetails() {
       text: strings('transaction_details.view_on_block_explorer'),
       url,
     });
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: { url, title },
+    onCloseSheet(() => {
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: { url, title },
+      });
     });
   }, [
     chainId,
     createEventBuilder,
     navigation,
     networkConfigurations,
+    onCloseSheet,
     trackEvent,
     transactionMeta,
   ]);

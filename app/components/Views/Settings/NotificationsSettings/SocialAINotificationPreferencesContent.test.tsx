@@ -106,7 +106,7 @@ const makeNotificationPreferencesResult = (
 const followedTraders: FollowedTrader[] = [
   {
     id: 'trader-1',
-    username: 'dutchiono',
+    username: 'trader1',
     avatarUri: 'https://example.com/avatar.png',
   },
   {
@@ -325,7 +325,7 @@ describe('SocialAINotificationPreferencesContent', () => {
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
       },
     );
   });

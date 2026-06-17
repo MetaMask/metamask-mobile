@@ -879,7 +879,7 @@ export function useQuickBuyController(
     () =>
       tradeMode === 'sell'
         ? formatExchangeRate(sourceToken, destToken)
-        : formatExchangeRate(destTokenForRate, sourceToken),
+        : formatExchangeRate(sourceToken, destTokenForRate),
     [destToken, destTokenForRate, sourceToken, tradeMode],
   );
 

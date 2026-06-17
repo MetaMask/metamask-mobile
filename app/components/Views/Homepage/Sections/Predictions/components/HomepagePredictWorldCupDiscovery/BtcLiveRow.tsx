@@ -3,10 +3,7 @@ import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
-  BoxJustifyContent,
   Icon,
   IconColor,
   IconName,
@@ -18,6 +15,7 @@ import {
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatPrice } from '../../../../../../UI/Predict/utils/format';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
+import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';
 
 const formatBtc = (value: number | undefined) =>
   value === undefined || Number.isNaN(value)
@@ -78,36 +76,7 @@ const BtcLiveRow = ({
           })}
         </Text>
       </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        twClassName="mx-1 h-7 shrink-0 rounded-full px-2"
-      >
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          backgroundColor={BoxBackgroundColor.SuccessMuted}
-          twClassName="h-4 w-4 shrink-0 rounded-full"
-        >
-          <Box twClassName="h-2 w-2 rounded-full bg-success-default" />
-        </Box>
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextDefault}
-          style={tw.style('ml-2 font-medium')}
-        >
-          {strings('predict.homepage_discovery.btc_live')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.SuccessDefault}
-          style={tw.style('ml-2 font-medium')}
-        >
-          {countdown}
-        </Text>
-      </Box>
+      <HomepagePredictDiscoveryLivePill value={countdown} />
       <Icon
         name={IconName.ArrowRight}
         size={IconSize.Sm}
