@@ -420,7 +420,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       );
     });
 
-    it('does NOT emit RAMPS_TRANSACTION_FAILED for an order with no context entry: a BUY order still emits ONRAMP', () => {
+    it('does NOT emit a HEADLESS-tagged RAMPS_TRANSACTION_FAILED for an order with no context entry: a non-headless BUY emits the generic UNIFIED_BUY_2-tagged event (TRAM-3534)', () => {
       const order = createMockOrder({ status: Status.Failed });
 
       handleOrderStatusChangedForMetrics({
@@ -428,11 +428,15 @@ describe('handleOrderStatusChangedForMetrics', () => {
         previousStatus: Status.Pending,
       });
 
-      // No registry entry: the fold is inert and the generic emit runs.
+      // No registry entry: the headless fold is inert and the generic emit
+      // runs. Per TRAM-3534, V2 buys/deposits emit RAMPS_TRANSACTION_FAILED
+      // with ramp_type: 'UNIFIED_BUY_2' (not 'HEADLESS'). The de-dup is
+      // expressed by the ramp_type discriminator, not by event name.
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const trackedEvent = mockTrackEvent.mock.calls[0][0];
-      expect(trackedEvent.name).toBe('On-ramp Purchase Failed');
-      expect(trackedEvent.name).not.toBe('Ramps Transaction Failed');
+      expect(trackedEvent.name).toBe('Ramps Transaction Failed');
+      expect(trackedEvent.properties.ramp_type).toBe('UNIFIED_BUY_2');
+      expect(trackedEvent.properties.ramp_type).not.toBe('HEADLESS');
     });
 
     it('is idempotent: a second identical Failed event finds no entry and does not re-emit the tagged event', () => {
@@ -451,14 +455,16 @@ describe('handleOrderStatusChangedForMetrics', () => {
         previousStatus: Status.Pending,
       });
 
-      // Emit-then-delete: the tagged failure event fires exactly once. The
-      // second call finds no entry, so it never re-emits RAMPS_TRANSACTION_FAILED
-      // (the de-dup). (In real runtime the controller never re-fires a terminal
-      // Failed; this synthetic double call only proves the registry guard.)
-      const taggedEmits = mockTrackEvent.mock.calls.filter(
-        (call) => call[0].name === 'Ramps Transaction Failed',
+      // Emit-then-delete: the HEADLESS-tagged failure event fires exactly
+      // once. The second call finds no entry, so it falls through to the
+      // generic emit (UNIFIED_BUY_2-tagged per TRAM-3534) and never re-emits
+      // the HEADLESS-tagged event. The de-dup is on ramp_type, not on name.
+      const headlessTaggedEmits = mockTrackEvent.mock.calls.filter(
+        (call) =>
+          call[0].name === 'Ramps Transaction Failed' &&
+          call[0].properties.ramp_type === 'HEADLESS',
       );
-      expect(taggedEmits).toHaveLength(1);
+      expect(headlessTaggedEmits).toHaveLength(1);
       expect(getHeadlessOrderContext('order-1')).toBeUndefined();
     });
 
@@ -483,16 +489,21 @@ describe('handleOrderStatusChangedForMetrics', () => {
       );
       expect(getHeadlessOrderContext('order-1')).toBeUndefined();
 
-      // A retried poll of the same failed order finds no entry, so it never
-      // re-emits the tagged event (even though the first emit threw).
+      // A retried poll of the same failed order finds no entry, so it
+      // never re-emits the HEADLESS-tagged event (even though the first
+      // emit threw). The retry will fall through to the generic
+      // UNIFIED_BUY_2 emit per TRAM-3534, which is fine — only the
+      // HEADLESS-tagged event is the one we de-dup on.
       handleOrderStatusChangedForMetrics({
         order,
         previousStatus: Status.Pending,
       });
-      const taggedEmits = mockTrackEvent.mock.calls.filter(
-        (call) => call[0].name === 'Ramps Transaction Failed',
+      const headlessTaggedEmits = mockTrackEvent.mock.calls.filter(
+        (call) =>
+          call[0].name === 'Ramps Transaction Failed' &&
+          call[0].properties.ramp_type === 'HEADLESS',
       );
-      expect(taggedEmits).toHaveLength(1);
+      expect(headlessTaggedEmits).toHaveLength(1);
     });
 
     it('deletes the entry on Completed and (Option B) still fires the generic completion event', () => {
@@ -567,11 +578,14 @@ describe('handleOrderStatusChangedForMetrics', () => {
       );
     });
 
-    it('no-ops on a headless Failed order when the registry is empty (simulating an app relaunch)', () => {
-      // No setHeadlessOrderContext call: the module Map is empty as it would be
-      // after the app process restarts. Under Option B the same-session-only gap
-      // is by design; the handler must NOT emit a tagged event - but the generic
-      // emit still runs for the DEPOSIT order (no double-emit, no tagged event).
+    it('no-ops the HEADLESS path on a headless Failed order when the registry is empty (simulating an app relaunch)', () => {
+      // No setHeadlessOrderContext call: the module Map is empty as it would
+      // be after the app process restarts. Under Option B the
+      // same-session-only gap is by design; the handler must NOT emit a
+      // HEADLESS-tagged event. The generic emit still runs for the DEPOSIT
+      // order and emits RAMPS_TRANSACTION_FAILED with ramp_type:
+      // 'UNIFIED_BUY_2' per TRAM-3534 (not 'HEADLESS') — that's the correct
+      // post-relaunch behavior, and the de-dup is on ramp_type.
       const order = createHeadlessOrder({ status: Status.Failed });
 
       handleOrderStatusChangedForMetrics({
@@ -579,9 +593,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         previousStatus: Status.Pending,
       });
 
-      expect(mockTrackEvent.mock.calls[0]?.[0]?.name).not.toBe(
-        'Ramps Transaction Failed',
-      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.properties.ramp_type).not.toBe('HEADLESS');
+      expect(trackedEvent.properties.ramp_type).toBe('UNIFIED_BUY_2');
     });
   });
 
