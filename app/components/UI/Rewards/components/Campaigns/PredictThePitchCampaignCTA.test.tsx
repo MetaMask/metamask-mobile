@@ -10,6 +10,15 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
 const mockNavigate = jest.fn();
+let mockIsPredictEligible = true;
+
+jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => ({
+    isEligible: mockIsPredictEligible,
+    country: 'US',
+    refreshEligibility: jest.fn(),
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -23,15 +32,25 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
   __esModule: true,
-  default: () => ({ isGeoRestricted: false, isGeoLoading: false }),
+  default: (
+    _campaign: unknown,
+    _customRestrictedCountries: unknown,
+    isFeatureGeoRestricted?: boolean,
+  ) => ({
+    isGeoRestricted: isFeatureGeoRestricted === true,
+    isGeoLoading: false,
+  }),
 }));
+
+const mockShowToast = jest.fn();
+const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
 jest.mock('../../hooks/useRewardsToast', () => ({
   __esModule: true,
   default: () => ({
-    showToast: jest.fn(),
+    showToast: mockShowToast,
     RewardsToastOptions: {
-      entriesClosed: jest.fn(),
+      entriesClosed: mockEntriesClosed,
     },
   }),
 }));
@@ -52,6 +71,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.predict_the_pitch_campaign.predict_now_cta': 'Predict now',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
       'rewards.campaign.geo_loading': 'Checking eligibility',
+      'rewards.campaign.geo_locked_cta': 'Check eligibility',
+      'rewards.campaign.geo_locked_toast_title': 'Not available in your region',
+      'rewards.campaign.geo_locked_toast_description':
+        "This campaign isn't available where you are. Check back later for new campaigns.",
     };
     return map[key] ?? key;
   },
@@ -78,6 +101,7 @@ describe('PredictThePitchCampaignCTA', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
     jest.clearAllMocks();
+    mockIsPredictEligible = true;
   });
 
   afterEach(() => {
@@ -123,6 +147,30 @@ describe('PredictThePitchCampaignCTA', () => {
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows the geo-locked CTA when predict is not eligible and the user is not opted in', () => {
+    mockIsPredictEligible = false;
+
+    const { getByTestId, getByText } = render(
+      <PredictThePitchCampaignCTA
+        campaign={buildCampaign()}
+        participantStatus={{
+          status: { optedIn: false, participantCount: 0 },
+          isLoading: false,
+        }}
+      />,
+    );
+
+    expect(getByText('Check eligibility')).toBeOnTheScreen();
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+    expect(mockEntriesClosed).toHaveBeenCalledWith(
+      'Not available in your region',
+      "This campaign isn't available where you are. Check back later for new campaigns.",
+    );
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

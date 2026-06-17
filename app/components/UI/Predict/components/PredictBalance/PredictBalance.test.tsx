@@ -836,6 +836,14 @@ describe('PredictBalance', () => {
       expect(getByText(strings('wallet.predict'))).toBeOnTheScreen();
     });
 
+    it('hides Predictions title when hideTitle is true', () => {
+      const { queryByText } = renderWithProvider(<PredictBalance hideTitle />, {
+        state: initialState,
+      });
+
+      expect(queryByText(strings('wallet.predict'))).toBeNull();
+    });
+
     it('handles undefined balance gracefully', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({

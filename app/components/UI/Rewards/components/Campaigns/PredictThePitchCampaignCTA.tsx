@@ -11,6 +11,7 @@ import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCa
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
+import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 import { getCampaignStatus } from './CampaignTile.utils';
 
@@ -27,7 +28,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
   participantStatus,
 }) => {
   const navigation = useNavigation();
-
+  const { isEligible: isPredictEligible } = usePredictEligibility();
   const campaignStatus = getCampaignStatus(campaign);
   const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus.status?.optedIn === true;
@@ -61,6 +62,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
     <CampaignOptInCta
       campaign={campaign}
       participantStatus={participantStatus}
+      isFeatureGeoRestricted={!isPredictEligible}
     />
   );
 };

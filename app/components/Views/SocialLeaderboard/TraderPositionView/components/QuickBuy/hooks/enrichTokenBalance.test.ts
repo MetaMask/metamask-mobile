@@ -27,7 +27,10 @@ const baseDeps = (overrides: Record<string, unknown> = {}): TokenBalanceDeps =>
     accountsByChainId: {},
     tokenBalances: {},
     tokenMarketData: {},
-    currencyRates: { ETH: { usdConversionRate: 2000 } },
+    // `conversionRate` is the native-token -> user-currency rate that the
+    // canonical `calcTokenFiatRate` reads.
+    currencyRates: { ETH: { conversionRate: 2000, usdConversionRate: 2000 } },
+    currentCurrency: 'USD',
     allNetworkConfigs: { '0x1': { nativeCurrency: 'ETH' } },
     ...overrides,
   }) as unknown as TokenBalanceDeps;
@@ -50,7 +53,7 @@ describe('enrichTokenBalance', () => {
 
       expect(result).toEqual({
         balance: '1.0',
-        balanceFiat: '$2000.00',
+        balanceFiat: '$2,000.00',
         tokenFiatAmount: 2000,
         currencyExchangeRate: 2000,
       });
@@ -79,7 +82,7 @@ describe('enrichTokenBalance', () => {
         ...extra,
       });
 
-    it('prices an ERC-20 from market data times the usd conversion rate', () => {
+    it('prices an ERC-20 from market data times the native conversion rate', () => {
       const deps = withUsdcBalance({
         tokenMarketData: {
           '0x1': { [toChecksumAddress(USDC)]: { price: 0.0005 } },
@@ -87,12 +90,43 @@ describe('enrichTokenBalance', () => {
       });
 
       const result = enrichTokenBalance(
-        token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),
+        token({
+          address: toChecksumAddress(USDC),
+          chainId: '0x1',
+          symbol: 'USDC',
+          decimals: 6,
+        }),
         deps,
       );
 
       expect(result).toMatchObject({
         balance: '250.0',
+        balanceFiat: '$250.00',
+        currencyExchangeRate: 1,
+        tokenFiatAmount: 250,
+      });
+    });
+
+    it('prices a lowercase-address ERC-20 against checksum-keyed market data', () => {
+      const deps = withUsdcBalance({
+        tokenMarketData: {
+          '0x1': { [toChecksumAddress(USDC)]: { price: 0.0005 } },
+        },
+      });
+
+      const result = enrichTokenBalance(
+        token({
+          address: USDC.toLowerCase(),
+          chainId: '0x1',
+          symbol: 'USDC',
+          decimals: 6,
+        }),
+        deps,
+      );
+
+      expect(result).toMatchObject({
+        balance: '250.0',
+        balanceFiat: '$250.00',
         currencyExchangeRate: 1,
         tokenFiatAmount: 250,
       });
@@ -177,7 +211,7 @@ describe('enrichTokenBalance', () => {
 
       expect(result).toEqual({
         balance: '12.5',
-        balanceFiat: '$2500.00',
+        balanceFiat: '$2,500.00',
         tokenFiatAmount: 2500,
         currencyExchangeRate: 200,
       });
@@ -230,6 +264,101 @@ describe('enrichTokenBalance', () => {
         tokenFiatAmount: 0,
         currencyExchangeRate: undefined,
       });
+    });
+  });
+
+  describe('Tron and Bitcoin', () => {
+    const trxAssetId = 'tron:728126428/slip44:195';
+    const tronScope = 'tron:728126428';
+    const btcAssetId = 'bip122:000000000019d6689c085ae165831e93/slip44:0';
+    const bitcoinScope = 'bip122:000000000019d6689c085ae165831e93';
+    const tronAccount = { id: 'tron-account-id' };
+    const bitcoinAccount = { id: 'bitcoin-account-id' };
+
+    it('prices a held TRX balance using the Tron account multichain data', () => {
+      const deps = baseDeps({
+        tronAccount,
+        multichainBalances: {
+          [tronAccount.id]: { [trxAssetId]: { amount: '100' } },
+        },
+        multichainRates: { [trxAssetId]: { rate: '0.25' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: trxAssetId, chainId: tronScope, symbol: 'TRX' }),
+        deps,
+      );
+
+      expect(result).toEqual({
+        balance: '100',
+        balanceFiat: '$25.00',
+        tokenFiatAmount: 25,
+        currencyExchangeRate: 0.25,
+      });
+    });
+
+    it('prices a held BTC balance using the Bitcoin account multichain data', () => {
+      const deps = baseDeps({
+        bitcoinAccount,
+        multichainBalances: {
+          [bitcoinAccount.id]: { [btcAssetId]: { amount: '0.5' } },
+        },
+        multichainRates: { [btcAssetId]: { rate: '100000' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: btcAssetId, chainId: bitcoinScope, symbol: 'BTC' }),
+        deps,
+      );
+
+      expect(result).toEqual({
+        balance: '0.5',
+        balanceFiat: '$50,000.00',
+        tokenFiatAmount: 50000,
+        currencyExchangeRate: 100000,
+      });
+    });
+
+    it('returns null when there is no account for the candidate chain (strict)', () => {
+      const result = enrichTokenBalance(
+        token({ address: trxAssetId, chainId: tronScope, symbol: 'TRX' }),
+        baseDeps(),
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('returns a zero enrichment when there is no account for the chain and lenient', () => {
+      const result = enrichTokenBalance(
+        token({ address: btcAssetId, chainId: bitcoinScope, symbol: 'BTC' }),
+        baseDeps(),
+        { includeZeroBalance: true },
+      );
+
+      expect(result).toEqual({
+        balance: '0',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
+    });
+
+    it('does not read another chain account for a non-EVM candidate (Solana account does not price TRX)', () => {
+      const solanaAccount = { id: 'solana-account-id' };
+      const deps = baseDeps({
+        solanaAccount,
+        multichainBalances: {
+          [solanaAccount.id]: { [trxAssetId]: { amount: '100' } },
+        },
+        multichainRates: { [trxAssetId]: { rate: '0.25' } },
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: trxAssetId, chainId: tronScope, symbol: 'TRX' }),
+        deps,
+      );
+
+      expect(result).toBeNull();
     });
   });
 });

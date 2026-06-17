@@ -136,6 +136,7 @@ const MultichainAddressRow = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
+          numberOfLines={1}
           testID={MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}
         >
           {networkName}

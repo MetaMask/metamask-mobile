@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -10,6 +10,7 @@ import {
   AvatarTokenSize,
   BottomSheet,
   BottomSheetHeader,
+  BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -210,76 +211,80 @@ function NetworkFeeRow({
     : TextColor.TextDefault;
 
   return (
-    <Box
-      testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      paddingHorizontal={4}
-      paddingVertical={3}
-      twClassName="border-t border-muted"
-    >
+    <>
+      <Box twClassName="border-t border-muted mx-4" />
       <Box
+        testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={1}
+        paddingHorizontal={4}
+        paddingVertical={3}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={textColor}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
         >
-          {strings('bridge.network_fee')}
-        </Text>
-        <Pressable
-          onPress={onInfoPress}
-          testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON}
-          accessibilityRole="button"
-        >
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Pressable>
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.End}
-        gap={2}
-        twClassName="min-w-0 flex-1"
-      >
-        {isLoading ? (
-          <Skeleton
-            width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
-            height={NETWORK_FEE_SKELETON_HEIGHT}
-            twClassName="rounded-lg"
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={textColor}
+          >
+            {strings('bridge.network_fee')}
+          </Text>
+          <Pressable
+            onPress={onInfoPress}
             testID={
-              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON
             }
-          />
-        ) : (
-          <>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={textColor}
-              numberOfLines={1}
-            >
-              {networkFee.formatted}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={fiatTextColor}
-              numberOfLines={1}
-            >
-              {networkFee.formattedFiat}
-            </Text>
-          </>
-        )}
+            accessibilityRole="button"
+          >
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.End}
+          gap={2}
+          twClassName="min-w-0 flex-1"
+        >
+          {isLoading ? (
+            <Skeleton
+              width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
+              height={NETWORK_FEE_SKELETON_HEIGHT}
+              twClassName="rounded-lg"
+              testID={
+                BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+              }
+            />
+          ) : (
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={textColor}
+                numberOfLines={1}
+              >
+                {networkFee.formatted}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={fiatTextColor}
+                numberOfLines={1}
+              >
+                {networkFee.formattedFiat}
+              </Text>
+            </>
+          )}
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 }
 
@@ -299,7 +304,8 @@ export function BatchSellFinalReviewModal() {
     networkFee: batchSellQuoteData.networkFee,
   });
   const surfaceClass = useElevatedSurface();
-  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
   const finalReviewQuoteData = useMemo(
     () =>
       getFinalReviewQuoteData({
@@ -362,6 +368,10 @@ export function BatchSellFinalReviewModal() {
     return strings('bridge.batch_sell_sell_all');
   })();
 
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
   };
@@ -396,7 +406,9 @@ export function BatchSellFinalReviewModal() {
       console.error('Error submitting Batch Sell tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      });
     }
   }, [
     batchSellQuoteData.recommendedQuotes,
@@ -407,12 +419,13 @@ export function BatchSellFinalReviewModal() {
 
   return (
     <BottomSheet
+      ref={sheetRef}
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
       twClassName={surfaceClass}
     >
       <BottomSheetHeader
-        onClose={navigation.goBack}
+        onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
           testID: BatchSellFinalReviewModalSelectorsIDs.CLOSE_BUTTON,

@@ -4,7 +4,7 @@ import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
 
 // One cent. Values strictly below this collapse to $0.00 — mUSD is USD-pegged
 // so sub-cent fiat is economically meaningless.
-const THRESHOLD = 0.01;
+export const DUST_THRESHOLD = 0.01;
 
 /**
  * Helper that wraps formatWithThreshold to centralize Money formatting logic.
@@ -19,10 +19,10 @@ export const moneyFormatFiat = (
   value: BigNumber,
   currentCurrency: string,
 ): string => {
-  const effective = value.abs().lt(THRESHOLD) ? new BigNumber(0) : value;
+  const effective = value.abs().lt(DUST_THRESHOLD) ? new BigNumber(0) : value;
   return formatWithThreshold(
     effective.toNumber(),
-    THRESHOLD,
+    DUST_THRESHOLD,
     getLocaleLanguageCode(),
     {
       style: 'currency',

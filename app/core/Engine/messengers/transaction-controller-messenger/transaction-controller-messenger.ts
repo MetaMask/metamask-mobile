@@ -14,6 +14,7 @@ import {
 import {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
+  TransactionControllerEstimateGasBatchAction,
   TransactionControllerGetStateAction,
   TransactionControllerMessenger,
   TransactionControllerStateChangeEvent,
@@ -27,14 +28,20 @@ import {
   TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import {
+  SmartTransactionsControllerGetFeesAction,
+  SmartTransactionsControllerGetSmartTransactionByMinedTxHashAction,
+  SmartTransactionsControllerSetStatusRefreshIntervalAction,
   SmartTransactionsControllerSmartTransactionEvent,
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
+  SmartTransactionsControllerSubmitSignedTransactionsAction,
 } from '@metamask/smart-transactions-controller';
 import {
+  KeyringControllerGetKeyringForAccountAction,
   KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
+import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
@@ -53,6 +60,7 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import type {
+  PredictControllerBeforeSignAction,
   PredictControllerBeforePublishAction,
   PredictControllerPublishAction,
 } from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
@@ -74,17 +82,19 @@ export function getTransactionControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountsController:getState',
       `ApprovalController:addRequest`,
+      'GasFeeController:fetchGasFeeEstimates',
       'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
+      'KeyringController:signTransaction',
       'NetworkController:findNetworkClientIdByChainId',
+      'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
+      'NetworkController:getNetworkClientRegistry',
+      'NetworkController:getState',
       'RemoteFeatureFlagController:getState',
     ],
     events: [
       'AccountActivityService:transactionUpdated',
-      'AccountActivityService:statusChanged',
-      'AccountsController:selectedAccountChange',
-      'BackendWebSocketService:connectionStateChanged',
       'NetworkController:stateChange',
     ],
     messenger,
@@ -102,20 +112,28 @@ type InitMessengerActions =
   | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
+  | KeyringControllerGetKeyringForAccountAction
   | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
+  | PreferencesControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction
+  | SmartTransactionsControllerGetFeesAction
+  | SmartTransactionsControllerGetSmartTransactionByMinedTxHashAction
+  | SmartTransactionsControllerSetStatusRefreshIntervalAction
+  | SmartTransactionsControllerSubmitSignedTransactionsAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerEstimateGasBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerActions
   | AnalyticsControllerActions
   | PredictControllerBeforePublishAction
+  | PredictControllerBeforeSignAction
   | PredictControllerPublishAction;
 
 type InitMessengerEvents =
@@ -164,14 +182,22 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByChainId',
+      'KeyringController:getKeyringForAccount',
       'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
+      'PreferencesController:getState',
       'RemoteFeatureFlagController:getState',
+      'SmartTransactionsController:getFees',
+      'SmartTransactionsController:getSmartTransactionByMinedTxHash',
+      'SmartTransactionsController:setStatusRefreshInterval',
+      'SmartTransactionsController:submitSignedTransactions',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
+      'TransactionController:estimateGasBatch',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'TransactionPayController:getAmountData',
       'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
@@ -180,6 +206,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:polymarketSubmitDepositWalletBatch',
       'AnalyticsController:trackEvent',
       'PredictController:beforePublish',
+      'PredictController:beforeSign',
       'PredictController:publish',
       // Missing actions to use fiat payment hook from publish hook
       // Actions below are provided by patched controllers not yet in upstream types
