@@ -97,10 +97,6 @@ export function getRequiredBalance(
   return undefined;
 }
 
-function toAddressWord(address: string): string {
-  return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
-}
-
 export function getTokenTransferData(
   transactionMeta: TransactionMeta | undefined,
 ):
@@ -136,6 +132,10 @@ export function getTokenTransferData(
   }
 
   return undefined;
+}
+
+function toAddressWord(address: string): string {
+  return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
 }
 
 export function getTokenAddress(
