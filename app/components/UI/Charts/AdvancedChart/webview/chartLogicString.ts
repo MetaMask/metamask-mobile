@@ -254,6 +254,9 @@ function handleMessage(event) {
       case 'TOGGLE_VOLUME':
         handleToggleVolume(message.payload);
         break;
+      case 'SET_THEME_COLORS':
+        handleSetThemeColors(message.payload);
+        break;
     }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
@@ -724,7 +727,8 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -740,6 +744,83 @@ function applySeriesColors() {
       bottomLineWidth: 2,
     });
   } catch (e) {}
+}
+
+/**
+ * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
+ * WebView.  Updates CONFIG, TradingView overrides, volume study, and custom
+ * DOM pills in a single synchronous pass.
+ */
+function handleSetThemeColors(payload) {
+  if (!payload) return;
+  var theme = window.CONFIG.theme;
+  if (payload.lineColor != null) theme.lineColor = payload.lineColor;
+  if (payload.successColor != null) theme.successColor = payload.successColor;
+  if (payload.errorColor != null) theme.errorColor = payload.errorColor;
+
+  if (!window.chartWidget || !window.isChartReady) return;
+
+  try {
+    window.chartWidget.applyOverrides({
+      'mainSeriesProperties.candleStyle.upColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
+      'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
+      'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+    });
+  } catch (e) {}
+
+  applySeriesColors();
+
+  var chart = window.chartWidget.activeChart();
+  var lineColor = theme.lineColor || theme.successColor;
+  var currentPriceColor = theme.currentPriceColor || lineColor;
+
+  // Update volume study colors if present
+  if (window.volumeStudyId) {
+    try {
+      chart.getStudyById(window.volumeStudyId).applyOverrides({
+        'volume.color.0': theme.errorColor,
+        'volume.color.1': theme.successColor,
+      });
+    } catch (e) {}
+  }
+
+  // Update custom DOM pill colors
+  var elLast = document.getElementById('last-close-price-label');
+  if (elLast) {
+    elLast.style.background = lineColor;
+  }
+
+  // Update Drawing API shapes in-place via setProperties (synchronous, no
+  // remove/recreate needed — avoids the async gap from createShape promises).
+  if (window.lineEndDotShapeId && window.currentChartType === 2) {
+    try {
+      chart.getShapeById(window.lineEndDotShapeId).setProperties({
+        color: lineColor,
+      });
+    } catch (e) {}
+  }
+
+  if (window.lastPriceShapeId) {
+    try {
+      chart.getShapeById(window.lastPriceShapeId).setProperties({
+        linecolor: theme.currentPriceColor || theme.successColor,
+      });
+    } catch (e) {}
+  }
+
+  if (window.lineLastPriceShapeId) {
+    try {
+      chart.getShapeById(window.lineLastPriceShapeId).setProperties({
+        linecolor: currentPriceColor,
+      });
+    } catch (e) {}
+  }
+
+  // Outline pill + visible-edge re-derive color from theme on next frame
+  scheduleLastCloseLabelUpdate();
 }
 
 /**
@@ -1042,10 +1123,7 @@ function updateCustomCrosshairLabels(params) {
     return;
   }
   elP.textContent = formatCrosshairPrice(params.price);
-  var tSec =
-    params.userTime !== undefined && params.userTime !== null
-      ? params.userTime
-      : params.time;
+  var tSec = params.time;
   elT.textContent = formatCrosshairTime(tSec);
   elP.style.display = 'flex';
   elT.style.display = 'flex';
@@ -2172,7 +2250,8 @@ function createLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  var color = window.CONFIG.theme.successColor;
+  var color =
+    window.CONFIG.theme.currentPriceColor || window.CONFIG.theme.successColor;
   var candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
   var candlePrice =
     candlePt && isFinite(candlePt.price) ? candlePt.price : lastBar.close;
@@ -2257,7 +2336,10 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.currentPriceColor ||
+    window.CONFIG.theme.lineColor ||
+    window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3039,7 +3121,8 @@ function refreshLineEndDot() {
     return;
   }
 
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {

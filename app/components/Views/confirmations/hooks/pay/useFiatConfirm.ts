@@ -8,7 +8,10 @@ import {
   type HeadlessBuyError,
 } from '../../../../UI/Ramp/headless';
 import type { Quote } from '../../../../UI/Ramp/types';
-import type { RampSurface } from '../../../../UI/Ramp/Deposit/types/analytics';
+import {
+  RAMP_SURFACE,
+  type RampSurface,
+} from '../../../../UI/Ramp/Deposit/types/analytics';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
@@ -22,17 +25,16 @@ const log = createProjectLogger('fiat-confirm');
 
 /**
  * Maps a confirmation transaction type to the headless ramps `ramp_surface`
- * (TRAM-3623). Only deposit flows that route through the headless buy belong
- * here. `musdConversion` and withdraw transaction types are intentionally
- * omitted: they are not money/perps/prediction deposits, so they get an
- * `undefined` surface and stay untagged.
+ * (TRAM-3623). Only deposit flows routed through the headless buy belong here.
+ * `musdConversion` and withdraw types are intentionally omitted: not
+ * money/perps/prediction deposits, so they get an `undefined` surface.
  */
 const TRANSACTION_TYPE_TO_RAMP_SURFACE: Partial<
   Record<TransactionType, RampSurface>
 > = {
-  [TransactionType.moneyAccountDeposit]: 'money_account',
-  [TransactionType.perpsDeposit]: 'perps',
-  [TransactionType.predictDeposit]: 'prediction',
+  [TransactionType.moneyAccountDeposit]: RAMP_SURFACE.MONEY_ACCOUNT,
+  [TransactionType.perpsDeposit]: RAMP_SURFACE.PERPS,
+  [TransactionType.predictDeposit]: RAMP_SURFACE.PREDICTION,
 };
 
 export function useFiatConfirm() {

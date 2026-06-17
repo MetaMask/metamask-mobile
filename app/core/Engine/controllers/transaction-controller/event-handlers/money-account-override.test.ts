@@ -129,10 +129,12 @@ describe('money-account-override', () => {
       );
 
       const callback = setTransactionConfigMock.mock.calls[0][1];
-      const config: { accountOverride?: string } = {};
+      const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+        {};
       callback(config as never);
 
       expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      expect(config.isQuoteRequired).toBe(true);
     });
 
     it('sets accountOverride for a moneyAccountWithdraw transaction', () => {
@@ -359,9 +361,11 @@ describe('money-account-override', () => {
         );
 
         const callback = setTransactionConfigMock.mock.calls[0][1];
-        const config: { accountOverride?: string } = {};
+        const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+          {};
         callback(config as never);
         expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+        expect(config.isQuoteRequired).toBe(true);
       });
 
       it('does NOT call replaceAccountInNestedTransactions for the card-link approve (single tx, no nested)', () => {
