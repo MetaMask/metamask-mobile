@@ -311,6 +311,7 @@ const TraderPositionView = () => {
       <TraderPositionHeader
         traderName={traderName}
         traderImageUrl={traderImageUrl}
+        traderAddress={traderAddress}
         onBack={handleBack}
         onTraderPress={handleTraderPress}
         backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
@@ -372,6 +373,7 @@ const TraderPositionView = () => {
               trades={allTrades}
               traderName={traderName}
               traderImageUrl={traderImageUrl}
+              traderAddress={traderAddress}
             />
           </ScrollView>
 
