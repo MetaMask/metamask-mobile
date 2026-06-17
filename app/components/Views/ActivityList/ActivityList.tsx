@@ -76,7 +76,8 @@ import { TransactionDetailLocation } from '../../../core/Analytics/events/transa
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import ActivityEmptyState from '../ActivityScreen/components/ActivityEmptyState';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
@@ -972,7 +973,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
-        <TabEmptyState description={strings('wallet.no_transactions')} />
+        <ActivityEmptyState typeFilter={typeFilter ?? ActivityTypeFilter.All} />
       </View>
     );
 

@@ -184,6 +184,20 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../ActivityScreen/components/ActivityEmptyState', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ typeFilter }: { typeFilter?: string }) =>
+      ReactActual.createElement(
+        Text,
+        { testID: 'activity-empty-state' },
+        `empty:${typeFilter}`,
+      ),
+  };
+});
+
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     createEventBuilder: jest.fn(),
