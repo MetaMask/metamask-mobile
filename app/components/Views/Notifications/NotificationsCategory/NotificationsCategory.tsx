@@ -4,6 +4,7 @@ import {
   SegmentButton,
   SegmentGroup,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../locales/i18n';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
@@ -32,6 +33,7 @@ const NotificationsCategory = ({
   onSelect,
   testID,
 }: NotificationsCategoryProps) => {
+  const tw = useTailwind();
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -99,6 +101,7 @@ const NotificationsCategory = ({
       value={selectedCategory}
       onChange={handleSelect}
       twClassName="gap-2 px-4 py-1"
+      style={tw.style('flex-grow-0')}
       testID={testID ?? NotificationsCategorySelectorsIDs.CONTAINER}
     >
       {tabs.map((tab) => (
