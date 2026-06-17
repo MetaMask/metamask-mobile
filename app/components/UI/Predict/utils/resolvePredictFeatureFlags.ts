@@ -10,6 +10,7 @@ import {
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
+import { normalizeEnabledSportsMarketTypes } from '../providers/polymarket/outcomeGrouping';
 import {
   parse,
   PredictFeeCollectionSchema,
@@ -85,10 +86,15 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
-    extendedSportsFlag,
-  )
+  const extendedSportsMarketsEnabled =
+    validatedVersionGatedFeatureFlag(extendedSportsFlag);
+  const extendedSportsMarketsLeagues = extendedSportsMarketsEnabled
     ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
+    : [];
+  const enabledSportsMarketTypes = extendedSportsMarketsEnabled
+    ? normalizeEnabledSportsMarketTypes(
+        extendedSportsFlag.enabledSportsMarketTypes,
+      )
     : [];
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
@@ -122,6 +128,7 @@ export function resolvePredictFeatureFlags(
     feeCollection,
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
+    enabledSportsMarketTypes,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,

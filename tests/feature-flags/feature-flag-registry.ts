@@ -4885,6 +4885,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  homeTMCU926AbtestDiscoveryPills: {
+    name: 'homeTMCU926AbtestDiscoveryPills',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   homepageRedesignV1: {
     name: 'homepageRedesignV1',
     type: FeatureFlagType.Remote,

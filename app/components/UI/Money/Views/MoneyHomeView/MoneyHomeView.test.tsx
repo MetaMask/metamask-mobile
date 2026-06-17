@@ -2264,8 +2264,40 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
         params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-        animation: 'slide_from_bottom',
       });
+    });
+
+    it('navigates to Card root with push animation when Card button is pressed in manage mode', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: false,
+        hasMoneyAccountBaseRequirements: false,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: true,
+        primaryMoneyAccount: undefined,
+        moneyAccountCardToken: null,
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.ROOT,
+        expect.objectContaining({ animation: 'slide_from_bottom' }),
+      );
     });
   });
 
