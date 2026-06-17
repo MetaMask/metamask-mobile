@@ -34,7 +34,9 @@ import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,
+  isPerpsPredictMoneyDeposit,
   nestedTxWithType,
+  perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
 import {
@@ -189,12 +191,15 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
       if (pendingInProgress.has(transactionMeta.id)) return;
       const timeoutId = setTimeout(() => {
         pendingInProgress.delete(transactionMeta.id);
-        if (isMoneyDepositTx(transactionMeta)) {
+        if (isSend) {
+          showToast(MoneyToastOptions.send.inProgress());
+        } else if (isMoneyDepositTx(transactionMeta)) {
           const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
           showToast(MoneyToastOptions.deposit.inProgress({ intent }));
         } else {
@@ -205,10 +210,13 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
-      if (isMoneyDepositTx(transactionMeta)) {
+      if (isSend) {
+        showToast(MoneyToastOptions.send.failed());
+      } else if (isMoneyDepositTx(transactionMeta)) {
         const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
         showToast(MoneyToastOptions.deposit.failed({ intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
@@ -219,9 +227,30 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
+
+      if (isSend) {
+        const fiat = Number(transactionMeta.metamaskPay?.totalFiat);
+        const amountFiat =
+          !Number.isNaN(fiat) && fiat > 0
+            ? moneyFormatFiat(
+                new BigNumber(fiat),
+                selectCurrentCurrency(store.getState()),
+              )
+            : undefined;
+        const family = perpsPredictServiceFamily(transactionMeta);
+        const destination = strings(
+          family === 'predict'
+            ? 'money.toasts.send_destination_predict'
+            : 'money.toasts.send_destination_perps',
+        );
+        showToast(MoneyToastOptions.send.success({ amountFiat, destination }));
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
 
       const depositNested = nestedTxWithType(
         transactionMeta,
@@ -312,5 +341,10 @@ export const useMoneyTransactionStatus = () => {
       pendingCleanups.forEach((timeoutId) => clearTimeout(timeoutId));
       pendingCleanups.clear();
     };
-  }, [MoneyToastOptions.deposit, MoneyToastOptions.withdraw, showToast]);
+  }, [
+    MoneyToastOptions.deposit,
+    MoneyToastOptions.withdraw,
+    MoneyToastOptions.send,
+    showToast,
+  ]);
 };

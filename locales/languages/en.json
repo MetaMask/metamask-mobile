@@ -7160,7 +7160,15 @@
       "deposit_failed_body_convert": "Unable to convert. Try again.",
       "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
       "withdraw_failed_title": "Transfer failed",
-      "withdraw_failed_body": "Unable to transfer funds. Try again."
+      "withdraw_failed_body": "Unable to transfer funds. Try again.",
+      "send_in_progress_title": "Sending funds",
+      "send_success_title": "Funds sent",
+      "send_success_body": "{{amount}} is available in {{destination}}.",
+      "send_success_body_no_amount": "Available in {{destination}}.",
+      "send_failed_title": "Send failed",
+      "send_failed_body": "Unable to send funds. Try again.",
+      "send_destination_perps": "Perps",
+      "send_destination_predict": "Predict"
     },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
