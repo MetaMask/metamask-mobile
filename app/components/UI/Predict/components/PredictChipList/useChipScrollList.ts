@@ -20,6 +20,11 @@ export function useChipScrollList(
     new Map(),
   );
   const viewportWidthRef = useRef(0);
+  // Active index still owed an auto-scroll. `null` once positioned, so
+  // incidental relayouts don't snap the rail back over a user's manual scroll.
+  const pendingAutoScrollIndexRef = useRef<number | null>(
+    activeChipIndex ?? null,
+  );
 
   const scrollToChipAtIndex = useCallback(
     (chipIndex: number, scrollOptions: ScrollToChipOptions = {}) => {
@@ -27,7 +32,7 @@ export function useChipScrollList(
       const scrollView = scrollViewRef.current;
       const viewportWidth = viewportWidthRef.current;
       if (!scrollView || viewportWidth === 0) {
-        return;
+        return false;
       }
 
       const scrollX = calculateChipScrollX(
@@ -37,49 +42,66 @@ export function useChipScrollList(
         viewportWidth,
       );
       if (scrollX === null) {
-        return;
+        return false;
       }
 
       scrollView.scrollTo({ x: scrollX, animated });
+      return true;
     },
     [chipCount],
   );
 
-  const scrollToActiveChip = useCallback(
+  // Scrolls to a still-pending active chip, then clears the marker so later
+  // layout passes leave the user's scroll position alone.
+  const flushPendingAutoScroll = useCallback(
     (animated: boolean) => {
+      const pendingIndex = pendingAutoScrollIndexRef.current;
       if (
-        activeChipIndex === undefined ||
-        activeChipIndex < 0 ||
-        activeChipIndex >= chipCount
+        pendingIndex === null ||
+        pendingIndex < 0 ||
+        pendingIndex >= chipCount
       ) {
         return;
       }
 
-      scrollToChipAtIndex(activeChipIndex, { animated });
+      if (scrollToChipAtIndex(pendingIndex, { animated })) {
+        pendingAutoScrollIndexRef.current = null;
+      }
     },
-    [activeChipIndex, chipCount, scrollToChipAtIndex],
+    [chipCount, scrollToChipAtIndex],
   );
 
   const handleScrollViewLayout = useCallback(
     (event: LayoutChangeEvent) => {
       viewportWidthRef.current = event.nativeEvent.layout.width;
-      scrollToActiveChip(false);
+      flushPendingAutoScroll(false);
     },
-    [scrollToActiveChip],
+    [flushPendingAutoScroll],
   );
 
   const handleChipLayout = useCallback(
     (index: number, event: LayoutChangeEvent) => {
       const { x, width } = event.nativeEvent.layout;
       chipLayoutsRef.current.set(index, { x, width });
-      scrollToActiveChip(false);
+      flushPendingAutoScroll(false);
     },
-    [scrollToActiveChip],
+    [flushPendingAutoScroll],
   );
 
+  // Mark the new active index pending; a layout pass flushes it if not yet ready.
   useEffect(() => {
-    scrollToActiveChip(true);
-  }, [scrollToActiveChip]);
+    if (
+      activeChipIndex === undefined ||
+      activeChipIndex < 0 ||
+      activeChipIndex >= chipCount
+    ) {
+      pendingAutoScrollIndexRef.current = null;
+      return;
+    }
+
+    pendingAutoScrollIndexRef.current = activeChipIndex;
+    flushPendingAutoScroll(true);
+  }, [activeChipIndex, chipCount, flushPendingAutoScroll]);
 
   return {
     scrollViewRef,

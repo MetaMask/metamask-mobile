@@ -254,6 +254,32 @@ describe('useChipScrollList', () => {
       expect(mockScrollTo).toHaveBeenCalledWith({ x: 182, animated: true });
     });
   });
+
+  it('does not re-scroll on incidental relayouts once the active chip is positioned', () => {
+    const { result } = renderHook(() =>
+      useChipScrollList(3, { activeChipIndex: 2 }),
+    );
+
+    act(() => {
+      result.current.scrollViewRef.current = {
+        scrollTo: mockScrollTo,
+      } as unknown as ScrollView;
+      result.current.handleScrollViewLayout(layoutEvent(0, 200));
+      result.current.handleChipLayout(0, layoutEvent(16, 100));
+      result.current.handleChipLayout(1, layoutEvent(124, 100));
+      result.current.handleChipLayout(2, layoutEvent(232, 100));
+    });
+
+    expect(mockScrollTo).toHaveBeenCalledTimes(1);
+    mockScrollTo.mockClear();
+
+    act(() => {
+      result.current.handleChipLayout(2, layoutEvent(240, 110));
+      result.current.handleScrollViewLayout(layoutEvent(0, 200));
+    });
+
+    expect(mockScrollTo).not.toHaveBeenCalled();
+  });
 });
 
 describe('calculateChipScrollX', () => {
