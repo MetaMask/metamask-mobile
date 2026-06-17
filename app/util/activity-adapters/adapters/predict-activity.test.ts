@@ -131,7 +131,9 @@ describe('mapPredictActivity', () => {
       quoteAsset: { symbol: 'USDC' },
     });
 
-    expect(result?.data.token).toEqual({
+    expect(
+      result && 'token' in result.data ? result.data.token : undefined,
+    ).toEqual({
       amount: '100',
       symbol: 'USDC',
       assetId: undefined,
