@@ -5,19 +5,19 @@ import {
 } from './eligibility';
 import {
   selectIsCardAuthenticated,
-  selectIsCardholder,
+  selectHasCardholderAccounts,
 } from '../../../../selectors/cardController';
 import type { RootState } from '../../../../reducers';
 
 jest.mock('../../../../selectors/cardController', () => ({
   selectIsCardAuthenticated: jest.fn(),
-  selectIsCardholder: jest.fn(),
+  selectHasCardholderAccounts: jest.fn(),
 }));
 
 const mockSelectIsCardAuthenticated =
   selectIsCardAuthenticated as unknown as jest.MockedFunction<() => boolean>;
-const mockSelectIsCardholder =
-  selectIsCardholder as unknown as jest.MockedFunction<() => boolean>;
+const mockSelectHasCardholderAccounts =
+  selectHasCardholderAccounts as unknown as jest.MockedFunction<() => boolean>;
 
 describe('selectIsMoneyAccountGeoEligible', () => {
   const createStateWithGeolocation = (
@@ -227,28 +227,28 @@ describe('selectShouldShowMoneyEducation', () => {
 
   it('returns true for a US user who is not authenticated and not a cardholder', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
-    mockSelectIsCardholder.mockReturnValue(false);
+    mockSelectHasCardholderAccounts.mockReturnValue(false);
 
     expect(selectShouldShowMoneyEducation(createState('US'))).toBe(true);
   });
 
   it('returns false when the user is not in the US', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
-    mockSelectIsCardholder.mockReturnValue(false);
+    mockSelectHasCardholderAccounts.mockReturnValue(false);
 
     expect(selectShouldShowMoneyEducation(createState('GB'))).toBe(false);
   });
 
   it('returns false when the US user is authenticated', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(true);
-    mockSelectIsCardholder.mockReturnValue(false);
+    mockSelectHasCardholderAccounts.mockReturnValue(false);
 
     expect(selectShouldShowMoneyEducation(createState('US'))).toBe(false);
   });
 
-  it('returns false when the US user is a cardholder', () => {
+  it('returns false when any wallet account is a cardholder', () => {
     mockSelectIsCardAuthenticated.mockReturnValue(false);
-    mockSelectIsCardholder.mockReturnValue(true);
+    mockSelectHasCardholderAccounts.mockReturnValue(true);
 
     expect(selectShouldShowMoneyEducation(createState('US'))).toBe(false);
   });
