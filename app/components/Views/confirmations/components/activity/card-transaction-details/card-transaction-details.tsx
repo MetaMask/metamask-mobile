@@ -19,6 +19,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
@@ -46,7 +47,6 @@ type CardDetailsRoute = RouteProp<
 >;
 
 export function CardTransactionDetails() {
-  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const card = useRoute<CardDetailsRoute>().params?.card;
 
@@ -67,6 +67,7 @@ function CardTransactionDetailsContent({ card }: { card: CardTransaction }) {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { networkName, networkImage } = useNetworkInfo(card.chainId);
 
   const spentAmount = useMemo(() => {
@@ -146,7 +147,8 @@ function CardTransactionDetailsContent({ card }: { card: CardTransaction }) {
 
           <TransactionDetailDivider />
 
-          {/* Status */}
+          {/* Card transactions are on-chain settlements — they only surface
+              after confirmation, so status is always "Completed". */}
           <TransactionDetailsRow label={strings('transactions.status')}>
             <Text color={TextColor.Success}>
               {strings('money.card_details.completed')}
@@ -187,7 +189,10 @@ function CardTransactionDetailsContent({ card }: { card: CardTransaction }) {
               alignItems={AlignItems.center}
               gap={6}
             >
-              <AvatarAccount accountAddress={'0x0'} size={AvatarSize.Sm} />
+              <AvatarAccount
+                accountAddress={primaryMoneyAccount?.address ?? card.to}
+                size={AvatarSize.Sm}
+              />
               <Text>{strings('transaction_details.label.money_account')}</Text>
             </Box>
           </TransactionDetailsRow>

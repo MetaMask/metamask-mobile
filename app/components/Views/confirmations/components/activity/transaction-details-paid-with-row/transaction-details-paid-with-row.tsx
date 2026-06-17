@@ -41,9 +41,11 @@ export function TransactionDetailsPaidWithRow() {
     Boolean(fiat?.orderId);
 
   const { paymentMethodName } = useFiatOrderStatus(
-    fiat?.orderId,
-    fiat?.provider,
-    transactionMeta.txParams?.from as string | undefined,
+    isFiatDeposit ? fiat?.orderId : undefined,
+    isFiatDeposit ? fiat?.provider : undefined,
+    isFiatDeposit
+      ? (transactionMeta.txParams?.from as string | undefined)
+      : undefined,
     transactionMeta.status,
   );
 
@@ -62,11 +64,7 @@ export function TransactionDetailsPaidWithRow() {
           alignItems={AlignItems.center}
         >
           <PaymentMethodIcon
-            paymentMethodType={
-              paymentMethodName.toLowerCase().includes('apple')
-                ? PaymentType.ApplePay
-                : PaymentType.DebitCreditCard
-            }
+            paymentMethodType={inferPaymentType(paymentMethodName)}
             size={16}
             color={colors.text.default}
           />
@@ -110,4 +108,17 @@ export function TransactionDetailsPaidWithRow() {
       </Box>
     </TransactionDetailsRow>
   );
+}
+
+/**
+ * Maps the Ramps order `paymentMethod.name` to a {@link PaymentType} for the
+ * icon. The Ramps API returns a display name but no enum — this heuristic
+ * covers the known values ("Apple Pay", "Google Pay", "Debit Card", etc.).
+ */
+function inferPaymentType(name: string): PaymentType {
+  const lower = name.toLowerCase();
+  if (lower.includes('apple')) return PaymentType.ApplePay;
+  if (lower.includes('google')) return PaymentType.GooglePay;
+  if (lower.includes('bank')) return PaymentType.BankTransfer;
+  return PaymentType.DebitCreditCard;
 }

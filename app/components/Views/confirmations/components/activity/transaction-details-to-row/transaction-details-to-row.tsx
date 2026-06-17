@@ -103,21 +103,6 @@ function getToLabel(
     return strings('transaction_details.label.money_account');
   }
 
-  // Money context: perpsDeposit/predictDeposit (outflow) → To: Perps/Predict account
-  if (
-    isMoneyContext &&
-    hasTransactionType(asTxMeta, [
-      TransactionType.perpsDeposit,
-      TransactionType.predictDeposit,
-    ])
-  ) {
-    if (hasTransactionType(asTxMeta, [TransactionType.perpsDeposit])) {
-      return strings('transaction_details.label.perps_account');
-    }
-    return strings('transaction_details.label.predictions_account');
-  }
-
-  // Non-money context defaults
   if (hasTransactionType(asTxMeta, [TransactionType.perpsDeposit])) {
     return strings('transaction_details.label.perps_account');
   }

@@ -36,6 +36,12 @@ jest.mock('../../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: () => ({}),
 }));
 
+jest.mock('../../../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () => ({
+    address: '0xd663e49775d776300aa45ac2a51f0431bb459282',
+  }),
+}));
+
 jest.mock('../../../hooks/useNetworkInfo', () => ({
   __esModule: true,
   default: () => ({ networkName: 'Monad', networkImage: undefined }),
