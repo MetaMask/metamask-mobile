@@ -47,6 +47,13 @@ jest.mock('../../hooks/useLiveGameUpdates', () => ({
   useLiveGameUpdates: () => ({ gameUpdate: null }),
 }));
 
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
+}));
+
 jest.mock('../../constants/sportLeagueConfigs', () => ({
   getLeagueConfig: () => ({}),
 }));
@@ -121,16 +128,13 @@ const initialState = {
 describe('PredictMarketSportCardWrapper', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
     mockUsePredictMarket.mockReturnValue({
       data: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     } as unknown as ReturnType<typeof usePredictMarket>);
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   describe('loading state', () => {

@@ -8708,6 +8708,11 @@
         "title": "Set up Linea funding",
         "description": "You need at least one approved funding source on Linea before redeeming mUSD back.",
         "confirm_button_label": "Set up funding"
+      },
+      "money_account_required": {
+        "title": "Set up Money Account",
+        "description": "You need a linked Money Account before redeeming mUSD back.",
+        "confirm_button_label": "Set up Money Account"
       }
     },
     "change_asset": {

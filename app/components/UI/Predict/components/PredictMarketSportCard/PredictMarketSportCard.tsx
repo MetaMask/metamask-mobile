@@ -16,6 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -25,6 +26,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import {
@@ -42,6 +44,8 @@ import {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
+import { isValidPrice } from '../../utils/prices';
+import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -210,6 +214,9 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
+  const livePricesEnabled = useSelector(
+    selectPredictSportCardLivePricesEnabledFlag,
+  );
 
   const game = market.game as PredictMarketGame | undefined;
   const { gameUpdate } = useLiveGameUpdates(game?.id ?? null);
@@ -294,6 +301,25 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     market.status === PredictMarketStatus.OPEN &&
     !gameEnded &&
     buttonItems.length > 0;
+  const tokenIds = useMemo(
+    () => buttonItems.map((item) => item.token.id),
+    [buttonItems],
+  );
+  const { getPrice } = useLiveMarketPrices(tokenIds, {
+    enabled: showBuyButtons && livePricesEnabled,
+  });
+
+  const getDisplayPrice = useCallback(
+    (token: PredictOutcomeToken): number => {
+      if (!livePricesEnabled) {
+        return token.price;
+      }
+
+      const liveBestAsk = getPrice(token.id)?.bestAsk;
+      return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+    },
+    [getPrice, livePricesEnabled],
+  );
 
   const getButtonTextColorClass = (item: SportOutcomeButtonItem): string => {
     if (item.teamColor) return 'text-white';
@@ -385,7 +411,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                         getButtonTextColorClass(item),
                       )}
                     >
-                      {item.label.toUpperCase()} {formatCents(item.token.price)}
+                      {item.label.toUpperCase()}{' '}
+                      {formatCents(getDisplayPrice(item.token))}
                     </Text>
                   </Button>
                 </Box>
