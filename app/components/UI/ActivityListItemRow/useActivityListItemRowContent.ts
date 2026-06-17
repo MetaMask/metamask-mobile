@@ -38,17 +38,14 @@ import { getAssetIconUrl } from '../Perps/utils/marketUtils';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 
-/** Perps deposit/withdraw — money to/from the perps account balance. */
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdrawFunds';
 }
 
-/** Perps funding fee accrual on a market. */
 function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
-/** Perps directional trades (open/close long/short and their variants). */
 function isPerpsTradeKind(type: ActivityKind): boolean {
   return (
     (type.startsWith('perps') &&

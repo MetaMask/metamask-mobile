@@ -1,5 +1,20 @@
 import { predictActivityToItem } from './predictActivityToItem';
-import { type PredictActivity, PredictActivityType } from '../types';
+import {
+  type PredictActivity,
+  type PredictActivityBuy,
+  PredictActivityType,
+} from '../types';
+
+// Typed concretely so spreading it (below) narrows to a specific entry variant.
+const buyEntry: PredictActivityBuy = {
+  type: 'buy',
+  timestamp: 1_700_000_000,
+  marketId: 'm1',
+  outcomeId: 'o1',
+  outcomeTokenId: 1,
+  amount: 5,
+  price: 0.978,
+};
 
 const buy: PredictActivity = {
   id: 'a1',
@@ -7,15 +22,7 @@ const buy: PredictActivity = {
   title: 'Will it rain tomorrow?',
   outcome: 'Yes',
   icon: 'https://example.com/icon.png',
-  entry: {
-    type: 'buy',
-    timestamp: 1_700_000_000,
-    marketId: 'm1',
-    outcomeId: 'o1',
-    outcomeTokenId: 1,
-    amount: 5,
-    price: 0.978,
-  },
+  entry: buyEntry,
 };
 
 describe('predictActivityToItem', () => {
@@ -37,7 +44,7 @@ describe('predictActivityToItem', () => {
     expect(
       predictActivityToItem({
         ...buy,
-        entry: { ...buy.entry, type: 'sell' },
+        entry: { ...buyEntry, type: 'sell' },
       }).type,
     ).toBe(PredictActivityType.SELL);
 
