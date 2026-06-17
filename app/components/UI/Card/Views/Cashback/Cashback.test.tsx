@@ -101,10 +101,35 @@ const mockFetchEstimation = jest.fn().mockResolvedValue(undefined);
 const mockResetWithdraw = jest.fn();
 const mockStartLinkFlow = jest.fn();
 
+let mockLinkageReturn = {
+  startLinkFlow: mockStartLinkFlow,
+  canLink: true,
+};
+
 jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
-  useMoneyAccountCardLinkage: jest.fn(() => ({
-    startLinkFlow: mockStartLinkFlow,
-  })),
+  useMoneyAccountCardLinkage: jest.fn(() => mockLinkageReturn),
+}));
+
+const mockSelectCardHasApprovedLineaFunding = jest.fn();
+const mockSelectCardHomeDataStatus = jest.fn();
+const mockSelectCardLineaUsdcToken = jest.fn();
+const mockSelectIsCardResidencyBlocked = jest.fn();
+const mockSelectIsMoneyAccountDelegatedForCard = jest.fn();
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn();
+
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectCardHasApprovedLineaFunding: () =>
+    mockSelectCardHasApprovedLineaFunding(),
+  selectCardHomeDataStatus: () => mockSelectCardHomeDataStatus(),
+  selectCardLineaUsdcToken: () => mockSelectCardLineaUsdcToken(),
+  selectIsCardResidencyBlocked: () => mockSelectIsCardResidencyBlocked(),
+  selectIsMoneyAccountDelegatedForCard: () =>
+    mockSelectIsMoneyAccountDelegatedForCard(),
+}));
+
+jest.mock('../../../Money/selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: () =>
+    mockSelectMoneyEnableMoneyAccountFlag(),
 }));
 
 let mockHookReturn = {
@@ -144,10 +169,7 @@ import { ToastContext } from '../../../../../component-library/components/Toast'
 import Cashback from './Cashback';
 import { CashbackSelectors } from './Cashback.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import { FundingAssetStatus } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_KEYRING_CONTROLLER } from '../../../../../selectors/keyringController/testUtils';
-import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import { CASHBACK_MONEY_ACCOUNT_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 
 const mockToastRef = {
@@ -157,132 +179,13 @@ const mockToastRef = {
   },
 };
 
-const mockLineaUsdcFundingAsset = {
+const MOCK_LINEA_USDC_TOKEN = {
   symbol: 'USDC',
   name: 'USD Coin',
   address: '0xusdc000000000000000000000000000000000001',
-  walletAddress: '0xwallet000000000000000000000000000000000002',
   decimals: 6,
-  chainId: 'eip155:59144',
-  spendableBalance: '10',
-  spendingCap: '100',
-  priority: 1,
-  status: FundingAssetStatus.Active,
+  caipChainId: 'eip155:59144',
 };
-
-const mockLineaUsdcDelegationSettings = {
-  networks: [
-    {
-      network: 'linea',
-      environment: 'production',
-      chainId: '59144',
-      delegationContract: '0xdeleg000000000000000000000000000000000004',
-      tokens: {
-        USDC: {
-          address: '0xusdc000000000000000000000000000000000001',
-          symbol: 'USDC',
-          decimals: 6,
-        },
-      },
-    },
-  ],
-  count: 1,
-  _links: { self: '/v1/delegation/chain/config' },
-};
-
-const mockCardHomeData = {
-  primaryFundingAsset: mockLineaUsdcFundingAsset,
-  fundingAssets: [mockLineaUsdcFundingAsset],
-  availableFundingAssets: [mockLineaUsdcFundingAsset],
-  card: null,
-  account: null,
-  alerts: [],
-  actions: [],
-  delegationSettings: mockLineaUsdcDelegationSettings,
-};
-
-const MA_ADDRESS = '0xma000000000000000000000000000000000000aa';
-const VEDA_ADDRESS = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae';
-const VEDA_CAIP = 'eip155:143';
-const VEDA_DELEGATION_CONTRACT = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
-
-const makeVedaDelegationSettings = () => ({
-  networks: [
-    {
-      network: 'monad',
-      environment: 'staging',
-      chainId: '143',
-      delegationContract: VEDA_DELEGATION_CONTRACT,
-      tokens: {
-        veda: { symbol: 'veda', decimals: 6, address: VEDA_ADDRESS },
-      },
-    },
-  ],
-  count: 1,
-  _links: { self: '/v1/delegation/chain/config' },
-});
-
-const mockMoneyAccount = {
-  id: 'money-account-1',
-  address: MA_ADDRESS,
-  type: 'eip155:eoa',
-  scopes: [],
-  methods: [],
-  options: {
-    entropy: {
-      type: 'mnemonic',
-      id: MOCK_KEYRING_CONTROLLER.keyrings[2].metadata.id,
-      derivationPath: `${MONEY_DERIVATION_PATH}/0`,
-      groupIndex: 0,
-    },
-    exportable: false,
-  },
-};
-
-const mockVedaFundingAsset = {
-  symbol: 'veda',
-  name: 'veda',
-  address: VEDA_ADDRESS,
-  walletAddress: MA_ADDRESS,
-  decimals: 6,
-  chainId: VEDA_CAIP,
-  spendableBalance: '0',
-  spendingCap: '0',
-  priority: 1,
-  status: FundingAssetStatus.Active,
-};
-
-const MONEY_ACCOUNT_ENABLED_FLAG = {
-  moneyEnableMoneyAccount: { enabled: true, minimumVersion: '0.0.0' },
-};
-
-const UK_BLOCKED_FLAGS = {
-  earnMusdConversionGeoBlockedCountries: { blockedRegions: ['GB'] },
-  ...MONEY_ACCOUNT_ENABLED_FLAG,
-};
-
-const mockUsAccount = {
-  verificationStatus: 'VERIFIED',
-  provisioningEligible: false,
-  holderName: 'Test User',
-  shippingAddress: null,
-  countryOfResidence: 'US',
-  usState: 'NY',
-};
-
-const mockGbAccount = {
-  ...mockUsAccount,
-  countryOfResidence: 'GB',
-  usState: null,
-};
-
-const createMoneyAccountDelegatedCardHomeData = () => ({
-  ...mockCardHomeData,
-  primaryFundingAsset: mockVedaFundingAsset,
-  fundingAssets: [mockVedaFundingAsset],
-  availableFundingAssets: [mockVedaFundingAsset],
-  delegationSettings: makeVedaDelegationSettings(),
-});
 
 const CashbackWithToast = () => (
   <ToastContext.Provider value={{ toastRef: mockToastRef }}>
@@ -290,66 +193,47 @@ const CashbackWithToast = () => (
   </ToastContext.Provider>
 );
 
-function render(
-  options: {
-    cardControllerOverrides?: Record<string, unknown>;
-    remoteFeatureFlags?: Record<string, unknown>;
-    moneyAccountOverrides?: Record<string, unknown>;
-    includeKeyringController?: boolean;
-  } = {},
-) {
-  const {
-    cardControllerOverrides = {},
-    remoteFeatureFlags = {},
-    moneyAccountOverrides = {},
-    includeKeyringController = false,
-  } = options;
+interface SelectorOverrides {
+  hasApprovedLineaFunding?: boolean;
+  cardHomeDataStatus?: string;
+  lineaUsdcToken?: unknown;
+  residencyBlocked?: boolean;
+  moneyAccountDelegated?: boolean;
+  moneyAccountEnabled?: boolean;
+}
+
+function render(overrides: SelectorOverrides = {}) {
+  if (overrides.hasApprovedLineaFunding !== undefined) {
+    mockSelectCardHasApprovedLineaFunding.mockReturnValue(
+      overrides.hasApprovedLineaFunding,
+    );
+  }
+  if (overrides.cardHomeDataStatus !== undefined) {
+    mockSelectCardHomeDataStatus.mockReturnValue(overrides.cardHomeDataStatus);
+  }
+  if (overrides.lineaUsdcToken !== undefined) {
+    mockSelectCardLineaUsdcToken.mockReturnValue(overrides.lineaUsdcToken);
+  }
+  if (overrides.residencyBlocked !== undefined) {
+    mockSelectIsCardResidencyBlocked.mockReturnValue(
+      overrides.residencyBlocked,
+    );
+  }
+  if (overrides.moneyAccountDelegated !== undefined) {
+    mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(
+      overrides.moneyAccountDelegated,
+    );
+  }
+  if (overrides.moneyAccountEnabled !== undefined) {
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(
+      overrides.moneyAccountEnabled,
+    );
+  }
 
   return renderScreen(
     CashbackWithToast,
-    {
-      name: 'Cashback',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            PreferencesController: {
-              ...backgroundState.PreferencesController,
-              isIpfsGatewayEnabled: true,
-            },
-            RemoteFeatureFlagController: {
-              ...backgroundState.RemoteFeatureFlagController,
-              remoteFeatureFlags: {
-                ...backgroundState.RemoteFeatureFlagController
-                  .remoteFeatureFlags,
-                ...remoteFeatureFlags,
-              },
-            },
-            MoneyAccountController: {
-              ...backgroundState.MoneyAccountController,
-              moneyAccounts: {},
-              ...moneyAccountOverrides,
-            },
-            ...(includeKeyringController
-              ? { KeyringController: MOCK_KEYRING_CONTROLLER }
-              : {}),
-            CardController: {
-              ...backgroundState.CardController,
-              selectedCountry: null,
-              activeProviderId: 'baanx',
-              isAuthenticated: true,
-              cardholderAccounts: [],
-              providerData: {},
-              cardHomeData: mockCardHomeData,
-              cardHomeDataStatus: 'success',
-              ...cardControllerOverrides,
-            },
-          },
-        },
-      },
-    },
+    { name: 'Cashback' },
+    { state: { engine: { backgroundState } } },
   );
 }
 
@@ -358,6 +242,17 @@ describe('Cashback Component', () => {
     jest.clearAllMocks();
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
     mockStartLinkFlow.mockReset();
+    mockLinkageReturn = {
+      startLinkFlow: mockStartLinkFlow,
+      canLink: true,
+    };
+
+    mockSelectCardHasApprovedLineaFunding.mockReturnValue(true);
+    mockSelectCardHomeDataStatus.mockReturnValue('success');
+    mockSelectCardLineaUsdcToken.mockReturnValue(MOCK_LINEA_USDC_TOKEN);
+    mockSelectIsCardResidencyBlocked.mockReturnValue(false);
+    mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(false);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
 
     mockHookReturn = {
       cashbackWallet: null,
@@ -561,14 +456,7 @@ describe('Cashback Component', () => {
 
   describe('Linea funding requirement', () => {
     it('shows a warning when the user has no approved Linea funding', () => {
-      render({
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...mockCardHomeData,
-            fundingAssets: [],
-          },
-        },
-      });
+      render({ hasApprovedLineaFunding: false });
 
       expect(
         screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -582,14 +470,7 @@ describe('Cashback Component', () => {
     });
 
     it('navigates to Spending Limit with USDC on Linea pre-selected', () => {
-      render({
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...mockCardHomeData,
-            fundingAssets: [],
-          },
-        },
-      });
+      render({ hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByText('Set up funding'));
 
@@ -616,14 +497,7 @@ describe('Cashback Component', () => {
         price: '0.50',
       };
 
-      render({
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...mockCardHomeData,
-            fundingAssets: [],
-          },
-        },
-      });
+      render({ hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
@@ -644,12 +518,7 @@ describe('Cashback Component', () => {
         price: '0.50',
       };
 
-      render({
-        cardControllerOverrides: {
-          cardHomeData: null,
-          cardHomeDataStatus: 'error',
-        },
-      });
+      render({ cardHomeDataStatus: 'error' });
 
       expect(
         screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -687,16 +556,7 @@ describe('Cashback Component', () => {
     it('shows a Money Account warning and starts link flow when no Money Account is delegated', () => {
       setWithdrawableWallet();
 
-      render({
-        remoteFeatureFlags: MONEY_ACCOUNT_ENABLED_FLAG,
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...mockCardHomeData,
-            account: mockUsAccount,
-            fundingAssets: [],
-          },
-        },
-      });
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
 
       expect(
         screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -718,19 +578,29 @@ describe('Cashback Component', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('hides the Money Account setup CTA when the link flow cannot complete (canLink is false)', () => {
+      setWithdrawableWallet();
+      mockLinkageReturn = {
+        startLinkFlow: mockStartLinkFlow,
+        canLink: false,
+      };
+
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+      expect(mockStartLinkFlow).not.toHaveBeenCalled();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).not.toHaveBeenCalled();
+    });
+
     it('blocks withdrawal when no Money Account is delegated in a supported region', () => {
       setWithdrawableWallet();
 
-      render({
-        remoteFeatureFlags: MONEY_ACCOUNT_ENABLED_FLAG,
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...mockCardHomeData,
-            account: mockUsAccount,
-            fundingAssets: [],
-          },
-        },
-      });
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
@@ -741,17 +611,9 @@ describe('Cashback Component', () => {
       setWithdrawableWallet();
 
       render({
-        remoteFeatureFlags: MONEY_ACCOUNT_ENABLED_FLAG,
-        includeKeyringController: true,
-        moneyAccountOverrides: {
-          moneyAccounts: { [mockMoneyAccount.id]: mockMoneyAccount },
-        },
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...createMoneyAccountDelegatedCardHomeData(),
-            account: mockUsAccount,
-          },
-        },
+        moneyAccountEnabled: true,
+        moneyAccountDelegated: true,
+        hasApprovedLineaFunding: false,
       });
 
       expect(
@@ -784,13 +646,10 @@ describe('Cashback Component', () => {
       setWithdrawableWallet();
 
       render({
-        remoteFeatureFlags: UK_BLOCKED_FLAGS,
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...mockCardHomeData,
-            account: mockGbAccount,
-          },
-        },
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: true,
+        moneyAccountDelegated: false,
       });
 
       expect(
@@ -806,18 +665,10 @@ describe('Cashback Component', () => {
       setWithdrawableWallet();
 
       render({
-        remoteFeatureFlags: UK_BLOCKED_FLAGS,
-        includeKeyringController: true,
-        moneyAccountOverrides: {
-          moneyAccounts: { [mockMoneyAccount.id]: mockMoneyAccount },
-        },
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...createMoneyAccountDelegatedCardHomeData(),
-            account: mockGbAccount,
-            fundingAssets: [mockVedaFundingAsset],
-          },
-        },
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: false,
+        moneyAccountDelegated: true,
       });
 
       expect(
@@ -833,14 +684,10 @@ describe('Cashback Component', () => {
       setWithdrawableWallet();
 
       render({
-        remoteFeatureFlags: UK_BLOCKED_FLAGS,
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...mockCardHomeData,
-            account: mockGbAccount,
-            fundingAssets: [],
-          },
-        },
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: false,
+        moneyAccountDelegated: false,
       });
 
       expect(
@@ -877,17 +724,9 @@ describe('Cashback Component', () => {
       };
 
       render({
-        includeKeyringController: true,
-        moneyAccountOverrides: {
-          moneyAccounts: { [mockMoneyAccount.id]: mockMoneyAccount },
-        },
-        cardControllerOverrides: {
-          cardHomeData: {
-            ...createMoneyAccountDelegatedCardHomeData(),
-            account: mockUsAccount,
-            fundingAssets: [mockVedaFundingAsset],
-          },
-        },
+        moneyAccountEnabled: false,
+        moneyAccountDelegated: true,
+        hasApprovedLineaFunding: false,
       });
 
       expect(

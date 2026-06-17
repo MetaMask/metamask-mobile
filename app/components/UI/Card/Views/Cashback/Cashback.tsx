@@ -64,7 +64,8 @@ const Cashback: React.FC = () => {
   const isResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
   const lineaUsdcToken = useSelector(selectCardLineaUsdcToken);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
-  const { startLinkFlow } = useMoneyAccountCardLinkage();
+  const { startLinkFlow, canLink: canLinkMoneyAccount } =
+    useMoneyAccountCardLinkage();
 
   const {
     cashbackWallet,
@@ -100,6 +101,8 @@ const Cashback: React.FC = () => {
   const isFundingStatusUnavailable =
     isFundingStatusLoading || hasFundingStatusError;
   const showLoadingError = !!error || hasFundingStatusError;
+  const showSetupBanner =
+    needsSetup && (!useMoneyAccountFlow || canLinkMoneyAccount);
 
   useEffect(() => {
     if (cashbackWallet) {
@@ -244,7 +247,7 @@ const Cashback: React.FC = () => {
         {...headerHandlers}
       />
       <Box twClassName="flex-1 px-4">
-        {needsSetup ? (
+        {showSetupBanner ? (
           <Box twClassName="pt-4" testID={CashbackSelectors.FUNDING_WARNING}>
             <CardMessageBox
               messageType={fundingWarningMessageType}
