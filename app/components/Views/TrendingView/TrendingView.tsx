@@ -43,6 +43,7 @@ import {
   trackExploreInteracted,
   type ExploreTabName,
 } from './search/analytics';
+import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
 const TAB_NAMES: ExploreTabName[] = [
   'Now',
@@ -53,14 +54,7 @@ const TAB_NAMES: ExploreTabName[] = [
   'Sites',
 ];
 
-export const EXPLORE_TAB_INDEX = {
-  NOW: 0,
-  MACRO: 1,
-  RWAS: 2,
-  CRYPTO: 3,
-  SPORTS: 4,
-  SITES: 5,
-} as const;
+export { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
 interface ExploreFeedRouteParams {
   initialTab?: number | null;
