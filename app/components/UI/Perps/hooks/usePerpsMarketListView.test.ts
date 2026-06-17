@@ -55,6 +55,7 @@ const createMockMarket = (symbol: string, volume: string): PerpsMarketData => ({
   change24h: '+2.5%',
   change24hPercent: '2.5',
   volume,
+  openInterest: '$500M',
   isHip3: false, // Default to crypto (non-HIP3)
   isNewMarket: false,
 });
@@ -87,7 +88,10 @@ describe('usePerpsMarketListView', () => {
     // Default mock implementations
     // Mock usePerpsMarkets to filter markets based on showZeroVolume parameter
     mockUsePerpsMarkets.mockImplementation(
-      (options?: { showZeroVolume?: boolean }) => {
+      (options?: {
+        showZeroVolume?: boolean;
+        showZeroOpenInterest?: boolean;
+      }) => {
         const shouldFilter = !options?.showZeroVolume; // Default is false (filter out zero volume)
         const filteredMarkets = shouldFilter
           ? mockMarketsWithValidVolume
@@ -168,6 +172,7 @@ describe('usePerpsMarketListView', () => {
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith({
         enablePolling: true,
         showZeroVolume: false,
+        showZeroOpenInterest: false,
       });
     });
   });
@@ -180,6 +185,7 @@ describe('usePerpsMarketListView', () => {
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
         expect.objectContaining({
           showZeroVolume: false,
+          showZeroOpenInterest: false,
         }),
       );
     });
@@ -191,6 +197,23 @@ describe('usePerpsMarketListView', () => {
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
         expect.objectContaining({
           showZeroVolume: true,
+          showZeroOpenInterest: true,
+        }),
+      );
+    });
+
+    it('passes showZeroOpenInterest independently when provided', () => {
+      renderHook(() =>
+        usePerpsMarketListView({
+          showZeroVolume: false,
+          showZeroOpenInterest: true,
+        }),
+      );
+
+      expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showZeroVolume: false,
+          showZeroOpenInterest: true,
         }),
       );
     });
