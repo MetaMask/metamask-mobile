@@ -541,6 +541,7 @@ class PerpsView {
         return false;
       }
     }
+
     return Utilities.isElementVisible(Matchers.getElementByID(testId), timeout);
   }
 
