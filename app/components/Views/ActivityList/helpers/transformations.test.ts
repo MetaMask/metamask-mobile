@@ -233,7 +233,8 @@ describe('ActivityList transformations', () => {
           chainId: 'eip155:1',
           status: 'success',
           timestamp: 3,
-          data: { from: otherAddress, hash: '0xconfirmed', to: address },
+          hash: '0xconfirmed',
+          data: { from: otherAddress, to: address },
         },
       ],
       [
@@ -242,7 +243,8 @@ describe('ActivityList transformations', () => {
           chainId: 'solana:mainnet',
           status: 'success',
           timestamp: 2,
-          data: { from: otherAddress, hash: '0xnon-evm', to: address },
+          hash: '0xnon-evm',
+          data: { from: otherAddress, to: address },
         },
       ],
     );
