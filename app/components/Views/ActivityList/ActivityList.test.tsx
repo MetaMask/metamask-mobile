@@ -233,34 +233,24 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     onPress,
     title,
   }: {
-    item: { hash?: string };
+    item: {
+      hash?: string;
+      status?: string;
+      raw?: { type: string; data: { primaryTransaction: { id: string } } };
+    };
     onPress: (item: unknown) => void;
     title?: string;
   }) => {
     const { Text, TouchableOpacity } = jest.requireActual('react-native');
+    const hash = item.hash ?? 'no-hash';
     return (
-      <TouchableOpacity
-        testID={`row-${item.hash ?? 'no-hash'}`}
-        onPress={() => onPress(item)}
-      >
+      <TouchableOpacity testID={`row-${hash}`} onPress={() => onPress(item)}>
         <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
     );
   },
   resolveActivityListItemTitle: jest.fn(() => 'Activity title'),
 }));
-
-jest.mock('../../UI/TransactionElement', () => {
-  const { Text, View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ tx }: { tx: { id: string } }) => (
-      <View testID={`pending-${tx.id}`}>
-        <Text>Pending tx</Text>
-      </View>
-    ),
-  };
-});
 
 jest.mock('../../UI/MultichainBridgeTransactionListItem', () => {
   const { Text, View } = jest.requireActual('react-native');
@@ -485,13 +475,15 @@ describe('ActivityList', () => {
     );
   });
 
-  it('renders local pending and confirmed transaction rows', () => {
+  it('renders local pending and confirmed transaction rows via ActivityListItemRow', () => {
     render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     expect(
       screen.getByTestId(ActivityListSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('pending-local-id')).toBeOnTheScreen();
+    // Pending local EVM rows now render through ActivityListItemRow, not the
+    // legacy TransactionElement.
+    expect(screen.getByTestId('row-0xlocal')).toBeOnTheScreen();
     expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
   });
 
