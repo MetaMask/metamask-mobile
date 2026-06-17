@@ -9,15 +9,15 @@ import {
   isCaipAssetType,
 } from '@metamask/utils';
 import type { TokenI } from '../../Tokens/types';
-import { RootState } from '../../../reducers';
-import { selectMultichainBalances } from '../../../selectors/multichain/multichain';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { getBaseReserveFromExtra } from '../../../util/stellar/base-reserve-from-extra';
+import { RootState } from '../../../../reducers';
+import { selectMultichainBalances } from '../../../../selectors/multichain/multichain';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { getBaseReserveFromExtra } from '../../../../util/stellar/base-reserve-from-extra';
 import {
   isStellarClassicTrustlineInactiveForDisplay,
   isStellarSep41Asset,
-} from '../../../util/stellar/trustline-from-extra';
-import type { StellarBalanceExtra } from '../../../util/stellar/types';
+} from '../../../../util/stellar/trustline-from-extra';
+import type { StellarBalanceExtra } from '../../../../util/stellar/types';
 
 export interface StellarTrustlineDisplayState {
   account: InternalAccount | undefined;
