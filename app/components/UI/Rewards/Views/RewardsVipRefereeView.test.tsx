@@ -1,11 +1,18 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../util/test/analyticsMock';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
 import type { VipRefereeMeState } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -16,8 +23,12 @@ import RewardsVipRefereeView, {
 const mockNavDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 // Obviously-synthetic fixtures — never real VIP codes/figures.
 const mockSubscriptionId = 'test-subscription-id';
+const mockAccountAddress = '0xAbC0000000000000000000000000000000000123';
 let mockIsVipReferee = true;
 let mockIsVipProgramEnabled = true;
 let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
@@ -34,6 +45,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       dispatch: mockNavDispatch,
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -60,10 +72,31 @@ jest.mock('@metamask/design-system-react-native', () => {
   }) =>
     ReactActual.createElement(View, { testID: props.testID }, props.children);
 
+  const Button = ({
+    children,
+    onPress,
+    testID,
+    disabled,
+  }: {
+    children?: React.ReactNode;
+    onPress?: () => void;
+    testID?: string;
+    disabled?: boolean;
+  }) =>
+    ReactActual.createElement(
+      Pressable,
+      { onPress: disabled ? undefined : onPress, testID, disabled },
+      ReactActual.createElement(Text, null, children),
+    );
+
   return {
     HeaderStandard,
     Box: passthrough,
     BoxFlexDirection: { Row: 'row', Column: 'column' },
+    Button,
+    ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
+    ButtonSize: { Lg: 'lg' },
+    IconName: { MessageQuestion: 'MessageQuestion', Export: 'Export' },
     Text: ({ children, ...rest }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, rest, children),
     TextColor: { TextDefault: 'default', TextAlternative: 'alt' },
@@ -93,7 +126,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   };
 });
 
-jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
+jest.mock('../../../../images/rewards/vip.svg', () => 'VipIcon');
 
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -111,6 +144,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.referee_perps_volume_label': 'Perps volume',
       'rewards.vip.referee_error_title': 'Error title',
       'rewards.vip.referee_error_description': 'Error description',
+      'rewards.vip.referee_contact_support': 'Contact support',
+      'app_settings.contact_support': 'Contact support',
       'rewards.vip.retry_button': 'Retry',
     };
     return translations[key] ?? key;
@@ -119,6 +154,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
@@ -145,6 +184,10 @@ jest.mock('../components/RewardsErrorBanner', () => {
 });
 
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('../hooks/useVipRefereeDashboard', () => ({
   useVipRefereeDashboard: jest.fn(),
@@ -185,8 +228,16 @@ describe('RewardsVipRefereeView', () => {
     mockIsVipProgramEnabled = true;
     mockVipRefereeSplashAccepted = {};
     mockUseDispatch.mockReturnValue(mockReduxDispatch);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return mockAccountAddress;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
       return (
         selector as (
@@ -266,6 +317,126 @@ describe('RewardsVipRefereeView', () => {
     expect(
       queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.LAST_UPDATED),
     ).toBeNull();
+  });
+
+  it('renders the referred-by card when dashboard data is present', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.REFERRED_BY_CARD),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the loading skeleton without the contact support button', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: true,
+      hasError: false,
+      hasAttemptedFetch: false,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeNull();
+  });
+
+  it('does not render the contact support button when the fetch errors with no data', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: false,
+      hasError: true,
+      hasAttemptedFetch: true,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders the contact support button', () => {
+    const { getByTestId, getByText } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
+  });
+
+  it('disables the contact support button when the selected account address is missing', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return undefined;
+      if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      return (
+        selector as (
+          state: ReturnType<typeof getRewardsSelectorState>,
+        ) => unknown
+      )(getRewardsSelectorState());
+    });
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('opens the priority support webview tagged as VIP with the account address on press', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: expect.stringContaining(
+          `priority=vip&account=${encodeURIComponent(mockAccountAddress)}`,
+        ),
+        title: 'Contact support',
+      },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('does not open support when the selected account address is missing', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return undefined;
+      if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      return (
+        selector as (
+          state: ReturnType<typeof getRewardsSelectorState>,
+        ) => unknown
+      )(getRewardsSelectorState());
+    });
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('renders the error banner when the fetch errors with no data', () => {
