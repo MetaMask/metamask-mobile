@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { BackHandler, PixelRatio } from 'react-native';
+import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
 import { Accelerometer } from 'expo-sensors';
