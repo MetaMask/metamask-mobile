@@ -16,6 +16,7 @@ import {
   CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS,
 } from './CampaignLeaderboard';
 import { useCampaignLeaderboardEntries } from '../../hooks/useCampaignLeaderboardEntries';
+import { PREDICT_THE_PITCH_CAMPAIGN_MAX_WINNERS } from '../../utils/predictCampaignConstants';
 
 export const PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-leaderboard-container',
@@ -45,6 +46,7 @@ interface PredictThePitchLeaderboardProps {
   maxEntries?: number;
   userPosition?: UserPosition | null;
   isCampaignComplete?: boolean;
+  isCurrentUserEligible?: boolean;
 }
 
 const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
@@ -57,6 +59,7 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
   maxEntries,
   userPosition,
   isCampaignComplete = false,
+  isCurrentUserEligible,
 }) => {
   const { isPreview, showSplitView, visibleEntries } =
     useCampaignLeaderboardEntries({
@@ -73,7 +76,7 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={5} />;
+    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
   }
 
   if (hasError && entries.length === 0) {
@@ -133,29 +136,51 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
   return (
     <Box testID={PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.CONTAINER}>
       <Box testID={PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.LIST}>
-        {visibleEntries.map((entry) => (
-          <CampaignLeaderboardEntryRow
-            key={`${entry.rank}-${entry.referralCode}`}
-            entry={{ ...entry, qualified: true }}
-            isCurrentUser={isCurrentUser(entry)}
-            isCampaignComplete={isCampaignComplete}
-            formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
-            isPositivePrimaryMetric={(e) => e.roi >= 0}
-          />
-        ))}
+        {visibleEntries.map((entry) => {
+          const currentUser = isCurrentUser(entry);
+          return (
+            <CampaignLeaderboardEntryRow
+              key={`${entry.rank}-${entry.referralCode}`}
+              entry={{
+                ...entry,
+                qualified: currentUser ? (isCurrentUserEligible ?? true) : true,
+              }}
+              isCurrentUser={currentUser}
+              showCrown={
+                !isPreview &&
+                entry.rank <= PREDICT_THE_PITCH_CAMPAIGN_MAX_WINNERS
+              }
+              isCampaignComplete={isCampaignComplete}
+              formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
+              isPositivePrimaryMetric={(e) => e.roi >= 0}
+            />
+          );
+        })}
         {showSplitView && userPosition && (
           <>
             <CampaignLeaderboardNeighborSeparator />
-            {userPosition.neighbors.map((entry) => (
-              <CampaignLeaderboardEntryRow
-                key={`neighbor-${entry.rank}-${entry.referralCode}`}
-                entry={{ ...entry, qualified: true }}
-                isCurrentUser={isCurrentUser(entry)}
-                isCampaignComplete={isCampaignComplete}
-                formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
-                isPositivePrimaryMetric={(e) => e.roi >= 0}
-              />
-            ))}
+            {userPosition.neighbors.map((entry) => {
+              const currentUser = isCurrentUser(entry);
+              return (
+                <CampaignLeaderboardEntryRow
+                  key={`neighbor-${entry.rank}-${entry.referralCode}`}
+                  entry={{
+                    ...entry,
+                    qualified: currentUser
+                      ? (isCurrentUserEligible ?? true)
+                      : true,
+                  }}
+                  isCurrentUser={currentUser}
+                  showCrown={
+                    !isPreview &&
+                    entry.rank <= PREDICT_THE_PITCH_CAMPAIGN_MAX_WINNERS
+                  }
+                  isCampaignComplete={isCampaignComplete}
+                  formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
+                  isPositivePrimaryMetric={(e) => e.roi >= 0}
+                />
+              );
+            })}
           </>
         )}
       </Box>

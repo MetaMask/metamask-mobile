@@ -785,4 +785,40 @@ describe('SearchTokenAutocomplete', () => {
       );
     });
   });
+
+  describe('Arc USDC ERC-20 filtering', () => {
+    const ARC_CHAIN_ID = '0x13b2' as Hex;
+    const ARC_ERC20_ADDRESS = '0x3600000000000000000000000000000000000000';
+    const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+    const arcErc20Token = {
+      address: ARC_ERC20_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: ARC_CHAIN_ID,
+      image: '',
+    };
+    const arcNativeToken = {
+      address: NATIVE_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 18,
+      chainId: ARC_CHAIN_ID,
+      image: '',
+    };
+
+    it('hides Arc USDC ERC-20 from search results on Arc chain', () => {
+      mockConvertTokens.mockReturnValue([arcErc20Token, arcNativeToken]);
+
+      const { queryAllByTestId } = renderComponent({
+        selectedChainId: ARC_CHAIN_ID,
+      });
+
+      const results = queryAllByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      );
+      expect(results).toHaveLength(1);
+    });
+  });
 });

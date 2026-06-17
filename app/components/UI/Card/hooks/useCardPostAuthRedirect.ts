@@ -4,8 +4,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { LinkFlowOrigin } from './useMoneyAccountCardLinkage';
 
 export const MONEY_HOME_CARD_ORIGIN: LinkFlowOrigin = {
-  screen: Routes.MONEY.ROOT,
-  params: { screen: Routes.MONEY.HOME },
+  screen: Routes.HOME_TABS,
+  params: {
+    screen: Routes.MONEY.ROOT,
+    params: { screen: Routes.MONEY.HOME },
+  },
 };
 
 const isLinkFlowOrigin = (value: unknown): value is LinkFlowOrigin =>

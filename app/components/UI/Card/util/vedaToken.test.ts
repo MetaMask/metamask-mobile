@@ -3,6 +3,7 @@ import type { DelegationSettingsResponse } from '../types';
 import {
   getVedaTokenConfig,
   isVedaToken,
+  isMoneyAccountCardTokenAllowlisted,
   MONEY_ACCOUNT_DELEGATION_NETWORK,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
@@ -190,6 +191,127 @@ describe('isVedaToken', () => {
           address: null,
           symbol: 'veda',
           caipChainId: 'eip155:1' as CaipChainId,
+        },
+        vedaConfig,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('isMoneyAccountCardTokenAllowlisted', () => {
+  const vedaConfig = getVedaTokenConfig(makeSettings());
+
+  it('returns false when chains is null/undefined', () => {
+    expect(isMoneyAccountCardTokenAllowlisted(null, vedaConfig)).toBe(false);
+    expect(isMoneyAccountCardTokenAllowlisted(undefined, vedaConfig)).toBe(
+      false,
+    );
+  });
+
+  it('returns false when vedaConfig is null/undefined', () => {
+    const chains = { 'eip155:143': { tokens: [{ symbol: 'veda' }] } };
+    expect(isMoneyAccountCardTokenAllowlisted(chains, null)).toBe(false);
+    expect(isMoneyAccountCardTokenAllowlisted(chains, undefined)).toBe(false);
+  });
+
+  it('returns true when an enabled veda token is present', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:143': {
+            tokens: [{ symbol: 'veda', enabled: true }],
+          },
+        },
+        vedaConfig,
+      ),
+    ).toBe(true);
+  });
+
+  it('matches the veda symbol case-insensitively', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:143': { tokens: [{ symbol: 'VEDA', enabled: true }] },
+        },
+        vedaConfig,
+      ),
+    ).toBe(true);
+  });
+
+  it('matches by VEDA address when allowlisted under the mUSD display symbol', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:143': {
+            tokens: [
+              {
+                address: VEDA_ADDRESS,
+                symbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+                enabled: true,
+              },
+            ],
+          },
+        },
+        vedaConfig,
+      ),
+    ).toBe(true);
+  });
+
+  it('matches the VEDA address case-insensitively', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:143': {
+            tokens: [{ address: VEDA_ADDRESS.toUpperCase(), symbol: 'mUSD' }],
+          },
+        },
+        vedaConfig,
+      ),
+    ).toBe(true);
+  });
+
+  it('treats a token with enabled omitted as enabled', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:143': { tokens: [{ symbol: 'veda' }] },
+        },
+        vedaConfig,
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when the veda token is disabled', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:143': { tokens: [{ symbol: 'veda', enabled: false }] },
+        },
+        vedaConfig,
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the matching token is on a different chain', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:59144': {
+            tokens: [{ address: VEDA_ADDRESS, symbol: 'mUSD' }],
+          },
+        },
+        vedaConfig,
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when no veda token is allowlisted', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted(
+        {
+          'eip155:143': {
+            tokens: [{ symbol: 'USDC', enabled: true }],
+          },
         },
         vedaConfig,
       ),
