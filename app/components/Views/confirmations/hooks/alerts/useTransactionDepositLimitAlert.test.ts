@@ -2,7 +2,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
-import { useMoneyAccountDepositLimitAlert } from './useMoneyAccountDepositLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
   TransactionMeta,
@@ -24,11 +24,11 @@ jest.mock(
 
 function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
   return renderHookWithProvider(() =>
-    useMoneyAccountDepositLimitAlert({ pendingAmount }),
+    useTransactionDepositLimitAlert({ pendingAmount }),
   );
 }
 
-describe('useMoneyAccountDepositLimitAlert', () => {
+describe('useTransactionDepositLimitAlert', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -83,11 +83,13 @@ describe('useMoneyAccountDepositLimitAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns no alert when transaction type is not moneyAccountDeposit', () => {
+  it('returns no alert when transaction type has no configured deposit limit', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       txParams: { from: '0x0' },
       type: TransactionType.simpleSend,
     } as unknown as TransactionMeta);
+
+    (selectDepositLimit as unknown as jest.Mock).mockReturnValue(undefined);
 
     const { result } = runHook({ pendingAmount: '150000' });
 

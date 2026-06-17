@@ -6,7 +6,7 @@ import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBala
 import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
 import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
-import { useMoneyAccountDepositLimitAlert } from './useMoneyAccountDepositLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 export function usePendingAmountAlerts({
@@ -39,7 +39,7 @@ export function usePendingAmountAlerts({
     pendingAmount: pendingFiatAmount,
   });
 
-  const moneyAccountDepositLimitAlert = useMoneyAccountDepositLimitAlert({
+  const moneyAccountDepositLimitAlert = useTransactionDepositLimitAlert({
     pendingAmount: pendingFiatAmount,
   });
 

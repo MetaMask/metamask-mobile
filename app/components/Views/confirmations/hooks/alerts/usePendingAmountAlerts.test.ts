@@ -30,8 +30,8 @@ jest.mock('./useFiatBuyLimitAlert', () => ({
   useFiatBuyLimitAlert: () => [{ id: 'alert-8' }],
 }));
 
-jest.mock('./useMoneyAccountDepositLimitAlert', () => ({
-  useMoneyAccountDepositLimitAlert: () => [
+jest.mock('./useTransactionDepositLimitAlert', () => ({
+  useTransactionDepositLimitAlert: () => [
     {
       id: 'alert-9',
     },

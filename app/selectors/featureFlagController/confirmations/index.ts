@@ -175,27 +175,25 @@ export const selectMetaMaskPayFlags = createSelector(
   },
 );
 
-export const selectDepositLimit = createSelector(
-  [
-    selectRemoteFeatureFlags,
-    (_state: RootState, depositType: string) => depositType,
-  ],
-  (featureFlags, depositType): number | undefined => {
-    const metaMaskPayExtendedFlags =
-      featureFlags?.confirmations_pay_extended as
-        | Record<string, Json>
-        | undefined;
+export function selectDepositLimit(
+  state: RootState,
+  depositType: string,
+): number | undefined {
+  const featureFlags = selectRemoteFeatureFlags(state);
 
-    const depositLimitFlags = metaMaskPayExtendedFlags?.depositLimit as
-      | Record<string, Json>
-      | undefined;
+  const metaMaskPayExtendedFlags = featureFlags?.confirmations_pay_extended as
+    | Record<string, Json>
+    | undefined;
 
-    return (
-      (depositLimitFlags?.[depositType] as number) ??
-      PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT
-    );
-  },
-);
+  const depositLimitFlags = metaMaskPayExtendedFlags?.depositLimit as
+    | Record<string, Json>
+    | undefined;
+
+  return (
+    (depositLimitFlags?.[depositType] as number) ??
+    PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT
+  );
+}
 
 export const selectMetaMaskPayTokensFlags = createSelector(
   selectRemoteFeatureFlags,

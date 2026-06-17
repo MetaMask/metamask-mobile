@@ -17,36 +17,42 @@ function formatUsdAmount(value: number): string {
   return `$${value.toLocaleString('en-US')}`;
 }
 
-export function useMoneyAccountDepositLimitAlert({
+export function useTransactionDepositLimitAlert({
   pendingAmount,
 }: {
   pendingAmount?: string;
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const moneyAccountDepositLimit = useSelector((state: RootState) =>
-    selectDepositLimit(state, 'moneyAccountDeposit'),
+
+  const depositType = useMemo(() => {
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+    ) {
+      return TransactionType.moneyAccountDeposit;
+    }
+    return undefined;
+  }, [transactionMeta]);
+
+  const depositLimit = useSelector((state: RootState) =>
+    depositType ? selectDepositLimit(state, depositType) : undefined,
   );
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
-
   const exceedsLimit = useMemo(() => {
-    if (!isMoneyAccountDeposit || moneyAccountDepositLimit === undefined) {
+    if (depositLimit === undefined) {
       return false;
     }
 
     const amount = Number(pendingAmount ?? '0');
-    return amount > moneyAccountDepositLimit;
-  }, [isMoneyAccountDeposit, moneyAccountDepositLimit, pendingAmount]);
+    return amount > depositLimit;
+  }, [depositLimit, pendingAmount]);
 
   return useMemo(() => {
-    if (!exceedsLimit || moneyAccountDepositLimit === undefined) {
+    if (!exceedsLimit || depositLimit === undefined) {
       return [];
     }
 
     const title = strings('alert_system.money_account_deposit_limit.title', {
-      amount: formatUsdAmount(moneyAccountDepositLimit),
+      amount: formatUsdAmount(depositLimit),
     });
 
     return [
@@ -59,5 +65,5 @@ export function useMoneyAccountDepositLimitAlert({
         isBlocking: true,
       },
     ];
-  }, [exceedsLimit, moneyAccountDepositLimit]);
+  }, [exceedsLimit, depositLimit]);
 }
