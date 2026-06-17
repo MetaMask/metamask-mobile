@@ -1,4 +1,8 @@
-import { Hex } from '@metamask/utils';
+import { Hex, isStrictHexString } from '@metamask/utils';
+
+/**
+ * Types + helpers for the `confirmations_relay_fixed_spread` remote feature flag.
+ */
 
 export interface RelayFixedSpreadRoute {
   sourceChain: Hex;
@@ -16,32 +20,44 @@ export const EMPTY_RELAY_FIXED_SPREAD_CONFIG: RelayFixedSpreadConfig = {
 };
 
 const EXPECTED_FORMAT =
-  'Expected format: {"routes":[{"sourceChain":"0x1","sourceToken":"0x...","targetChain":"0x1","targetToken":"0x..."}]}';
+  'Expected format: {"chains":{"eth":"0x1"},"tokens":{"musd":"0x..."},"routes":[["eth","musd","eth","musd"]]}';
 
-const HEX_PATTERN = /^0x[0-9a-fA-F]+$/;
+const isStringRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
 
-const isHex = (value: unknown): value is Hex =>
-  typeof value === 'string' && HEX_PATTERN.test(value);
+const buildAliasMap = (raw: unknown): Map<string, Hex> | null => {
+  if (!isStringRecord(raw)) return null;
+  const map = new Map<string, Hex>();
+  for (const [alias, value] of Object.entries(raw)) {
+    if (!isStrictHexString(value)) continue;
+    map.set(alias, value.toLowerCase() as Hex);
+  }
+  return map;
+};
 
-const toLowerHex = (value: Hex): Hex => value.toLowerCase() as Hex;
-
-const normalizeRoute = (raw: unknown): RelayFixedSpreadRoute | null => {
-  if (!raw || typeof raw !== 'object') return null;
-  const candidate = raw as Record<string, unknown>;
+const resolveRoute = (
+  tuple: unknown,
+  chains: Map<string, Hex>,
+  tokens: Map<string, Hex>,
+): RelayFixedSpreadRoute | null => {
+  if (!Array.isArray(tuple) || tuple.length !== 4) return null;
+  const [srcChainAlias, srcTokenAlias, dstChainAlias, dstTokenAlias] = tuple;
   if (
-    !isHex(candidate.sourceChain) ||
-    !isHex(candidate.sourceToken) ||
-    !isHex(candidate.targetChain) ||
-    !isHex(candidate.targetToken)
+    typeof srcChainAlias !== 'string' ||
+    typeof srcTokenAlias !== 'string' ||
+    typeof dstChainAlias !== 'string' ||
+    typeof dstTokenAlias !== 'string'
   ) {
     return null;
   }
-  return {
-    sourceChain: toLowerHex(candidate.sourceChain),
-    sourceToken: toLowerHex(candidate.sourceToken),
-    targetChain: toLowerHex(candidate.targetChain),
-    targetToken: toLowerHex(candidate.targetToken),
-  };
+  const sourceChain = chains.get(srcChainAlias);
+  const sourceToken = tokens.get(srcTokenAlias);
+  const targetChain = chains.get(dstChainAlias);
+  const targetToken = tokens.get(dstTokenAlias);
+  if (!sourceChain || !sourceToken || !targetChain || !targetToken) {
+    return null;
+  }
+  return { sourceChain, sourceToken, targetChain, targetToken };
 };
 
 const tryJsonParse = (raw: string): unknown => {
@@ -53,11 +69,13 @@ const tryJsonParse = (raw: string): unknown => {
 };
 
 const extractRoutes = (value: unknown): RelayFixedSpreadRoute[] | null => {
-  if (!value || typeof value !== 'object') return null;
-  const routes = (value as { routes?: unknown }).routes;
-  if (!Array.isArray(routes)) return null;
+  if (!isStringRecord(value)) return null;
+  const chains = buildAliasMap(value.chains);
+  const tokens = buildAliasMap(value.tokens);
+  const routes = value.routes;
+  if (!chains || !tokens || !Array.isArray(routes)) return null;
   return routes
-    .map(normalizeRoute)
+    .map((tuple) => resolveRoute(tuple, chains, tokens))
     .filter((route): route is RelayFixedSpreadRoute => route !== null);
 };
 

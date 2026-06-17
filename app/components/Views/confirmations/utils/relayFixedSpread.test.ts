@@ -12,14 +12,20 @@ const MONAD_USDC = '0x754704bc059f8c67012fed69bc8a327a5aafb603';
 
 const FLAG_NAME = 'confirmations_relay_fixed_spread';
 
-const sampleRoute = {
+const withRoutes = (routes: unknown[]) => ({
+  chains: { eth: '0x1' },
+  tokens: { eth_usdc: ETH_USDC, musd: ETH_MUSD },
+  routes,
+});
+
+const samplePayload = withRoutes([['eth', 'eth_usdc', 'eth', 'musd']]);
+
+const expectedRoute = {
   sourceChain: '0x1',
   sourceToken: ETH_USDC,
   targetChain: '0x1',
   targetToken: ETH_MUSD,
 };
-
-const samplePayload = { routes: [sampleRoute] };
 
 describe('getRelayFixedSpreadFromConfig', () => {
   let consoleWarnSpy: jest.SpyInstance;
@@ -34,10 +40,10 @@ describe('getRelayFixedSpreadFromConfig', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  it('returns parsed routes when remote value is a valid object', () => {
+  it('resolves aliases into normalised routes when remote value is a valid object', () => {
     const result = getRelayFixedSpreadFromConfig(samplePayload, FLAG_NAME);
 
-    expect(result.routes).toEqual([sampleRoute]);
+    expect(result.routes).toEqual([expectedRoute]);
     expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 
@@ -47,20 +53,18 @@ describe('getRelayFixedSpreadFromConfig', () => {
       FLAG_NAME,
     );
 
-    expect(result.routes).toEqual([sampleRoute]);
+    expect(result.routes).toEqual([expectedRoute]);
   });
 
-  it('lowercases mixed-case addresses and chain ids', () => {
+  it('lowercases mixed-case addresses and chain ids on resolution', () => {
     const result = getRelayFixedSpreadFromConfig(
       {
-        routes: [
-          {
-            sourceChain: '0xE708',
-            sourceToken: '0x176211869CA2B568F2A7D4EE941E073A821EE1FF',
-            targetChain: '0xE708',
-            targetToken: '0xACA92E438DF0B2401FF60DA7E4337B687A2435DA',
-          },
-        ],
+        chains: { linea: '0xE708' },
+        tokens: {
+          linea_usdc: '0x176211869CA2B568F2A7D4EE941E073A821EE1FF',
+          musd: '0xACA92E438DF0B2401FF60DA7E4337B687A2435DA',
+        },
+        routes: [['linea', 'linea_usdc', 'linea', 'musd']],
       },
       FLAG_NAME,
     );
@@ -75,29 +79,82 @@ describe('getRelayFixedSpreadFromConfig', () => {
     ]);
   });
 
-  it('drops invalid route entries and keeps valid ones', () => {
+  it('drops routes referencing an unknown chain alias', () => {
+    const result = getRelayFixedSpreadFromConfig(
+      withRoutes([
+        ['eth', 'eth_usdc', 'eth', 'musd'],
+        ['mystery_chain', 'eth_usdc', 'eth', 'musd'],
+      ]),
+      FLAG_NAME,
+    );
+
+    expect(result.routes).toEqual([expectedRoute]);
+  });
+
+  it('drops routes referencing an unknown token alias', () => {
+    const result = getRelayFixedSpreadFromConfig(
+      withRoutes([
+        ['eth', 'eth_usdc', 'eth', 'musd'],
+        ['eth', 'mystery_token', 'eth', 'musd'],
+      ]),
+      FLAG_NAME,
+    );
+
+    expect(result.routes).toEqual([expectedRoute]);
+  });
+
+  it('drops routes that are not 4-tuples of strings', () => {
+    const result = getRelayFixedSpreadFromConfig(
+      withRoutes([
+        ['eth', 'eth_usdc', 'eth', 'musd'],
+        ['eth', 'eth_usdc', 'eth'],
+        ['eth', 'eth_usdc', 'eth', 'musd', 'extra'],
+        ['eth', 42, 'eth', 'musd'],
+        null,
+        'not-an-array',
+      ]),
+      FLAG_NAME,
+    );
+
+    expect(result.routes).toEqual([expectedRoute]);
+  });
+
+  it('silently skips alias entries whose value is not a hex string', () => {
     const result = getRelayFixedSpreadFromConfig(
       {
+        chains: { eth: '0x1', bad_chain: 'not-hex' },
+        tokens: {
+          eth_usdc: ETH_USDC,
+          musd: ETH_MUSD,
+          bad_token: 'not-hex',
+        },
         routes: [
-          sampleRoute,
-          { sourceChain: 'not-hex', sourceToken: ETH_USDC },
-          null,
-          'string-route',
-          {
-            sourceChain: '0x1',
-            sourceToken: ETH_USDC,
-            targetChain: '0x1',
-            targetToken: ETH_MUSD,
-            extra: 'field-ignored',
-          },
+          ['eth', 'eth_usdc', 'eth', 'musd'],
+          ['bad_chain', 'eth_usdc', 'eth', 'musd'],
+          ['eth', 'bad_token', 'eth', 'musd'],
         ],
       },
       FLAG_NAME,
     );
 
-    expect(result.routes).toHaveLength(2);
-    expect(result.routes[0]).toEqual(sampleRoute);
-    expect(result.routes[1]).toEqual(sampleRoute);
+    expect(result.routes).toEqual([expectedRoute]);
+  });
+
+  it('ignores unused alias entries', () => {
+    const result = getRelayFixedSpreadFromConfig(
+      {
+        chains: { eth: '0x1', linea: '0xe708' },
+        tokens: {
+          eth_usdc: ETH_USDC,
+          musd: ETH_MUSD,
+          unused_token: LINEA_USDC,
+        },
+        routes: [['eth', 'eth_usdc', 'eth', 'musd']],
+      },
+      FLAG_NAME,
+    );
+
+    expect(result.routes).toEqual([expectedRoute]);
   });
 
   it('warns and returns empty when remote JSON is malformed', () => {
@@ -109,9 +166,12 @@ describe('getRelayFixedSpreadFromConfig', () => {
     expect(result).toEqual(EMPTY_RELAY_FIXED_SPREAD_CONFIG);
   });
 
-  it('warns and returns empty when remote is structurally invalid', () => {
+  it('warns and returns empty when chains map is missing', () => {
     const result = getRelayFixedSpreadFromConfig(
-      { routes: 'not-an-array' },
+      {
+        tokens: { eth_usdc: ETH_USDC, musd: ETH_MUSD },
+        routes: [['eth', 'eth_usdc', 'eth', 'musd']],
+      },
       FLAG_NAME,
     );
 
@@ -121,18 +181,35 @@ describe('getRelayFixedSpreadFromConfig', () => {
     expect(result).toEqual(EMPTY_RELAY_FIXED_SPREAD_CONFIG);
   });
 
-  it('warns and returns empty when remote is missing routes', () => {
+  it('warns and returns empty when tokens map is missing', () => {
     const result = getRelayFixedSpreadFromConfig(
-      { somethingElse: true },
+      {
+        chains: { eth: '0x1' },
+        routes: [['eth', 'eth_usdc', 'eth', 'musd']],
+      },
       FLAG_NAME,
     );
 
-    expect(consoleWarnSpy).toHaveBeenCalled();
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
     expect(result).toEqual(EMPTY_RELAY_FIXED_SPREAD_CONFIG);
   });
 
-  it('returns empty routes when remote payload is an empty array', () => {
-    const result = getRelayFixedSpreadFromConfig({ routes: [] }, FLAG_NAME);
+  it('warns and returns empty when routes is not an array', () => {
+    const result = getRelayFixedSpreadFromConfig(
+      { ...withRoutes([]), routes: 'not-an-array' },
+      FLAG_NAME,
+    );
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
+    expect(result).toEqual(EMPTY_RELAY_FIXED_SPREAD_CONFIG);
+  });
+
+  it('returns empty routes when payload has an empty routes array', () => {
+    const result = getRelayFixedSpreadFromConfig(withRoutes([]), FLAG_NAME);
 
     expect(result).toEqual(EMPTY_RELAY_FIXED_SPREAD_CONFIG);
   });

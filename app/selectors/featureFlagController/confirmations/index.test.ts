@@ -738,11 +738,20 @@ describe('selectMetaMaskPayFlags extended flags', () => {
 describe('selectRelayFixedSpread', () => {
   let consoleWarnSpy: jest.SpyInstance;
 
-  const sampleRoute = {
+  const ETH_USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  const ETH_MUSD = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+  const samplePayload = {
+    chains: { eth: '0x1' },
+    tokens: { eth_usdc: ETH_USDC, musd: ETH_MUSD },
+    routes: [['eth', 'eth_usdc', 'eth', 'musd']],
+  };
+
+  const expectedRoute = {
     sourceChain: '0x1',
-    sourceToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    sourceToken: ETH_USDC,
     targetChain: '0x1',
-    targetToken: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    targetToken: ETH_MUSD,
   };
 
   beforeEach(() => {
@@ -759,22 +768,20 @@ describe('selectRelayFixedSpread', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_relay_fixed_spread: { routes: [sampleRoute] },
+        confirmations_relay_fixed_spread: samplePayload,
       };
 
-    expect(selectRelayFixedSpread(state).routes).toEqual([sampleRoute]);
+    expect(selectRelayFixedSpread(state).routes).toEqual([expectedRoute]);
   });
 
   it('parses remote value provided as a JSON string', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_relay_fixed_spread: JSON.stringify({
-          routes: [sampleRoute],
-        }),
+        confirmations_relay_fixed_spread: JSON.stringify(samplePayload),
       };
 
-    expect(selectRelayFixedSpread(state).routes).toEqual([sampleRoute]);
+    expect(selectRelayFixedSpread(state).routes).toEqual([expectedRoute]);
   });
 
   it('warns and returns empty when remote is structurally invalid', () => {

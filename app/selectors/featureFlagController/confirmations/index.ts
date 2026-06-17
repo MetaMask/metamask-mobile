@@ -332,12 +332,6 @@ export const selectMetaMaskPayHardwareFlags = createSelector(
   },
 );
 
-/**
- * Selects the directional subsidised-routes config exposed by the
- * `confirmations_relay_fixed_spread` remote feature flag.
- *
- * Returns `{ routes: [] }` when the flag is absent or invalid.
- */
 export const selectRelayFixedSpread = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): RelayFixedSpreadConfig =>
