@@ -190,7 +190,7 @@ describe('ActivityList transformations', () => {
     expect(result.pages[0].data).toHaveLength(1);
     expect(result.pages[0].data[0]).toMatchObject({
       chainId: 'eip155:59144',
-      data: { hash: '0xkept' },
+      hash: '0xkept',
       type: 'send',
     });
   });
@@ -218,7 +218,7 @@ describe('ActivityList transformations', () => {
       },
     ] as never);
 
-    expect(nonEvmItems[0].data.hash).toBe('solana-tx');
+    expect(nonEvmItems[0].hash).toBe('solana-tx');
 
     const merged = mergeTransactionsByTime(
       [

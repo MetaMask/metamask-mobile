@@ -36,7 +36,10 @@ import {
 import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
-import { getBlockExplorerAddressUrl } from '../../../util/networks';
+import {
+  getBlockExplorerAddressUrl,
+  getBlockExplorerName,
+} from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import { useStyles } from '../../hooks/useStyles';
@@ -84,6 +87,8 @@ import {
   ActivityListItemRow,
   resolveActivityListItemTitle,
 } from '../../UI/ActivityListItemRow/ActivityListItemRow';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -96,7 +101,7 @@ const updateIncomingTransactions = () =>
   ).updateIncomingTransactions();
 
 const generateKey = (item: ActivityListItem): string => {
-  const hash = item.data.hash;
+  const hash = item.hash;
   if (hash) {
     return `${item.chainId}:${hash}`;
   }
@@ -143,6 +148,13 @@ const formatDateHeader = (timestamp: number) => {
 
 const noop = () => undefined;
 
+const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
+  const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
+  const prefix = strings('transactions.view_full_history_on');
+
+  return blockExplorerName ? `${prefix} ${blockExplorerName}` : prefix;
+};
+
 const getActivityValue = (item: ActivityListItem) => {
   const { data } = item;
 
@@ -186,6 +198,7 @@ const ActivityList = ({
   onScroll,
 }: ActivityListProps) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = useTheme();
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
@@ -306,7 +319,7 @@ const ActivityList = ({
     // Filter local items to enabled EVM chains only, also deduplicate against confirmed
     const confirmedHashes = new Set(
       allConfirmedForEnabledChains
-        .map((item) => item.data.hash?.toLowerCase())
+        .map((item) => item.hash?.toLowerCase())
         .filter(Boolean) as string[],
     );
 
@@ -365,8 +378,15 @@ const ActivityList = ({
     });
 
     // Non-EVM: filter by enabled chains, include bridge txns whose dest chain is enabled
-    const filteredNonEvmTransactions = nonEvmTransactions
-      .filter((tx) => {
+    const seenNonEvmTransactionIds = new Set<string>();
+    const filteredNonEvmTransactions = nonEvmTransactions.reduce<
+      typeof nonEvmTransactions
+    >((filtered, tx) => {
+      if (seenNonEvmTransactionIds.has(tx.id)) {
+        return filtered;
+      }
+
+      const includeTransaction = (() => {
         if (enabledNonEVMChainIds.includes(tx.chain)) return true;
         const bridge = Object.values(bridgeHistory ?? {}).find(
           (item) => item.status?.srcChain?.txHash === tx.id,
@@ -375,10 +395,15 @@ const ActivityList = ({
           bridge?.quote?.destChainId !== undefined &&
           enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
         );
-      })
-      .filter(
-        (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
-      );
+      })();
+
+      if (includeTransaction) {
+        seenNonEvmTransactionIds.add(tx.id);
+        filtered.push(tx);
+      }
+
+      return filtered;
+    }, []);
 
     const filteredNonEvmForMalicious =
       filterMultichainTransactionsExcludingMaliciousTokenActivity(
@@ -471,6 +496,16 @@ const ActivityList = ({
         : undefined;
     }
 
+    if (!url) {
+      return;
+    }
+
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'activity_tab',
+      text: getBlockExplorerTrackingText(url, title),
+      url,
+    });
+
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: { url, title },
@@ -483,6 +518,8 @@ const ActivityList = ({
     enabledEVMChainIds,
     configBlockExplorerUrl,
     hasEvmChainsEnabled,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const allNonEvmChainsAreSolana = useMemo(
@@ -512,11 +549,16 @@ const ActivityList = ({
 
   const onViewNonEvmExplorer = useCallback(() => {
     if (!nonEvmExplorerUrl) return;
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'activity_tab',
+      text: getBlockExplorerTrackingText(nonEvmExplorerUrl),
+      url: nonEvmExplorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: { url: nonEvmExplorerUrl },
     });
-  }, [navigation, nonEvmExplorerUrl]);
+  }, [navigation, nonEvmExplorerUrl, trackEvent, createEventBuilder]);
 
   const footerComponent = useMemo(() => {
     if (isFetchingNextPage) {
@@ -599,7 +641,7 @@ const ActivityList = ({
       const { raw } = item;
       if (!raw) return;
 
-      const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
+      const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
       const actionKey = resolveActivityListItemTitle(
         item,
         itemBridgeHistoryItem
@@ -676,7 +718,7 @@ const ActivityList = ({
             value,
           },
           transactionDetails: {
-            hash: item.data.hash,
+            hash: item.hash,
             renderFrom: from,
             renderTo: to,
             renderValue: value,
@@ -861,7 +903,7 @@ const ActivityList = ({
     // Preserve the legacy Activity title for swap/bridge rows (e.g.
     // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
     // history, mirroring TransactionElement. Falls back to the kind-based title.
-    const bridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
+    const bridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
     const title = bridgeHistoryItem
       ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
       : undefined;

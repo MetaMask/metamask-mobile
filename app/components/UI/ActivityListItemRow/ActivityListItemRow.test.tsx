@@ -245,6 +245,7 @@ const makeItem = (
     chainId: (overrides.chainId ?? 'eip155:1') as ActivityListItem['chainId'],
     status,
     timestamp: 1_700_000_000_000,
+    hash: overrides.hash ?? '0xabc',
     isEarliestNonce: overrides.isEarliestNonce,
   };
 
@@ -253,7 +254,6 @@ const makeItem = (
       ...base,
       type,
       data: {
-        hash: overrides.hash ?? '0xabc',
         from: overrides.from ?? '0xfrom',
         to: overrides.to ?? '0xto',
         token: overrides.token as never,
@@ -282,7 +282,6 @@ const makeItem = (
           }
         : undefined,
       data: {
-        hash: overrides.hash ?? '0xabc',
         sourceToken: overrides.sourceToken as never,
         destinationToken: overrides.destinationToken as never,
       },
@@ -301,7 +300,6 @@ const makeItem = (
         }
       : undefined,
     data: {
-      hash: overrides.hash ?? '0xabc',
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
       token: overrides.token as never,
@@ -817,7 +815,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'predictionCashedOut',
   'predictionPlaced',
   'perpsAddFunds',
-  'perpsWithdrawFunds',
+  'perpsWithdraw',
   'perpsOpenLong',
   'perpsCloseLong',
   'perpsCloseLongLiquidated',
@@ -864,7 +862,7 @@ const EXPECTED_TITLES = {
   predictionCashedOut: strings('transactions.activity_prediction_cashed_out'),
   predictionPlaced: strings('transactions.activity_prediction_placed'),
   perpsAddFunds: strings('transactions.tx_review_perps_deposit'),
-  perpsWithdrawFunds: strings('transactions.tx_review_perps_withdraw'),
+  perpsWithdraw: strings('transactions.tx_review_perps_withdraw'),
   perpsOpenLong: strings('transactions.activity_perps_open_long'),
   perpsCloseLong: strings('transactions.activity_perps_close_long'),
   perpsCloseLongLiquidated: strings(

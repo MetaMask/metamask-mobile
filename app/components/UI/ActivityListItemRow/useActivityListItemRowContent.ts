@@ -205,7 +205,7 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
     strings('transactions.activity_prediction_cashed_out'),
   predictionPlaced: () => strings('transactions.activity_prediction_placed'),
   perpsAddFunds: () => strings('transactions.tx_review_perps_deposit'),
-  perpsWithdrawFunds: () => strings('transactions.tx_review_perps_withdraw'),
+  perpsWithdraw: () => strings('transactions.tx_review_perps_withdraw'),
   perpsOpenLong: () => strings('transactions.activity_perps_open_long'),
   perpsCloseLong: () => strings('transactions.activity_perps_close_long'),
   perpsCloseLongLiquidated: () =>

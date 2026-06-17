@@ -36,7 +36,7 @@ function resolveIconType(type: ActivityKind): string {
     case 'lendingWithdrawal':
     case 'unwrap':
     case 'nftMint':
-    case 'perpsWithdrawFunds':
+    case 'perpsWithdraw':
     case 'predictionsWithdrawFunds':
     case 'predictionClaimWinnings':
     case 'predictionCashedOut':

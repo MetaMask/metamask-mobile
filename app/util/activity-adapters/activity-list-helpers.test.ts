@@ -69,16 +69,16 @@ describe('activity list helpers', () => {
 
   it('groups pending items before date-grouped historical items', () => {
     const pending = makeItem({
-      data: { hash: '0xpending' },
+      hash: '0xpending',
       status: 'pending',
       timestamp: Date.UTC(2026, 0, 2, 12),
     });
     const firstHistorical = makeItem({
-      data: { hash: '0xfirst' },
+      hash: '0xfirst',
       timestamp: Date.UTC(2026, 0, 2, 11),
     });
     const secondHistorical = makeItem({
-      data: { hash: '0xsecond' },
+      hash: '0xsecond',
       timestamp: Date.UTC(2026, 0, 1, 11),
     });
 

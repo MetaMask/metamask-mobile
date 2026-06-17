@@ -32,7 +32,7 @@ export function ActivityListItemRowLayout({
   subtitle?: string;
   title: string;
 }) {
-  const testIdSuffix = item.data.hash ?? index;
+  const testIdSuffix = item.hash ?? index;
   const titleNode = (
     <Text
       numberOfLines={1}
