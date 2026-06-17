@@ -6,7 +6,7 @@ import { createMockInternalAccount } from '../../util/test/accountsControllerTes
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
@@ -41,6 +41,7 @@ const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
 const mockAddNewSecretData = jest.fn();
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
+const mockRunSeedlessOnboardingMigrations = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -63,6 +64,13 @@ const hdKeyringV2 = {
 jest.mock('../../selectors/seedlessOnboardingController', () => ({
   selectSeedlessOnboardingLoginFlow: (state: unknown) =>
     mockSelectSeedlessOnboardingLoginFlow(state),
+}));
+
+jest.mock('../../core', () => ({
+  Authentication: {
+    runSeedlessOnboardingMigrations: () =>
+      mockRunSeedlessOnboardingMigrations(),
+  },
 }));
 
 jest.mock('../../util/trace', () => ({
@@ -113,9 +121,9 @@ jest.mock('../../core/Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: (
         seed: Uint8Array,
-        type: SecretType,
-        keyringId: string,
-      ) => mockAddNewSecretData(seed, type, keyringId),
+        dataType: EncAccountDataType,
+        options: { keyringId: string },
+      ) => mockAddNewSecretData(seed, dataType, options),
     },
     AccountTreeController: {
       syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
@@ -153,6 +161,7 @@ describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
+    mockRunSeedlessOnboardingMigrations.mockReset();
     mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
     mockCreateMultichainAccountWallet.mockResolvedValue(
       mockMultichainAccountWallet,
@@ -257,6 +266,7 @@ describe('MultiSRP Actions', () => {
     describe('seedless onboarding login flow', () => {
       beforeEach(() => {
         mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+        mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       });
 
       it('successfully adds seed phrase backup when seedless onboarding is enabled', async () => {
@@ -276,9 +286,10 @@ describe('MultiSRP Actions', () => {
           name: TraceName.OnboardingAddSrp,
           op: TraceOperation.OnboardingSecurityOp,
         });
+        expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -310,7 +321,7 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -339,7 +350,7 @@ describe('MultiSRP Actions', () => {
 
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -354,6 +365,7 @@ describe('MultiSRP Actions', () => {
     it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
       mockAddNewSecretData.mockResolvedValue(undefined);
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockDiscoverAccounts.mockResolvedValue(3);
 
       const mockCallback = jest.fn();
@@ -365,9 +377,10 @@ describe('MultiSRP Actions', () => {
         mockCallback,
       );
 
+      expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
-        SecretType.Mnemonic,
+        EncAccountDataType.ImportedSrp,
         {
           keyringId: mockEntropySource,
         },
@@ -390,6 +403,7 @@ describe('MultiSRP Actions', () => {
       // Arrange
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
       const syncError = new Error('Sync failed');
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockAddNewSecretData.mockRejectedValue(syncError);
 
       // Act & Assert

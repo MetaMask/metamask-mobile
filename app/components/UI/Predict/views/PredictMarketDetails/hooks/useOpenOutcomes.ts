@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { usePredictPrices } from '../../../hooks/usePredictPrices';
 import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
 import { getPredictBuyPrice } from '../../../utils/prices';
@@ -56,34 +56,74 @@ export const useOpenOutcomes = ({
     ? priceQueries
     : EMPTY_PRICE_QUERIES;
 
-  const { prices } = usePredictPrices({
-    queries: activePriceQueries,
-    enabled: shouldFetchPrices,
-    pollingInterval: shouldFetchPrices ? 2000 : undefined,
-  });
-
   const tokenIds = useMemo(
     () => activePriceQueries.map((q) => q.outcomeTokenId),
     [activePriceQueries],
   );
-  const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
+  const { getPrice: getLivePrice, isConnected: isLiveConnected } =
+    useLiveMarketPrices(tokenIds, {
+      enabled: shouldFetchPrices,
+    });
+
+  // The live WebSocket feed is the primary source of truth for prices. When it
+  // is connected we only keep a slow REST poll as a freshness fallback; this
+  // avoids both sources driving full re-renders at the same time.
+  const { prices } = usePredictPrices({
+    queries: activePriceQueries,
     enabled: shouldFetchPrices,
+    pollingInterval: shouldFetchPrices
+      ? isLiveConnected
+        ? 10000
+        : 2000
+      : undefined,
   });
 
+  const previousOpenOutcomesRef = useRef<PredictOutcome[]>([]);
+  const previousOpenOutcomesBaseRef = useRef<PredictOutcome[] | null>(null);
+
   // Price precedence: live WebSocket bestAsk > REST buy price > base market price.
-  const openOutcomes = useMemo(
-    () =>
-      openOutcomesBase.map((outcome) => ({
-        ...outcome,
-        tokens: outcome.tokens.map((token) => ({
-          ...token,
-          price:
-            getPredictBuyPrice(token, getLivePrice(token.id), prices) ??
-            token.price,
-        })),
-      })),
-    [openOutcomesBase, prices, getLivePrice],
-  );
+  //
+  // Identity preservation: rebuilding every outcome/token object on each price
+  // tick gives all of them new references, which forces every (memoized) row to
+  // re-render even when only one token's price changed. Here we reuse the
+  // previous token/outcome object whenever the computed price is unchanged, so
+  // only the rows that actually changed get a new reference. When the base
+  // market data changes (different array identity), we rebuild from scratch.
+  const openOutcomes = useMemo(() => {
+    const baseUnchanged =
+      previousOpenOutcomesBaseRef.current === openOutcomesBase;
+    const previousById = baseUnchanged
+      ? new Map(previousOpenOutcomesRef.current.map((o) => [o.id, o]))
+      : undefined;
+
+    const next = openOutcomesBase.map((outcome) => {
+      const previousOutcome = previousById?.get(outcome.id);
+      let changed = !previousOutcome;
+
+      const tokens = outcome.tokens.map((token) => {
+        const price =
+          getPredictBuyPrice(token, getLivePrice(token.id), prices) ??
+          token.price;
+        const previousToken = previousOutcome?.tokens.find(
+          (t) => t.id === token.id,
+        );
+        if (previousToken && previousToken.price === price) {
+          return previousToken;
+        }
+        changed = true;
+        return { ...token, price };
+      });
+
+      if (previousOutcome && !changed) {
+        return previousOutcome;
+      }
+      return { ...outcome, tokens };
+    });
+
+    previousOpenOutcomesRef.current = next;
+    previousOpenOutcomesBaseRef.current = openOutcomesBase;
+    return next;
+  }, [openOutcomesBase, prices, getLivePrice]);
 
   const yesPercentage = useMemo((): number => {
     // Use real-time price if available from open outcomes

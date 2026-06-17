@@ -55,6 +55,8 @@ import {
   watchMarketingAttributionOnConsentChange,
 } from './marketingAttribution';
 import { getDevAutoUnlockPassword } from '../../util/environment';
+import { saveAttribution } from '../../core/redux/slices/attribution';
+import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
 
 /**
  * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
@@ -363,6 +365,15 @@ export function* handleDeeplinkSaga() {
       const storedSource =
         AppStateEventProcessor.pendingDeeplinkSource ??
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+      // Persist UTM params for new users before pending deeplink may be cleared.
+      if (!existingUser) {
+        const utmPayload = getUtmAttributesFromDeeplinkUrl(url.href);
+        if (utmPayload) {
+          yield put(saveAttribution(utmPayload));
+        }
+      }
+
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
         // New-user onboarding lives outside the post-login navigation tree.
