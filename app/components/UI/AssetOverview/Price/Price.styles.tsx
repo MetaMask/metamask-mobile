@@ -45,6 +45,16 @@ const styleSheet = (params: { theme: Theme }) =>
       alignItems: 'flex-start',
       gap: 10,
     } as ViewStyle,
+    /** Container for IntervalBar above chart (technical indicators flag ON) - exactly 16px spacing to chart */
+    intervalBarContainer: {
+      width: '100%',
+      alignSelf: 'stretch',
+      paddingTop: 12,
+      paddingBottom: 16,
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: 10,
+    } as ViewStyle,
     /** Under flex-start parent, stretch so inner space-between uses full screen width */
     timeRangeSelectorWrap: {
       width: '100%',

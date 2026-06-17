@@ -18,6 +18,7 @@ import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
+  TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
@@ -59,8 +60,14 @@ import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConf
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
-import { setTokenOverviewChartType } from '../../../../actions/user';
+import {
+  selectTokenOverviewChartType,
+  selectTokenIndicators,
+} from '../../../../reducers/user/selectors';
+import {
+  setTokenOverviewChartType,
+  setTokenIndicators,
+} from '../../../../actions/user';
 import type {
   TimePeriod,
   TokenPrice,
@@ -176,6 +183,7 @@ const PriceAdvanced = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
+  const persistedIndicators = useSelector(selectTokenIndicators);
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
     selectTokenDetailsTechnicalIndicatorsEnabled,
@@ -215,8 +223,13 @@ const PriceAdvanced = ({
   }, [createEventBuilder, trackEvent, chartType]);
 
   const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
-    new Set(),
+    () => new Set(persistedIndicators),
   );
+
+  // Sync activeIndicators to Redux for persistence
+  useEffect(() => {
+    dispatch(setTokenIndicators([...activeIndicators]));
+  }, [activeIndicators, dispatch]);
 
   const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
 
@@ -727,7 +740,7 @@ const PriceAdvanced = ({
           </Text>
         )}
         <Text allowFontScaling={false}>
-          {isLoading ? (
+          {(isTechnicalIndicatorsEnabled ? chartLoading : isLoading) ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
                 backgroundColor={theme.colors.background.section}
@@ -781,20 +794,35 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      {shouldShowTechnicalIndicators && (
-        <View style={styles.timeRangeContainer}>
+      {/* Unified skeleton bar when feature flag ON and loading */}
+      {isTechnicalIndicatorsEnabled && chartLoading && (
+        <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
-            <IntervalBar
-              selectedInterval={displayInterval}
-              onIntervalSelect={handleInlineIntervalSelect}
-              chartType={chartType}
-              onChartTypeSelect={handleChartTypeSelect}
-            />
+            <Box twClassName="w-full px-4">
+              <Skeleton height={29} width="100%" />
+            </Box>
           </View>
         </View>
       )}
+      {/* IntervalBar appears when not loading */}
+      {isTechnicalIndicatorsEnabled &&
+        !chartLoading &&
+        shouldShowTechnicalIndicators && (
+          <View style={styles.intervalBarContainer}>
+            <View style={styles.timeRangeSelectorWrap}>
+              <Box twClassName="w-full px-4">
+                <IntervalBar
+                  selectedInterval={displayInterval}
+                  onIntervalSelect={handleInlineIntervalSelect}
+                  chartType={chartType}
+                  onChartTypeSelect={handleChartTypeSelect}
+                />
+              </Box>
+            </View>
+          </View>
+        )}
       <Box
-        twClassName={shouldShowTechnicalIndicators ? 'w-full' : 'mt-3 w-full'}
+        twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
       >
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
@@ -850,8 +878,9 @@ const PriceAdvanced = ({
           )}
         </View>
       </Box>
+      {/* IndicatorBar appears when not loading */}
       {shouldShowTechnicalIndicators && chartType === ChartType.Candles ? (
-        <Box twClassName="w-full mb-6">
+        <Box twClassName="w-full mt-4 mb-6">
           <IndicatorBar
             maLabel={maLabel}
             onMAPress={handleMAPress}
@@ -859,7 +888,13 @@ const PriceAdvanced = ({
             onIndicatorToggle={handleIndicatorToggle}
           />
         </Box>
-      ) : !shouldShowTechnicalIndicators ? (
+      ) : isTechnicalIndicatorsEnabled &&
+        chartType === ChartType.Candles &&
+        !shouldShowTechnicalIndicators ? (
+        <Box twClassName="w-full px-4 mt-4 mb-6">
+          <Skeleton height={37} width="100%" />
+        </Box>
+      ) : !shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled ? (
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector

@@ -684,12 +684,13 @@ function handleAddIndicator(payload) {
     promise
       .then(function (studyId) {
         window.activeStudies.set(indicatorName, studyId);
-        subscribeStudyDataLoaded(studyId);
-        sendToReactNative('INDICATOR_ADDED', {
-          name: indicatorName,
-          id: String(studyId),
+        subscribeStudyDataLoaded(studyId, function () {
+          scheduleStudyLegendRefresh();
+          sendToReactNative('INDICATOR_ADDED', {
+            name: indicatorName,
+            id: String(studyId),
+          });
         });
-        scheduleStudyLegendRefresh();
       })
       .catch(function (error) {
         sendToReactNative('ERROR', {
@@ -751,12 +752,15 @@ function handleSetMAVisibility(payload) {
     if (!visibleSet[name]) {
       try {
         chart.removeEntity(studyId);
+        window.maStudies.delete(name);
+        sendToReactNative('INDICATOR_REMOVED', { name: name });
       } catch (e) {}
-      window.maStudies.delete(name);
     }
   });
 
   var promises = [];
+  var maCallbacks = []; // Store callbacks to call after all MAs created and legend refreshed
+  
   for (var j = 0; j < visible.length; j++) {
     var name = visible[j];
     if (window.maStudies.has(name)) continue;
@@ -775,9 +779,19 @@ function handleSetMAVisibility(payload) {
         )
         .then(function (studyId) {
           window.maStudies.set(maName, studyId);
-          subscribeStudyDataLoaded(studyId);
+          // Store the callback to be called after legend refresh
+          maCallbacks.push(function() {
+            subscribeStudyDataLoaded(studyId, function () {
+              sendToReactNative('INDICATOR_ADDED', {
+                name: maName,
+                id: String(studyId),
+              });
+            });
+          });
         })
-        .catch(function () {});
+        .catch(function (err) {
+          sendToReactNative('ERROR', { message: 'MA creation failed: ' + maName + ' - ' + String(err) });
+        });
       promises.push(p);
     })(name);
   }
@@ -785,6 +799,9 @@ function handleSetMAVisibility(payload) {
   if (promises.length > 0) {
     Promise.all(promises).then(function () {
       scheduleStudyLegendRefresh();
+      for (var i = 0; i < maCallbacks.length; i++) {
+        maCallbacks[i]();
+      }
     });
   } else {
     scheduleStudyLegendRefresh();
@@ -3333,11 +3350,12 @@ function refreshLineEndDot() {
 // ============================================
 
 function isLegendOverlayEnabled() {
-  return (
+  var enabled = (
     window.CONFIG &&
     window.CONFIG.legendOverlay &&
     window.CONFIG.legendOverlay.enabled
   );
+  return enabled;
 }
 
 function getLegendConfig() {
@@ -3428,7 +3446,9 @@ function createStudyLegendOverlay() {
   if (existing) existing.parentNode.removeChild(existing);
 
   var container = document.getElementById('tv_chart_container');
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   var div = document.createElement('div');
   div.id = 'study-legend-overlay';
@@ -3552,20 +3572,21 @@ function updateStudyLegendFromEntityValues(entityValues) {
   overlay.innerHTML = buildLegendHTML(studyDataList);
 }
 
-function subscribeStudyDataLoaded(studyId) {
-  try {
-    var chart = window.chartWidget.activeChart();
-    var study = chart.getStudyById(studyId);
-    if (study && study.onDataLoaded) {
-      study.onDataLoaded().subscribe(
-        null,
-        function () {
-          refreshStudyLegendFromExport();
-        },
-        true,
-      );
-    }
-  } catch (e) {}
+/**
+ * Subscribes to study data loaded event with single RAF for rendering completion.
+ *
+ * Uses single requestAnimationFrame to wait for the next browser paint cycle before notifying React Native.
+ * This ensures the indicator is rendered before we notify the React Native layer.
+ *
+ * @param {string} studyId - The TradingView study ID
+ * @param {function} onDataLoadedCallback - Called after indicator is ready
+ */
+function subscribeStudyDataLoaded(studyId, onDataLoadedCallback) {
+  if (!onDataLoadedCallback) return;
+
+  requestAnimationFrame(function() {
+    onDataLoadedCallback();
+  });
 }
 
 function scheduleStudyLegendRefresh() {
@@ -3589,6 +3610,8 @@ var _legendExportGeneration = 0;
 var _legendRetryCount = 0;
 var MAX_LEGEND_RETRIES = 5;
 var LEGEND_RETRY_DELAY_MS = 100;
+var LEGEND_RENDER_TIMEOUT_MS = 3000;
+var _legendTimeoutId = null;
 
 function refreshStudyLegendFromExport() {
   if (!window.chartWidget || !window.isChartReady) return;
@@ -3606,10 +3629,17 @@ function refreshStudyLegendFromExport() {
   if (studyIds.length === 0) {
     overlay.innerHTML = '';
     _legendRetryCount = 0;
+    clearLegendTimeout();
     return;
   }
 
   var gen = ++_legendExportGeneration;
+  
+  // Start timeout on first attempt
+  if (_legendRetryCount === 0) {
+    startLegendTimeout(gen);
+  }
+  
   try {
     chart
       .exportData({
@@ -3668,11 +3698,23 @@ function refreshStudyLegendFromExport() {
 
         _legendRetryCount = 0;
         overlay.innerHTML = buildLegendHTML(studyDataList);
+
+        // Clear timeout on success
+        clearLegendTimeout();
+        
+        // Wait for browser to paint the legend DOM before reporting completion
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            sendToReactNative('LEGEND_RENDERED', {});
+          });
+        });
       })
-      .catch(function () {
+      .catch(function (err) {
         scheduleRetryIfNeeded(gen);
       });
-  } catch (e) {}
+  } catch (e) {
+    // Silent catch - retries will handle failures
+  }
 }
 
 function hasEmptyStudyValues(studyDataList) {
@@ -3689,9 +3731,26 @@ function hasEmptyStudyValues(studyDataList) {
   return false;
 }
 
+function startLegendTimeout(gen) {
+  clearLegendTimeout();
+  _legendTimeoutId = setTimeout(function() {
+    if (gen !== _legendExportGeneration) return;
+    _legendRetryCount = 0;
+    clearLegendTimeout();
+  }, LEGEND_RENDER_TIMEOUT_MS);
+}
+
+function clearLegendTimeout() {
+  if (_legendTimeoutId !== null) {
+    clearTimeout(_legendTimeoutId);
+    _legendTimeoutId = null;
+  }
+}
+
 function scheduleRetryIfNeeded(gen) {
   if (_legendRetryCount >= MAX_LEGEND_RETRIES) {
     _legendRetryCount = 0;
+    clearLegendTimeout();
     var overlay = document.getElementById('study-legend-overlay');
     if (overlay) {
       var studyIdMap = collectStudyIdMap();
@@ -3993,9 +4052,6 @@ function fetchOlderBars(pending) {
       if (window.__mmLayoutSettlePending) {
         queueTryCompleteLayoutSettleAfterData();
       }
-      sendToReactNative('DEBUG', {
-        message: 'fetchOlderBars error: ' + (err.message || String(err)),
-      });
     });
 }
 

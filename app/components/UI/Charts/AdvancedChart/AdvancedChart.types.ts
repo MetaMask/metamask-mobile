@@ -186,6 +186,7 @@ export type WebViewToRNMessageType =
   | 'CHART_LAYOUT_SETTLED'
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
+  | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
   | 'ERROR'
   | 'DEBUG';
@@ -351,6 +352,9 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         return { type, payload: { name: obj.name } };
       }
       return null;
+
+    case 'LEGEND_RENDERED':
+      return { type };
 
     case 'CROSSHAIR_MOVE':
       return {
