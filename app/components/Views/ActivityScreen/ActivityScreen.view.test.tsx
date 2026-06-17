@@ -88,6 +88,46 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('clears a stale unsupported network to "All networks" when switching to Perps', async () => {
+    const {
+      getByTestId,
+      getAllByText,
+      queryAllByText,
+      findByText,
+      findByTestId,
+    } = renderActivityScreenView();
+
+    // Pick a network that Perps does not settle on.
+    fireEvent.press(
+      getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+    fireEvent.press(await findByText('Linea'));
+    await waitFor(() => {
+      expect(
+        getAllByText(
+          strings('activity_view.filter_network_selected', { label: 'Linea' }),
+        ).length,
+      ).toBeGreaterThan(0);
+    });
+
+    // Switching to Perps drops the stale network so domain rows aren't hidden;
+    // the chip reads "All networks" (we don't surface a specific network).
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Perps)));
+
+    await waitFor(() => {
+      expect(
+        getAllByText(strings('activity_view.filter_all_networks')).length,
+      ).toBeGreaterThan(0);
+    });
+    // The stale Linea selection is no longer shown anywhere.
+    expect(
+      queryAllByText(
+        strings('activity_view.filter_network_selected', { label: 'Linea' }),
+      ).length,
+    ).toBe(0);
+  });
+
   it('navigates back to home tabs when opened as the root activity route', async () => {
     const { getByTestId, findByTestId } = renderActivityScreenViewWithRoutes({
       extraRoutes: [{ name: Routes.HOME_TABS }],

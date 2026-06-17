@@ -84,11 +84,21 @@ const ActivityScreen = () => {
       })
     : strings('activity_view.filter_all_types');
 
+  const isNetworkFilterDisabled =
+    typeFilter === ActivityTypeFilter.Perps ||
+    typeFilter === ActivityTypeFilter.Predictions;
+
+  const effectiveNetworkFilter = useMemo<CaipChainId[] | null>(
+    () => (isNetworkFilterDisabled ? null : networkFilter),
+    [isNetworkFilterDisabled, networkFilter],
+  );
+
   const isNetworkFilterActive =
-    Array.isArray(networkFilter) && networkFilter.length > 0;
+    Array.isArray(effectiveNetworkFilter) && effectiveNetworkFilter.length > 0;
   const selectedNetworkName = isNetworkFilterActive
-    ? TRENDING_NETWORKS_LIST.find((n) => n.caipChainId === networkFilter[0])
-        ?.name
+    ? TRENDING_NETWORKS_LIST.find(
+        (n) => n.caipChainId === effectiveNetworkFilter[0],
+      )?.name
     : undefined;
   const networkFilterLabel =
     isNetworkFilterActive && selectedNetworkName
@@ -96,12 +106,6 @@ const ActivityScreen = () => {
           label: selectedNetworkName,
         })
       : strings('activity_view.filter_all_networks');
-
-  // Perps and Predictions are single-network domains, so network filtering is
-  // meaningless — disable the network chip while either is selected.
-  const isNetworkFilterDisabled =
-    typeFilter === ActivityTypeFilter.Perps ||
-    typeFilter === ActivityTypeFilter.Predictions;
 
   const handleOpenNetworkSheet = useCallback(() => {
     setIsNetworkSheetOpen(true);
@@ -224,7 +228,7 @@ const ActivityScreen = () => {
               header={activityListHeader}
               scrollY={scrollY}
               typeFilter={typeFilter}
-              networkFilter={networkFilter}
+              networkFilter={effectiveNetworkFilter}
             />
 
             <Animated.View
