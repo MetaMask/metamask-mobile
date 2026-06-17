@@ -301,4 +301,89 @@ describe('getRampsV2AnalyticsPayload', () => {
       error_message: 'transaction_failed',
     });
   });
+
+  it('handles missing optional data fields gracefully for SELL orders (legacy off-ramp params)', () => {
+    const sellOrderWithNoData = {
+      ...mockSellOrder,
+      data: {},
+    };
+
+    const [eventName, params] = getRampsV2AnalyticsPayload(
+      sellOrderWithNoData as FiatOrder,
+    );
+
+    expect(eventName).toBe('OFFRAMP_PURCHASE_FAILED');
+    expect(params).toEqual({
+      amount: 100,
+      currency_source: 'ETH',
+      currency_destination: 'USD',
+      order_type: 'SELL',
+      payment_method_id: '',
+      chain_id_source: '1',
+      provider_offramp: '',
+    });
+  });
+
+  it('falls back to empty string for chain_id and currency_source when both data and fiatOrder fields are missing', () => {
+    const orderMissingAll = {
+      ...mockBuyOrder,
+      network: undefined,
+      currency: undefined,
+      data: {},
+    };
+
+    const [, params] = getRampsV2AnalyticsPayload(
+      orderMissingAll as unknown as FiatOrder,
+    );
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        chain_id: '',
+        currency_source: '',
+      }),
+    );
+  });
+
+  it('uses data.exchangeRate verbatim when present instead of the computed fallback', () => {
+    const orderWithExchangeRate = {
+      ...mockBuyOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      data: {
+        ...mockBuyOrder.data,
+        exchangeRate: 5000,
+      },
+    };
+
+    const [, params] = getRampsV2AnalyticsPayload(
+      orderWithExchangeRate as FiatOrder,
+    );
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        exchange_rate: 5000,
+      }),
+    );
+  });
+
+  it('falls back to 0 for computed exchange_rate when cryptoAmount is 0', () => {
+    const orderZeroCrypto = {
+      ...mockBuyOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      cryptoAmount: '0',
+      data: {
+        ...mockBuyOrder.data,
+        exchangeRate: undefined,
+      },
+    };
+
+    const [, params] = getRampsV2AnalyticsPayload(
+      orderZeroCrypto as unknown as FiatOrder,
+    );
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        exchange_rate: 0,
+      }),
+    );
+  });
 });

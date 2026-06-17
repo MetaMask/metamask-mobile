@@ -643,6 +643,79 @@ describe('handleOrderStatusChangedForMetrics', () => {
     expect(properties.payment_method_id).toBe('');
   });
 
+  it('falls back to defaults when region, network, fees, and statusDescription are missing on a failed BUY', () => {
+    const order = createMockOrder({
+      status: Status.Failed,
+      region: undefined,
+      network: undefined,
+      networkFees: undefined,
+      partnerFees: undefined,
+      statusDescription: undefined,
+    });
+
+    handleOrderStatusChangedForMetrics({
+      order,
+      previousStatus: Status.Pending,
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    const { properties } = mockTrackEvent.mock.calls[0][0];
+    expect(properties.country).toBe('');
+    expect(properties.chain_id).toBe('');
+    expect(properties.currency_destination_network).toBeUndefined();
+    expect(properties.gas_fee).toBe(0);
+    expect(properties.processing_fee).toBe(0);
+    expect(properties.error_message).toBe('transaction_failed');
+  });
+
+  it('falls back to defaults for legacy SELL params when network and provider are missing', () => {
+    const order = createMockOrder({
+      orderType: 'SELL',
+      status: Status.Failed,
+      network: undefined,
+      provider: undefined,
+    });
+
+    handleOrderStatusChangedForMetrics({
+      order,
+      previousStatus: Status.Pending,
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Off-ramp Purchase Failed',
+        properties: expect.objectContaining({
+          chain_id_source: '',
+          provider_offramp: '',
+        }),
+      }),
+    );
+  });
+
+  it('falls back to empty strings for SELL legacy currency_source/destination when cryptoCurrency and fiatCurrency are missing', () => {
+    const order = createMockOrder({
+      orderType: 'SELL',
+      status: Status.Completed,
+      cryptoCurrency: undefined,
+      fiatCurrency: undefined,
+    });
+
+    handleOrderStatusChangedForMetrics({
+      order,
+      previousStatus: Status.Pending,
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Off-ramp Purchase Completed',
+        properties: expect.objectContaining({
+          currency_source: '',
+          currency_destination: '',
+        }),
+      }),
+    );
+  });
+
   it('logs error when trackEvent throws', () => {
     mockTrackEvent.mockImplementationOnce(() => {
       throw new Error('tracking failed');
