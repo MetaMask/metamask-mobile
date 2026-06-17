@@ -70,7 +70,7 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import { selectPerpsNetwork } from '../../selectors/perpsController';
+import { selectPerpsNetwork , selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
@@ -89,7 +89,9 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_DISCOVERY_BUTTON_CLICKED,
-  PERPS_DISCOVERY_SOURCE,
+  PERPS_DISCOVERY_PROPERTY,
+  PERPS_DISCOVERY_SECTION_NAME,
+  PERPS_DISCOVERY_SOURCE_SECTION,
 } from '../../constants/discoveryAnalytics';
 import {
   PerpsHomeViewSelectorsIDs,
@@ -321,6 +323,52 @@ const PerpsHomeView = ({
   const buttonClicked = route.params?.button_clicked;
   const buttonLocation = route.params?.button_location;
 
+  // Raw watchlist symbols for analytics (unfiltered/uncapped list)
+  const rawWatchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+
+  // Build the ordered list of visible section names for sections_displayed.
+  // Mirrors the render order in the ScrollView so the array is always stable.
+  const sectionsDisplayed = useMemo(() => {
+    const sections: string[] = [PERPS_DISCOVERY_SECTION_NAME.BALANCE];
+    if (positions.length > 0)
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.POSITIONS);
+    if (orders.length > 0) sections.push(PERPS_DISCOVERY_SECTION_NAME.ORDERS);
+    if (isWhatsHappeningEnabled)
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.WHATS_HAPPENING);
+    if (
+      watchlistMarkets.length > 0 ||
+      (suggestedWatchlistMarkets?.length ?? 0) > 0
+    ) {
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.WATCHLIST);
+    }
+    // Products, Top Movers, and explore sections are always attempted; they
+    // self-hide when empty, so we include them here conditionally.
+    sections.push(PERPS_DISCOVERY_SECTION_NAME.PRODUCTS);
+    sections.push(PERPS_DISCOVERY_SECTION_NAME.TOP_MOVERS);
+    if (perpsMarkets.length > 0)
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO);
+    if (commoditiesMarkets.length > 0)
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_COMMODITIES);
+    if (stocksMarkets.length > 0)
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS);
+    if (forexMarkets.length > 0)
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_FOREX);
+    if (recentActivity.length > 0)
+      sections.push(PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY);
+    return sections;
+  }, [
+    positions,
+    orders,
+    isWhatsHappeningEnabled,
+    watchlistMarkets,
+    suggestedWatchlistMarkets,
+    perpsMarkets,
+    commoditiesMarkets,
+    stocksMarkets,
+    forexMarkets,
+    recentActivity,
+  ]);
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
@@ -333,6 +381,9 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
       [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
         isServiceInterruptionBannerEnabled,
+      [PERPS_DISCOVERY_PROPERTY.SECTIONS_DISPLAYED]: sectionsDisplayed,
+      [PERPS_DISCOVERY_PROPERTY.WATCHLIST_COUNT]: rawWatchlistSymbols.length,
+      [PERPS_DISCOVERY_PROPERTY.WATCHLIST_MARKETS]: rawWatchlistSymbols,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -706,139 +757,196 @@ const PerpsHomeView = ({
         </Box>
 
         {/* Positions Section */}
-        <PerpsHomeSection
-          title={strings('perps.home.positions')}
-          subtitle={privacyMode ? undefined : positionsSubtitle}
-          subtitleColor={positionsSubtitleColor}
-          subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
-          subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
-          isLoading={isLoading.positions}
-          isEmpty={positions.length === 0}
-          showWhenEmpty={false}
-          onActionPress={handleCloseAllPress}
-          renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+        <View
+          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.POSITIONS)}
         >
-          <View style={styles.positionsOrdersContainer}>
-            {positions.map((position, index) => (
-              <PerpsCard
-                key={`${position.symbol}-${index}`}
-                position={position}
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_POSITION}
-                testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
-              />
-            ))}
-          </View>
-        </PerpsHomeSection>
+          <PerpsHomeSection
+            title={strings('perps.home.positions')}
+            subtitle={privacyMode ? undefined : positionsSubtitle}
+            subtitleColor={positionsSubtitleColor}
+            subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
+            subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
+            isLoading={isLoading.positions}
+            isEmpty={positions.length === 0}
+            showWhenEmpty={false}
+            onActionPress={handleCloseAllPress}
+            renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+          >
+            <View style={styles.positionsOrdersContainer}>
+              {positions.map((position, index) => (
+                <PerpsCard
+                  key={`${position.symbol}-${index}`}
+                  position={position}
+                  source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                  source_section={PERPS_DISCOVERY_SOURCE_SECTION.POSITIONS}
+                  testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
+                />
+              ))}
+            </View>
+          </PerpsHomeSection>
+        </View>
 
         {/* Orders Section */}
-        <PerpsHomeSection
-          title={strings('perps.home.orders')}
-          isLoading={isLoading.orders}
-          isEmpty={orders.length === 0}
-          showWhenEmpty={false}
-          onActionPress={handleCancelAllPress}
-          renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+        <View
+          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.ORDERS)}
         >
-          <View style={styles.positionsOrdersContainer}>
-            {orders.map((order, index) => (
-              <PerpsCard
-                key={order.orderId}
-                order={order}
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_ORDERS}
-                testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
-              />
-            ))}
-          </View>
-        </PerpsHomeSection>
+          <PerpsHomeSection
+            title={strings('perps.home.orders')}
+            isLoading={isLoading.orders}
+            isEmpty={orders.length === 0}
+            showWhenEmpty={false}
+            onActionPress={handleCancelAllPress}
+            renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+          >
+            <View style={styles.positionsOrdersContainer}>
+              {orders.map((order, index) => (
+                <PerpsCard
+                  key={order.orderId}
+                  order={order}
+                  source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                  source_section={PERPS_DISCOVERY_SOURCE_SECTION.ORDERS}
+                  testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
+                />
+              ))}
+            </View>
+          </PerpsHomeSection>
+        </View>
 
         {/* What's Happening Section */}
         {isWhatsHappeningEnabled && (
-          <WhatsHappeningSection
-            source={WhatsHappeningSource.Perps}
-            onHeaderPress={handleWhatsHappeningHeaderPress}
-          />
+          <View
+            onLayout={handleSectionLayout(
+              PERPS_DISCOVERY_SECTION_NAME.WHATS_HAPPENING,
+            )}
+          >
+            <WhatsHappeningSection
+              source={WhatsHappeningSource.Perps}
+              onHeaderPress={handleWhatsHappeningHeaderPress}
+            />
+          </View>
         )}
 
         {/* Watchlist Section */}
-        <PerpsWatchlistMarkets
-          markets={watchlistMarkets}
-          suggestedMarkets={suggestedWatchlistMarkets}
-          isLoading={isLoading.markets}
-          positions={positions}
-          orders={orders}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST}
-          transactionActiveAbTests={transactionActiveAbTests}
-          onSeeAllPress={
-            watchlistMarkets.length > 0
-              ? () =>
-                  perpsNavigation.navigateToMarketList({
-                    showWatchlistOnly: true,
-                    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-                  })
-              : undefined
-          }
-        />
+        <View
+          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.WATCHLIST)}
+        >
+          <PerpsWatchlistMarkets
+            markets={watchlistMarkets}
+            suggestedMarkets={suggestedWatchlistMarkets}
+            isLoading={isLoading.markets}
+            positions={positions}
+            orders={orders}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_DISCOVERY_SOURCE_SECTION.WATCHLIST}
+            transactionActiveAbTests={transactionActiveAbTests}
+            onSeeAllPress={
+              watchlistMarkets.length > 0
+                ? () =>
+                    perpsNavigation.navigateToMarketList({
+                      showWatchlistOnly: true,
+                      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                    })
+                : undefined
+            }
+          />
+        </View>
 
         {/* Products Section - Category pills grid */}
-        <View onLayout={handleSectionLayout('products')}>
+        <View
+          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.PRODUCTS)}
+        >
           <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
         </View>
 
         {/* Top Movers Section */}
-        <PerpsTopMoversSection
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-          transactionActiveAbTests={transactionActiveAbTests}
-        />
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_DISCOVERY_SECTION_NAME.TOP_MOVERS,
+          )}
+        >
+          <PerpsTopMoversSection
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        </View>
 
         {/* Crypto Markets List */}
-        <View onLayout={handleSectionLayout('explore_crypto')}>
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO,
+          )}
+        >
           <PerpsMarketTypeSection
             title={strings('perps.home.crypto')}
             markets={perpsMarkets}
             marketType="crypto"
             sortBy={sortBy}
             isLoading={isLoading.markets}
-            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_CRYPTO}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_DISCOVERY_SOURCE_SECTION.CRYPTO}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
         {/* Commodities Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.commodities')}
-          markets={commoditiesMarkets}
-          marketType="commodity"
-          sortBy={sortBy}
-          isLoading={isLoading.markets}
-          source={PERPS_DISCOVERY_SOURCE.PERPS_HOME_EXPLORE_COMMODITIES}
-          transactionActiveAbTests={transactionActiveAbTests}
-        />
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_COMMODITIES,
+          )}
+        >
+          <PerpsMarketTypeSection
+            title={strings('perps.home.commodities')}
+            markets={commoditiesMarkets}
+            marketType="commodity"
+            sortBy={sortBy}
+            isLoading={isLoading.markets}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_DISCOVERY_SOURCE_SECTION.COMMODITY}
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        </View>
 
         {/* Stocks Markets List */}
-        <View onLayout={handleSectionLayout('explore_stocks')}>
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS,
+          )}
+        >
           <PerpsMarketTypeSection
             title={strings('perps.home.stocks')}
             markets={stocksMarkets}
             marketType="stock"
             sortBy={sortBy}
             isLoading={isLoading.markets}
-            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_STOCKS}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_DISCOVERY_SOURCE_SECTION.STOCK}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
         {/* Forex Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.forex')}
-          markets={forexMarkets}
-          marketType="forex"
-          isLoading={isLoading.markets}
-          source={PERPS_DISCOVERY_SOURCE.PERPS_HOME_EXPLORE_FOREX}
-          transactionActiveAbTests={transactionActiveAbTests}
-        />
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_FOREX,
+          )}
+        >
+          <PerpsMarketTypeSection
+            title={strings('perps.home.forex')}
+            markets={forexMarkets}
+            marketType="forex"
+            isLoading={isLoading.markets}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_DISCOVERY_SOURCE_SECTION.FOREX}
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        </View>
 
         {/* Recent Activity List */}
-        <View onLayout={handleSectionLayout('activity')}>
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY,
+          )}
+        >
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}

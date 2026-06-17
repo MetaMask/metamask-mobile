@@ -14,7 +14,7 @@ import { usePerpsNavigation } from '../../hooks';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import {
   PERPS_DISCOVERY_BUTTON_CLICKED,
-  PERPS_DISCOVERY_SOURCE,
+  PERPS_DISCOVERY_SOURCE_SECTION,
 } from '../../constants/discoveryAnalytics';
 
 const mockNavigateToMarketList = jest.fn();
@@ -73,10 +73,12 @@ jest.mock('../PerpsPillItem', () => ({
   PerpsPillItem: ({
     item,
     marketDetailsSource,
+    marketDetailsSourceSection,
     transactionActiveAbTests,
   }: {
     item: { market: { symbol: string } };
     marketDetailsSource: string;
+    marketDetailsSourceSection?: string;
     transactionActiveAbTests?: unknown[];
   }) => {
     const ReactModule = jest.requireActual('react');
@@ -88,6 +90,11 @@ jest.mock('../PerpsPillItem', () => ({
         Text,
         { testID: `mock-pill-source-${item.market.symbol}` },
         marketDetailsSource,
+      ),
+      ReactModule.createElement(
+        Text,
+        { testID: `mock-pill-source-section-${item.market.symbol}` },
+        marketDetailsSourceSection ?? '',
       ),
       ReactModule.createElement(
         Text,
@@ -258,18 +265,26 @@ describe('PerpsTopMoversSection', () => {
     });
   });
 
-  it('passes the gainers source to each pill when gainers toggle is active (default)', () => {
+  it('passes source=perps_home and source_section=top_gainers to each pill when gainers toggle is active (default)', () => {
     renderSection();
 
+    // source is perps_home (unified model)
     expect(screen.getByTestId('mock-pill-source-ETH')).toHaveTextContent(
-      PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_GAINERS,
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     );
     expect(screen.getByTestId('mock-pill-source-BTC')).toHaveTextContent(
-      PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_GAINERS,
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     );
+    // source_section distinguishes gainers from losers
+    expect(
+      screen.getByTestId('mock-pill-source-section-ETH'),
+    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_GAINERS);
+    expect(
+      screen.getByTestId('mock-pill-source-section-BTC'),
+    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_GAINERS);
   });
 
-  it('passes the losers source to each pill after switching to losers toggle', () => {
+  it('passes source=perps_home and source_section=top_losers to each pill after switching to losers toggle', () => {
     renderSection();
 
     fireEvent.press(
@@ -277,11 +292,17 @@ describe('PerpsTopMoversSection', () => {
     );
 
     expect(screen.getByTestId('mock-pill-source-ETH')).toHaveTextContent(
-      PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_LOSERS,
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     );
     expect(screen.getByTestId('mock-pill-source-BTC')).toHaveTextContent(
-      PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_LOSERS,
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     );
+    expect(
+      screen.getByTestId('mock-pill-source-section-ETH'),
+    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_LOSERS);
+    expect(
+      screen.getByTestId('mock-pill-source-section-BTC'),
+    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_LOSERS);
   });
 
   it('forwards transactionActiveAbTests to each pill', () => {

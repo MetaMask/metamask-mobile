@@ -176,6 +176,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         renderItem={(item, index) => (
           <PerpsPillItem
             item={item}
+            marketDetailsSourceSection="perps_movers"
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',

@@ -57,6 +57,8 @@ interface PerpsWatchlistMarketsProps {
   orders?: Order[];
   /** Analytics source identifying the parent screen (e.g., 'perps_home') */
   source?: string;
+  /** Sub-section of the parent screen that triggered navigation (e.g., 'watchlist'). */
+  source_section?: string;
   /** Bound onto market-details routes for downstream transaction attribution. */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Override section styles (e.g., to adjust margins) */
@@ -92,6 +94,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   positions = [],
   orders = [],
   source,
+  source_section,
   transactionActiveAbTests,
   sectionStyle,
   contentContainerStyle,
@@ -122,6 +125,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
           market,
           initialTab,
           source,
+          ...(source_section && { source_section }),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -134,6 +138,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
       positions,
       orders,
       source,
+      source_section,
       transactionActiveAbTests,
     ],
   );
@@ -183,6 +188,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   positions = [],
   orders = [],
   source,
+  source_section,
   transactionActiveAbTests,
   sectionStyle,
   headerStyle,
@@ -237,6 +243,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
           market,
           initialTab,
           source,
+          ...(source_section && { source_section }),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -249,6 +256,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
       positions,
       orders,
       source,
+      source_section,
       transactionActiveAbTests,
     ],
   );

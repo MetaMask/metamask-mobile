@@ -31,7 +31,7 @@ import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_DISCOVERY_BUTTON_CLICKED,
-  PERPS_DISCOVERY_SOURCE,
+  PERPS_DISCOVERY_SOURCE_SECTION,
 } from '../../constants/discoveryAnalytics';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -98,12 +98,12 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
     return null;
   }
 
-  // Pills navigate to asset_details — give each a direction-aware source so
-  // analysts can distinguish gainers from losers without an extra param.
-  const pillSource =
+  // Pills navigate to asset_details — use source=perps_home + direction-aware
+  // source_section so analysts can distinguish gainers from losers.
+  const pillSourceSection =
     direction === 'desc'
-      ? PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_GAINERS
-      : PERPS_DISCOVERY_SOURCE.PERPS_HOME_TOP_LOSERS;
+      ? PERPS_DISCOVERY_SOURCE_SECTION.TOP_GAINERS
+      : PERPS_DISCOVERY_SOURCE_SECTION.TOP_LOSERS;
 
   const handleViewAll = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -127,7 +127,8 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
     return (
       <PerpsPillItem
         item={feedItem}
-        marketDetailsSource={pillSource}
+        marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+        marketDetailsSourceSection={pillSourceSection}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );

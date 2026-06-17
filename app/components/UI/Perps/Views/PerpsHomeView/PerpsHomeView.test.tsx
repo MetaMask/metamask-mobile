@@ -1057,4 +1057,90 @@ describe('PerpsHomeView', () => {
       expect(queryByTestId('whats-happening-section')).not.toBeOnTheScreen();
     });
   });
+
+  describe('Analytics: base perps_home screen view event', () => {
+    const mockUsePerpsEventTracking = jest.requireMock(
+      '../../hooks/usePerpsEventTracking',
+    ).usePerpsEventTracking as jest.Mock;
+
+    interface TrackingOptions { properties?: Record<string, unknown> }
+
+    const getBaseEventProperties = (
+      calls: unknown[][],
+    ): Record<string, unknown> | undefined => {
+      const match = calls.find((c) => {
+        const opts = c[0] as TrackingOptions;
+        return opts?.properties?.screen_type === 'perps_home';
+      });
+      return (match?.[0] as TrackingOptions)?.properties;
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('includes sections_displayed containing balance and explore sections when markets exist', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        perpsMarkets: [{ symbol: 'BTC' }],
+        stocksMarkets: [{ symbol: 'AAPL' }],
+        recentActivity: [{ id: '1' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toEqual(
+        expect.arrayContaining([
+          'balance',
+          'explore_crypto',
+          'explore_stocks',
+          'recent_activity',
+        ]),
+      );
+    });
+
+    it('includes watchlist_count and watchlist_markets from raw selector', () => {
+      const mockWatchlist = ['BTC', 'ETH', 'SOL'];
+      mockUseSelector.mockImplementation(() => mockWatchlist);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.watchlist_count).toBe(3);
+      expect(properties?.watchlist_markets).toEqual(mockWatchlist);
+    });
+
+    it('excludes positions section from sections_displayed when positions array is empty', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('positions');
+    });
+
+    it('includes positions section in sections_displayed when positions exist', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('positions');
+    });
+  });
 });
