@@ -252,6 +252,7 @@ function useReceivedTokenData(
 
 function useSourceSentData(): TokenDisplayData | null {
   const { transactionMeta } = useTransactionDetails();
+  const tokenMeta = useTokenMeta(transactionMeta);
   const { metamaskPay, requiredTransactionIds } = transactionMeta;
   const { tokenAddress, chainId: sourceChainId } = metamaskPay ?? {};
 
@@ -271,6 +272,12 @@ function useSourceSentData(): TokenDisplayData | null {
   const symbol = sourceToken?.symbol ?? MUSD_TOKEN.symbol;
   const decimals = sourceToken?.decimals ?? MUSD_DECIMALS;
 
+  const base: Omit<TokenDisplayData, 'amount'> = {
+    symbol,
+    address: tokenAddress,
+    chainId: sourceChainId as Hex,
+  };
+
   const relayDeposit = childTransactions.find((tx) =>
     hasTransactionType(tx, RELAY_DEPOSIT_TYPES),
   );
@@ -284,23 +291,20 @@ function useSourceSentData(): TokenDisplayData | null {
     );
 
     if (sentAmount) {
-      return {
-        amount: sentAmount,
-        symbol,
-        address: tokenAddress,
-        chainId: sourceChainId as Hex,
-      };
+      return { ...base, amount: sentAmount };
     }
   }
 
   const parentAmount = extractSentAmountFromParent(transactionMeta, decimals);
   if (parentAmount) {
-    return {
-      amount: parentAmount,
-      symbol,
-      address: tokenAddress,
-      chainId: sourceChainId as Hex,
-    };
+    return { ...base, amount: parentAmount };
+  }
+
+  // Fallback: use the received mUSD amount as an approximation when
+  // we have source token info but can't extract the exact sent amount
+  // (e.g. complex bridge calldata that isn't a simple ERC-20 transfer).
+  if (tokenMeta) {
+    return { ...base, amount: tokenMeta.amount };
   }
 
   return null;

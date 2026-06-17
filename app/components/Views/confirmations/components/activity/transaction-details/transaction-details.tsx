@@ -115,6 +115,9 @@ function getTitle(
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
   ) {
+    if (isMoneyContext) {
+      return getConversionTitle(transactionMeta.status);
+    }
     return strings('transaction_details.title.money_account_deposit');
   }
 
@@ -151,6 +154,9 @@ function getTitle(
 
   switch (transactionMeta.type) {
     case TransactionType.musdConversion:
+      if (isMoneyContext) {
+        return getConversionTitle(transactionMeta.status);
+      }
       return strings('transaction_details.title.musd_conversion');
     case TransactionType.musdClaim:
       return strings('transaction_details.title.musd_claim');
@@ -161,6 +167,18 @@ function getTitle(
       return strings('transaction_details.title.perps_deposit');
     default:
       return strings('transaction_details.title.default');
+  }
+}
+
+function getConversionTitle(status: TransactionStatus): string {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return strings('transaction_details.title.converted_to_musd');
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return strings('transaction_details.title.conversion_failed');
+    default:
+      return strings('transaction_details.title.converting_to_musd');
   }
 }
 

@@ -9504,6 +9504,9 @@
       "sent": "Sent",
       "sending_musd": "Sending mUSD",
       "send_failed": "Send failed",
+      "converted_to_musd": "Converted to mUSD",
+      "converting_to_musd": "Converting to mUSD",
+      "conversion_failed": "Conversion failed",
       "default": "Transaction details"
     },
     "label": {
