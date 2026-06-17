@@ -12,20 +12,18 @@ import TradeRow from './TradeRow';
 
 export interface TraderTradesSectionProps {
   trades: Trade[];
-  traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
 }
 
 const TraderTradesSection: React.FC<TraderTradesSectionProps> = ({
   trades,
-  traderName,
   traderImageUrl,
   traderAddress,
 }) => (
   <>
     <Box twClassName="px-4 mt-5">
-      <Box twClassName="self-start pb-2 border-b-2 border-white">
+      <Box twClassName="self-start pb-2">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
@@ -34,7 +32,7 @@ const TraderTradesSection: React.FC<TraderTradesSectionProps> = ({
           {strings('social_leaderboard.trader_position.trades')}
         </Text>
       </Box>
-      <Box twClassName="h-px bg-muted -mt-0.5" />
+      <Box twClassName="h-px bg-muted" />
     </Box>
 
     {trades.length > 0 ? (
@@ -42,7 +40,6 @@ const TraderTradesSection: React.FC<TraderTradesSectionProps> = ({
         <TradeRow
           key={trade.transactionHash}
           trade={trade}
-          traderName={traderName}
           traderImageUrl={traderImageUrl}
           traderAddress={traderAddress}
         />
