@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.81.1]
+
+### Added
+
+- Adds Swap/Bridge feature to ARC mainnet. (#31413)
+
+### Fixed
+
+- Fixed the MetaMask Card section on the Money screen so the "Link card" option and funding token placeholders are only shown when the card spending token is enabled in the card feature configuration. (#31611)
+- Removed the trailing slash from the Arc explorer URL defined in app/util/networks/customNetworks.tsx so now the URL is correctly generated. (#31718)
+- Fixed Arc native token support, included patches for MetaMask/core#9006 and MetaMask/core#9007 (#31662)
+
 ## [7.81.0]
 
 ### Added
@@ -84,8 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new Positions screen for Predict users to view active positions and history (#30718)
 - Track explore conversions in swaps (#30720)
 
-
 ### Changed
+
 - Updated the Sei native token icon to Sei's maroon token mark. (#31038)
 - Updated the Sei network and token logo to Sei's new brand mark. (#30892)
 - Improve crypto movers section in explore (#30809)
@@ -368,10 +380,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.78.1]
 
-### Fixed
-
-- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
-
 ### Added
 
 - Updated the onboarding interest questionnaire layout to a two-column grid with refreshed option labels. (#30753)
@@ -469,6 +477,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
 - Fixed the "Add mUSD" option in the Money account "Add money" sheet so it opens the deposit flow with mUSD pre-selected, and (#30741)
   corrected the in-progress / success / failed toast copy for both the
   Convert and Add flows.
@@ -12078,8 +12087,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.0...HEAD
-[7.81.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.1...v7.81.0
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.1...HEAD
+[7.81.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.0...v7.81.1
+[7.81.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.80.0...v7.81.0
+[7.80.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.1...v7.80.0
 [7.79.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.0...v7.79.1
 [7.79.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.1...v7.79.0
 [7.78.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...v7.78.1

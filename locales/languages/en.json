@@ -1075,7 +1075,7 @@
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
       "win_rate": "win rate",
-      "pnl_30d": "30D Return",
+      "pnl_7d": "7D Return",
       "hold_time": "hold time",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
@@ -1093,9 +1093,11 @@
     },
     "trader_position": {
       "market_cap": "Market cap",
+      "price": "Price",
       "position": "Position",
       "trades": "Trades",
       "buy": "Buy",
+      "trade": "Trade",
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
       "no_trades": "No trades yet",
@@ -1104,7 +1106,11 @@
       "fallback_subtitle": "We couldn't load this position right now.",
       "fallback_back_to_profile": "Back to profile",
       "fallback_back_to_leaderboard": "Back to leaderboard",
-      "sell": "Sell"
+      "sell": "Sell",
+      "long": "Long",
+      "short": "Short",
+      "opened": "{{name}} opened",
+      "closed_action": "{{name}} closed"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -2333,7 +2339,6 @@
     "home": {
       "live_now_title": "Live now",
       "categories_placeholder": "Categories",
-      "popular_today_placeholder": "Popular today",
       "trending_placeholder": "Trending"
     },
     "homepage_discovery": {
@@ -7094,7 +7099,8 @@
       "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
-      "avail_balance": "Avail. balance"
+      "avail_balance": "Avail. balance",
+      "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
       "title": "What you get",
@@ -7155,7 +7161,15 @@
       "deposit_failed_body_convert": "Unable to convert. Try again.",
       "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
       "withdraw_failed_title": "Transfer failed",
-      "withdraw_failed_body": "Unable to transfer funds. Try again."
+      "withdraw_failed_body": "Unable to transfer funds. Try again.",
+      "send_in_progress_title": "Sending funds",
+      "send_success_title": "Funds sent",
+      "send_success_body": "{{amount}} is available in {{destination}}.",
+      "send_success_body_no_amount": "Available in {{destination}}.",
+      "send_failed_title": "Send failed",
+      "send_failed_body": "Unable to send funds. Try again.",
+      "send_destination_perps": "Perps",
+      "send_destination_predict": "Predict"
     },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
@@ -8942,6 +8956,8 @@
       "referee_perps_volume_label": "Perps volume",
       "referee_error_title": "We couldn’t load your VIP referee details",
       "referee_error_description": "Check your connection and try again.",
+      "referee_contact_support": "Contact support",
+      "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
       "referral_tag_label": "VIP",
       "last_updated": "Last updated: {{time}}"
     },

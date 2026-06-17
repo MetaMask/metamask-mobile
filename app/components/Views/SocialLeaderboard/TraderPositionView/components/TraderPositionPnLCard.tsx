@@ -61,19 +61,27 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
         </Box>
       )}
       <Box alignItems={BoxAlignItems.End}>
+        {/* The absolute amount stays neutral; the percentage carries the
+            red/green so coloring is consistent with the positions list and
+            with spot positions. */}
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
-          twClassName={
-            isPnlPositive ? 'text-success-default' : 'text-error-default'
-          }
+          color={TextColor.TextDefault}
         >
           {pnlValue != null ? formatPnl(pnlValue) : '\u2014'}
         </Text>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
+          color={pnlPercent == null ? TextColor.TextDefault : undefined}
+          twClassName={
+            pnlPercent == null
+              ? undefined
+              : isPnlPositive
+                ? 'text-success-default'
+                : 'text-error-default'
+          }
         >
           {formatPercent(pnlPercent)}
         </Text>
