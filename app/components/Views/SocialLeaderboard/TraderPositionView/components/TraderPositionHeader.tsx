@@ -1,9 +1,6 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import {
-  AvatarAccount,
-  AvatarAccountSize,
-  AvatarAccountVariant,
   Box,
   Text,
   TextVariant,
@@ -17,7 +14,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { hasRealAvatar } from '../../../Homepage/Sections/TopTraders/utils/avatarFallback';
+import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
 const AVATAR_SIZE = 24;
 
@@ -39,11 +36,6 @@ const styles = StyleSheet.create({
   },
   traderNameButtonPressed: {
     opacity: 0.7,
-  },
-  avatar: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
   },
 });
 
@@ -88,20 +80,11 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
         gap={2}
         twClassName="max-w-full"
       >
-        {hasRealAvatar(traderImageUrl) ? (
-          <Image
-            source={{ uri: traderImageUrl }}
-            style={styles.avatar}
-            resizeMode="cover"
-          />
-        ) : (
-          <AvatarAccount
-            variant={AvatarAccountVariant.Maskicon}
-            address={traderAddress ?? ''}
-            size={AvatarAccountSize.Sm}
-            twClassName="rounded-full"
-          />
-        )}
+        <TraderAvatar
+          imageUrl={traderImageUrl}
+          address={traderAddress}
+          size={AVATAR_SIZE}
+        />
         <Text
           variant={TextVariant.HeadingSm}
           fontWeight={FontWeight.Bold}
