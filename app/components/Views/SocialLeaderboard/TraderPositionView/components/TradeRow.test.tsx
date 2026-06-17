@@ -15,10 +15,7 @@ const baseTrade: Trade = {
   transactionHash: '0xabc',
 };
 
-const REAL_AVATAR_URL =
-  'https://clicker.api.cx.metamask.io/avatar/eyJpbWFnZUlkIjoxfQ';
-const ENS_PLACEHOLDER_URL =
-  'https://daylight-images.s3.us-east-1.amazonaws.com/ens-fallback.png';
+const REAL_AVATAR_URL = 'https://example.com/avatar.png';
 const TRADER_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 describe('TradeRow', () => {
@@ -60,20 +57,6 @@ describe('TradeRow', () => {
       <TradeRow
         trade={baseTrade}
         traderName="nodestack.eth"
-        traderAddress={TRADER_ADDRESS}
-      />,
-    );
-
-    expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
-    expect(screen.UNSAFE_queryByType(Image)).toBeNull();
-  });
-
-  it('renders the Maskicon fallback when the image url is the shared ENS placeholder', () => {
-    renderWithProvider(
-      <TradeRow
-        trade={baseTrade}
-        traderName="nodestack.eth"
-        traderImageUrl={ENS_PLACEHOLDER_URL}
         traderAddress={TRADER_ADDRESS}
       />,
     );

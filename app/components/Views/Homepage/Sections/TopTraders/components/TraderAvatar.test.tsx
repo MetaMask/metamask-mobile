@@ -3,12 +3,11 @@ import React from 'react';
 import { Image } from 'react-native';
 import { AvatarAccount } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { KNOWN_DEFAULT_AVATAR_URLS } from '../utils/avatarFallback';
 import TraderAvatar from './TraderAvatar';
 
-const REAL_AVATAR_URL =
-  'https://clicker.api.cx.metamask.io/avatar/eyJpbWFnZUlkIjoxfQ';
-const ENS_PLACEHOLDER_URL =
-  'https://daylight-images.s3.us-east-1.amazonaws.com/ens-fallback.png';
+const REAL_AVATAR_URL = 'https://example.com/avatar.png';
+const ENS_PLACEHOLDER_URL = KNOWN_DEFAULT_AVATAR_URLS[0];
 const ADDRESS = '0x0000000000000000000000000000000000000001';
 
 describe('TraderAvatar', () => {
