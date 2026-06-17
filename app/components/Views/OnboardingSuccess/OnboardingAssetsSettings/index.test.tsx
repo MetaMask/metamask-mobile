@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -56,5 +57,13 @@ describe('OnboardingAssetSettings', () => {
     expect(
       getByText(strings('default_settings.drawer_assets_title')),
     ).toBeOnTheScreen();
+  });
+
+  it('navigates back when the header back button is pressed', () => {
+    const { getAllByTestId } = renderWithProvider(<OnboardingAssetSettings />, {
+      state: initialState,
+    });
+    fireEvent.press(getAllByTestId('button-icon')[0]);
+    expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 });
