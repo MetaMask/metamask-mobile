@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
                                                                                                               
 - Fix odds prices stale on feed cards and event page during live markets (#31922)                           
 - Fix extended sports outcome grouping, spread ordering, and live pricing (#31934)
+- Fix JS-thread FPS collapse on market details with live prices (#31801)
 
 ## [7.81.1]
 
