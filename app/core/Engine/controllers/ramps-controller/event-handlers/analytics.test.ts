@@ -21,12 +21,11 @@ jest.mock('../../../../../util/analytics/analytics', () => ({
 
 jest.mock('../../../../Analytics', () => ({
   MetaMetricsEvents: {
-    ONRAMP_PURCHASE_COMPLETED: { category: 'On-ramp Purchase Completed' },
-    ONRAMP_PURCHASE_FAILED: { category: 'On-ramp Purchase Failed' },
     ONRAMP_PURCHASE_CANCELLED: { category: 'On-ramp Purchase Cancelled' },
     OFFRAMP_PURCHASE_COMPLETED: { category: 'Off-ramp Purchase Completed' },
     OFFRAMP_PURCHASE_FAILED: { category: 'Off-ramp Purchase Failed' },
     OFFRAMP_PURCHASE_CANCELLED: { category: 'Off-ramp Purchase Cancelled' },
+    RAMPS_TRANSACTION_COMPLETED: { category: 'Ramps Transaction Completed' },
     RAMPS_TRANSACTION_FAILED: { category: 'Ramps Transaction Failed' },
   },
 }));
@@ -63,10 +62,15 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
     links: [],
     logos: { light: '', dark: '', height: 24, width: 79 },
   },
-  cryptoCurrency: { symbol: 'ETH' },
+  cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   fiatCurrency: { symbol: 'USD' },
   paymentMethod: { id: 'card-1', name: 'Card' },
   fiatAmountInUsd: 100,
+  region: 'US',
+  exchangeRate: 200,
+  networkFees: 1,
+  partnerFees: 2,
+  statusDescription: 'card_declined',
   ...overrides,
 });
 
@@ -81,7 +85,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
   });
 
   describe('BUY orders', () => {
-    it('tracks ONRAMP_PURCHASE_COMPLETED with calculated exchange rate', () => {
+    it('tracks RAMPS_TRANSACTION_COMPLETED with the unified deposit-shaped payload', () => {
       const order = createMockOrder({ status: Status.Completed });
 
       handleOrderStatusChangedForMetrics({
@@ -91,23 +95,27 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const trackedEvent = mockTrackEvent.mock.calls[0][0];
-      expect(trackedEvent.name).toBe('On-ramp Purchase Completed');
+      expect(trackedEvent.name).toBe('Ramps Transaction Completed');
       expect(trackedEvent.properties).toEqual({
-        amount: 100,
-        amount_in_usd: 100,
-        chain_id_destination: 'eip155:1',
-        crypto_out: '0.5',
-        currency_destination: 'ETH',
-        currency_source: 'USD',
-        exchange_rate: 190,
-        order_type: 'BUY',
+        ramp_type: 'UNIFIED_BUY_2',
+        amount_source: 100,
+        amount_destination: 0.5,
+        exchange_rate: 200,
         payment_method_id: 'card-1',
+        country: 'US',
+        chain_id: 'eip155:1',
+        currency_destination: 'eip155:1/slip44:60',
+        currency_destination_symbol: 'ETH',
+        currency_destination_network: 'Ethereum',
+        currency_source: 'USD',
         provider_onramp: 'Transak',
+        gas_fee: 1,
+        processing_fee: 2,
         total_fee: 5,
       });
     });
 
-    it('tracks ONRAMP_PURCHASE_FAILED for Failed status', () => {
+    it('tracks RAMPS_TRANSACTION_FAILED for Failed status with the unified payload + error_message', () => {
       const order = createMockOrder({ status: Status.Failed });
 
       handleOrderStatusChangedForMetrics({
@@ -117,13 +125,18 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'On-ramp Purchase Failed',
-          properties: expect.objectContaining({ order_type: 'BUY' }),
+          name: 'Ramps Transaction Failed',
+          properties: expect.objectContaining({
+            ramp_type: 'UNIFIED_BUY_2',
+            chain_id: 'eip155:1',
+            provider_onramp: 'Transak',
+            error_message: 'card_declined',
+          }),
         }),
       );
     });
 
-    it('tracks ONRAMP_PURCHASE_FAILED for IdExpired status', () => {
+    it('tracks RAMPS_TRANSACTION_FAILED for IdExpired status', () => {
       const order = createMockOrder({ status: Status.IdExpired });
 
       handleOrderStatusChangedForMetrics({
@@ -133,8 +146,11 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'On-ramp Purchase Failed',
-          properties: expect.objectContaining({ order_type: 'BUY' }),
+          name: 'Ramps Transaction Failed',
+          properties: expect.objectContaining({
+            ramp_type: 'UNIFIED_BUY_2',
+            error_message: 'card_declined',
+          }),
         }),
       );
     });
@@ -151,6 +167,76 @@ describe('handleOrderStatusChangedForMetrics', () => {
         expect.objectContaining({
           name: 'On-ramp Purchase Cancelled',
           properties: expect.objectContaining({ order_type: 'BUY' }),
+        }),
+      );
+    });
+  });
+
+  describe('DEPOSIT orders (Transak native on-ramp)', () => {
+    // The V2 unified API returns orderType: 'DEPOSIT' for native flows
+    // (e.g. Transak + Apple Pay). DEPOSIT must map to the on-ramp events,
+    // not the off-ramp events. See TRAM-3534.
+    it('tracks RAMPS_TRANSACTION_COMPLETED for DEPOSIT orders', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Completed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Ramps Transaction Completed',
+          properties: expect.objectContaining({
+            ramp_type: 'UNIFIED_BUY_2',
+            chain_id: 'eip155:1',
+            country: 'US',
+            provider_onramp: 'Transak',
+          }),
+        }),
+      );
+    });
+
+    it('tracks RAMPS_TRANSACTION_FAILED for DEPOSIT orders', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Failed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Ramps Transaction Failed',
+          properties: expect.objectContaining({
+            ramp_type: 'UNIFIED_BUY_2',
+            error_message: 'card_declined',
+          }),
+        }),
+      );
+    });
+
+    it('tracks ONRAMP_PURCHASE_CANCELLED for DEPOSIT orders', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Cancelled,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'On-ramp Purchase Cancelled',
+          properties: expect.objectContaining({ order_type: 'DEPOSIT' }),
         }),
       );
     });
@@ -334,7 +420,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       );
     });
 
-    it('does NOT emit RAMPS_TRANSACTION_FAILED for an order with no context entry: a BUY order still emits ONRAMP', () => {
+    it('does NOT emit a HEADLESS-tagged RAMPS_TRANSACTION_FAILED for an order with no context entry: a non-headless BUY emits the generic UNIFIED_BUY_2-tagged event (TRAM-3534)', () => {
       const order = createMockOrder({ status: Status.Failed });
 
       handleOrderStatusChangedForMetrics({
@@ -342,11 +428,15 @@ describe('handleOrderStatusChangedForMetrics', () => {
         previousStatus: Status.Pending,
       });
 
-      // No registry entry: the fold is inert and the generic emit runs.
+      // No registry entry: the headless fold is inert and the generic emit
+      // runs. Per TRAM-3534, V2 buys/deposits emit RAMPS_TRANSACTION_FAILED
+      // with ramp_type: 'UNIFIED_BUY_2' (not 'HEADLESS'). The de-dup is
+      // expressed by the ramp_type discriminator, not by event name.
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const trackedEvent = mockTrackEvent.mock.calls[0][0];
-      expect(trackedEvent.name).toBe('On-ramp Purchase Failed');
-      expect(trackedEvent.name).not.toBe('Ramps Transaction Failed');
+      expect(trackedEvent.name).toBe('Ramps Transaction Failed');
+      expect(trackedEvent.properties.ramp_type).toBe('UNIFIED_BUY_2');
+      expect(trackedEvent.properties.ramp_type).not.toBe('HEADLESS');
     });
 
     it('is idempotent: a second identical Failed event finds no entry and does not re-emit the tagged event', () => {
@@ -365,14 +455,16 @@ describe('handleOrderStatusChangedForMetrics', () => {
         previousStatus: Status.Pending,
       });
 
-      // Emit-then-delete: the tagged failure event fires exactly once. The
-      // second call finds no entry, so it never re-emits RAMPS_TRANSACTION_FAILED
-      // (the de-dup). (In real runtime the controller never re-fires a terminal
-      // Failed; this synthetic double call only proves the registry guard.)
-      const taggedEmits = mockTrackEvent.mock.calls.filter(
-        (call) => call[0].name === 'Ramps Transaction Failed',
+      // Emit-then-delete: the HEADLESS-tagged failure event fires exactly
+      // once. The second call finds no entry, so it falls through to the
+      // generic emit (UNIFIED_BUY_2-tagged per TRAM-3534) and never re-emits
+      // the HEADLESS-tagged event. The de-dup is on ramp_type, not on name.
+      const headlessTaggedEmits = mockTrackEvent.mock.calls.filter(
+        (call) =>
+          call[0].name === 'Ramps Transaction Failed' &&
+          call[0].properties.ramp_type === 'HEADLESS',
       );
-      expect(taggedEmits).toHaveLength(1);
+      expect(headlessTaggedEmits).toHaveLength(1);
       expect(getHeadlessOrderContext('order-1')).toBeUndefined();
     });
 
@@ -397,16 +489,21 @@ describe('handleOrderStatusChangedForMetrics', () => {
       );
       expect(getHeadlessOrderContext('order-1')).toBeUndefined();
 
-      // A retried poll of the same failed order finds no entry, so it never
-      // re-emits the tagged event (even though the first emit threw).
+      // A retried poll of the same failed order finds no entry, so it
+      // never re-emits the HEADLESS-tagged event (even though the first
+      // emit threw). The retry will fall through to the generic
+      // UNIFIED_BUY_2 emit per TRAM-3534, which is fine — only the
+      // HEADLESS-tagged event is the one we de-dup on.
       handleOrderStatusChangedForMetrics({
         order,
         previousStatus: Status.Pending,
       });
-      const taggedEmits = mockTrackEvent.mock.calls.filter(
-        (call) => call[0].name === 'Ramps Transaction Failed',
+      const headlessTaggedEmits = mockTrackEvent.mock.calls.filter(
+        (call) =>
+          call[0].name === 'Ramps Transaction Failed' &&
+          call[0].properties.ramp_type === 'HEADLESS',
       );
-      expect(taggedEmits).toHaveLength(1);
+      expect(headlessTaggedEmits).toHaveLength(1);
     });
 
     it('deletes the entry on Completed and (Option B) still fires the generic completion event', () => {
@@ -481,11 +578,14 @@ describe('handleOrderStatusChangedForMetrics', () => {
       );
     });
 
-    it('no-ops on a headless Failed order when the registry is empty (simulating an app relaunch)', () => {
-      // No setHeadlessOrderContext call: the module Map is empty as it would be
-      // after the app process restarts. Under Option B the same-session-only gap
-      // is by design; the handler must NOT emit a tagged event - but the generic
-      // emit still runs for the DEPOSIT order (no double-emit, no tagged event).
+    it('no-ops the HEADLESS path on a headless Failed order when the registry is empty (simulating an app relaunch)', () => {
+      // No setHeadlessOrderContext call: the module Map is empty as it would
+      // be after the app process restarts. Under Option B the
+      // same-session-only gap is by design; the handler must NOT emit a
+      // HEADLESS-tagged event. The generic emit still runs for the DEPOSIT
+      // order and emits RAMPS_TRANSACTION_FAILED with ramp_type:
+      // 'UNIFIED_BUY_2' per TRAM-3534 (not 'HEADLESS') — that's the correct
+      // post-relaunch behavior, and the de-dup is on ramp_type.
       const order = createHeadlessOrder({ status: Status.Failed });
 
       handleOrderStatusChangedForMetrics({
@@ -493,9 +593,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         previousStatus: Status.Pending,
       });
 
-      expect(mockTrackEvent.mock.calls[0]?.[0]?.name).not.toBe(
-        'Ramps Transaction Failed',
-      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.properties.ramp_type).not.toBe('HEADLESS');
+      expect(trackedEvent.properties.ramp_type).toBe('UNIFIED_BUY_2');
     });
   });
 
@@ -520,10 +621,11 @@ describe('handleOrderStatusChangedForMetrics', () => {
     }
   });
 
-  it('handles exchange rate calculation when cryptoAmount is 0', () => {
+  it('handles exchange rate calculation when cryptoAmount is 0 and order has no exchangeRate', () => {
     const order = createMockOrder({
       status: Status.Completed,
       cryptoAmount: '0',
+      exchangeRate: undefined,
     });
 
     handleOrderStatusChangedForMetrics({
@@ -554,6 +656,79 @@ describe('handleOrderStatusChangedForMetrics', () => {
     expect(properties.currency_source).toBe('');
     expect(properties.provider_onramp).toBe('');
     expect(properties.payment_method_id).toBe('');
+  });
+
+  it('falls back to defaults when region, network, fees, and statusDescription are missing on a failed BUY', () => {
+    const order = createMockOrder({
+      status: Status.Failed,
+      region: undefined,
+      network: undefined,
+      networkFees: undefined,
+      partnerFees: undefined,
+      statusDescription: undefined,
+    });
+
+    handleOrderStatusChangedForMetrics({
+      order,
+      previousStatus: Status.Pending,
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    const { properties } = mockTrackEvent.mock.calls[0][0];
+    expect(properties.country).toBe('');
+    expect(properties.chain_id).toBe('');
+    expect(properties.currency_destination_network).toBeUndefined();
+    expect(properties.gas_fee).toBe(0);
+    expect(properties.processing_fee).toBe(0);
+    expect(properties.error_message).toBe('transaction_failed');
+  });
+
+  it('falls back to defaults for legacy SELL params when network and provider are missing', () => {
+    const order = createMockOrder({
+      orderType: 'SELL',
+      status: Status.Failed,
+      network: undefined,
+      provider: undefined,
+    });
+
+    handleOrderStatusChangedForMetrics({
+      order,
+      previousStatus: Status.Pending,
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Off-ramp Purchase Failed',
+        properties: expect.objectContaining({
+          chain_id_source: '',
+          provider_offramp: '',
+        }),
+      }),
+    );
+  });
+
+  it('falls back to empty strings for SELL legacy currency_source/destination when cryptoCurrency and fiatCurrency are missing', () => {
+    const order = createMockOrder({
+      orderType: 'SELL',
+      status: Status.Completed,
+      cryptoCurrency: undefined,
+      fiatCurrency: undefined,
+    });
+
+    handleOrderStatusChangedForMetrics({
+      order,
+      previousStatus: Status.Pending,
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Off-ramp Purchase Completed',
+        properties: expect.objectContaining({
+          currency_source: '',
+          currency_destination: '',
+        }),
+      }),
+    );
   });
 
   it('logs error when trackEvent throws', () => {
