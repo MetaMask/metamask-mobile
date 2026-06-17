@@ -69,7 +69,7 @@ const fixtureTraders: TopTrader[] = [
   },
 ];
 
-type ChainKey = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
+type ChainKey = 'all' | 'tokens' | 'perps';
 
 const buildResult = (
   overrides: Partial<UseTopTradersResult> = {},
@@ -83,14 +83,15 @@ const buildResult = (
   ...overrides,
 });
 
-// Each chain tab now drives its own query, so the hook is mocked to return a
-// distinct result per chain.
+// Each tab drives its own query (one per asset class), so the hook is mocked
+// to return a distinct result per tab. Tabs are keyed by ChainKey:
+//   - all:    `chains: ['base', 'solana', 'ethereum', 'hyperliquid']`
+//   - tokens: `chains: ['base', 'solana', 'ethereum']`
+//   - perps:  `chains: ['hyperliquid']`
 const mockResultsByChain: Record<ChainKey, UseTopTradersResult> = {
   all: buildResult(),
-  base: buildResult(),
-  solana: buildResult(),
-  ethereum: buildResult(),
-  hyperliquid: buildResult(),
+  tokens: buildResult(),
+  perps: buildResult(),
 };
 
 const setChainResult = (
@@ -106,16 +107,20 @@ const resetChainResults = () => {
   });
 };
 
-// The "All" tab now explicitly passes the spot chains (Base/Solana/Ethereum)
-// to exclude hyperliquid; a chain tab passes exactly one chain. Distinguish
-// by length so the mock returns the matching fixture.
+// The tabs each pass a distinct chains array — distinguish by content so the
+// mock returns the matching fixture:
+//   - 4 chains including 'hyperliquid' → All
+//   - 3 chains, spot only             → Tokens
+//   - ['hyperliquid']                 → Perps
+const resolveChainKey = (chains?: string[]): ChainKey => {
+  if (!chains) return 'all';
+  if (chains.length === 1 && chains[0] === 'hyperliquid') return 'perps';
+  return chains.includes('hyperliquid') ? 'all' : 'tokens';
+};
+
 const mockUseTopTradersHook = jest.fn(
-  (options?: { chains?: string[] }): UseTopTradersResult => {
-    const chains = options?.chains;
-    const chain: ChainKey =
-      !chains || chains.length > 1 ? 'all' : (chains[0] as ChainKey);
-    return mockResultsByChain[chain];
-  },
+  (options?: { chains?: string[] }): UseTopTradersResult =>
+    mockResultsByChain[resolveChainKey(options?.chains)],
 );
 
 const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
@@ -155,12 +160,8 @@ describe('TopTradersView', () => {
     jest.clearAllMocks();
     resetChainResults();
     mockUseTopTradersHook.mockImplementation(
-      (options?: { chains?: string[] }) => {
-        const chains = options?.chains;
-        const chain: ChainKey =
-          !chains || chains.length > 1 ? 'all' : (chains[0] as ChainKey);
-        return mockResultsByChain[chain];
-      },
+      (options?: { chains?: string[] }) =>
+        mockResultsByChain[resolveChainKey(options?.chains)],
     );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
@@ -263,8 +264,8 @@ describe('TopTradersView', () => {
   });
 
   it('invalidates every tab query when the scroll view is pulled down', async () => {
-    // Each chain's result wraps the shared mockRefresh — pull-to-refresh
-    // should call it once per tab (all, base, solana, ethereum, hyperliquid).
+    // Each tab's result wraps the shared mockRefresh — pull-to-refresh
+    // should call it once per tab (all, tokens, perps).
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
@@ -273,7 +274,7 @@ describe('TopTradersView', () => {
       await list.props.refreshControl.props.onRefresh();
     });
 
-    expect(mockRefresh).toHaveBeenCalledTimes(5);
+    expect(mockRefresh).toHaveBeenCalledTimes(3);
   });
 
   it('logs an error when refresh fails', async () => {
@@ -307,47 +308,36 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders all chain filter pills including Hyperliquid', () => {
+  it('renders the three asset-class filter pills', () => {
     renderWithProvider(<TopTradersView />);
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_SOLANA),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ETHEREUM),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_PERPS),
     ).toBeOnTheScreen();
   });
 
-  it('fires a separate query per chain on mount (parallel prefetch)', () => {
+  it('fires a separate query per tab on mount (parallel prefetch)', () => {
     renderWithProvider(<TopTradersView />);
 
     const chainsArgs = mockUseTopTradersHook.mock.calls.map(
       ([opts]) => opts?.chains,
     );
-    // "All" tab explicitly requests the spot chains so hyperliquid (perps)
-    // doesn't dominate the rankings; chain tabs each request their own chain,
-    // including a dedicated hyperliquid (perps) tab.
     expect(chainsArgs).toEqual(
       expect.arrayContaining([
+        ['base', 'solana', 'ethereum', 'hyperliquid'],
         ['base', 'solana', 'ethereum'],
-        ['base'],
-        ['solana'],
-        ['ethereum'],
         ['hyperliquid'],
       ]),
     );
   });
 
-  it('renders the active tab’s traders when a chain pill is tapped (no client-side filter)', () => {
-    setChainResult('base', {
+  it('renders the Tokens tab’s traders when the Tokens pill is tapped', () => {
+    setChainResult('tokens', {
       traders: [
         { ...fixtureTraders[0], rank: 1 },
         { ...fixtureTraders[2], rank: 2 },
@@ -356,7 +346,7 @@ describe('TopTradersView', () => {
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
     );
 
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
@@ -364,14 +354,14 @@ describe('TopTradersView', () => {
     expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
   });
 
-  it('shows the Hyperliquid tab’s own (perps) traders when selected', () => {
-    setChainResult('hyperliquid', {
+  it('shows the Perps tab’s (hyperliquid) traders when selected', () => {
+    setChainResult('perps', {
       traders: [{ ...fixtureTraders[2], rank: 1 }],
     });
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_PERPS),
     );
 
     expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
@@ -379,13 +369,13 @@ describe('TopTradersView', () => {
   });
 
   it('uses the per-tab rank when navigating to a profile', () => {
-    setChainResult('base', {
+    setChainResult('tokens', {
       traders: [{ ...fixtureTraders[0], rank: 2 }],
     });
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
     );
     fireEvent.press(screen.getByText('alpha.eth'));
 
@@ -422,12 +412,12 @@ describe('TopTradersView', () => {
     it('fires Trader Leaderboard Chain Filter Changed when a pill is selected', () => {
       renderWithProvider(<TopTradersView />);
       fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+        screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_TOKENS),
       );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED,
         expect.objectContaining({
-          chain_filter: 'base',
+          chain_filter: 'tokens',
           previous_chain_filter: 'all',
         }),
       );

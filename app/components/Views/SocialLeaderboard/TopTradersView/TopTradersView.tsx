@@ -42,11 +42,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  BASE_DISPLAY_NAME,
-  MAINNET_DISPLAY_NAME,
-  SOLANA_DISPLAY_NAME,
-} from '../../../../core/Engine/constants';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
@@ -67,24 +62,26 @@ import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
-type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
+type ChainFilter = 'all' | 'tokens' | 'perps';
 
 const LEADERBOARD_LIMIT = 50;
 
-// Hyperliquid (perps) is its own tab. It's deliberately kept out of SPOT_CHAINS
-// / the "All" tab — see SPOT_CHAINS — so perps PnL doesn't dominate the spot
-// rankings, but users can still browse the perps leaderboard directly here.
-const HYPERLIQUID_DISPLAY_NAME = 'Hyperliquid';
+const ALL_CHAINS = [...SPOT_CHAINS, 'hyperliquid'];
+const PERP_CHAINS = ['hyperliquid'];
 
 const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   {
     key: 'all',
     label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
   },
-  { key: 'base', label: BASE_DISPLAY_NAME },
-  { key: 'solana', label: SOLANA_DISPLAY_NAME },
-  { key: 'ethereum', label: MAINNET_DISPLAY_NAME },
-  { key: 'hyperliquid', label: HYPERLIQUID_DISPLAY_NAME },
+  {
+    key: 'tokens',
+    label: strings('social_leaderboard.top_traders_view.chain_filter.tokens'),
+  },
+  {
+    key: 'perps',
+    label: strings('social_leaderboard.top_traders_view.chain_filter.perps'),
+  },
 ];
 
 const styles = StyleSheet.create({
@@ -183,39 +180,27 @@ const TopTradersView = () => {
 
   const allResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
+    chains: ALL_CHAINS,
+    enabled: isEnabled,
+  });
+  const tokensResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
     chains: SPOT_CHAINS,
     enabled: isEnabled,
   });
-  const baseResult = useTopTraders({
+  const perpsResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
-    chains: ['base'],
-    enabled: isEnabled,
-  });
-  const solanaResult = useTopTraders({
-    limit: LEADERBOARD_LIMIT,
-    chains: ['solana'],
-    enabled: isEnabled,
-  });
-  const ethereumResult = useTopTraders({
-    limit: LEADERBOARD_LIMIT,
-    chains: ['ethereum'],
-    enabled: isEnabled,
-  });
-  const hyperliquidResult = useTopTraders({
-    limit: LEADERBOARD_LIMIT,
-    chains: ['hyperliquid'],
+    chains: PERP_CHAINS,
     enabled: isEnabled,
   });
 
   const resultsByChain = useMemo(
     () => ({
       all: allResult,
-      base: baseResult,
-      solana: solanaResult,
-      ethereum: ethereumResult,
-      hyperliquid: hyperliquidResult,
+      tokens: tokensResult,
+      perps: perpsResult,
     }),
-    [allResult, baseResult, solanaResult, ethereumResult, hyperliquidResult],
+    [allResult, tokensResult, perpsResult],
   );
 
   const activeResult = resultsByChain[selectedChain];
@@ -302,10 +287,8 @@ const TopTradersView = () => {
       );
       await Promise.all([
         allResult.refresh(),
-        baseResult.refresh(),
-        solanaResult.refresh(),
-        ethereumResult.refresh(),
-        hyperliquidResult.refresh(),
+        tokensResult.refresh(),
+        perpsResult.refresh(),
         minDuration,
       ]);
     } catch (err) {
@@ -322,7 +305,7 @@ const TopTradersView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [allResult, baseResult, solanaResult, ethereumResult, hyperliquidResult]);
+  }, [allResult, tokensResult, perpsResult]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
