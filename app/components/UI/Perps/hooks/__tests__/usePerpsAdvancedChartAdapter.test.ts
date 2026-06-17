@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import type { FetchOlderBarsRequest } from '../../../Charts/AdvancedChart/AdvancedChart.types';
 import {
   convertCandlesToOHLCVBars,
   INTERVAL_MS,
@@ -137,6 +138,19 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
   /** The params object passed into stream.candles.subscribe for the current mount. */
   const subscribeParams = () => mockSubscribe.mock.calls[0][0];
 
+  const fetchOlderRequest = (
+    overrides: Partial<FetchOlderBarsRequest> = {},
+  ): FetchOlderBarsRequest => ({
+    requestId: 'older-1',
+    seriesGeneration: 1,
+    symbol: SYMBOL,
+    resolution: '60',
+    fromSec: 1,
+    toSec: 2,
+    oldestLoadedTimeMs: 2500,
+    ...overrides,
+  });
+
   const candle = (time: number): TestCandle => ({
     time,
     open: '100',
@@ -217,5 +231,162 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.ohlcvData).toEqual([]);
+  });
+
+  it('ignores stale deliveries with mismatched interval and stays loading', () => {
+    const { result } = renderAdapter();
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: CandlePeriod.FiveMinutes,
+        candles: [candle(1000)],
+      });
+    });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.ohlcvData).toEqual([]);
+  });
+
+  it('emits realtimeBar when the latest candle values change', () => {
+    const { result } = renderAdapter();
+    const updated = { ...candle(1000), close: '106' };
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+    });
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [updated],
+      });
+    });
+
+    expect(result.current.ohlcvData).toEqual([
+      { time: 1000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+    ]);
+    expect(result.current.realtimeBar).toEqual({
+      time: 1000,
+      open: 100,
+      high: 110,
+      low: 90,
+      close: 106,
+      volume: 500,
+    });
+  });
+
+  it('skips realtimeBar when the latest candle has not changed', () => {
+    const { result } = renderAdapter();
+    const first = candle(1000);
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [first],
+      });
+    });
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [first],
+      });
+    });
+
+    expect(result.current.realtimeBar).toBeUndefined();
+  });
+
+  it('emits realtimeBar when a new latest candle arrives', () => {
+    const { result } = renderAdapter();
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+    });
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000), candle(2000)],
+      });
+    });
+
+    expect(result.current.realtimeBar?.time).toBe(2000);
+  });
+
+  it('returns older bars for handleFetchOlderBarsRequest', async () => {
+    const { result } = renderAdapter();
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000), candle(2000), candle(3000)],
+      });
+    });
+    const response =
+      await result.current.handleFetchOlderBarsRequest(fetchOlderRequest());
+
+    expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
+      SYMBOL,
+      INTERVAL,
+      '1w',
+    );
+    expect(response).toEqual({
+      requestId: 'older-1',
+      seriesGeneration: 1,
+      bars: [
+        { time: 1000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+        { time: 2000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+      ],
+      noData: false,
+    });
+  });
+
+  it('returns noData when handleFetchOlderBarsRequest finds no older bars', async () => {
+    const { result } = renderAdapter();
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+    });
+    const response = await result.current.handleFetchOlderBarsRequest(
+      fetchOlderRequest({ oldestLoadedTimeMs: 500 }),
+    );
+
+    expect(response).toEqual({
+      requestId: 'older-1',
+      seriesGeneration: 1,
+      bars: [],
+      noData: true,
+    });
+  });
+
+  it('returns noData with error text when historical fetch fails', async () => {
+    mockFetchHistoricalCandles.mockRejectedValueOnce(new Error('history down'));
+    const { result } = renderAdapter();
+
+    const response =
+      await result.current.handleFetchOlderBarsRequest(fetchOlderRequest());
+
+    expect(response).toEqual({
+      requestId: 'older-1',
+      seriesGeneration: 1,
+      bars: [],
+      noData: true,
+      error: 'Error: history down',
+    });
   });
 });
