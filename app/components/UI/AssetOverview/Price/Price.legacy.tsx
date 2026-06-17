@@ -39,6 +39,7 @@ export interface PriceLegacyProps {
   onTimePeriodChange?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+  hasInsufficientCoverage?: boolean;
 }
 
 const PriceLegacy = ({
@@ -53,6 +54,7 @@ const PriceLegacy = ({
   onTimePeriodChange,
   onPriceDirectionChange,
   useAmbientColor = false,
+  hasInsufficientCoverage = false,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
@@ -223,6 +225,7 @@ const PriceLegacy = ({
           isLoading={isLoading}
           onChartIndexChange={handleChartInteraction}
           chartColorOverride={initialAmbientColor}
+          hasInsufficientCoverage={hasInsufficientCoverage}
         />
       </Box>
       {chartNavigationButtons.length > 0 && onTimePeriodChange && (

@@ -57,6 +57,7 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
@@ -410,6 +411,11 @@ const Wallet = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
 
   /**
    * Provider configuration for the current selected network
@@ -1038,8 +1044,10 @@ const Wallet = ({
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
-      {homeGrowthBannerContent}
-      {isMoneyAccountEnabled && <MoneyBalanceCard />}
+      {/* Hide growth banners when money account is enabled but user is geo-blocked */}
+      {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
+        homeGrowthBannerContent}
+      {isMoneyAccountVisible && <MoneyBalanceCard />}
     </View>
   );
 
@@ -1050,8 +1058,10 @@ const Wallet = ({
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
       {walletHomeMainAssetDetailsActions}
-      {homeGrowthBannerContent}
-      {isMoneyAccountEnabled && <MoneyBalanceCard />}
+      {/* Hide growth banners when money account is enabled but user is geo-blocked */}
+      {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
+        homeGrowthBannerContent}
+      {isMoneyAccountVisible && <MoneyBalanceCard />}
     </View>
   );
 
@@ -1103,7 +1113,7 @@ const Wallet = ({
                       style={styles.headerActionButtonsContainer}
                       accessible={false}
                     >
-                      {isMoneyAccountEnabled && (
+                      {isMoneyAccountVisible && (
                         <ButtonIcon
                           iconProps={{
                             color: MMDSIconColor.IconDefault,

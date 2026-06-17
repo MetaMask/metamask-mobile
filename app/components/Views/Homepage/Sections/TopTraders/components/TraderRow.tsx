@@ -1,7 +1,4 @@
 import {
-  AvatarAccount,
-  AvatarAccountSize,
-  AvatarAccountVariant,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -16,12 +13,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { TopRankAvatar, TopRankIndicator } from '../topRank';
 import type { TopTrader } from '../types';
-import { formatPnl } from '../utils/formatPnl';
-import { hasRealAvatar } from '../utils/avatarFallback';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { formatSignedAbbreviatedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+import TraderAvatar from './TraderAvatar';
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
@@ -56,7 +54,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
 
   const roiSign = trader.percentageChange >= 0 ? '+' : '';
   const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
-  const pnlText = formatPnl(trader.pnlValue);
+  const pnlText = formatSignedAbbreviatedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
   const isRoiPositive = trader.percentageChange >= 0;
 
@@ -91,22 +89,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
           />
 
           <TopRankAvatar rank={trader.overallRank}>
-            {hasRealAvatar(trader.avatarUri) ? (
-              <Image
-                source={{ uri: trader.avatarUri }}
-                style={tw.style(
-                  `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-                )}
-                resizeMode="cover"
-              />
-            ) : (
-              <AvatarAccount
-                variant={AvatarAccountVariant.Maskicon}
-                address={trader.address}
-                size={AvatarAccountSize.Lg}
-                twClassName="rounded-full"
-              />
-            )}
+            <TraderAvatar
+              imageUrl={trader.avatarUri}
+              address={trader.address}
+              size={AVATAR_SIZE}
+            />
           </TopRankAvatar>
 
           <Box twClassName="flex-1 min-w-0">
@@ -153,7 +140,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                {' 30D'}
+                {' 7D'}
               </Text>
             </Text>
           </Box>
