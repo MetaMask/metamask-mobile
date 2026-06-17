@@ -170,7 +170,9 @@ export async function pollForResponse(
         return await response.text();
       }
     } catch {
-      // Network error or aborted
+      // Aborted (superseded by a newer request) — exit now instead of sleeping.
+      if (signal.aborted) break;
+      // Otherwise a network error — fall through and retry after a short wait.
     }
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
@@ -178,15 +180,16 @@ export async function pollForResponse(
 }
 
 export async function checkRelayHealth(relayUrl: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2000);
     const r = await fetch(`${relayUrl}/api/health`, {
       signal: controller.signal,
     });
-    clearTimeout(timer);
     return r.ok;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timer);
   }
 }

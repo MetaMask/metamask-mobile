@@ -338,15 +338,21 @@ function buildComponentChain(
 /**
  * Collect ALL leaf host (native) fibers from the tree.
  */
-function collectAllHostFibers(fiber: Fiber | null, results: Fiber[]) {
-  if (!fiber) return;
-
-  if (fiber.tag === HOST_COMPONENT && fiber.stateNode) {
-    results.push(fiber);
+function collectAllHostFibers(root: Fiber | null, results: Fiber[]) {
+  // Iterative DFS with an explicit stack — a MetaMask screen can have thousands
+  // of fibers, which would overflow a recursive child+sibling walk on the
+  // (bounded) JS call stack.
+  const stack: (Fiber | null)[] = [root];
+  while (stack.length > 0) {
+    const fiber = stack.pop();
+    if (!fiber) continue;
+    if (fiber.tag === HOST_COMPONENT && fiber.stateNode) {
+      results.push(fiber);
+    }
+    // Push sibling before child so child is processed first (DFS order preserved)
+    if (fiber.sibling) stack.push(fiber.sibling);
+    if (fiber.child) stack.push(fiber.child);
   }
-
-  collectAllHostFibers(fiber.child, results);
-  collectAllHostFibers(fiber.sibling, results);
 }
 
 /**

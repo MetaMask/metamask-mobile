@@ -17,6 +17,7 @@ import {
   Animated,
   PanResponder,
   Dimensions,
+  Platform,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
@@ -33,6 +34,9 @@ import {
   pollForResponse,
   checkRelayHealth,
 } from './relay-client';
+
+// `Menlo` only exists on iOS; Android falls back to its default monospace.
+const MONO_FONT = Platform.OS === 'ios' ? 'Menlo' : 'monospace';
 
 /* ── Fixed dark inspector palette (matches the web Designer panel) ──
  * This dev-tooling overlay intentionally uses its own theme-independent dark
@@ -968,7 +972,15 @@ export function DesignerModeRN({
                     .join(', ')}
                   {changeset.length > 2 ? ` +${changeset.length - 2}` : ''}
                 </Text>
-                <Pressable onPress={() => sendRequest()} style={s.applyBtn}>
+                <Pressable
+                  onPress={() => sendRequest()}
+                  disabled={agentWorking || relayStatus !== 'connected'}
+                  style={[
+                    s.applyBtn,
+                    (agentWorking || relayStatus !== 'connected') &&
+                      s.sendBtnDisabled,
+                  ]}
+                >
                   <Text style={s.applyBtnText}>Apply</Text>
                 </Pressable>
               </View>
@@ -1401,12 +1413,12 @@ function createDesignerStyles() {
       fontSize: 9,
       color: C.accent,
       fontWeight: '500',
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
     } as TextStyle,
     elFilePath: {
       fontSize: 10,
       color: C.textTertiary,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       marginTop: 2,
     } as TextStyle,
 
@@ -1500,7 +1512,7 @@ function createDesignerStyles() {
       gap: 4,
     },
     mono: {
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
     } as TextStyle,
 
     // Style names
@@ -1521,7 +1533,7 @@ function createDesignerStyles() {
     },
     styleNamePillText: {
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       color: C.accent,
       fontWeight: '500',
     } as TextStyle,
@@ -1541,7 +1553,7 @@ function createDesignerStyles() {
     },
     styleNamePillRemovedText: {
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       color: C.error,
       fontWeight: '500',
       textDecorationLine: 'line-through',
@@ -1561,7 +1573,7 @@ function createDesignerStyles() {
     },
     styleNamePillAddedText: {
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       color: C.success,
       fontWeight: '500',
     } as TextStyle,
@@ -1579,7 +1591,7 @@ function createDesignerStyles() {
     } as TextStyle,
     addStyleNameInput: {
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       color: C.text,
       backgroundColor: C.input,
       borderWidth: 1,
@@ -1632,7 +1644,7 @@ function createDesignerStyles() {
     },
     propsJsonText: {
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       color: C.textTertiary,
       lineHeight: 14,
     } as TextStyle,
@@ -1686,7 +1698,7 @@ function createDesignerStyles() {
       width: 40,
       textAlign: 'center',
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       borderBottomWidth: 1,
       borderBottomColor: C.whiteA10,
       borderStyle: 'dashed',
@@ -1696,7 +1708,7 @@ function createDesignerStyles() {
       width: 48,
       textAlign: 'center',
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       backgroundColor: C.input,
       borderWidth: 1,
       borderColor: C.accent,
@@ -1830,7 +1842,7 @@ function createDesignerStyles() {
     },
     componentPillText: {
       fontSize: 10,
-      fontFamily: 'Menlo',
+      fontFamily: MONO_FONT,
       color: C.textSecondary,
     } as TextStyle,
 
