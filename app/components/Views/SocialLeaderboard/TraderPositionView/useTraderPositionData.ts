@@ -252,11 +252,20 @@ export function useTraderPositionData(
         return { period, prices };
       };
 
-      Promise.all(TIME_PERIODS.map(fetchPerpPeriod)).then((results) => {
+      // allSettled so one period's fetch failing doesn't blank out the others;
+      // failed periods are logged and simply omitted from the cache.
+      Promise.allSettled(TIME_PERIODS.map(fetchPerpPeriod)).then((results) => {
         if (cancelled) return;
         const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
-        for (const { period, prices } of results) {
-          cache[period] = prices;
+        for (const result of results) {
+          if (result.status === 'fulfilled') {
+            cache[result.value.period] = result.value.prices;
+          } else {
+            Logger.error(
+              result.reason as Error,
+              'useTraderPositionData: failed to fetch perp prices',
+            );
+          }
         }
         setAllPrices(cache);
         setIsPricesLoading(false);

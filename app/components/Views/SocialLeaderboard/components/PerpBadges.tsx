@@ -3,13 +3,14 @@ import {
   Box,
   Text,
   TextVariant,
-  TextColor,
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import type { PerpDirection } from '../utils/perp';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import PerpsLeverage from '../../../UI/Perps/components/PerpsLeverage/PerpsLeverage';
 
 export interface PerpBadgesProps {
   direction: PerpDirection;
@@ -44,15 +45,10 @@ const PerpBadges: React.FC<PerpBadgesProps> = ({
       testID={testID}
     >
       {leverage ? (
-        <Box twClassName="bg-muted rounded px-1.5 py-0.5">
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {`${leverage}x`}
-          </Text>
-        </Box>
+        <PerpsLeverage
+          maxLeverage={`${leverage}x`}
+          testID={testID ? `${testID}-leverage` : undefined}
+        />
       ) : null}
       <Box twClassName="bg-muted rounded px-1.5 py-0.5">
         <Text

@@ -37,9 +37,6 @@ const PRICE_ALERTS_API_URL =
   process.env.PRICE_ALERTS_API_URL ??
   'https://price-alerts.dev-api.cx.metamask.io';
 
-const SOCIAL_API_URL =
-  process.env.SOCIAL_API_URL ?? 'https://social.api.cx.metamask.io';
-
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
@@ -242,7 +239,8 @@ export default {
     'https://signature-insights.api.cx.metamask.io/v1',
   DIGEST_API_URL:
     process.env.DIGEST_API_URL ?? 'https://digest.api.cx.metamask.io/api/v1',
-  SOCIAL_API_URL,
+  SOCIAL_API_URL:
+    process.env.SOCIAL_API_URL ?? 'https://social.api.cx.metamask.io',
   // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',

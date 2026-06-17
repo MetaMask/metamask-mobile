@@ -11,7 +11,7 @@ const baseTrader: TopTrader = {
   address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
-  username: 'sniperliquid',
+  username: 'alpha.eth',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
@@ -32,7 +32,7 @@ describe('TraderRow', () => {
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('1')).toBeOnTheScreen();
-    expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(screen.getByText('+43.0%')).toBeOnTheScreen();
     expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
   });
@@ -83,10 +83,10 @@ describe('TraderRow', () => {
         onTraderPress={mockOnTraderPress}
       />,
     );
-    fireEvent.press(screen.getByText('sniperliquid'));
+    fireEvent.press(screen.getByText('alpha.eth'));
     expect(mockOnTraderPress).toHaveBeenCalledWith(
       'trader-1',
-      'sniperliquid',
+      'alpha.eth',
       1,
     );
   });
@@ -105,11 +105,11 @@ describe('TraderRow', () => {
       />,
     );
 
-    fireEvent.press(screen.getByText('sniperliquid'));
+    fireEvent.press(screen.getByText('alpha.eth'));
 
     expect(mockOnTraderPress).toHaveBeenCalledWith(
       'trader-1',
-      'sniperliquid',
+      'alpha.eth',
       50,
     );
   });
@@ -118,7 +118,7 @@ describe('TraderRow', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    fireEvent.press(screen.getByText('sniperliquid'));
+    fireEvent.press(screen.getByText('alpha.eth'));
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 

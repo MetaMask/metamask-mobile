@@ -36,7 +36,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000001',
     rank: 1,
     overallRank: 1,
-    username: 'sniperliquid.hl',
+    username: 'alpha.eth',
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
     pnlValue: 963146.8,
@@ -48,7 +48,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000002',
     rank: 2,
     overallRank: 2,
-    username: 'nervousdegen',
+    username: 'beta.eth',
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
     pnlValue: 474751.45,
@@ -60,7 +60,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000003',
     rank: 3,
     overallRank: 3,
-    username: 'baznocap',
+    username: 'gamma.eth',
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
     pnlValue: 374735.16,
@@ -359,9 +359,9 @@ describe('TopTradersView', () => {
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
     );
 
-    expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
-    expect(screen.getByText('baznocap')).toBeOnTheScreen();
-    expect(screen.queryByText('nervousdegen')).not.toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
   });
 
   it('shows the Hyperliquid tab’s own (perps) traders when selected', () => {
@@ -374,8 +374,8 @@ describe('TopTradersView', () => {
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
     );
 
-    expect(screen.getByText('baznocap')).toBeOnTheScreen();
-    expect(screen.queryByText('nervousdegen')).not.toBeOnTheScreen();
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
   });
 
   it('uses the per-tab rank when navigating to a profile', () => {
@@ -387,7 +387,7 @@ describe('TopTradersView', () => {
     fireEvent.press(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
     );
-    fireEvent.press(screen.getByText('sniperliquid.hl'));
+    fireEvent.press(screen.getByText('alpha.eth'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'TraderProfileView',
@@ -404,7 +404,7 @@ describe('TopTradersView', () => {
     expect(
       screen.queryByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
+    expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
   });
 
   describe('analytics', () => {
@@ -435,7 +435,7 @@ describe('TopTradersView', () => {
 
     it('fires Trader Leaderboard Trader Clicked with rank and chain filter on row press', () => {
       renderWithProvider(<TopTradersView />);
-      fireEvent.press(screen.getByText('sniperliquid.hl'));
+      fireEvent.press(screen.getByText('alpha.eth'));
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED,
         expect.objectContaining({

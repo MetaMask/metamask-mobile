@@ -9,7 +9,7 @@ const baseTrader: TopTrader = {
   address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
-  username: 'sniperliquid',
+  username: 'alpha.eth',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
@@ -29,7 +29,7 @@ describe('TopTraderCard', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
     expect(screen.getByText(/7D/)).toBeOnTheScreen();
   });
@@ -121,7 +121,7 @@ describe('TopTraderCard', () => {
 
     expect(mockOnTraderPress).toHaveBeenCalledWith(
       'trader-1',
-      'sniperliquid',
+      'alpha.eth',
       1,
     );
   });
@@ -144,7 +144,7 @@ describe('TopTraderCard', () => {
 
     expect(mockOnTraderPress).toHaveBeenCalledWith(
       'trader-1',
-      'sniperliquid',
+      'alpha.eth',
       50,
     );
   });
