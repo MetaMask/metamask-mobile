@@ -93,6 +93,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
               imageUrl={trader.avatarUri}
               address={trader.address}
               size={AVATAR_SIZE}
+              recyclingKey={trader.id}
             />
           </TopRankAvatar>
 
