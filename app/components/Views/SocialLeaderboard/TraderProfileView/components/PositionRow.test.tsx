@@ -13,7 +13,7 @@ jest.mock('../../utils/formatters', () => {
   const actual = jest.requireActual('../../utils/formatters');
   return {
     ...actual,
-    formatTradeDate: jest.fn().mockReturnValue('Apr 15, 2026 at 2:00 PM'),
+    formatTradeDate: jest.fn().mockReturnValue('Apr 15 at 2:00 pm'),
   };
 });
 
@@ -217,7 +217,7 @@ describe('PositionRow', () => {
     it('renders formatted closed date as subtitle instead of token amount', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
-      expect(screen.getByText('Apr 15, 2026 at 2:00 PM')).toBeOnTheScreen();
+      expect(screen.getByText('Apr 15 at 2:00 pm')).toBeOnTheScreen();
     });
 
     it('renders realized PnL percent as unsigned magnitude (sign comes from caret)', () => {

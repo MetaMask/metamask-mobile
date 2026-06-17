@@ -2,7 +2,13 @@ import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
-import { fetchAlerts, createAlert, useSavePriceAlert } from './api';
+import {
+  fetchAlerts,
+  createAlert,
+  deleteAlert,
+  updateAlert,
+  useSavePriceAlert,
+} from './api';
 
 // Prevents teardown crashes with unstable_batchedUpdates in Jest
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -138,6 +144,60 @@ describe('createAlert', () => {
         recurring: true,
       }),
     ).toBe(response);
+  });
+});
+
+describe('deleteAlert', () => {
+  it('sends DELETE to /alerts/:id', async () => {
+    await deleteAlert('alert-42');
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ALERTS_URL}/alert-42`);
+    expect(init.method).toBe('DELETE');
+  });
+
+  it('attaches auth and accept headers', async () => {
+    await deleteAlert('alert-42');
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      'Bearer test-bearer-token',
+    );
+    expect((init.headers as Record<string, string>).Accept).toBe(
+      'application/json',
+    );
+  });
+
+  it('returns the raw Response from fetch', async () => {
+    const response = makeOkResponse();
+    mockFetch.mockResolvedValue(response);
+    expect(await deleteAlert('alert-42')).toBe(response);
+  });
+});
+
+describe('updateAlert', () => {
+  it('sends PATCH to /alerts/:id with a JSON-serialised body', async () => {
+    const params = { active: false };
+    await updateAlert('alert-42', params);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ALERTS_URL}/alert-42`);
+    expect(init.method).toBe('PATCH');
+    expect(init.body).toBe(JSON.stringify(params));
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/json',
+    );
+  });
+
+  it('attaches auth headers', async () => {
+    await updateAlert('alert-42', { active: true });
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      'Bearer test-bearer-token',
+    );
+  });
+
+  it('returns the raw Response from fetch', async () => {
+    const response = makeOkResponse({ id: 'alert-42', active: false });
+    mockFetch.mockResolvedValue(response);
+    expect(await updateAlert('alert-42', { active: false })).toBe(response);
   });
 });
 

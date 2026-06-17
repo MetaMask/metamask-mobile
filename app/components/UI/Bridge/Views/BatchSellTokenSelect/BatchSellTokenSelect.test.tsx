@@ -55,6 +55,10 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
+jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
+  useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const DesignSystem = jest.requireActual(
     '@metamask/design-system-react-native',

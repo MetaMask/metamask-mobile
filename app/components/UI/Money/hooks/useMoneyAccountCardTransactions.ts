@@ -28,7 +28,6 @@ const EMPTY: CardTransaction[] = [];
  */
 export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactionsResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const isLinked = useSelector(selectIsMoneyAccountDelegatedForCard);
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
 
@@ -49,7 +48,7 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
   const query = useQuery({
     ...queryOptions,
     select,
-    enabled: isLinked && moneyAddress !== '',
+    enabled: moneyAddress !== '',
     staleTime: 5 * MINUTE,
     retry: false,
   } as unknown as UseQueryOptions<

@@ -9,8 +9,6 @@ const mockCreateDataDeletionTask = jest.fn();
 const mockCheckDataDeleteStatus = jest.fn();
 const mockGetDeleteRegulationCreationDate = jest.fn();
 const mockGetDeleteRegulationId = jest.fn();
-const mockIsDataRecorded = jest.fn();
-const mockUpdateDataRecordingFlag = jest.fn();
 
 jest.mock('../../../util/analytics/analyticsDataDeletion', () => ({
   createDataDeletionTask: (...args: unknown[]) =>
@@ -21,9 +19,6 @@ jest.mock('../../../util/analytics/analyticsDataDeletion', () => ({
     mockGetDeleteRegulationCreationDate(...args),
   getDeleteRegulationId: (...args: unknown[]) =>
     mockGetDeleteRegulationId(...args),
-  isDataRecorded: (...args: unknown[]) => mockIsDataRecorded(...args),
-  updateDataRecordingFlag: (...args: unknown[]) =>
-    mockUpdateDataRecordingFlag(...args),
 }));
 
 describe('useAnalyticsDataDeletion', () => {
@@ -35,22 +30,18 @@ describe('useAnalyticsDataDeletion', () => {
     mockCheckDataDeleteStatus.mockResolvedValue({
       deletionRequestDate: '1/2/2025',
       dataDeletionRequestStatus: DataDeleteStatus.finished,
-      hasCollectedDataSinceDeletionRequest: false,
     });
     mockGetDeleteRegulationCreationDate.mockReturnValue('1/2/2025');
     mockGetDeleteRegulationId.mockReturnValue('reg-123');
-    mockIsDataRecorded.mockReturnValue(false);
   });
 
-  it('returns an object with the six data deletion methods', () => {
+  it('returns an object with the four data deletion methods', () => {
     const { result } = renderHook(() => useAnalyticsDataDeletion());
 
     expect(result.current.createDataDeletionTask).toBeDefined();
     expect(result.current.checkDataDeleteStatus).toBeDefined();
     expect(result.current.getDeleteRegulationCreationDate).toBeDefined();
     expect(result.current.getDeleteRegulationId).toBeDefined();
-    expect(result.current.isDataRecorded).toBeDefined();
-    expect(result.current.updateDataRecordingFlag).toBeDefined();
   });
 
   it('createDataDeletionTask forwards to util and returns its result', async () => {
@@ -90,23 +81,6 @@ describe('useAnalyticsDataDeletion', () => {
     expect(id).toBe('reg-123');
   });
 
-  it('isDataRecorded forwards to util', () => {
-    const { result } = renderHook(() => useAnalyticsDataDeletion());
-
-    const value = result.current.isDataRecorded();
-
-    expect(mockIsDataRecorded).toHaveBeenCalledTimes(1);
-    expect(value).toBe(false);
-  });
-
-  it('updateDataRecordingFlag forwards to util', () => {
-    const { result } = renderHook(() => useAnalyticsDataDeletion());
-
-    result.current.updateDataRecordingFlag(true);
-
-    expect(mockUpdateDataRecordingFlag).toHaveBeenCalledWith(true);
-  });
-
   it('returns stable references across re-renders', () => {
     const { result, rerender } = renderHook(() => useAnalyticsDataDeletion());
 
@@ -120,7 +94,5 @@ describe('useAnalyticsDataDeletion', () => {
       second.getDeleteRegulationCreationDate,
     );
     expect(first.getDeleteRegulationId).toBe(second.getDeleteRegulationId);
-    expect(first.isDataRecorded).toBe(second.isDataRecorded);
-    expect(first.updateDataRecordingFlag).toBe(second.updateDataRecordingFlag);
   });
 });

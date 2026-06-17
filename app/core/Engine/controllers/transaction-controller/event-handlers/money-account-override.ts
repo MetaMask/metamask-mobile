@@ -129,6 +129,7 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
     config.accountOverride = selectedAccount.address as Hex;
+    config.isQuoteRequired = true;
   });
 
   refreshOverrideAccountBalances();
