@@ -80,6 +80,7 @@ export interface LinkFlowOrigin {
 
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
+  hasMoneyAccountBaseRequirements: boolean;
   isCardAuthenticated: boolean;
   isCardVerified: boolean;
   isCardLinkedToMoneyAccount: boolean;
@@ -159,12 +160,14 @@ export const useMoneyAccountCardLinkage =
       ? rawMoneyAccountCardToken
       : null;
 
+    const hasMoneyAccountBaseRequirements = hasMoneyAccountCardRequirements({
+      isMoneyAccountEnabled,
+      vaultConfig,
+      moneyAccountAddress: primaryMoneyAccount?.address,
+    });
+
     const hasRequirements =
-      hasMoneyAccountCardRequirements({
-        isMoneyAccountEnabled,
-        vaultConfig,
-        moneyAccountAddress: primaryMoneyAccount?.address,
-      }) && isMoneyAccountCardSupported;
+      hasMoneyAccountBaseRequirements && isMoneyAccountCardSupported;
 
     const canSubmitDelegation = Boolean(
       hasRequirements &&
@@ -323,7 +326,7 @@ export const useMoneyAccountCardLinkage =
         if (linkInProgress) {
           return;
         }
-        if (!hasRequirements || !primaryMoneyAccount?.address) {
+        if (!hasMoneyAccountBaseRequirements || !primaryMoneyAccount?.address) {
           showErrorToast();
           return;
         }
@@ -384,7 +387,7 @@ export const useMoneyAccountCardLinkage =
       },
       [
         linkInProgress,
-        hasRequirements,
+        hasMoneyAccountBaseRequirements,
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
         isCardAuthenticated,
@@ -414,8 +417,18 @@ export const useMoneyAccountCardLinkage =
         return;
       }
 
-      if (!hasRequirements || !primaryMoneyAccount?.address) {
+      if (!hasMoneyAccountBaseRequirements || !primaryMoneyAccount?.address) {
         dispatch(setPendingMoneyAccountCardLink(null));
+        return;
+      }
+
+      if (!isMoneyAccountCardSupported) {
+        if (
+          cardHomeDataStatus === 'success' ||
+          cardHomeDataStatus === 'error'
+        ) {
+          dispatch(setPendingMoneyAccountCardLink(null));
+        }
         return;
       }
 
@@ -454,7 +467,8 @@ export const useMoneyAccountCardLinkage =
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
       isCardVerified,
-      hasRequirements,
+      hasMoneyAccountBaseRequirements,
+      isMoneyAccountCardSupported,
       moneyAccountCardToken,
       primaryMoneyAccount?.address,
       isAlreadyDelegated,
@@ -598,6 +612,7 @@ export const useMoneyAccountCardLinkage =
 
     return {
       hasMoneyAccountRequirements: hasRequirements,
+      hasMoneyAccountBaseRequirements,
       isCardAuthenticated,
       isCardVerified,
       isCardLinkedToMoneyAccount: isAlreadyDelegated,

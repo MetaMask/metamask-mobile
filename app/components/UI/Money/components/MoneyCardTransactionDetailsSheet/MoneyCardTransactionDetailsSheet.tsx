@@ -107,9 +107,17 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
     if (!url) {
       return;
     }
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: { url, title },
+    // Dismiss the sheet *before* navigating. This sheet is a `transparentModal`
+    // presented over the main stack, and the WebView is a sibling screen on
+    // that same stack. Navigating while the modal is still up pushes the
+    // WebView behind it (so it never appears) and strands the sheet's overlay
+    // on screen. Closing first pops the modal, then the callback pushes the
+    // WebView onto the now-top stack.
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: { url, title },
+      });
     });
   }, [card.chainId, card.hash, navigation, networkConfigurations]);
 

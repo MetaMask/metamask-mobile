@@ -21,7 +21,6 @@ import {
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
-import { PREDICT_PORTFOLIO_TEST_IDS } from './components/PredictPortfolio';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
@@ -53,6 +52,21 @@ describe('PredictHome', () => {
     (
       Engine.context.PredictController.listMarkets as jest.Mock
     ).mockResolvedValue({ markets: [MOCK_PREDICT_MARKET], nextCursor: null });
+    (
+      Engine.context.PredictController.listFilterOptions as jest.Mock
+    ).mockResolvedValue([
+      {
+        id: 'elections',
+        label: 'Elections',
+        source: 'related-tags',
+        params: {
+          tagSlugs: ['elections'],
+          status: 'open',
+          order: 'volume24hr',
+          limit: 12,
+        },
+      },
+    ]);
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
     ).mockResolvedValue({ markets: [], totalResults: 0 });

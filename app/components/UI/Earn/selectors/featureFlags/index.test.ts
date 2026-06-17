@@ -12,7 +12,6 @@ import {
   selectMusdConversionPaymentTokensBlocklist,
   selectIsMusdConversionRewardsUiEnabledFlag,
   selectMusdConversionBlockedCountries,
-  parseBlockedCountriesEnv,
   selectMusdConversionMinAssetBalanceRequired,
   selectMusdTokenRegistrationChainIds,
   MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK,
@@ -1767,62 +1766,6 @@ describe('Earn Feature Flag Selectors', () => {
         );
         expect(result).toEqual({});
       });
-    });
-  });
-
-  describe('parseBlockedCountriesEnv', () => {
-    it('returns empty array for undefined input', () => {
-      const result = parseBlockedCountriesEnv(undefined);
-
-      expect(result).toEqual([]);
-    });
-
-    it('returns empty array for empty string', () => {
-      const result = parseBlockedCountriesEnv('');
-
-      expect(result).toEqual([]);
-    });
-
-    it('returns empty array for whitespace-only string', () => {
-      const result = parseBlockedCountriesEnv('   ');
-
-      expect(result).toEqual([]);
-    });
-
-    it('parses single country code', () => {
-      const result = parseBlockedCountriesEnv('GB');
-
-      expect(result).toEqual(['GB']);
-    });
-
-    it('parses comma-separated country codes', () => {
-      const result = parseBlockedCountriesEnv('GB,US,FR');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
-    });
-
-    it('trims whitespace around country codes', () => {
-      const result = parseBlockedCountriesEnv('GB , US , FR');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
-    });
-
-    it('converts country codes to uppercase', () => {
-      const result = parseBlockedCountriesEnv('gb,us,fr');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
-    });
-
-    it('filters out empty entries', () => {
-      const result = parseBlockedCountriesEnv('GB,,US,');
-
-      expect(result).toEqual(['GB', 'US']);
-    });
-
-    it('handles mixed case and whitespace', () => {
-      const result = parseBlockedCountriesEnv(' gb , Us, FR ');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
     });
   });
 

@@ -67,7 +67,7 @@ const QuickBuyActionFooter: React.FC = () => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="pb-5"
       >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {tradeMode === 'sell'
             ? strings('social_leaderboard.quick_buy.receive')
             : strings('social_leaderboard.quick_buy.pay_with')}

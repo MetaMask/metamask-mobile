@@ -227,7 +227,10 @@ function getGithubJobUrl(): string | null {
 export async function publishPerformanceScenarioToSentry(
   options: PublishPerformanceScenarioOptions,
 ): Promise<boolean> {
-  if (options.metrics.steps.length === 0) {
+  if (
+    options.metrics.steps.length === 0 &&
+    options.metrics.appSizeMb === undefined
+  ) {
     return false;
   }
 
@@ -305,6 +308,13 @@ export async function publishPerformanceScenarioToSentry(
     measurements.bs_session_creation_ms = {
       value: options.metrics.sessionCreationDurationMs,
       unit: 'millisecond',
+    };
+  }
+
+  if (options.metrics.appSizeMb !== undefined) {
+    measurements.app_size_mb = {
+      value: options.metrics.appSizeMb,
+      unit: 'megabyte',
     };
   }
 
