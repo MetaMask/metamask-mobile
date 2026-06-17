@@ -97,12 +97,12 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **`source = perps_home`**: `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_gainers'` | `'top_losers'` | `'crypto'` | `'commodity'` | `'stock'` | `'forex'`
   - **`source = explore`**: `'perps_movers'` | `'perps_crypto'` | `'perps_stocks_commodities'` | `'perps_markets'`
   - **`source = perp_markets`**: `'all_markets'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'new'` | `'watchlist'` | `'active_search'`
-  - _All values are mobile-local constants in `discoveryAnalytics.ts` (`PERPS_DISCOVERY_SOURCE_SECTION`), pending upstream._
-- `section_name` (optional): Stable identifier for a home screen section viewed via scroll impression. Present only on `perps_home` impression events emitted by `usePerpsHomeSectionTracking`. Values: `'balance'` | `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_movers'` | `'explore_crypto'` | `'explore_commodities'` | `'explore_stocks'` | `'explore_forex'` | `'recent_activity'`. _(Local constant `PERPS_DISCOVERY_PROPERTY.SECTION_NAME`, pending upstream.)_
-- `section_index` (optional): 1-based position of the section among visible (rendered) sections, ranked by y-position. Reflects the real on-screen order and adjusts automatically for A/B reordering or hidden sections. Present alongside `section_name` on impression events. _(Local constant `PERPS_DISCOVERY_PROPERTY.SECTION_INDEX`, pending upstream.)_
-- `sections_displayed` (optional): Ordered array of `section_name` values visible on the home screen at the time `screen_type = perps_home` fires. Captures the layout composition in one field, enabling analysis of section co-occurrence. _(Local constant `PERPS_DISCOVERY_PROPERTY.SECTIONS_DISPLAYED`, pending upstream.)_
-- `watchlist_count` (optional): Number of markets in the user's watchlist at event time. Included in the base `perps_home` screen view. _(Local constant `PERPS_DISCOVERY_PROPERTY.WATCHLIST_COUNT`, pending upstream.)_
-- `watchlist_markets` (optional): Ordered array of market symbols in the user's watchlist at event time. Included in the base `perps_home` screen view alongside `watchlist_count`. _(Local constant `PERPS_DISCOVERY_PROPERTY.WATCHLIST_MARKETS`, pending upstream.)_
+  - _All values come from `PERPS_EVENT_VALUE.SOURCE_SECTION` in `@metamask/perps-controller`._
+- `section_name` (optional): Stable identifier for a home screen section viewed via scroll impression. Present only on `perps_home` impression events emitted by `usePerpsHomeSectionTracking`. Values: `'balance'` | `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_movers'` | `'explore_crypto'` | `'explore_commodities'` | `'explore_stocks'` | `'explore_forex'` | `'recent_activity'`. _(`PERPS_EVENT_PROPERTY.SECTION_NAME`; values from `PERPS_EVENT_VALUE.SECTION_NAME`.)_
+- `section_index` (optional): 1-based position of the section among visible (rendered) sections, ranked by y-position. Reflects the real on-screen order and adjusts automatically for A/B reordering or hidden sections. Present alongside `section_name` on impression events. _(`PERPS_EVENT_PROPERTY.SECTION_INDEX`.)_
+- `sections_displayed` (optional): Ordered array of `section_name` values visible on the home screen at the time `screen_type = perps_home` fires. Captures the layout composition in one field, enabling analysis of section co-occurrence. _(`PERPS_EVENT_PROPERTY.SECTIONS_DISPLAYED`.)_
+- `watchlist_count` (optional): Number of markets in the user's watchlist at event time. Included in the base `perps_home` screen view. _(`PERPS_EVENT_PROPERTY.WATCHLIST_COUNT`.)_
+- `watchlist_markets` (optional): Ordered array of market symbols in the user's watchlist at event time. Included in the base `perps_home` screen view alongside `watchlist_count`. _(`PERPS_EVENT_PROPERTY.WATCHLIST_MARKETS`.)_
 - `error_type` (optional): Type of error for error screen views (e.g., `'network'`, `'backend'`; used when screen_type is `'error'`)
 - `has_perp_balance` (optional): Whether user has a perps balance or positions (boolean)
 - `has_take_profit` (optional): Whether take profit is set (boolean, used for TP/SL screens)
@@ -132,7 +132,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'` | `'cancel_trade_with_token'`
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
   - **Discovery interactions:** `'related_market_clicked'`
-  - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(local constant, pending upstream)_
+  - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_
 - `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -151,17 +151,17 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `category` (optional): Collection/List identifier for Related markets tile taps.
 - `position` (optional): 1-based tile position in the Related markets rail.
 - `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'` | `'competition_banner_engage'` | `'competition_banner_close'`
-  - **Discovery section header values** _(local constants, pending upstream)_: `'watchlist'` | `'top_movers'` | `'whats_happening'`
+  - **Discovery section header values** _(`PERPS_EVENT_VALUE.BUTTON_CLICKED`)_: `'watchlist'` | `'top_movers'` | `'whats_happening'`
   - **Market list filter values:** `'all'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'watchlist'` (used with `interaction_type = market_list_filter`)
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
-  - **Discovery value** _(local constant, pending upstream)_: `'asset_details'` — magnifying glass button on the asset details screen
-- `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(Local property key `PERPS_DISCOVERY_PROPERTY.RESULT_COUNT`, pending upstream.)_
+  - **Discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — magnifying glass button on the asset details screen
+- `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(`PERPS_EVENT_PROPERTY.RESULT_COUNT`.)_
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `max_slippage_pct` (optional): Current max slippage percentage (number, used with slippage interactions)
 - `max_slippage_source` (optional): How the slippage value was set: `'default' | 'user_configured'` (used with slippage interactions)
 - `estimated_slippage_pct` (optional): Estimated slippage percentage (number, used with `slippage_limit_blocked_order`)
-- `section_viewed` (optional): Stable section name scrolled into view (e.g., `'explore_crypto'`, `'explore_stocks'`, `'recent_activity'`; used with `slide` interaction). Values match `PERPS_DISCOVERY_SECTION_NAME` constants.
+- `section_viewed` (optional): Stable section name scrolled into view (e.g., `'explore_crypto'`, `'explore_stocks'`, `'recent_activity'`; used with `slide` interaction). Values match `PERPS_EVENT_VALUE.SECTION_NAME` constants.
 - `location` (optional): Location context for scroll tracking (e.g., `'perps_home'`)
 - `source` (optional): Source context for favorites (e.g., `'perp_asset_screen'`)
 - `tab_name` (optional): Tab being viewed (e.g., `'trades'` | `'orders'` | `'funding'` | `'deposits'`)
@@ -529,22 +529,22 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 
 ### Button Location Values
 
-| Value                      | Description                                                                         |
-| -------------------------- | ----------------------------------------------------------------------------------- |
-| `'perps_home'`             | Perps home screen                                                                   |
-| `'perps_tutorial'`         | Tutorial screen                                                                     |
-| `'perps_home_empty_state'` | Perps home empty state (no balance)                                                 |
-| `'perps_asset_screen'`     | Asset details screen                                                                |
-| `'perps_tab'`              | Positions tab                                                                       |
-| `'trade_menu_action'`      | Trade menu action button                                                            |
-| `'wallet_home'`            | Wallet home screen                                                                  |
-| `'market_list'`            | Market list screen                                                                  |
-| `'screen'`                 | Generic screen location                                                             |
-| `'tooltip'`                | Tooltip bottom sheet                                                                |
-| `'perp_market_details'`    | Market details screen                                                               |
-| `'order_book'`             | Order book screen                                                                   |
-| `'full_screen_chart'`      | Full screen chart view                                                              |
-| `'asset_details'`          | Asset details screen — magnifying glass button _(local constant, pending upstream)_ |
+| Value                      | Description                                    |
+| -------------------------- | ---------------------------------------------- |
+| `'perps_home'`             | Perps home screen                              |
+| `'perps_tutorial'`         | Tutorial screen                                |
+| `'perps_home_empty_state'` | Perps home empty state (no balance)            |
+| `'perps_asset_screen'`     | Asset details screen                           |
+| `'perps_tab'`              | Positions tab                                  |
+| `'trade_menu_action'`      | Trade menu action button                       |
+| `'wallet_home'`            | Wallet home screen                             |
+| `'market_list'`            | Market list screen                             |
+| `'screen'`                 | Generic screen location                        |
+| `'tooltip'`                | Tooltip bottom sheet                           |
+| `'perp_market_details'`    | Market details screen                          |
+| `'order_book'`             | Order book screen                              |
+| `'full_screen_chart'`      | Full screen chart view                         |
+| `'asset_details'`          | Asset details screen — magnifying glass button |
 
 ### Usage Example
 
@@ -681,45 +681,45 @@ The Perps Discovery System uses a unified **`source` + `source_section`** model 
 
 When a user taps a market in `PerpsHomeView`, `source = perps_home` and `source_section` identifies the section:
 
-| Home section          | `source_section` value | Constant                                         |
-| --------------------- | ---------------------- | ------------------------------------------------ |
-| Position card         | `'positions'`          | `PERPS_DISCOVERY_SOURCE_SECTION.POSITIONS`       |
-| Order card            | `'orders'`             | `PERPS_DISCOVERY_SOURCE_SECTION.ORDERS`          |
-| Watchlist             | `'watchlist'`          | `PERPS_DISCOVERY_SOURCE_SECTION.WATCHLIST`       |
-| What's Happening      | `'whats_happening'`    | `PERPS_DISCOVERY_SOURCE_SECTION.WHATS_HAPPENING` |
-| Products              | `'products'`           | `PERPS_DISCOVERY_SOURCE_SECTION.PRODUCTS`        |
-| Top Movers (gainers)  | `'top_gainers'`        | `PERPS_DISCOVERY_SOURCE_SECTION.TOP_GAINERS`     |
-| Top Movers (losers)   | `'top_losers'`         | `PERPS_DISCOVERY_SOURCE_SECTION.TOP_LOSERS`      |
-| Explore › Crypto      | `'crypto'`             | `PERPS_DISCOVERY_SOURCE_SECTION.CRYPTO`          |
-| Explore › Commodities | `'commodity'`          | `PERPS_DISCOVERY_SOURCE_SECTION.COMMODITY`       |
-| Explore › Stocks      | `'stock'`              | `PERPS_DISCOVERY_SOURCE_SECTION.STOCK`           |
-| Explore › Forex       | `'forex'`              | `PERPS_DISCOVERY_SOURCE_SECTION.FOREX`           |
+| Home section          | `source_section` value | Constant                                           |
+| --------------------- | ---------------------- | -------------------------------------------------- |
+| Position card         | `'positions'`          | `PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS`       |
+| Order card            | `'orders'`             | `PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS`          |
+| Watchlist             | `'watchlist'`          | `PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST`       |
+| What's Happening      | `'whats_happening'`    | `PERPS_EVENT_VALUE.SOURCE_SECTION.WHATS_HAPPENING` |
+| Products              | `'products'`           | `PERPS_EVENT_VALUE.SOURCE_SECTION.PRODUCTS`        |
+| Top Movers (gainers)  | `'top_gainers'`        | `PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS`     |
+| Top Movers (losers)   | `'top_losers'`         | `PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS`      |
+| Explore › Crypto      | `'crypto'`             | `PERPS_EVENT_VALUE.SOURCE_SECTION.CRYPTO`          |
+| Explore › Commodities | `'commodity'`          | `PERPS_EVENT_VALUE.SOURCE_SECTION.COMMODITY`       |
+| Explore › Stocks      | `'stock'`              | `PERPS_EVENT_VALUE.SOURCE_SECTION.STOCK`           |
+| Explore › Forex       | `'forex'`              | `PERPS_EVENT_VALUE.SOURCE_SECTION.FOREX`           |
 
 ### 2. Explore/Trending taps (`source = explore`)
 
 When a user taps a market in the Explore/Trending view, `source = explore` and `source_section` identifies the tab's Perps section:
 
-| Explore tab | Perps section            | `source_section` value       | Constant                                                  |
-| ----------- | ------------------------ | ---------------------------- | --------------------------------------------------------- |
-| Now         | Perps Movers (pill list) | `'perps_movers'`             | `PERPS_DISCOVERY_SOURCE_SECTION.PERPS_MOVERS`             |
-| Crypto      | Crypto Perps (tiles)     | `'perps_crypto'`             | `PERPS_DISCOVERY_SOURCE_SECTION.PERPS_CRYPTO`             |
-| Macro       | Stocks & Commodities     | `'perps_stocks_commodities'` | `PERPS_DISCOVERY_SOURCE_SECTION.PERPS_STOCKS_COMMODITIES` |
-| RWAs        | RWA markets              | `'perps_markets'`            | `PERPS_DISCOVERY_SOURCE_SECTION.PERPS_MARKETS`            |
+| Explore tab | Perps section            | `source_section` value       | Constant                                                    |
+| ----------- | ------------------------ | ---------------------------- | ----------------------------------------------------------- |
+| Now         | Perps Movers (pill list) | `'perps_movers'`             | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_MOVERS`             |
+| Crypto      | Crypto Perps (tiles)     | `'perps_crypto'`             | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_CRYPTO`             |
+| Macro       | Stocks & Commodities     | `'perps_stocks_commodities'` | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_STOCKS_COMMODITIES` |
+| RWAs        | RWA markets              | `'perps_markets'`            | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_MARKETS`            |
 
 ### 3. Market list taps (`source = perp_markets`)
 
 When navigating from `PerpsMarketListView` → `PerpsMarketDetailsView`, `source = perp_markets` (always) and `source_section` carries the active subsection at the time of tap:
 
-| Active state in market list | `source_section` value | Constant                                       |
-| --------------------------- | ---------------------- | ---------------------------------------------- |
-| No filter, no search        | `'all_markets'`        | `PERPS_DISCOVERY_SOURCE_SECTION.ALL_MARKETS`   |
-| Crypto filter active        | `'crypto'`             | `PERPS_DISCOVERY_SOURCE_SECTION.CRYPTO`        |
-| Stock filter active         | `'stock'`              | `PERPS_DISCOVERY_SOURCE_SECTION.STOCK`         |
-| Commodity filter active     | `'commodity'`          | `PERPS_DISCOVERY_SOURCE_SECTION.COMMODITY`     |
-| Forex filter active         | `'forex'`              | `PERPS_DISCOVERY_SOURCE_SECTION.FOREX`         |
-| New markets filter active   | `'new'`                | `PERPS_DISCOVERY_SOURCE_SECTION.NEW`           |
-| Watchlist toggle active     | `'watchlist'`          | `PERPS_DISCOVERY_SOURCE_SECTION.WATCHLIST`     |
-| Search query present        | `'active_search'`      | `PERPS_DISCOVERY_SOURCE_SECTION.ACTIVE_SEARCH` |
+| Active state in market list | `source_section` value | Constant                                         |
+| --------------------------- | ---------------------- | ------------------------------------------------ |
+| No filter, no search        | `'all_markets'`        | `PERPS_EVENT_VALUE.SOURCE_SECTION.ALL_MARKETS`   |
+| Crypto filter active        | `'crypto'`             | `PERPS_EVENT_VALUE.SOURCE_SECTION.CRYPTO`        |
+| Stock filter active         | `'stock'`              | `PERPS_EVENT_VALUE.SOURCE_SECTION.STOCK`         |
+| Commodity filter active     | `'commodity'`          | `PERPS_EVENT_VALUE.SOURCE_SECTION.COMMODITY`     |
+| Forex filter active         | `'forex'`              | `PERPS_EVENT_VALUE.SOURCE_SECTION.FOREX`         |
+| New markets filter active   | `'new'`                | `PERPS_EVENT_VALUE.SOURCE_SECTION.NEW`           |
+| Watchlist toggle active     | `'watchlist'`          | `PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST`     |
+| Search query present        | `'active_search'`      | `PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH` |
 
 ### 4. Section impression events (`screen_type = perps_home`)
 
@@ -730,24 +730,24 @@ When navigating from `PerpsMarketListView` → `PerpsMarketDetailsView`, `source
 
 Section names used in impression events:
 
-| Home section        | `section_name` value    | `PERPS_DISCOVERY_SECTION_NAME` constant |
-| ------------------- | ----------------------- | --------------------------------------- |
-| Balance             | `'balance'`             | `BALANCE`                               |
-| Positions           | `'positions'`           | `POSITIONS`                             |
-| Orders              | `'orders'`              | `ORDERS`                                |
-| Watchlist           | `'watchlist'`           | `WATCHLIST`                             |
-| What's Happening    | `'whats_happening'`     | `WHATS_HAPPENING`                       |
-| Products            | `'products'`            | `PRODUCTS`                              |
-| Top Movers          | `'top_movers'`          | `TOP_MOVERS`                            |
-| Explore Crypto      | `'explore_crypto'`      | `EXPLORE_CRYPTO`                        |
-| Explore Commodities | `'explore_commodities'` | `EXPLORE_COMMODITIES`                   |
-| Explore Stocks      | `'explore_stocks'`      | `EXPLORE_STOCKS`                        |
-| Explore Forex       | `'explore_forex'`       | `EXPLORE_FOREX`                         |
-| Recent Activity     | `'recent_activity'`     | `RECENT_ACTIVITY`                       |
+| Home section        | `section_name` value    | `PERPS_EVENT_VALUE.SECTION_NAME` constant |
+| ------------------- | ----------------------- | ----------------------------------------- |
+| Balance             | `'balance'`             | `BALANCE`                                 |
+| Positions           | `'positions'`           | `POSITIONS`                               |
+| Orders              | `'orders'`              | `ORDERS`                                  |
+| Watchlist           | `'watchlist'`           | `WATCHLIST`                               |
+| What's Happening    | `'whats_happening'`     | `WHATS_HAPPENING`                         |
+| Products            | `'products'`            | `PRODUCTS`                                |
+| Top Movers          | `'top_movers'`          | `TOP_MOVERS`                              |
+| Explore Crypto      | `'explore_crypto'`      | `EXPLORE_CRYPTO`                          |
+| Explore Commodities | `'explore_commodities'` | `EXPLORE_COMMODITIES`                     |
+| Explore Stocks      | `'explore_stocks'`      | `EXPLORE_STOCKS`                          |
+| Explore Forex       | `'explore_forex'`       | `EXPLORE_FOREX`                           |
+| Recent Activity     | `'recent_activity'`     | `RECENT_ACTIVITY`                         |
 
 `section_index` = 1-based rank by y-position among rendered sections. Adjusts automatically for hidden or A/B-reordered sections.
 
-> **All `source_section` and `section_name` values are mobile-local constants** in `app/components/UI/Perps/constants/discoveryAnalytics.ts`, pending upstreaming into `@metamask/perps-controller`.
+> **All `source_section` and `section_name` values are sourced from `@metamask/perps-controller`** (`PERPS_EVENT_VALUE.SOURCE_SECTION` and `PERPS_EVENT_VALUE.SECTION_NAME`).
 
 ---
 

@@ -12,10 +12,6 @@ import PerpsTopMoversSection, {
 import { usePerpsTopMovers } from '../../hooks/usePerpsTopMovers';
 import { usePerpsNavigation } from '../../hooks';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
-import {
-  PERPS_DISCOVERY_BUTTON_CLICKED,
-  PERPS_DISCOVERY_SOURCE_SECTION,
-} from '../../constants/discoveryAnalytics';
 
 const mockNavigateToMarketList = jest.fn();
 const mockTrack = jest.fn();
@@ -241,7 +237,7 @@ describe('PerpsTopMoversSection', () => {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-          PERPS_DISCOVERY_BUTTON_CLICKED.TOP_MOVERS,
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.TOP_MOVERS,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
       }),
@@ -278,10 +274,10 @@ describe('PerpsTopMoversSection', () => {
     // source_section distinguishes gainers from losers
     expect(
       screen.getByTestId('mock-pill-source-section-ETH'),
-    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_GAINERS);
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS);
     expect(
       screen.getByTestId('mock-pill-source-section-BTC'),
-    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_GAINERS);
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS);
   });
 
   it('passes source=perps_home and source_section=top_losers to each pill after switching to losers toggle', () => {
@@ -299,10 +295,10 @@ describe('PerpsTopMoversSection', () => {
     );
     expect(
       screen.getByTestId('mock-pill-source-section-ETH'),
-    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_LOSERS);
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS);
     expect(
       screen.getByTestId('mock-pill-source-section-BTC'),
-    ).toHaveTextContent(PERPS_DISCOVERY_SOURCE_SECTION.TOP_LOSERS);
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS);
   });
 
   it('forwards transactionActiveAbTests to each pill', () => {

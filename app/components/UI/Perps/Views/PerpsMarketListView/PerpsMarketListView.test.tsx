@@ -1531,8 +1531,6 @@ describe('PerpsMarketListView', () => {
 
     const { PERPS_EVENT_VALUE: PEV, PERPS_EVENT_PROPERTY: PEP } =
       jest.requireActual('@metamask/perps-controller');
-    const { PERPS_DISCOVERY_INTERACTION_TYPE, PERPS_DISCOVERY_BUTTON_CLICKED } =
-      jest.requireActual('../../constants/discoveryAnalytics');
 
     it('fires market_list_filter tracking with the selected category when a category badge is pressed', () => {
       mockWatchlistFlagEnabled = true;
@@ -1543,8 +1541,7 @@ describe('PerpsMarketListView', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          [PEP.INTERACTION_TYPE]:
-            PERPS_DISCOVERY_INTERACTION_TYPE.MARKET_LIST_FILTER,
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.MARKET_LIST_FILTER,
           [PEP.BUTTON_CLICKED]: 'crypto',
           [PEP.BUTTON_LOCATION]: PEV.BUTTON_LOCATION.MARKET_LIST,
         }),
@@ -1560,8 +1557,7 @@ describe('PerpsMarketListView', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          [PEP.INTERACTION_TYPE]:
-            PERPS_DISCOVERY_INTERACTION_TYPE.MARKET_LIST_FILTER,
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.MARKET_LIST_FILTER,
           [PEP.BUTTON_CLICKED]: 'all',
         }),
       );
@@ -1578,9 +1574,8 @@ describe('PerpsMarketListView', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          [PEP.INTERACTION_TYPE]:
-            PERPS_DISCOVERY_INTERACTION_TYPE.MARKET_LIST_FILTER,
-          [PEP.BUTTON_CLICKED]: PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST,
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.MARKET_LIST_FILTER,
+          [PEP.BUTTON_CLICKED]: PEV.BUTTON_CLICKED.WATCHLIST,
           [PEP.BUTTON_LOCATION]: PEV.BUTTON_LOCATION.MARKET_LIST,
         }),
       );
@@ -1603,10 +1598,6 @@ describe('PerpsMarketListView', () => {
     });
 
     it('fires search result_count after search query stabilises (debounced)', async () => {
-      const { PERPS_DISCOVERY_PROPERTY } = jest.requireActual(
-        '../../constants/discoveryAnalytics',
-      );
-
       jest.useFakeTimers();
 
       // Set hook to return a non-empty searchQuery + 1 result so the debounce effect fires
@@ -1658,7 +1649,7 @@ describe('PerpsMarketListView', () => {
           expect.anything(),
           expect.objectContaining({
             [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.SEARCH_CLICKED,
-            [PERPS_DISCOVERY_PROPERTY.RESULT_COUNT]: 1,
+            [PEP.RESULT_COUNT]: 1,
           }),
         );
       });

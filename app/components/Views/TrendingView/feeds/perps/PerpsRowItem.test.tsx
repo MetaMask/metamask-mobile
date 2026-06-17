@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import PerpsRowItem from './PerpsRowItem';
-import { PERPS_DISCOVERY_SOURCE_SECTION } from '../../../../UI/Perps/constants/discoveryAnalytics';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -56,7 +55,9 @@ describe('PerpsRowItem', () => {
     const { getByTestId } = render(
       <PerpsRowItem
         market={mockMarket}
-        sourceSection={PERPS_DISCOVERY_SOURCE_SECTION.PERPS_STOCKS_COMMODITIES}
+        sourceSection={
+          PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_STOCKS_COMMODITIES
+        }
       />,
     );
 
@@ -65,7 +66,7 @@ describe('PerpsRowItem', () => {
     const params = mockNavigate.mock.calls[0][1].params;
     expect(params.source).toBe(PERPS_EVENT_VALUE.SOURCE.EXPLORE);
     expect(params.source_section).toBe(
-      PERPS_DISCOVERY_SOURCE_SECTION.PERPS_STOCKS_COMMODITIES,
+      PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_STOCKS_COMMODITIES,
     );
   });
 
@@ -74,7 +75,7 @@ describe('PerpsRowItem', () => {
     const { getByTestId } = render(
       <PerpsRowItem
         market={mockMarket}
-        sourceSection={PERPS_DISCOVERY_SOURCE_SECTION.PERPS_MARKETS}
+        sourceSection={PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_MARKETS}
         onCardPress={onCardPress}
       />,
     );

@@ -70,7 +70,10 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import { selectPerpsNetwork , selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
+import {
+  selectPerpsNetwork,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
@@ -87,12 +90,6 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import {
-  PERPS_DISCOVERY_BUTTON_CLICKED,
-  PERPS_DISCOVERY_PROPERTY,
-  PERPS_DISCOVERY_SECTION_NAME,
-  PERPS_DISCOVERY_SOURCE_SECTION,
-} from '../../constants/discoveryAnalytics';
 import {
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
@@ -329,32 +326,32 @@ const PerpsHomeView = ({
   // Build the ordered list of visible section names for sections_displayed.
   // Mirrors the render order in the ScrollView so the array is always stable.
   const sectionsDisplayed = useMemo(() => {
-    const sections: string[] = [PERPS_DISCOVERY_SECTION_NAME.BALANCE];
+    const sections: string[] = [PERPS_EVENT_VALUE.SECTION_NAME.BALANCE];
     if (positions.length > 0)
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.POSITIONS);
-    if (orders.length > 0) sections.push(PERPS_DISCOVERY_SECTION_NAME.ORDERS);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS);
+    if (orders.length > 0) sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningEnabled)
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.WHATS_HAPPENING);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
     if (
       watchlistMarkets.length > 0 ||
       (suggestedWatchlistMarkets?.length ?? 0) > 0
     ) {
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.WATCHLIST);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
     }
     // Products, Top Movers, and explore sections are always attempted; they
     // self-hide when empty, so we include them here conditionally.
-    sections.push(PERPS_DISCOVERY_SECTION_NAME.PRODUCTS);
-    sections.push(PERPS_DISCOVERY_SECTION_NAME.TOP_MOVERS);
+    sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
+    sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
     if (perpsMarkets.length > 0)
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO);
     if (commoditiesMarkets.length > 0)
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_COMMODITIES);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES);
     if (stocksMarkets.length > 0)
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
     if (forexMarkets.length > 0)
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.EXPLORE_FOREX);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
     if (recentActivity.length > 0)
-      sections.push(PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY);
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
     return sections;
   }, [
     positions,
@@ -381,9 +378,9 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
       [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
         isServiceInterruptionBannerEnabled,
-      [PERPS_DISCOVERY_PROPERTY.SECTIONS_DISPLAYED]: sectionsDisplayed,
-      [PERPS_DISCOVERY_PROPERTY.WATCHLIST_COUNT]: rawWatchlistSymbols.length,
-      [PERPS_DISCOVERY_PROPERTY.WATCHLIST_MARKETS]: rawWatchlistSymbols,
+      [PERPS_EVENT_PROPERTY.SECTIONS_DISPLAYED]: sectionsDisplayed,
+      [PERPS_EVENT_PROPERTY.WATCHLIST_COUNT]: rawWatchlistSymbols.length,
+      [PERPS_EVENT_PROPERTY.WATCHLIST_MARKETS]: rawWatchlistSymbols,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -427,7 +424,7 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_DISCOVERY_BUTTON_CLICKED.WHATS_HAPPENING,
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WHATS_HAPPENING,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
@@ -758,7 +755,9 @@ const PerpsHomeView = ({
 
         {/* Positions Section */}
         <View
-          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.POSITIONS)}
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+          )}
         >
           <PerpsHomeSection
             title={strings('perps.home.positions')}
@@ -778,7 +777,7 @@ const PerpsHomeView = ({
                   key={`${position.symbol}-${index}`}
                   position={position}
                   source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-                  source_section={PERPS_DISCOVERY_SOURCE_SECTION.POSITIONS}
+                  source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS}
                   testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
                 />
               ))}
@@ -788,7 +787,7 @@ const PerpsHomeView = ({
 
         {/* Orders Section */}
         <View
-          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.ORDERS)}
+          onLayout={handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS)}
         >
           <PerpsHomeSection
             title={strings('perps.home.orders')}
@@ -804,7 +803,7 @@ const PerpsHomeView = ({
                   key={order.orderId}
                   order={order}
                   source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-                  source_section={PERPS_DISCOVERY_SOURCE_SECTION.ORDERS}
+                  source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS}
                   testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
                 />
               ))}
@@ -816,7 +815,7 @@ const PerpsHomeView = ({
         {isWhatsHappeningEnabled && (
           <View
             onLayout={handleSectionLayout(
-              PERPS_DISCOVERY_SECTION_NAME.WHATS_HAPPENING,
+              PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
             )}
           >
             <WhatsHappeningSection
@@ -828,7 +827,9 @@ const PerpsHomeView = ({
 
         {/* Watchlist Section */}
         <View
-          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.WATCHLIST)}
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
+          )}
         >
           <PerpsWatchlistMarkets
             markets={watchlistMarkets}
@@ -837,7 +838,7 @@ const PerpsHomeView = ({
             positions={positions}
             orders={orders}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            source_section={PERPS_DISCOVERY_SOURCE_SECTION.WATCHLIST}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST}
             transactionActiveAbTests={transactionActiveAbTests}
             onSeeAllPress={
               watchlistMarkets.length > 0
@@ -853,7 +854,9 @@ const PerpsHomeView = ({
 
         {/* Products Section - Category pills grid */}
         <View
-          onLayout={handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.PRODUCTS)}
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
+          )}
         >
           <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
         </View>
@@ -861,7 +864,7 @@ const PerpsHomeView = ({
         {/* Top Movers Section */}
         <View
           onLayout={handleSectionLayout(
-            PERPS_DISCOVERY_SECTION_NAME.TOP_MOVERS,
+            PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS,
           )}
         >
           <PerpsTopMoversSection
@@ -873,7 +876,7 @@ const PerpsHomeView = ({
         {/* Crypto Markets List */}
         <View
           onLayout={handleSectionLayout(
-            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO,
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
           )}
         >
           <PerpsMarketTypeSection
@@ -883,7 +886,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            source_section={PERPS_DISCOVERY_SOURCE_SECTION.CRYPTO}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.CRYPTO}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
@@ -891,7 +894,7 @@ const PerpsHomeView = ({
         {/* Commodities Markets List */}
         <View
           onLayout={handleSectionLayout(
-            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_COMMODITIES,
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES,
           )}
         >
           <PerpsMarketTypeSection
@@ -901,7 +904,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            source_section={PERPS_DISCOVERY_SOURCE_SECTION.COMMODITY}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.COMMODITY}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
@@ -909,7 +912,7 @@ const PerpsHomeView = ({
         {/* Stocks Markets List */}
         <View
           onLayout={handleSectionLayout(
-            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS,
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
           )}
         >
           <PerpsMarketTypeSection
@@ -919,7 +922,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            source_section={PERPS_DISCOVERY_SOURCE_SECTION.STOCK}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.STOCK}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
@@ -927,7 +930,7 @@ const PerpsHomeView = ({
         {/* Forex Markets List */}
         <View
           onLayout={handleSectionLayout(
-            PERPS_DISCOVERY_SECTION_NAME.EXPLORE_FOREX,
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX,
           )}
         >
           <PerpsMarketTypeSection
@@ -936,7 +939,7 @@ const PerpsHomeView = ({
             marketType="forex"
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            source_section={PERPS_DISCOVERY_SOURCE_SECTION.FOREX}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.FOREX}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
@@ -944,7 +947,7 @@ const PerpsHomeView = ({
         {/* Recent Activity List */}
         <View
           onLayout={handleSectionLayout(
-            PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY,
+            PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
           )}
         >
           <PerpsRecentActivityList

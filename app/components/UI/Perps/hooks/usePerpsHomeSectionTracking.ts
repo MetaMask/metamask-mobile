@@ -6,31 +6,30 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import {
-  PERPS_DISCOVERY_PROPERTY,
-  PERPS_DISCOVERY_SECTION_NAME,
-  type PerpsDiscoverySectionName,
-} from '../constants/discoveryAnalytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+
+/** Stable home section name, derived from the upstream SECTION_NAME enum. */
+export type PerpsHomeSectionName =
+  (typeof PERPS_EVENT_VALUE.SECTION_NAME)[keyof typeof PERPS_EVENT_VALUE.SECTION_NAME];
 
 /**
  * Ordered master list of all Perps home sections.
  * The render order in PerpsHomeView must match this array.
  * section_index = 1-based rank by y-position among registered sections.
  */
-export const PERPS_HOME_SECTION_ORDER: PerpsDiscoverySectionName[] = [
-  PERPS_DISCOVERY_SECTION_NAME.BALANCE,
-  PERPS_DISCOVERY_SECTION_NAME.POSITIONS,
-  PERPS_DISCOVERY_SECTION_NAME.ORDERS,
-  PERPS_DISCOVERY_SECTION_NAME.WHATS_HAPPENING,
-  PERPS_DISCOVERY_SECTION_NAME.WATCHLIST,
-  PERPS_DISCOVERY_SECTION_NAME.PRODUCTS,
-  PERPS_DISCOVERY_SECTION_NAME.TOP_MOVERS,
-  PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO,
-  PERPS_DISCOVERY_SECTION_NAME.EXPLORE_COMMODITIES,
-  PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS,
-  PERPS_DISCOVERY_SECTION_NAME.EXPLORE_FOREX,
-  PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY,
+export const PERPS_HOME_SECTION_ORDER: PerpsHomeSectionName[] = [
+  PERPS_EVENT_VALUE.SECTION_NAME.BALANCE,
+  PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+  PERPS_EVENT_VALUE.SECTION_NAME.ORDERS,
+  PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
+  PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
+  PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
+  PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS,
+  PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
+  PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES,
+  PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
+  PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX,
+  PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
 ];
 
 interface SectionPosition {
@@ -46,8 +45,8 @@ interface SectionPosition {
  * the real on-screen order and handles A/B reordering.
  */
 const computeSectionIndex = (
-  sectionName: PerpsDiscoverySectionName,
-  positions: Map<PerpsDiscoverySectionName, SectionPosition>,
+  sectionName: PerpsHomeSectionName,
+  positions: Map<PerpsHomeSectionName, SectionPosition>,
 ): number => {
   const targetSection = positions.get(sectionName);
   if (!targetSection) return 0;
@@ -75,9 +74,9 @@ export function usePerpsHomeSectionTracking() {
   const { track } = usePerpsEventTracking();
 
   // Keyed by section name; stores layout and whether the impression has fired.
-  const sectionPositions = useRef<
-    Map<PerpsDiscoverySectionName, SectionPosition>
-  >(new Map());
+  const sectionPositions = useRef<Map<PerpsHomeSectionName, SectionPosition>>(
+    new Map(),
+  );
 
   // Threshold: consider section "viewed" when top 20% is visible
   const VISIBILITY_THRESHOLD = 0.2;
@@ -87,7 +86,7 @@ export function usePerpsHomeSectionTracking() {
    * Call this from onLayout wrappers around each section container.
    */
   const handleSectionLayout = useCallback(
-    (sectionName: PerpsDiscoverySectionName) => (event: LayoutChangeEvent) => {
+    (sectionName: PerpsHomeSectionName) => (event: LayoutChangeEvent) => {
       const { y, height } = event.nativeEvent.layout;
       sectionPositions.current.set(sectionName, {
         top: y,
@@ -102,7 +101,7 @@ export function usePerpsHomeSectionTracking() {
    * Fires both analytics events for a section becoming visible.
    */
   const trackSectionViewed = useCallback(
-    (sectionName: PerpsDiscoverySectionName) => {
+    (sectionName: PerpsHomeSectionName) => {
       const section = sectionPositions.current.get(sectionName);
       if (!section || section.tracked) return;
 
@@ -130,8 +129,8 @@ export function usePerpsHomeSectionTracking() {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
           PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
-        [PERPS_DISCOVERY_PROPERTY.SECTION_NAME]: sectionName,
-        [PERPS_DISCOVERY_PROPERTY.SECTION_INDEX]: sectionIndex,
+        [PERPS_EVENT_PROPERTY.SECTION_NAME]: sectionName,
+        [PERPS_EVENT_PROPERTY.SECTION_INDEX]: sectionIndex,
       });
     },
     [trackEvent, createEventBuilder, track],

@@ -48,12 +48,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
-import {
-  PERPS_DISCOVERY_INTERACTION_TYPE,
-  PERPS_DISCOVERY_BUTTON_CLICKED,
-  PERPS_DISCOVERY_PROPERTY,
-  PERPS_DISCOVERY_SOURCE_SECTION,
-} from '../../constants/discoveryAnalytics';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -131,16 +125,16 @@ const PerpsMarketListView = ({
         let source_section: string;
         const trimmedQuery = searchQuery.trim();
         if (trimmedQuery) {
-          source_section = PERPS_DISCOVERY_SOURCE_SECTION.ACTIVE_SEARCH;
+          source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH;
         } else if (showFavoritesOnly) {
-          source_section = PERPS_DISCOVERY_SOURCE_SECTION.WATCHLIST;
+          source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST;
         } else if (marketTypeFilter !== 'all') {
           source_section =
-            PERPS_DISCOVERY_SOURCE_SECTION[
-              marketTypeFilter.toUpperCase() as keyof typeof PERPS_DISCOVERY_SOURCE_SECTION
+            PERPS_EVENT_VALUE.SOURCE_SECTION[
+              marketTypeFilter.toUpperCase() as keyof typeof PERPS_EVENT_VALUE.SOURCE_SECTION
             ] ?? marketTypeFilter;
         } else {
-          source_section = PERPS_DISCOVERY_SOURCE_SECTION.ALL_MARKETS;
+          source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ALL_MARKETS;
         }
 
         // Use push instead of navigate so that MARKET_LIST is always beneath
@@ -177,7 +171,7 @@ const PerpsMarketListView = ({
     (category: MarketTypeFilter) => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_DISCOVERY_INTERACTION_TYPE.MARKET_LIST_FILTER,
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER,
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
@@ -196,9 +190,9 @@ const PerpsMarketListView = ({
     const willActivate = !showFavoritesOnly;
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_DISCOVERY_INTERACTION_TYPE.MARKET_LIST_FILTER,
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER,
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST,
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
     });
@@ -237,7 +231,7 @@ const PerpsMarketListView = ({
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.SEARCH_CLICKED,
-        [PERPS_DISCOVERY_PROPERTY.RESULT_COUNT]: filteredMarkets.length,
+        [PERPS_EVENT_PROPERTY.RESULT_COUNT]: filteredMarkets.length,
       });
     }, 600);
 
@@ -278,7 +272,7 @@ const PerpsMarketListView = ({
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: showFavoritesOnly
-        ? PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST
+        ? PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST
         : marketTypeFilter,
       ...(marketTypeFilter !== 'all' && {
         product_filter: normalizeFilterKey(marketTypeFilter),

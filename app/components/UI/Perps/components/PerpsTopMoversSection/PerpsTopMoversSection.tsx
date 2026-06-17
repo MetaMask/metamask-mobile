@@ -29,10 +29,6 @@ import { selectPerpsTopMoversEnabledFlag } from '../../selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  PERPS_DISCOVERY_BUTTON_CLICKED,
-  PERPS_DISCOVERY_SOURCE_SECTION,
-} from '../../constants/discoveryAnalytics';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -102,15 +98,15 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
   // source_section so analysts can distinguish gainers from losers.
   const pillSourceSection =
     direction === 'desc'
-      ? PERPS_DISCOVERY_SOURCE_SECTION.TOP_GAINERS
-      : PERPS_DISCOVERY_SOURCE_SECTION.TOP_LOSERS;
+      ? PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS
+      : PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS;
 
   const handleViewAll = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_DISCOVERY_BUTTON_CLICKED.TOP_MOVERS,
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.TOP_MOVERS,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });

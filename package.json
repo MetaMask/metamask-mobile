@@ -308,7 +308,7 @@
     "@metamask/network-enablement-controller": "^5.3.0",
     "@metamask/notification-services-controller": "24.1.1",
     "@metamask/permission-controller": "^13.1.1",
-    "@metamask/perps-controller": "^8.1.0",
+    "@metamask/perps-controller": "npm:@metamask-previews/perps-controller@8.1.0-preview-9de5a25",
     "@metamask/phishing-controller": "^17.2.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
@@ -400,6 +400,7 @@
     "@walletconnect/react-native-compat": "^2.23.0",
     "@walletconnect/utils": "^2.23.0",
     "@xmldom/xmldom": "^0.8.13",
+    "add": "^2.0.6",
     "asyncstorage-down": "4.2.0",
     "axios": "^1.16.0",
     "bignumber.js": "^9.0.1",
@@ -552,7 +553,8 @@
     "uuid": "^14.0.0",
     "valid-url": "1.0.9",
     "viem": "^2.28.0",
-    "vm-browserify": "1.1.2"
+    "vm-browserify": "1.1.2",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -594,6 +596,7 @@
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^13.2.0",
+    "@types/add": "^2",
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6",
     "@types/bnjs5": "npm:@types/bn.js@^5.2.0",
     "@types/eth-url-parser": "^1.0.0",

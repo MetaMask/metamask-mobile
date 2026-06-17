@@ -39,7 +39,6 @@ import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { PERPS_DISCOVERY_BUTTON_CLICKED } from '../../constants/discoveryAnalytics';
 
 const ANIMATION_DURATION = 250;
 
@@ -213,7 +212,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST,
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });

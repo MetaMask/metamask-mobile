@@ -564,9 +564,6 @@ describe('PerpsWatchlistMarkets', () => {
     it('fires PERPS_UI_INTERACTION with button_clicked=watchlist when header is pressed', () => {
       const { PERPS_EVENT_VALUE: PEV, PERPS_EVENT_PROPERTY: PEP } =
         jest.requireActual('@metamask/perps-controller');
-      const { PERPS_DISCOVERY_BUTTON_CLICKED } = jest.requireActual(
-        '../../constants/discoveryAnalytics',
-      );
 
       render(
         <PerpsWatchlistMarkets
@@ -580,7 +577,7 @@ describe('PerpsWatchlistMarkets', () => {
         expect.anything(),
         expect.objectContaining({
           [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PEP.BUTTON_CLICKED]: PERPS_DISCOVERY_BUTTON_CLICKED.WATCHLIST,
+          [PEP.BUTTON_CLICKED]: PEV.BUTTON_CLICKED.WATCHLIST,
           [PEP.BUTTON_LOCATION]: PEV.BUTTON_LOCATION.PERPS_HOME,
         }),
       );

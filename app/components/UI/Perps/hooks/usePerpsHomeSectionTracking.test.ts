@@ -8,10 +8,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import {
-  PERPS_DISCOVERY_PROPERTY,
-  PERPS_DISCOVERY_SECTION_NAME,
-} from '../constants/discoveryAnalytics';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn().mockReturnValue({ name: 'built-event' });
@@ -61,7 +57,7 @@ describe('usePerpsHomeSectionTracking', () => {
 
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO,
+        PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
       )(createLayoutEvent(500, 200));
     });
 
@@ -77,7 +73,7 @@ describe('usePerpsHomeSectionTracking', () => {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIDE,
       [PERPS_EVENT_PROPERTY.SECTION_VIEWED]:
-        PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO,
+        PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
       [PERPS_EVENT_PROPERTY.LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
@@ -89,7 +85,7 @@ describe('usePerpsHomeSectionTracking', () => {
 
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.WATCHLIST,
+        PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
       )(createLayoutEvent(300, 200));
     });
 
@@ -102,9 +98,9 @@ describe('usePerpsHomeSectionTracking', () => {
       expect.objectContaining({
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
           PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
-        [PERPS_DISCOVERY_PROPERTY.SECTION_NAME]:
-          PERPS_DISCOVERY_SECTION_NAME.WATCHLIST,
-        [PERPS_DISCOVERY_PROPERTY.SECTION_INDEX]: expect.any(Number),
+        [PERPS_EVENT_PROPERTY.SECTION_NAME]:
+          PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
+        [PERPS_EVENT_PROPERTY.SECTION_INDEX]: expect.any(Number),
       }),
     );
   });
@@ -113,9 +109,9 @@ describe('usePerpsHomeSectionTracking', () => {
     const { result } = renderHook(() => usePerpsHomeSectionTracking());
 
     act(() => {
-      result.current.handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.PRODUCTS)(
-        createLayoutEvent(100, 100),
-      );
+      result.current.handleSectionLayout(
+        PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
+      )(createLayoutEvent(100, 100));
     });
 
     act(() => {
@@ -125,7 +121,7 @@ describe('usePerpsHomeSectionTracking', () => {
     expect(mockImperativeTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_SCREEN_VIEWED,
       expect.objectContaining({
-        [PERPS_DISCOVERY_PROPERTY.SECTION_INDEX]: 1,
+        [PERPS_EVENT_PROPERTY.SECTION_INDEX]: 1,
       }),
     );
   });
@@ -136,10 +132,10 @@ describe('usePerpsHomeSectionTracking', () => {
     // Register two sections — positions is above watchlist on screen
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.POSITIONS,
+        PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
       )(createLayoutEvent(100, 100));
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.WATCHLIST,
+        PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
       )(createLayoutEvent(300, 100));
     });
 
@@ -154,16 +150,16 @@ describe('usePerpsHomeSectionTracking', () => {
     );
     const positionsCall = calls.find(
       (c) =>
-        c[1][PERPS_DISCOVERY_PROPERTY.SECTION_NAME] ===
-        PERPS_DISCOVERY_SECTION_NAME.POSITIONS,
+        c[1][PERPS_EVENT_PROPERTY.SECTION_NAME] ===
+        PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
     );
     const watchlistCall = calls.find(
       (c) =>
-        c[1][PERPS_DISCOVERY_PROPERTY.SECTION_NAME] ===
-        PERPS_DISCOVERY_SECTION_NAME.WATCHLIST,
+        c[1][PERPS_EVENT_PROPERTY.SECTION_NAME] ===
+        PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
     );
-    expect(positionsCall?.[1][PERPS_DISCOVERY_PROPERTY.SECTION_INDEX]).toBe(1);
-    expect(watchlistCall?.[1][PERPS_DISCOVERY_PROPERTY.SECTION_INDEX]).toBe(2);
+    expect(positionsCall?.[1][PERPS_EVENT_PROPERTY.SECTION_INDEX]).toBe(1);
+    expect(watchlistCall?.[1][PERPS_EVENT_PROPERTY.SECTION_INDEX]).toBe(2);
   });
 
   it('does not duplicate tracking for already-tracked sections', () => {
@@ -171,7 +167,7 @@ describe('usePerpsHomeSectionTracking', () => {
 
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY,
+        PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
       )(createLayoutEvent(300, 100));
     });
 
@@ -196,7 +192,7 @@ describe('usePerpsHomeSectionTracking', () => {
 
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS,
+        PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
       )(createLayoutEvent(800, 200));
     });
 
@@ -214,7 +210,7 @@ describe('usePerpsHomeSectionTracking', () => {
 
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.EXPLORE_CRYPTO,
+        PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
       )(createLayoutEvent(100, 100));
     });
 
@@ -241,9 +237,9 @@ describe('usePerpsHomeSectionTracking', () => {
     const { result } = renderHook(() => usePerpsHomeSectionTracking());
 
     act(() => {
-      result.current.handleSectionLayout(PERPS_DISCOVERY_SECTION_NAME.PRODUCTS)(
-        createLayoutEvent(100, 100),
-      );
+      result.current.handleSectionLayout(
+        PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
+      )(createLayoutEvent(100, 100));
     });
 
     act(() => {
@@ -253,7 +249,7 @@ describe('usePerpsHomeSectionTracking', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         [PERPS_EVENT_PROPERTY.SECTION_VIEWED]:
-          PERPS_DISCOVERY_SECTION_NAME.PRODUCTS,
+          PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
       }),
     );
   });
@@ -263,7 +259,7 @@ describe('usePerpsHomeSectionTracking', () => {
 
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS,
+        PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
       )(createLayoutEvent(100, 100));
     });
 
@@ -274,7 +270,7 @@ describe('usePerpsHomeSectionTracking', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         [PERPS_EVENT_PROPERTY.SECTION_VIEWED]:
-          PERPS_DISCOVERY_SECTION_NAME.EXPLORE_STOCKS,
+          PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
       }),
     );
   });
@@ -284,7 +280,7 @@ describe('usePerpsHomeSectionTracking', () => {
 
     act(() => {
       result.current.handleSectionLayout(
-        PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY,
+        PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
       )(createLayoutEvent(100, 100));
     });
 
@@ -295,7 +291,7 @@ describe('usePerpsHomeSectionTracking', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         [PERPS_EVENT_PROPERTY.SECTION_VIEWED]:
-          PERPS_DISCOVERY_SECTION_NAME.RECENT_ACTIVITY,
+          PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
       }),
     );
   });

@@ -248,41 +248,6 @@ jest.mock('../../../../../util/trace', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   ...jest.requireActual('@metamask/perps-controller'),
-  PERPS_EVENT_PROPERTY: {
-    SCREEN_TYPE: 'screen_type',
-    SOURCE: 'source',
-    BUTTON_CLICKED: 'button_clicked',
-    BUTTON_LOCATION: 'button_location',
-    INTERACTION_TYPE: 'interaction_type',
-    LOCATION: 'location',
-  },
-  PERPS_EVENT_VALUE: {
-    SCREEN_TYPE: {
-      MARKETS: 'markets',
-      HOMESCREEN: 'homescreen',
-      PERPS_HOME: 'perps_home',
-      WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
-    },
-    SOURCE: {
-      MAIN_ACTION_BUTTON: 'main_action_button',
-      HOMESCREEN_TAB: 'homescreen_tab',
-      PERPS_HOME: 'perps_home',
-    },
-    BUTTON_LOCATION: {
-      PERPS_HOME: 'perps_home',
-      PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
-      PERPS_TAB: 'perps_tab',
-      PERPS_ASSET_SCREEN: 'perps_asset_screen',
-    },
-    BUTTON_CLICKED: {
-      TUTORIAL: 'tutorial',
-      MAGNIFYING_GLASS: 'magnifying_glass',
-    },
-    INTERACTION_TYPE: {
-      BUTTON_CLICKED: 'button_clicked',
-      CONTACT_SUPPORT: 'contact_support',
-    },
-  },
   DECIMAL_PRECISION_CONFIG: {
     MaxPriceDecimals: 6,
     MaxSignificantFigures: 5,
@@ -1063,7 +1028,9 @@ describe('PerpsHomeView', () => {
       '../../hooks/usePerpsEventTracking',
     ).usePerpsEventTracking as jest.Mock;
 
-    interface TrackingOptions { properties?: Record<string, unknown> }
+    interface TrackingOptions {
+      properties?: Record<string, unknown>;
+    }
 
     const getBaseEventProperties = (
       calls: unknown[][],
