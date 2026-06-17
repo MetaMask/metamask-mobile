@@ -32,6 +32,48 @@ const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
 
+const getFiatToggleEventProperties = ({
+  previousPrimaryDenomination,
+  nextPrimaryDenomination,
+  sourceToken,
+  destToken,
+}: {
+  previousPrimaryDenomination: InputPrimaryDenomination;
+  nextPrimaryDenomination: InputPrimaryDenomination;
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+}) => {
+  const srcChainId = sourceToken?.chainId
+    ? getDecimalChainId(sourceToken.chainId)
+    : undefined;
+  const destChainId = destToken?.chainId
+    ? getDecimalChainId(destToken.chainId)
+    : undefined;
+  const requestParams = sourceToken
+    ? getRequestParams(
+        {
+          srcChainId,
+          srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
+          destChainId,
+          destTokenAddress: destToken
+            ? formatAddressToCaipReference(destToken.address)
+            : undefined,
+        },
+        destToken?.securityData?.type ?? null,
+      )
+    : {};
+
+  return {
+    ...requestParams,
+    swap_type: getSwapType(srcChainId, destChainId),
+    previous_primary_denomination: previousPrimaryDenomination,
+    new_primary_denomination: nextPrimaryDenomination,
+    token_symbol_source: sourceToken?.symbol ?? '',
+    token_symbol_destination: destToken?.symbol ?? null,
+    feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+  };
+};
+
 export const useSourceAmountInput = ({
   isFiatToggleEnabled,
   sourceAmount,
@@ -52,17 +94,26 @@ export const useSourceAmountInput = ({
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
   const canToggle = Boolean(isFiatToggleEnabled && fiatRate && fiatRate > 0);
-  const prefersFiatMode = inputPrimaryDenomination === FIAT_VALUE_DENOMINATION;
-  const isFiatMode = prefersFiatMode && canToggle;
+  // The controller stores the persisted preference, while this local value lets
+  // the input react immediately as controller state propagates through Redux.
+  const [activeInputPrimaryDenomination, setActiveInputPrimaryDenomination] =
+    useState<InputPrimaryDenomination>(inputPrimaryDenomination);
+  const isFiatMode =
+    activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle;
   const amount = isFiatMode ? fiatAmount : sourceAmount;
   const isFiatInputChangeRef = useRef(false);
+
+  useEffect(() => {
+    setActiveInputPrimaryDenomination(inputPrimaryDenomination);
+  }, [inputPrimaryDenomination]);
 
   const setInputPrimaryDenomination = useCallback(
     (
       nextPrimaryDenomination: InputPrimaryDenomination,
       shouldTrackToggle = false,
     ) => {
-      const previousPrimaryDenomination = inputPrimaryDenomination;
+      const previousPrimaryDenomination = activeInputPrimaryDenomination;
+      setActiveInputPrimaryDenomination(nextPrimaryDenomination);
       Engine.context.BridgeController.setInputPrimaryDenomination(
         nextPrimaryDenomination,
       );
@@ -71,44 +122,18 @@ export const useSourceAmountInput = ({
         shouldTrackToggle &&
         previousPrimaryDenomination !== nextPrimaryDenomination
       ) {
-        const srcChainId = sourceToken?.chainId
-          ? getDecimalChainId(sourceToken.chainId)
-          : undefined;
-        const destChainId = destToken?.chainId
-          ? getDecimalChainId(destToken.chainId)
-          : undefined;
-        const requestParams = sourceToken
-          ? getRequestParams(
-              {
-                srcChainId,
-                srcTokenAddress: formatAddressToCaipReference(
-                  sourceToken.address,
-                ),
-                destChainId,
-                destTokenAddress: destToken
-                  ? formatAddressToCaipReference(destToken.address)
-                  : undefined,
-              },
-              destToken?.securityData?.type ?? null,
-            )
-          : {};
-        const toggleEventProperties = {
-          ...requestParams,
-          swap_type: getSwapType(srcChainId, destChainId),
-          previous_primary_denomination: previousPrimaryDenomination,
-          new_primary_denomination: nextPrimaryDenomination,
-          token_symbol_source: sourceToken?.symbol ?? '',
-          token_symbol_destination: destToken?.symbol ?? null,
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
-        };
-
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
           UnifiedSwapBridgeEventName.FiatCryptoToggleClicked,
-          toggleEventProperties,
+          getFiatToggleEventProperties({
+            previousPrimaryDenomination,
+            nextPrimaryDenomination,
+            sourceToken,
+            destToken,
+          }),
         );
       }
     },
-    [destToken, inputPrimaryDenomination, sourceToken],
+    [activeInputPrimaryDenomination, destToken, sourceToken],
   );
 
   const handleAmountChange = useCallback(
