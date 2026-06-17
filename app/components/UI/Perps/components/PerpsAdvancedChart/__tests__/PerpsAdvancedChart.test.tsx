@@ -1,18 +1,22 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { CandlePeriod } from '@metamask/perps-controller';
 import {
   default as PerpsAdvancedChart,
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
+import type { AdvancedChartProps } from '../../../../Charts/AdvancedChart/AdvancedChart.types';
 import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
 import type { Colors } from '../../../../../../util/theme/models';
 import { mockTheme } from '../../../../../../util/theme';
+import { endTrace, trace } from '../../../../../../util/trace';
+import { playImpact } from '../../../../../../util/haptics';
 
 const mockAdvancedChart = jest.fn<React.ReactNode, [unknown]>(() => null);
 const mockUsePerpsAdvancedChartAdapter = jest.fn();
+const mockTradingViewChart = jest.fn<React.ReactNode, [unknown]>(() => null);
 
 jest.mock('../../../../Charts/AdvancedChart/AdvancedChart', () => ({
   __esModule: true,
@@ -26,7 +30,7 @@ jest.mock('../../../hooks/usePerpsAdvancedChartAdapter', () => ({
 
 jest.mock('../../TradingViewChart/TradingViewChart', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: unknown) => mockTradingViewChart(props),
 }));
 
 jest.mock('../../../../../../util/theme', () => {
@@ -72,6 +76,23 @@ const mockAdapterResult = {
 };
 
 describe('PerpsAdvancedChart', () => {
+  const renderChart = (
+    overrides: Partial<React.ComponentProps<typeof PerpsAdvancedChart>> = {},
+  ) =>
+    render(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        {...overrides}
+      />,
+    );
+
+  const advancedChartProps = () =>
+    mockAdvancedChart.mock.calls[0][0] as AdvancedChartProps;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsAdvancedChartAdapter.mockReturnValue(mockAdapterResult);
@@ -80,21 +101,138 @@ describe('PerpsAdvancedChart', () => {
   it('passes the visible current-price token to AdvancedChart', () => {
     const volumeColors = getPerpsVolumeColors(mockTheme.colors as Colors);
 
-    render(
-      <PerpsAdvancedChart
-        symbol="BTC"
-        interval={CandlePeriod.OneHour}
-        visibleCandleCount={100}
-        height={240}
-        fallbackCandleData={null}
-      />,
-    );
+    renderChart();
 
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
         currentPriceLineColorOverride: mockTheme.colors.text.default,
         volumeSuccessColorOverride: volumeColors.success,
         volumeErrorColorOverride: volumeColors.error,
+      }),
+    );
+  });
+
+  it('passes mapped position lines to AdvancedChart', () => {
+    renderChart({
+      tpslLines: {
+        entryPrice: '42000',
+        takeProfitPrice: '45000',
+        stopLossPrice: '40000',
+        liquidationPrice: '38000',
+      },
+      positionSize: '-0.5',
+    });
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        positionLines: {
+          side: 'short',
+          entryPrice: 42000,
+          takeProfitPrice: 45000,
+          stopLossPrice: 40000,
+          liquidationPrice: 38000,
+        },
+      }),
+    );
+  });
+
+  it('converts crosshair data to string OHLC values and emits haptics on OHLC changes', () => {
+    const onCrosshairDataChange = jest.fn();
+    renderChart({ onCrosshairDataChange });
+    const props = advancedChartProps();
+
+    act(() => {
+      props.onCrosshairMove?.({
+        time: 1000,
+        open: 1,
+        high: 2,
+        low: 0.5,
+        close: 1.5,
+      });
+      props.onCrosshairMove?.({
+        time: 1000,
+        open: 1,
+        high: 2,
+        low: 0.5,
+        close: 1.5,
+      });
+      props.onCrosshairMove?.({
+        time: 1000,
+        open: 1,
+        high: 2,
+        low: 0.5,
+        close: 1.6,
+      });
+    });
+
+    expect(onCrosshairDataChange).toHaveBeenLastCalledWith({
+      time: 1000,
+      open: '1',
+      high: '2',
+      low: '0.5',
+      close: '1.6',
+    });
+    expect(playImpact).toHaveBeenCalledTimes(2);
+  });
+
+  it('passes null crosshair data through to the parent', () => {
+    const onCrosshairDataChange = jest.fn();
+    renderChart({ onCrosshairDataChange });
+
+    act(() => {
+      advancedChartProps().onCrosshairMove?.(null);
+    });
+
+    expect(onCrosshairDataChange).toHaveBeenCalledWith(null);
+    expect(playImpact).not.toHaveBeenCalled();
+  });
+
+  it('ends the visibility trace when the skeleton hides', () => {
+    const onSkeletonHidden = jest.fn();
+    renderChart({ onSkeletonHidden });
+
+    act(() => {
+      advancedChartProps().onSkeletonHidden?.();
+    });
+
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Perps Advanced Chart Initial Visible',
+        op: 'perps.advanced_chart',
+        id: 'BTC|1h',
+      }),
+    );
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Perps Advanced Chart Initial Visible',
+        id: 'BTC|1h',
+        data: expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneHour,
+          surface: 'market_detail',
+          transition: 'initial_load',
+        }),
+      }),
+    );
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders Lightweight fallback after AdvancedChart reports an error', () => {
+    const onError = jest.fn();
+    renderChart({ fallbackCandleData: null, onError });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onError).toHaveBeenCalledWith('chart failed');
+    expect(mockTradingViewChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        candleData: null,
+        height: 240,
+        visibleCandleCount: 100,
+        showOverlay: false,
+        coloredVolume: true,
       }),
     );
   });

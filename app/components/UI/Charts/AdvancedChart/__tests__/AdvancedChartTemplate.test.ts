@@ -29,4 +29,17 @@ describe('createAdvancedChartTemplate', () => {
 
     expect(html).toContain(`background: ${LIGHT_MODE_SUCCESS_GREEN};`);
   });
+
+  it('uses Map APIs for RN-backed pending older-bar callbacks', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('window.pendingOlderBarsCallbacks = new Map();');
+    expect(html).toContain(
+      'window.pendingOlderBarsCallbacks.get(payload.requestId)',
+    );
+    expect(html).toContain(
+      'window.pendingOlderBarsCallbacks.delete(payload.requestId)',
+    );
+    expect(html).toContain('window.pendingOlderBarsCallbacks.set(requestId, {');
+  });
 });

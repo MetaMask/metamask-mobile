@@ -219,6 +219,84 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('includes RN-backed pagination config in SET_OHLCV_DATA when enabled', () => {
+    const rnBackedPagination = { enabled: true };
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        rnBackedPagination={rnBackedPagination}
+        visibleFromMs={1000000}
+        visibleToMs={1000300}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: {
+          data: MOCK_BARS,
+          rnBackedPagination,
+          visibleFromMs: 1000000,
+          visibleToMs: 1000300,
+        },
+      }),
+    );
+  });
+
+  it('responds to FETCH_OLDER_BARS_REQUEST through the RN handler', async () => {
+    const request = {
+      requestId: 'older-1',
+      seriesGeneration: 2,
+      symbol: 'BTC',
+      resolution: '60',
+      fromSec: 1000,
+      toSec: 2000,
+      countBack: 50,
+      oldestLoadedTimeMs: 1_700_000_000_000,
+    };
+    const response = {
+      requestId: request.requestId,
+      seriesGeneration: request.seriesGeneration,
+      bars: [
+        { time: 900000, open: 8, high: 9, low: 7, close: 8.5, volume: 50 },
+      ],
+      noData: false,
+    };
+    const onFetchOlderBarsRequest = jest.fn().mockResolvedValue(response);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onFetchOlderBarsRequest={onFetchOlderBarsRequest}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'FETCH_OLDER_BARS_REQUEST',
+            payload: request,
+          }),
+        },
+      });
+    });
+    await flushMicrotasks();
+
+    expect(onFetchOlderBarsRequest).toHaveBeenCalledWith(request);
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FETCH_OLDER_BARS_RESPONSE',
+        payload: response,
+      }),
+    );
+  });
+
   it('does not send stale data when ohlcvSeriesKey changes; waits for fresh data', () => {
     const staleBars: OHLCVBar[] = [
       { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },

@@ -1,3 +1,4 @@
+/* istanbul ignore file -- Browser-only TradingView script covered via AdvancedChartTemplate tests. */
 /**
  * TradingView Chart WebView Logic
  *
