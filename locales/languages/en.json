@@ -7022,7 +7022,8 @@
     },
     "first_time_deposit": {
       "title": "First deposit, done",
-      "content": "Your funds are on the way to your account and will start earning soon."
+      "content": "It’s in your Money account —\n and already earning.",
+      "button_text": "Done"
     },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
@@ -7037,7 +7038,7 @@
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
       "step4_footer_text": "Powered by Monad.",
-      "continue": "Continue"
+      "button_text": "Continue"
     },
     "action": {
       "add": "Add",

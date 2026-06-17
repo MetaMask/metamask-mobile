@@ -24,7 +24,7 @@ const log = createProjectLogger('money-first-time-deposit');
 // -- Rive animation assets ------------------------------------------------
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyFirstTimeDepositAnimationWithParallax = require('../../../../../animations/money_account_first_time_deposit_with_parallax.riv');
+const MoneyFirstTimeDepositAnimationWithParallaxV2 = require('../../../../../animations/money_account_first_time_deposit_with_parallax_v2.riv');
 
 // -- Rive data-binding names ----------------------------------------------
 // These MUST match the names authored in the .riv file. If the Rive designer
@@ -41,6 +41,9 @@ const RIVE_DONE_TRIGGER = 'done';
 
 /** Text data-binding path for the headline shown during the animation. */
 const RIVE_TITLE_PATH = 'title';
+
+/** Text data-binding path for the button text shown during the animation. */
+const BUTTON_TEXT_PATH = 'button';
 
 /** Text data-binding path for the body copy shown during the animation. */
 const RIVE_CONTENT_PATH = 'content';
@@ -147,6 +150,7 @@ const MoneyFirstTimeDepositView = () => {
 
   const [, setTitle] = useRiveString(riveRef, RIVE_TITLE_PATH);
   const [, setContent] = useRiveString(riveRef, RIVE_CONTENT_PATH);
+  const [, setButtonText] = useRiveString(riveRef, BUTTON_TEXT_PATH);
 
   const fireStart = useRiveTrigger(riveRef, RIVE_START_TRIGGER);
 
@@ -161,9 +165,11 @@ const MoneyFirstTimeDepositView = () => {
 
     setTitle(strings('money.first_time_deposit.title'));
     setContent(strings('money.first_time_deposit.content'));
+    setButtonText(strings('money.first_time_deposit.button_text'));
+
     fireStart?.();
     dataBindingsReady.current = true;
-  }, [riveRef, setTitle, setContent, fireStart]);
+  }, [riveRef, setTitle, setContent, fireStart, setButtonText]);
 
   // -- Accelerometer-driven parallax --------------------------------------
   //
@@ -290,7 +296,7 @@ const MoneyFirstTimeDepositView = () => {
   return (
     <Rive
       ref={ref}
-      source={MoneyFirstTimeDepositAnimationWithParallax}
+      source={MoneyFirstTimeDepositAnimationWithParallaxV2}
       artboardName={RIVE_ARTBOARD_NAME}
       dataBinding={AutoBind(true)}
       fit={Fit.FitWidth}

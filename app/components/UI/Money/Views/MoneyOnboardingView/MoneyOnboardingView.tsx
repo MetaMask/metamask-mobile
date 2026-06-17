@@ -20,11 +20,10 @@ import Rive, {
   Fit,
   useRiveTrigger,
 } from 'rive-react-native';
-import { PixelRatio } from 'react-native';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyOnboardingAnimationV4 = require('../../../../../animations/money_account_onboarding_animation_v4.riv');
+const MoneyOnboardingAnimationV5 = require('../../../../../animations/money_account_onboarding_animation_v5.riv');
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -78,18 +77,22 @@ const MoneyOnboardingView = () => {
   const [, setStep1Title] = useRiveString(riveRef, 'stepText1/title');
   const [, setStep1Content] = useRiveString(riveRef, 'stepText1/content');
   const [, setStep1Footer] = useRiveString(riveRef, 'stepText1/footer');
+  const [, setStep1ButtonText] = useRiveString(riveRef, 'stepText1/button');
 
   const [, setStep2Title] = useRiveString(riveRef, 'stepText2/title');
   const [, setStep2Content] = useRiveString(riveRef, 'stepText2/content');
   const [, setStep2Footer] = useRiveString(riveRef, 'stepText2/footer');
+  const [, setStep2ButtonText] = useRiveString(riveRef, 'stepText2/button');
 
   const [, setStep3Title] = useRiveString(riveRef, 'stepText3/title');
   const [, setStep3Content] = useRiveString(riveRef, 'stepText3/content');
   const [, setStep3Footer] = useRiveString(riveRef, 'stepText3/footer');
+  const [, setStep3ButtonText] = useRiveString(riveRef, 'stepText3/button');
 
   const [, setStep4Title] = useRiveString(riveRef, 'stepText4/title');
   const [, setStep4Content] = useRiveString(riveRef, 'stepText4/content');
   const [, setStep4Footer] = useRiveString(riveRef, 'stepText4/footer');
+  const [, setStep4ButtonText] = useRiveString(riveRef, 'stepText4/button');
 
   // --- Number inputs ---
   const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
@@ -117,11 +120,13 @@ const MoneyOnboardingView = () => {
       strings('money.rive_onboarding.step1_body', { percentage: apyPercent }),
     );
     setStep1Footer(strings('money.rive_onboarding.step1_footer_text'));
+    setStep1ButtonText(strings('money.rive_onboarding.button_text'));
 
     // Step 2
     setStep2Title(strings('money.rive_onboarding.step2_title'));
     setStep2Content(strings('money.rive_onboarding.step2_body'));
     setStep2Footer(strings('money.rive_onboarding.step2_footer_text'));
+    setStep2ButtonText(strings('money.rive_onboarding.button_text'));
 
     // Step 3
     setStep3Title(strings('money.rive_onboarding.step3_title'));
@@ -131,11 +136,13 @@ const MoneyOnboardingView = () => {
       }),
     );
     setStep3Footer(strings('money.rive_onboarding.step3_footer_text'));
+    setStep3ButtonText(strings('money.rive_onboarding.button_text'));
 
     // Step 4
     setStep4Title(strings('money.rive_onboarding.step4_title'));
     setStep4Content(strings('money.rive_onboarding.step4_body'));
     setStep4Footer(strings('money.rive_onboarding.step4_footer_text'));
+    setStep4ButtonText(strings('money.rive_onboarding.button_text'));
 
     // Config
     setTransitionSpeed(300);
@@ -159,6 +166,10 @@ const MoneyOnboardingView = () => {
     setTransitionSpeed,
     setCoinSeq,
     setCardSeq,
+    setStep1ButtonText,
+    setStep2ButtonText,
+    setStep3ButtonText,
+    setStep4ButtonText,
   ]);
 
   const handleClose = useCallback(
@@ -235,7 +246,7 @@ const MoneyOnboardingView = () => {
   return (
     <Rive
       ref={ref}
-      source={MoneyOnboardingAnimationV4}
+      source={MoneyOnboardingAnimationV5}
       artboardName={RIVE_ARTBOARD_NAME}
       stateMachineName={RIVE_STATE_MACHINE_NAME}
       dataBinding={AutoBind(true)}
