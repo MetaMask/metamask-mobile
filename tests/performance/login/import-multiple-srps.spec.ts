@@ -12,7 +12,6 @@ import PlaywrightGestures from '../../framework/PlaywrightGestures';
 perfTest.describe(PerformanceAccountList, () => {
   perfTest.setTimeout(30 * 60 * 1000);
   perfTest(
-    // skipped because of the account sync issue
     'Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3',
     { tag: '@accounts-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
