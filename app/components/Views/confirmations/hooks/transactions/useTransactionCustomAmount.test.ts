@@ -544,6 +544,78 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('8642.46');
     });
 
+    it('uses predict balance for predictWithdraw even when payment override is MoneyAccount', async () => {
+      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
+      useMoneyAccountBalanceMock.mockReturnValue({
+        totalFiatRaw: '750.50',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictWithdraw,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' },
+        } as unknown as Partial<TransactionMeta>,
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              TransactionPayController: {
+                transactionData: {
+                  [transactionIdMock]: {
+                    paymentOverride: PaymentOverride.MoneyAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      // 4321.23 (predict balance) × 2 (fiat rate) × 0.50 = 4321.23
+      expect(result.current.amountFiat).toBe('4321.23');
+    });
+
+    it('uses full predict balance for predictWithdraw max even when payment override is MoneyAccount', async () => {
+      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
+      useMoneyAccountBalanceMock.mockReturnValue({
+        totalFiatRaw: '750.50',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictWithdraw,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' },
+        } as unknown as Partial<TransactionMeta>,
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              TransactionPayController: {
+                transactionData: {
+                  [transactionIdMock]: {
+                    paymentOverride: PaymentOverride.MoneyAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      // 4321.23 (predict balance) × 2 (fiat rate) = 8642.46
+      expect(result.current.amountFiat).toBe('8642.46');
+    });
+
     it('to percentage of perps available balance', async () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {

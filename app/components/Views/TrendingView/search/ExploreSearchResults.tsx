@@ -14,7 +14,8 @@ import {
   IconColor,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
+  SectionDivider,
+  SectionHeader as MMDSSectionHeader,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
@@ -131,43 +132,42 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             section.total,
           );
       return (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="py-2 bg-default"
-        >
-          <Text
-            variant={TextVariant.HeadingSm}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-alternative"
-          >
-            {item.title}
-          </Text>
-          {viewMoreLabel !== null && (
-            <Pressable
-              onPress={() => handleViewMore(section)}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`${viewMoreLabel} ${item.title}`}
-              style={({ pressed }) => [
-                pressedStyle.pressable,
-                pressed && { opacity: 0.5 },
-              ]}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {viewMoreLabel}
-              </Text>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Pressable>
-          )}
+        <Box>
+          {!item.isFirstHeader ? <SectionDivider twClassName="-mx-4" /> : null}
+          <MMDSSectionHeader
+            title={item.title}
+            twClassName="px-0"
+            titleProps={{
+              variant: TextVariant.HeadingSm,
+              color: TextColor.TextAlternative,
+            }}
+            endAccessory={
+              viewMoreLabel !== null ? (
+                <Pressable
+                  onPress={() => handleViewMore(section)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+                  style={({ pressed }) => [
+                    pressedStyle.pressable,
+                    pressed && { opacity: 0.5 },
+                  ]}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {viewMoreLabel}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Pressable>
+              ) : undefined
+            }
+          />
         </Box>
       );
     },
@@ -182,12 +182,19 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const flatData = useMemo<FlatListItem[]>(() => {
     const result: FlatListItem[] = [];
     const visibleSections = isBasicFunctionalityEnabled ? sections : [];
+    let headerCount = 0;
 
     visibleSections.forEach((section) => {
       const { feedId, title, items, isLoading } = section;
       if (!isLoading && items.length === 0) return;
 
-      result.push({ type: 'header', feedId, title });
+      result.push({
+        type: 'header',
+        feedId,
+        title,
+        isFirstHeader: headerCount === 0,
+      });
+      headerCount += 1;
 
       if (isLoading) {
         for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {

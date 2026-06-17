@@ -56,6 +56,7 @@ interface ChartFeatures {
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
+  currentPriceLineColorOverride?: string;
 }
 
 const createConfigScript = (
@@ -78,7 +79,8 @@ window.CONFIG = {
     successColor: '${successColor}',
     lineColor: '${lineColor}',
     errorColor: '${errorColor}',
-    primaryColor: '${theme.colors.primary.default}'
+    primaryColor: '${theme.colors.primary.default}',
+    currentPriceColor: '${features.currentPriceLineColorOverride ?? ''}'
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},

@@ -940,10 +940,6 @@ describe('App', () => {
       expect(Routes.SHEET.SUCCESS_ERROR_SHEET).toBeDefined();
     });
 
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
-    });
-
     it('has experience enhancer route defined', () => {
       expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
     });
@@ -1181,10 +1177,6 @@ describe('App', () => {
 
     it('has address selector route defined', () => {
       expect(Routes.SHEET.ADDRESS_SELECTOR).toBeDefined();
-    });
-
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
     });
 
     it('has account actions route defined', () => {
