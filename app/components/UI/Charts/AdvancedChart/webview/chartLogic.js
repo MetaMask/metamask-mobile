@@ -766,6 +766,7 @@ function handleSetThemeColors(payload) {
 
   var chart = window.chartWidget.activeChart();
   var lineColor = theme.lineColor || theme.successColor;
+  var currentPriceColor = theme.currentPriceColor || lineColor;
 
   // Update volume study colors if present
   if (window.volumeStudyId) {
@@ -796,7 +797,7 @@ function handleSetThemeColors(payload) {
   if (window.lastPriceShapeId) {
     try {
       chart.getShapeById(window.lastPriceShapeId).setProperties({
-        linecolor: theme.successColor,
+        linecolor: theme.currentPriceColor || theme.successColor,
       });
     } catch (e) {}
   }
@@ -804,7 +805,7 @@ function handleSetThemeColors(payload) {
   if (window.lineLastPriceShapeId) {
     try {
       chart.getShapeById(window.lineLastPriceShapeId).setProperties({
-        linecolor: lineColor,
+        linecolor: currentPriceColor,
       });
     } catch (e) {}
   }
@@ -1113,10 +1114,7 @@ function updateCustomCrosshairLabels(params) {
     return;
   }
   elP.textContent = formatCrosshairPrice(params.price);
-  var tSec =
-    params.userTime !== undefined && params.userTime !== null
-      ? params.userTime
-      : params.time;
+  var tSec = params.time;
   elT.textContent = formatCrosshairTime(tSec);
   elP.style.display = 'flex';
   elT.style.display = 'flex';
@@ -2243,7 +2241,8 @@ function createLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  var color = window.CONFIG.theme.successColor;
+  var color =
+    window.CONFIG.theme.currentPriceColor || window.CONFIG.theme.successColor;
   var candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
   var candlePrice =
     candlePt && isFinite(candlePt.price) ? candlePt.price : lastBar.close;
@@ -2329,7 +2328,9 @@ function createLineLastPriceLine() {
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
   const color =
-    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+    window.CONFIG.theme.currentPriceColor ||
+    window.CONFIG.theme.lineColor ||
+    window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;

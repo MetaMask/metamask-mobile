@@ -78,6 +78,7 @@ export const ManagePriceAlertsTestIds = {
   ALERT_ITEM_PREFIX: 'manage-price-alerts-item',
   ALERT_TOGGLE_PREFIX: 'manage-price-alerts-toggle',
   ALERT_DELETE_PREFIX: 'manage-price-alerts-delete',
+  ALERT_DELETE_SPINNER_PREFIX: 'manage-price-alerts-delete-spinner',
   ADD_ALERT_BUTTON: 'manage-price-alerts-add-button',
   EMPTY_STATE: 'manage-price-alerts-empty',
 } as const;

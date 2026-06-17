@@ -5,6 +5,7 @@ import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getTokensControllerAllIgnoredTokens } from '../../../../../../../selectors/assets/assets-migration';
 import { selectMultichainAssetsAllIgnoredAssets } from '../../../../../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
+import { TrxScope, BtcScope } from '@metamask/keyring-api';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
 import { usePayWithTokens } from './usePayWithTokens';
@@ -46,6 +47,7 @@ jest.mock('../../../../../../../selectors/tokenRatesController', () => ({
 
 jest.mock('../../../../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(),
+  selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
 jest.mock('../../../../../../../core/redux/slices/bridge', () => ({
@@ -264,6 +266,35 @@ describe('usePayWithTokens', () => {
     expect(mockEnrich).not.toHaveBeenCalledWith(
       expect.objectContaining({ symbol: 'POSI' }),
       expect.anything(),
+    );
+  });
+
+  it('wires the Tron and Bitcoin accounts into the enrichment deps', () => {
+    mockUseTokensWithBalance.mockReturnValue([
+      token('TRX', 'tron:728126428'),
+      token('BTC', 'bip122:000000000019d6689c085ae165831e93'),
+    ]);
+    mockAccountByScope.mockReturnValue((scope: string) => {
+      if (scope === EVM_SCOPE) return { address: '0xAccount', id: 'evm' };
+      if (scope === TrxScope.Mainnet) return { id: 'tron-account-id' };
+      if (scope === BtcScope.Mainnet) return { id: 'bitcoin-account-id' };
+      return undefined;
+    });
+    mockEnrich.mockReturnValue({
+      balance: '10',
+      balanceFiat: '$10.00',
+      tokenFiatAmount: 10,
+      currencyExchangeRate: 1,
+    });
+
+    renderHook(() => usePayWithTokens());
+
+    expect(mockEnrich).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'TRX' }),
+      expect.objectContaining({
+        tronAccount: { id: 'tron-account-id' },
+        bitcoinAccount: { id: 'bitcoin-account-id' },
+      }),
     );
   });
 

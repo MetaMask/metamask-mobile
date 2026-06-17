@@ -83,7 +83,6 @@ const MoneyBalanceSummary = ({
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
-            twClassName="mb-2"
           >
             {displayState.value}
           </Text>
@@ -94,7 +93,6 @@ const MoneyBalanceSummary = ({
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             testID={MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT}
-            twClassName="mb-2"
           >
             {strings('money.balance_no_account')}
           </Text>
@@ -108,7 +106,6 @@ const MoneyBalanceSummary = ({
             fontWeight={FontWeight.Bold}
             color={TextColor.TextAlternative}
             testID={MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE}
-            twClassName="mb-2"
           >
             {displayState.lastKnownValue ??
               strings('money.balance_unavailable_value')}
@@ -120,16 +117,17 @@ const MoneyBalanceSummary = ({
   };
 
   return (
-    <Box twClassName="pt-3" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
-      <Box twClassName="px-4 pt-2">
-        {renderBalanceSlot()}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
-          {renderApySlot()}
-        </Box>
+    <Box
+      twClassName="px-4 pt-4 gap-1"
+      testID={MoneyBalanceSummaryTestIds.CONTAINER}
+    >
+      {renderBalanceSlot()}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
+      >
+        {renderApySlot()}
       </Box>
     </Box>
   );

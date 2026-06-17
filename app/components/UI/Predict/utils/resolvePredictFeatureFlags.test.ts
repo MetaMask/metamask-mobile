@@ -34,7 +34,6 @@ describe('resolvePredictFeatureFlags', () => {
       predictUpDownEnabled: false,
       predictPortfolioEnabled: false,
       predictHomeRedesignEnabled: false,
-      predictHomepageDiscoveryNbaChampionEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
@@ -215,39 +214,6 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
-  });
-
-  describe('predictHomepageDiscoveryNbaChampionEnabled', () => {
-    it('defaults to true to preserve the NBA champion discovery row', () => {
-      const result = resolvePredictFeatureFlags({});
-
-      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(true);
-    });
-
-    it('returns false when the remote flag is disabled and version gate passes', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (
-          flag &&
-          typeof flag === 'object' &&
-          'enabled' in flag &&
-          'minimumVersion' in flag
-        ) {
-          return (flag as { enabled: boolean }).enabled;
-        }
-        return undefined;
-      });
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictHomepageDiscoveryNbaChampionEnabled: {
-            enabled: false,
-            minimumVersion: '1.0.0',
-          },
-        },
-      });
-
-      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(false);
-    });
   });
 
   describe('predictWorldCup', () => {

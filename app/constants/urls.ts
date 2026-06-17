@@ -57,6 +57,21 @@ export const LENDING_FAQ_URL = `https://support.metamask.io/manage-crypto/earn/l
 // Rewards
 export const REWARDS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/metamask-rewards/${MOBILE_UTM}`;
 
+// Builds the priority-support help-center URL for VIP users. Includes a fixed
+// `priority=vip` tag so the support-side automation can fast-path the request to a
+// human, plus the user's account address so that automation can verify enrollment via
+// the existing support API (GET /support/subscriptions/check?account=, which keys off
+// the account address and returns tier/subscription status).
+// NOTE: `priority=vip` is a placeholder value pending support/Intercom confirmation;
+// `account` matches the support endpoint's query-param name.
+export const buildVipPrioritySupportUrl = (
+  account: string,
+  baseUrl: string = METAMASK_SUPPORT_URL,
+) => {
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}priority=vip&account=${encodeURIComponent(account)}`;
+};
+
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;
 export const PERPS_ADL_URL = `https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/${MOBILE_UTM}#what-is-auto-deleveraging-adl`;
