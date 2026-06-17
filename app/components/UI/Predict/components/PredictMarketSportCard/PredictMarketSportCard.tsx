@@ -16,6 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -44,6 +45,7 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
 import { isValidPrice } from '../../utils/prices';
+import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -212,6 +214,9 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
+  const livePricesEnabled = useSelector(
+    selectPredictSportCardLivePricesEnabledFlag,
+  );
 
   const game = market.game as PredictMarketGame | undefined;
   const { gameUpdate } = useLiveGameUpdates(game?.id ?? null);
@@ -301,15 +306,19 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     [buttonItems],
   );
   const { getPrice } = useLiveMarketPrices(tokenIds, {
-    enabled: showBuyButtons,
+    enabled: showBuyButtons && livePricesEnabled,
   });
 
   const getDisplayPrice = useCallback(
     (token: PredictOutcomeToken): number => {
+      if (!livePricesEnabled) {
+        return token.price;
+      }
+
       const liveBestAsk = getPrice(token.id)?.bestAsk;
       return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
     },
-    [getPrice],
+    [getPrice, livePricesEnabled],
   );
 
   const getButtonTextColorClass = (item: SportOutcomeButtonItem): string => {
