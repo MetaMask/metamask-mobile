@@ -14,9 +14,11 @@ import { TransactionDetailsHero } from '../transaction-details-hero';
 import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
@@ -36,11 +38,19 @@ export const SUMMARY_SECTION_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
+const PERPS_PREDICT_MONEY_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
+
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { transactionMeta } = useTransactionDetails();
-  const title = getTitle(transactionMeta);
+  const isMoneyContext = useIsMoneyAccountContext();
+  const title = getTitle(transactionMeta, isMoneyContext);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -50,6 +60,11 @@ export function TransactionDetails() {
     transactionMeta,
     SUMMARY_SECTION_TYPES,
   );
+
+  // For perps/predict in money context, To row sits with From row above the divider
+  const toRowAboveDivider =
+    isMoneyContext &&
+    hasTransactionType(transactionMeta, PERPS_PREDICT_MONEY_TYPES);
 
   return (
     <View style={styles.wrapper}>
@@ -67,8 +82,9 @@ export function TransactionDetails() {
             <TransactionDetailsStatusRow />
             <TransactionDetailsDateRow />
             <TransactionDetailsAccountRow />
+            {toRowAboveDivider && <TransactionDetailsToRow />}
             <TransactionDetailDivider />
-            <TransactionDetailsToRow />
+            {!toRowAboveDivider && <TransactionDetailsToRow />}
             <TransactionDetailsFiatOrderIdRow />
             <TransactionDetailsPaidWithRow />
             <TransactionDetailsNetworkFeeRow />
@@ -88,7 +104,10 @@ export function TransactionDetails() {
   );
 }
 
-function getTitle(transactionMeta: TransactionMeta | undefined) {
+function getTitle(
+  transactionMeta: TransactionMeta | undefined,
+  isMoneyContext: boolean,
+) {
   if (!transactionMeta) {
     return strings('transaction_details.title.default');
   }
@@ -110,14 +129,23 @@ function getTitle(transactionMeta: TransactionMeta | undefined) {
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    if (isMoneyContext) {
+      return getSendTitle(transactionMeta.status);
+    }
     return strings('transaction_details.title.predict_deposit');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    if (isMoneyContext) {
+      return strings('transaction_details.title.deposited_musd');
+    }
     return strings('transaction_details.title.predict_withdraw');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    if (isMoneyContext) {
+      return strings('transaction_details.title.deposited_musd');
+    }
     return strings('transaction_details.title.perps_withdraw');
   }
 
@@ -127,8 +155,23 @@ function getTitle(transactionMeta: TransactionMeta | undefined) {
     case TransactionType.musdClaim:
       return strings('transaction_details.title.musd_claim');
     case TransactionType.perpsDeposit:
+      if (isMoneyContext) {
+        return getSendTitle(transactionMeta.status);
+      }
       return strings('transaction_details.title.perps_deposit');
     default:
       return strings('transaction_details.title.default');
+  }
+}
+
+function getSendTitle(status: TransactionStatus): string {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return strings('transaction_details.title.sent');
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return strings('transaction_details.title.send_failed');
+    default:
+      return strings('transaction_details.title.sending_musd');
   }
 }

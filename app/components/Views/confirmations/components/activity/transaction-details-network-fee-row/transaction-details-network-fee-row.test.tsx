@@ -1,14 +1,17 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsNetworkFeeRow } from './transaction-details-network-fee-row';
 import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
+import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext');
 jest.mock('../../../hooks/gas/useFeeCalculations');
 
 const PAY_FEE_MOCK = '123.45';
@@ -20,10 +23,13 @@ function render() {
 
 describe('TransactionDetailsNetworkFeeRow', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
+  const useIsMoneyAccountContextMock = jest.mocked(useIsMoneyAccountContext);
   const useFeeCalculationsMock = jest.mocked(useFeeCalculations);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useIsMoneyAccountContextMock.mockReturnValue(false);
 
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
@@ -87,5 +93,21 @@ describe('TransactionDetailsNetworkFeeRow', () => {
     const { getByText } = render();
 
     expect(getByText(`$${CALCULATED_FEE_MOCK}`)).toBeDefined();
+  });
+
+  it('renders Paid by MetaMask for sponsored fees in money context', () => {
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.musdConversion,
+        metamaskPay: {
+          networkFeeFiat: '0',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText(strings('transactions.paid_by_metamask'))).toBeDefined();
   });
 });

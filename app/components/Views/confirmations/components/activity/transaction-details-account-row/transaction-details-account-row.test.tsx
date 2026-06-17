@@ -14,6 +14,9 @@ import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../../../hooks/DisplayName/useAccountNames');
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
 jest.mock('../../../../../../selectors/moneyAccountController');
 jest.mock('../../../hooks/useNetworkInfo');
 

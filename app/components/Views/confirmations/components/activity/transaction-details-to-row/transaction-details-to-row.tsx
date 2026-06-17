@@ -10,6 +10,7 @@ import Name from '../../../../../UI/Name/Name';
 import { NameType } from '../../../../../UI/Name/Name.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import {
   hasTransactionType,
   parseStandardTokenTransactionData,
@@ -20,11 +21,14 @@ import { getTokenTransferData } from '../../../utils/transaction-pay';
 const SEND_TYPES: TransactionType[] = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
 ];
 
 export function TransactionDetailsToRow() {
   const { transactionMeta } = useTransactionDetails();
+  const isMoneyContext = useIsMoneyAccountContext();
   const recipient = useRecipient();
   const chainId = transactionMeta?.chainId as Hex;
 
@@ -32,11 +36,7 @@ export function TransactionDetailsToRow() {
     return null;
   }
 
-  const staticLabel = getToLabel(transactionMeta);
-
-  if (!staticLabel && !recipient) {
-    return null;
-  }
+  const staticLabel = getToLabel(transactionMeta, isMoneyContext);
 
   if (staticLabel) {
     return (
@@ -83,24 +83,45 @@ function useRecipient(): Hex | undefined {
   }, [transactionMeta]);
 }
 
-function getToLabel(transactionMeta: {
-  type?: string;
-  nestedTransactions?: { type?: string }[];
-}): string | undefined {
+function getToLabel(
+  transactionMeta: {
+    type?: string;
+    nestedTransactions?: { type?: string }[];
+  },
+  isMoneyContext: boolean,
+): string | undefined {
+  const asTxMeta = transactionMeta as Parameters<typeof hasTransactionType>[0];
+
+  // Money context: perpsWithdraw/predictWithdraw (inflow) → To: Money account
   if (
-    hasTransactionType(
-      transactionMeta as Parameters<typeof hasTransactionType>[0],
-      [TransactionType.perpsDeposit],
-    )
+    isMoneyContext &&
+    hasTransactionType(asTxMeta, [
+      TransactionType.perpsWithdraw,
+      TransactionType.predictWithdraw,
+    ])
   ) {
+    return strings('transaction_details.label.money_account');
+  }
+
+  // Money context: perpsDeposit/predictDeposit (outflow) → To: Perps/Predict account
+  if (
+    isMoneyContext &&
+    hasTransactionType(asTxMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])
+  ) {
+    if (hasTransactionType(asTxMeta, [TransactionType.perpsDeposit])) {
+      return strings('transaction_details.label.perps_account');
+    }
+    return strings('transaction_details.label.predictions_account');
+  }
+
+  // Non-money context defaults
+  if (hasTransactionType(asTxMeta, [TransactionType.perpsDeposit])) {
     return strings('transaction_details.label.perps_account');
   }
-  if (
-    hasTransactionType(
-      transactionMeta as Parameters<typeof hasTransactionType>[0],
-      [TransactionType.predictDeposit],
-    )
-  ) {
+  if (hasTransactionType(asTxMeta, [TransactionType.predictDeposit])) {
     return strings('transaction_details.label.predictions_account');
   }
   return undefined;

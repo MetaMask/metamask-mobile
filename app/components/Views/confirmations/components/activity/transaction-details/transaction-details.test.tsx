@@ -18,6 +18,9 @@ import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
 import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
 jest.mock('../transaction-details-hero', () => ({
   TransactionDetailsHero: jest.fn(() => null),
 }));

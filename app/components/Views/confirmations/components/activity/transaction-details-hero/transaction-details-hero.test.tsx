@@ -13,7 +13,14 @@ import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../../../UI/Earn/components/Mer
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../../selectors/transactionController', () => ({
+  ...jest.requireActual('../../../../../../selectors/transactionController'),
+  selectTransactionsByIds: jest.fn().mockReturnValue([]),
+}));
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';

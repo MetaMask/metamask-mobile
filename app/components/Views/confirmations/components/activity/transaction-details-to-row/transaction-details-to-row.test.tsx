@@ -11,6 +11,9 @@ import { getTokenTransferData } from '../../../utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
 jest.mock('../../../utils/transaction-pay', () => ({
   ...jest.requireActual('../../../utils/transaction-pay'),
   getTokenTransferData: jest.fn(),

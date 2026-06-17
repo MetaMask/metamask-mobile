@@ -3,11 +3,17 @@ import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import { TransactionType } from '@metamask/transaction-controller';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
+import {
+  CHAIN_IDS,
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   hasTransactionType,
   parseStandardTokenTransactionData,
@@ -18,7 +24,8 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './transaction-details-hero.styles';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { PERPS_CURRENCY } from '../../../constants/perps';
+import { PERPS_CURRENCY, ARBITRUM_USDC } from '../../../constants/perps';
+import { POLYGON_PUSD } from '../../../constants/predict';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -37,7 +44,12 @@ import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
+  MUSD_DECIMALS,
 } from '../../../../../UI/Earn/constants/musd';
+import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
+import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { strings } from '../../../../../../../locales/i18n';
 
 const SUPPORTED_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -56,6 +68,22 @@ const TOKEN_ICON_TYPES = [
   TransactionType.musdConversion,
 ];
 
+const TWO_ASSET_HERO_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
+
+interface TokenDisplayData {
+  amount: string;
+  symbol: string;
+  address: string;
+  chainId: Hex;
+}
+
 export function TransactionDetailsHero() {
   const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
   const formatFiatUser = useFiatFormatter();
@@ -66,9 +94,60 @@ export function TransactionDetailsHero() {
   const targetFiat = useTargetFiat();
   const { transactionMeta } = useTransactionDetails();
   const tokenMeta = useTokenMeta(transactionMeta);
+  const isMoneyContext = useIsMoneyAccountContext();
+  const sourceSentData = useSourceSentData();
+  const receivedData = useReceivedTokenData(tokenMeta);
 
   if (!hasTransactionType(transactionMeta, SUPPORTED_TYPES)) {
     return null;
+  }
+
+  const sentData = sourceSentData;
+  const showTwoAssetHero =
+    isMoneyContext &&
+    hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
+    sentData &&
+    receivedData;
+
+  if (showTwoAssetHero) {
+    return (
+      <Box testID="transaction-details-hero" gap={4} style={styles.container}>
+        <Text color={TextColor.Alternative}>
+          {strings('transaction_details.label.you_sent')}
+        </Text>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={12}
+        >
+          <TokenIcon
+            chainId={sentData.chainId}
+            address={sentData.address as Hex}
+            symbol={sentData.symbol}
+          />
+          <Text variant={TextVariant.DisplayMD}>
+            -{sentData.amount} {sentData.symbol}
+          </Text>
+        </Box>
+        <Text color={TextColor.Alternative} style={styles.youReceivedLabel}>
+          {strings('transaction_details.label.you_received')}
+        </Text>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={12}
+        >
+          <TokenIcon
+            chainId={receivedData.chainId}
+            address={receivedData.address as Hex}
+            symbol={receivedData.symbol}
+          />
+          <Text variant={TextVariant.DisplayMD} color={TextColor.Success}>
+            +{receivedData.amount} {receivedData.symbol}
+          </Text>
+        </Box>
+      </Box>
+    );
   }
 
   const showTokenIcon =
@@ -115,6 +194,175 @@ export function TransactionDetailsHero() {
       <Text variant={TextVariant.DisplayLG}>{formattedAmount}</Text>
     </Box>
   );
+}
+
+/**
+ * Resolves the correct "You received" token for the two-asset hero.
+ * For perpsDeposit → USDC on Arbitrum, for predictDeposit → pUSD on Polygon.
+ * For everything else, falls back to the standard tokenMeta (mUSD).
+ */
+function useReceivedTokenData(
+  tokenMeta: ReturnType<typeof useTokenMeta>,
+): TokenDisplayData | null {
+  const { transactionMeta } = useTransactionDetails();
+  const isMoneyContext = useIsMoneyAccountContext();
+
+  if (!isMoneyContext) {
+    return tokenMeta
+      ? {
+          amount: tokenMeta.amount,
+          symbol: tokenMeta.symbol,
+          address: tokenMeta.contractAddress,
+          chainId: tokenMeta.chainId,
+        }
+      : null;
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+    const sentAmount = tokenMeta?.amount ?? '0.00';
+    return {
+      amount: sentAmount,
+      symbol: ARBITRUM_USDC.symbol,
+      address: ARBITRUM_USDC.address,
+      chainId: CHAIN_IDS.ARBITRUM as Hex,
+    };
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    const sentAmount = tokenMeta?.amount ?? '0.00';
+    return {
+      amount: sentAmount,
+      symbol: POLYGON_PUSD.symbol,
+      address: POLYGON_PUSD.address,
+      chainId: CHAIN_IDS.POLYGON as Hex,
+    };
+  }
+
+  if (tokenMeta) {
+    return {
+      amount: tokenMeta.amount,
+      symbol: tokenMeta.symbol,
+      address: tokenMeta.contractAddress,
+      chainId: tokenMeta.chainId,
+    };
+  }
+
+  return null;
+}
+
+function useSourceSentData(): TokenDisplayData | null {
+  const { transactionMeta } = useTransactionDetails();
+  const { metamaskPay, requiredTransactionIds } = transactionMeta;
+  const { tokenAddress, chainId: sourceChainId } = metamaskPay ?? {};
+
+  const sourceToken = useTokenWithBalance(
+    (tokenAddress ?? '0x0') as Hex,
+    (sourceChainId ?? '0x0') as Hex,
+  );
+
+  const childTransactions = useSelector((state: RootState) =>
+    selectTransactionsByIds(state, requiredTransactionIds ?? []),
+  );
+
+  if (!tokenAddress || !sourceChainId) {
+    return null;
+  }
+
+  const symbol = sourceToken?.symbol ?? MUSD_TOKEN.symbol;
+  const decimals = sourceToken?.decimals ?? MUSD_DECIMALS;
+
+  const relayDeposit = childTransactions.find((tx) =>
+    hasTransactionType(tx, RELAY_DEPOSIT_TYPES),
+  );
+
+  if (relayDeposit) {
+    const sentAmount = extractSentAmount(
+      relayDeposit,
+      tokenAddress as Hex,
+      sourceChainId as Hex,
+      decimals,
+    );
+
+    if (sentAmount) {
+      return {
+        amount: sentAmount,
+        symbol,
+        address: tokenAddress,
+        chainId: sourceChainId as Hex,
+      };
+    }
+  }
+
+  const parentAmount = extractSentAmountFromParent(transactionMeta, decimals);
+  if (parentAmount) {
+    return {
+      amount: parentAmount,
+      symbol,
+      address: tokenAddress,
+      chainId: sourceChainId as Hex,
+    };
+  }
+
+  return null;
+}
+
+function formatAmount(num: BigNumber): string {
+  if (num.isNaN() || num.isZero()) return '';
+  return num.toFixed(2);
+}
+
+function extractSentAmountFromParent(
+  transactionMeta: TransactionMeta,
+  decimals: number,
+): string | null {
+  const { data } = transactionMeta.txParams ?? {};
+  if (data) {
+    const decodedData = parseStandardTokenTransactionData(data as string);
+    const { _value: amount } = decodedData?.args ?? ({} as Result);
+    if (amount) {
+      const tokenAmount = calcTokenAmount(amount, decimals);
+      if (tokenAmount) {
+        const result = formatAmount(new BigNumber(tokenAmount));
+        if (result) return result;
+      }
+    }
+  }
+
+  const value = transactionMeta.txParams?.value;
+  if (value) {
+    const result = formatAmount(new BigNumber(value as string).shiftedBy(-18));
+    if (result) return result;
+  }
+
+  return null;
+}
+
+function extractSentAmount(
+  relayDeposit: TransactionMeta,
+  tokenAddress: Hex,
+  chainId: Hex,
+  decimals: number,
+): string | null {
+  const nativeTokenAddr = getNativeTokenAddress(chainId);
+  const isNative = tokenAddress.toLowerCase() === nativeTokenAddr.toLowerCase();
+
+  if (isNative) {
+    const value = relayDeposit.txParams?.value;
+    if (!value) return null;
+    return formatAmount(new BigNumber(value as string).shiftedBy(-18)) || null;
+  }
+
+  const { data } = relayDeposit.txParams ?? {};
+  if (!data) return null;
+
+  const decodedData = parseStandardTokenTransactionData(data as string);
+  const { _value: amount } = decodedData?.args ?? ({} as Result);
+  if (!amount) return null;
+
+  const tokenAmount = calcTokenAmount(amount, decimals);
+  if (!tokenAmount) return null;
+
+  return formatAmount(new BigNumber(tokenAmount)) || null;
 }
 
 function useTargetFiat() {

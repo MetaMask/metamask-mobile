@@ -9500,6 +9500,10 @@
       "money_account_withdraw": "Transfer from Money Account",
       "money_account_sent": "Sent {{symbol}}",
       "money_account_received": "Received",
+      "deposited_musd": "Deposited mUSD",
+      "sent": "Sent",
+      "sending_musd": "Sending mUSD",
+      "send_failed": "Send failed",
       "default": "Transaction details"
     },
     "label": {
@@ -9519,6 +9523,7 @@
       "order_id": "Order ID",
       "network": "Network",
       "you_sent": "You sent",
+      "you_received": "You received",
       "token_received": "Token received",
       "money_account": "Money account",
       "perps_account": "Perps Account 1",

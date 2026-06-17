@@ -11,6 +11,9 @@ import { TransactionDetailsSummary } from './transaction-details-summary';
 import { transactionIdMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('./deposit-summary-line', () => ({
   DepositSummaryLine: () => {
