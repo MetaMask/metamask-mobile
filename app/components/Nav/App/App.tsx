@@ -278,13 +278,6 @@ const OnboardingNav = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
-        name={Routes.ONBOARDING.DEFAULT_SETTINGS}
-        component={DefaultSettings}
-        options={{
-          headerStyle: { backgroundColor: colors.background.default },
-        }}
-      />
-      <NativeStack.Screen
         name="ManualBackupStep1"
         component={ManualBackupStep1}
         options={{ headerShown: false }}

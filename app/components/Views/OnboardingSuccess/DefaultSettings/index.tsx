@@ -17,7 +17,6 @@ import AppConstants from '../../../../core/AppConstants';
 import SettingsDrawer from '../../../UI/SettingsDrawer';
 
 const DefaultSettings = () => {
-  useOnboardingHeader(strings('default_settings.default_settings'));
   const tw = useTailwind();
   const navigation = useNavigation();
 
