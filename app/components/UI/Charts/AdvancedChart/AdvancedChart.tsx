@@ -97,6 +97,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
+      currentPriceLineColorOverride,
     },
     ref,
   ) => {
@@ -130,28 +131,50 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const tradingViewOpenInterceptRef = useRef(0);
     const skeletonHiddenReportedRef = useRef(false);
 
-    const htmlContent = useMemo(
-      () =>
-        createAdvancedChartTemplate(theme, {
-          enableDrawingTools,
-          disabledFeatures,
-          lineChrome,
-          lineColorOverride,
-          successColorOverride,
-          errorColorOverride,
-        }),
-      [
-        theme,
+    // Track the color overrides baked into the current HTML template so the
+    // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
+    // Refs are updated synchronously inside the useMemo below (not in a post-render
+    // effect) so the snapshot is always in sync with what was actually baked, even
+    // when multiple deps change in the same render cycle.
+    const initialLineColorRef = useRef(lineColorOverride);
+    const initialSuccessColorRef = useRef(successColorOverride);
+    const initialErrorColorRef = useRef(errorColorOverride);
+    const themeColorsSentRef = useRef(false);
+
+    const htmlContent = useMemo(() => {
+      // Snapshot current prop values at the moment the template is created.
+      // This must happen inside useMemo (not in a separate effect) so the refs
+      // reflect what is actually baked, preventing a stale-color race where a
+      // simultaneous non-color dep change causes the SET_THEME_COLORS effect to
+      // see "colors already match" and skip a needed hot-swap.
+      initialLineColorRef.current = lineColorOverride;
+      initialSuccessColorRef.current = successColorOverride;
+      initialErrorColorRef.current = errorColorOverride;
+      return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
-      ],
-    );
+        currentPriceLineColorOverride,
+      });
+      // lineColorOverride/successColorOverride/errorColorOverride intentionally excluded —
+      // color changes hot-swap via SET_THEME_COLORS without rebuilding the WebView.
+      // currentPriceLineColorOverride is a direct dep: it is theme-derived and changes
+      // only with theme, so the initial-ref indirection would introduce a stale-color race.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+      theme,
+      enableDrawingTools,
+      disabledFeatures,
+      lineChrome,
+      currentPriceLineColorOverride,
+    ]);
 
-    // Reset all chart state when the WebView reloads due to htmlContent changes
+    // Reset all chart state when the WebView reloads due to htmlContent changes.
+    // Color refs are intentionally omitted here — they are snapshotted synchronously
+    // inside the useMemo above.
     useEffect(() => {
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
@@ -164,6 +187,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
+      themeColorsSentRef.current = false;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -587,6 +611,46 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
+
+    // Hot-swap chart colors via postMessage whenever overrides change.
+    // Gates on webViewLoaded (not chartReady) so messages sent during chart
+    // init get queued in pendingMessages and drained inside onChartReady —
+    // before the first overlay paint — eliminating stale-color flashes.
+    // Skips only the very first invocation (mount) when colors already match
+    // the HTML template; all subsequent changes always send.
+    useEffect(() => {
+      if (!webViewLoaded) return;
+      if (!themeColorsSentRef.current) {
+        // First run after webViewLoaded: skip only if colors still match template
+        const colorsMatch =
+          lineColorOverride === initialLineColorRef.current &&
+          successColorOverride === initialSuccessColorRef.current &&
+          errorColorOverride === initialErrorColorRef.current;
+        themeColorsSentRef.current = true;
+        if (colorsMatch) return;
+      }
+      const effectiveSuccessColor =
+        successColorOverride ?? theme.colors.success.default;
+      const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
+      const effectiveErrorColor =
+        errorColorOverride ?? theme.colors.error.default;
+      postMessage({
+        type: 'SET_THEME_COLORS',
+        payload: {
+          lineColor: effectiveLineColor,
+          successColor: effectiveSuccessColor,
+          errorColor: effectiveErrorColor,
+        },
+      });
+    }, [
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
+      webViewLoaded,
+      postMessage,
+      theme.colors.success.default,
+      theme.colors.error.default,
+    ]);
 
     const showSkeleton = isLoading || !isChartReady || layoutSettling;
 

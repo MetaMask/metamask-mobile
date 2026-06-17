@@ -35,7 +35,9 @@ export function useQuickBuyAnalytics(
     method: AmountSelectionMethod,
     payWithToken?: string,
     sliderPercent?: number,
+    receiveToken?: string,
   ) => void;
+  trackTradeModeToggled: (tradeType: 'buy' | 'sell') => void;
   trackTradeSubmitted: (props: Record<string, unknown>) => void;
   trackTradeCompleted: (props: Record<string, unknown>) => void;
   markTradeSubmitted: () => void;
@@ -84,6 +86,7 @@ export function useQuickBuyAnalytics(
       method: AmountSelectionMethod,
       payWithToken?: string,
       sliderPercent?: number,
+      receiveToken?: string,
     ) => {
       if (!resolvedTraderAddress || !caip19) return;
       lastTrackedAmountRef.current = String(amountUsd);
@@ -94,11 +97,29 @@ export function useQuickBuyAnalytics(
         [SocialLeaderboardEventProperties.CAIP19]: caip19,
         [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
         [SocialLeaderboardEventProperties.AMOUNT_SELECTION_METHOD]: method,
-        [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]: payWithToken,
+        ...(payWithToken
+          ? { [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]: payWithToken }
+          : {}),
+        ...(receiveToken
+          ? { [SocialLeaderboardEventProperties.RECEIVE_TOKEN]: receiveToken }
+          : {}),
         ...(sliderPercent != null ? { slider_percent: sliderPercent } : {}),
       });
       dismissStageRef.current =
         SocialLeaderboardEventValues.DISMISS_STAGE.AMOUNT_SELECTION;
+    },
+    [resolvedTraderAddress, caip19, track],
+  );
+
+  const trackTradeModeToggled = useCallback(
+    (tradeType: 'buy' | 'sell') => {
+      if (!resolvedTraderAddress || !caip19) return;
+      track(MetaMetricsEvents.SOCIAL_QUICK_TRADE_MODE_TOGGLED, {
+        [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+          resolvedTraderAddress,
+        [SocialLeaderboardEventProperties.CAIP19]: caip19,
+        [SocialLeaderboardEventProperties.TRADE_TYPE]: tradeType,
+      });
     },
     [resolvedTraderAddress, caip19, track],
   );
@@ -132,6 +153,7 @@ export function useQuickBuyAnalytics(
       submitStartedAtRef,
     },
     trackAmountSelected,
+    trackTradeModeToggled,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,

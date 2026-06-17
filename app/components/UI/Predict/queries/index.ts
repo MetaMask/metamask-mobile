@@ -8,7 +8,12 @@ import {
   predictFeaturedCarouselKeys,
   predictFeaturedCarouselOptions,
 } from './featuredCarousel';
+import {
+  predictFilterOptionsKeys,
+  predictFilterOptionsOptions,
+} from './filterOptions';
 import { predictMarketKeys, predictMarketOptions } from './market';
+import { predictMarketListKeys, predictMarketListOptions } from './marketList';
 import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
@@ -54,9 +59,17 @@ export const predictQueries = {
     keys: predictFeaturedCarouselKeys,
     options: predictFeaturedCarouselOptions,
   },
+  filterOptions: {
+    keys: predictFilterOptionsKeys,
+    options: predictFilterOptionsOptions,
+  },
   market: {
     keys: predictMarketKeys,
     options: predictMarketOptions,
+  },
+  marketList: {
+    keys: predictMarketListKeys,
+    options: predictMarketListOptions,
   },
   orderPreview: {
     keys: predictOrderPreviewKeys,

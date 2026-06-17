@@ -62,6 +62,7 @@ const PaymentMethodRow = ({
   subtitle,
   isSelected,
   isLastUsed,
+  isNoFee,
   trailingElement,
   onPress,
   disabled,
@@ -97,7 +98,14 @@ const PaymentMethodRow = ({
           >
             {title}
           </Text>
-          {isLastUsed ? (
+          {isNoFee ? (
+            <Tag
+              severity={TagSeverity.Info}
+              testID={`${resolvedTestID}-no-fee-tag`}
+            >
+              {strings('money.potential_earnings.no_fee')}
+            </Tag>
+          ) : isLastUsed ? (
             <Tag
               severity={TagSeverity.Info}
               testID={`${resolvedTestID}-last-used-tag`}

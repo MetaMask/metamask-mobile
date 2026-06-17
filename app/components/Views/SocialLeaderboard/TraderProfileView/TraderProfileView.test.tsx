@@ -162,7 +162,7 @@ let mockRouteParams: {
   traderRank?: number;
 } = {
   traderId: 'trader-1',
-  traderName: 'dutchiono',
+  traderName: 'trader1',
   traderAddress: '0xabc',
   source: 'leaderboard',
   traderRank: 1,
@@ -182,7 +182,7 @@ const fixtureProfile: TraderProfileResponse = {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'dutchiono',
+    name: 'trader1',
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
@@ -190,11 +190,18 @@ const fixtureProfile: TraderProfileResponse = {
     winRate30d: 0.92,
     roiPercent30d: 1.5,
     tradeCount30d: 48,
+    pnl7d: 20610,
+    winRate7d: 0.92,
+    roiPercent7d: 1.5,
+    tradeCount7d: 48,
   },
   perChainBreakdown: {
     perChainPnl: {},
     perChainRoi: {},
     perChainVolume: {},
+    perChainPnl7d: {},
+    perChainRoi7d: {},
+    perChainVolume7d: {},
   },
   socialHandles: {},
   followerCount: 45,
@@ -330,7 +337,7 @@ describe('TraderProfileView', () => {
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderAddress: '0xabc',
       source: 'leaderboard',
       traderRank: 1,
@@ -346,7 +353,7 @@ describe('TraderProfileView', () => {
 
   it('displays the trader name', () => {
     renderWithProvider(<TraderProfileView />);
-    const visibleTraderNames = screen.getAllByText('dutchiono');
+    const visibleTraderNames = screen.getAllByText('trader1');
     expect(visibleTraderNames).toHaveLength(1);
     expect(visibleTraderNames[0]).toBeOnTheScreen();
   });
@@ -401,12 +408,13 @@ describe('TraderProfileView', () => {
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         traderImageUrl: 'https://example.com/avatar.png',
         traderAddress: '0xabc',
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
         source: 'profile_position',
+        isClosed: false,
       },
     );
   });
@@ -608,7 +616,7 @@ describe('TraderProfileView', () => {
     it('defaults source to deep_link when source param is absent', () => {
       mockRouteParams = {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         traderAddress: '0xabc',
         traderRank: 1,
       };
@@ -624,7 +632,7 @@ describe('TraderProfileView', () => {
     it('falls back to profile address when traderAddress route param is absent', () => {
       mockRouteParams = {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         source: 'leaderboard',
         traderRank: 1,
       };
@@ -636,7 +644,7 @@ describe('TraderProfileView', () => {
     });
 
     it('does not track tab change when traderAddress is absent and profile has no address', () => {
-      mockRouteParams = { traderId: 'trader-1', traderName: 'dutchiono' };
+      mockRouteParams = { traderId: 'trader-1', traderName: 'trader1' };
       mockProfileResult = {
         ...mockProfileResult,
         profile: {
@@ -664,7 +672,7 @@ describe('TraderProfileView', () => {
         MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
         expect.objectContaining({
           trader_address: '0xabc',
-          trader_username: 'dutchiono',
+          trader_username: 'trader1',
           source: 'leaderboard',
           is_following: false,
           trader_rank: 1,
@@ -679,7 +687,7 @@ describe('TraderProfileView', () => {
         expect.objectContaining({
           source: 'trader_profile',
           traderAddress: '0xabc',
-          traderUsername: 'dutchiono',
+          traderUsername: 'trader1',
         }),
       );
     });
@@ -793,6 +801,113 @@ describe('TraderProfileView', () => {
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('headline PnL (7d sum across all chains incl. hyperliquid)', () => {
+    it('sums perChainPnl7d across every chain, including hyperliquid', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 999999 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
+            base: 50_000,
+            solana: 30_000,
+            ethereum: 20_000,
+            hyperliquid: 900_000,
+          },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // Sum is 1,000,000 — hyperliquid is included; rendered with the full
+      // no-decimals formatter: 1,000,000 → +$1,000,000
+      expect(screen.getByText('+$1,000,000')).toBeOnTheScreen();
+      // And the trader's global pnl7d (999,999) is NOT what we display
+      expect(screen.queryByText('+$999,999')).not.toBeOnTheScreen();
+    });
+
+    it('shows the Hyperliquid PnL for a perps-only trader (regression: was 0)', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        // Global pnl7d is 0 for a perps-only trader; the real PnL lives in the
+        // per-chain hyperliquid breakdown.
+        stats: { ...fixtureProfile.stats, pnl7d: 0 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: { hyperliquid: 1_474_000 },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // 1,474,000 rendered with the full no-decimals formatter → +$1,474,000
+      expect(screen.getByText('+$1,474,000')).toBeOnTheScreen();
+      expect(screen.queryByText('$0')).not.toBeOnTheScreen();
+    });
+
+    it('sums negative per-chain values (incl. hyperliquid) into a negative total', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 12_345 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
+            base: -1_000,
+            solana: -2_500,
+            ethereum: 500,
+            hyperliquid: -50_000,
+          },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // -1000 + -2500 + 500 + -50000 = -53000 (hyperliquid included);
+      // rendered with the full no-decimals formatter: -53,000 → -$53,000
+      expect(screen.getByText('-$53,000')).toBeOnTheScreen();
+    });
+
+    it('treats a missing chain entry as 0', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 999 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: { base: 7_500 }, // solana, ethereum, hyperliquid absent
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(screen.getByText('+$7,500')).toBeOnTheScreen();
+    });
+
+    it('falls back to the global stats.pnl7d when perChainPnl7d is empty', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 20_610 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {},
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(screen.getByText('+$20,610')).toBeOnTheScreen();
     });
   });
 });

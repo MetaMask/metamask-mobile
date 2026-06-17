@@ -17,8 +17,13 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { toChecksumAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  toChecksumAddress,
+} from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -29,7 +34,9 @@ import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,
+  isPerpsPredictMoneyDeposit,
   nestedTxWithType,
+  perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
 import {
@@ -38,6 +45,47 @@ import {
 } from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
+const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
+  'function transfer(address to, uint256 amount)',
+]);
+
+function decodeErc20TransferRecipient(
+  data: string | undefined,
+): string | undefined {
+  if (!data) return undefined;
+  try {
+    const [to] = ERC20_TRANSFER_INTERFACE.decodeFunctionData('transfer', data);
+    return to as string;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'useMoneyTransactionStatus: failed to decode erc20 transfer calldata',
+    );
+    return undefined;
+  }
+}
+
+function resolveWithdrawDestination(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const transferNested = nestedTxWithType(
+    transactionMeta,
+    TransactionType.tokenMethodTransfer,
+  );
+  const recipient = decodeErc20TransferRecipient(transferNested?.data);
+  if (!recipient) return undefined;
+  const state = store.getState();
+  const account = getMemoizedInternalAccountByAddress(state, recipient);
+  if (!account) return renderShortAddress(recipient);
+  const groupName =
+    selectAccountToGroupMap(state)[account.id]?.metadata?.name?.trim();
+  const accountName = account.metadata?.name?.trim();
+  return (
+    groupName ||
+    accountName ||
+    strings('money.toasts.withdraw_fallback_destination')
+  );
+}
 
 function decodeTellerAmount(
   type: TransactionType,
@@ -143,12 +191,15 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
       if (pendingInProgress.has(transactionMeta.id)) return;
       const timeoutId = setTimeout(() => {
         pendingInProgress.delete(transactionMeta.id);
-        if (isMoneyDepositTx(transactionMeta)) {
+        if (isSend) {
+          showToast(MoneyToastOptions.send.inProgress());
+        } else if (isMoneyDepositTx(transactionMeta)) {
           const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
           showToast(MoneyToastOptions.deposit.inProgress({ intent }));
         } else {
@@ -159,10 +210,13 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
-      if (isMoneyDepositTx(transactionMeta)) {
+      if (isSend) {
+        showToast(MoneyToastOptions.send.failed());
+      } else if (isMoneyDepositTx(transactionMeta)) {
         const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
         showToast(MoneyToastOptions.deposit.failed({ intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
@@ -173,9 +227,30 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
+
+      if (isSend) {
+        const fiat = Number(transactionMeta.metamaskPay?.totalFiat);
+        const amountFiat =
+          !Number.isNaN(fiat) && fiat > 0
+            ? moneyFormatFiat(
+                new BigNumber(fiat),
+                selectCurrentCurrency(store.getState()),
+              )
+            : undefined;
+        const family = perpsPredictServiceFamily(transactionMeta);
+        const destination = strings(
+          family === 'predict'
+            ? 'money.toasts.send_destination_predict'
+            : 'money.toasts.send_destination_perps',
+        );
+        showToast(MoneyToastOptions.send.success({ amountFiat, destination }));
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
 
       const depositNested = nestedTxWithType(
         transactionMeta,
@@ -203,12 +278,11 @@ export const useMoneyTransactionStatus = () => {
         showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
-        // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
+        const destination =
+          resolveWithdrawDestination(transactionMeta) ??
+          strings('money.toasts.withdraw_fallback_destination');
         showToast(
-          MoneyToastOptions.withdraw.success({
-            amountFiat,
-            destination: strings('money.transfer_sheet.between_accounts'),
-          }),
+          MoneyToastOptions.withdraw.success({ amountFiat, destination }),
         );
       }
       scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
@@ -267,5 +341,10 @@ export const useMoneyTransactionStatus = () => {
       pendingCleanups.forEach((timeoutId) => clearTimeout(timeoutId));
       pendingCleanups.clear();
     };
-  }, [MoneyToastOptions.deposit, MoneyToastOptions.withdraw, showToast]);
+  }, [
+    MoneyToastOptions.deposit,
+    MoneyToastOptions.withdraw,
+    MoneyToastOptions.send,
+    showToast,
+  ]);
 };

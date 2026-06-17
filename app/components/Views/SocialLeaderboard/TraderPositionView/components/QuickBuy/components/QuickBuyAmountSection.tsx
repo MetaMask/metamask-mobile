@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { TextInput } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -12,130 +8,120 @@ import {
   TextColor,
   FontWeight,
   BoxAlignItems,
-  BoxJustifyContent,
   BoxFlexDirection,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
 
-const styles = StyleSheet.create({
-  amountText: { fontSize: 48, lineHeight: 52 },
-  hiddenInput: { position: 'absolute', opacity: 0, height: 0 },
-});
-
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
-  fiatCryptoToggleEnabled: boolean;
-  usdAmount: string;
+  /** Entered amount preformatted in the user's display currency (e.g. "$20", "20 €"). */
+  fiatAmountLabel: string;
   destSymbol: string;
+  /** Estimated amount received in the dest token from the quote. */
   estimatedReceiveAmount: string | undefined;
-  availableBalanceFiat: string;
   isQuoteLoading: boolean;
-  hiddenInputRef: React.RefObject<TextInput | null>;
-  onAmountAreaPress: () => void;
-  onAmountChange: (text: string) => void;
-  onToggleAmountDisplay: () => void;
+  /**
+   * When true, the user is acting on an unpriced source token (sell mode only).
+   * The headline switches to the entered source-token amount, the secondary
+   * line shows the estimated destination amount, and the fiat/crypto toggle is
+   * hidden because there's no fiat value to flip to.
+   */
+  isUnpricedSource?: boolean;
+  /** Source-token amount the user has entered (unpriced path). */
+  sourceCryptoAmount?: string;
+  /** Source token symbol (unpriced path), e.g. "CAKE". */
+  sourceSymbol?: string;
+  // Custom-amount input is temporarily disabled (numpad removed). The slider is
+  // the only input path for now, but these props remain on the interface so the
+  // controller wiring is preserved for when the keyboard path is restored.
+  hiddenInputRef?: React.RefObject<TextInput | null>;
+  onAmountAreaPress?: () => void;
+  onAmountChange?: (text: string) => void;
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
-  fiatCryptoToggleEnabled,
-  usdAmount,
+  fiatAmountLabel,
   destSymbol,
   estimatedReceiveAmount,
-  availableBalanceFiat,
   isQuoteLoading,
-  hiddenInputRef,
-  onAmountAreaPress,
-  onAmountChange,
-  onToggleAmountDisplay,
+  isUnpricedSource = false,
+  sourceCryptoAmount,
+  sourceSymbol,
 }) => {
-  const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
+  const tw = useTailwind();
+
   const cryptoAmountLabel = estimatedReceiveAmount
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
 
-  const isCryptoPrimary = amountDisplayMode === 'crypto';
-  const primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
-  const secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
+  let primaryLabel: string;
+  let secondaryLabel: string;
+
+  if (isUnpricedSource) {
+    // Source has no fiat rate: the headline must be the source token amount
+    // the user entered (slider or keyboard). The secondary line previews the
+    // estimated destination amount, which only appears once a quote lands.
+    const sourceLabel =
+      `${sourceCryptoAmount || '0'} ${sourceSymbol ?? ''}`.trim();
+    primaryLabel = sourceLabel;
+    secondaryLabel = `≈ ${cryptoAmountLabel}`;
+  } else {
+    const isCryptoPrimary = amountDisplayMode === 'crypto';
+    primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
+    secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
+  }
 
   return (
-    <TouchableOpacity
-      onPress={onAmountAreaPress}
-      activeOpacity={1}
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      gap={2}
+      twClassName="px-4 pt-6 pb-4"
       testID="quick-buy-amount-area"
     >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        gap={2}
-        twClassName="px-4 pt-6 pb-4"
+      <Text
+        variant={TextVariant.DisplayMd}
+        fontWeight={FontWeight.Bold}
+        color={TextColor.TextDefault}
       >
-        <Text
-          style={styles.amountText}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
+        {primaryLabel}
+      </Text>
+
+      {isQuoteLoading ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          testID="quick-buy-amount-loading"
         >
-          {primaryLabel}
-        </Text>
-
-        {isQuoteLoading ? (
-          <ActivityIndicator size="small" />
-        ) : (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
+          <Skeleton
+            width={88}
+            height={16}
+            style={tw.style('rounded-md')}
+            testID="quick-buy-amount-loading-skeleton"
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID="quick-buy-amount-loading-symbol"
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {secondaryLabel}
-            </Text>
-            {fiatCryptoToggleEnabled ? (
-              <TouchableOpacity
-                onPress={onToggleAmountDisplay}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'social_leaderboard.quick_buy.toggle_amount_display',
-                )}
-                testID="quick-buy-toggle-amount-display"
-              >
-                <Icon
-                  name={IconName.SwapVertical}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </TouchableOpacity>
-            ) : null}
-          </Box>
-        )}
-
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.available_balance', {
-            amount: availableBalanceFiat,
-          })}
+            {destSymbol}
+          </Text>
+        </Box>
+      ) : (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+        >
+          {secondaryLabel}
         </Text>
-
-        <TextInput
-          ref={hiddenInputRef}
-          value={usdAmount}
-          onChangeText={onAmountChange}
-          keyboardType="decimal-pad"
-          returnKeyType="done"
-          style={styles.hiddenInput}
-          testID="quick-buy-amount-input"
-        />
-      </Box>
-    </TouchableOpacity>
+      )}
+    </Box>
   );
 };
 

@@ -87,6 +87,7 @@ export type CardFundingToken = {
   spendingCap?: string;
   originalSpendingCap?: string;
   isMoneyAccountEntry?: boolean;
+  displaySymbol?: string;
 } & CardToken &
   AuthenticatedCardFundingTokenData;
 

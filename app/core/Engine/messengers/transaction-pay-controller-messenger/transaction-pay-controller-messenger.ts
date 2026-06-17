@@ -40,7 +40,6 @@ export function getTransactionPayControllerMessenger(
       'NetworkController:getNetworkConfigurationByChainId',
       'RampsController:getOrder',
       'RampsController:getQuotes',
-      'RampsController:getState',
       'RemoteFeatureFlagController:getState',
       'TokenBalancesController:getState',
       'TokenRatesController:getState',

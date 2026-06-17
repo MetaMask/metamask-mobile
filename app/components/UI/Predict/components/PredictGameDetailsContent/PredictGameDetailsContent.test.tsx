@@ -270,6 +270,18 @@ describe('PredictGameDetailsContent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useGameDetailsTabs as jest.Mock).mockReturnValue({
+      enabled: false,
+      showTabBar: false,
+      tabs: [],
+      activeTab: 0,
+      handleTabPress: jest.fn(),
+      chips: [],
+      groupMap: new Map(),
+      activeChipKey: '',
+      handleChipSelect: jest.fn(),
+      showChips: false,
+    });
   });
 
   describe('Header Rendering', () => {
@@ -423,6 +435,68 @@ describe('PredictGameDetailsContent', () => {
       const infoButton = getByTestId('mock-info-button');
 
       expect(infoButton).toBeOnTheScreen();
+    });
+
+    it('hides the prediction footer when extended sports markets are enabled', () => {
+      (useGameDetailsTabs as jest.Mock).mockReturnValue({
+        enabled: true,
+        showTabBar: false,
+        tabs: [{ label: 'Outcomes', key: 'outcomes' }],
+        activeTab: 0,
+        handleTabPress: jest.fn(),
+        chips: [],
+        groupMap: new Map([
+          ['game_lines', { key: 'game_lines', outcomes: [] }],
+        ]),
+        activeChipKey: 'game_lines',
+        handleChipSelect: jest.fn(),
+        showChips: false,
+      });
+      const market = createMockMarket();
+
+      const { queryByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(queryByTestId('predict-game-details-footer')).toBeNull();
+    });
+
+    it('keeps the footer for claimable winnings when extended sports markets are enabled', () => {
+      (useGameDetailsTabs as jest.Mock).mockReturnValue({
+        enabled: true,
+        showTabBar: false,
+        tabs: [{ label: 'Outcomes', key: 'outcomes' }],
+        activeTab: 0,
+        handleTabPress: jest.fn(),
+        chips: [],
+        groupMap: new Map([
+          ['game_lines', { key: 'game_lines', outcomes: [] }],
+        ]),
+        activeChipKey: 'game_lines',
+        handleChipSelect: jest.fn(),
+        showChips: false,
+      });
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          onClaimPress={jest.fn()}
+          claimableAmount={1}
+          refreshing={false}
+        />,
+      );
+
+      expect(getByTestId('predict-game-details-footer')).toBeOnTheScreen();
     });
   });
 
@@ -685,6 +759,11 @@ describe('PredictGameDetailsContent', () => {
         ],
         activeTab: 0,
         handleTabPress: jest.fn(),
+        chips: [],
+        groupMap: new Map(),
+        activeChipKey: '',
+        handleChipSelect: jest.fn(),
+        showChips: false,
       });
 
       const market = createMockMarket();
@@ -709,6 +788,11 @@ describe('PredictGameDetailsContent', () => {
         tabs: [],
         activeTab: 0,
         handleTabPress: jest.fn(),
+        chips: [],
+        groupMap: new Map(),
+        activeChipKey: '',
+        handleChipSelect: jest.fn(),
+        showChips: false,
       });
 
       const market = createMockMarket();

@@ -48,6 +48,7 @@ import {
 } from '../../../../util/haptics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
@@ -150,6 +151,26 @@ const TraderProfileView = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
+
+  // The headline 7D return reflects the trader's PnL across every chain they
+  // traded, including Hyperliquid/perps. (Hyperliquid is excluded from the
+  // "All" leaderboard ranking so perps don't dominate it, but on an individual
+  // profile that exclusion would wrongly show 0 for a perps-only trader.)
+  // Summing the per-chain 7D breakdown is preferred over the global stats.pnl7d;
+  // fall back to the global value only when no per-chain breakdown is available
+  // (e.g. an older social-api that doesn't return perChainPnl7d).
+  const headlineStats = useMemo(() => {
+    if (!profile) return null;
+    const perChainPnl7d = profile.perChainBreakdown?.perChainPnl7d;
+    if (!perChainPnl7d || Object.keys(perChainPnl7d).length === 0) {
+      return profile.stats;
+    }
+    const pnl7d = Object.values(perChainPnl7d).reduce(
+      (sum, value) => sum + (value ?? 0),
+      0,
+    );
+    return { ...profile.stats, pnl7d };
+  }, [profile]);
   // Fire Trader Profile Screen Viewed once profile resolves so we have an
   // accurate trader_address / is_following at the point the user lands.
   const hasFiredScreenViewedRef = useRef(false);
@@ -269,6 +290,7 @@ const TraderProfileView = () => {
         tokenSymbol: position.tokenSymbol,
         position,
         source: 'profile_position',
+        isClosed: activeTab === 'closed',
       });
     },
     [
@@ -366,15 +388,14 @@ const TraderProfileView = () => {
                 profile={profile.profile}
                 followerCount={profile.followerCount}
                 twitterHandle={profile.socialHandles?.twitter}
-                rank={traderRank}
               />
             )}
 
-            {isLoading || !profile ? (
+            {isLoading || !profile || !headlineStats ? (
               <StatsRowSkeleton />
             ) : (
               <StatsRow
-                stats={profile.stats}
+                stats={headlineStats}
                 holdTimeMinutes={profile.stats.medianHoldMinutes}
               />
             )}
@@ -459,6 +480,7 @@ const TraderProfileView = () => {
                       key={`${position.tokenAddress}-${position.chain}-${index}`}
                       position={position}
                       onPress={handlePositionPress}
+                      isClosed={activeTab === 'closed'}
                     />
                   ))
                 )}

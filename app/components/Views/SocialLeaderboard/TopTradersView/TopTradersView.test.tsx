@@ -36,7 +36,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000001',
     rank: 1,
     overallRank: 1,
-    username: 'sniperliquid.hl',
+    username: 'alpha.eth',
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
     pnlValue: 963146.8,
@@ -48,7 +48,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000002',
     rank: 2,
     overallRank: 2,
-    username: 'nervousdegen',
+    username: 'beta.eth',
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
     pnlValue: 474751.45,
@@ -60,7 +60,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000003',
     rank: 3,
     overallRank: 3,
-    username: 'baznocap',
+    username: 'gamma.eth',
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
     pnlValue: 374735.16,
@@ -69,16 +69,54 @@ const fixtureTraders: TopTrader[] = [
   },
 ];
 
-const defaultUseTopTradersResult: UseTopTradersResult = {
+type ChainKey = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
+
+const buildResult = (
+  overrides: Partial<UseTopTradersResult> = {},
+): UseTopTradersResult => ({
   traders: fixtureTraders,
   isLoading: false,
   isFetching: false,
   error: null,
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
+  ...overrides,
+});
+
+// Each chain tab now drives its own query, so the hook is mocked to return a
+// distinct result per chain.
+const mockResultsByChain: Record<ChainKey, UseTopTradersResult> = {
+  all: buildResult(),
+  base: buildResult(),
+  solana: buildResult(),
+  ethereum: buildResult(),
+  hyperliquid: buildResult(),
 };
 
-const mockUseTopTradersHook = jest.fn(() => defaultUseTopTradersResult);
+const setChainResult = (
+  chain: ChainKey,
+  overrides: Partial<UseTopTradersResult>,
+) => {
+  mockResultsByChain[chain] = buildResult(overrides);
+};
+
+const resetChainResults = () => {
+  (Object.keys(mockResultsByChain) as ChainKey[]).forEach((key) => {
+    mockResultsByChain[key] = buildResult();
+  });
+};
+
+// The "All" tab now explicitly passes the spot chains (Base/Solana/Ethereum)
+// to exclude hyperliquid; a chain tab passes exactly one chain. Distinguish
+// by length so the mock returns the matching fixture.
+const mockUseTopTradersHook = jest.fn(
+  (options?: { chains?: string[] }): UseTopTradersResult => {
+    const chains = options?.chains;
+    const chain: ChainKey =
+      !chains || chains.length > 1 ? 'all' : (chains[0] as ChainKey);
+    return mockResultsByChain[chain];
+  },
+);
 
 const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
 jest.mock(
@@ -89,7 +127,8 @@ jest.mock(
 );
 
 jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
-  useTopTraders: () => mockUseTopTradersHook(),
+  useTopTraders: (options?: { chains?: string[] }) =>
+    mockUseTopTradersHook(options),
 }));
 
 jest.mock(
@@ -114,7 +153,15 @@ jest.mock('../analytics', () => {
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTopTradersHook.mockImplementation(() => defaultUseTopTradersResult);
+    resetChainResults();
+    mockUseTopTradersHook.mockImplementation(
+      (options?: { chains?: string[] }) => {
+        const chains = options?.chains;
+        const chain: ChainKey =
+          !chains || chains.length > 1 ? 'all' : (chains[0] as ChainKey);
+        return mockResultsByChain[chain];
+      },
+    );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
   });
@@ -128,7 +175,7 @@ describe('TopTradersView', () => {
 
   it('renders the Top Traders title', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('Top Traders')).toBeOnTheScreen();
+    expect(screen.getByText('Weekly Top Traders')).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -180,14 +227,14 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('renders the rank for the top trader', () => {
+  it('renders a podium medal for the top trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('1')).toBeOnTheScreen();
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
   });
 
-  it('renders the ROI for the first trader', () => {
+  it('renders the full PnL for the first trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('calls toggleFollow with analytics context when Follow button is pressed', () => {
@@ -215,7 +262,9 @@ describe('TopTradersView', () => {
     expect(typeof refreshControl.props.refreshing).toBe('boolean');
   });
 
-  it('calls refresh when the scroll view is pulled down', async () => {
+  it('invalidates every tab query when the scroll view is pulled down', async () => {
+    // Each chain's result wraps the shared mockRefresh — pull-to-refresh
+    // should call it once per tab (all, base, solana, ethereum, hyperliquid).
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
@@ -224,7 +273,7 @@ describe('TopTradersView', () => {
       await list.props.refreshControl.props.onRefresh();
     });
 
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).toHaveBeenCalledTimes(5);
   });
 
   it('logs an error when refresh fails', async () => {
@@ -258,7 +307,7 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders all four chain filter pills', () => {
+  it('renders all chain filter pills including Hyperliquid', () => {
     renderWithProvider(<TopTradersView />);
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
@@ -272,75 +321,90 @@ describe('TopTradersView', () => {
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ETHEREUM),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+    ).toBeOnTheScreen();
   });
 
-  it('filters traders when a chain pill is tapped', () => {
+  it('fires a separate query per chain on mount (parallel prefetch)', () => {
     renderWithProvider(<TopTradersView />);
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+
+    const chainsArgs = mockUseTopTradersHook.mock.calls.map(
+      ([opts]) => opts?.chains,
     );
-    expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
-    expect(screen.getByText('nervousdegen')).toBeOnTheScreen();
-    expect(screen.queryByText('baznocap')).not.toBeOnTheScreen();
+    // "All" tab explicitly requests the spot chains so hyperliquid (perps)
+    // doesn't dominate the rankings; chain tabs each request their own chain,
+    // including a dedicated hyperliquid (perps) tab.
+    expect(chainsArgs).toEqual(
+      expect.arrayContaining([
+        ['base', 'solana', 'ethereum'],
+        ['base'],
+        ['solana'],
+        ['ethereum'],
+        ['hyperliquid'],
+      ]),
+    );
   });
 
-  it('shows all traders when All filter is tapped after filtering', () => {
-    renderWithProvider(<TopTradersView />);
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_SOLANA),
-    );
-    expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
-    );
-    expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
-    expect(screen.getByText('baznocap')).toBeOnTheScreen();
-  });
-
-  it('re-ranks traders within filtered results', () => {
-    renderWithProvider(<TopTradersView />);
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_SOLANA),
-    );
-    expect(screen.getByText('1')).toBeOnTheScreen();
-    expect(screen.queryByText('3')).not.toBeOnTheScreen();
-  });
-
-  it('preserves the upstream overallRank when navigating to a profile (does not re-derive it from the displayed rank)', () => {
-    mockUseTopTradersHook.mockReturnValueOnce({
-      ...defaultUseTopTradersResult,
+  it('renders the active tab’s traders when a chain pill is tapped (no client-side filter)', () => {
+    setChainResult('base', {
       traders: [
-        {
-          ...fixtureTraders[0],
-          rank: 1,
-          overallRank: 50,
-        },
+        { ...fixtureTraders[0], rank: 1 },
+        { ...fixtureTraders[2], rank: 2 },
       ],
     });
     renderWithProvider(<TopTradersView />);
 
-    fireEvent.press(screen.getByText('sniperliquid.hl'));
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+    );
+
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
+  });
+
+  it('shows the Hyperliquid tab’s own (perps) traders when selected', () => {
+    setChainResult('hyperliquid', {
+      traders: [{ ...fixtureTraders[2], rank: 1 }],
+    });
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+    );
+
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
+  });
+
+  it('uses the per-tab rank when navigating to a profile', () => {
+    setChainResult('base', {
+      traders: [{ ...fixtureTraders[0], rank: 2 }],
+    });
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+    );
+    fireEvent.press(screen.getByText('alpha.eth'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'TraderProfileView',
       expect.objectContaining({
         traderId: 'trader-1',
-        traderRank: 50,
+        traderRank: 2,
       }),
     );
   });
 
-  it('renders skeletons during initial load', () => {
-    mockUseTopTradersHook.mockReturnValueOnce({
-      ...defaultUseTopTradersResult,
-      isLoading: true,
-      traders: [],
-    });
+  it('renders skeletons during initial load when no traders are cached', () => {
+    setChainResult('all', { isLoading: true, traders: [] });
     renderWithProvider(<TopTradersView />);
     expect(
       screen.queryByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
+    expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
   });
 
   describe('analytics', () => {
@@ -371,7 +435,7 @@ describe('TopTradersView', () => {
 
     it('fires Trader Leaderboard Trader Clicked with rank and chain filter on row press', () => {
       renderWithProvider(<TopTradersView />);
-      fireEvent.press(screen.getByText('sniperliquid.hl'));
+      fireEvent.press(screen.getByText('alpha.eth'));
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED,
         expect.objectContaining({

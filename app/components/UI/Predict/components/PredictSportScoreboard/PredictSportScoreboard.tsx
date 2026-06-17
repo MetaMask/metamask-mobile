@@ -124,12 +124,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   });
 
   const teamLogoSize = compact ? COMPACT_TEAM_LOGO_SIZE : TEAM_LOGO_SIZE;
-  const showScores = !(compact && isScheduled);
-  const scoreWidthClass = isScheduled
-    ? 'opacity-0 w-16'
-    : compact
-      ? 'w-12'
-      : 'w-16';
+  const showScores = isLive || isEnded;
 
   // Team display order is sport-dependent: soccer (and other draw-capable
   // leagues) show the home team on the left, while US sports (e.g. American
@@ -180,7 +175,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={compact ? 'w-full gap-2' : 'w-full gap-3'}
+        twClassName="w-full"
       >
         {renderTeamLogo(leftTeam, leftLogoTestID)}
 
@@ -189,7 +184,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
-            twClassName={scoreWidthClass}
+            twClassName={`${compact ? 'pl-2' : 'pl-3'}`}
             numberOfLines={1}
           >
             {leftScore}
@@ -267,7 +262,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
-            twClassName={`${scoreWidthClass} text-right`}
+            twClassName={`${compact ? 'pr-2' : 'pr-3'} text-right`}
             numberOfLines={1}
           >
             {rightScore}

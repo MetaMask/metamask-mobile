@@ -31,6 +31,12 @@ import {
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
+import {
+  isTokenInWildcardList,
+  WildcardTokenList,
+} from '../../../../UI/Earn/utils/wildcardTokenList';
+import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { RootState } from '../../../../../reducers';
@@ -64,6 +70,7 @@ export function useAutomaticTransactionPayToken({
   const requiredTokens = useTransactionPayRequiredTokens();
   const { availableTokens } = useTransactionPayAvailableTokens();
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
+  const noFeeTokenList = useSelector(selectMoneyNoFeeTokens);
 
   const transactionMetaRequest = useTransactionMetadataRequest();
   const transactionMeta = useMemo(
@@ -110,8 +117,7 @@ export function useAutomaticTransactionPayToken({
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
   const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount &&
-    !postQuoteTransactionType;
+    paymentOverride === PaymentOverride.MoneyAccount;
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -136,6 +142,7 @@ export function useAutomaticTransactionPayToken({
         isWithdraw,
         lastWithdrawToken,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+        noFeeTokenList,
         preferredToken,
         preferredTokensFromFlags,
         targetToken,
@@ -149,6 +156,7 @@ export function useAutomaticTransactionPayToken({
       isQRWallet,
       isWithdraw,
       lastWithdrawToken,
+      noFeeTokenList,
       payTokensFlags.minimumRequiredTokenBalance,
       preferredToken,
       preferredTokensFromFlags,
@@ -273,8 +281,7 @@ export function useAutomaticTransactionPayToken({
       hasFiatPaymentSelected ||
       !from ||
       isMoneyPaymentOverride !== true ||
-      isMoneyPaymentOverride === prev ||
-      postQuoteTransactionType
+      isMoneyPaymentOverride === prev
     ) {
       return;
     }
@@ -291,7 +298,6 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
-    postQuoteTransactionType,
     setPayToken,
     isMoneyPaymentOverride,
   ]);
@@ -307,6 +313,7 @@ function getBestToken({
   isWithdraw,
   lastWithdrawToken,
   minimumRequiredTokenBalance,
+  noFeeTokenList,
   preferredToken,
   preferredTokensFromFlags,
   targetToken,
@@ -320,6 +327,7 @@ function getBestToken({
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   minimumRequiredTokenBalance: number;
+  noFeeTokenList: WildcardTokenList;
   preferredToken?: SetPayTokenRequest;
   preferredTokensFromFlags: PreferredToken[];
   targetToken?: { address: Hex; chainId: Hex };
@@ -414,6 +422,28 @@ function getBestToken({
           };
         }
       }
+    }
+  }
+
+  if (tokens?.length && !isWithdraw) {
+    const noFeeCandidates = tokens
+      .filter((token) => {
+        if (!token.chainId) return false;
+        const fiatBalance = token.fiat?.balance ?? 0;
+        if (fiatBalance < minimumRequiredTokenBalance) return false;
+        return isTokenInWildcardList(
+          token.symbol,
+          noFeeTokenList,
+          safeFormatChainIdToHex(token.chainId),
+        );
+      })
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
+
+    if (noFeeCandidates.length) {
+      return {
+        address: noFeeCandidates[0].address as Hex,
+        chainId: noFeeCandidates[0].chainId as Hex,
+      };
     }
   }
 

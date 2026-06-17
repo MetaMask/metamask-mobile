@@ -9,7 +9,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -30,6 +34,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
+import Routes from '../../../constants/navigation/Routes';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
 import buyAndSellCryptoImage from '../../../images/buy_and_sell_crypto.png';
 import consolidateWalletsImage from '../../../images/consolidate_wallets.png';
@@ -92,6 +97,7 @@ const GRID_GUTTER_PX = 4;
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -111,8 +117,9 @@ const OnboardingInterestQuestionnaire = () => {
     if (hasTrackedView.current) return;
     hasTrackedView.current = true;
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_VIEWED)
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED)
         .addProperties({
+          question_type: 'interest',
           ...(accountType && { account_type: accountType }),
         })
         .build(),
@@ -153,10 +160,9 @@ const OnboardingInterestQuestionnaire = () => {
     const skipped = selectedInterests.length === 0;
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
-      )
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
+          question_type: 'interest',
           selected_interests: selectedInterests,
           item_count: selectedInterests.length,
           skipped,
@@ -165,8 +171,18 @@ const OnboardingInterestQuestionnaire = () => {
         .build(),
     );
 
-    onComplete();
-  }, [selectedIds, trackEvent, createEventBuilder, accountType, onComplete]);
+    navigation.navigate(Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE, {
+      onComplete,
+      ...(accountType && { accountType }),
+    });
+  }, [
+    selectedIds,
+    trackEvent,
+    createEventBuilder,
+    accountType,
+    onComplete,
+    navigation,
+  ]);
 
   return (
     <SafeAreaView

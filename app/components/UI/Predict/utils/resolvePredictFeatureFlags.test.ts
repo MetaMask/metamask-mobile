@@ -34,7 +34,6 @@ describe('resolvePredictFeatureFlags', () => {
       predictUpDownEnabled: false,
       predictPortfolioEnabled: false,
       predictHomeRedesignEnabled: false,
-      predictHomepageDiscoveryNbaChampionEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
@@ -94,6 +93,31 @@ describe('resolvePredictFeatureFlags', () => {
       enabled: true,
       minimumVersion: '1.0.0',
       highlights: [{ category: 'sports', markets: ['1', '2'] }],
+    };
+
+    const result = resolvePredictFeatureFlags({
+      remoteFeatureFlags: {
+        predictMarketHighlights: marketHighlights,
+      },
+    });
+
+    expect(result.marketHighlightsFlag).toEqual(marketHighlights);
+  });
+
+  it('passes through series ids on market highlights entries unchanged', () => {
+    mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+    const marketHighlights = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      highlights: [
+        {
+          category: 'crypto',
+          markets: ['direct-1'],
+          series: ['series-1', 'series-2'],
+        },
+        { category: 'sports', series: ['series-3'] },
+      ],
     };
 
     const result = resolvePredictFeatureFlags({
@@ -190,39 +214,6 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
-  });
-
-  describe('predictHomepageDiscoveryNbaChampionEnabled', () => {
-    it('defaults to true to preserve the NBA champion discovery row', () => {
-      const result = resolvePredictFeatureFlags({});
-
-      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(true);
-    });
-
-    it('returns false when the remote flag is disabled and version gate passes', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (
-          flag &&
-          typeof flag === 'object' &&
-          'enabled' in flag &&
-          'minimumVersion' in flag
-        ) {
-          return (flag as { enabled: boolean }).enabled;
-        }
-        return undefined;
-      });
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictHomepageDiscoveryNbaChampionEnabled: {
-            enabled: false,
-            minimumVersion: '1.0.0',
-          },
-        },
-      });
-
-      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(false);
-    });
   });
 
   describe('predictWorldCup', () => {

@@ -1,17 +1,41 @@
 import { useCallback } from 'react';
 import { createProjectLogger } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
+import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useHeadlessBuy,
   type HeadlessBuyError,
 } from '../../../../UI/Ramp/headless';
 import type { Quote } from '../../../../UI/Ramp/types';
+import {
+  RAMP_SURFACE,
+  type RampSurface,
+} from '../../../../UI/Ramp/Deposit/types/analytics';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPayFiatPayment } from './useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayTotals,
+} from './useTransactionPayData';
+
 import { useConfirmationContext } from '../../context/confirmation-context';
 
 const log = createProjectLogger('fiat-confirm');
+
+/**
+ * Maps a confirmation transaction type to the headless ramps `ramp_surface`
+ * (TRAM-3623). Only deposit flows routed through the headless buy belong here.
+ * `musdConversion` and withdraw types are intentionally omitted: not
+ * money/perps/prediction deposits, so they get an `undefined` surface.
+ */
+const TRANSACTION_TYPE_TO_RAMP_SURFACE: Partial<
+  Record<TransactionType, RampSurface>
+> = {
+  [TransactionType.moneyAccountDeposit]: RAMP_SURFACE.MONEY_ACCOUNT,
+  [TransactionType.perpsDeposit]: RAMP_SURFACE.PERPS,
+  [TransactionType.predictDeposit]: RAMP_SURFACE.PREDICTION,
+};
 
 export function useFiatConfirm() {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -19,6 +43,7 @@ export function useFiatConfirm() {
   const { setIsHeadlessBuyInProgress, setHeadlessBuyError } =
     useConfirmationContext();
   const { startHeadlessBuy } = useHeadlessBuy();
+  const totals = useTransactionPayTotals();
 
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const orderId = fiatPayment?.orderId as string | undefined;
@@ -40,13 +65,26 @@ export function useFiatConfirm() {
     setIsHeadlessBuyInProgress(true);
     setHeadlessBuyError(undefined);
 
+    // Subtract the on-ramp provider fee from the total so the Ramps order
+    // amount covers exactly the Relay leg of the intent (fees + deposit).
+    // The on-ramp provider adds its own fee on top of what we request.
+    const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0)
+      .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
+      .toNumber();
+
+    const rampSurface = transactionMetadata?.type
+      ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionMetadata.type]
+      : undefined;
+
     startHeadlessBuy(
       {
         quote: rampsQuote,
         assetId,
-        amount: amountFiat,
+        amount: totalAmountToBuy,
         paymentMethodId: fiatPayment?.selectedPaymentMethodId,
         currency: 'USD',
+        walletAddress: transactionMetadata?.txParams?.from,
+        rampSurface,
       },
       {
         onOrderCreated: (orderIdFromCallback) => {
@@ -74,10 +112,13 @@ export function useFiatConfirm() {
     );
   }, [
     fiatPayment,
+    totals,
     setHeadlessBuyError,
     setIsHeadlessBuyInProgress,
     startHeadlessBuy,
     transactionMetadata?.id,
+    transactionMetadata?.txParams?.from,
+    transactionMetadata?.type,
   ]);
 
   return { onFiatConfirm, isFiatPaymentSelected, orderId };

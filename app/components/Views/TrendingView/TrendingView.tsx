@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   RouteProp,
   useFocusEffect,
@@ -160,12 +159,12 @@ export const ExploreFeed: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView
-      edges={{ top: 'additive' }}
+    <Box
       style={tw.style('flex-1 bg-default')}
       testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
       <HeaderRoot
+        includesTopInset
         title={strings('trending.title')}
         testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
       />
@@ -252,6 +251,6 @@ export const ExploreFeed: React.FC = () => {
           </TabsList>
         )}
       </Box>
-    </SafeAreaView>
+    </Box>
   );
 };

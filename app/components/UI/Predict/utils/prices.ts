@@ -4,7 +4,7 @@ import type {
   PriceUpdate,
 } from '../types';
 
-const isValidPrice = (price: number | undefined): price is number =>
+export const isValidPrice = (price: number | undefined): price is number =>
   typeof price === 'number' && Number.isFinite(price) && price > 0;
 
 export const getPredictBuyPrice = (

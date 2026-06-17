@@ -4,7 +4,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyEarnCryptoInfoSheet from './MoneyEarnCryptoInfoSheet';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+
+const mockTrackBottomSheetViewed = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
@@ -12,6 +21,10 @@ const mockGoBack = jest.fn();
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -84,9 +97,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+
 describe('MoneyEarnCryptoInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseParams.mockReturnValue({});
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+    });
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
@@ -142,12 +161,75 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to a baseline APY when the live value is unavailable', () => {
+  it('does not render the deposit title without a variant', () => {
+    const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+    expect(
+      queryByText(strings('money.earn_crypto_info_sheet.deposit_title')),
+    ).toBeNull();
+  });
+
+  describe('when variant is deposit', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({ variant: 'deposit' });
+    });
+
+    it('renders the deposit title', () => {
+      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+      expect(
+        getByText(strings('money.earn_crypto_info_sheet.deposit_title')),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the default title', () => {
+      const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+      expect(
+        queryByText(strings('money.earn_crypto_info_sheet.title')),
+      ).toBeNull();
+    });
+
+    it('renders the body paragraph', () => {
+      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+      expect(
+        getByText(
+          strings('money.earn_crypto_info_sheet.body', { percentage: 4 }),
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('renders the body when APY is unavailable', () => {
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: undefined,
     });
-    const { getByTestId } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyEarnCryptoInfoSheet />,
+    );
 
     expect(getByTestId(MoneyEarnCryptoInfoSheetTestIds.BODY)).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('money.earn_crypto_info_sheet.body', { percentage: '-' }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_EARN_CRYPTO_INFO_SHEET bottom_sheet_name', () => {
+      renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
+      });
+    });
+
+    it('calls trackBottomSheetViewed on mount', () => {
+      renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
   });
 });

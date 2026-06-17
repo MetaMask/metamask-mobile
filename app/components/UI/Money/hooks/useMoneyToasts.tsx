@@ -56,6 +56,11 @@ export interface WithdrawSuccessParams {
   destination: string;
 }
 
+export interface SendSuccessParams {
+  amountFiat?: string;
+  destination: string;
+}
+
 export interface MoneyToastOptionsConfig {
   deposit: {
     inProgress: (params?: DepositInProgressParams) => MoneyToastOptions;
@@ -65,6 +70,11 @@ export interface MoneyToastOptionsConfig {
   withdraw: {
     inProgress: () => MoneyToastOptions;
     success: (params: WithdrawSuccessParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
+  };
+  send: {
+    inProgress: () => MoneyToastOptions;
+    success: (params: SendSuccessParams) => MoneyToastOptions;
     failed: () => MoneyToastOptions;
   };
 }
@@ -174,8 +184,27 @@ const useMoneyToasts = (): {
     [toastRef],
   );
 
-  const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(
-    () => ({
+  const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(() => {
+    const buildSendToast = (
+      base: MoneyToastOptions,
+      primaryKey: string,
+      secondaryKey: string,
+      secondaryParams?: Record<string, string>,
+    ): MoneyToastOptions => ({
+      ...base,
+      labelOptions: getMoneyToastLabels({
+        primary: strings(primaryKey),
+        primaryIsBold: true,
+        secondary: (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings(secondaryKey, secondaryParams)}
+          </Text>
+        ),
+      }),
+      closeButtonOptions,
+    });
+
+    return {
       deposit: {
         inProgress: (params?: DepositInProgressParams) => ({
           ...moneyBaseToastOptions.inProgress,
@@ -250,7 +279,7 @@ const useMoneyToasts = (): {
         inProgress: () => ({
           ...moneyBaseToastOptions.inProgress,
           labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.in_progress_title'),
+            primary: strings('money.toasts.withdraw_in_progress_title'),
             primaryIsBold: true,
             secondary: (
               <Text
@@ -266,7 +295,7 @@ const useMoneyToasts = (): {
         success: ({ amountFiat, destination }: WithdrawSuccessParams) => ({
           ...moneyBaseToastOptions.success,
           labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.success_title'),
+            primary: strings('money.toasts.withdraw_success_title'),
             primaryIsBold: true,
             secondary: (
               <Text
@@ -303,14 +332,41 @@ const useMoneyToasts = (): {
           closeButtonOptions,
         }),
       },
-    }),
-    [
-      closeButtonOptions,
-      moneyBaseToastOptions.error,
-      moneyBaseToastOptions.inProgress,
-      moneyBaseToastOptions.success,
-    ],
-  );
+      send: {
+        inProgress: () =>
+          buildSendToast(
+            moneyBaseToastOptions.inProgress,
+            'money.toasts.send_in_progress_title',
+            'money.toasts.in_progress_body',
+          ),
+        success: ({ amountFiat, destination }: SendSuccessParams) =>
+          amountFiat
+            ? buildSendToast(
+                moneyBaseToastOptions.success,
+                'money.toasts.send_success_title',
+                'money.toasts.send_success_body',
+                { amount: amountFiat, destination },
+              )
+            : buildSendToast(
+                moneyBaseToastOptions.success,
+                'money.toasts.send_success_title',
+                'money.toasts.send_success_body_no_amount',
+                { destination },
+              ),
+        failed: () =>
+          buildSendToast(
+            moneyBaseToastOptions.error,
+            'money.toasts.send_failed_title',
+            'money.toasts.send_failed_body',
+          ),
+      },
+    };
+  }, [
+    closeButtonOptions,
+    moneyBaseToastOptions.error,
+    moneyBaseToastOptions.inProgress,
+    moneyBaseToastOptions.success,
+  ]);
 
   return { showToast, MoneyToastOptions };
 };

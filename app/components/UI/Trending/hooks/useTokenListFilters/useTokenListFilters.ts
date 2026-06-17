@@ -11,7 +11,7 @@ import {
 import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useNetworkName } from '../useNetworkName/useNetworkName';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 interface UseTokenListFiltersOptions {
   /**

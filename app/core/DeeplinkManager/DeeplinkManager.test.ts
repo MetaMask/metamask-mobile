@@ -123,6 +123,24 @@ describe('DeeplinkManager', () => {
       onHandled,
     });
   });
+
+  it('preserves a rejected deeplink resolution result', async () => {
+    const url = 'https://link.metamask.io/rewards';
+    const origin = 'testOrigin';
+
+    (
+      parseDeeplink as jest.MockedFunction<typeof parseDeeplink>
+    ).mockResolvedValueOnce(false);
+
+    await expect(deeplinkManager.resolve(url, { origin })).resolves.toBe(false);
+
+    expect(parseDeeplink).toHaveBeenCalledWith({
+      deeplinkManager,
+      url,
+      origin,
+      mode: 'resolve',
+    });
+  });
 });
 
 describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {

@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
-  sectionGap: { gap: 8 },
   row: {
     alignItems: 'center',
     flexDirection: 'row',

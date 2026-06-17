@@ -18,7 +18,7 @@ const baseProfile: TraderProfile = {
   profileId: 'trader-1',
   address: '0xabc',
   allAddresses: ['0xabc'],
-  name: 'dutchiono',
+  name: 'trader1',
   imageUrl: 'https://example.com/avatar.png',
 };
 
@@ -36,7 +36,7 @@ describe('ProfileHeader', () => {
     renderWithProvider(
       <ProfileHeader profile={baseProfile} followerCount={45} />,
     );
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   it('renders avatar image when imageUrl is present', () => {
@@ -48,12 +48,21 @@ describe('ProfileHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders fallback AvatarBase when imageUrl is falsy', () => {
+  it('does not render a podium medal badge on the profile avatar', () => {
+    renderWithProvider(
+      <ProfileHeader profile={baseProfile} followerCount={45} />,
+    );
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+    expect(screen.queryByTestId('rank-medal-2')).toBeNull();
+    expect(screen.queryByTestId('rank-medal-3')).toBeNull();
+  });
+
+  it('renders Maskicon fallback when imageUrl is falsy', () => {
     const profileNoImage = { ...baseProfile, imageUrl: '' };
     renderWithProvider(
       <ProfileHeader profile={profileNoImage} followerCount={45} />,
     );
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   it('renders singular follower string when count is 1', () => {
@@ -77,7 +86,7 @@ describe('ProfileHeader', () => {
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
 
-  it('renders the fallback letter when imageUrl is undefined', () => {
+  it('renders without a fallback letter when imageUrl is undefined', () => {
     const profileWithoutImage: TraderProfile = {
       ...baseProfile,
       imageUrl: undefined,
@@ -87,10 +96,11 @@ describe('ProfileHeader', () => {
       <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
     );
 
-    expect(screen.getByText('D')).toBeOnTheScreen();
+    expect(screen.queryByText('D')).toBeNull();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
-  it('renders the fallback letter when imageUrl is empty', () => {
+  it('renders without a fallback letter when imageUrl is empty string', () => {
     const profileWithoutImage: TraderProfile = {
       ...baseProfile,
       imageUrl: '',
@@ -100,7 +110,8 @@ describe('ProfileHeader', () => {
       <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
     );
 
-    expect(screen.getByText('D')).toBeOnTheScreen();
+    expect(screen.queryByText('D')).toBeNull();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   describe('X (Twitter) icon', () => {
@@ -113,7 +124,7 @@ describe('ProfileHeader', () => {
         <ProfileHeader
           profile={baseProfile}
           followerCount={45}
-          twitterHandle="dutchiono"
+          twitterHandle="trader1"
         />,
       );
       expect(
@@ -148,7 +159,7 @@ describe('ProfileHeader', () => {
         <ProfileHeader
           profile={baseProfile}
           followerCount={45}
-          twitterHandle="dutchiono"
+          twitterHandle="trader1"
         />,
       );
 
@@ -157,7 +168,7 @@ describe('ProfileHeader', () => {
       );
 
       expect(Linking.openURL).toHaveBeenCalledTimes(1);
-      expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/dutchiono');
+      expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/trader1');
     });
   });
 });

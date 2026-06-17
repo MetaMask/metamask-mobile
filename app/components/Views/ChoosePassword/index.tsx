@@ -29,6 +29,7 @@ import {
   IconSize,
   IconColor,
   Checkbox,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -43,7 +44,6 @@ import Engine from '../../../core/Engine';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -73,11 +73,13 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
+import FoxRiveLoaderAnimation, {
+  type FoxRiveLoaderAnimationRef,
+} from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import {
   TraceName,
   endTrace,
@@ -90,14 +92,15 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { selectAttributionRecord } from '../../../selectors/attribution';
-import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 
 interface KeyringState {
   type: string;
@@ -120,7 +123,7 @@ interface ExtendedKeyringController {
 }
 
 const ChoosePassword = () => {
-  const { colors, themeAppearance } = useContext(ThemeContext);
+  const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
   const navigation = useNavigation();
@@ -128,10 +131,11 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
-  const [isSelected, setIsSelected] = useState(false);
+  const [isSelected, setIsSelected] = useState(() =>
+    getDefaultMarketingOptInChecked(route.params?.oauthLoginSuccess === true),
+  );
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -144,6 +148,7 @@ const ChoosePassword = () => {
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
+  const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
 
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
@@ -152,7 +157,7 @@ const ChoosePassword = () => {
 
   const track = useCallback(
     (event: IMetaMetricsEvent | ITrackingEvent, properties?: JsonMap) => {
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+      const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
       if (properties) {
         eventBuilder.addProperties(properties);
       }
@@ -497,21 +502,30 @@ const ChoosePassword = () => {
 
       await handleWalletCreation(authType, previous_screen);
 
+      foxRiveLoaderRef.current?.stop();
       await handlePostWalletCreation(authType);
 
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
       });
+
+      let walletSetupAttributionProps = {};
+      if (isSocialLogin) {
+        walletSetupAttributionProps =
+          getWalletSetupAttributionPropsFromStore(isSelected);
+      }
+
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
-        ...getWalletSetupCompletedAttributionAnalyticsProps(
-          attributionRecord,
-          isSelected,
-        ),
+        ...walletSetupAttributionProps,
       });
+
+      if (isSocialLogin) {
+        dispatch(clearAttribution());
+      }
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
@@ -527,8 +541,8 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    attributionRecord,
     isSelected,
+    dispatch,
   ]);
 
   const onPasswordChange = useCallback(
@@ -543,7 +557,7 @@ const ChoosePassword = () => {
     track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
-      url: RESET_PASSWORD_GUIDE_URL,
+      url_domain: RESET_PASSWORD_GUIDE_URL,
     });
 
     navigation.navigate('Webview', {
@@ -578,36 +592,6 @@ const ChoosePassword = () => {
       password !== '' && confirmPassword !== '' && password !== confirmPassword,
     [password, confirmPassword],
   );
-
-  const HeaderLeft = useCallback(() => {
-    const marginLeft = 16;
-    return (
-      <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-          style={{ marginLeft }}
-        />
-      </TouchableOpacity>
-    );
-  }, [navigation, loading]);
-
-  const EmptyHeaderLeft = useCallback(() => <Box />, []);
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft: loading ? EmptyHeaderLeft : HeaderLeft,
-          headerRight: () => null,
-        },
-        colors,
-        false,
-      ),
-    );
-  }, [navigation, loading, colors, route, HeaderLeft, EmptyHeaderLeft]);
 
   useEffect(() => {
     const initBiometrics = async () => {
@@ -646,19 +630,6 @@ const ChoosePassword = () => {
     [],
   );
 
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
-
-  useEffect(() => {
-    if (loading) {
-      // update navigationOptions
-      navigation.setParams({
-        headerLeft: EmptyHeaderLeft,
-      });
-    }
-  }, [loading, navigation, EmptyHeaderLeft]);
-
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const isPasswordTooShort =
@@ -678,6 +649,13 @@ const ChoosePassword = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-background-default')}
       >
+        <HeaderStandard
+          includesTopInset
+          onBack={loading ? undefined : () => navigation.goBack()}
+          backButtonProps={{
+            testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID,
+          }}
+        />
         {loading ? (
           <Box
             alignItems={BoxAlignItems.Center}
@@ -685,7 +663,9 @@ const ChoosePassword = () => {
             twClassName="flex-1 px-4"
             gap={6}
           >
-            {!hasTestOverrides && <FoxRiveLoaderAnimation />}
+            {!hasTestOverrides && (
+              <FoxRiveLoaderAnimation ref={foxRiveLoaderRef} />
+            )}
           </Box>
         ) : (
           <KeyboardAwareScrollView

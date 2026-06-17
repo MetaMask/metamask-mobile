@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
@@ -21,6 +22,18 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
     const flag =
       remoteFeatureFlags?.moneyAccount as unknown as MoneyAccountFeatureFlag;
     return flag?.moneyAccountWithdrawEnabled ?? false;
+  },
+);
+
+export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
+  'moneyEnableOnboardingStepperAnimation' as const;
+
+export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const remoteFlag =
+      remoteFeatureFlags?.[MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY];
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

@@ -6,6 +6,7 @@ import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
 import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
+import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -135,6 +136,20 @@ describe('ContactForm', () => {
   it('renders correctly', () => {
     const { getByText } = renderContactForm();
     expect(getByText(strings('address_book.name'))).toBeOnTheScreen();
+  });
+
+  it('does not configure the native header via setOptions', () => {
+    renderContactForm();
+
+    expect(mockSetOptions).not.toHaveBeenCalled();
+  });
+
+  it('calls navigation.pop when HeaderStandard back button is pressed', () => {
+    const { getByTestId } = renderContactForm();
+
+    fireEvent.press(getByTestId(CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON));
+
+    expect(mockPop).toHaveBeenCalled();
   });
 
   it('renders in add mode by default', async () => {

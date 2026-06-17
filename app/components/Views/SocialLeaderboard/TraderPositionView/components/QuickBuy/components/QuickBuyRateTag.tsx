@@ -45,7 +45,7 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
       alignItems={BoxAlignItems.Center}
       gap={1}
     >
-      <Text variant={TextVariant.BodySm} color={textColor}>
+      <Text variant={TextVariant.BodyXs} color={textColor}>
         {displayLabel}
       </Text>
       <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={iconColor} />
@@ -56,8 +56,8 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
     <Box
       twClassName={
         isHighPriceImpact
-          ? 'rounded-full bg-error-muted px-3 py-1'
-          : 'rounded-full bg-muted px-3 py-1'
+          ? 'rounded-md bg-error-muted px-3 py-1'
+          : 'rounded-md bg-muted px-3 py-1'
       }
       testID="quick-buy-rate-tag"
     >

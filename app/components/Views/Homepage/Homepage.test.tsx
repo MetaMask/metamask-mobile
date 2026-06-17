@@ -211,7 +211,6 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
     stages: [],
   })),
   selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
@@ -245,6 +244,11 @@ jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {
     ...actual,
+    useQuery: jest.fn(() => ({
+      data: 510,
+      isLoading: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    })),
     useQueryClient: jest.fn(() => ({
       invalidateQueries: jest.fn(() => Promise.resolve()),
     })),
@@ -343,6 +347,7 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
+  selectMusdBalanceChainIds: jest.fn(() => []),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));

@@ -1,8 +1,8 @@
-import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import React from 'react';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import { getTokenKey } from '../tokenKey';
 import QuickBuyPayWithRow from './QuickBuyPayWithRow';
-import { getTokenKey } from '../sourceTokenCandidates';
 
 const getRowTestId = (token: BridgeToken): string =>
   `quick-buy-pay-with-row-${getTokenKey(token)}`;

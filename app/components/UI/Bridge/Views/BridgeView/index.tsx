@@ -46,6 +46,7 @@ import {
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
   selectQuoteStreamComplete,
+  selectBridgeBalanceRefreshKey,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
@@ -119,6 +120,10 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types.ts';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable/index.ts';
+import {
+  hidePostTradeNotificationSurface,
+  showPostTradeNotificationSurface,
+} from '../../utils/postTradeNotifications';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -220,6 +225,16 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   useRecipientInitialization(hasInitializedRecipient);
 
   useBridgeViewOnFocus({ inputRef, keypadRef });
+
+  useFocusEffect(
+    useCallback(() => {
+      showPostTradeNotificationSurface();
+
+      return () => {
+        hidePostTradeNotificationSurface();
+      };
+    }, []),
+  );
 
   // Scroll to top when navigating to the bridge view if requested
   useFocusEffect(
@@ -750,11 +765,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
 const BridgeView = () => {
   const sourceToken = useSelector(selectSourceToken);
+  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
+    refreshKey: balanceRefreshKey,
   });
 
   return (

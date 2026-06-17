@@ -5,6 +5,7 @@ import { Platform, ProviderName } from './framework/types';
 import { defineConfig } from './framework/config';
 
 process.env.SYSTEM_TEST_MODE = 'true';
+process.env.ANTHROPIC_BASE_URL ??= 'https://litellm.consensys.info/';
 
 export default defineConfig({
   testDir: './',

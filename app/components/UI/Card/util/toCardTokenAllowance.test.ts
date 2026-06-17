@@ -116,6 +116,18 @@ describe('toCardFundingToken', () => {
     });
   });
 
+  describe('displaySymbol', () => {
+    it('is undefined when no displaySymbol is provided', () => {
+      const result = toCardFundingToken(makeAsset());
+      expect(result.displaySymbol).toBeUndefined();
+    });
+
+    it('forwards the provided displaySymbol', () => {
+      const result = toCardFundingToken(makeAsset(), true, 'mUSD');
+      expect(result.displaySymbol).toBe('mUSD');
+    });
+  });
+
   describe('field passthrough', () => {
     it('maps remaining balance to spendableBalance and total cap to spendingCap', () => {
       const asset = makeAsset({

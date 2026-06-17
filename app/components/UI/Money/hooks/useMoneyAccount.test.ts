@@ -22,6 +22,7 @@ import {
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
+import { showDevErrorAlert } from '../utils/devErrorAlert';
 
 jest.mock('react-redux');
 jest.mock('../../../../util/transaction-controller');
@@ -32,6 +33,10 @@ jest.mock('../../../../util/Logger', () => ({
     error: jest.fn(),
     log: jest.fn(),
   },
+}));
+
+jest.mock('../utils/devErrorAlert', () => ({
+  showDevErrorAlert: jest.fn(),
 }));
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -321,6 +326,10 @@ describe('useMoneyAccountDeposit', () => {
       txError,
       '[Money Account] Deposit transaction failed',
     );
+    expect(showDevErrorAlert).toHaveBeenCalledWith(
+      '[Money Account] Deposit transaction failed',
+      txError,
+    );
   });
 
   it('throws when networkClientId cannot be resolved', async () => {
@@ -472,6 +481,10 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
       '[Money Account] Withdrawal transaction failed',
+    );
+    expect(showDevErrorAlert).toHaveBeenCalledWith(
+      '[Money Account] Withdrawal transaction failed',
+      txError,
     );
   });
 

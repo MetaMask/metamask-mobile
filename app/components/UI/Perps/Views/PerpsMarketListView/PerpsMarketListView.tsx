@@ -1,12 +1,6 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import { View, Animated } from 'react-native';
+import { View, Animated, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -22,11 +16,13 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
+import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
   usePerpsNavigation,
 } from '../../hooks';
+import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
@@ -38,12 +34,20 @@ import {
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useRoute,
+  RouteProp,
+  useNavigation,
+  StackActions,
+} from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -58,6 +62,7 @@ const PerpsMarketListView = ({
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
   const perpsNavigation = usePerpsNavigation();
+  const navigation = useNavigation();
 
   const variant = route.params?.variant ?? propVariant ?? 'full';
   const title = route.params?.title ?? propTitle;
@@ -71,6 +76,8 @@ const PerpsMarketListView = ({
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
+  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
 
@@ -80,7 +87,6 @@ const PerpsMarketListView = ({
     sortState,
     favoritesState,
     marketTypeFilterState,
-    marketCounts,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
@@ -98,7 +104,13 @@ const PerpsMarketListView = ({
   const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
-  const { showFavoritesOnly } = favoritesState;
+  const {
+    showFavoritesOnly,
+    setShowFavoritesOnly,
+    hasWatchlistMarkets,
+    watchlistMarketObjects,
+    suggestedMarkets,
+  } = favoritesState;
 
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
@@ -109,56 +121,56 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        perpsNavigation.navigateToMarketDetails(
-          market,
-          PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-          transactionActiveAbTests,
+        // Use push instead of navigate so that MARKET_LIST is always beneath
+        // MARKET_DETAILS in the stack. navigate() can jump to an existing
+        // MARKET_DETAILS entry (e.g. one opened from PerpsHome via the watchlist
+        // component's ROOT-based navigation), which would skip MARKET_LIST on
+        // back and land the user on PERPS_HOME instead.
+        navigation.dispatch(
+          StackActions.push(Routes.PERPS.MARKET_DETAILS, {
+            market,
+            source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+            ...(transactionActiveAbTests?.length
+              ? { transactionActiveAbTests }
+              : {}),
+          }),
         );
       }
     },
-    [onMarketSelect, perpsNavigation, transactionActiveAbTests],
+    [onMarketSelect, navigation, transactionActiveAbTests],
   );
-
-  // Compute available categories based on market counts (hide empty categories)
-  const availableCategories = useMemo(() => {
-    const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
-    if (marketCounts.crypto > 0) categories.push('crypto');
-    if (marketCounts.equity > 0) categories.push('stocks');
-    if (marketCounts.commodity > 0) categories.push('commodities');
-    if (marketCounts.forex > 0) categories.push('forex');
-    if (marketCounts.new > 0) categories.push('new');
-    return categories;
-  }, [marketCounts]);
 
   const { track } = usePerpsEventTracking();
 
-  // Handle category badge selection
+  // Handle category badge selection — clears watchlist filter (mutual exclusivity)
   const handleCategorySelect = useCallback(
     (category: MarketTypeFilter) => {
-      // Track analytics for category changes
-      const categoryMap: Record<string, string | null> = {
-        crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
-        stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
-        commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
-        forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
-        new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
-        all: null,
-      };
-
-      const targetCategory = categoryMap[category];
-      if (targetCategory) {
+      if (category !== 'all') {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: targetCategory,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
         });
       }
       setMarketTypeFilter(category);
+      // Deactivate the watchlist filter whenever a category badge is activated
+      if (category !== 'all') {
+        setShowFavoritesOnly(false);
+      }
     },
-    [setMarketTypeFilter, track],
+    [setMarketTypeFilter, setShowFavoritesOnly, track],
   );
+
+  // Toggle watchlist-only filter — clears category filter (mutual exclusivity)
+  const handleWatchlistToggle = useCallback(() => {
+    const willActivate = !showFavoritesOnly;
+    setShowFavoritesOnly(willActivate);
+    if (willActivate) {
+      setMarketTypeFilter('all');
+    }
+  }, [showFavoritesOnly, setShowFavoritesOnly, setMarketTypeFilter]);
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
@@ -202,6 +214,9 @@ const PerpsMarketListView = ({
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: marketTypeFilter,
+      ...(marketTypeFilter !== 'all' && {
+        product_filter: normalizeFilterKey(marketTypeFilter),
+      }),
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -246,38 +261,86 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty favorites results - show when favorites filter is active but no favorites found
-    if (showFavoritesOnly && filteredMarkets.length === 0) {
+    // Watchlist filter active — show watchlisted markets plus suggestions.
+    // Mirrors PerpsHome behavior, without the collapsible "Show more" toggle.
+    // Only reachable when the watchlist flag is enabled (pill is hidden otherwise).
+    // When a search query is active both watchlist rows and suggested markets are
+    // filtered inline so the user can find any relevant market by name or symbol.
+    // "No tokens found" is only shown when nothing matches in either section.
+    if (isWatchlistEnabled && showFavoritesOnly) {
+      const trimmedQuery = searchQuery.trim().toLowerCase();
+      const visibleWatchlistMarkets = trimmedQuery
+        ? watchlistMarketObjects.filter(
+            (m) =>
+              m.symbol.toLowerCase().includes(trimmedQuery) ||
+              m.name.toLowerCase().includes(trimmedQuery),
+          )
+        : watchlistMarketObjects;
+      const visibleSuggestedMarkets = trimmedQuery
+        ? suggestedMarkets?.filter(
+            (m) =>
+              m.symbol.toLowerCase().includes(trimmedQuery) ||
+              m.name.toLowerCase().includes(trimmedQuery),
+          )
+        : suggestedMarkets;
+
+      if (
+        trimmedQuery &&
+        visibleWatchlistMarkets.length === 0 &&
+        !visibleSuggestedMarkets?.length
+      ) {
+        return (
+          <View
+            style={styles.emptyStateContainer}
+            testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+          >
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Xl}
+              color={theme.colors.icon.muted}
+              style={styles.emptyStateIcon}
+            />
+            <Text
+              variant={TextVariant.HeadingSM}
+              color={TextColor.Default}
+              style={styles.emptyStateTitle}
+            >
+              {strings('perps.no_tokens_found')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.emptyStateDescription}
+            >
+              {strings('perps.no_tokens_found_description', { searchQuery })}
+            </Text>
+          </View>
+        );
+      }
+
       return (
-        <View style={styles.emptyStateContainer}>
-          <Icon
-            name={IconName.Star}
-            size={IconSize.Xl}
-            color={theme.colors.icon.muted}
-            style={styles.emptyStateIcon}
+        <ScrollView
+          style={styles.watchlistScrollContainer}
+          contentContainerStyle={styles.watchlistScrollContent}
+        >
+          <PerpsWatchlistMarkets
+            markets={visibleWatchlistMarkets}
+            suggestedMarkets={visibleSuggestedMarkets}
+            showHeader={false}
+            enableShowMore={false}
+            onMarketPress={handleMarketPress}
           />
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
-            style={styles.emptyStateTitle}
-          >
-            {strings('perps.no_favorites_found')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.emptyStateDescription}
-          >
-            {strings('perps.no_favorites_description')}
-          </Text>
-        </View>
+        </ScrollView>
       );
     }
 
     // Empty search results - show when user has typed and no markets match
     if (searchQuery.trim() && filteredMarkets.length === 0) {
       return (
-        <View style={styles.emptyStateContainer}>
+        <View
+          style={styles.emptyStateContainer}
+          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+        >
           <Icon
             name={IconName.Search}
             size={IconSize.Xl}
@@ -357,7 +420,9 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          availableCategories={availableCategories}
+          showWatchlistBadge={isWatchlistEnabled}
+          isWatchlistSelected={showFavoritesOnly}
+          onWatchlistToggle={handleWatchlistToggle}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}

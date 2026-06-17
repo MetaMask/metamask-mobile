@@ -20,7 +20,9 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
+import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
+import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import {
@@ -36,13 +38,13 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import AgentStepHud from '../../../core/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
+import { useQuickBuyToastRegistrations } from '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import AddWallet from '../../../components/Views/AddWallet';
@@ -68,6 +70,7 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
+import SDKConnectV2OtpModal from '../../Views/SDK/SDKConnectV2OtpModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import QRSigningTransactionModal from '../../UI/QRHardware/QRSigningTransactionModal';
@@ -111,13 +114,7 @@ import TooltipModal from '../../../components/Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../util/trace';
-import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { endTrace, TraceName } from '../../../util/trace';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
@@ -129,7 +126,6 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
-import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
 import RampsBootstrap from '../../UI/Ramp/RampsBootstrap';
@@ -160,6 +156,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
@@ -264,7 +261,11 @@ const OnboardingNav = () => {
         component={SocialLoginSuccessNewUser}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+      <Stack.Screen
+        name="ChoosePassword"
+        component={ChoosePassword}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="AccountBackupStep1"
         component={AccountBackupStep1}
@@ -273,6 +274,7 @@ const OnboardingNav = () => {
       <Stack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS_FLOW}
@@ -291,9 +293,21 @@ const OnboardingNav = () => {
           headerStyle: { backgroundColor: colors.background.default },
         }}
       />
-      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+      <Stack.Screen
+        name="ManualBackupStep1"
+        component={ManualBackupStep1}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ManualBackupStep2"
+        component={ManualBackupStep2}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ManualBackupStep3"
+        component={ManualBackupStep3}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
         component={ImportFromSecretRecoveryPhrase}
@@ -306,6 +320,11 @@ const OnboardingNav = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
         component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
+        component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen
@@ -501,14 +520,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SHEET.ADDRESS_SELECTOR}
       component={AddressSelector}
     />
-    <Stack.Screen
-      name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet}
-    />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
       component={SDKFeedbackModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_CONNECT_V2_OTP}
+      component={SDKConnectV2OtpModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
@@ -1204,8 +1223,31 @@ const AppFlow = () => {
         component={PayWithModal}
       />
       <Stack.Screen
+        name={Routes.AGENTIC_CLI_APPROVAL.CONFIRM}
+        component={AgenticCliApproval}
+        options={{
+          // Header is wired from inside AgenticCliApproval via navigation.setOptions
+          // (mirrors SimpleWebview's pattern for title + back button).
+          // Overrides clearStackNavigatorOptions defaults from the parent stack.
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
+      />
+      <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
+      />
+      <Stack.Screen
+        name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}
+        component={AgenticCliDashboardWebview}
+        options={{
+          headerShown: true,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
       />
     </Stack.Navigator>
   );
@@ -1213,7 +1255,6 @@ const AppFlow = () => {
 
 const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
-  const isFirstRender = useRef(true);
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1221,20 +1262,15 @@ const App: React.FC = () => {
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
+  const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
-    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
-    [predictRegistrations, perpsWithdrawRegistrations],
+    () => [
+      ...predictRegistrations,
+      ...perpsWithdrawRegistrations,
+      ...quickBuyRegistrations,
+    ],
+    [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
   );
-
-  if (isFirstRender.current) {
-    trace({
-      name: TraceName.NavInit,
-      parentContext: getUIStartupSpan(),
-      op: TraceOperation.NavInit,
-    });
-
-    isFirstRender.current = false;
-  }
 
   useEffect(() => {
     // End trace when first render is complete
@@ -1292,7 +1328,7 @@ const App: React.FC = () => {
       Logger.error(error, 'Error starting app');
     });
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
   }, []);
 
   return (
@@ -1303,7 +1339,6 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
-        {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>

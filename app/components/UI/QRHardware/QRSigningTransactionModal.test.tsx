@@ -1,12 +1,18 @@
 import React from 'react';
-import { ViewProps, StyleSheet } from 'react-native';
+import { ViewProps, StyleSheet, InteractionManager } from 'react-native';
+import { waitFor } from '@testing-library/react-native';
 import {
   renderScreen,
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-import QRSigningTransactionModal from './QRSigningTransactionModal';
+import QRSigningTransactionModal, {
+  QRSignMode,
+} from './QRSigningTransactionModal';
 import Engine from '../../../core/Engine';
 import { useParams } from '../../../util/navigation/navUtils';
+import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
+import ToastService from '../../../core/ToastService/ToastService';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import {
   type QrScanRequest,
   QrScanRequestType,
@@ -15,6 +21,18 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine');
+
+jest.mock('../../../util/transaction-controller', () => ({
+  speedUpTransaction: jest.fn(),
+}));
+
+jest.mock('../../../core/ToastService/ToastService', () => ({
+  showToast: jest.fn(),
+}));
+
+jest.mock('../../../util/confirmation/transactions', () => ({
+  getTransactionUpdateErrorToastOptions: jest.fn(),
+}));
 
 jest.mock('./QRSigningDetails', () => {
   const { View: MockView } = jest.requireActual('react-native');
@@ -55,6 +73,10 @@ jest.mock('react-native', () => {
 });
 
 const mockUseParams = useParams as jest.Mock;
+const mockSpeedUpTx = speedUpTx as jest.Mock;
+const mockShowToast = ToastService.showToast as jest.Mock;
+const mockGetTransactionUpdateErrorToastOptions =
+  getTransactionUpdateErrorToastOptions as jest.Mock;
 
 describe('QRSigningTransactionModal', () => {
   const mockTransactionId = 'tx-123';
@@ -117,10 +139,38 @@ describe('QRSigningTransactionModal', () => {
     (
       Engine.context as unknown as {
         ApprovalController: { acceptRequest: jest.Mock };
+        TransactionController: { stopTransaction: jest.Mock };
       }
     ).ApprovalController = {
       acceptRequest: jest.fn().mockResolvedValue(undefined),
     };
+    (
+      Engine.context as unknown as {
+        TransactionController: { stopTransaction: jest.Mock };
+      }
+    ).TransactionController = {
+      stopTransaction: jest.fn().mockResolvedValue(undefined),
+    };
+
+    mockSpeedUpTx.mockResolvedValue(undefined);
+    mockGetTransactionUpdateErrorToastOptions.mockImplementation(
+      (error: unknown) => ({
+        descriptionOptions: { description: String(error) },
+      }),
+    );
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((task) => {
+        if (typeof task === 'function') {
+          task();
+        }
+        return {
+          then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+          done: (onfulfilled?: () => void, onrejected?: () => void) =>
+            Promise.resolve().then(onfulfilled, onrejected),
+          cancel: jest.fn(),
+        };
+      });
   });
 
   afterEach(() => {
@@ -269,5 +319,80 @@ describe('QRSigningTransactionModal', () => {
     const qrSigningDetailsElement = getByTestId('QRSigningDetails');
 
     expect(qrSigningDetailsElement.props.fromAddress).toBe('');
+  });
+
+  it('shows transaction update error toast when speed-up fails', async () => {
+    const speedUpError = new Error('speed up failed');
+    mockSpeedUpTx.mockRejectedValueOnce(speedUpError);
+    mockUseParams.mockReturnValue({
+      transactionId: mockTransactionId,
+      onConfirmationComplete: mockOnConfirmationComplete,
+      signMode: QRSignMode.SpeedUp,
+      gasValues: { gasPrice: '0x1' },
+    });
+
+    renderScreen(
+      QRSigningTransactionModal,
+      { name: 'QRSigningTransactionModal' },
+      { state: createInitialState(null) },
+    );
+
+    await waitFor(() => {
+      expect(mockGetTransactionUpdateErrorToastOptions).toHaveBeenCalledWith(
+        speedUpError,
+      );
+      expect(mockShowToast).toHaveBeenCalledWith({
+        descriptionOptions: { description: 'Error: speed up failed' },
+      });
+      expect(mockOnConfirmationComplete).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('shows transaction update error toast when cancel fails', async () => {
+    const cancelError = new Error('cancel failed');
+    (
+      Engine.context.TransactionController.stopTransaction as jest.Mock
+    ).mockRejectedValueOnce(cancelError);
+    mockUseParams.mockReturnValue({
+      transactionId: mockTransactionId,
+      onConfirmationComplete: mockOnConfirmationComplete,
+      signMode: QRSignMode.Cancel,
+      gasValues: { gasPrice: '0x1' },
+    });
+
+    renderScreen(
+      QRSigningTransactionModal,
+      { name: 'QRSigningTransactionModal' },
+      { state: createInitialState(null) },
+    );
+
+    await waitFor(() => {
+      expect(mockGetTransactionUpdateErrorToastOptions).toHaveBeenCalledWith(
+        cancelError,
+      );
+      expect(mockShowToast).toHaveBeenCalledWith({
+        descriptionOptions: { description: 'Error: cancel failed' },
+      });
+      expect(mockOnConfirmationComplete).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('does not show transaction update error toast when approval fails', async () => {
+    const approvalError = new Error('approval failed');
+    (
+      Engine.context.ApprovalController.acceptRequest as jest.Mock
+    ).mockRejectedValueOnce(approvalError);
+
+    renderScreen(
+      QRSigningTransactionModal,
+      { name: 'QRSigningTransactionModal' },
+      { state: createInitialState(null) },
+    );
+
+    await waitFor(() => {
+      expect(mockOnConfirmationComplete).toHaveBeenCalledWith(false);
+    });
+
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });
