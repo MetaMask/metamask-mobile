@@ -4,7 +4,11 @@ import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen } from '../render';
 import NetworkMultiSelector from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector';
-import { initialStateNetworkManager } from '../presets/networkManager';
+import Tokens from '../../../app/components/UI/Tokens/index';
+import {
+  initialStateNetworkManager,
+  initialStateTokenList,
+} from '../presets/networkManager';
 
 interface RenderNetworkMultiSelectorOptions {
   overrides?: DeepPartial<RootState>;
@@ -55,6 +59,48 @@ export function renderNetworkMultiSelector(
   return renderComponentViewScreen(
     NetworkMultiSelectorWrapper,
     { name: 'NetworkMultiSelectorTest' },
+    { state },
+  );
+}
+
+// ─── Token List ──────────────────────────────────────────────
+
+interface RenderTokenListOptions {
+  overrides?: DeepPartial<RootState>;
+  enabledNetworks?: Record<string, Record<string, boolean>>;
+  activeEvmChainId?: string;
+  includeCustomNetworks?: boolean;
+}
+
+/**
+ * Renders the Tokens component (full view) with token data seeded
+ * across multiple networks. Uses the initialStateTokenList preset.
+ */
+export function renderTokenList(
+  options: RenderTokenListOptions = {},
+): ReturnType<typeof renderComponentViewScreen> {
+  const {
+    overrides,
+    enabledNetworks,
+    activeEvmChainId,
+    includeCustomNetworks,
+  } = options;
+
+  const builder = initialStateTokenList({
+    enabledNetworks,
+    activeEvmChainId,
+    includeCustomNetworks,
+  });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  const TokensWrapper = () => <Tokens isFullView />;
+
+  return renderComponentViewScreen(
+    TokensWrapper,
+    { name: 'TokenListTest' },
     { state },
   );
 }

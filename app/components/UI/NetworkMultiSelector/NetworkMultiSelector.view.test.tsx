@@ -1,31 +1,10 @@
 import '../../../../tests/component-view/mocks';
 import { renderNetworkMultiSelector } from '../../../../tests/component-view/renderers/networkManager';
+import { ENABLED_NETWORKS } from '../../../../tests/component-view/presets/networkManager';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
-
-// Keys inside each namespace use hex chain IDs, not CAIP format.
-const ALL_POPULAR_ENABLED = {
-  eip155: {
-    '0x1': true,
-    '0x89': true,
-    '0xe708': true,
-    '0xa4b1': true,
-  },
-  solana: {
-    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
-  },
-  bip122: {
-    'bip122:000000000019d6689c085ae165831e93': true,
-  },
-};
-
-const ETHEREUM_ONLY_ENABLED = {
-  eip155: {
-    '0x1': true,
-  },
-};
 
 describeForPlatforms('NetworkMultiSelector', () => {
   beforeEach(() => {
@@ -44,7 +23,7 @@ describeForPlatforms('NetworkMultiSelector', () => {
     );
 
     const { findByTestId } = renderNetworkMultiSelector({
-      enabledNetworks: ALL_POPULAR_ENABLED,
+      enabledNetworks: ENABLED_NETWORKS.ALL_POPULAR,
     });
 
     const arbitrumItem = await findByTestId(
@@ -62,7 +41,7 @@ describeForPlatforms('NetworkMultiSelector', () => {
   // Proves: Select All toggle is visible and pressing it triggers the handler.
   it('pressing Select All triggers selectAllPopularNetworks flow', async () => {
     const { findByTestId } = renderNetworkMultiSelector({
-      enabledNetworks: ETHEREUM_ONLY_ENABLED,
+      enabledNetworks: ENABLED_NETWORKS.ETHEREUM_ONLY,
     });
 
     const selectAllNotSelected = await findByTestId(
@@ -87,7 +66,7 @@ describeForPlatforms('NetworkMultiSelector', () => {
 
     const { findByTestId } = renderNetworkMultiSelector({
       activeEvmChainId: '0x1',
-      enabledNetworks: ETHEREUM_ONLY_ENABLED,
+      enabledNetworks: ENABLED_NETWORKS.ETHEREUM_ONLY,
     });
 
     const container = await findByTestId(

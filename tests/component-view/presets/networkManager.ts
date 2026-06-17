@@ -2,6 +2,32 @@ import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 
+/**
+ * Reusable network enablement maps.
+ * Keys inside each namespace use hex chain IDs, not CAIP format.
+ */
+export const ENABLED_NETWORKS = {
+  ALL_POPULAR: {
+    eip155: {
+      '0x1': true,
+      '0x89': true,
+      '0xe708': true,
+      '0xa4b1': true,
+    },
+    solana: {
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+    },
+    bip122: {
+      'bip122:000000000019d6689c085ae165831e93': true,
+    },
+  },
+  ETHEREUM_ONLY: {
+    eip155: {
+      '0x1': true,
+    },
+  },
+} as const;
+
 interface InitialStateNetworkManagerOptions {
   /** Which networks are enabled in the filter. Defaults to Ethereum only. */
   enabledNetworks?: Record<string, Record<string, boolean>>;
@@ -220,4 +246,149 @@ export const initialStateNetworkManager = (
     } as unknown as DeepPartial<RootState>);
 
   return builder;
+};
+
+// ─── Token List Preset ───────────────────────────────────────
+
+interface InitialStateTokenListOptions
+  extends InitialStateNetworkManagerOptions {
+  /** Token fixtures to seed on Ethereum. Defaults to USDC. */
+  ethereumTokens?: {
+    address: string;
+    symbol: string;
+    name: string;
+    decimals: number;
+  }[];
+  /** Token balance hex values keyed by token address. */
+  tokenBalances?: Record<string, string>;
+}
+
+const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
+/**
+ * Preset for token list view tests.
+ * Extends the network manager preset with token data across multiple networks
+ * and all controllers required to render the Tokens component without crashes.
+ */
+export const initialStateTokenList = (
+  options?: InitialStateTokenListOptions,
+) => {
+  const ethereumTokens = options?.ethereumTokens ?? [
+    {
+      address: USDC_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+    },
+  ];
+  const tokenBalances = options?.tokenBalances ?? {
+    [USDC_ADDRESS]: '0x2540BE400', // 10000 USDC
+  };
+
+  return initialStateNetworkManager({
+    enabledNetworks: options?.enabledNetworks,
+    activeEvmChainId: options?.activeEvmChainId,
+    includeCustomNetworks: options?.includeCustomNetworks ?? true,
+  })
+    .withMinimalGasFee()
+    .withMinimalTransactionController()
+    .withMinimalSmartTransactions()
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                [DEFAULT_ADDRESS]: {
+                  address: DEFAULT_ADDRESS,
+                  balance: '0x8AC7230489E80000', // 10 ETH
+                },
+              },
+              '0x89': {
+                [DEFAULT_ADDRESS]: {
+                  address: DEFAULT_ADDRESS,
+                  balance: '0x8AC7230489E80000', // 10 POL
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [DEFAULT_ADDRESS]: ethereumTokens.map((t) => ({
+                  address: t.address,
+                  symbol: t.symbol,
+                  name: t.name,
+                  decimals: t.decimals,
+                  image: '',
+                })),
+              },
+              '0x89': {
+                [DEFAULT_ADDRESS]: [],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          TokenBalancesController: {
+            tokenBalances: {
+              [DEFAULT_ADDRESS]: {
+                '0x1': tokenBalances,
+              },
+            },
+          },
+          TokenRatesController: {
+            marketData: {
+              '0x1': Object.fromEntries(
+                ethereumTokens.map((t) => [
+                  t.address,
+                  {
+                    tokenAddress: t.address,
+                    currency: 'ETH',
+                    price: 0.0005,
+                  },
+                ]),
+              ),
+            },
+          },
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            currencyRates: {
+              ETH: { conversionRate: 2000, usdConversionRate: 2000 },
+              POL: { conversionRate: 0.5, usdConversionRate: 0.5 },
+            },
+          },
+          MultichainAssetsController: {
+            accountsAssets: {},
+            assetsMetadata: {},
+            allIgnoredAssets: {},
+          },
+          MultichainBalancesController: { balances: {} },
+          MultichainAssetsRatesController: { conversionRates: {} },
+          MultichainTransactionsController: { nonEvmTransactions: {} },
+          NftController: { allNfts: {}, allNftContracts: {} },
+          AssetsController: {
+            assets: {},
+            assetsBalance: {},
+            assetsInfo: {},
+            assetsPrice: {},
+            customAssets: {},
+            assetPreferences: {},
+          },
+          TransactionPayController: { transactionData: {} },
+          ApprovalController: {
+            pendingApprovals: {},
+            pendingApprovalCount: 0,
+          },
+          EarnController: {
+            lastUpdated: 0,
+            pooled_staking: { isEligible: false },
+            lending: { positions: [], markets: [] },
+          },
+        },
+      },
+      settings: {
+        hideZeroBalanceTokens: false,
+      },
+    } as unknown as DeepPartial<RootState>);
 };
