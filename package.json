@@ -732,12 +732,6 @@
     "@img/sharp-libvips-linux-x64": "^1.2.1",
     "@img/sharp-linux-x64": "^0.34.3"
   },
-  "previewBuilds": {
-    "@metamask/transaction-controller": {
-      "type": "non-breaking",
-      "previewVersion": "68.0.0-preview-6e8cbc0b0"
-    }
-  },
   "lavamoat": {
     "allowScripts": {
       "$root$": true,
