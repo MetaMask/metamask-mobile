@@ -4,10 +4,8 @@ import {
 } from '@metamask/account-tree-controller';
 import type { MessengerClientInitFunction } from '../../../core/Engine/types';
 import { trace } from '../../../util/trace';
-import { forwardSelectedAccountGroupToSnapKeyring } from '../../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { AccountGroupId } from '@metamask/account-api';
 import { AccountTreeControllerInitMessenger } from '../../messengers/account-tree-controller-messenger';
 
 /**
@@ -52,16 +50,6 @@ export const accountTreeControllerInit: MessengerClientInitFunction<
       },
     },
   });
-
-  // Forward selected accounts every time the selected account group changes.
-  initMessenger.subscribe(
-    'AccountTreeController:selectedAccountGroupChange',
-    (groupId: AccountGroupId | '') => {
-      // TODO: Move this logic to the SnapKeyring directly.
-      // eslint-disable-next-line no-void
-      void forwardSelectedAccountGroupToSnapKeyring(groupId);
-    },
-  );
 
   return { controller };
 };

@@ -34,7 +34,7 @@ describe('TraderRow', () => {
     expect(screen.getByText('1')).toBeOnTheScreen();
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
     expect(screen.getByText('+43.0%')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
+    expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
   });
 
   it('renders avatar image when avatarUri is present', () => {
@@ -132,7 +132,7 @@ describe('TraderRow', () => {
       <TraderRow trader={negativeTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('-15.3%')).toBeOnTheScreen();
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 
   it('uses custom testID when provided', () => {
