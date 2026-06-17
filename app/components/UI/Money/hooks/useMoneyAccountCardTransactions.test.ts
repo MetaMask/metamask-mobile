@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectIsMoneyAccountDelegatedForCard } from '../../../../selectors/cardController';
 import { parseCardTransactions } from '../utils/accountsApi';
 import { useMoneyAccountCardTransactions } from './useMoneyAccountCardTransactions';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
@@ -28,9 +27,6 @@ jest.mock('../../../../core/apiClient', () => ({
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
-}));
-jest.mock('../../../../selectors/cardController', () => ({
-  selectIsMoneyAccountDelegatedForCard: jest.fn(),
 }));
 jest.mock('../utils/accountsApi', () => ({
   parseCardTransactions: jest.fn(),
@@ -60,17 +56,12 @@ const CARD: CardTransaction = {
 
 function setupSelectors(
   opts: {
-    isLinked?: boolean;
     account?: { address: string } | undefined;
   } = {},
 ) {
-  const isLinked = opts.isLinked ?? true;
   // Distinguish "not provided" (default account) from an explicit `undefined`.
   const account = 'account' in opts ? opts.account : { address: ADDR_A };
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectIsMoneyAccountDelegatedForCard) {
-      return isLinked;
-    }
     if (selector === selectPrimaryMoneyAccount) {
       return account;
     }
@@ -119,16 +110,6 @@ describe('useMoneyAccountCardTransactions', () => {
         staleTime: 5 * MINUTE,
         retry: false,
       }),
-    );
-  });
-
-  it('disables the query for an unlinked account', () => {
-    setupSelectors({ isLinked: false });
-
-    renderHook(() => useMoneyAccountCardTransactions());
-
-    expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
     );
   });
 
