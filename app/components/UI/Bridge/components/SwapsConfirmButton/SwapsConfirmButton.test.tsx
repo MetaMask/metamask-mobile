@@ -84,12 +84,9 @@ jest.mock('../../../../../hooks', () => ({
 
 // Mock hasMinimumRequiredVersion so that selectBridgeFeatureFlags does not call
 // compareVersions (which requires a real app version string unavailable in tests).
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
 
 // Mock navigation
 const mockNavigate = jest.fn();
