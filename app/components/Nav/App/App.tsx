@@ -498,10 +498,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={AddressSelector}
     />
     <NativeStack.Screen
-      name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet}
-    />
-    <NativeStack.Screen
       name={Routes.SHEET.SDK_LOADING}
       component={SDKLoadingModal}
     />
