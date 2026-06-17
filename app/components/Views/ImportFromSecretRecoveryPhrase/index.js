@@ -787,7 +787,8 @@ const ImportFromSecretRecoveryPhrase = ({
                 />
               </Box>
 
-              <Box
+              <SafeAreaView
+                edges={['bottom']}
                 style={tw.style(
                   'w-full gap-y-4 mt-auto',
                   Platform.OS === 'android' ? 'mb-6' : 'mb-4',
@@ -804,7 +805,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 >
                   {strings('import_from_seed.import_create_password_cta')}
                 </Button>
-              </Box>
+              </SafeAreaView>
             </Box>
           )}
         </Animated.View>
