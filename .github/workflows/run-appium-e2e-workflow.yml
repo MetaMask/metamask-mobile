@@ -238,7 +238,7 @@ jobs:
             echo "WDA prebuilt artifacts found"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "WDA cache miss — prepare-ios-appium-runner will prebuild (parallel with sim boot)"
+            echo "WDA cache miss — prepare-ios-appium-runner will prebuild after sim boot"
           fi
         shell: bash
 
@@ -257,6 +257,12 @@ jobs:
         id: appium-grep
         run: echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
         shell: bash
+
+      - name: Verify Appium runner connectivity (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
+        env:
+          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
 
       - name: Run Appium smoke tests (Android)
         id: run-tests-android
@@ -280,7 +286,10 @@ jobs:
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
-          ANDROID_EMULATOR_CI_CORES: '4'
+          ANDROID_EMULATOR_CI_CORES: '8'
+          ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
+          ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
 
       - name: Run Appium smoke tests (iOS)
         id: run-tests-ios

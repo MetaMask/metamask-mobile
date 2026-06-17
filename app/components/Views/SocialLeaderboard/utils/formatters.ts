@@ -1,12 +1,12 @@
 import {
   formatPerpsFiat,
   formatPercentage,
-  formatTransactionDate,
 } from '../../../UI/Perps/utils/formatUtils';
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
 } from '../../../../util/number';
+import { toDateFormat } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
 
 const EM_DASH = '\u2014';
@@ -31,6 +31,50 @@ export function formatSignedUsd(value: number | null | undefined): string {
   if (value === 0) return formatPerpsFiat(0, { stripTrailingZeros: false });
   const sign = value > 0 ? '+' : '-';
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+// Ordered largest → smallest. Walk down and promote when rounding pushes a
+// value past the bucket boundary (e.g. `999_999` rounds to `1000K`, which
+// we want as `$1M`, not `$1000K`).
+const CURRENCY_BUCKETS: readonly (readonly [number, string])[] = [
+  [1e12, 'T'],
+  [1e9, 'B'],
+  [1e6, 'M'],
+  [1e3, 'K'],
+];
+
+function renderBucket(value: number, suffix: string): string {
+  const str = value % 1 === 0 ? value.toFixed(0) : value.toFixed(1);
+  return `$${str}${suffix}`;
+}
+
+function shortenAbsCurrency(abs: number): string {
+  if (abs < 1e3) return `$${abs.toFixed(2)}`;
+  for (let i = 0; i < CURRENCY_BUCKETS.length; i++) {
+    const [divisor, suffix] = CURRENCY_BUCKETS[i];
+    if (abs < divisor) continue;
+    const value = Math.round((abs / divisor) * 10) / 10;
+    if (value >= 1_000 && i > 0) {
+      const [nextDivisor, nextSuffix] = CURRENCY_BUCKETS[i - 1];
+      const promoted = Math.round((abs / nextDivisor) * 10) / 10;
+      return renderBucket(promoted, nextSuffix);
+    }
+    return renderBucket(value, suffix);
+  }
+  return `$${abs.toFixed(2)}`;
+}
+
+/**
+ * Signed USD with K/M/B/T abbreviation for ≥$1K values. Used for compact
+ * PnL displays like the 7D Return headline (`+$117.2K`, `+$1.2M`, `-$500`).
+ */
+export function formatSignedAbbreviatedUsd(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  if (value === 0) return shortenAbsCurrency(0);
+  const sign = value > 0 ? '+' : '-';
+  return sign + shortenAbsCurrency(Math.abs(value));
 }
 
 /**
@@ -60,8 +104,10 @@ export function formatPercent(value: number | null | undefined): string {
 
 /**
  * Trade timestamps from the social API may be seconds or milliseconds.
+ * Delegates to the shared `toDateFormat` so we render the same short
+ * convention used by the activity list (e.g. `Jun 16 at 11:38 am`).
  */
 export function formatTradeDate(timestamp: number): string {
   const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;
-  return formatTransactionDate(ms);
+  return toDateFormat(ms);
 }
