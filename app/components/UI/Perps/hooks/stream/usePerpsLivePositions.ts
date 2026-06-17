@@ -162,15 +162,32 @@ export function usePerpsLivePositions(
     };
   }, [stream, throttleMs]);
 
+  // Derive the unique set of symbols from the current positions so we only
+  // subscribe to the prices we actually need (instead of the full price channel).
+  // Sorted + memoized so the subscription effect only re-runs when the set of
+  // symbols actually changes, not on every positions tick (which creates a new array).
+  const symbols = useMemo(
+    () => Array.from(new Set(rawPositions.map((p) => p.symbol))).sort(),
+    [rawPositions],
+  );
+  const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
+
   // Subscribe to price updates for real-time PnL recalculation (only if useLivePnl is true)
   useEffect(() => {
-    if (!useLivePnl) {
+    if (!useLivePnl || symbols.length === 0) {
       return undefined;
     }
 
-    const unsubscribe = stream.prices.subscribe({
+    const unsubscribe = stream.prices.subscribeToSymbols({
+      symbols,
       callback: (newPriceData) => {
-        setPriceData(newPriceData);
+        if (!newPriceData) {
+          return;
+        }
+        // Merge incoming price batches into existing state instead of replacing.
+        // Live WebSocket ticks deliver only the symbols that changed, so replacing
+        // would wipe other positions' prices when a partial batch arrives.
+        setPriceData((prev) => ({ ...prev, ...newPriceData }));
       },
       throttleMs,
     });
@@ -178,7 +195,11 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs, useLivePnl]);
+    // symbolsKey captures symbols content changes via memoization, so symbols is
+    // intentionally omitted to avoid re-subscribing when the array reference
+    // changes but its contents are the same.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream, symbolsKey, throttleMs, useLivePnl]);
 
   return {
     positions,
