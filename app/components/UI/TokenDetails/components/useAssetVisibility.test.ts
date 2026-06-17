@@ -8,6 +8,8 @@ import useAssetVisibility, {
 } from './useAssetVisibility';
 import type { TokenI } from '../../Tokens/types';
 
+// ─── Mocks ───────────────────────────────────────────────────────────────────
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
