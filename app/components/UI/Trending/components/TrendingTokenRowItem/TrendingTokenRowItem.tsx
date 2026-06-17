@@ -8,7 +8,12 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
-import { Icon, IconName, IconSize } from '@metamask/design-system-react-native';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenLogo from '../TrendingTokenLogo';
 import Badge, {
@@ -37,7 +42,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useTrendingTokenPress } from '../../hooks/useTrendingTokenPress/useTrendingTokenPress';
 import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-
 /**
  * Gets the text color for price percentage change
  */
