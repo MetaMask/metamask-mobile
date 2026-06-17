@@ -8,6 +8,13 @@ import {
 import { TransactionDetailsBridgeFeeRow } from './transaction-details-bridge-fee-row';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
+jest.mock('../../token-icon', () => ({
+  TokenIcon: () => null,
+  TokenIconVariant: { Row: 'row' },
+}));
 
 const BRIDGE_FEE_FIAT_MOCK = '123.45';
 

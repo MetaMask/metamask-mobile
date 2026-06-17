@@ -20,6 +20,9 @@ import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
+import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { Hex } from '@metamask/utils';
 
 const FALLBACK_TYPES = [
   TransactionType.moneyAccountWithdraw,
@@ -41,8 +44,10 @@ export function TransactionDetailsNetworkFeeRow() {
   const isMoneyContext = useIsMoneyAccountContext();
   const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
-  const { metamaskPay } = transactionMeta;
-  const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
+  const { metamaskPay, chainId: txChainId } = transactionMeta;
+  const { networkFeeFiat: payNetworkFeeFiat, chainId: sourceChainId } =
+    metamaskPay || {};
+  const feeChainId = (sourceChainId ?? txChainId ?? '0x1') as Hex;
 
   const networkFee = payNetworkFeeFiat ?? estimatedFeeFiatPrecise;
 
@@ -83,6 +88,21 @@ export function TransactionDetailsNetworkFeeRow() {
           <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
             {strings('transactions.paid_by_metamask')}
           </Text>
+        </Box>
+      ) : isMoneyContext ? (
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={4}
+        >
+          <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
+            {networkFeeFormatted}
+          </Text>
+          <TokenIcon
+            chainId={feeChainId}
+            address={getNativeTokenAddress(feeChainId) as Hex}
+            variant={TokenIconVariant.Row}
+          />
         </Box>
       ) : (
         <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
