@@ -27,7 +27,7 @@ jest.mock(
 );
 
 const mockOnLedgerConfirm = jest.fn().mockResolvedValue(undefined);
-const mockUseLedgerConfirm = jest.fn(() => ({
+const mockUseLedgerConfirm = jest.fn((_options?: unknown) => ({
   onConfirm: mockOnLedgerConfirm,
 }));
 jest.mock('./useLedgerConfirm', () => ({
@@ -35,7 +35,7 @@ jest.mock('./useLedgerConfirm', () => ({
 }));
 
 const mockOnQrConfirm = jest.fn().mockResolvedValue(undefined);
-const mockUseQrConfirm = jest.fn(() => ({
+const mockUseQrConfirm = jest.fn((_options?: unknown) => ({
   onConfirm: mockOnQrConfirm,
 }));
 jest.mock('../../../../core/HardwareWallet/hooks/useQrConfirm', () => ({
