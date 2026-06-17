@@ -50,7 +50,7 @@ import {
 } from '../../../../selectors/assets/assets-migration';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
+import { hasMinimumRequiredVersion } from '../../../../util/remoteFeatureFlag';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
