@@ -222,8 +222,9 @@ describe(`Migration ${migrationVersion}: Add Arc network`, () => {
   describe('NetworkEnablementController', () => {
     it('adds Arc as enabled when user is in popular networks mode (>1 enabled)', () => {
       const state = cloneDeep(baseState);
-      state.engine.backgroundState.NetworkEnablementController =
-        cloneDeep(popularNetworkEnablementState);
+      state.engine.backgroundState.NetworkEnablementController = cloneDeep(
+        popularNetworkEnablementState,
+      );
 
       const result = migrate(state) as typeof baseState;
 
@@ -236,8 +237,9 @@ describe(`Migration ${migrationVersion}: Add Arc network`, () => {
 
     it('adds Arc as disabled when user has only one network enabled', () => {
       const state = cloneDeep(baseState);
-      state.engine.backgroundState.NetworkEnablementController =
-        cloneDeep(singleNetworkEnablementState);
+      state.engine.backgroundState.NetworkEnablementController = cloneDeep(
+        singleNetworkEnablementState,
+      );
 
       const result = migrate(state) as typeof baseState;
 
@@ -282,10 +284,11 @@ describe(`Migration ${migrationVersion}: Add Arc network`, () => {
         string,
         unknown
       >;
-      const configs = networkController.networkConfigurationsByChainId as Record<
-        string,
-        unknown
-      >;
+      const configs =
+        networkController.networkConfigurationsByChainId as Record<
+          string,
+          unknown
+        >;
       expect(configs[ARC_CHAIN_ID]).toBeDefined();
       expect(backgroundState.NetworkEnablementController).toBeUndefined();
     });
@@ -303,9 +306,7 @@ describe(`Migration ${migrationVersion}: Add Arc network`, () => {
       expect(configs[ARC_CHAIN_ID]).toBeDefined();
       expect(mockedCaptureException).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining(
-            'NetworkEnablementController',
-          ),
+          message: expect.stringContaining('NetworkEnablementController'),
         }),
       );
     });

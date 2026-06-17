@@ -94,8 +94,7 @@ export default function migrate(versionedState: unknown) {
     (networkConfigurationsByChainId as Record<string, unknown>)[ARC_CHAIN_ID] =
       arcConfiguration;
 
-    const networkEnablementState =
-      validateNetworkEnablementController(state);
+    const networkEnablementState = validateNetworkEnablementController(state);
     if (networkEnablementState === undefined) {
       console.warn(
         `Migration ${migrationVersion}: Missing or invalid NetworkEnablementController state, skip the NetworkEnablementController migration`,
@@ -261,9 +260,7 @@ function isValidNetworkEnablementControllerState(value: unknown): value is {
   }
 
   if (
-    !isValidEip155NetworkMap(
-      value.enabledNetworkMap[KnownCaipNamespace.Eip155],
-    )
+    !isValidEip155NetworkMap(value.enabledNetworkMap[KnownCaipNamespace.Eip155])
   ) {
     captureException(
       new Error(
