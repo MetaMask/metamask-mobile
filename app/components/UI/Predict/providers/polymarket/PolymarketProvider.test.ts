@@ -363,6 +363,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictUpDownEnabled: false,
   predictPortfolioEnabled: false,
   predictHomeRedesignEnabled: false,
+  predictSportCardLivePricesEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
 };
 
