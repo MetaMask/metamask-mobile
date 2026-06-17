@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import HorizontalCarousel from '../../components/HorizontalCarousel';
@@ -22,8 +22,6 @@ interface PredictionsCarouselSectionProps {
   onViewAll: () => void;
   /** When false the section is hidden entirely (feature-flag guard). Defaults to true. */
   isEnabled?: boolean;
-  showDivider?: boolean;
-  addSectionTailGap?: boolean;
 }
 
 /**
@@ -39,8 +37,6 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
   idPrefix,
   onViewAll,
   isEnabled = true,
-  showDivider = false,
-  addSectionTailGap = false,
 }) => {
   const renderItem: ListRenderItem<PredictMarketType> = useCallback(
     ({ item, index }) => (
@@ -73,8 +69,7 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
   if (!isEnabled || (!feed.isLoading && feed.data.length === 0)) return null;
 
   return (
-    <Box twClassName={addSectionTailGap ? 'pb-3' : undefined}>
-      {showDivider ? <SectionDivider twClassName="-mx-4" /> : null}
+    <Box>
       <SectionHeader
         title={title}
         onViewAll={onViewAll}

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import {
   type MarketTypeFilter,
@@ -38,8 +38,6 @@ export interface PerpsToggleBlockProps {
   idPrefix: string;
   testIdPrefix: string;
   listTestId: string;
-  showDivider?: boolean;
-  addSectionTailGap?: boolean;
 }
 
 /**
@@ -59,8 +57,6 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   idPrefix,
   testIdPrefix,
   listTestId,
-  showDivider = false,
-  addSectionTailGap = false,
 }) => {
   const visibleTabs = useMemo(
     () => (isLoading ? tabs : tabs.filter((t) => t.items.length > 0)),
@@ -104,8 +100,7 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   );
 
   return (
-    <Box twClassName={addSectionTailGap ? 'pb-3' : undefined}>
-      {showDivider ? <SectionDivider twClassName="-mx-4" /> : null}
+    <Box>
       <SectionHeader
         title={title}
         onViewAll={() => onViewAll(activePillKey, sortOptionId)}

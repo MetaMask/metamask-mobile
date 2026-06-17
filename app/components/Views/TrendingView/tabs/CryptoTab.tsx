@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
@@ -26,6 +25,9 @@ import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarousel
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -35,15 +37,11 @@ import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
   onViewAll: (sortOptionId: SortOptionId) => void;
-  showDivider?: boolean;
-  addSectionTailGap?: boolean;
 }
 
 const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
   refresh,
   onViewAll,
-  showDivider = false,
-  addSectionTailGap = false,
 }) => {
   const perps = usePerpsFeed({
     variant: 'crypto',
@@ -54,8 +52,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box twClassName={addSectionTailGap ? 'pb-3' : undefined}>
-      {showDivider ? <SectionDivider twClassName="-mx-4" /> : null}
+    <>
       <SectionHeader
         title={strings('trending.crypto_perps_section')}
         onViewAll={() => onViewAll(perps.defaultSortOptionId)}
@@ -88,7 +85,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
         testID="explore-crypto_perps-carousel"
         viewMoreTestID="crypto_perps-view-more-card"
       />
-    </Box>
+    </>
   );
 };
 
@@ -142,28 +139,82 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const showPredictions =
     cryptoPredictions.isLoading || cryptoPredictions.data.length > 0;
 
-  const sectionLayout = useMemo(() => {
-    const sections: { key: string; isVerticalList: boolean }[] = [];
-    if (showTokens) sections.push({ key: 'tokens', isVerticalList: true });
-    if (showCryptoPerps) {
-      sections.push({ key: 'crypto_perps', isVerticalList: false });
-    }
-    if (showPredictions) {
-      sections.push({ key: 'predictions', isVerticalList: false });
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
+
+    if (showTokens) {
+      items.push({
+        key: 'tokens',
+        isVerticalList: true,
+        content: (
+          <>
+            <SectionHeader
+              title={strings('trending.trending_tokens')}
+              onViewAll={() =>
+                navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
+              }
+              testID="section-header-view-all-tokens"
+              tabName="Crypto"
+              sectionName="tokens_trending"
+            />
+            <CardList<TrendingAsset>
+              data={tokens.data}
+              isLoading={tokens.isLoading}
+              renderItem={renderTokenItem}
+              Skeleton={TrendingTokensSkeleton}
+              idPrefix="tokens"
+            />
+          </>
+        ),
+      });
     }
 
-    return (key: string) => {
-      const index = sections.findIndex((section) => section.key === key);
-      if (index === -1) {
-        return { showDivider: false, addSectionTailGap: false };
-      }
-      const { isVerticalList } = sections[index];
-      return {
-        showDivider: index > 0,
-        addSectionTailGap: index < sections.length - 1 && !isVerticalList,
-      };
-    };
-  }, [showTokens, showCryptoPerps, showPredictions]);
+    if (showCryptoPerps) {
+      items.push({
+        key: 'crypto_perps',
+        content: (
+          <CryptoPerpsBlock
+            refresh={refresh}
+            onViewAll={(sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, 'crypto', sortOptionId)
+            }
+          />
+        ),
+      });
+    }
+
+    if (showPredictions) {
+      items.push({
+        key: 'predictions',
+        content: (
+          <PredictionsCarouselSection
+            feed={cryptoPredictions}
+            tabName="Crypto"
+            sectionName="predictions_crypto"
+            title={strings('trending.predictions')}
+            testIdPrefix="predict-crypto-market-row-item"
+            idPrefix="crypto_predictions"
+            onViewAll={() =>
+              navigateToExplorePredictionsList(navigation, 'crypto')
+            }
+          />
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showTokens,
+    showCryptoPerps,
+    showPredictions,
+    navigation,
+    tokens.data,
+    tokens.isLoading,
+    renderTokenItem,
+    refresh,
+    perpsNavigation,
+    cryptoPredictions,
+  ]);
 
   return (
     <ExploreScroll
@@ -171,50 +222,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
     >
-      {showTokens && (
-        <Box>
-          {sectionLayout('tokens').showDivider ? (
-            <SectionDivider twClassName="-mx-4" />
-          ) : null}
-          <SectionHeader
-            title={strings('trending.trending_tokens')}
-            onViewAll={() =>
-              navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
-            }
-            testID="section-header-view-all-tokens"
-            tabName="Crypto"
-            sectionName="tokens_trending"
-          />
-          <CardList<TrendingAsset>
-            data={tokens.data}
-            isLoading={tokens.isLoading}
-            renderItem={renderTokenItem}
-            Skeleton={TrendingTokensSkeleton}
-            idPrefix="tokens"
-          />
-        </Box>
-      )}
-
-      {isPerpsEnabled && (
-        <CryptoPerpsBlock
-          refresh={refresh}
-          onViewAll={(sortOptionId) =>
-            navigateToPerpsMarketList(perpsNavigation, 'crypto', sortOptionId)
-          }
-          {...sectionLayout('crypto_perps')}
-        />
-      )}
-
-      <PredictionsCarouselSection
-        feed={cryptoPredictions}
-        tabName="Crypto"
-        sectionName="predictions_crypto"
-        title={strings('trending.predictions')}
-        testIdPrefix="predict-crypto-market-row-item"
-        idPrefix="crypto_predictions"
-        onViewAll={() => navigateToExplorePredictionsList(navigation, 'crypto')}
-        {...sectionLayout('predictions')}
-      />
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };

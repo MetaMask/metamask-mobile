@@ -74,29 +74,29 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
   navigation,
 }) => (
   <>
-    <PredictionsCarouselSection
-      feed={{
-        data: sportsPredictionsData,
-        isLoading: sportsPredictionsLoading,
-      }}
-      tabName="Sports"
-      sectionName="predictions_sports"
-      title={
-        showWorldCupPredictions
-          ? strings('predict.world_cup.predictions_title')
-          : strings('trending.predictions')
-      }
-      testIdPrefix="predict-sports-market-row-item"
-      idPrefix="sports_predictions"
-      onViewAll={() =>
-        showWorldCupPredictions
-          ? navigateToExploreWorldCupPredictions(navigation)
-          : navigateToExplorePredictionsList(navigation, 'sports')
-      }
-      isEnabled={showSportsPredictions}
-      showDivider={false}
-      addSectionTailGap={showSportsPredictions}
-    />
+    <Box twClassName={showSportsPredictions ? 'pb-3' : undefined}>
+      <PredictionsCarouselSection
+        feed={{
+          data: sportsPredictionsData,
+          isLoading: sportsPredictionsLoading,
+        }}
+        tabName="Sports"
+        sectionName="predictions_sports"
+        title={
+          showWorldCupPredictions
+            ? strings('predict.world_cup.predictions_title')
+            : strings('trending.predictions')
+        }
+        testIdPrefix="predict-sports-market-row-item"
+        idPrefix="sports_predictions"
+        onViewAll={() =>
+          showWorldCupPredictions
+            ? navigateToExploreWorldCupPredictions(navigation)
+            : navigateToExplorePredictionsList(navigation, 'sports')
+        }
+        isEnabled={showSportsPredictions}
+      />
+    </Box>
 
     <Box>
       {showSportsPredictions ? <SectionDivider twClassName="-mx-4" /> : null}

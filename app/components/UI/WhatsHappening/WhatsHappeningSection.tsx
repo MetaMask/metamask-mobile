@@ -14,11 +14,7 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  SectionDivider,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
 import SectionHeader from '../../Views/TrendingView/components/SectionHeader';
 import TempSectionHeader from '../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../Views/Homepage/components/ErrorState';
@@ -35,7 +31,11 @@ import {
   WhatsHappeningSource,
   type WhatsHappeningSourceValue,
 } from './constants';
-import { useWhatsHappening } from './hooks';
+import {
+  useWhatsHappening,
+  isWhatsHappeningSectionVisible,
+  type UseWhatsHappeningResult,
+} from './hooks';
 import type { WhatsHappeningItem } from './types';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
@@ -63,165 +63,156 @@ const styles = StyleSheet.create({
 
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
-  /** When true, the parent Explore feed supplies the section header and divider. */
+  /** When true, the parent Explore feed supplies the section header. */
   hideHeader?: boolean;
-  showDivider?: boolean;
-  addSectionTailGap?: boolean;
+  /** Optional pre-fetched feed state (avoids duplicate requests in Explore). */
+  feed?: UseWhatsHappeningResult;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(
-  (
-    {
-      source,
-      hideHeader = false,
-      showDivider = false,
-      addSectionTailGap = false,
+>(({ source, hideHeader = false, feed }, ref) => {
+  const currentIndexRef = useRef<number>(0);
+  const tw = useTailwind();
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const isEnabled = useSelector(selectWhatsHappeningEnabled);
+  const title = strings('whats_happening.title');
+
+  const internalFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED, {
+    enabled: feed === undefined,
+  });
+  const { items, isLoading, error, refresh } = feed ?? internalFeed;
+
+  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+  const hasError = !isLoading && items.length === 0 && !!error;
+
+  const navigateToDetail = useCallback(
+    (initialIndex: number) => {
+      navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
+        initialIndex,
+        source,
+      });
     },
-    ref,
-  ) => {
-    const currentIndexRef = useRef<number>(0);
-    const tw = useTailwind();
-    const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useAnalytics();
-    const isEnabled = useSelector(selectWhatsHappeningEnabled);
-    const title = strings('whats_happening.title');
+    [navigation, source],
+  );
 
-    const { items, isLoading, error, refresh } =
-      useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const handleViewAll = useCallback(() => {
+    navigateToDetail(0);
+  }, [navigateToDetail]);
 
-    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+  const handleCardPress = useCallback(
+    (index: number) => {
+      navigateToDetail(index);
+    },
+    [navigateToDetail],
+  );
 
-    const hasError = !isLoading && items.length === 0 && !!error;
-
-    const navigateToDetail = useCallback(
-      (initialIndex: number) => {
-        navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
-          initialIndex,
-          source,
-        });
-      },
-      [navigation, source],
-    );
-
-    const handleViewAll = useCallback(() => {
-      navigateToDetail(0);
-    }, [navigateToDetail]);
-
-    const handleCardPress = useCallback(
-      (index: number) => {
-        navigateToDetail(index);
-      },
-      [navigateToDetail],
-    );
-
-    const handleMomentumScrollEnd = useCallback(
-      (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const offsetX = event.nativeEvent.contentOffset.x;
-        const index = Math.round(offsetX / (CARD_WIDTH + GAP));
-        if (index !== currentIndexRef.current) {
-          currentIndexRef.current = index;
-          const item = items[index];
-          if (item) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
-                .addProperties({
-                  ...getWhatsHappeningEventProps(item, index, source),
-                  interaction_type: WhatsHappeningInteractionType.Pan,
-                  view: WhatsHappeningView.Carousel,
-                })
-                .build(),
-            );
-          }
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / (CARD_WIDTH + GAP));
+      if (index !== currentIndexRef.current) {
+        currentIndexRef.current = index;
+        const item = items[index];
+        if (item) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
+              .addProperties({
+                ...getWhatsHappeningEventProps(item, index, source),
+                interaction_type: WhatsHappeningInteractionType.Pan,
+                view: WhatsHappeningView.Carousel,
+              })
+              .build(),
+          );
         }
-      },
-      [trackEvent, createEventBuilder, items, source],
-    );
+      }
+    },
+    [trackEvent, createEventBuilder, items, source],
+  );
 
-    if (!isEnabled) {
-      return null;
-    }
+  if (!isEnabled) {
+    return null;
+  }
 
-    const useExploreLayout =
-      hideHeader && source === WhatsHappeningSource.Explore;
+  const useExploreLayout =
+    hideHeader && source === WhatsHappeningSource.Explore;
 
-    const header = hideHeader ? null : (
-      <TempSectionHeader
-        title={title}
-        onPress={handleViewAll}
-        testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-      />
-    );
+  const header = hideHeader ? null : (
+    <TempSectionHeader
+      title={title}
+      onPress={handleViewAll}
+      testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+    />
+  );
 
-    const carouselContent = hasError ? (
-      <ErrorState
-        title={strings('homepage.error.unable_to_load', {
-          section: title.toLowerCase(),
-        })}
-        onRetry={refresh}
-      />
-    ) : (
-      <PerpsStreamProvider>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-          snapToOffsets={SNAP_OFFSETS}
-          decelerationRate="fast"
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          testID={WhatsHappeningSelectorsIDs.CAROUSEL}
-        >
-          {isLoading ? (
-            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
-          ) : (
-            <>
-              {items.map((item: WhatsHappeningItem, index: number) => (
-                <WhatsHappeningCard
-                  key={item.id}
-                  item={item}
-                  cardIndex={index}
-                  source={source}
-                  onPress={() => handleCardPress(index)}
-                />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAll}
-                twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-                textVariant={TextVariant.BodyLg}
+  const carouselContent = hasError ? (
+    <ErrorState
+      title={strings('homepage.error.unable_to_load', {
+        section: title.toLowerCase(),
+      })}
+      onRetry={refresh}
+    />
+  ) : (
+    <PerpsStreamProvider>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+        snapToOffsets={SNAP_OFFSETS}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        testID={WhatsHappeningSelectorsIDs.CAROUSEL}
+      >
+        {isLoading ? (
+          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
+        ) : (
+          <>
+            {items.map((item: WhatsHappeningItem, index: number) => (
+              <WhatsHappeningCard
+                key={item.id}
+                item={item}
+                cardIndex={index}
+                source={source}
+                onPress={() => handleCardPress(index)}
               />
-            </>
-          )}
-        </ScrollView>
-      </PerpsStreamProvider>
-    );
+            ))}
+            <ViewMoreCard
+              onPress={handleViewAll}
+              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
+              textVariant={TextVariant.BodyLg}
+            />
+          </>
+        )}
+      </ScrollView>
+    </PerpsStreamProvider>
+  );
 
-    if (!isLoading && items.length === 0 && !hasError) {
-      return null;
-    }
+  if (!isWhatsHappeningSectionVisible({ isLoading, items, error })) {
+    return null;
+  }
 
-    if (useExploreLayout) {
-      return (
-        <Box twClassName={addSectionTailGap ? 'pb-3' : undefined}>
-          {showDivider ? <SectionDivider twClassName="-mx-4" /> : null}
-          <SectionHeader
-            title={title}
-            onViewAll={handleViewAll}
-            testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-          />
-          <Box twClassName="-mx-4">{carouselContent}</Box>
-        </Box>
-      );
-    }
-
+  if (useExploreLayout) {
     return (
-      <View style={styles.sectionGap}>
-        {header}
-        {carouselContent}
-      </View>
+      <Box>
+        <SectionHeader
+          title={title}
+          onViewAll={handleViewAll}
+          testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+        />
+        <Box twClassName="-mx-4">{carouselContent}</Box>
+      </Box>
     );
-  },
-);
+  }
+
+  return (
+    <View style={styles.sectionGap}>
+      {header}
+      {carouselContent}
+    </View>
+  );
+});
 
 export default WhatsHappeningSection;

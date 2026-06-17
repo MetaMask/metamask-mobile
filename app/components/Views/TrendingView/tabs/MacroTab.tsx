@@ -22,6 +22,9 @@ import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import ExploreScroll from '../components/ExploreScroll';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 
@@ -37,15 +40,11 @@ const MACRO_PERPS_CATEGORIES: PerpsFilterKey[] = [
 interface MacroPerpsBlockProps {
   refresh: TabProps['refresh'];
   onViewAll: (filter: PerpsFilterKey, sortOptionId: SortOptionId) => void;
-  showDivider?: boolean;
-  addSectionTailGap?: boolean;
 }
 
 const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   refresh,
   onViewAll,
-  showDivider,
-  addSectionTailGap,
 }) => {
   const perps = usePerpsFeed({ variant: 'macro', refresh });
   const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
@@ -79,8 +78,6 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
       idPrefix="macro_stocks_commodity_perps"
       testIdPrefix="macro-stocks-commodity-pills"
       listTestId="macro-stocks-commodity-perps-list"
-      showDivider={showDivider}
-      addSectionTailGap={addSectionTailGap}
     />
   );
 };
@@ -104,51 +101,58 @@ const MacroTabContent: React.FC<TabProps> = ({
   const showPerps =
     isPerpsEnabled && (macroPerps.isLoading || macroPerps.data.length > 0);
 
-  const sectionLayout = useMemo(() => {
-    const sections: { key: string; isVerticalList: boolean }[] = [];
-    if (showPredictions) {
-      sections.push({ key: 'predictions', isVerticalList: false });
-    }
-    if (showPerps) sections.push({ key: 'perps', isVerticalList: true });
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
 
-    return (key: string) => {
-      const index = sections.findIndex((section) => section.key === key);
-      if (index === -1) {
-        return { showDivider: false, addSectionTailGap: false };
-      }
-      const { isVerticalList } = sections[index];
-      return {
-        showDivider: index > 0,
-        addSectionTailGap: index < sections.length - 1 && !isVerticalList,
-      };
-    };
-  }, [showPredictions, showPerps]);
+    if (showPredictions) {
+      items.push({
+        key: 'predictions',
+        content: (
+          <PredictionsCarouselSection
+            feed={politics}
+            tabName="Macro"
+            sectionName="predictions_politics"
+            title={strings('trending.predictions')}
+            testIdPrefix="predict-rwa-politics-market-row-item"
+            idPrefix="politics_predictions"
+            onViewAll={() =>
+              navigateToExplorePredictionsList(appNavigation, 'politics')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
+    }
+
+    if (showPerps) {
+      items.push({
+        key: 'perps',
+        isVerticalList: true,
+        content: (
+          <MacroPerpsBlock
+            refresh={refresh}
+            onViewAll={(filter, sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
+            }
+          />
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showPredictions,
+    showPerps,
+    politics,
+    isPredictEnabled,
+    appNavigation,
+    refresh,
+    perpsNavigation,
+  ]);
 
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
-      <PredictionsCarouselSection
-        feed={politics}
-        tabName="Macro"
-        sectionName="predictions_politics"
-        title={strings('trending.predictions')}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-        idPrefix="politics_predictions"
-        onViewAll={() =>
-          navigateToExplorePredictionsList(appNavigation, 'politics')
-        }
-        isEnabled={isPredictEnabled}
-        {...sectionLayout('predictions')}
-      />
-
-      {isPerpsEnabled && (
-        <MacroPerpsBlock
-          refresh={refresh}
-          onViewAll={(filter, sortOptionId) =>
-            navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
-          }
-          {...sectionLayout('perps')}
-        />
-      )}
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };

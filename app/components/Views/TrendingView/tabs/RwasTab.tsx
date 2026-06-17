@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
@@ -35,6 +34,9 @@ import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarousel
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -53,15 +55,11 @@ const RWA_PERPS_CATEGORIES: PerpsFilterKey[] = [
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
   onViewAll: (filter: PerpsFilterKey, sortOptionId: SortOptionId) => void;
-  showDivider?: boolean;
-  addSectionTailGap?: boolean;
 }
 
 const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   refresh,
   onViewAll,
-  showDivider,
-  addSectionTailGap,
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
   const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
@@ -95,8 +93,6 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       idPrefix="rwa_perps"
       testIdPrefix="rwa-perps-pills"
       listTestId="rwa-perps-pill-toggled-list"
-      showDivider={showDivider}
-      addSectionTailGap={addSectionTailGap}
     />
   );
 };
@@ -148,26 +144,85 @@ const RwasTabContent: React.FC<TabProps> = ({
   const showPerps =
     isPerpsEnabled && (rwaPerps.isLoading || rwaPerps.data.length > 0);
 
-  const sectionLayout = useMemo(() => {
-    const sections: { key: string; isVerticalList: boolean }[] = [];
-    if (showPredictions) {
-      sections.push({ key: 'predictions', isVerticalList: false });
-    }
-    if (showStocks) sections.push({ key: 'stocks', isVerticalList: true });
-    if (showPerps) sections.push({ key: 'perps', isVerticalList: true });
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
 
-    return (key: string) => {
-      const index = sections.findIndex((section) => section.key === key);
-      if (index === -1) {
-        return { showDivider: false, addSectionTailGap: false };
-      }
-      const { isVerticalList } = sections[index];
-      return {
-        showDivider: index > 0,
-        addSectionTailGap: index < sections.length - 1 && !isVerticalList,
-      };
-    };
-  }, [showPredictions, showStocks, showPerps]);
+    if (showPredictions) {
+      items.push({
+        key: 'predictions',
+        content: (
+          <PredictionsCarouselSection
+            feed={politics}
+            tabName="RWAs"
+            sectionName="predictions_politics"
+            title={strings('trending.predictions')}
+            testIdPrefix="predict-rwa-politics-market-row-item"
+            idPrefix="politics_predictions"
+            onViewAll={() =>
+              navigateToExplorePredictionsList(appNavigation, 'politics')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
+    }
+
+    if (showStocks) {
+      items.push({
+        key: 'stocks',
+        isVerticalList: true,
+        content: (
+          <>
+            <SectionHeader
+              title={strings('trending.stocks')}
+              onViewAll={() =>
+                appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
+              }
+              testID="section-header-view-all-stocks"
+              tabName="RWAs"
+              sectionName="stocks"
+            />
+            <CardList<TrendingAsset>
+              data={stocks.data}
+              isLoading={stocks.isLoading}
+              renderItem={renderStockItem}
+              Skeleton={TrendingTokensSkeleton}
+              idPrefix="stocks"
+            />
+          </>
+        ),
+      });
+    }
+
+    if (showPerps) {
+      items.push({
+        key: 'perps',
+        isVerticalList: true,
+        content: (
+          <RwaPerpsBlock
+            refresh={refresh}
+            onViewAll={(filter, sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
+            }
+          />
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showPredictions,
+    showStocks,
+    showPerps,
+    politics,
+    isPredictEnabled,
+    appNavigation,
+    stocks.data,
+    stocks.isLoading,
+    renderStockItem,
+    refresh,
+    perpsNavigation,
+  ]);
 
   return (
     <ExploreScroll
@@ -175,53 +230,7 @@ const RwasTabContent: React.FC<TabProps> = ({
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
     >
-      <PredictionsCarouselSection
-        feed={politics}
-        tabName="RWAs"
-        sectionName="predictions_politics"
-        title={strings('trending.predictions')}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-        idPrefix="politics_predictions"
-        onViewAll={() =>
-          navigateToExplorePredictionsList(appNavigation, 'politics')
-        }
-        isEnabled={isPredictEnabled}
-        {...sectionLayout('predictions')}
-      />
-
-      {showStocks && (
-        <Box>
-          {sectionLayout('stocks').showDivider ? (
-            <SectionDivider twClassName="-mx-4" />
-          ) : null}
-          <SectionHeader
-            title={strings('trending.stocks')}
-            onViewAll={() =>
-              appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
-            }
-            testID="section-header-view-all-stocks"
-            tabName="RWAs"
-            sectionName="stocks"
-          />
-          <CardList<TrendingAsset>
-            data={stocks.data}
-            isLoading={stocks.isLoading}
-            renderItem={renderStockItem}
-            Skeleton={TrendingTokensSkeleton}
-            idPrefix="stocks"
-          />
-        </Box>
-      )}
-
-      {isPerpsEnabled && (
-        <RwaPerpsBlock
-          refresh={refresh}
-          onViewAll={(filter, sortOptionId) =>
-            navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
-          }
-          {...sectionLayout('perps')}
-        />
-      )}
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };
