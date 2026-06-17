@@ -15,16 +15,13 @@ import {
   UserStorageMockttpController,
 } from '../../smoke/identity/utils/user-storage/userStorageMockttpController.js';
 import { createUserStorageController } from '../../smoke/identity/utils/mocks.js';
+import { IDENTITY_TEAM_IMPORTED_PRIVATE_KEY } from '../../smoke/identity/utils/constants.js';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
 import Assertions from '../../framework/Assertions.js';
 import { sleep } from '../../framework/Utilities.js';
-
-// Test-only private key — must never hold funds.
-const TEST_IMPORTED_ACCOUNT_PRIVATE_KEY =
-  'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
 const identityFixtureOptions = (
   sharedUserStorageController: UserStorageMockttpController,
@@ -169,7 +166,7 @@ appiumTest.describe(SmokeAccounts('Add and rename accounts'), () => {
           await loginAndOpenAccountList({ scenarioType: 'e2e' });
           await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1);
 
-          await importAccountViaPrivateKey(TEST_IMPORTED_ACCOUNT_PRIVATE_KEY);
+          await importAccountViaPrivateKey(IDENTITY_TEAM_IMPORTED_PRIVATE_KEY);
 
           // Allow the imported account name to settle in the list.
           await sleep(5000);
