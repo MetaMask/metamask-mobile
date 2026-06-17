@@ -350,7 +350,11 @@ jest.mock('../../app/core/Engine', () => {
         getCryptoTargetPrice: jest.fn().mockResolvedValue(69000),
         subscribeToMarketPrices: jest.fn(() => () => undefined),
         subscribeToCryptoPrices: jest.fn(() => () => undefined),
-        getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
+        subscribeToGameUpdates: jest.fn(() => () => undefined),
+        getConnectionStatus: jest.fn(() => ({
+          marketConnected: false,
+          sportsConnected: false,
+        })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),

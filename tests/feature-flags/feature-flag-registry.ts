@@ -4828,6 +4828,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictSportCardLivePrices: {
+    name: 'predictSportCardLivePrices',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.81.0',
+      enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   smartTransactionsAllowedRpcHosts: {
     name: 'smartTransactionsAllowedRpcHosts',
     type: FeatureFlagType.Remote,
