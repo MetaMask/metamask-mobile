@@ -2,7 +2,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /**
  * Prepares the iOS Appium runner before Playwright tests:
- * 1. Boot simulator (parallel with WDA prebuild unless SKIP_WDA_PREBUILD=true)
+ * 1. Boot simulator (must complete before WDA prebuild so xcodebuild has a destination)
  * 2. Prebuild WDA into ~/appium-wda on cache miss
  * 3. simctl install WebDriverAgentRunner + MetaMask.app (sequential — same UDID)
  * 4. Warm WDA via a throwaway Appium session; leaves Appium running for tests
@@ -34,16 +34,15 @@ spawnSync(
   { stdio: 'inherit' },
 );
 
-console.log('Preparing iOS Appium runner (sim boot ∥ WDA prebuild)…');
+console.log('Preparing iOS Appium runner (sim boot → WDA prebuild)…');
 
-const [udid] = await Promise.all([
-  bootIosSimulator(simulatorName),
-  skipWdaPrebuild
-    ? Promise.resolve().then(() =>
-        console.log('SKIP_WDA_PREBUILD=true — skipping WDA prebuild'),
-      )
-    : ensureWdaPrebuilt(),
-]);
+const udid = await bootIosSimulator(simulatorName);
+
+if (skipWdaPrebuild) {
+  console.log('SKIP_WDA_PREBUILD=true — skipping WDA prebuild');
+} else {
+  await ensureWdaPrebuilt({ udid, simulatorName });
+}
 
 if (appPath && !existsSync(appPath)) {
   console.error(`IOS_APP_PATH does not exist: ${appPath}`);

@@ -18,7 +18,7 @@ const baseProfile: TraderProfile = {
   profileId: 'trader-1',
   address: '0xabc',
   allAddresses: ['0xabc'],
-  name: 'dutchiono',
+  name: 'trader1',
   imageUrl: 'https://example.com/avatar.png',
 };
 
@@ -36,7 +36,7 @@ describe('ProfileHeader', () => {
     renderWithProvider(
       <ProfileHeader profile={baseProfile} followerCount={45} />,
     );
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   it('renders avatar image when imageUrl is present', () => {
@@ -53,7 +53,7 @@ describe('ProfileHeader', () => {
     renderWithProvider(
       <ProfileHeader profile={profileNoImage} followerCount={45} />,
     );
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   it('renders singular follower string when count is 1', () => {
@@ -88,7 +88,7 @@ describe('ProfileHeader', () => {
     );
 
     expect(screen.queryByText('D')).toBeNull();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   it('renders without a fallback letter when imageUrl is empty string', () => {
@@ -102,7 +102,7 @@ describe('ProfileHeader', () => {
     );
 
     expect(screen.queryByText('D')).toBeNull();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   describe('X (Twitter) icon', () => {
@@ -115,7 +115,7 @@ describe('ProfileHeader', () => {
         <ProfileHeader
           profile={baseProfile}
           followerCount={45}
-          twitterHandle="dutchiono"
+          twitterHandle="trader1"
         />,
       );
       expect(
@@ -150,7 +150,7 @@ describe('ProfileHeader', () => {
         <ProfileHeader
           profile={baseProfile}
           followerCount={45}
-          twitterHandle="dutchiono"
+          twitterHandle="trader1"
         />,
       );
 
@@ -159,7 +159,7 @@ describe('ProfileHeader', () => {
       );
 
       expect(Linking.openURL).toHaveBeenCalledTimes(1);
-      expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/dutchiono');
+      expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/trader1');
     });
   });
 });

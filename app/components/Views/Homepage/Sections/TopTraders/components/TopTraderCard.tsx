@@ -1,7 +1,4 @@
 import {
-  AvatarAccount,
-  AvatarAccountSize,
-  AvatarAccountVariant,
   Box,
   BoxAlignItems,
   Button,
@@ -12,14 +9,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { formatSignedAbbreviatedUsd } from '../../../../SocialLeaderboard/utils/formatters';
-import { hasRealAvatar } from '../utils/avatarFallback';
+import TraderAvatar from './TraderAvatar';
 
 export interface TopTraderCardProps {
   trader: TopTrader;
@@ -45,7 +41,7 @@ export const TOP_TRADER_CARD_WIDTH = 200;
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
  *
- * Displays a trader's avatar (top-left), username, 30D PnL stats, and a
+ * Displays a trader's avatar (top-left), username, 7D PnL stats, and a
  * Follow/Following toggle pinned to the bottom.
  */
 const TopTraderCard: React.FC<TopTraderCardProps> = ({
@@ -54,8 +50,6 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
   onTraderPress,
   testID,
 }) => {
-  const tw = useTailwind();
-
   const pnlText = formatSignedAbbreviatedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
 
@@ -76,24 +70,12 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         testID={`top-trader-card-pressable-${trader.id}`}
       >
         <Box alignItems={BoxAlignItems.Center} twClassName="gap-1">
-          {hasRealAvatar(trader.avatarUri) ? (
-            <Image
-              source={{ uri: trader.avatarUri }}
-              style={tw.style(
-                `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-              )}
-              resizeMode="cover"
-              testID={`top-trader-avatar-${trader.id}`}
-            />
-          ) : (
-            <AvatarAccount
-              variant={AvatarAccountVariant.Maskicon}
-              address={trader.address}
-              size={AvatarAccountSize.Xl}
-              twClassName={`w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full`}
-              maskiconProps={{ size: AVATAR_SIZE }}
-            />
-          )}
+          <TraderAvatar
+            imageUrl={trader.avatarUri}
+            address={trader.address}
+            size={AVATAR_SIZE}
+            testID={`top-trader-avatar-${trader.id}`}
+          />
 
           <Box twClassName="w-full gap-0.5">
             <Text
@@ -126,7 +108,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                {' 30D'}
+                {' 7D'}
               </Text>
             </Text>
           </Box>

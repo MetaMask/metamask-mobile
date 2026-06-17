@@ -176,11 +176,15 @@ describe('Portfolio & Account Flow', () => {
       ),
     ).toBeOnTheScreen();
     // Trader presses Add Margin and Remove Margin
-    fireEvent.press(screen.getByText(ADD_MARGIN));
+    await act(async () => {
+      fireEvent.press(screen.getByText(ADD_MARGIN));
+    });
     await act(async () => {
       cleanup();
     });
     renderPerpsSelectAdjustMarginActionView();
-    fireEvent.press(await screen.findByText(REDUCE_MARGIN));
+    await act(async () => {
+      fireEvent.press(await screen.findByText(REDUCE_MARGIN));
+    });
   });
 });
