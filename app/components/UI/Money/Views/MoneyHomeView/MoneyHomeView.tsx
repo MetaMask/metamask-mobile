@@ -171,6 +171,16 @@ const MoneyHomeView = () => {
     isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
 
+  const metamaskCardMode = deriveMoneyMetaMaskCardMode({
+    isCardLinkedToMoneyAccount,
+    isCardholder,
+    isCardAuthenticated,
+    isCardVerified,
+    isResidencyBlocked,
+    hasMoneyAccountBaseRequirements,
+    hasMoneyAccountRequirements,
+  });
+
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
@@ -315,12 +325,14 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const navigateToCardHome = useCallback(() => {
+    const isUpsell = metamaskCardMode === 'upsell';
+
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-      animation: 'slide_from_bottom',
+      ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
     });
-  }, [navigation]);
+  }, [navigation, metamaskCardMode]);
 
   const handleCardHeaderPress = useCallback(() => {
     trackSurfaceClicked({
@@ -580,16 +592,6 @@ const MoneyHomeView = () => {
     },
     [navigation, trackActivitySurfaceClicked],
   );
-
-  const metamaskCardMode = deriveMoneyMetaMaskCardMode({
-    isCardLinkedToMoneyAccount,
-    isCardholder,
-    isCardAuthenticated,
-    isCardVerified,
-    isResidencyBlocked,
-    hasMoneyAccountBaseRequirements,
-    hasMoneyAccountRequirements,
-  });
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
