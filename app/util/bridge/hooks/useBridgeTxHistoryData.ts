@@ -67,6 +67,7 @@ export function useBridgeTxHistoryData({
     bridgeTxHistoryItem: bridgeHistoryItem,
     batchSellHistoryItems: historyItems,
     is7702Batch,
+    batchTotalDestAmount: historyItems?.reduce((acc, item) => acc + parseFloat(item.quote.destTokenAmount), 0),
     isBridgeComplete,
   };
 }
