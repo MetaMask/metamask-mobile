@@ -1,17 +1,12 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  KnownCaipNamespace,
-  parseCaipChainId,
-  toCaipAccountId,
-} from '@metamask/utils';
+import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
 import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
-import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
-import { selectApiEvmTransactions } from './helpers/transformations';
+import { selectTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
 import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
 
@@ -22,30 +17,11 @@ export const useTransactionsQuery = () => {
   const globalEvmAddress = useSelector(selectEvmAddress);
   /** Activity must load EVM history for the group's EVM account when e.g. Bitcoin is selected. */
   const evmAddress = (groupEvmAccount?.address ?? globalEvmAddress ?? '') || '';
-  const enabledNetworks = useSelector(selectEvmEnabledCaipNetworks);
-  const popularNetworkConfigurations = useSelector(
-    selectPopularNetworkConfigurationsByCaipChainId,
-  );
+  const networks = useSelector(selectEvmEnabledCaipNetworks);
   const excludedTxHashes = useSelector(selectRequiredTransactionHashes);
   const accountAddresses = evmAddress
     ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
     : [];
-  const networks = useMemo(() => {
-    const popularEvmNetworks = popularNetworkConfigurations
-      .map((network) => network.caipChainId)
-      .filter(
-        (caipChainId) =>
-          parseCaipChainId(caipChainId).namespace === KnownCaipNamespace.Eip155,
-      );
-    const enabledNetworkSet = new Set(enabledNetworks);
-    const areAllPopularEvmNetworksEnabled =
-      popularEvmNetworks.length > 0 &&
-      popularEvmNetworks.every((network) => enabledNetworkSet.has(network));
-
-    return areAllPopularEvmNetworksEnabled
-      ? popularEvmNetworks
-      : enabledNetworks;
-  }, [enabledNetworks, popularNetworkConfigurations]);
 
   const queryOptions =
     apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions({
@@ -55,7 +31,7 @@ export const useTransactionsQuery = () => {
     });
 
   const selectFn = useMemo(
-    () => selectApiEvmTransactions({ address: evmAddress, excludedTxHashes }),
+    () => selectTransactions({ address: evmAddress, excludedTxHashes }),
     [evmAddress, excludedTxHashes],
   );
 

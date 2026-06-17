@@ -91,7 +91,7 @@ describe('ActivityList transformations', () => {
       ).toBe(true);
     });
 
-    it('keeps direct incoming token transfers and normal outgoing transactions', () => {
+    it('skips incoming token transfers and keeps normal outgoing transactions', () => {
       expect(
         shouldSkipTransaction(
           address,
@@ -112,7 +112,7 @@ describe('ActivityList transformations', () => {
             ],
           }),
         ),
-      ).toBe(false);
+      ).toBe(true);
       expect(shouldSkipTransaction(address, buildTransaction())).toBe(false);
     });
 
@@ -251,7 +251,7 @@ describe('ActivityList transformations', () => {
   });
 
   describe('selectApiEvmTransactions', () => {
-    it('keeps incoming ERC-20 transfers when the account only appears in valueTransfers', () => {
+    it('filters incoming ERC-20 transfers when the account only appears in valueTransfers', () => {
       const incomingTokenTransfer = buildTransaction({
         hash: '0xincoming-token',
         from: otherAddress,
@@ -273,21 +273,10 @@ describe('ActivityList transformations', () => {
         buildData([incomingTokenTransfer]),
       );
 
-      expect(result.pages[0].data).toHaveLength(1);
-      expect(result.pages[0].data[0]).toMatchObject({
-        type: 'receive',
-        chainId: 'eip155:59144',
-        data: {
-          hash: '0xincoming-token',
-          token: {
-            direction: 'in',
-            symbol: 'aUSDC',
-          },
-        },
-      });
+      expect(result.pages[0].data).toHaveLength(0);
     });
 
-    it('keeps incoming NFT transfers and handles uppercase transfer types', () => {
+    it('filters incoming NFT transfers and handles uppercase transfer types', () => {
       const incomingNftTransfer = buildTransaction({
         hash: '0xincoming-nft',
         from: otherAddress,
@@ -310,20 +299,7 @@ describe('ActivityList transformations', () => {
         buildData([incomingNftTransfer]),
       );
 
-      expect(result.pages[0].data).toHaveLength(1);
-      expect(result.pages[0].data[0]).toMatchObject({
-        type: 'receive',
-        data: {
-          hash: '0xincoming-nft',
-          token: {
-            direction: 'in',
-            symbol: 'NFT',
-          },
-        },
-      });
-      expect(
-        'assetId' in (result.pages[0].data[0].data as { token: object }).token,
-      ).toBe(false);
+      expect(result.pages[0].data).toHaveLength(0);
     });
 
     it('still filters incoming native transfers when the account only appears in valueTransfers', () => {

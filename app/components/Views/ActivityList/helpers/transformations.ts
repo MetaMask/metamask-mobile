@@ -17,7 +17,6 @@ import {
   type ActivityAdapterEnvironment,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
-import { isNftTransferType } from '../../../../util/activity-adapters/adapters/helpers';
 import { equalsIgnoreCase } from '../../../../util/string';
 
 export type { ActivityListItem };
@@ -43,21 +42,16 @@ export const isBridgeHistoryForEvmTransaction = (
     );
   });
 
-function hasDirectIncomingTokenValueTransfer(
+function isIncomingTokenTransfer(
   address: string,
   transaction: V1TransactionByHashResponse,
 ) {
   return (
-    transaction.valueTransfers?.some((transfer) => {
-      const isNftTransfer = isNftTransferType(transfer.transferType);
-
-      return (
-        transfer.to?.toLowerCase() === address &&
-        Boolean(transfer.from) &&
-        (Boolean(transfer.contractAddress) || isNftTransfer) &&
-        (transaction.transactionCategory === 'TRANSFER' || isNftTransfer)
-      );
-    }) ?? false
+    (transaction.valueTransfers?.some(
+      (transfer) => transfer.to?.toLowerCase() === address,
+    ) ??
+      false) &&
+    transaction.from?.toLowerCase() !== address
   );
 }
 
@@ -102,16 +96,12 @@ export function shouldSkipTransaction(
   const rawTo = transaction.to?.toLowerCase();
   const hash = transaction.hash?.toLowerCase();
   const hasTopLevelAddressMatch = rawFrom === address || rawTo === address;
-  const hasDirectIncomingTokenTransfer = hasDirectIncomingTokenValueTransfer(
-    address,
-    transaction,
-  );
 
   if (hash && excludedTxHashes?.has(hash)) {
     return true;
   }
 
-  if (!hasTopLevelAddressMatch && !hasDirectIncomingTokenTransfer) {
+  if (!hasTopLevelAddressMatch) {
     return true;
   }
 
@@ -129,7 +119,10 @@ export function shouldSkipTransaction(
     return true;
   }
 
-  return rawFrom !== address && isIncomingNativeTransfer(address, transaction);
+  return (
+    isIncomingTokenTransfer(address, transaction) ||
+    (rawFrom !== address && isIncomingNativeTransfer(address, transaction))
+  );
 }
 
 function transformApiTransactions(

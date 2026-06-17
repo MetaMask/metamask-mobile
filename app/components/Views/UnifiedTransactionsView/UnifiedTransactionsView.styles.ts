@@ -14,17 +14,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingVertical: 40,
     },
-    dateHeader: {
-      backgroundColor: colors.background.default,
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: 0,
-    },
-    dateHeaderText: {
-      color: colors.text.alternative,
-      fontSize: 14,
-      fontWeight: '500',
-    },
     modal: {
       justifyContent: 'flex-end',
       margin: 0,
