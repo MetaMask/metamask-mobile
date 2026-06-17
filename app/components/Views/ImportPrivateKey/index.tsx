@@ -146,7 +146,14 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <View style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper}>
+      <HeaderStandard
+        includesTopInset
+        backButtonProps={{
+          onPress: dismiss,
+          testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
+        }}
+      />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
@@ -159,13 +166,6 @@ const ImportPrivateKey = () => {
         showsVerticalScrollIndicator={false}
       >
         <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
-          <HeaderStandard
-            includesTopInset
-            backButtonProps={{
-              onPress: dismiss,
-              testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
-            }}
-          />
           <TitleStandard
             title={strings('import_private_key.title')}
             bottomAccessory={
@@ -237,21 +237,24 @@ const ImportPrivateKey = () => {
             </View>
           </View>
         </View>
-        <SafeAreaView edges={['bottom']} style={styles.buttonWrapper}>
-          <Button
-            onPress={() => goNext()}
-            label={strings('import_private_key.cta_text')}
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            loading={loading}
-            isDisabled={loading}
-            testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
-          />
-        </SafeAreaView>
       </KeyboardAwareScrollView>
+      <SafeAreaView
+        edges={['bottom', 'left', 'right']}
+        style={styles.buttonWrapper}
+      >
+        <Button
+          onPress={() => goNext()}
+          label={strings('import_private_key.cta_text')}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          loading={loading}
+          isDisabled={loading}
+          testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
+        />
+      </SafeAreaView>
       <ScreenshotDeterrent enabled isSRP={false} />
-    </View>
+    </SafeAreaView>
   );
 };
 
