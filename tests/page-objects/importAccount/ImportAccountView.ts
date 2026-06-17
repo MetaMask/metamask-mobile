@@ -4,6 +4,7 @@ import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { ImportAccountFromPrivateKeyIDs } from '../../../app/components/Views/ImportPrivateKey/ImportAccountFromPrivateKey.testIds';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { PlatformDetector } from '../../framework';
 
 class ImportAccountView {
   get container(): EncapsulatedElementType {
@@ -41,7 +42,13 @@ class ImportAccountView {
           elemDescription: 'Private key input field',
           hideKeyboard: false,
         });
-        await PlaywrightGestures.tapKeyboardReturnKey('Next');
+        if (PlatformDetector.isIOS()) {
+          await PlaywrightGestures.tapKeyboardReturnKey('Next');
+        } else {
+          await Gestures.waitAndTap(this.importButton, {
+            elemDescription: 'Import Button',
+          });
+        }
       },
     });
   }

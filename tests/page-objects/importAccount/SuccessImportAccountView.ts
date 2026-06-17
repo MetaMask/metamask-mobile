@@ -7,6 +7,7 @@ import {
   asPlaywrightElement,
   Utilities,
   EncapsulatedElementType,
+  Assertions,
 } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
@@ -43,26 +44,17 @@ class SuccessImportAccountView {
     await encapsulatedAction({
       detox: async () => {
         await device.pressBack();
-        await device.tap();
-        await Utilities.waitForElementToBeVisible(
-          asDetoxElement(WalletView.container),
-        );
-        await WalletView.tapIdenticon();
       },
       appium: async () => {
-        const driver = getDriver();
-        if (!driver) {
+        const drv = getDriver();
+        if (!drv) {
           throw new Error('Driver is not available');
         }
-        await driver.back();
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.container),
-          {
-            description: 'Wallet screen',
-            timeout: 15_000,
-          },
-        );
-        await WalletView.tapIdenticon();
+        await drv.back();
+        await Assertions.expectElementToNotBeVisible(this.closeButton, {
+          description: 'Success Import Account modal',
+          timeout: 15_000,
+        });
       },
     });
   }
