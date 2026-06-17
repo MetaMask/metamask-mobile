@@ -19,6 +19,30 @@ const mockedEnsureValidState = jest.mocked(ensureValidState);
 
 const unitTestInfuraId = 'unitTestInfuraId';
 
+interface EnablementState {
+  enabledNetworkMap: {
+    eip155: Record<string, boolean>;
+  };
+}
+
+const popularNetworkEnablementState: EnablementState = {
+  enabledNetworkMap: {
+    eip155: {
+      '0x1': true,
+      '0xe708': true,
+      '0x2105': true,
+    },
+  },
+};
+
+const singleNetworkEnablementState: EnablementState = {
+  enabledNetworkMap: {
+    eip155: {
+      '0x1': true,
+    },
+  },
+};
+
 const baseState = {
   engine: {
     backgroundState: {
@@ -42,6 +66,7 @@ const baseState = {
         },
         selectedNetworkClientId: 'mainnet',
       },
+      NetworkEnablementController: cloneDeep(popularNetworkEnablementState),
     },
   },
 };
@@ -192,5 +217,117 @@ describe(`Migration ${migrationVersion}: Add Arc network`, () => {
         message: expect.stringContaining('Unexpected error'),
       }),
     );
+  });
+
+  describe('NetworkEnablementController', () => {
+    it('adds Arc as enabled when user is in popular networks mode (>1 enabled)', () => {
+      const state = cloneDeep(baseState);
+      state.engine.backgroundState.NetworkEnablementController =
+        cloneDeep(popularNetworkEnablementState);
+
+      const result = migrate(state) as typeof baseState;
+
+      const enablementMap = (
+        result.engine.backgroundState as Record<string, unknown>
+      ).NetworkEnablementController as EnablementState;
+
+      expect(enablementMap.enabledNetworkMap.eip155[ARC_CHAIN_ID]).toBe(true);
+    });
+
+    it('adds Arc as disabled when user has only one network enabled', () => {
+      const state = cloneDeep(baseState);
+      state.engine.backgroundState.NetworkEnablementController =
+        cloneDeep(singleNetworkEnablementState);
+
+      const result = migrate(state) as typeof baseState;
+
+      const enablementMap = (
+        result.engine.backgroundState as Record<string, unknown>
+      ).NetworkEnablementController as EnablementState;
+
+      expect(enablementMap.enabledNetworkMap.eip155[ARC_CHAIN_ID]).toBe(false);
+    });
+
+    it('does not overwrite Arc in enablement map if already present', () => {
+      const state = cloneDeep(baseState);
+      state.engine.backgroundState.NetworkEnablementController = {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+            '0xe708': true,
+            [ARC_CHAIN_ID]: false,
+          },
+        },
+      };
+
+      const result = migrate(state) as typeof baseState;
+
+      const enablementMap = (
+        result.engine.backgroundState as Record<string, unknown>
+      ).NetworkEnablementController as EnablementState;
+
+      expect(enablementMap.enabledNetworkMap.eip155[ARC_CHAIN_ID]).toBe(false);
+    });
+
+    it('skips enablement migration gracefully if NetworkEnablementController is missing', () => {
+      const state = cloneDeep(baseState);
+      delete (state.engine.backgroundState as Record<string, unknown>)
+        .NetworkEnablementController;
+
+      const result = migrate(state) as Record<string, unknown>;
+      const backgroundState = (result.engine as Record<string, unknown>)
+        .backgroundState as Record<string, unknown>;
+
+      const networkController = backgroundState.NetworkController as Record<
+        string,
+        unknown
+      >;
+      const configs = networkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >;
+      expect(configs[ARC_CHAIN_ID]).toBeDefined();
+      expect(backgroundState.NetworkEnablementController).toBeUndefined();
+    });
+
+    it('skips enablement migration if enabledNetworkMap is invalid', () => {
+      const state = cloneDeep(baseState);
+      (
+        state.engine.backgroundState as Record<string, unknown>
+      ).NetworkEnablementController = { enabledNetworkMap: 'invalid' };
+
+      const result = migrate(state) as typeof baseState;
+
+      const configs = result.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId as Record<string, unknown>;
+      expect(configs[ARC_CHAIN_ID]).toBeDefined();
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'NetworkEnablementController',
+          ),
+        }),
+      );
+    });
+
+    it('skips enablement migration if eip155 namespace is missing', () => {
+      const state = cloneDeep(baseState);
+      (
+        state.engine.backgroundState as Record<string, unknown>
+      ).NetworkEnablementController = {
+        enabledNetworkMap: { solana: {} },
+      };
+
+      const result = migrate(state) as typeof baseState;
+
+      const configs = result.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId as Record<string, unknown>;
+      expect(configs[ARC_CHAIN_ID]).toBeDefined();
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('missing property eip155'),
+        }),
+      );
+    });
   });
 });

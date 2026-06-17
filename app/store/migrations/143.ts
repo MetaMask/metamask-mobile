@@ -5,6 +5,7 @@ import {
   Hex,
   isHexString,
   isObject,
+  KnownCaipNamespace,
 } from '@metamask/utils';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -93,6 +94,28 @@ export default function migrate(versionedState: unknown) {
     (networkConfigurationsByChainId as Record<string, unknown>)[ARC_CHAIN_ID] =
       arcConfiguration;
 
+    const networkEnablementState =
+      validateNetworkEnablementController(state);
+    if (networkEnablementState === undefined) {
+      console.warn(
+        `Migration ${migrationVersion}: Missing or invalid NetworkEnablementController state, skip the NetworkEnablementController migration`,
+      );
+    } else {
+      const eip155NetworkMap =
+        networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155];
+
+      if (!hasProperty(eip155NetworkMap, ARC_CHAIN_ID)) {
+        const enabledCount =
+          Object.values(eip155NetworkMap).filter(Boolean).length;
+        // Mirror the NetworkEnablementController._onAddNetwork behaviour:
+        // if the user is in "popular networks" mode (>1 enabled), auto-enable
+        // Arc; otherwise add it as disabled so single-network users are not
+        // disrupted.
+        (eip155NetworkMap as Record<string, boolean>)[ARC_CHAIN_ID] =
+          enabledCount > 1;
+      }
+    }
+
     return state;
   } catch (error) {
     console.error(error);
@@ -169,6 +192,98 @@ function isValidNetworkConfigurationsByChainId(
     isObject(value) &&
     Object.entries(value).every(
       ([chainId]) => typeof chainId === 'string' && isHexString(chainId),
+    )
+  );
+}
+
+function validateNetworkEnablementController(state: ValidState):
+  | {
+      enabledNetworkMap: {
+        [KnownCaipNamespace.Eip155]: Record<string, boolean>;
+      };
+    }
+  | undefined {
+  if (
+    !hasProperty(state.engine.backgroundState, 'NetworkEnablementController')
+  ) {
+    return undefined;
+  }
+
+  const networkEnablementState =
+    state.engine.backgroundState.NetworkEnablementController;
+
+  if (!isValidNetworkEnablementControllerState(networkEnablementState)) {
+    return undefined;
+  }
+
+  return networkEnablementState;
+}
+
+function isValidNetworkEnablementControllerState(value: unknown): value is {
+  enabledNetworkMap: {
+    [KnownCaipNamespace.Eip155]: Record<string, boolean>;
+  };
+} {
+  if (!isObject(value)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkEnablementController state: '${typeof value}'`,
+      ),
+    );
+    return false;
+  }
+
+  if (!hasProperty(value, 'enabledNetworkMap')) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkEnablementController state: missing property enabledNetworkMap.`,
+      ),
+    );
+    return false;
+  }
+
+  if (!isObject(value.enabledNetworkMap)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkEnablementController state: enabledNetworkMap is not an object: ${typeof value.enabledNetworkMap}.`,
+      ),
+    );
+    return false;
+  }
+
+  if (!hasProperty(value.enabledNetworkMap, KnownCaipNamespace.Eip155)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkEnablementController state: enabledNetworkMap missing property eip155.`,
+      ),
+    );
+    return false;
+  }
+
+  if (
+    !isValidEip155NetworkMap(
+      value.enabledNetworkMap[KnownCaipNamespace.Eip155],
+    )
+  ) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkEnablementController state: enabledNetworkMap[eip155] is not valid.`,
+      ),
+    );
+    return false;
+  }
+
+  return true;
+}
+
+function isValidEip155NetworkMap(
+  value: unknown,
+): value is Record<string, boolean> {
+  return (
+    isObject(value) &&
+    Object.entries(value).every(
+      ([chainId, isEnabled]) =>
+        typeof chainId === 'string' && typeof isEnabled === 'boolean',
     )
   );
 }
