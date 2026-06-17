@@ -437,6 +437,7 @@ class TransactionElement extends PureComponent {
           ? transactionIconInteractionFailed
           : transactionIconInteraction;
         break;
+      case TRANSACTION_TYPES.BATCH_SELL_TRANSACTION:
       case TRANSACTION_TYPES.SWAPS_TRANSACTION:
         icon = isFailedTransaction
           ? transactionIconSwapFailed

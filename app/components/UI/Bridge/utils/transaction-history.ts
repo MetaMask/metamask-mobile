@@ -303,6 +303,7 @@ export const decodeBatchSellTx = (args: {
     {
       value: `${destAmount} ${destAsset.symbol}`,
       fiatValue: destFiatValue,
+      transactionType: TRANSACTION_TYPES.BATCH_SELL_TRANSACTION,
       actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch),
     },
     {},
