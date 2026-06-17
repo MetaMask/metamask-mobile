@@ -143,6 +143,7 @@ _code_fencing_main: &code_fencing_main
   - solana
   - bitcoin
   - tron
+  - stellar
 
 # Beta code fencing features (main + beta feature)
 _code_fencing_beta: &code_fencing_beta
@@ -153,6 +154,7 @@ _code_fencing_beta: &code_fencing_beta
   - solana
   - bitcoin
   - tron
+  - stellar
 
 # Experimental code fencing features (main + experimental)
 _code_fencing_experimental: &code_fencing_experimental
@@ -162,6 +164,7 @@ _code_fencing_experimental: &code_fencing_experimental
   - solana
   - bitcoin
   - tron
+  - stellar
   - experimental
 
 # Flask code fencing features (includes experimental)
@@ -173,6 +176,7 @@ _code_fencing_flask: &code_fencing_flask
   - solana
   - bitcoin
   - tron
+  - stellar
 
 # =============================================================================
 # Build Configurations

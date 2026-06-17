@@ -16,6 +16,9 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  XlmScope,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
@@ -23,6 +26,9 @@ import { createDeepEqualSelector } from '../util';
 import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import { selectIsStellarChainVisible } from '../multichain/stellar';
 ///: END:ONLY_INCLUDE_IF
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
@@ -55,12 +61,18 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     selectIsBitcoinTestnetEnabled,
     ///: END:ONLY_INCLUDE_IF
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    selectIsStellarChainVisible,
+    ///: END:ONLY_INCLUDE_IF
   ],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
     isSolanaTestnetEnabled: Json,
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     isBitcoinTestnetEnabled: Json,
+    ///: END:ONLY_INCLUDE_IF
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    isStellarChainVisible: boolean,
     ///: END:ONLY_INCLUDE_IF
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
@@ -141,6 +153,21 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         isTestnet: true,
       },
       ///: END:ONLY_INCLUDE_IF(tron)
+      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+      [XlmScope.Pubnet]: {
+        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[XlmScope.Pubnet] ?? 7,
+        imageSource: imageIcons.STELLAR,
+        ticker: MULTICHAIN_NETWORK_TICKER[XlmScope.Pubnet] ?? 'XLM',
+        isTestnet: false,
+      },
+      [XlmScope.Testnet]: {
+        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[XlmScope.Testnet] ?? 7,
+        imageSource: imageIcons.STELLAR,
+        ticker: MULTICHAIN_NETWORK_TICKER[XlmScope.Testnet] ?? 'XLM',
+        isTestnet: true,
+        name: 'Stellar Testnet',
+      },
+      ///: END:ONLY_INCLUDE_IF(stellar)
     };
 
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -161,6 +188,9 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       // TODO: Uncomment these when we have a FF to enable them
       // TrxScope.Nile,
       // TrxScope.Shasta,
+      ///: END:ONLY_INCLUDE_IF
+      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+      ...(isStellarChainVisible ? [XlmScope.Pubnet, XlmScope.Testnet] : []),
       ///: END:ONLY_INCLUDE_IF
     ];
 
@@ -322,6 +352,23 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       return [
         {
           caipChainId: TrxScope.Shasta,
+        },
+      ];
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    if (account.scopes.includes(XlmScope.Pubnet)) {
+      return [
+        {
+          caipChainId: XlmScope.Pubnet,
+        },
+      ];
+    }
+    if (account.scopes.includes(XlmScope.Testnet)) {
+      return [
+        {
+          caipChainId: XlmScope.Testnet,
         },
       ];
     }

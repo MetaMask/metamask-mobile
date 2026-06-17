@@ -18,7 +18,7 @@ import { RootState } from '../../../reducers';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AddNewAccountIds } from './AddHdAccount.testIds';
 import Logger from '../../../util/Logger';
-import { SolAccountType, TrxScope } from '@metamask/keyring-api';
+import { SolAccountType, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockNavigate = jest.fn();
@@ -48,6 +48,7 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
     Bitcoin: 'bitcoin',
     Solana: 'solana',
     Tron: 'tron',
+    Stellar: 'stellar',
   },
   MultichainWalletSnapFactory: {
     createClient: jest
@@ -233,6 +234,10 @@ describe('AddNewAccount', () => {
         scope: TrxScope.Mainnet,
         clientType: WalletClientType.Tron,
       },
+      {
+        scope: XlmScope.Pubnet,
+        clientType: WalletClientType.Stellar,
+      },
     ])(
       'handles error when creating $clientType account fails',
       async ({ scope, clientType }) => {
@@ -285,6 +290,11 @@ describe('AddNewAccount', () => {
         scope: TrxScope.Mainnet,
         clientType: WalletClientType.Tron,
         expectedHeader: 'account_actions.headers.tron',
+      },
+      {
+        scope: XlmScope.Pubnet,
+        clientType: WalletClientType.Stellar,
+        expectedHeader: 'account_actions.headers.stellar',
       },
     ])(
       'shows the correct header for $clientType',

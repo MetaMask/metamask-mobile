@@ -6,6 +6,8 @@ import {
   SolScope,
   TrxAccountType,
   TrxScope,
+  XlmAccountType,
+  XlmScope,
 } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { MultichainBlockExplorerFormatUrls } from './networks';
@@ -23,6 +25,8 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [TrxScope.Mainnet]: imageIcons.TRON,
   [TrxScope.Nile]: imageIcons.TRON,
   [TrxScope.Shasta]: imageIcons.TRON,
+  [XlmScope.Pubnet]: imageIcons.STELLAR,
+  [XlmScope.Testnet]: imageIcons.STELLAR,
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
@@ -82,6 +86,16 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     address: 'https://shasta.tronscan.org/#/address/{address}',
     transaction: 'https://shasta.tronscan.org/#/transaction/{txId}',
   },
+  [XlmScope.Pubnet]: {
+    url: 'https://stellar.expert',
+    address: 'https://stellar.expert/explorer/public/account/{address}',
+    transaction: 'https://stellar.expert/explorer/public/tx/{txId}',
+  },
+  [XlmScope.Testnet]: {
+    url: 'https://stellar.expert',
+    address: 'https://stellar.expert/explorer/testnet/account/{address}',
+    transaction: 'https://stellar.expert/explorer/testnet/tx/{txId}',
+  },
 } as const;
 
 export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
@@ -91,6 +105,7 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [BtcAccountType.P2tr]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
   [TrxAccountType.Eoa]: TrxScope.Mainnet,
+  [XlmAccountType.Account]: XlmScope.Pubnet,
 } as const;
 
 export const PRICE_API_CURRENCIES = [

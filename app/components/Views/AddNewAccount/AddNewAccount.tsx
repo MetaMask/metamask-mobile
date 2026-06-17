@@ -153,6 +153,12 @@ const AddNewAccount = ({
         return strings('account_actions.add_multichain_account', {
           networkName: strings('account_actions.headers.tron'),
         });
+      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+      case WalletClientType.Stellar:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.stellar'),
+        });
+      ///: END:ONLY_INCLUDE_IF
       default:
         return strings('account_actions.add_account');
     }

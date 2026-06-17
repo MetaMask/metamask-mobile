@@ -82,6 +82,10 @@ export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
 
 export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
 
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+export const STELLAR_DISCOVERY_PENDING = `${prefix}stellarDiscoveryPending`;
+///: END:ONLY_INCLUDE_IF
+
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBannerDismissed`;

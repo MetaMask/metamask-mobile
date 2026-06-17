@@ -12,6 +12,9 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  XlmScope,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
@@ -26,6 +29,10 @@ const getClientType = (chainId: string) => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
   } else if (Object.values(TrxScope).includes(chainId as TrxScope)) {
     clientType = WalletClientType.Tron;
+    ///: END:ONLY_INCLUDE_IF
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  } else if (Object.values(XlmScope).includes(chainId as XlmScope)) {
+    clientType = WalletClientType.Stellar;
     ///: END:ONLY_INCLUDE_IF
   } else {
     throw new Error(`Unsupported chainId: ${chainId}`);

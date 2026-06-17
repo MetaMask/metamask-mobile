@@ -11,6 +11,9 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  XlmScope,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 import {
@@ -30,6 +33,13 @@ import {
   TronWalletSnapSender,
 } from './TronWalletSnap';
 ///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import {
+  STELLAR_WALLET_SNAP_ID,
+  STELLAR_WALLET_NAME,
+  StellarWalletSnapSender,
+} from './StellarWalletSnap';
+///: END:ONLY_INCLUDE_IF
 import Engine from '../Engine';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { store } from '../../store';
@@ -48,6 +58,9 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON_DISCOVERY_PENDING,
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  STELLAR_DISCOVERY_PENDING,
+  ///: END:ONLY_INCLUDE_IF
 } from '../../constants/storage';
 
 export enum WalletClientType {
@@ -61,6 +74,10 @@ export enum WalletClientType {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   Tron = 'tron',
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  Stellar = 'stellar',
   ///: END:ONLY_INCLUDE_IF
 }
 
@@ -89,6 +106,15 @@ export const WALLET_SNAP_MAP = {
     name: TRON_WALLET_NAME,
     discoveryScope: TrxScope.Mainnet,
     discoveryStorageId: TRON_DISCOVERY_PENDING,
+  },
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  [WalletClientType.Stellar]: {
+    id: STELLAR_WALLET_SNAP_ID,
+    name: STELLAR_WALLET_NAME,
+    discoveryScope: XlmScope.Pubnet,
+    discoveryStorageId: STELLAR_DISCOVERY_PENDING,
   },
   ///: END:ONLY_INCLUDE_IF
 };
@@ -391,6 +417,29 @@ export class TronWalletSnapClient extends MultichainWalletSnapClient {
 }
 ///: END:ONLY_INCLUDE_IF
 
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+export class StellarWalletSnapClient extends MultichainWalletSnapClient {
+  constructor(snapKeyringOptions: SnapKeyringOptions) {
+    super(STELLAR_WALLET_SNAP_ID, STELLAR_WALLET_NAME, snapKeyringOptions);
+  }
+
+  getClientType(): WalletClientType {
+    return WalletClientType.Stellar;
+  }
+
+  protected getSnapSender(): Sender {
+    return new StellarWalletSnapSender();
+  }
+
+  async createAccount(
+    options: MultichainWalletSnapOptions,
+    snapKeyringOptions?: SnapKeyringOptions,
+  ) {
+    return super.createAccount(options, snapKeyringOptions);
+  }
+}
+///: END:ONLY_INCLUDE_IF
+
 export class MultichainWalletSnapFactory {
   private static defaultOptions: SnapKeyringOptions = {
     displayConfirmation: false,
@@ -415,6 +464,10 @@ export class MultichainWalletSnapFactory {
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       case WalletClientType.Tron:
         return new TronWalletSnapClient(snapKeyringOptions);
+      ///: END:ONLY_INCLUDE_IF
+      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+      case WalletClientType.Stellar:
+        return new StellarWalletSnapClient(snapKeyringOptions);
       ///: END:ONLY_INCLUDE_IF
       default:
         throw new Error(`Unsupported client type: ${clientType}`);

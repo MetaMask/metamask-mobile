@@ -1,4 +1,4 @@
-import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { WalletClientType } from '../MultichainWalletSnapClient';
@@ -83,6 +83,23 @@ export function getMultichainAccountName(
       }
       break;
     }
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    case WalletClientType.Stellar: {
+      switch (scope) {
+        case XlmScope.Testnet:
+          accountNameToUse = `${strings(
+            'accounts.labels.stellar_testnet_account_name',
+          )} ${accountNumber}`;
+          break;
+        default:
+          accountNameToUse = `${strings(
+            'accounts.labels.stellar_account_name',
+          )} ${accountNumber}`;
+          break;
+      }
+      break;
+    }
+    ///: END:ONLY_INCLUDE_IF
     default:
       break;
   }

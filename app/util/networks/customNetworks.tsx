@@ -10,6 +10,9 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  XlmScope,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
@@ -250,6 +253,12 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
     case TrxScope.Shasta:
       return require('../../images/tron.png');
     ///: END:ONLY_INCLUDE_IF(tron)
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    case XlmScope.Pubnet:
+      return require('../../images/stellar-logo.png');
+    case XlmScope.Testnet:
+      return require('../../images/stellar-logo.png');
+    ///: END:ONLY_INCLUDE_IF(stellar)
     default:
       return undefined;
   }

@@ -16,6 +16,7 @@ import {
   SolScope,
   Transaction as NonEvmTransaction,
   TrxScope,
+  XlmScope,
 } from '@metamask/keyring-api';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -358,6 +359,13 @@ export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
         if (
           String(token.chainId).startsWith('tron:') &&
           token.chainId !== TrxScope.Mainnet
+        ) {
+          continue;
+        }
+        // We just need stellar pubnet, at least for now
+        if (
+          String(token.chainId).startsWith('stellar:') &&
+          token.chainId !== XlmScope.Pubnet
         ) {
           continue;
         }
