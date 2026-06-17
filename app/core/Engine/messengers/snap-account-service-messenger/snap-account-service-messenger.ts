@@ -35,7 +35,7 @@ export function getSnapAccountServiceMessenger(
     actions: [
       'KeyringController:withController',
       'KeyringController:getState',
-      'KeyringController:withKeyringUnsafe',
+      'KeyringController:withKeyringV2Unsafe',
       'SnapController:getState',
       'SnapController:getSnap',
       'SnapController:getRunnableSnaps',
