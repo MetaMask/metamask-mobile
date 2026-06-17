@@ -69,25 +69,6 @@ const makeVedaDelegationSettings = () => ({
   _links: { self: '/v1/delegation/chain/config' },
 });
 
-const VEDA_ADDRESS = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae';
-const VEDA_DELEGATION_CONTRACT = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
-
-const makeVedaDelegationSettings = () => ({
-  networks: [
-    {
-      network: 'monad',
-      environment: 'staging',
-      chainId: '143',
-      delegationContract: VEDA_DELEGATION_CONTRACT,
-      tokens: {
-        veda: { symbol: 'veda', decimals: 6, address: VEDA_ADDRESS },
-      },
-    },
-  ],
-  count: 1,
-  _links: { self: '/v1/delegation/chain/config' },
-});
-
 const MONAD_VEDA_FEATURE_FLAG = {
   chains: {
     'eip155:143': {
@@ -825,9 +806,6 @@ describe('selectCardAvailableTokens', () => {
       mockSelectSelectedInternalAccountByScope.mockReturnValue(
         jest.fn().mockReturnValue({ address: WALLET_A }),
       );
-      mockSelectMoneyAccounts.mockReturnValue({
-        'ma-1': { address: WALLET_A },
-      });
       const homeData = {
         ...mockCardHomeData,
         fundingAssets: [],
@@ -997,10 +975,13 @@ describe('selectCardAvailableTokens', () => {
       mockSelectSelectedInternalAccountByScope.mockReturnValue(
         jest.fn().mockReturnValue({ address: WALLET_A } as InternalAccount),
       );
-      const state = createMockRootState({
-        cardHomeData:
-          cardHomeDataWithVeda as unknown as CardControllerState['cardHomeData'],
-      });
+      const state = createMockRootState(
+        {
+          cardHomeData:
+            cardHomeDataWithVeda as unknown as CardControllerState['cardHomeData'],
+        },
+        MONAD_VEDA_FEATURE_FLAG,
+      );
       const tokens = selectCardAvailableTokens(state);
       const placeholder = tokens.find(
         (t) => t.fundingStatus === FundingStatus.NotEnabled,
