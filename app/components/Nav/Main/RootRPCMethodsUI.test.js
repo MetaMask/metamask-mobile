@@ -159,6 +159,7 @@ describe('RootRPCMethodsUI', () => {
         address: LEDGER_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
+        ensureDeviceReadyOptions: { requireBlindSigning: true },
         setPendingOperationAddress: expect.any(Function),
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
