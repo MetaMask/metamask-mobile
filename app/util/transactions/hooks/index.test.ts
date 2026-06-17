@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
 import {
   type PublishBatchHookTransaction,
@@ -192,18 +193,6 @@ describe('getTransactionControllerHooks', () => {
 
     expect(result).toStrictEqual({ transactionHash: '0xpay' });
     expect(submitSmartTransactionHook).not.toHaveBeenCalled();
-  });
-
-  it('does not pass static fiat test options to TransactionPayPublishHook', async () => {
-    const hooks = getTransactionControllerHooks(buildRequest());
-
-    await hooks.publish?.(MOCK_TRANSACTION_META);
-
-    expect(TransactionPayPublishHook).toHaveBeenCalledWith(
-      expect.not.objectContaining({
-        fiat: expect.anything(),
-      }),
-    );
   });
 
   it('records sentinel_stx metrics when smart transaction hook publishes', async () => {

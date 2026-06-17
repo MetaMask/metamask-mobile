@@ -120,15 +120,15 @@ describe('Transaction Pay Controller Init', () => {
     expect(polymarket).toBe(polymarketCallbacksMock);
   });
 
-  it('wires fiat test options through a controller messenger action callback', () => {
+  it('wires fiat test options through controller options', () => {
     const fiatOptions = {
       testAmountOverride: '0.1',
       testFundingSource: '0x123' as const,
     };
     jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue(fiatOptions);
 
-    const getFiatOptions = testConstructorOption('getFiatOptions');
+    const result = testConstructorOption('fiatOptions');
 
-    expect(getFiatOptions?.()).toBe(fiatOptions);
+    expect(result).toBe(fiatOptions);
   });
 });

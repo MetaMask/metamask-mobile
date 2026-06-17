@@ -3,7 +3,6 @@ import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
-  type TransactionPayControllerOptions,
 } from '@metamask/transaction-pay-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { getAmountData } from './amount-data-callback';
@@ -20,21 +19,17 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
   const { controllerMessenger, initMessenger, persistedState } = request;
 
   try {
-    const controllerOptions: TransactionPayControllerOptions = {
+    const transactionPayController = new TransactionPayController({
       getAmountData,
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getFiatOptions: getTransactionPayFiatTestOptions,
+      fiatOptions: getTransactionPayFiatTestOptions(),
       getPaymentOverrideData: (paymentOverrideRequest) =>
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,
-    };
-
-    const transactionPayController = new TransactionPayController(
-      controllerOptions,
-    );
+    });
 
     return { controller: transactionPayController };
   } catch (error) {
