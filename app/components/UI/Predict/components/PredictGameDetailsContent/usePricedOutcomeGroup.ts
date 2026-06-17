@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type {
   GetPriceResponse,
   PredictOutcome,
@@ -188,17 +188,24 @@ export const usePricedOutcomeGroup = (
       return undefined;
     }
 
-    const nextGroup = applyPricesToGroup(
+    return applyPricesToGroup(
       selectedGroup,
       prices,
       previousSelectedGroupRef.current,
       previousPricedOutcomesRef.current,
     );
+  }, [selectedGroup, prices]);
+
+  useEffect(() => {
+    if (!selectedGroup || !pricedGroup) {
+      previousSelectedGroupRef.current = null;
+      previousPricedOutcomesRef.current = [];
+      return;
+    }
 
     previousSelectedGroupRef.current = selectedGroup;
-    previousPricedOutcomesRef.current = flattenGroupOutcomes(nextGroup);
-    return nextGroup;
-  }, [selectedGroup, prices]);
+    previousPricedOutcomesRef.current = flattenGroupOutcomes(pricedGroup);
+  }, [selectedGroup, pricedGroup]);
 
   return pricedGroup;
 };
