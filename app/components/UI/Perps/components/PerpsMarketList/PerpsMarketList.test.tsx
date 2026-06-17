@@ -19,7 +19,10 @@ const mockRowMountCount = { value: 0 };
 // Records the `onPress` reference each row receives, keyed by symbol, so tests
 // can assert the reference is stable across re-renders (so React.memo on the
 // real row is not defeated by a new closure on every render).
-const mockRowOnPressBySymbol: Record<string, ((market: PerpsMarketData) => void)[]> = {};
+const mockRowOnPressBySymbol: Record<
+  string,
+  ((market: PerpsMarketData) => void)[]
+> = {};
 
 // Mock dependencies
 jest.mock('@shopify/flash-list', () => {
