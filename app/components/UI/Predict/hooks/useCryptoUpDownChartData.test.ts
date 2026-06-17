@@ -216,6 +216,78 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    it('keeps loading when only one point sits near the live edge (post-reconnect)', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      // Two points survive the 60s retention buffer, but they are >30s apart so
+      // only the newest falls inside the live window. Liveline can't draw a line
+      // from a single in-window point, so the hook must keep the spinner up
+      // instead of handing over data that renders as a blank canvas.
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 1000,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 52000,
+          timestamp: 1040,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 1000, value: 51000 },
+        { time: 1040, value: 52000 },
+      ]);
+      expect(result.current.loading).toBe(true);
+
+      // A second point lands inside the window -> enough to draw -> spinner off.
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 52500,
+          timestamp: 1055,
+        });
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('keeps loading when future historical data falls outside the live viewport', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [{ time: 1080, value: 53000 }];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual([{ time: 1080, value: 53000 }]);
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 52000,
+          timestamp: 1040,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 1040, value: 52000 },
+        { time: 1080, value: 53000 },
+      ]);
+      expect(result.current.loading).toBe(true);
+    });
+
     it('preserves second-based live timestamps', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
@@ -1267,6 +1339,7 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
+        connectionError: false,
       });
     });
 
@@ -1354,6 +1427,7 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
+        connectionError: false,
       });
       expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
         '',
@@ -1382,6 +1456,7 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
+        connectionError: false,
       });
     });
 
@@ -1415,6 +1490,159 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.isLive).toBe(true);
       expect(result.current.loading).toBe(true);
       expect(result.current.value).toBe(0);
+    });
+  });
+
+  describe('stream robustness', () => {
+    it('shows loading again when the live stream goes stale, then recovers on the next tick', () => {
+      const { Wrapper } = createWrapper();
+      // End date well beyond the stale timeout so the market stays live for the
+      // duration of the advance and we exercise the stale-stream path rather
+      // than market expiry.
+      const market = createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51500,
+          timestamp: 110,
+        });
+      });
+
+      expect(result.current.loading).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(30_001);
+      });
+
+      expect(result.current.loading).toBe(true);
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 52000,
+          timestamp: 120,
+        });
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  describe('connection error', () => {
+    it('surfaces a connection error when a live market produces no live data for the grace period', async () => {
+      const { Wrapper } = createWrapper();
+      // Keep the market live well past the grace timeout.
+      const market = createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+      expect(result.current.connectionError).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+
+      expect(result.current.connectionError).toBe(true);
+    });
+
+    it('keeps the live subscription active while the connection error is shown', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+
+      expect(result.current.connectionError).toBe(true);
+      // Still subscribed to the live stream (non-empty symbol) so the chart can
+      // recover automatically once data flows again.
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        'btc/usd',
+        expect.any(Function),
+      );
+    });
+
+    it('clears the connection error once live data arrives', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+      expect(result.current.connectionError).toBe(true);
+
+      // Two ticks make the chart renderable again -> outage resolved.
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51500,
+          timestamp: 110,
+        });
+      });
+
+      expect(result.current.connectionError).toBe(false);
+    });
+
+    it('does not surface a connection error when data arrives before the grace period', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51500,
+          timestamp: 110,
+        });
+      });
+
+      expect(result.current.connectionError).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+
+      expect(result.current.connectionError).toBe(false);
     });
   });
 });

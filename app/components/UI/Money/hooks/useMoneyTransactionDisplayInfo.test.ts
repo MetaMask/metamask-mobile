@@ -12,10 +12,23 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { useMoneyTransactionDisplayInfo } from './useMoneyTransactionDisplayInfo';
+import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+
+// The async ramp-order lookup is tested in useFiatPaymentMethodName.test.ts;
+// here we defaults to undefined so deposit rows fall back to the default label.
+jest.mock('./useFiatPaymentMethodName', () => ({
+  useFiatPaymentMethodName: jest.fn(),
+}));
+
+const mockUseFiatPaymentMethodName = jest.mocked(useFiatPaymentMethodName);
+
+beforeEach(() => {
+  mockUseFiatPaymentMethodName.mockReturnValue(undefined);
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -928,7 +941,7 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
     expect(result.current.description).toBe('mUSD → USDC');
   });
 
-  it('deposited (fiat on-ramp) → provider name', () => {
+  it('deposited (fiat on-ramp) → provider name when the payment method is unresolved', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
     });
@@ -937,6 +950,19 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
       { state: makeState() },
     );
     expect(result.current.description).toBe('Transak');
+  });
+
+  it('deposited (fiat on-ramp) → payment-method name when resolved', () => {
+    // The payment method (e.g. "Apple Pay") is preferred over the provider name.
+    mockUseFiatPaymentMethodName.mockReturnValue('Apple Pay');
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('Apple Pay');
   });
 
   it('deposited (mUSD top-up) → "mUSD"', () => {

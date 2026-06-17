@@ -11,9 +11,11 @@ import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
+  selectIsCardVerified,
   selectIsCardholder,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
+  selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
 } from '../../../../selectors/cardController';
 import {
@@ -158,6 +160,7 @@ const buildSelectors = (
     vaultConfig?: { chainId?: string } | undefined;
     isMoneyAccountEnabled?: boolean;
     isCardAuthenticated?: boolean;
+    isCardVerified?: boolean;
     isCardholder?: boolean;
     delegationSettings?: unknown;
     isAlreadyDelegated?: boolean;
@@ -167,12 +170,14 @@ const buildSelectors = (
     moneyAccountCardLinkInProgress?: boolean;
     cardFeatureFlag?: unknown;
     vedaConfig?: unknown;
+    isResidencyBlocked?: boolean;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
   vaultConfig: { chainId: '0x8f' },
   isMoneyAccountEnabled: true,
   isCardAuthenticated: true,
+  isCardVerified: true,
   isCardholder: false,
   delegationSettings: { ok: true },
   isAlreadyDelegated: false,
@@ -202,6 +207,7 @@ const buildSelectors = (
     decimals: 6,
     delegationContract: '0xdelegation',
   },
+  isResidencyBlocked: false,
   ...overrides,
 });
 
@@ -214,6 +220,7 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return state.isMoneyAccountEnabled;
     if (selector === selectIsCardAuthenticated)
       return state.isCardAuthenticated;
+    if (selector === selectIsCardVerified) return state.isCardVerified;
     if (selector === selectIsCardholder) return state.isCardholder;
     if (selector === selectCardDelegationSettings)
       return state.delegationSettings;
@@ -228,6 +235,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return (_chainId: string) => state.isMonadSponsorshipEnabled;
     if (selector === selectCardFeatureFlag) return state.cardFeatureFlag;
     if (selector === selectMoneyAccountVedaTokenConfig) return state.vedaConfig;
+    if (selector === selectIsCardResidencyBlocked)
+      return state.isResidencyBlocked;
     return undefined;
   });
 };
@@ -288,6 +297,18 @@ describe('useMoneyAccountCardLinkage', () => {
       applySelectorMocks(buildSelectors({ isCardAuthenticated: false }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
+    });
+
+    it('reports canLink=false when the card user is not VERIFIED', () => {
+      applySelectorMocks(buildSelectors({ isCardVerified: false }));
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.isCardVerified).toBe(false);
+    });
+
+    it('reports isCardVerified=true when verification status is VERIFIED', () => {
+      const { result } = renderLinkageHook();
+      expect(result.current.isCardVerified).toBe(true);
     });
 
     it('reports canLink=false when there is no Money account', () => {
@@ -407,6 +428,19 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
+    it('reports canLink=false when card residency is blocked', () => {
+      applySelectorMocks(buildSelectors({ isResidencyBlocked: true }));
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.isResidencyBlocked).toBe(true);
+    });
+
+    it('reports isResidencyBlocked=false when residency is not blocked', () => {
+      applySelectorMocks(buildSelectors({ isResidencyBlocked: false }));
+      const { result } = renderLinkageHook();
+      expect(result.current.isResidencyBlocked).toBe(false);
+    });
+
     it('reports isLinking=true when controller linkage is in progress', () => {
       applySelectorMocks(
         buildSelectors({ moneyAccountCardLinkInProgress: true }),
@@ -521,6 +555,28 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
+
+    it('tracks RESIDENCY_BLOCKED and fails closed when residency is blocked', () => {
+      applySelectorMocks(buildSelectors({ isResidencyBlocked: true }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet(CardEntryPoint.MONEY_LINK_CARD_SHEET);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'built-event' }),
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+          reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        }),
+      );
+    });
   });
 
   describe('startLinkFlow (entrypoint branching)', () => {
@@ -542,6 +598,19 @@ describe('useMoneyAccountCardLinkage', () => {
       });
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('no-ops when the user is authenticated but not VERIFIED', () => {
+      applySelectorMocks(buildSelectors({ isCardVerified: false }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
     it('no-ops when the user is authenticated and the Money Account is already delegated', () => {
@@ -568,6 +637,29 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks RESIDENCY_BLOCKED and fails closed when residency is blocked', () => {
+      applySelectorMocks(buildSelectors({ isResidencyBlocked: true }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow({
+          ...ORIGIN,
+          entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        });
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+          reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+          entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        }),
+      );
     });
 
     it('shows the error toast when Monad USDC cannot be resolved AND the user is authenticated', () => {
@@ -698,6 +790,40 @@ describe('useMoneyAccountCardLinkage', () => {
   });
 
   describe('resume effect (pendingMoneyAccountCardLink)', () => {
+    it('clears the pending flag without opening the sheet when authenticated but not VERIFIED', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          isCardVerified: false,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(null),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it.each(['idle', 'loading'] as const)(
+      'keeps the pending flag while card data is still %s and verification is unknown',
+      (cardHomeDataStatus) => {
+        applySelectorMocks(
+          buildSelectors({
+            pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            isCardVerified: false,
+            cardHomeDataStatus,
+          }),
+        );
+        renderLinkageHook();
+
+        expect(mockDispatch).not.toHaveBeenCalledWith(
+          setPendingMoneyAccountCardLink(null),
+        );
+        expect(mockNavigate).not.toHaveBeenCalled();
+      },
+    );
+
     it('opens the Link Card sheet and clears the flag when authenticated and canLink', () => {
       applySelectorMocks(
         buildSelectors({
@@ -746,6 +872,29 @@ describe('useMoneyAccountCardLinkage', () => {
       );
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('tracks RESIDENCY_BLOCKED, shows error toast, and clears the flag when residency is blocked after auth', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          isResidencyBlocked: true,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(null),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+          reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        }),
+      );
     });
 
     it('clears the flag silently when authenticated but requirements are missing', () => {
@@ -1073,6 +1222,25 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
         labelOptions: [{ label: 'Something went wrong linking your card' }],
+      });
+    });
+
+    it('tracks RESIDENCY_BLOCKED when residency is blocked and user is not already delegated', async () => {
+      applySelectorMocks(buildSelectors({ isResidencyBlocked: true }));
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground();
+      });
+
+      expect(returned).toBe(false);
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+        entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
+        is_revoke: false,
       });
     });
 
