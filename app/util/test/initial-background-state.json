@@ -668,6 +668,7 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
     "tokenWarnings": []
   },

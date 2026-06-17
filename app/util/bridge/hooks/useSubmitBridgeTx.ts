@@ -10,6 +10,7 @@ import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransac
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import {
   selectAbTestContext,
+  selectBridgeControllerState,
   selectDestToken,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
@@ -53,6 +54,7 @@ export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destToken = useSelector(selectDestToken);
+  const bridgeControllerState = useSelector(selectBridgeControllerState);
   const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
@@ -134,6 +136,8 @@ export default function useSubmitBridgeTx() {
       transactionActiveAbTestsFromRoute,
     );
     const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
+    const inputPrimaryDenomination =
+      bridgeControllerState?.inputPrimaryDenomination ?? 'token_amount';
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
@@ -148,6 +152,7 @@ export default function useSubmitBridgeTx() {
             abTests,
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
+            inputPrimaryDenomination,
           });
         }
         return await Engine.context.BridgeStatusController.submitTx(
@@ -162,6 +167,8 @@ export default function useSubmitBridgeTx() {
           abTests,
           mergedActiveAbTests,
           tokenSecurityTypeDestination,
+          undefined, // batchSellTrades
+          inputPrimaryDenomination,
         );
       },
     );
