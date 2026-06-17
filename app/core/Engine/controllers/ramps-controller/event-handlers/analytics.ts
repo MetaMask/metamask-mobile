@@ -7,6 +7,46 @@ import { MetaMetricsEvents } from '../../../../Analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Logger from '../../../../../util/Logger';
+import { extractOrderCode } from '../../../../../components/UI/Ramp/utils/extractOrderCode';
+import {
+  deleteHeadlessOrderContext,
+  getHeadlessOrderContext,
+  type HeadlessOrderContext,
+} from '../headlessOrderContextRegistry';
+// Type-only import so `react` is not pulled into core; mirrors the emission in
+// `useAnalytics` without importing the hook.
+import type { AnalyticsEvents } from '../../../../../components/UI/Ramp/Deposit/types/analytics';
+
+/**
+ * Builds the `RAMPS_TRANSACTION_FAILED` payload for a headless order. Mirrors
+ * the headless `RAMPS_TRANSACTION_CONFIRMED` payload emitted by
+ * `useTransakRouting` (NOT the buy-branch of `handleOrderStatusChangedForMetrics`,
+ * which uses a different ONRAMP/OFFRAMP vocabulary). `params` is explicitly
+ * typed so the payload stays in lockstep with the schema.
+ */
+function buildHeadlessTransactionFailedParams(
+  order: RampsOrder,
+  context: HeadlessOrderContext,
+): AnalyticsEvents['RAMPS_TRANSACTION_FAILED'] {
+  return {
+    ramp_type: 'HEADLESS',
+    ramp_surface: context.rampSurface,
+    region: context.region,
+    country: context.region,
+    error_message: order.statusDescription || 'transaction_failed',
+    provider_onramp: order.provider?.name || '',
+    amount_source: Number(order.fiatAmount),
+    amount_destination: Number(order.cryptoAmount),
+    exchange_rate: Number(order.exchangeRate ?? 0),
+    gas_fee: Number(order.networkFees ?? 0),
+    processing_fee: Number(order.partnerFees ?? 0),
+    total_fee: Number(order.totalFeesFiat),
+    payment_method_id: order.paymentMethod?.id || '',
+    chain_id: order.network?.chainId || '',
+    currency_destination: order.cryptoCurrency?.assetId || '',
+    currency_source: order.fiatCurrency?.symbol || '',
+  };
+}
 
 function buildV2AnalyticsPayload(
   order: RampsOrder,
@@ -89,6 +129,52 @@ export function handleOrderStatusChangedForMetrics({
   order: RampsOrder;
   previousStatus: RampsOrderStatus;
 }): void {
+  // TRAM-3623 AC5: a headless order carries a context entry (written at confirm
+  // time by `useTransakRouting`). Handle its terminal failure here, as the
+  // SINGLE `orderStatusChanged` metrics subscriber, so it cannot double-emit
+  // `RAMPS_TRANSACTION_FAILED` with the generic buy/deposit emit below (which
+  // TRAM-3534 #31207 also maps deposits to). Placed before the generic emit and
+  // returning on the failure path is the de-dup.
+  const orderCode = extractOrderCode(order.providerOrderId);
+  const headlessContext = getHeadlessOrderContext(orderCode);
+  if (headlessContext) {
+    if (order.status === Status.Failed || order.status === Status.IdExpired) {
+      try {
+        const params = buildHeadlessTransactionFailedParams(
+          order,
+          headlessContext,
+        );
+        analytics.trackEvent(
+          AnalyticsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.RAMPS_TRANSACTION_FAILED,
+          )
+            .addProperties({ ...params })
+            .build(),
+        );
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            'RampsController: Failed to track headless RAMPS_TRANSACTION_FAILED',
+        });
+      } finally {
+        // Delete even if the emit threw, so a retried poll cannot double-emit.
+        deleteHeadlessOrderContext(orderCode);
+      }
+      // Suppress the generic emit for this headless failure (the de-dup).
+      return;
+    }
+    if (
+      order.status === Status.Completed ||
+      order.status === Status.Cancelled
+    ) {
+      // Bound the map on terminal success/cancel; do NOT emit a tagged
+      // COMPLETED (no schema for it). Option B: fall through to the generic
+      // emit so the existing controller completion signal is preserved.
+      deleteHeadlessOrderContext(orderCode);
+    }
+    // Non-terminal headless: fall through (the generic emit no-ops for those).
+  }
+
   const analyticsPayload = buildV2AnalyticsPayload(order, previousStatus);
 
   if (analyticsPayload) {
