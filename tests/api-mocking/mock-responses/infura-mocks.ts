@@ -85,7 +85,7 @@ const createInfuraMocks = () => {
       // Regular Infura endpoints are POST requests with JSON-RPC
       mocks.push({
         urlEndpoint: new RegExp(
-          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
+          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9_-]*$`,
         ),
         responseCode: 200,
         response: createJsonRpcResponse(1, '0x0'),

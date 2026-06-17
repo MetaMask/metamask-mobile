@@ -113,7 +113,7 @@ class PerpsOrderView {
   async tapTakeProfitButton() {
     await Gestures.scrollToElement(
       this.takeProfitButton,
-      Matchers.getIdentifier(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
@@ -214,6 +214,38 @@ class PerpsOrderView {
       detox: () => Matchers.getElementByText('Done'),
       appium: () => PlaywrightMatchers.getElementByText('Done'),
     });
+  }
+
+  getTpslDoneButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Done'),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsTPSLViewSelectorsIDs.DONE_BUTTON,
+          { exact: true },
+        ),
+    });
+  }
+
+  getTpslKeypadKey(key: string): EncapsulatedElementType {
+    const testId = key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
+    return Matchers.getElementByID(testId);
+  }
+
+  private getTpslPriceInput(
+    inputTestId:
+      | typeof PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT
+      | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+  ): EncapsulatedElementType {
+    return Matchers.getElementByID(inputTestId);
+  }
+
+  private get tpslSetButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
+  }
+
+  private get tpslAutoCloseTitle(): EncapsulatedElementType {
+    return Matchers.getElementByText('Auto close');
   }
 
   // Required for next test
@@ -333,80 +365,36 @@ class PerpsOrderView {
       | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
     focusInputElemDescription: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText('Auto close'),
-      {
-        description: 'TPSL Auto close screen visible',
-        timeout: 15000,
-      },
-    );
+    await Assertions.expectElementToBeVisible(this.tpslAutoCloseTitle, {
+      description: 'TPSL Auto close screen visible',
+      timeout: 15000,
+    });
 
-    const input = Matchers.getElementByID(inputTestId);
-    const doneButton = Matchers.getElementByText('Done');
-    const setButton = Matchers.getElementByID(
-      PerpsTPSLViewSelectorsIDs.SET_BUTTON,
-    );
+    const input = this.getTpslPriceInput(inputTestId);
 
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(input, {
-          elemDescription: focusInputElemDescription,
-          checkEnabled: false,
-        });
+    await UnifiedGestures.waitAndTap(input, {
+      description: focusInputElemDescription,
+      checkForDisplayed: true,
+      checkForEnabled: false,
+    });
 
-        for (const ch of price) {
-          const keypadTestId =
-            ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
-          const key = Matchers.getElementByID(keypadTestId);
-          await Gestures.waitAndTap(key, {
-            elemDescription: `TPSL keypad key ${ch}`,
-            checkEnabled: false,
-            checkVisibility: false,
-          });
-        }
+    for (const ch of price) {
+      await UnifiedGestures.waitAndTap(this.getTpslKeypadKey(ch), {
+        description: `TPSL keypad key ${ch}`,
+        checkForDisplayed: true,
+        checkForEnabled: false,
+      });
+    }
 
-        await Gestures.waitAndTap(doneButton, {
-          elemDescription: 'Dismiss TPSL keypad (Done)',
-          checkEnabled: false,
-          checkVisibility: false,
-        });
-        await Gestures.waitAndTap(setButton, {
-          elemDescription: 'Confirm TP/SL (Set)',
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(await asPlaywrightElement(input), {
-          checkForDisplayed: true,
-          checkForEnabled: false,
-        });
-
-        for (const ch of price) {
-          const keypadTestId =
-            ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
-          const key = await asPlaywrightElement(
-            Matchers.getElementByID(keypadTestId),
-          );
-          await PlaywrightGestures.waitAndTap(key, {
-            checkForDisplayed: true,
-            checkForEnabled: false,
-          });
-        }
-
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(doneButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: false,
-          },
-        );
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(setButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          },
-        );
-      },
+    await UnifiedGestures.waitAndTap(this.getTpslDoneButton(), {
+      description: 'Dismiss TPSL keypad (Done)',
+      checkForDisplayed: true,
+      checkForEnabled: false,
+    });
+    await UnifiedGestures.waitAndTap(this.tpslSetButton, {
+      description: 'Confirm TP/SL (Set)',
+      checkForDisplayed: true,
+      checkForEnabled: true,
     });
   }
 

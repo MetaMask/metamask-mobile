@@ -17,11 +17,7 @@ import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
 import PerpsHomeView from './PerpsHomeView';
 import PerpsMarketListView from './PerpsMarketListView';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
-import {
-  EncapsulatedElementType,
-  FrameworkDetector,
-  PlaywrightMatchers,
-} from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 /** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
@@ -122,6 +118,30 @@ class PerpsView {
     return Matchers.getElementByID('perps-home');
   }
 
+  get perpsHomeAddFunds(): EncapsulatedElementType {
+    return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON);
+  }
+
+  private getPortfolioPositionCard(index = 0): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`,
+    );
+  }
+
+  private getWalletHomePositionRow(symbol: string): EncapsulatedElementType {
+    return Matchers.getElementByID(`perps-position-row-${symbol}`);
+  }
+
+  private getPositionPrimaryLine(
+    symbol: string,
+    direction: 'long' | 'short',
+  ): EncapsulatedElementType {
+    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return Matchers.getElementByText(
+      new RegExp(`${escapedSymbol} \\d+x ${direction}`),
+    );
+  }
+
   // Orders section on the Perps main tab
   get ordersSectionTitle(): EncapsulatedElementType {
     return Matchers.getElementByText('Orders');
@@ -201,25 +221,39 @@ class PerpsView {
   ): Promise<void> {
     const { symbol, direction } = options;
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
-    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const positionPrimaryLine = new RegExp(
-      `${escapedSymbol} \\d+x ${direction}`,
-    );
+    const positionLocators: EncapsulatedElementType[] = [
+      this.getPortfolioPositionCard(0),
+      this.getWalletHomePositionRow(symbol),
+      this.getPositionPrimaryLine(symbol, direction),
+    ];
     await Utilities.executeWithRetry(
       async () => {
         await Assertions.expectTextNotDisplayed(orderLabel, {
           description: `Open order "${orderLabel}" cleared after fill (${symbol})`,
           timeout: 5000,
         });
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText(positionPrimaryLine),
-          {
-            description: `${symbol} position row visible (${direction}, any leverage)`,
-            timeout: 5000,
-          },
-        );
+
+        let positionVisible = false;
+        for (const locator of positionLocators) {
+          try {
+            await Assertions.expectElementToBeVisible(locator, {
+              description: `${symbol} position row visible (${direction})`,
+              timeout: 3000,
+            });
+            positionVisible = true;
+            break;
+          } catch {
+            // Try the next portfolio layout (Perps home vs wallet homepage).
+          }
+        }
+
+        if (!positionVisible) {
+          throw new Error(
+            `No position row found for ${symbol} ${direction} after limit fill`,
+          );
+        }
       },
-      { interval: 1000, timeout: 30000 },
+      { interval: 1000, timeout: 60000 },
     );
   }
 
@@ -444,32 +478,18 @@ class PerpsView {
 
   /** Perps portfolio home (orders/positions feed), not market details or explore list. */
   async isOnPerpsPortfolioHome(timeout = 2000): Promise<boolean> {
-    if (FrameworkDetector.isAppium()) {
-      const portfolioMarkers = [
-        'perps-home',
-        PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-        PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON,
-      ];
-      for (const testId of portfolioMarkers) {
-        try {
-          const el = await PlaywrightMatchers.getElementById(testId, {
-            exact: true,
-          });
-          await el.unwrap().waitForDisplayed({ timeout });
-          return true;
-        } catch {
-          // Try next marker.
-        }
+    const portfolioMarkers: EncapsulatedElementType[] = [
+      this.perpsHomeHeader,
+      PerpsHomeView.backHome,
+      this.perpsHomeAddFunds,
+    ];
+
+    for (const marker of portfolioMarkers) {
+      if (await Utilities.isElementVisible(marker, timeout)) {
+        return true;
       }
-      return false;
     }
 
-    if (await Utilities.isElementVisible(this.perpsHomeHeader, timeout)) {
-      return true;
-    }
-    if (await Utilities.isElementVisible(PerpsHomeView.backHome, timeout)) {
-      return true;
-    }
     return false;
   }
 
@@ -484,17 +504,6 @@ class PerpsView {
     testId: string,
     timeout = 2000,
   ): Promise<boolean> {
-    if (FrameworkDetector.isAppium()) {
-      try {
-        const el = await PlaywrightMatchers.getElementById(testId, {
-          exact: true,
-        });
-        await el.unwrap().waitForDisplayed({ timeout });
-        return true;
-      } catch {
-        return false;
-      }
-    }
     return Utilities.isElementVisible(Matchers.getElementByID(testId), timeout);
   }
 

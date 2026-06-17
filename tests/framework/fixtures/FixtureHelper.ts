@@ -15,7 +15,7 @@ import {
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
-import Utilities from '../Utilities';
+import Utilities, { sleep } from '../Utilities';
 import {
   dismissDevScreens,
   dismissDeveloperMenuPlaywright,
@@ -686,16 +686,31 @@ export async function withFixtures(
           await deviceCommands.clearAppData();
         }
 
-        const appStateRequest = fixtureServer.waitForNextStateRequest();
+        const appStateRequest = fixtureServer.waitForNextStateRequest(90_000);
         try {
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
           if (process.env.CI !== 'true') {
-            await dismissDevelopmentServerPickerPlaywright();
             didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+            await Promise.all([
+              appStateRequest,
+              (async () => {
+                for (;;) {
+                  await dismissDevelopmentServerPickerPlaywright();
+                  const bootstrapped = await Promise.race([
+                    appStateRequest.then(() => true),
+                    sleep(1500).then(() => false),
+                  ]);
+                  if (bootstrapped) {
+                    return;
+                  }
+                }
+              })(),
+            ]);
+          } else {
+            await appStateRequest;
           }
-          await appStateRequest;
         } catch (error) {
           appStateRequest.catch(() => undefined);
           throw error;

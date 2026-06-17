@@ -946,6 +946,7 @@ const PerpsTPSLView: React.FC = () => {
               size={ButtonSize.Lg}
               isFullWidth
               onPress={dismissKeypad}
+              testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
             >
               {strings('perps.tpsl.done')}
             </Button>

@@ -6,6 +6,9 @@ import {
   asDetoxElement,
   asPlaywrightElement,
 } from './EncapsulatedElement.ts';
+import type { ScrollContainer } from './types.ts';
+
+export type { ScrollContainer, ScrollViewMatcher } from './types.ts';
 
 /**
  * Unified options for gesture methods.
@@ -47,10 +50,6 @@ export interface UnifiedGestureOptions {
  * or an array of elements (Appium selects by array index).
  */
 export type TapAtIndexElement = EncapsulatedElementType | PlaywrightElement[];
-export type ScrollViewMatcher = Promise<Detox.NativeMatcher>;
-
-/** Detox scroll container: matcher promise, or testID resolved inside UnifiedGestures. */
-export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * Strategy interface for framework-agnostic gesture execution.

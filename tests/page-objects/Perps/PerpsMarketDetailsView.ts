@@ -407,7 +407,7 @@ class PerpsMarketDetailsView {
 
     await Gestures.scrollToElement(
       firstOrderRow,
-      Matchers.getIdentifier(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
@@ -428,7 +428,7 @@ class PerpsMarketDetailsView {
 
     await Gestures.scrollToElement(
       autoCloseSection,
-      Matchers.getIdentifier(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
