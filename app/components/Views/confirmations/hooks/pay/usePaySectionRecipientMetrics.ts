@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
@@ -6,43 +5,18 @@ import {
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { useSectionTracking } from './useSectionTracking';
 
-export interface PaySectionRecipientMetrics {
-  presented: PayWithSectionId | null;
-  selected: PayWithSectionId;
-  switchCount: number;
-}
+export type { SectionTrackingResult as PaySectionRecipientMetrics } from './useSectionTracking';
 
 export function usePaySectionRecipientMetrics(
   sourceSection: PayWithSectionId,
   hasPayToken: boolean,
-): PaySectionRecipientMetrics {
+) {
   const transactionMeta = useTransactionMetadataRequest();
+  const currentSection = getRecipientSectionId(transactionMeta, sourceSection);
 
-  const selected = getRecipientSectionId(transactionMeta, sourceSection);
-
-  const presentedRef = useRef<PayWithSectionId | undefined>(undefined);
-  if (!presentedRef.current && hasPayToken) {
-    presentedRef.current = selected;
-  }
-
-  const previousRef = useRef<PayWithSectionId | undefined>(undefined);
-  const switchCountRef = useRef(0);
-
-  if (hasPayToken) {
-    if (previousRef.current === undefined) {
-      previousRef.current = selected;
-    } else if (previousRef.current !== selected) {
-      switchCountRef.current += 1;
-      previousRef.current = selected;
-    }
-  }
-
-  return {
-    presented: presentedRef.current ?? null,
-    selected,
-    switchCount: switchCountRef.current,
-  };
+  return useSectionTracking(currentSection, hasPayToken);
 }
 
 function getRecipientSectionId(

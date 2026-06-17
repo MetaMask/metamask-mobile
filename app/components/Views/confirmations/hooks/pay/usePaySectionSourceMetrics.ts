@@ -11,16 +11,11 @@ import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { useSectionTracking } from './useSectionTracking';
 
-export interface PaySectionSourceMetrics {
-  presented: PayWithSectionId | null;
-  selected: PayWithSectionId;
-  switchCount: number;
-}
+export type { SectionTrackingResult as PaySectionSourceMetrics } from './useSectionTracking';
 
-export function usePaySectionSourceMetrics(
-  hasPayToken: boolean,
-): PaySectionSourceMetrics {
+export function usePaySectionSourceMetrics(hasPayToken: boolean) {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
 
@@ -53,7 +48,7 @@ export function usePaySectionSourceMetrics(
     paymentOverride === PaymentOverride.MoneyAccount ||
     (isDefaultMoneyAccount && !overrideAppliedRef.current);
 
-  const selected = getActiveSectionId({
+  const currentSection = getActiveSectionId({
     isMoneyAccountActive,
     isPerpsBalanceSelected: isPerpsDepositAndOrder && isPerpsBalanceSelected,
     isPredictBalanceSelected:
@@ -61,28 +56,7 @@ export function usePaySectionSourceMetrics(
     hasFiatPaymentSelected,
   });
 
-  const presentedRef = useRef<PayWithSectionId | undefined>(undefined);
-  if (!presentedRef.current && hasPayToken) {
-    presentedRef.current = selected;
-  }
-
-  const previousRef = useRef<PayWithSectionId | undefined>(undefined);
-  const switchCountRef = useRef(0);
-
-  if (hasPayToken) {
-    if (previousRef.current === undefined) {
-      previousRef.current = selected;
-    } else if (previousRef.current !== selected) {
-      switchCountRef.current += 1;
-      previousRef.current = selected;
-    }
-  }
-
-  return {
-    presented: presentedRef.current ?? null,
-    selected,
-    switchCount: switchCountRef.current,
-  };
+  return useSectionTracking(currentSection, hasPayToken);
 }
 
 function getActiveSectionId({
