@@ -23,6 +23,7 @@ import {
 } from './homepageDiscoveryPills.constants';
 import { HomepageDiscoveryPillsTestIds } from './HomepageDiscoveryPills.testIds';
 import type { HomepageDiscoveryPillsProps } from './HomepageDiscoveryPills.types';
+import usePillViewedEvent from '../../hooks/usePillViewedEvent';
 import { useHomepageDiscoveryPillsNavigation } from './useHomepageDiscoveryPillsNavigation';
 
 const PILL_LABEL_KEYS: Record<
@@ -44,6 +45,7 @@ const HomepageDiscoveryPills: React.FC<HomepageDiscoveryPillsProps> = ({
 }) => {
   const tw = useTailwind();
   const { navigateToPill } = useHomepageDiscoveryPillsNavigation();
+  const { trackPillTapped } = usePillViewedEvent();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
@@ -63,10 +65,11 @@ const HomepageDiscoveryPills: React.FC<HomepageDiscoveryPillsProps> = ({
 
   const handlePillPress = useCallback(
     (pillId: HomepageDiscoveryPillId, position: number) => {
+      trackPillTapped(pillId, position);
       onPillPress?.(pillId, position);
       navigateToPill(pillId);
     },
-    [navigateToPill, onPillPress],
+    [navigateToPill, onPillPress, trackPillTapped],
   );
 
   if (visiblePillIds.length === 0) {

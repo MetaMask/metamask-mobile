@@ -7,10 +7,16 @@ import { HomepageDiscoveryPillsTestIds } from './HomepageDiscoveryPills.testIds'
 import { HOMESCREEN_PILL_SOURCE } from './useHomepageDiscoveryPillsNavigation';
 
 const mockNavigate = jest.fn();
+const mockTrackPillTapped = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../hooks/usePillViewedEvent', () => ({
+  __esModule: true,
+  default: () => ({ trackPillTapped: mockTrackPillTapped }),
 }));
 
 jest.mock('../../../../../constants/navigation/exploreTabIndices', () => ({
@@ -145,7 +151,7 @@ describe('HomepageDiscoveryPills', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
       screen: Routes.TRENDING_FEED,
-      params: { initialTab: 3 },
+      params: { initialTab: 3, source: HOMESCREEN_PILL_SOURCE },
     });
   });
 
@@ -156,11 +162,11 @@ describe('HomepageDiscoveryPills', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
       screen: Routes.TRENDING_FEED,
-      params: { initialTab: 2 },
+      params: { initialTab: 2, source: HOMESCREEN_PILL_SOURCE },
     });
   });
 
-  it('invokes onPillPress with pill id and position before navigation', () => {
+  it('tracks pill_tapped before navigation when a pill is pressed', () => {
     const onPillPress = jest.fn();
     const { getByTestId } = render(
       <HomepageDiscoveryPills iconStyle="gray" onPillPress={onPillPress} />,
@@ -168,6 +174,7 @@ describe('HomepageDiscoveryPills', () => {
 
     fireEvent.press(getByTestId(HomepageDiscoveryPillsTestIds.pill('crypto')));
 
+    expect(mockTrackPillTapped).toHaveBeenCalledWith('crypto', 3);
     expect(onPillPress).toHaveBeenCalledWith('crypto', 3);
     expect(mockNavigate).toHaveBeenCalled();
   });

@@ -31,13 +31,19 @@ export function useHomepageDiscoveryPillsNavigation() {
         case 'crypto':
           navigation.navigate(Routes.TRENDING_VIEW, {
             screen: Routes.TRENDING_FEED,
-            params: { initialTab: EXPLORE_TAB_INDEX.CRYPTO },
+            params: {
+              initialTab: EXPLORE_TAB_INDEX.CRYPTO,
+              source: HOMESCREEN_PILL_SOURCE,
+            },
           });
           break;
         case 'stocks':
           navigation.navigate(Routes.TRENDING_VIEW, {
             screen: Routes.TRENDING_FEED,
-            params: { initialTab: EXPLORE_TAB_INDEX.RWAS },
+            params: {
+              initialTab: EXPLORE_TAB_INDEX.RWAS,
+              source: HOMESCREEN_PILL_SOURCE,
+            },
           });
           break;
         default: {

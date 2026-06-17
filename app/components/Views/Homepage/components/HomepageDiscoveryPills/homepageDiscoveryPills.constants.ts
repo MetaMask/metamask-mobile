@@ -14,6 +14,17 @@ export const HOMEPAGE_DISCOVERY_PILL_IDS = [
 export type HomepageDiscoveryPillId =
   (typeof HOMEPAGE_DISCOVERY_PILL_IDS)[number];
 
+/** Segment `section_name` values for `Home Viewed` (`interaction_type: pill_tapped`). */
+export const HOMEPAGE_DISCOVERY_PILL_SECTION_NAMES = {
+  perpetuals: 'perps',
+  predictions: 'predict',
+  stocks: 'stocks',
+  crypto: 'crypto',
+} as const satisfies Record<HomepageDiscoveryPillId, string>;
+
+export type HomepageDiscoveryPillSectionName =
+  (typeof HOMEPAGE_DISCOVERY_PILL_SECTION_NAMES)[HomepageDiscoveryPillId];
+
 export const HOMEPAGE_DISCOVERY_PILL_GRAY_ICONS: Record<
   HomepageDiscoveryPillId,
   IconName

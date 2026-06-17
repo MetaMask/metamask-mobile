@@ -58,18 +58,21 @@ export { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndic
 
 interface ExploreFeedRouteParams {
   initialTab?: number | null;
+  source?: string;
 }
 
 const useExploreTabNavigationEffect = (opts: {
   tabsListRef: React.RefObject<TabsListRef | null>;
+  tabNames: ExploreTabName[];
 }) => {
-  const { tabsListRef } = opts;
+  const { tabsListRef, tabNames } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
   const { setParams } = useNavigation();
   const initialTabIndex = Object.values(EXPLORE_TAB_INDEX).find(
     (tab) => tab === route.params?.initialTab,
   );
+  const entrySource = route.params?.source;
 
   useFocusEffect(
     useCallback(() => {
@@ -78,8 +81,18 @@ const useExploreTabNavigationEffect = (opts: {
       }
 
       tabsListRef.current?.goToTabIndex(initialTabIndex);
-      setParams?.({ initialTab: null });
-    }, [initialTabIndex, setParams, tabsListRef]),
+
+      const destinationTab = tabNames[initialTabIndex];
+      if (entrySource && destinationTab) {
+        trackExploreInteracted({
+          interaction_type: 'tab_switched',
+          tab_name: destinationTab,
+          source: entrySource,
+        });
+      }
+
+      setParams?.({ initialTab: null, source: undefined });
+    }, [entrySource, initialTabIndex, setParams, tabNames, tabsListRef]),
   );
 };
 
@@ -92,7 +105,7 @@ export const ExploreFeed: React.FC = () => {
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Handle tab navigation from route params
-  useExploreTabNavigationEffect({ tabsListRef });
+  useExploreTabNavigationEffect({ tabsListRef, tabNames: TAB_NAMES });
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
