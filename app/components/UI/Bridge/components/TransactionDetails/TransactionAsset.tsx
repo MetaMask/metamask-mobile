@@ -57,6 +57,57 @@ interface TransactionAssetProps {
   txType: TransactionType;
 }
 
+export function TransactionTokenIcon({
+  token,
+  chainId,
+  showNetworkBadge = true,
+}: {
+  token: BridgeToken;
+  chainId: Hex | CaipChainId;
+  showNetworkBadge?: boolean;
+}) {
+  const networkName =
+    NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId as AllowedBridgeChainIds];
+  const networkImageSource = getNetworkImageSource({ chainId });
+  const isNative = isNativeAddress(token.address);
+
+  const tokenIcon = isNative ? (
+    <TokenIcon
+      symbol={token.symbol}
+      icon={token.image}
+      style={styles.tokenIcon}
+      big={false}
+      biggest={false}
+      testID={`network-logo-${token.symbol}`}
+    />
+  ) : (
+    <AvatarToken
+      name={token.symbol}
+      imageSource={token.image ? { uri: token.image } : undefined}
+      size={AvatarSize.Md}
+    />
+  );
+
+  if (!showNetworkBadge) {
+    return tokenIcon;
+  }
+
+  return (
+    <BadgeWrapper
+      badgePosition={BadgePosition.BottomRight}
+      badgeElement={
+        <Badge
+          variant={BadgeVariant.Network}
+          name={networkName}
+          imageSource={networkImageSource}
+        />
+      }
+    >
+      {tokenIcon}
+    </BadgeWrapper>
+  );
+}
+
 const TransactionAsset = ({
   token,
   tokenAmount,
@@ -65,11 +116,6 @@ const TransactionAsset = ({
 }: TransactionAssetProps) => {
   const networkName =
     NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId as AllowedBridgeChainIds];
-  const networkImageSource = getNetworkImageSource({ chainId });
-
-  // Solana native SOL will also be the zero address for quote data from Bridge API only!
-  // Other formats might look like solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
-  const isNative = isNativeAddress(token.address);
 
   return (
     <Box
@@ -78,33 +124,7 @@ const TransactionAsset = ({
       alignItems={AlignItems.center}
       style={styles.container}
     >
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            name={networkName}
-            imageSource={networkImageSource}
-          />
-        }
-      >
-        {isNative ? (
-          <TokenIcon
-            symbol={token.symbol}
-            icon={token.image}
-            style={styles.tokenIcon}
-            big={false}
-            biggest={false}
-            testID={`network-logo-${token.symbol}`}
-          />
-        ) : (
-          <AvatarToken
-            name={token.symbol}
-            imageSource={token.image ? { uri: token.image } : undefined}
-            size={AvatarSize.Md}
-          />
-        )}
-      </BadgeWrapper>
+      <TransactionTokenIcon token={token} chainId={chainId} />
       <Box
         style={styles.tokenInfo}
         flexDirection={FlexDirection.Column}

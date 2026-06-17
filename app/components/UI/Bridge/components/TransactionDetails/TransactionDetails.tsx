@@ -24,6 +24,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
+import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets';
 import { calcTokenAmount } from '../../../../../util/transactions';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
@@ -37,6 +38,7 @@ import {
   getNativeAssetForChainId,
   isNonEvmChainId,
   StatusTypes,
+  AllowedBridgeChainIds,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
@@ -51,6 +53,10 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -199,10 +205,11 @@ export const BridgeTransactionDetails = (
     fromAddress && isHardwareAccount(fromAddress),
   );
 
-  const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    evmTxMeta,
-    multiChainTx,
-  });
+  const { bridgeTxHistoryItem, batchSellHistoryItems, is7702Batch } =
+    useBridgeTxHistoryData({
+      evmTxMeta,
+      multiChainTx,
+    });
 
   // Get source chain explorer data for swaps
   const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
@@ -280,6 +287,10 @@ export const BridgeTransactionDetails = (
     quote.destAsset.decimals,
   ).toFixed(5);
 
+  const networkName =
+    NETWORK_TO_SHORT_NETWORK_NAME_MAP[sourceChainId as AllowedBridgeChainIds];
+  const networkImageSource = getNetworkImageSource({ chainId: sourceChainId });
+
   const submissionDate = startTime ? new Date(startTime) : null;
   const submissionDateString = startTime ? toDateFormat(startTime) : 'N/A';
 
@@ -329,21 +340,33 @@ export const BridgeTransactionDetails = (
       {bridgeTransactionDetailsHeader}
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
-          <TransactionAsset
-            token={sourceToken}
-            tokenAmount={sourceTokenAmount}
-            chainId={sourceChainId}
-            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
-          />
-          <Box style={styles.arrowContainer}>
-            <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
-          </Box>
-          <TransactionAsset
-            token={destinationToken}
-            tokenAmount={destinationTokenAmount}
-            chainId={destinationChainId}
-            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
-          />
+          {is7702Batch && batchSellHistoryItems?.length ? (
+            <BatchSell7702TransactionAssets
+              batchSellHistoryItems={batchSellHistoryItems}
+            />
+          ) : (
+            <>
+              <TransactionAsset
+                token={sourceToken}
+                tokenAmount={sourceTokenAmount}
+                chainId={sourceChainId}
+                txType={
+                  isBridge ? TransactionType.bridge : TransactionType.swap
+                }
+              />
+              <Box style={styles.arrowContainer}>
+                <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
+              </Box>
+              <TransactionAsset
+                token={destinationToken}
+                tokenAmount={destinationTokenAmount}
+                chainId={destinationChainId}
+                txType={
+                  isBridge ? TransactionType.bridge : TransactionType.swap
+                }
+              />
+            </>
+          )}
         </Box>
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>
@@ -412,6 +435,25 @@ export const BridgeTransactionDetails = (
           </Text>
           <Text>{submissionDateString}</Text>
         </Box>
+        {is7702Batch && batchSellHistoryItems?.length && networkName ? (
+          <Box style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('bridge_transaction_details.network')}
+            </Text>
+            <Box
+              flexDirection={FlexDirection.Row}
+              gap={6}
+              alignItems={AlignItems.center}
+            >
+              <AvatarNetwork
+                name={networkName}
+                imageSource={networkImageSource}
+                size={AvatarSize.Xs}
+              />
+              <Text>{networkName}</Text>
+            </Box>
+          </Box>
+        ) : null}
         {/* TODO uncomment when recipient is available */}
         {/* <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>
