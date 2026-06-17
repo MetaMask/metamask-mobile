@@ -25,6 +25,10 @@ export function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
+/**
+ * Matches the existing Lightweight chart volume colors (30% opacity
+ * success/error) while keeping candle colors vivid.
+ */
 export function getPerpsVolumeColors(colors: Colors): {
   success: string;
   error: string;
