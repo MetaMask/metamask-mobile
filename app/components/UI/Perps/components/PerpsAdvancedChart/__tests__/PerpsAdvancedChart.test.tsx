@@ -11,7 +11,7 @@ import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
 import type { Colors } from '../../../../../../util/theme/models';
 import { mockTheme } from '../../../../../../util/theme';
 
-const mockAdvancedChart = jest.fn((_props: unknown) => null);
+const mockAdvancedChart = jest.fn<React.ReactNode, [unknown]>(() => null);
 const mockUsePerpsAdvancedChartAdapter = jest.fn();
 
 jest.mock('../../../../Charts/AdvancedChart/AdvancedChart', () => ({
