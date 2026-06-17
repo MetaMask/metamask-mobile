@@ -107,20 +107,22 @@ class MMConnectBrowserPlaygroundDapp {
   }
 
   get legacyEvmActiveAccount(): WebElement {
-    return this.getByDataTestId(
-      MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
-    );
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT);
   }
 
   get legacyEvmChainIdValue(): WebElement {
-    return this.getByDataTestId(
-      MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE,
-    );
+    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE);
   }
 
   get legacyEvmPersonalSignButton(): WebElement {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN,
+    );
+  }
+
+  get legacyEvmSendTransactionButton(): WebElement {
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SEND_TRANSACTION,
     );
   }
 
@@ -270,6 +272,18 @@ class MMConnectBrowserPlaygroundDapp {
     });
   }
 
+  /**
+   * Reload the in-app browser tab and wait for the dapp's React root to
+   * remount. MMConnect persists its session through `@metamask/connect-*`
+   * storage adapters, so the dapp should rehydrate the same session on the
+   * next mount; the spec is responsible for asserting that (e.g. legacy
+   * card or scopes section reappear).
+   */
+  async reloadDapp(): Promise<void> {
+    await Browser.reloadTab();
+    await this.waitForAppContainer();
+  }
+
   async tapConnectLegacy(): Promise<void> {
     await this.tapElement(this.connectLegacyButton);
   }
@@ -284,6 +298,10 @@ class MMConnectBrowserPlaygroundDapp {
 
   async tapLegacyPersonalSign(): Promise<void> {
     await this.tapElement(this.legacyEvmPersonalSignButton);
+  }
+
+  async tapLegacySendTransaction(): Promise<void> {
+    await this.tapElement(this.legacyEvmSendTransactionButton);
   }
 
   /**
@@ -335,6 +353,12 @@ class MMConnectBrowserPlaygroundDapp {
     });
   }
 
+  async assertLegacyEvmCardNotVisible(): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(this.legacyEvmCard, {
+      description: 'Legacy EVM card should NOT be visible',
+    });
+  }
+
   async assertScopesSectionVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.scopesSection, {
       description: 'Multichain scopes section should be visible',
@@ -372,9 +396,10 @@ class MMConnectBrowserPlaygroundDapp {
           // scrollToView throws on detached/not-yet-rendered nodes; the next
           // runScript will surface a clearer error if the node never appears.
         });
-        const text = ((await elem.runScript(
-          '(el) => el.textContent || ""',
-        )) as unknown as string) ?? '';
+        const text =
+          ((await elem.runScript(
+            '(el) => el.textContent || ""',
+          )) as unknown as string) ?? '';
         if (!text.includes(expected)) {
           throw new Error(
             `Expected ${description} to contain "${expected}", got: "${text}"`,
@@ -395,6 +420,22 @@ class MMConnectBrowserPlaygroundDapp {
       this.legacyEvmResponseText,
       expected,
       'Legacy EVM response text',
+    );
+  }
+
+  /**
+   * Wait until the Legacy EVM card's chain-id readout contains `expected`
+   * (e.g. `0x53a` after the wallet swaps the dapp's permitted chain set).
+   *
+   * The dapp renders the value from the EIP-1193 `chainChanged` event, so
+   * this also implicitly asserts that the SDK observed the wallet-side
+   * permissions change.
+   */
+  async assertLegacyEvmChainIdContains(expected: string): Promise<void> {
+    await this.expectWebElementTextToContain(
+      this.legacyEvmChainIdValue,
+      expected,
+      'Legacy EVM chain id value',
     );
   }
 
