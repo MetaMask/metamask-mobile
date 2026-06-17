@@ -3,7 +3,10 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import {
+  selectBatchSellHistoryItemsForTxHash,
+  selectBridgeHistoryForAccount,
+} from '../../../selectors/bridgeStatusController';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { findBridgeHistoryItem } from '../findBridgeHistoryItem';
@@ -33,6 +36,9 @@ export function useBridgeTxHistoryData({
   multiChainTx,
 }: UseBridgeTxHistoryDataProps) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  const { historyItems, is7702Batch } = useSelector((state: unknown) =>
+    selectBatchSellHistoryItemsForTxHash(state, evmTxMeta?.hash),
+  );
 
   let bridgeHistoryItem: BridgeHistoryItem | undefined;
   if (evmTxMeta) {
@@ -59,6 +65,8 @@ export function useBridgeTxHistoryData({
 
   return {
     bridgeTxHistoryItem: bridgeHistoryItem,
+    batchSellHistoryItems: historyItems,
+    is7702Batch,
     isBridgeComplete,
   };
 }
