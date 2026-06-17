@@ -1,6 +1,6 @@
 import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { getMultichainAccountName } from './getMultichainAccountName';
-import { WalletClientType } from '../MultichainWalletSnapClient';
+import { WalletClientType } from '../types';
 
 describe('getMultichainAccountName', () => {
   it('returns the next available account name if no scope or client type is provided', () => {
