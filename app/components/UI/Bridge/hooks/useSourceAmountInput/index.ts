@@ -51,8 +51,9 @@ export const useSourceAmountInput = ({
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
-  const isFiatMode = inputPrimaryDenomination === FIAT_VALUE_DENOMINATION;
   const canToggle = Boolean(isFiatToggleEnabled && fiatRate && fiatRate > 0);
+  const prefersFiatMode = inputPrimaryDenomination === FIAT_VALUE_DENOMINATION;
+  const isFiatMode = prefersFiatMode && canToggle;
   const amount = isFiatMode ? fiatAmount : sourceAmount;
   const isFiatInputChangeRef = useRef(false);
 
@@ -145,24 +146,6 @@ export const useSourceAmountInput = ({
     maxInputLength: MAX_INPUT_LENGTH,
     onSourceAmountChange: handleAmountChange,
   });
-
-  // If price data disappears while fiat mode is active, fall back to token mode
-  // so the input never accepts fiat values that cannot be converted reliably.
-  useEffect(() => {
-    if (canToggle || !isFiatMode) {
-      return;
-    }
-
-    resetSourceAmountCursorPosition();
-    setInputPrimaryDenomination(TOKEN_AMOUNT_DENOMINATION);
-    setFiatAmount(undefined);
-    isFiatInputChangeRef.current = false;
-  }, [
-    canToggle,
-    isFiatMode,
-    resetSourceAmountCursorPosition,
-    setInputPrimaryDenomination,
-  ]);
 
   // Keep the visible fiat amount aligned when the canonical token amount
   // changes outside fiat typing, such as Max, presets, token, or rate updates.

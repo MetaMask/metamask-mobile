@@ -377,7 +377,8 @@ describeForPlatforms('BridgeView', () => {
     updateQuoteSpy.mockRestore();
   });
 
-  it('keeps source input in token mode when price data is unavailable', async () => {
+  it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {
+    jest.clearAllMocks();
     const sourceTokenWithoutPrice = {
       ...ETH_SOURCE,
       address: '0x1234567890123456789012345678901234567890',
@@ -394,6 +395,9 @@ describeForPlatforms('BridgeView', () => {
           },
           engine: {
             backgroundState: {
+              BridgeController: {
+                inputPrimaryDenomination: 'fiat_value',
+              },
               CurrencyRateController: {
                 currentCurrency: 'USD',
                 currencyRates: {},
@@ -416,6 +420,9 @@ describeForPlatforms('BridgeView', () => {
       queryByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
     ).toBeNull();
     expect(queryByText('$0.00')).toBeNull();
+    expect(
+      Engine.context.BridgeController.setInputPrimaryDenomination,
+    ).not.toHaveBeenCalledWith('token_amount');
     expect(await findByDisplayValue('1')).toBeOnTheScreen();
   });
 
