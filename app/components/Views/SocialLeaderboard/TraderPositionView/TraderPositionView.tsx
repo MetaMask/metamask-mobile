@@ -48,7 +48,6 @@ import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
   SocialLeaderboardEventProperties,
-  SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
@@ -271,24 +270,8 @@ const TraderPositionView = () => {
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_BUY_CLICKED,
         followTradingTokenContext,
       );
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
-        ...followTradingTokenContext,
-        [SocialLeaderboardEventProperties.MARKET_CAP]:
-          typeof marketCap === 'number' ? marketCap : undefined,
-        [SocialLeaderboardEventProperties.SOURCE]: quickBuySource,
-        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: isClosed
-          ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL
-          : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
-      });
     }
-  }, [
-    resolvedPosition,
-    followTradingTokenContext,
-    marketCap,
-    quickBuySource,
-    isClosed,
-    track,
-  ]);
+  }, [resolvedPosition, followTradingTokenContext, track]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -396,6 +379,7 @@ const TraderPositionView = () => {
             traderAddress={traderAddress}
             marketCap={typeof marketCap === 'number' ? marketCap : undefined}
             source={quickBuySource}
+            isTraderPositionClosed={isClosed}
           />
         </>
       )}

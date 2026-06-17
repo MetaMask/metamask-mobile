@@ -3,6 +3,10 @@ import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
+import {
+  getRelayFixedSpreadFromConfig,
+  RelayFixedSpreadConfig,
+} from '../../../components/Views/confirmations/utils/relayFixedSpread';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -326,4 +330,13 @@ export const selectMetaMaskPayHardwareFlags = createSelector(
       enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
     };
   },
+);
+
+export const selectRelayFixedSpread = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): RelayFixedSpreadConfig =>
+    getRelayFixedSpreadFromConfig(
+      featureFlags?.confirmations_relay_fixed_spread,
+      'confirmations_relay_fixed_spread',
+    ),
 );
