@@ -8847,9 +8847,8 @@
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "Statistiques",
       "referee_period_last_30d": "30 derniers jours",
-      "referee_points_label": "Points",
-      "referee_swaps_volume_label": "Volume des swaps",
-      "referee_perps_volume_label": "Volume des perps",
+      "referee_volume_label": "Volume",
+      "referee_points_to_label": "Points pour {{code}}",
       "referee_error_title": "Nous n’avons pas pu charger les informations de votre parrain VIP",
       "referee_error_description": "Vérifiez votre connexion et réessayez.",
       "last_updated": "Dernière mise à jour : {{time}}"

@@ -8847,9 +8847,8 @@
       "referee_page_title": "VIP 抢先体验计划",
       "referee_stats_title": "统计数据",
       "referee_period_last_30d": "过去 30 天",
-      "referee_points_label": "积分",
-      "referee_swaps_volume_label": "兑换交易量",
-      "referee_perps_volume_label": "永续合约交易量",
+      "referee_volume_label": "交易量",
+      "referee_points_to_label": "给 {{code}} 的积分",
       "referee_error_title": "无法加载您的 VIP 被推荐人详情",
       "referee_error_description": "请检查连接后重试。",
       "last_updated": "最后更新于：{{time}}"

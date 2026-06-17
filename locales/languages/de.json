@@ -8847,9 +8847,8 @@
       "referee_page_title": "VIP-Pilot",
       "referee_stats_title": "Statistiken",
       "referee_period_last_30d": "Letzten 30 Tage",
-      "referee_points_label": "Punkte",
-      "referee_swaps_volume_label": "Swap-Volumen",
-      "referee_perps_volume_label": "Perps-Volumen",
+      "referee_volume_label": "Volumen",
+      "referee_points_to_label": "Punkte für {{code}}",
       "referee_error_title": "Wir konnten Ihre Daten zur VIP-Referenzperson nicht laden",
       "referee_error_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "last_updated": "Zuletzt aktualisiert: {{time}}"

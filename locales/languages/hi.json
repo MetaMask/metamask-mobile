@@ -8847,9 +8847,8 @@
       "referee_page_title": "VIP पायलट",
       "referee_stats_title": "आँकड़े",
       "referee_period_last_30d": "पिछले 30 दिन",
-      "referee_points_label": "पॉइंट्स",
-      "referee_swaps_volume_label": "स्वैप्स वॉल्यूम",
-      "referee_perps_volume_label": "पर्प्स वॉल्यूम",
+      "referee_volume_label": "वॉल्यूम",
+      "referee_points_to_label": "{{code}} के लिए पॉइंट्स",
       "referee_error_title": "हम आपके VIP रेफरी की जानकारी लोड नहीं कर सके",
       "referee_error_description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।",
       "last_updated": "पिछला अपडेट इस समय पर किया गया: {{time}}"

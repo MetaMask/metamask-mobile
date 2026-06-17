@@ -8847,9 +8847,8 @@
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "Статистика",
       "referee_period_last_30d": "Последние 30 дн.",
-      "referee_points_label": "Баллы",
-      "referee_swaps_volume_label": "Объем свопов",
-      "referee_perps_volume_label": "Объем перпов",
+      "referee_volume_label": "Объем",
+      "referee_points_to_label": "Баллы для {{code}}",
       "referee_error_title": "Не удалось загрузить данные вашего VIP-приглашенного",
       "referee_error_description": "Проверьте соединение и повторите попытку.",
       "last_updated": "Последнее обновление: {{time}}"

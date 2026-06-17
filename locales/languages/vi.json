@@ -8847,9 +8847,8 @@
       "referee_page_title": "Chương trình thử nghiệm VIP",
       "referee_stats_title": "Thống kê",
       "referee_period_last_30d": "30 ngày gần nhất",
-      "referee_points_label": "Điểm",
-      "referee_swaps_volume_label": "Khối lượng hoán đổi",
-      "referee_perps_volume_label": "Khối lượng giao dịch hợp đồng vĩnh cửu",
+      "referee_volume_label": "Khối lượng",
+      "referee_points_to_label": "Điểm cho {{code}}",
       "referee_error_title": "Chúng tôi không thể tải thông tin người giới thiệu VIP của bạn",
       "referee_error_description": "Kiểm tra kết nối của bạn và thử lại.",
       "last_updated": "Cập nhật lần cuối: {{time}}"

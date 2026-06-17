@@ -8847,9 +8847,8 @@
       "referee_page_title": "VIP δοκιμαστικό πρόγραμμα",
       "referee_stats_title": "Στατιστικά",
       "referee_period_last_30d": "Τελευταίες 30 ημέρες",
-      "referee_points_label": "Πόντοι",
-      "referee_swaps_volume_label": "Όγκος ανταλλαγών",
-      "referee_perps_volume_label": "Όγκος perps",
+      "referee_volume_label": "Όγκος",
+      "referee_points_to_label": "Πόντοι προς {{code}}",
       "referee_error_title": "Δεν ήταν δυνατή η φόρτωση των στοιχείων της VIP παραπομπής σας",
       "referee_error_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
       "last_updated": "Τελευταία ενημέρωση: {{time}}"

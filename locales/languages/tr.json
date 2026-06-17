@@ -8847,9 +8847,8 @@
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "İstatistikler",
       "referee_period_last_30d": "Son 30g",
-      "referee_points_label": "Puan",
-      "referee_swaps_volume_label": "Takas hacmi",
-      "referee_perps_volume_label": "Perps hacmi",
+      "referee_volume_label": "Hacim",
+      "referee_points_to_label": "{{code}} için puan",
       "referee_error_title": "VIP referans bilgilerinizi yükleyemedik",
       "referee_error_description": "Bağlantınızı kontrol edin ve tekrar deneyin.",
       "last_updated": "Son güncelleme: {{time}}"
