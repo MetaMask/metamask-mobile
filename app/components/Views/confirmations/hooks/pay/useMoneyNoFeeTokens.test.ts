@@ -5,7 +5,8 @@ import { Hex } from '@metamask/utils';
 import { useMoneyNoFeeTokens } from './useMoneyNoFeeTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
+import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
+import { RelayFixedSpreadConfig } from '../../utils/relayFixedSpread';
 
 jest.mock('react-redux');
 jest.mock('./useTransactionPayToken');
@@ -30,6 +31,24 @@ const PAY_TOKEN = {
   symbol: 'USDC',
 };
 
+const EMPTY_CONFIG: RelayFixedSpreadConfig = { routes: [] };
+
+const configWithRoute = (
+  sourceChain: string,
+  sourceToken: string,
+  targetChain = '0x279b',
+  targetToken = '0xmusd',
+): RelayFixedSpreadConfig => ({
+  routes: [
+    {
+      sourceChain: sourceChain.toLowerCase() as Hex,
+      sourceToken: sourceToken.toLowerCase() as Hex,
+      targetChain: targetChain.toLowerCase() as Hex,
+      targetToken: targetToken.toLowerCase() as Hex,
+    },
+  ],
+});
+
 describe('useMoneyNoFeeTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -45,8 +64,8 @@ describe('useMoneyNoFeeTokens', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyNoFeeTokens) {
-        return {};
+      if (selector === selectRelayFixedSpread) {
+        return EMPTY_CONFIG;
       }
       return undefined;
     });
@@ -72,15 +91,15 @@ describe('useMoneyNoFeeTokens', () => {
     expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 
-  it('returns false when chain and token are not in any no-fee list', () => {
+  it('returns false when no routes match the pay token', () => {
     const { result } = renderHook(() => useMoneyNoFeeTokens());
     expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 
-  it('returns true when pay token symbol + chainId is in noFeeTokens', () => {
+  it('returns true when pay token matches a subsidized source route', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyNoFeeTokens) {
-        return { '0x1': ['USDC'] };
+      if (selector === selectRelayFixedSpread) {
+        return configWithRoute('0x1', '0xabc');
       }
       return undefined;
     });
@@ -89,10 +108,10 @@ describe('useMoneyNoFeeTokens', () => {
     expect(result.current).toEqual({ isMoneyNoFeeToken: true });
   });
 
-  it('returns true when pay token matches noFeeTokens wildcard chain', () => {
+  it('returns true with case-insensitive address matching', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyNoFeeTokens) {
-        return { '*': ['USDC'] };
+      if (selector === selectRelayFixedSpread) {
+        return configWithRoute('0x1', '0xABC');
       }
       return undefined;
     });
@@ -101,15 +120,15 @@ describe('useMoneyNoFeeTokens', () => {
     expect(result.current).toEqual({ isMoneyNoFeeToken: true });
   });
 
-  it('returns false when pay token symbol does not match noFeeTokens entry', () => {
+  it('returns false when pay token address does not match any route', () => {
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { ...PAY_TOKEN, symbol: 'DAI' },
+      payToken: { ...PAY_TOKEN, address: '0xdef' as Hex },
       setPayToken: jest.fn(),
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyNoFeeTokens) {
-        return { '0x1': ['USDC'] };
+      if (selector === selectRelayFixedSpread) {
+        return configWithRoute('0x1', '0xabc');
       }
       return undefined;
     });
@@ -118,15 +137,15 @@ describe('useMoneyNoFeeTokens', () => {
     expect(result.current).toEqual({ isMoneyNoFeeToken: false });
   });
 
-  it('returns false when pay token chain does not match noFeeTokens entry', () => {
+  it('returns false when pay token chain does not match any route', () => {
     mockUseTransactionPayToken.mockReturnValue({
       payToken: { ...PAY_TOKEN, chainId: '0xa' as Hex },
       setPayToken: jest.fn(),
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyNoFeeTokens) {
-        return { '0x1': ['USDC'] };
+      if (selector === selectRelayFixedSpread) {
+        return configWithRoute('0x1', '0xabc');
       }
       return undefined;
     });
