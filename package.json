@@ -217,6 +217,12 @@
     "@metamask/keyring-controller": "^26.0.0",
     "@metamask/accounts-controller": "^39.0.0"
   },
+  "previewBuilds": {
+    "@metamask/social-controllers": {
+      "type": "non-breaking",
+      "previewVersion": "2.3.0-preview-20f5e4a"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@config-plugins/detox": "^9.0.0",

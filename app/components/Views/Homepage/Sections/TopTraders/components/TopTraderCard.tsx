@@ -45,7 +45,7 @@ export const TOP_TRADER_CARD_WIDTH = 200;
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
  *
- * Displays a trader's avatar (top-left), username, 30D PnL stats, and a
+ * Displays a trader's avatar (top-left), username, 7D PnL stats, and a
  * Follow/Following toggle pinned to the bottom.
  */
 const TopTraderCard: React.FC<TopTraderCardProps> = ({
@@ -126,7 +126,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                {' 30D'}
+                {' 7D'}
               </Text>
             </Text>
           </Box>

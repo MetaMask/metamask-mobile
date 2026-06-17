@@ -92,8 +92,8 @@ export const useTopTraders = (
       overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
-      percentageChange: (entry.roiPercent30d ?? 0) * 100,
-      pnlValue: entry.pnl30d,
+      percentageChange: (entry.roiPercent7d ?? 0) * 100,
+      pnlValue: entry.pnl7d ?? 0,
       pnlPerChain: entry.pnlPerChain ?? {},
       isFollowing: isFollowing(entry.profileId),
     }));

@@ -38,8 +38,8 @@ const mockTraders = [
     addresses: ['0x0000000000000000000000000000000000000001'],
     name: 'sniperliquid.hl',
     imageUrl: 'https://example.com/avatar1.png',
-    pnl30d: 963146.8,
-    roiPercent30d: 0.43,
+    pnl7d: 963146.8,
+    roiPercent7d: 0.43,
     pnlPerChain: { base: 963146.8 },
   },
   {
@@ -48,8 +48,8 @@ const mockTraders = [
     addresses: ['0x0000000000000000000000000000000000000002'],
     name: 'nervousdegen',
     imageUrl: 'https://example.com/avatar2.png',
-    pnl30d: 474751.45,
-    roiPercent30d: 3.59,
+    pnl7d: 474751.45,
+    roiPercent7d: 3.59,
     pnlPerChain: { ethereum: 474751.45 },
   },
   {
@@ -58,8 +58,8 @@ const mockTraders = [
     addresses: ['0x0000000000000000000000000000000000000003'],
     name: 'baznocap',
     imageUrl: 'https://example.com/avatar3.png',
-    pnl30d: 374735.16,
-    roiPercent30d: 6.17,
+    pnl7d: 374735.16,
+    roiPercent7d: 6.17,
     pnlPerChain: { solana: 374735.16 },
   },
 ];
@@ -135,15 +135,15 @@ describe('useTopTraders', () => {
         overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
-        percentageChange: first.roiPercent30d * 100,
-        pnlValue: first.pnl30d,
+        percentageChange: first.roiPercent7d * 100,
+        pnlValue: first.pnl7d,
         pnlPerChain: first.pnlPerChain ?? {},
         isFollowing: false,
       });
     });
 
-    it('defaults percentageChange to 0 when roiPercent30d is null', () => {
-      const entry = { ...mockTraders[0], roiPercent30d: null };
+    it('defaults percentageChange to 0 when roiPercent7d is null', () => {
+      const entry = { ...mockTraders[0], roiPercent7d: null };
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: { traders: [entry] } as never }),
       );
