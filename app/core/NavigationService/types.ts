@@ -249,6 +249,10 @@ type TraderPositionViewParams =
       /** Whether the tapped position came from the closed list. Authoritative
        * closed/open signal (more reliable than re-deriving from fields). */
       isClosed?: boolean;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -265,6 +269,10 @@ type TraderPositionViewParams =
       source?: string;
       /** Deep links have no list context; resolved heuristically downstream. */
       isClosed?: never;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     };
 
 /**

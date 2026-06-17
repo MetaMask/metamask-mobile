@@ -816,8 +816,9 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      // Sum is 1,000,000 — hyperliquid is included
-      expect(screen.getByText('+$1,000,000.00')).toBeOnTheScreen();
+      // Sum is 1,000,000 — hyperliquid is included; rendered with the shared
+      // abbreviated formatter (main): 1,000,000 → +$1M
+      expect(screen.getByText('+$1M')).toBeOnTheScreen();
       // And the trader's global pnl30d (999,999) is NOT what we display
       expect(screen.queryByText('+$999,999.00')).not.toBeOnTheScreen();
     });
@@ -837,7 +838,8 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$1,474,000.00')).toBeOnTheScreen();
+      // 1,474,000 rendered with the shared abbreviated formatter (main) → +$1.5M
+      expect(screen.getByText('+$1.5M')).toBeOnTheScreen();
       expect(screen.queryByText('+$0.00')).not.toBeOnTheScreen();
     });
 
@@ -859,8 +861,9 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      // -1000 + -2500 + 500 + -50000 = -53000
-      expect(screen.getByText('-$53,000.00')).toBeOnTheScreen();
+      // -1000 + -2500 + 500 + -50000 = -53000 (hyperliquid included);
+      // rendered with the shared abbreviated formatter (main): -53,000 → -$53K
+      expect(screen.getByText('-$53K')).toBeOnTheScreen();
     });
 
     it('treats a missing chain entry as 0', () => {
@@ -876,7 +879,7 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$7,500.00')).toBeOnTheScreen();
+      expect(screen.getByText('+$7.5K')).toBeOnTheScreen();
     });
 
     it('falls back to the global stats.pnl30d when perChainPnl is empty', () => {
@@ -892,7 +895,7 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
+      expect(screen.getByText('+$20.6K')).toBeOnTheScreen();
     });
   });
 });

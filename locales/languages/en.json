@@ -3023,7 +3023,64 @@
     "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
   },
   "activity_view": {
-    "title": "Activity"
+    "title": "Activity",
+    "search_placeholder": "Search tokens, transaction types...",
+    "filter_all_networks": "All networks",
+    "filter_all_types": "All types",
+    "filter_types_selected": "Types: {{label}}",
+    "filter_network_selected": "Network: {{label}}",
+    "type_filter": {
+      "title": "Types",
+      "all": "All types",
+      "transactions": "Transactions",
+      "buy_sell": "Buy/Sell",
+      "perps": "Perps",
+      "predictions": "Predictions",
+      "metamask_card": "MetaMask Card",
+      "money": "Money"
+    },
+    "empty_state": {
+      "default_funded": {
+        "description": "Nothing to see yet. Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "default_unfunded": {
+        "description": "Nothing to see yet. Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "predictions": {
+        "description": "Your first prediction could be your best.",
+        "action": "Make a prediction"
+      },
+      "perps": {
+        "description": "Your first perps trade could be your best.",
+        "action": "Browse markets"
+      },
+      "transactions_funded": {
+        "description": "Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "transactions_unfunded": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "buy_sell": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "money_funded": {
+        "description": "You've got funds—put them to work in MetaMask Money.",
+        "action": "Transfer funds"
+      },
+      "money_unfunded": {
+        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
+        "action": "Transfer funds"
+      },
+      "metamask_card": {
+        "description": "Manage your MetaMask Card and spend crypto anywhere.",
+        "action": "Open MetaMask Card"
+      }
+    }
   },
   "transactions_view": {
     "title": "Transactions"
@@ -4662,6 +4719,31 @@
     "tx_review_predict_withdraw": "Predictions withdraw",
     "tx_review_perps_withdraw": "Perps withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
+    "activity_buy": "Bought",
+    "activity_sell": "Sold",
+    "activity_claim_musd_bonus": "Claimed mUSD bonus",
+    "activity_wrap": "Wrapped",
+    "activity_unwrap": "Unwrapped",
+    "activity_revoke_spending_cap": "Revoked spending cap",
+    "activity_nft_mint": "NFT mint",
+    "activity_smart_account_upgrade": "Smart account upgrade",
+    "activity_prediction_cashed_out": "Prediction cashed out",
+    "activity_prediction_placed": "Prediction placed",
+    "activity_perps_open_long": "Opened long",
+    "activity_perps_close_long": "Closed long",
+    "activity_perps_close_long_liquidated": "Closed long - liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long - stop loss",
+    "activity_perps_open_short": "Opened short",
+    "activity_perps_close_short": "Closed short",
+    "activity_perps_close_short_liquidated": "Closed short - liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short - stop loss",
+    "activity_perps_paid_funding_fees": "Paid funding fees",
+    "activity_perps_received_funding_fees": "Received funding fees",
+    "activity_perps_close_short_take_profit": "Closed short - take profit",
+    "activity_perps_close_long_take_profit": "Closed long - take profit",
+    "activity_market_short": "Market short",
+    "activity_stop_market_close_short": "Stop market - close short",
+    "activity_market_close_short": "Market - close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -7028,7 +7110,7 @@
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
       "benefit_spend_cashback": "1-3% mUSD back",
-      "benefit_transfer": "Transfer to any of your wallets across MetaMask",
+      "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
     },
@@ -7038,7 +7120,8 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "deposit_funds": "Debit card or bank account",
+      "deposit_funds": "Debit card or Apple Pay",
+      "bank_account": "Bank account",
       "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
@@ -7083,8 +7166,9 @@
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
-      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and may change due to various factors. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols.",
+      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
       "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
+      "paragraph_4": "Money account is powered by Monad.",
       "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
@@ -7158,7 +7242,7 @@
       "description_3": "Money account is powered by Monad.",
       "faq_title": "FAQs",
       "faq_q1": "What is a MetaMask Money Account?",
-      "faq_a1": "MetaMask Money Account is a self-custodial account built into MetaMask that earns up to {{percentage}}% variable APY on deposited funds—with no lockups, no withdrawal penalties, and no account fees. When you deposit a supported stablecoin (USDC, USDT, or DAI) or aTokens into a Money Account, it converts to mUSD, MetaMask's dollar-backed stablecoin, with no conversion fees. You can also deposit any token into a Money Account, with a conversion fee. Your Money Account balance (mUSD) stays available to trade, send, and earn—or spend anytime via MetaMask Card, across 150+ million Mastercard merchants worldwide.",
+      "faq_a1": "MetaMask Money Account is a self-custodial account built into MetaMask that earns up to {{percentage}}% variable APY on deposited funds—with no lockups, no withdrawal penalties, and no account fees. When you deposit a supported stablecoin ({{stablecoins}}) or aTokens into a Money Account, it converts to mUSD, MetaMask's dollar-backed stablecoin, with no conversion fees. You can also deposit any token into a Money Account, with a conversion fee. Your Money Account balance (mUSD) stays available to trade, send, and earn—or spend anytime via MetaMask Card, across 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Is MetaMask Money Account safe?",
       "faq_a2": "MetaMask is a self-custodial wallet—only you control your private keys and funds. MetaMask cannot access, freeze, or move your balance. mUSD itself is backed 1:1 by US dollars and short-term US Treasury bills held in regulated custody by Bridge (a Stripe company). However, like all DeFi-based products, Money Account carries risks, including smart-contract failures, protocol exploits, liquidity shortages, third-party failures and legal or regulatory restrictions. The APY is variable and not guaranteed, and there is a risk of loss. The Money balance (mUSD) is not insured by the FDIC or any government agency.",
       "faq_q3": "Who controls my MetaMask Money Account?",
@@ -7168,9 +7252,9 @@
       "faq_q5": "How much can I earn with a MetaMask Money Account?",
       "faq_a5": "MetaMask Money Account earns up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money Account.",
       "faq_q6": "Where does the yield come from?",
-      "faq_a6": "When funds are deposited into a Money Account, these assets go into a third-party smart contract vault. The vault interacts with established DeFi protocols—for example, lending markets like Aave and Morpho—where they earn returns from real economic activity, primarily interest paid by borrowers. Any resulting returns, after applicable protocol costs and product fees, show up as APY. Earnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by the vault's positions in third-party DeFi protocols.",
+      "faq_a6": "When funds are deposited into a Money Account, these assets go into a third-party smart contract vault. The vault interacts with established DeFi protocols—for example, lending markets like Aave and Morpho—where they earn returns from real economic activity, primarily interest paid by borrowers. Any resulting returns, after applicable protocol costs and product fees, show up as APY. Earnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by the vault's positions in third-party DeFi protocols.\n\nThe rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. The DeFi vault is administered by Veda with risk oversight by Steakhouse Financial.",
       "faq_q7": "Which tokens can I deposit into the Money Account?",
-      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money Account with no conversion fees:\n\n• Ethereum: USDC, USDT, DAI, aUSDC, aUSDT, aDAI\n• Arbitrum: USDC\n• Base: USDC\n• BNB Chain: USDC, USDT\n\nAll other EVM tokens can also be deposited into the Money Account, but standard exchange fees may apply. You can also fund your Money Account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There is an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money Account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can also be deposited into the Money Account, but standard exchange fees may apply. You can also fund your Money Account using a debit card, credit card, or Apple Pay.\n\nNote: There is an initial max deposit of $100,000 per token to ensure liquidity.",
       "faq_q8": "Can I withdraw from the MetaMask Money Account anytime?",
       "faq_a8": "Yes. Your mUSD is never locked. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. Withdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays.",
       "faq_q9": "Do I need to complete KYC to use MetaMask Money Account?",
@@ -9567,11 +9651,6 @@
     "perps": "Perps",
     "rwa_perps_section": "Perps",
     "macro_stocks_commodity_perps": "Perps",
-    "macro_pill_stocks": "Stocks",
-    "macro_pill_commodities": "Commodities",
-    "rwa_pill_commodities": "Commodities",
-    "rwa_pill_stocks": "Stocks",
-    "rwa_pill_forex": "Forex",
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
@@ -9748,15 +9827,6 @@
       "money": "Money",
       "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
-      "money_empty_state": {
-        "get_started": "Get started",
-        "earn": "Earn",
-        "earn_apy": "Earn {{percentage}}% APY"
-      },
-      "money_filled_state": {
-        "add": "Add",
-        "apy": "{{percentage}}% APY"
-      },
       "tokens": "Tokens",
       "perps": "Perps",
       "related_assets": "Related Assets",

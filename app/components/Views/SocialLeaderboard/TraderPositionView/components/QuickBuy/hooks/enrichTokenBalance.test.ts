@@ -27,7 +27,10 @@ const baseDeps = (overrides: Record<string, unknown> = {}): TokenBalanceDeps =>
     accountsByChainId: {},
     tokenBalances: {},
     tokenMarketData: {},
-    currencyRates: { ETH: { usdConversionRate: 2000 } },
+    // `conversionRate` is the native-token -> user-currency rate that the
+    // canonical `calcTokenFiatRate` reads.
+    currencyRates: { ETH: { conversionRate: 2000, usdConversionRate: 2000 } },
+    currentCurrency: 'USD',
     allNetworkConfigs: { '0x1': { nativeCurrency: 'ETH' } },
     ...overrides,
   }) as unknown as TokenBalanceDeps;
@@ -50,7 +53,7 @@ describe('enrichTokenBalance', () => {
 
       expect(result).toEqual({
         balance: '1.0',
-        balanceFiat: '$2000.00',
+        balanceFiat: '$2,000.00',
         tokenFiatAmount: 2000,
         currencyExchangeRate: 2000,
       });
@@ -79,7 +82,7 @@ describe('enrichTokenBalance', () => {
         ...extra,
       });
 
-    it('prices an ERC-20 from market data times the usd conversion rate', () => {
+    it('prices an ERC-20 from market data times the native conversion rate', () => {
       const deps = withUsdcBalance({
         tokenMarketData: {
           '0x1': { [toChecksumAddress(USDC)]: { price: 0.0005 } },
@@ -87,12 +90,43 @@ describe('enrichTokenBalance', () => {
       });
 
       const result = enrichTokenBalance(
-        token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),
+        token({
+          address: toChecksumAddress(USDC),
+          chainId: '0x1',
+          symbol: 'USDC',
+          decimals: 6,
+        }),
         deps,
       );
 
       expect(result).toMatchObject({
         balance: '250.0',
+        balanceFiat: '$250.00',
+        currencyExchangeRate: 1,
+        tokenFiatAmount: 250,
+      });
+    });
+
+    it('prices a lowercase-address ERC-20 against checksum-keyed market data', () => {
+      const deps = withUsdcBalance({
+        tokenMarketData: {
+          '0x1': { [toChecksumAddress(USDC)]: { price: 0.0005 } },
+        },
+      });
+
+      const result = enrichTokenBalance(
+        token({
+          address: USDC.toLowerCase(),
+          chainId: '0x1',
+          symbol: 'USDC',
+          decimals: 6,
+        }),
+        deps,
+      );
+
+      expect(result).toMatchObject({
+        balance: '250.0',
+        balanceFiat: '$250.00',
         currencyExchangeRate: 1,
         tokenFiatAmount: 250,
       });
@@ -177,7 +211,7 @@ describe('enrichTokenBalance', () => {
 
       expect(result).toEqual({
         balance: '12.5',
-        balanceFiat: '$2500.00',
+        balanceFiat: '$2,500.00',
         tokenFiatAmount: 2500,
         currencyExchangeRate: 200,
       });
@@ -279,7 +313,7 @@ describe('enrichTokenBalance', () => {
 
       expect(result).toEqual({
         balance: '0.5',
-        balanceFiat: '$50000.00',
+        balanceFiat: '$50,000.00',
         tokenFiatAmount: 50000,
         currencyExchangeRate: 100000,
       });
@@ -325,72 +359,6 @@ describe('enrichTokenBalance', () => {
       );
 
       expect(result).toBeNull();
-    });
-  });
-
-  describe('fiatCurrency', () => {
-    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
-    const solanaScope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-    const solanaAccount = { id: 'solana-account-id' };
-
-    it('formats the fiat string with the provided currency symbol (numeric value stays USD)', () => {
-      const deps = baseDeps({
-        fiatCurrency: 'eur',
-        solanaAccount,
-        multichainBalances: {
-          [solanaAccount.id]: { [solAssetId]: { amount: '12.5' } },
-        },
-        multichainRates: { [solAssetId]: { rate: '200' } },
-      });
-
-      const result = enrichTokenBalance(
-        token({
-          address: solAssetId,
-          chainId: solanaScope,
-          symbol: 'SOL',
-          decimals: 9,
-        }),
-        deps,
-      );
-
-      expect(result).toEqual({
-        balance: '12.5',
-        balanceFiat: '€2500',
-        tokenFiatAmount: 2500,
-        currencyExchangeRate: 200,
-      });
-    });
-
-    it('defaults to USD when no fiatCurrency is provided', () => {
-      const deps = baseDeps({
-        solanaAccount,
-        multichainBalances: {
-          [solanaAccount.id]: { [solAssetId]: { amount: '12.5' } },
-        },
-        multichainRates: { [solAssetId]: { rate: '200' } },
-      });
-
-      const result = enrichTokenBalance(
-        token({ address: solAssetId, chainId: solanaScope, symbol: 'SOL' }),
-        deps,
-      );
-
-      expect(result?.balanceFiat).toBe('$2500.00');
-    });
-
-    it('uses the provided currency symbol for a lenient zero enrichment', () => {
-      const result = enrichTokenBalance(
-        token({ address: solAssetId, chainId: solanaScope, symbol: 'SOL' }),
-        baseDeps({ fiatCurrency: 'eur' }),
-        { includeZeroBalance: true },
-      );
-
-      expect(result).toEqual({
-        balance: '0',
-        balanceFiat: '€0',
-        tokenFiatAmount: 0,
-        currencyExchangeRate: undefined,
-      });
     });
   });
 });
