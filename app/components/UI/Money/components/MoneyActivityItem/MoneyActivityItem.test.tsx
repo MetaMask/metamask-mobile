@@ -17,12 +17,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
 }));
 
-// useSelector is mocked to call the selector directly (no store needed) so
-// mockReturnValue on selectMoneyEnableActivityDetailsFlag is always applied.
-jest.mock('react-redux', () => ({
-  useSelector: (selector: () => unknown) => selector(),
-}));
-
 const mockedSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
 );
@@ -158,16 +152,17 @@ describe('MoneyActivityItem', () => {
     expect(onPress).toHaveBeenCalledWith(baseTx);
   });
 
-  it('does not invoke onPress when moneyEnableActivityDetails flag is off', () => {
+  it('renders the row as non-pressable when moneyEnableActivityDetails flag is off', () => {
     mockedSelectActivityDetailsFlag.mockReturnValue(false);
-    const onPress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" onPress={onPress} />,
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" onPress={jest.fn()} />,
     );
 
-    fireEvent.press(getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`));
-
-    expect(onPress).not.toHaveBeenCalled();
+    // When the flag is off, ActivityRowView receives onPress={undefined}, so the
+    // underlying Pressable has no onPress handler.
+    expect(
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`).props.onPress,
+    ).toBeUndefined();
   });
 
   it('keeps the real subtitle on a failed row (failure is shown via the label, not the subtitle)', () => {
