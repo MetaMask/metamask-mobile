@@ -77,9 +77,17 @@ export function TransactionDetailsSummary() {
 
   const showSourceHash = !hasDepositTransactions && sourceHash;
 
-  const completedCount = transactions.filter(
+  const txCompletedCount = transactions.filter(
     (tx) => tx.status === TransactionStatus.confirmed,
   ).length;
+
+  const parentConfirmed =
+    transactionMeta.status === TransactionStatus.confirmed;
+  const extraCompletedSteps =
+    (fiatOrderId && parentConfirmed ? 1 : 0) +
+    (showSourceHash && parentConfirmed ? 1 : 0);
+
+  const completedCount = txCompletedCount + extraCompletedSteps;
 
   const heading = isMoneyContext
     ? strings('transaction_details.label.steps_completed', {
