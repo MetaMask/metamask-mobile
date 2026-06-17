@@ -443,7 +443,7 @@ describe('RewardsVipRefereeView', () => {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: expect.stringContaining(
-          `priority=vip&account=${encodeURIComponent(mockAccountAddress)}`,
+          `priority=vip&address=${encodeURIComponent(mockAccountAddress)}`,
         ),
         title: 'Contact support',
       },
