@@ -1,10 +1,15 @@
 /**
- * Headless ramps surface the event was triggered from. Set on every event
- * emitted on the headless deposit path (TRAM-3623) so the funnel can be sliced
- * by which product feature initiated the buy. Optional and empty for all
- * non-headless (UB2 / native Deposit) events, keeping the change additive.
+ * Headless ramps surface the event was triggered from. Set on every event on
+ * the headless deposit path (TRAM-3623) so the funnel can be sliced by product
+ * feature. Optional and empty for non-headless (UB2 / native Deposit) events.
  */
-export type RampSurface = 'money_account' | 'perps' | 'prediction';
+export const RAMP_SURFACE = {
+  MONEY_ACCOUNT: 'money_account',
+  PERPS: 'perps',
+  PREDICTION: 'prediction',
+} as const;
+
+export type RampSurface = (typeof RAMP_SURFACE)[keyof typeof RAMP_SURFACE];
 
 interface RampsButtonClicked {
   quote_session_id?: string;

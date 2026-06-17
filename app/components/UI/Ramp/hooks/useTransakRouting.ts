@@ -184,9 +184,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const regionIsoCode = userRegion?.regionCode || '';
 
   /**
-   * Emits HEADLESS `RAMPS_ORDER_FAILED` for headless buy failures (TRAM-3623 §7):
-   * `failSession` (non-React) can't emit, so this host does, around that call.
-   * No-op without a live headless session; `quote` (when in scope) seeds the amount.
+   * Emits HEADLESS `RAMPS_ORDER_FAILED` for headless buy failures (TRAM-3623
+   * §7): `failSession` (non-React) can't emit, so this host does, around that
+   * call. No-op without a live session; `quote` (when in scope) seeds amount.
    */
   const emitHeadlessOrderFailed = useCallback(
     (error: unknown, quote?: TransakBuyQuote) => {
@@ -502,8 +502,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           });
 
           // Snapshot the headless context BEFORE closeSession tears it down
-          // (TRAM-3623 §4) so the terminal RAMPS_TRANSACTION_CONFIRMED can carry
-          // ramp_type HEADLESS + the seeded ramp_surface after the session closes.
+          // (TRAM-3623 §4) so the terminal RAMPS_TRANSACTION_CONFIRMED carries
+          // ramp_type HEADLESS + the seeded ramp_surface.
           const confirmSession = getSession(headlessSessionId);
           const wasHeadless = Boolean(confirmSession);
           const rampSurface = confirmSession?.params?.rampSurface;
@@ -752,9 +752,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   paymentDetails: depositOrder.paymentDetails,
                 });
 
-                // Manual-bank-transfer headless branch (TRAM-3623 §4): emits no
-                // confirmed event natively, so snapshot the surface before
-                // navigateToOrderProcessingCallback closes the session, then emit it.
+                // Manual-bank-transfer headless branch (TRAM-3623 §4): snapshot
+                // the surface before navigateToOrderProcessingCallback closes
+                // the session, then emit the confirmed event.
                 const manualBankSession = getSession(headlessSessionId);
                 if (manualBankSession) {
                   const rampSurface = manualBankSession.params?.rampSurface;
@@ -847,10 +847,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           }
 
           case 'NOT_SUBMITTED': {
-            // Snapshot the headless session BEFORE navigating so the KYC_STARTED
-            // event carries `ramp_type: 'HEADLESS'` + the seeded `ramp_surface`
-            // on the headless path (TRAM-3623), matching the terminal events in
-            // this file. No-op for the regular flow, which keeps `'DEPOSIT'`.
+            // Snapshot the headless session BEFORE navigating so KYC_STARTED
+            // carries `ramp_type: 'HEADLESS'` + the seeded `ramp_surface`
+            // (TRAM-3623); the regular flow keeps `'DEPOSIT'`.
             const kycStartedSession = getSession(headlessSessionId);
             trackEvent('RAMPS_KYC_STARTED', {
               ramp_type: kycStartedSession ? 'HEADLESS' : 'DEPOSIT',
@@ -896,8 +895,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               }
 
               // Same headless snapshot as the NOT_SUBMITTED branch above
-              // (TRAM-3623): flip to HEADLESS + ramp_surface on the headless
-              // path, otherwise stay DEPOSIT.
+              // (TRAM-3623): HEADLESS + ramp_surface on the headless path.
               const idProofKycSession = getSession(headlessSessionId);
               trackEvent('RAMPS_KYC_STARTED', {
                 ramp_type: idProofKycSession ? 'HEADLESS' : 'DEPOSIT',

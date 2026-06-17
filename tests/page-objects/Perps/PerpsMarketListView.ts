@@ -57,6 +57,10 @@ class PerpsMarketListView {
     return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.SEARCH_BAR);
   }
 
+  get homeSearchToggle() {
+    return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE);
+  }
+
   get searchClearButton() {
     return Matchers.getElementByID(
       PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
@@ -129,6 +133,10 @@ class PerpsMarketListView {
     return Matchers.getIdentifier(PerpsTokenSelectorSelectorsIDs.MODAL);
   }
 
+  get marketListScrollableContainer(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(PerpsMarketListViewSelectorsIDs.MARKET_LIST);
+  }
+
   get closeTokenSelector() {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CLOSE_BUTTON);
   }
@@ -162,6 +170,14 @@ class PerpsMarketListView {
 
   async tapSearchClearButton() {
     await Gestures.waitAndTap(this.searchClearButton);
+  }
+
+  async openMarketListFromHomeSearch(): Promise<void> {
+    await Gestures.waitAndTap(this.homeSearchToggle, {
+      elemDescription: 'Perps home search button',
+      timeout: 15000,
+    });
+    await Utilities.isElementVisible(this.searchBar, 15000);
   }
 
   async tapCloseTokenSelector() {
@@ -241,16 +257,20 @@ class PerpsMarketListView {
     }
 
     const marketListVisible = await Utilities.isElementVisible(
-      this.container,
+      Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST),
       1000,
     );
     if (marketListVisible) {
-      await Gestures.scrollToElement(marketElement, this.scrollableContainer, {
-        direction: 'down',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row in market list`,
-      });
+      await Gestures.scrollToElement(
+        marketElement,
+        this.marketListScrollableContainer,
+        {
+          direction: 'down',
+          scrollAmount: 200,
+          timeout: 10000,
+          elemDescription: `${marketName} market row in market list`,
+        },
+      );
     }
   }
 
@@ -258,7 +278,25 @@ class PerpsMarketListView {
     await encapsulatedAction({
       detox: async () => {
         const marketElement = this.getMarketRowElement(marketName);
-        await this.scrollToMarketRow(marketName);
+        try {
+          await this.scrollToMarketRow(marketName);
+        } catch {
+          await this.openMarketListFromHomeSearch();
+          await Gestures.typeText(this.searchBar, marketName, {
+            elemDescription: 'Perps market search input',
+            hideKeyboard: true,
+          });
+          await Gestures.scrollToElement(
+            marketElement,
+            this.marketListScrollableContainer,
+            {
+              direction: 'down',
+              scrollAmount: 200,
+              timeout: 10000,
+              elemDescription: `${marketName} market row in searched market list`,
+            },
+          );
+        }
         await Gestures.waitAndTap(marketElement, {
           elemDescription: `${marketName} market row`,
         });
