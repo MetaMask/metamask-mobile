@@ -105,11 +105,6 @@ export function resolvePredictFeatureFlags(
   const predictHomeRedesignEnabled = resolveVersionGatedBooleanFlag(
     flags.predictHomeRedesign,
   );
-  const predictHomepageDiscoveryNbaChampionEnabled =
-    resolveVersionGatedBooleanFlag(
-      flags.predictHomepageDiscoveryNbaChampionEnabled,
-      true,
-    );
   const parsedPredictWorldCup = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
       flags.predictWorldCup,
@@ -133,7 +128,6 @@ export function resolvePredictFeatureFlags(
     predictUpDownEnabled,
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
-    predictHomepageDiscoveryNbaChampionEnabled,
     predictWorldCup,
   };
 }

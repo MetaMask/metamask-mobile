@@ -3230,6 +3230,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyFirstTimeDepositAnimationEnabled: {
+    name: 'earnMoneyFirstTimeDepositAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyHubEnabled: {
     name: 'earnMoneyHubEnabled',
     type: FeatureFlagType.Remote,
@@ -3992,17 +4000,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.65.0',
       variant: 'list',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  predictHomepageDiscoveryNbaChampionEnabled: {
-    name: 'predictHomepageDiscoveryNbaChampionEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '7.77.0',
     },
     status: FeatureFlagStatus.Active,
   },

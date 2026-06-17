@@ -203,7 +203,7 @@ interface RampsTransactionConfirmed {
 
 interface RampsTransactionCompleted {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2';
   user_id?: string;
   amount_source: number;
   amount_destination: number;
@@ -223,7 +223,7 @@ interface RampsTransactionCompleted {
 
 interface RampsTransactionFailed {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;

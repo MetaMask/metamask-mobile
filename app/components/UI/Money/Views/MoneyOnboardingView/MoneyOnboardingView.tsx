@@ -239,8 +239,7 @@ const MoneyOnboardingView = () => {
       artboardName={RIVE_ARTBOARD_NAME}
       stateMachineName={RIVE_STATE_MACHINE_NAME}
       dataBinding={AutoBind(true)}
-      fit={Fit.Layout}
-      layoutScaleFactor={PixelRatio.get()}
+      fit={Fit.FitWidth}
       onStateChanged={handleStateChanged}
       testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
     />
