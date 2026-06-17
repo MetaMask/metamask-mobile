@@ -118,11 +118,9 @@ const Checkout = () => {
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
-  // Headless deposit (TRAM-3623): when a headless session drives this
-  // Checkout, every webview funnel event built via `buildBaseProps` is tagged
-  // `ramp_type: 'HEADLESS'` plus the seeded `ramp_surface` and the user's
-  // `region` (RampsController). For non-headless UB2 traffic these stay
-  // undefined, so `buildBaseProps` keeps its `UNIFIED_BUY_2` defaults.
+  // Headless deposit (TRAM-3623): when a headless session drives this Checkout,
+  // every `buildBaseProps` funnel event is tagged `ramp_type: 'HEADLESS'` plus
+  // the seeded `ramp_surface`/`region`; non-headless UB2 keeps its defaults.
   const headlessRampSurface =
     getSession(headlessSessionId)?.params?.rampSurface;
   const regionCode = userRegion?.regionCode || undefined;
@@ -238,8 +236,7 @@ const Checkout = () => {
       }
       // Snapshot the session BEFORE failSession tears it down so the HEADLESS
       // RAMPS_ORDER_FAILED event (TRAM-3623 §7) can carry the seeded
-      // ramp_surface and the quote/amount context. The non-React failSession
-      // helper can't emit analytics itself, so this React host does it.
+      // ramp_surface and quote/amount context; failSession can't emit itself.
       const session = getSession(headlessSessionId);
       if (!failSession(headlessSessionId, checkoutError)) {
         return false;
