@@ -9,11 +9,14 @@ export function TransactionDetailsStatusRow() {
   const { transactionMeta } = useTransactionDetails();
 
   return (
-    <TransactionDetailsRow label={strings('transactions.status')}>
+    <>
+      <TransactionDetailsRow label={strings('transactions.status')}>
+        <></>
+      </TransactionDetailsRow>
       <TransactionDetailsStatus
         transactionMeta={transactionMeta}
         testId={TransactionDetailsSelectorIDs.STATUS}
       />
-    </TransactionDetailsRow>
+    </>
   );
 }

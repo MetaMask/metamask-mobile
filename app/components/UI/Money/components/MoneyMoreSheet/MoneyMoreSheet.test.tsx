@@ -122,14 +122,14 @@ describe('MoneyMoreSheet', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
   });
 
-  it('opens the Money landing URL when "What you get" is pressed', () => {
+  it('opens the MUSD learn-more URL when "What you get" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(Linking.openURL).toHaveBeenCalledWith(
-      AppConstants.URLS.MONEY_LANDING,
+      AppConstants.URLS.MUSD_LEARN_MORE,
     );
   });
 
@@ -168,14 +168,14 @@ describe('MoneyMoreSheet', () => {
       });
     });
 
-    it('calls trackSurfaceClicked with WHAT_YOU_GET component and MONEY_LANDING redirect when "What you get" is pressed', () => {
+    it('calls trackSurfaceClicked with WHAT_YOU_GET component and MUSD_LEARN_MORE redirect when "What you get" is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
       fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
-        redirect_target: MONEY_URLS.MONEY_LANDING,
+        redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
       });
     });
 

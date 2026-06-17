@@ -18,6 +18,10 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import styleSheet from './PermissionsSummary.styles';
@@ -69,9 +73,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 const PermissionsSummary = ({
@@ -670,10 +671,11 @@ const PermissionsSummary = ({
           {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
-                variant={ButtonVariant.Secondary}
+                variant={ButtonVariants.Secondary}
                 testID={
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
+                label={strings('accounts.disconnect_all')}
                 onPress={toggleRevokeAllPermissionsModal}
                 startIconName={IconName.Logout}
                 isDanger
@@ -681,9 +683,7 @@ const PermissionsSummary = ({
                 style={{
                   ...styles.disconnectButton,
                 }}
-              >
-                {strings('accounts.disconnect_all')}
-              </Button>
+              />
             </View>
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
@@ -717,7 +717,8 @@ const PermissionsSummary = ({
             <View style={styles.nonDappNetworkSwitchButtons}>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariant.Primary}
+                  variant={ButtonVariants.Primary}
+                  label={strings('permissions.add_this_network')}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON
                   }
@@ -726,13 +727,12 @@ const PermissionsSummary = ({
                   style={{
                     ...styles.disconnectButton,
                   }}
-                >
-                  {strings('permissions.add_this_network')}
-                </Button>
+                />
               </View>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariant.Secondary}
+                  variant={ButtonVariants.Secondary}
+                  label={strings('permissions.choose_from_permitted_networks')}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
                   }
@@ -741,9 +741,7 @@ const PermissionsSummary = ({
                   style={{
                     ...styles.disconnectButton,
                   }}
-                >
-                  {strings('permissions.choose_from_permitted_networks')}
-                </Button>
+                />
               </View>
             </View>
           )}

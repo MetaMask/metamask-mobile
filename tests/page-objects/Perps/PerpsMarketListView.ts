@@ -1,9 +1,7 @@
 import {
-  PerpsHomeViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsMarketRowItemSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
-  PerpsWatchlistSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
@@ -15,10 +13,6 @@ import {
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction, PlaywrightGestures } from '../../framework';
-import Utilities from '../../framework/Utilities';
-import PerpsMarketDetailsView from './PerpsMarketDetailsView';
-
-export type PerpsOrderSide = 'long' | 'short';
 
 class PerpsMarketListView {
   // Main container
@@ -172,96 +166,13 @@ class PerpsMarketListView {
     await Gestures.waitAndTap(this.container);
   }
 
-  private getMarketRowElement(marketName: string) {
-    return Matchers.getElementByID(
-      `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`,
-    );
-  }
-
-  private get perpsHomeScrollView(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT);
-  }
-
-  /**
-   * Scrolls the Perps home feed (or full market list) until the market row is visible.
-   * Avoids tapping Explore crypto, which is flaky when clipped on CI.
-   */
-  async scrollToMarketRow(marketName: string): Promise<void> {
-    const marketElement = this.getMarketRowElement(marketName);
-
-    if (await Utilities.isElementVisible(marketElement, 1500)) {
-      return;
-    }
-
-    const watchlistSection = Matchers.getElementByID(
-      PerpsWatchlistSelectorsIDs.SECTION,
-    );
-    const perpsHomeScrollVisible = await Utilities.isElementVisible(
-      Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
-      1000,
-    );
-
-    if (perpsHomeScrollVisible) {
-      if (await Utilities.isElementVisible(watchlistSection, 1000)) {
-        await Gestures.scrollToElement(
-          watchlistSection,
-          this.perpsHomeScrollView,
-          {
-            direction: 'down',
-            scrollAmount: 200,
-            timeout: 10000,
-            elemDescription: 'Perps home watchlist section',
-          },
-        );
-      }
-
-      if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
-      }
-
-      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
-        direction: 'down',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row on Perps home`,
-      });
-
-      if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
-      }
-
-      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
-        direction: 'up',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row on Perps home (scroll up)`,
-      });
-
-      return;
-    }
-
-    const marketListVisible = await Utilities.isElementVisible(
-      this.container,
-      1000,
-    );
-    if (marketListVisible) {
-      await Gestures.scrollToElement(marketElement, this.scrollableContainer, {
-        direction: 'down',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row in market list`,
-      });
-    }
-  }
-
   async selectMarket(marketName: string) {
     await encapsulatedAction({
       detox: async () => {
-        const marketElement = this.getMarketRowElement(marketName);
-        await this.scrollToMarketRow(marketName);
-        await Gestures.waitAndTap(marketElement, {
-          elemDescription: `${marketName} market row`,
-        });
+        const marketElement = Matchers.getElementByID(
+          `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`,
+        );
+        await Gestures.waitAndTap(marketElement);
       },
       appium: async () => {
         const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
@@ -273,29 +184,6 @@ class PerpsMarketListView {
         await PlaywrightGestures.waitAndTap(marketElement);
       },
     });
-  }
-
-  /**
-   * Selects a market from the Perps home watchlist and taps Long or Short on
-   * market details. Scrolls the home feed when needed; retries until both steps succeed.
-   */
-  async selectMarketAndTapOrderSide(
-    marketName: string,
-    side: PerpsOrderSide,
-    options: { interval?: number; timeout?: number } = {},
-  ): Promise<void> {
-    const { interval = 1000, timeout = 30000 } = options;
-    await Utilities.executeWithRetry(
-      async () => {
-        await this.selectMarket(marketName);
-        if (side === 'long') {
-          await PerpsMarketDetailsView.tapLongButton();
-        } else {
-          await PerpsMarketDetailsView.tapShortButton();
-        }
-      },
-      { interval, timeout },
-    );
   }
 }
 

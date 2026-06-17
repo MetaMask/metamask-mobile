@@ -42,7 +42,6 @@ import performanceReducer, {
 import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
 ///: END:ONLY_INCLUDE_IF
 import cardReducer from '../core/redux/slices/card';
-import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
 import rewardsReducer, { RewardsState } from './rewards';
 import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
@@ -127,7 +126,6 @@ export interface RootState {
   qrKeyringScanner: StateFromReducer<typeof qrKeyringScannerReducer>;
   banners: BannersState;
   card: StateFromReducer<typeof cardReducer>;
-  moneyBalance: StateFromReducer<typeof moneyBalanceReducer>;
   performance?: PerformanceState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   sampleCounter: StateFromReducer<typeof sampleCounterReducer>;
@@ -170,7 +168,6 @@ const baseReducers = {
   bridge: bridgeReducer,
   banners: bannersReducer,
   card: cardReducer,
-  moneyBalance: moneyBalanceReducer,
   confirmationMetrics: confirmationMetricsReducer,
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   sampleCounter: sampleCounterReducer,

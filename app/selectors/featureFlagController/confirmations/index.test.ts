@@ -21,7 +21,6 @@ import {
   PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
   PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT,
   PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT,
-  PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
@@ -706,30 +705,6 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       expect(
         selectMetaMaskPayFlags(state).enableMoneyHomePagePredictTransaction,
       ).toBe(false);
-    });
-  });
-
-  describe('defaultPaySelectedSection', () => {
-    it('returns default (undefined) when remote flag is absent', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-
-      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toEqual(
-        PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
-      );
-    });
-
-    it('returns "money-account" when remote flag is set', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            defaultPaySelectedSection: 'money-account',
-          },
-        };
-
-      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toBe(
-        'money-account',
-      );
     });
   });
 });

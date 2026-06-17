@@ -1,7 +1,10 @@
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { waitFor } from '@testing-library/react-native';
 import { useRampsButtonClickData } from './useRampsButtonClickData';
-import { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import {
+  FiatOrder,
+  UnifiedRampRoutingType,
+} from '../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -58,11 +61,15 @@ const createMockOrder = (
   return order;
 };
 
-const createMockState = (orders: FiatOrder[] = []) => ({
+const createMockState = (
+  orders: FiatOrder[] = [],
+  rampRoutingDecision: UnifiedRampRoutingType | null = null,
+) => ({
   ...initialRootState,
   fiatOrders: {
     ...initialRootState.fiatOrders,
     orders,
+    rampRoutingDecision,
   },
 });
 
@@ -242,6 +249,58 @@ describe('useRampsButtonClickData', () => {
     });
   });
 
+  describe('ramp_routing', () => {
+    it('returns DEPOSIT when routing decision is DEPOSIT', async () => {
+      const { result } = renderHookWithProvider(
+        () => useRampsButtonClickData(),
+        { state: createMockState([], UnifiedRampRoutingType.DEPOSIT) },
+      );
+
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(
+          UnifiedRampRoutingType.DEPOSIT,
+        );
+      });
+    });
+
+    it('returns AGGREGATOR when routing decision is AGGREGATOR', async () => {
+      const { result } = renderHookWithProvider(
+        () => useRampsButtonClickData(),
+        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR) },
+      );
+
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(
+          UnifiedRampRoutingType.AGGREGATOR,
+        );
+      });
+    });
+
+    it('returns UNSUPPORTED when routing decision is UNSUPPORTED', async () => {
+      const { result } = renderHookWithProvider(
+        () => useRampsButtonClickData(),
+        { state: createMockState([], UnifiedRampRoutingType.UNSUPPORTED) },
+      );
+
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(
+          UnifiedRampRoutingType.UNSUPPORTED,
+        );
+      });
+    });
+
+    it('returns ERROR when routing decision is ERROR', async () => {
+      const { result } = renderHookWithProvider(
+        () => useRampsButtonClickData(),
+        { state: createMockState([], UnifiedRampRoutingType.ERROR) },
+      );
+
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(UnifiedRampRoutingType.ERROR);
+      });
+    });
+  });
+
   describe('is_authenticated', () => {
     it('returns false immediately before async check completes', () => {
       mockGetProviderToken.mockImplementation(
@@ -359,12 +418,13 @@ describe('useRampsButtonClickData', () => {
       const { result } = renderHookWithProvider(
         () => useRampsButtonClickData(),
         {
-          state: createMockState(orders),
+          state: createMockState(orders, UnifiedRampRoutingType.AGGREGATOR),
         },
       );
 
       await waitFor(() => {
         expect(result.current).toEqual({
+          ramp_routing: UnifiedRampRoutingType.AGGREGATOR,
           is_authenticated: true,
           preferred_provider: 'test-provider',
           order_count: 2,

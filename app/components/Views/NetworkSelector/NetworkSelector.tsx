@@ -39,7 +39,6 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
-  canDeleteNetwork,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import {
@@ -629,7 +628,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             }
             buttonProps={{
               onButtonClick: () => {
-                openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
+                openModal(chainId, true, rpcUrl, false);
               },
             }}
             onTextClick={() =>
@@ -639,7 +638,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
               })
             }
             onLongPress={() => {
-              openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
+              openModal(chainId, true, rpcUrl, false);
             }}
           />
         );

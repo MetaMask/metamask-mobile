@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -28,10 +27,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Engine from '../../../../../core/Engine';
 import {
   incrementBridgeBalanceRefreshKey,
-  setDestAmount,
   setDestToken,
   setIsDestTokenManuallySet,
-  setSelectedQuoteRequestId,
   setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -47,10 +44,6 @@ import {
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
-import { PostTradeTokenSuggestions } from './PostTradeTokenSuggestions';
-import { convertApiTokenToBridgeToken } from '../../utils/tokenUtils';
-import { getTrendingTokenImageUrl } from '../../../Trending/utils/getTrendingTokenImageUrl';
-import { PostTradeBottomSheetTestIds } from './PostTradeBottomSheet.testIds';
 import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
@@ -201,30 +194,6 @@ export const PostTradeBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
-  const handleSuggestionPress = (token: TrendingAsset) => {
-    let selectedDestToken;
-    try {
-      selectedDestToken = convertApiTokenToBridgeToken(
-        token,
-        getTrendingTokenImageUrl(token.assetId),
-      );
-    } catch {
-      return;
-    }
-
-    if (params.sourceToken) {
-      dispatch(setSourceToken(params.sourceToken));
-    }
-    dispatch(setDestToken(selectedDestToken));
-    dispatch(setIsDestTokenManuallySet(true));
-    dispatch(setSourceAmount(undefined));
-    dispatch(setDestAmount(undefined));
-    dispatch(setSelectedQuoteRequestId(undefined));
-
-    Engine.context.BridgeController?.resetState?.();
-    sheetRef.current?.onCloseBottomSheet();
-  };
-
   const footerButtonProps =
     status === PostTradeStatus.Failed
       ? {
@@ -232,13 +201,13 @@ export const PostTradeBottomSheet = () => {
             children: strings('bridge.post_trade_modal.view_activity'),
             size: ButtonSize.Lg,
             onPress: handleViewActivity,
-            testID: PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON,
+            testID: 'post-trade-bottom-sheet-view-activity-button',
           },
           primaryButtonProps: {
             children: strings('bridge.post_trade_modal.try_again'),
             size: ButtonSize.Lg,
             onPress: handleTryAgain,
-            testID: PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON,
+            testID: 'post-trade-bottom-sheet-try-again-button',
           },
         }
       : undefined;
@@ -247,7 +216,7 @@ export const PostTradeBottomSheet = () => {
     <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
+        closeButtonProps={{ testID: 'post-trade-bottom-sheet-close-button' }}
       >
         <StatusIcon status={status} />
       </BottomSheetHeader>
@@ -265,11 +234,6 @@ export const PostTradeBottomSheet = () => {
           </Text>
         ) : null}
       </Box>
-      <PostTradeTokenSuggestions
-        status={status}
-        destToken={params.destToken}
-        onTokenPress={handleSuggestionPress}
-      />
       {footerButtonProps ? (
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Vertical}

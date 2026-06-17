@@ -43,6 +43,20 @@ jest.mock(
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+// Mock MetaMetrics for events and getInstance
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
+    .MetaMetricsEvents,
+  getInstance: jest.fn(() => ({
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
+  })),
+}));
+
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
 

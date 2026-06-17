@@ -12,7 +12,6 @@ import {
   type PredictMarket,
   type PredictSeries,
 } from '../../types';
-import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../hooks/useCryptoUpDownChartData', () => ({
   useCryptoUpDownChartData: jest.fn(),
@@ -74,7 +73,6 @@ describe('PredictCryptoUpDownChart', () => {
       loading: false,
       isLive: true,
       window: 300,
-      connectionError: false,
     });
   });
 
@@ -118,35 +116,6 @@ describe('PredictCryptoUpDownChart', () => {
     });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
     expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
-  });
-
-  it('renders the connection-error state instead of the chart when connectionError is true', () => {
-    mockUseCryptoUpDownChartData.mockReturnValue({
-      data: [],
-      value: 0,
-      loading: true,
-      isLive: true,
-      window: 300,
-      connectionError: true,
-    });
-    const market = createMockMarket();
-
-    render(<PredictCryptoUpDownChart market={market} />);
-
-    const container = screen.getByTestId(
-      'predict-crypto-up-down-chart-container',
-    );
-    fireEvent(container, 'layout', {
-      nativeEvent: { layout: { height: 300 } },
-    });
-
-    expect(
-      screen.getByTestId('predict-crypto-up-down-chart-connection-error'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('predict.error.chart_connection_error')),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId('mock-liveline-chart')).not.toBeOnTheScreen();
   });
 
   it('passes a custom chart color to LivelineChart', () => {

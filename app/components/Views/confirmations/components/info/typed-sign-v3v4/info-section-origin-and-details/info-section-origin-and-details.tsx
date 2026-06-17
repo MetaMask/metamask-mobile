@@ -31,11 +31,7 @@ import Text, {
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
   const { approvalRequest } = useApprovalRequest();
-  // Prefer the dapp URL from the request metadata over `approvalRequest.origin`.
-  // For WalletConnect/SDK connections `origin` is the permission subject
-  // (pairing topic / channelId hex), not the dapp domain.
-  const origin = (approvalRequest?.requestData?.meta?.url ??
-    approvalRequest?.origin) as string;
+  const origin = approvalRequest?.origin as string;
 
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);

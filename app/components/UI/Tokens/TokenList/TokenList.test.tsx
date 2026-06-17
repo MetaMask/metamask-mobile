@@ -175,6 +175,8 @@ describe('TokenList', () => {
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       enable: jest.fn(),
       identify: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      isDataRecorded: jest.fn().mockReturnValue(false),
       createDataDeletionTask: jest.fn(),
       checkDataDeleteStatus: jest.fn(),
       getDeleteRegulationCreationDate: jest.fn(),

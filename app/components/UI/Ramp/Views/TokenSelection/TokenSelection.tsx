@@ -38,7 +38,10 @@ import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import {
+  getRampRoutingDecision,
+  getDetectedGeolocation,
+} from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
@@ -70,6 +73,7 @@ function TokenSelection() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
 
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -146,16 +150,19 @@ function TokenSelection() {
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
-    hasTrackedScreenViewRef.current = true;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-        .addProperties({
-          location: 'Token Selection',
-          ramp_type: rampType,
-        })
-        .build(),
-    );
-  }, [rampType, createEventBuilder, trackEvent]);
+    if (rampRoutingDecision != null) {
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Token Selection',
+            ramp_type: rampType,
+            ramp_routing: rampRoutingDecision,
+          })
+          .build(),
+      );
+    }
+  }, [rampRoutingDecision, rampType, createEventBuilder, trackEvent]);
 
   const prevSearchStringRef = useRef('');
   useEffect(() => {
@@ -204,6 +211,7 @@ function TokenSelection() {
               is_authenticated: false,
               token_caip19: selectedToken.assetId,
               token_symbol: selectedToken.symbol,
+              ramp_routing: rampRoutingDecision ?? undefined,
             })
             .build(),
         );
@@ -224,6 +232,7 @@ function TokenSelection() {
       createEventBuilder,
       getNetworkName,
       detectedGeolocation,
+      rampRoutingDecision,
       isV2UnifiedEnabled,
       navigation,
       goToBuy,

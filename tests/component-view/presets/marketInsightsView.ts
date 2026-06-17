@@ -1,5 +1,6 @@
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders';
 import { initialStateBridge } from './bridge';
 
 /**
@@ -28,18 +29,9 @@ export const initialStateMarketInsightsView = () =>
 
 /**
  * Ensures `goToBuy` does not open eligibility/error modals (unified routing).
- *
- * Eligibility now derives from GeolocationController + RampsController region.
- * A known geolocation (not UNKNOWN_LOCATION) lets `goToBuy` skip the
- * eligibility-failed modal; with no definitively-unsupported region/countries
- * signal, routing proceeds to TokenSelection/BuildQuote.
  */
 export const fiatOrdersRampRoutingSupported: DeepPartial<RootState> = {
-  engine: {
-    backgroundState: {
-      GeolocationController: {
-        location: 'US-CA',
-      },
-    },
+  fiatOrders: {
+    rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR,
   },
-} as DeepPartial<RootState>;
+};

@@ -5,6 +5,8 @@ import {
   checkDataDeleteStatus,
   getDeleteRegulationCreationDate,
   getDeleteRegulationId,
+  isDataRecorded,
+  updateDataRecordingFlag,
 } from '../../../util/analytics/analyticsDataDeletion';
 
 /**
@@ -18,6 +20,8 @@ export function useAnalyticsDataDeletion(): UseAnalyticsDataDeletionHook {
       checkDataDeleteStatus,
       getDeleteRegulationCreationDate,
       getDeleteRegulationId,
+      isDataRecorded,
+      updateDataRecordingFlag,
     }),
     [],
   );

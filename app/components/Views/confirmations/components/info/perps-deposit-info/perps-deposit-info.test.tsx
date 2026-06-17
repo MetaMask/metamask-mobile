@@ -5,7 +5,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
+import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../confirm/confirm-component';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -13,7 +13,7 @@ import { PerpsDepositInfo } from './perps-deposit-info';
 
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
-jest.mock('../../../hooks/pay/useDefaultPaySelectedSection');
+jest.mock('../../../hooks/pay/useMoneyAccountPaymentOverride');
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(),
@@ -74,9 +74,9 @@ describe('PerpsDepositInfo', () => {
     );
   });
 
-  it('calls useDefaultPaySelectedSection', () => {
+  it('calls useMoneyAccountPaymentOverride', () => {
     render(<PerpsDepositInfo />);
 
-    expect(useDefaultPaySelectedSection).toHaveBeenCalled();
+    expect(useMoneyAccountPaymentOverride).toHaveBeenCalled();
   });
 });

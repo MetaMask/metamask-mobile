@@ -6,6 +6,7 @@ import {
   PlaywrightGestures,
 } from '../framework';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
+import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
 import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
@@ -165,22 +166,20 @@ export const waitForOrderScreenVisible = async (
 
 export type PerpsPositionDirection = 'long' | 'short';
 
-/**
- * Opens Perps from the wallet home, selects a watchlist market, and taps Long/Short.
- */
-export const navigateToPerpsOrderEntry = async (
-  symbol: string,
-  direction: PerpsPositionDirection,
-): Promise<void> => {
-  await WalletView.scrollAndTapPerpsSection();
-  await PerpsMarketListView.selectMarketAndTapOrderSide(symbol, direction);
-};
-
 export const openPosition = async (
   symbol: string,
   direction: PerpsPositionDirection,
 ): Promise<void> => {
-  await navigateToPerpsOrderEntry(symbol, direction);
+  await WalletView.scrollAndTapPerpsSection();
+  await PerpsHomeView.tapExploreCryptoIfVisible();
+
+  await PerpsMarketListView.selectMarket(symbol);
+  if (direction === 'long') {
+    await PerpsMarketDetailsView.tapLongButton();
+  } else {
+    await PerpsMarketDetailsView.tapShortButton();
+  }
+
   await PerpsOrderView.tapPlaceOrderButton();
   await PerpsMarketDetailsView.waitForScreenReady();
   await PerpsMarketDetailsView.expectClosePositionButtonVisible();

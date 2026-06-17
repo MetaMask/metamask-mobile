@@ -3761,17 +3761,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsRelatedMarkets: {
-    name: 'perpsRelatedMarkets',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   perpsTopMoversEnabled: {
     name: 'perpsTopMoversEnabled',
     type: FeatureFlagType.Remote,
@@ -4004,6 +3993,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  rampsUnifiedBuyV1: {
+    name: 'rampsUnifiedBuyV1',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      active: true,
+      minimumVersion: '7.61.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5039,17 +5039,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '7.99.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  priceAlertsEnabled: {
-    name: 'priceAlertsEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },

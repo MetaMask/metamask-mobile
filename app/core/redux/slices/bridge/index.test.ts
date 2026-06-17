@@ -1107,7 +1107,7 @@ describe('bridge slice', () => {
       expect(selectHardwareWalletsSwaps(mockState)).toEqual({
         ...initialHardwareWalletsSwapsState,
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 0,
+        currentStep: 1,
         totalSteps: 1,
         steps: expect.any(Array),
       });

@@ -44,6 +44,7 @@ const CardActivityItem = ({
     <ActivityRowView
       id={card.hash}
       display={display}
+      isFailed={false}
       chainId={card.chainId}
       onPress={handlePress}
       showNetworkBadge={showNetworkBadge}

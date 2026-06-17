@@ -781,18 +781,14 @@ describe('logs :: downloadStateLogs', () => {
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
       url: '/mock/path/state-logs-v1.0.0-(100).json',
-      filename: 'state-logs-v1.0.0-(100).json',
-      type: 'application/json',
-      failOnCancel: false,
     });
   });
 
-  it('generates and shares logs as a file on Android', async () => {
+  it('generates and shares logs on Android', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
-    (Device.isAndroid as jest.Mock).mockReturnValue(true);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {
@@ -807,20 +803,11 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    // The logs are written to disk and the real file is shared, so that the
-    // Android share sheet offers a save/download option (issue #24359).
-    expect(RNFS.writeFile).toHaveBeenCalledWith(
-      '/mock/path/state-logs-v1.0.0-(100).json',
-      expect.any(String),
-      'utf8',
-    );
+    expect(RNFS.writeFile).not.toHaveBeenCalled();
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: '/mock/path/state-logs-v1.0.0-(100).json',
-      filename: 'state-logs-v1.0.0-(100).json',
-      type: 'application/json',
-      failOnCancel: false,
+      url: expect.stringContaining('data:text/plain;base64,'),
     });
   });
 
@@ -914,9 +901,11 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput, false);
 
-    const [, writtenContent] = (RNFS.writeFile as jest.Mock).mock.calls[0];
-    const jsonData = JSON.parse(writtenContent);
-    expect(jsonData.loggedIn).toBe(false);
+    expect(Share.open).toHaveBeenCalledWith({
+      subject: 'TestApp State logs -  v1.0.0 (100)',
+      title: 'TestApp State logs -  v1.0.0 (100)',
+      url: expect.stringContaining('data:text/plain;base64,'),
+    });
   });
 
   it('includes analytics id in logs when analytics is enabled', async () => {
@@ -941,8 +930,12 @@ describe('logs :: downloadStateLogs', () => {
 
     expect(analytics.getAnalyticsId).toHaveBeenCalled();
 
-    const [, writtenContent] = (RNFS.writeFile as jest.Mock).mock.calls[0];
-    const jsonData = JSON.parse(writtenContent);
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
     expect(jsonData.metaMetricsId).toBe('test-analytics-id');
   });
 
@@ -966,10 +959,20 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
-    expect(writeFileCalls.length).toBeGreaterThan(0);
-    const [, writtenContent] = writeFileCalls[0];
-    const jsonData = JSON.parse(writtenContent);
+    expect(Share.open).toHaveBeenCalledWith({
+      subject: 'TestApp State logs -  v1.0.0 (100)',
+      title: 'TestApp State logs -  v1.0.0 (100)',
+      url: expect.stringContaining('data:text/plain;base64,'),
+    });
+
+    // Access the arguments passed to Share.open
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    expect(shareOpenCalls.length).toBeGreaterThan(0);
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
     expect(jsonData).not.toHaveProperty('metaMetricsId');
   });
 
@@ -995,10 +998,13 @@ describe('logs :: downloadStateLogs', () => {
     await downloadStateLogs(mockStateInput);
 
     // Then the logs should include the remote feature flag environment
-    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
-    expect(writeFileCalls.length).toBeGreaterThan(0);
-    const [, writtenContent] = writeFileCalls[0];
-    const jsonData = JSON.parse(writtenContent);
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    expect(shareOpenCalls.length).toBeGreaterThan(0);
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
     expect(jsonData.remoteFeatureFlagEnvironment).toBe('Development');
   });
 
@@ -1024,10 +1030,13 @@ describe('logs :: downloadStateLogs', () => {
     await downloadStateLogs(mockStateInput);
 
     // Then the logs should include the remote feature flag distribution
-    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
-    expect(writeFileCalls.length).toBeGreaterThan(0);
-    const [, writtenContent] = writeFileCalls[0];
-    const jsonData = JSON.parse(writtenContent);
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    expect(shareOpenCalls.length).toBeGreaterThan(0);
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
     expect(jsonData.remoteFeatureFlagDistribution).toBe('Main');
   });
 
@@ -1050,10 +1059,13 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
-    expect(writeFileCalls.length).toBeGreaterThan(0);
-    const [, writtenContent] = writeFileCalls[0];
-    const jsonData = JSON.parse(writtenContent);
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    expect(shareOpenCalls.length).toBeGreaterThan(0);
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
     expect(jsonData.otaVersion).toBeDefined();
     expect(jsonData.runtimeVersion).toBeDefined();
   });

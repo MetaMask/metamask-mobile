@@ -1,5 +1,5 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useMemo, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { useMemo, useCallback } from 'react';
 import {
   type MusdEquivalentValueResponse,
   NormalizedVaultApyResponse,
@@ -23,11 +23,6 @@ import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
-import {
-  isPersistedMoneyBalanceUsable,
-  selectLastKnownMoneyBalance,
-  setLastKnownMoneyBalance,
-} from '../../../../core/redux/slices/moneyBalance';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 
@@ -51,7 +46,6 @@ export const getLiveVedaVaultExchangeRate = async () =>
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
 ) => {
-  const dispatch = useDispatch();
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const moneyAccountAddress = primaryMoneyAccount?.address;
 
@@ -59,7 +53,6 @@ const useMoneyAccountBalance = (
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);
 
   const [musdBalanceQuery, vaultApyQuery, musdEquivalentBalanceQuery] =
     useQueries({
@@ -175,19 +168,15 @@ const useMoneyAccountBalance = (
           : musdSHFvdDecimal;
 
       if (!musdFiatRate) {
-        // Undefined during loading or error so callers can distinguish from a genuine zero.
-        const settledTokenTotal =
-          isAggregatedBalanceLoading || isBalanceFetchError
-            ? undefined
-            : musdDecimal.plus(musdSHFvdDecimal);
         return {
           musdFiat: undefined,
           musdSHFvdFiat: undefined,
-          tokenTotal: settledTokenTotal,
-          // A zero balance is $0.00 regardless of the missing rate — 0 tokens
-          // convert to 0 fiat without one. Only a non-zero balance is genuinely
-          // unavailable when there's no rate to convert it.
-          totalFiat: settledTokenTotal?.isZero() ? new BigNumber(0) : undefined,
+          // Undefined during loading or error so callers can distinguish from a genuine zero.
+          tokenTotal:
+            isAggregatedBalanceLoading || isBalanceFetchError
+              ? undefined
+              : musdDecimal.plus(musdSHFvdDecimal),
+          totalFiat: undefined,
           withdrawableMusd: computedWithdrawableMusd,
         };
       }
@@ -233,47 +222,6 @@ const useMoneyAccountBalance = (
   const totalFiatRaw =
     !isBalanceFetchError && totalFiat ? totalFiat.toString() : undefined;
 
-  // Persist every successful balance so it can be shown as the "last known"
-  // figure (for the current account/currency) the next time the live balance
-  // is unavailable — including after an app restart.
-  useEffect(() => {
-    if (
-      moneyAccountAddress &&
-      !isBalanceFetchError &&
-      !isAggregatedBalanceLoading &&
-      totalFiatFormatted !== undefined
-    ) {
-      dispatch(
-        setLastKnownMoneyBalance({
-          address: moneyAccountAddress,
-          value: totalFiatFormatted,
-          currency: currentCurrency,
-          updatedAt: Date.now(),
-        }),
-      );
-    }
-  }, [
-    dispatch,
-    moneyAccountAddress,
-    isBalanceFetchError,
-    isAggregatedBalanceLoading,
-    totalFiatFormatted,
-    currentCurrency,
-  ]);
-
-  // True whenever there is no fresh balance to show — still loading, a fetch
-  // error, or a missing formatting dependency (e.g. rate not ready).
-  const isBalanceUnavailable = totalFiatFormatted === undefined;
-
-  // Last successfully fetched balance, but only when it still matches the
-  // account and currency in view; otherwise it would be misleading.
-  const lastKnownTotalFiatFormatted = isPersistedMoneyBalanceUsable(
-    lastKnownBalance,
-    { address: moneyAccountAddress, currency: currentCurrency },
-  )
-    ? lastKnownBalance.value
-    : undefined;
-
   const rawApy = vaultApyQuery.data?.apy;
 
   const apyDecimal = rawApy;
@@ -288,8 +236,6 @@ const useMoneyAccountBalance = (
     isAggregatedBalanceLoading,
     isBalanceFetchError,
     isBalanceFetching,
-    isBalanceUnavailable,
-    lastKnownTotalFiatFormatted,
     refetchBalance,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,

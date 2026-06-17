@@ -10,6 +10,8 @@ import {
   checkDataDeleteStatus as checkDataDeleteStatusUtil,
   getDeleteRegulationCreationDate as getDeleteRegulationCreationDateUtil,
   getDeleteRegulationId as getDeleteRegulationIdUtil,
+  isDataRecorded as isDataRecordedUtil,
+  updateDataRecordingFlag as updateDataRecordingFlagUtil,
 } from '../../../util/analytics/analyticsDataDeletion';
 import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
@@ -81,10 +83,12 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  *   createEventBuilder,
  *   enable,
  *   identify,
+ *   addTraitsToUser,
  *   createDataDeletionTask,
  *   checkDataDeleteStatus,
  *   getDeleteRegulationCreationDate,
  *   getDeleteRegulationId,
+ *   isDataRecorded,
  *   isEnabled,
  *   getAnalyticsId,
  * } = useAnalytics();
@@ -92,8 +96,16 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 export const useAnalytics = (): UseAnalyticsHook =>
   useMemo(
     () => ({
-      trackEvent: (event: AnalyticsTrackingEvent): void => {
-        analytics.trackEvent(event);
+      trackEvent: (
+        event: AnalyticsTrackingEvent,
+        saveDataRecording?: boolean,
+      ): void => {
+        const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
+          .setSaveDataRecording(saveDataRecording ?? true)
+          .build();
+        analytics.trackEvent(analyticsEvent);
+
+        updateDataRecordingFlagUtil(analyticsEvent.saveDataRecording);
       },
       enable: async (enable?: boolean): Promise<void> => {
         if (enable === false) {
@@ -105,11 +117,18 @@ export const useAnalytics = (): UseAnalyticsHook =>
       identify: async (userTraits: AnalyticsUserTraits): Promise<void> => {
         analytics.identify(userTraits);
       },
+      /** @deprecated Use {@link identify} instead — will be removed after consumers migrate */
+      addTraitsToUser: async (
+        userTraits: AnalyticsUserTraits,
+      ): Promise<void> => {
+        analytics.identify(userTraits);
+      },
       createDataDeletionTask: () => createDataDeletionTaskUtil(),
       checkDataDeleteStatus: () => checkDataDeleteStatusUtil(),
       getDeleteRegulationCreationDate: () =>
         getDeleteRegulationCreationDateUtil(),
       getDeleteRegulationId: () => getDeleteRegulationIdUtil(),
+      isDataRecorded: () => isDataRecordedUtil(),
       isEnabled: (): boolean => analytics.isEnabled(),
       getAnalyticsId: async (): Promise<string | undefined> => {
         const id = await analytics.getAnalyticsId();

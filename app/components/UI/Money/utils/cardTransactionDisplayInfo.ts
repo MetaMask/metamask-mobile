@@ -29,6 +29,5 @@ export function cardTransactionDisplayInfo(
     fiatAmount,
     isIncoming: false,
     icon: IconName.Card,
-    status: 'confirmed', // card spends only surface once settled
   };
 }

@@ -17,9 +17,6 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
-import { FrameworkDetector } from '../../framework/FrameworkDetector';
-import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   createLogger,
   encapsulatedAction,
@@ -111,7 +108,7 @@ class AccountListBottomSheet {
       appium: () =>
         PlaywrightMatchers.getElementById(
           AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
-          { exact: true, index },
+          { exact: true },
         ),
     });
   }
@@ -133,31 +130,6 @@ class AccountListBottomSheet {
         Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName),
       appium: () => PlaywrightMatchers.getElementByText(accountName),
     });
-  }
-
-  /**
-   * Appium-only: return every element matching the given account name.
-   * Use when the count of matches is meaningful (e.g. the same name appears
-   * under multiple SRPs). The singular variant only resolves to one element,
-   * so a visibility check there can mask a missing duplicate.
-   *
-   * Detox has no native "return all matches" primitive — index into the
-   * matcher with `.atIndex(N).toExist()` per expected cell instead.
-   */
-  async getAccountElementsByAccountNameV2(
-    accountName: string,
-  ): Promise<PlaywrightElement[]> {
-    if (!FrameworkDetector.isAppium()) {
-      throw new Error(
-        'getAccountElementsByAccountNameV2 is Appium-only. On Detox, assert each cell with `getAccountElementByAccountNameV2(name)` indexed via .atIndex(N).',
-      );
-    }
-    // CONTAINER testID is empty; fetch actual row content from the next sibling
-    return Matchers.getAllElementsByXPath(
-      PlatformDetector.isAndroid()
-        ? `//*[@resource-id='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@content-desc='${accountName}']`
-        : `//*[@name='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@name='${accountName}' or @label='${accountName}']`,
-    );
   }
 
   getSelectElement(index: number): EncapsulatedElementType {
@@ -262,11 +234,13 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const link = await asPlaywrightElement(this.createAccountLink(index));
-        await PlaywrightGestures.scrollIntoView(link, {
-          scrollParams: { direction: 'down' },
-        });
-        await PlaywrightGestures.waitAndTap(link);
+        await PlaywrightGestures.scrollIntoView(
+          await asPlaywrightElement(this.createAccountLink(0)),
+          { scrollParams: { direction: 'down' } },
+        );
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.createAccountLink(index)),
+        );
       },
     });
   }
@@ -373,8 +347,7 @@ class AccountListBottomSheet {
     accountIndex: number,
     { shouldWait = false }: { shouldWait: boolean } = { shouldWait: false },
   ): Promise<void> {
-    const elem = Matchers.getElementByID(AccountCellIds.MENU, accountIndex);
-    await Gestures.waitAndTap(elem, {
+    await Gestures.tapAtIndex(this.ellipsisMenuButton, accountIndex, {
       elemDescription: `V2 ellipsis menu button for account at index ${accountIndex}`,
       delay: shouldWait ? 1500 : 0,
     });

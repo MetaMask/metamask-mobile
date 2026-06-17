@@ -25,8 +25,13 @@ describe('TransactionDetailsDateRow', () => {
     });
   });
 
-  it('renders combined date and time', () => {
+  it('renders time', () => {
     const { getByText } = render();
-    expect(getByText('Aug 20, 2025 at 3:48 PM')).toBeDefined();
+    expect(getByText('3:48 PM,')).toBeDefined();
+  });
+
+  it('renders date', () => {
+    const { getByText } = render();
+    expect(getByText('Aug 20, 2025')).toBeDefined();
   });
 });

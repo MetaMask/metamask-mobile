@@ -124,6 +124,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  getRampRoutingDecision: () => 'AGGREGATOR',
+  UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
+}));
+
 jest.mock('../../hooks/useRampAccountAddress', () => ({
   __esModule: true,
   default: () => '0x1234567890123456789012345678901234567890',

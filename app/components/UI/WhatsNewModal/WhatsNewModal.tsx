@@ -20,6 +20,11 @@ import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import Icon, {
   IconColor,
@@ -41,9 +46,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 const CAROUSEL_INTERVAL_MS = 4000;
@@ -358,13 +360,12 @@ const WhatsNewModal = () => {
           return (
             <View style={styles.button}>
               <Button
-                variant={ButtonVariant.Primary}
+                variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
-                isFullWidth
+                width={ButtonWidthTypes.Full}
+                label={elementInfo.buttonText}
                 onPress={() => callButton(elementInfo.onPress)}
-              >
-                {elementInfo.buttonText}
-              </Button>
+              />
             </View>
           );
       }

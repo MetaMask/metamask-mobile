@@ -781,6 +781,20 @@ describe('Transaction Controller Init', () => {
     });
   });
 
+  it('determines incoming transactions based on preference privacyMode', () => {
+    const option = testConstructorOption('incomingTransactions', {
+      state: {
+        privacyMode: false,
+      },
+    });
+
+    const isEnabledFn = option?.isEnabled;
+    const updateTransactionsProp = option?.updateTransactions;
+
+    expect(isEnabledFn?.()).toBe(true);
+    expect(updateTransactionsProp).toBe(true);
+  });
+
   describe('isAutomaticGasFeeUpdateEnabled', () => {
     it('returns true for redesigned transaction types', () => {
       const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');

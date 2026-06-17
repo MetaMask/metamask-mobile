@@ -32,8 +32,7 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import Logger from '../../../../../util/Logger';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
@@ -61,7 +60,7 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
@@ -155,15 +154,13 @@ const MoneyBalanceCard = () => {
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: buttonLabelKey,
-      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      redirect_target: hasMusdBalance
+        ? SCREEN_NAMES.MONEY_DEPOSIT
+        : SCREEN_NAMES.RAMP_BUY,
     });
 
-    initiateDeposit().catch((error) =>
-      Logger.error(error as Error, {
-        message: '[MoneyBalanceCard] Failed to initiate deposit',
-      }),
-    );
-  }, [buttonLabelKey, initiateDeposit, trackButtonClicked]);
+    routeAddMoney();
+  }, [buttonLabelKey, hasMusdBalance, routeAddMoney, trackButtonClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({

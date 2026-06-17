@@ -1,10 +1,8 @@
-import type { CaipChainId } from '@metamask/utils';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyTokenSelectList from './QuickBuyTokenSelectList';
 import { useQuickBuyContext } from './useQuickBuyContext';
-import { toFilterChainId } from './utils/toFilterChainId';
 
 /**
  * Buy mode "Pay with" screen: lets the user pick which token they hold to pay
@@ -13,19 +11,11 @@ import { toFilterChainId } from './utils/toFilterChainId';
  */
 const QuickBuyPayWithScreen: React.FC = () => {
   const {
-    target,
     sourceTokenOptions,
     selectedSourceToken,
     handleSelectSourceToken,
     setActiveScreen,
   } = useQuickBuyContext();
-
-  // Surface the viewed token's network first in the chain filter pills. The
-  // list ignores it when no held token is on that chain.
-  const priorityChainId = useMemo(
-    () => toFilterChainId(target.chain as CaipChainId),
-    [target.chain],
-  );
 
   const handleBack = useCallback(
     () => setActiveScreen('amount'),
@@ -48,7 +38,6 @@ const QuickBuyPayWithScreen: React.FC = () => {
       selectedToken={selectedSourceToken}
       onSelect={handleSelect}
       onBack={handleBack}
-      priorityChainId={priorityChainId}
     />
   );
 };

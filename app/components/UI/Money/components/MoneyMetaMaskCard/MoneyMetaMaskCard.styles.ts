@@ -10,8 +10,8 @@ const styles = StyleSheet.create({
     height: 70,
   },
   manageCardImage: {
-    width: 104,
-    height: 66,
+    width: 88,
+    height: 56,
     borderRadius: 6,
   },
 });

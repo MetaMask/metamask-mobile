@@ -12,12 +12,7 @@ import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 
 jest.mock('../../../../../core/AppConstants', () => ({
   __esModule: true,
-  default: {
-    URLS: {
-      MONEY_LANDING: 'https://mock.money.landing',
-      MUSD_PRICE: 'https://mock.musd.price',
-    },
-  },
+  default: { URLS: { MUSD_LEARN_MORE: 'https://mock.musd' } },
 }));
 
 jest.mock('../../../../../constants/urls', () => ({

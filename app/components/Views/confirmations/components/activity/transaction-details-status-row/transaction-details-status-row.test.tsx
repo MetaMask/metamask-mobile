@@ -4,7 +4,6 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import {
   TransactionMeta,
   TransactionStatus,
-  TransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsStatusRow } from './transaction-details-status-row';
 import { strings } from '../../../../../../../locales/i18n';
@@ -52,18 +51,5 @@ describe('TransactionDetailsStatusRow', () => {
     const { getByText } = render();
 
     expect(getByText(expectedText)).toBeDefined();
-  });
-
-  it('always shows the status icon', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        status: TransactionStatus.confirmed,
-        type: TransactionType.moneyAccountDeposit,
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByTestId } = render();
-
-    expect(getByTestId('status-icon-success')).toBeDefined();
   });
 });

@@ -137,11 +137,10 @@ describe('TransactionDetailsHero', () => {
     expect(queryByTestId('transaction-details-hero')).toBeNull();
   });
 
-  it('renders token amount with symbol for Money types with targetFiat', () => {
+  it('renders targetFiat from metamaskPay when available', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
-        type: TransactionType.moneyAccountDeposit,
         metamaskPay: {
           targetFiat: '456.78',
         },
@@ -150,31 +149,10 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText(/456\.78/)).toBeDefined();
-    expect(getByText(/mUSD/)).toBeDefined();
+    expect(getByText('$456.78')).toBeDefined();
   });
 
-  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
-    'renders fiat (not mUSD) for %s with targetFiat',
-    (type) => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          type,
-          metamaskPay: {
-            targetFiat: '100.00',
-          },
-        } as unknown as TransactionMeta,
-      });
-
-      const { getByText, queryByText } = render();
-
-      expect(getByText(/\$100/)).toBeDefined();
-      expect(queryByText(/mUSD/)).toBeNull();
-    },
-  );
-
-  it('renders token amount for musdConversion transactions', () => {
+  it('renders amount for musdConversion transactions', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
@@ -187,8 +165,7 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText(/100\.00/)).toBeDefined();
-    expect(getByText(/mUSD/)).toBeDefined();
+    expect(getByText('$100')).toBeDefined();
   });
 
   it('renders claim amount for musdClaim with valid claim data', () => {

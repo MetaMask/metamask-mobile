@@ -1,9 +1,12 @@
+import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders';
+
 interface RampsButtonClicked {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   user_id?: string;
   region: string;
   location: string;
+  ramp_routing?: UnifiedRampRoutingType;
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count?: number;
@@ -41,6 +44,7 @@ interface RampsTokenSelected {
   is_authenticated: boolean;
   token_caip19?: string;
   token_symbol?: string;
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsRegionSelected {
@@ -261,11 +265,13 @@ interface RampsUserDetailsFetched {
 interface RampsScreenViewed {
   location: string;
   ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsBackButtonClicked {
   location: string;
   ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsNetworkFilterClicked {
@@ -309,6 +315,7 @@ interface RampsChangeProviderButtonClicked {
   current_provider?: string;
   location: string;
   ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsProviderSelected {
@@ -316,9 +323,11 @@ interface RampsProviderSelected {
   previous_provider?: string;
   location: string;
   ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsContinueButtonClicked {
+  ramp_routing: UnifiedRampRoutingType;
   ramp_type: 'UNIFIED_BUY_2';
   amount_source: number;
   amount_destination?: number;
@@ -341,6 +350,7 @@ interface RampsContinueButtonClicked {
 interface RampsTermsConsentClicked {
   location: string;
   ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsExternalLinkClicked {
@@ -363,6 +373,7 @@ interface RampsQuoteError {
   payment_method_id?: string;
   chain_id?: string;
   ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsQuoteErrorTooltipClicked {
@@ -395,6 +406,7 @@ interface RampsCheckoutFunnelBase {
   location: 'Checkout';
   ramp_type: 'UNIFIED_BUY_2';
   provider_name?: string;
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsCheckoutOpened extends RampsCheckoutFunnelBase {
