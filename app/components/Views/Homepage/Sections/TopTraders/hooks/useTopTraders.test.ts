@@ -39,7 +39,7 @@ const mockTraders = [
     name: 'alpha.eth',
     imageUrl: 'https://example.com/avatar1.png',
     pnl7d: 963146.8,
-    roiPercent7d: 0.43,
+    roiPercent7d: 43,
     pnlPerChain: { base: 963146.8 },
   },
   {
@@ -49,7 +49,7 @@ const mockTraders = [
     name: 'beta.eth',
     imageUrl: 'https://example.com/avatar2.png',
     pnl7d: 474751.45,
-    roiPercent7d: 3.59,
+    roiPercent7d: 359,
     pnlPerChain: { ethereum: 474751.45 },
   },
   {
@@ -59,7 +59,7 @@ const mockTraders = [
     name: 'gamma.eth',
     imageUrl: 'https://example.com/avatar3.png',
     pnl7d: 374735.16,
-    roiPercent7d: 6.17,
+    roiPercent7d: 617,
     pnlPerChain: { solana: 374735.16 },
   },
 ];
@@ -135,7 +135,7 @@ describe('useTopTraders', () => {
         overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
-        percentageChange: first.roiPercent7d * 100,
+        percentageChange: first.roiPercent7d,
         pnlValue: first.pnl7d,
         pnlPerChain: first.pnlPerChain ?? {},
         isFollowing: false,

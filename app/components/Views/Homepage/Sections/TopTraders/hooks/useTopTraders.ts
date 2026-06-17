@@ -92,7 +92,9 @@ export const useTopTraders = (
       overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
-      percentageChange: (entry.roiPercent7d ?? 0) * 100,
+      // `roiPercent7d` is already a whole-percent value from the API
+      // (e.g. 20.98 → "20.98%"); do not multiply by 100.
+      percentageChange: entry.roiPercent7d ?? 0,
       pnlValue: entry.pnl7d ?? 0,
       pnlPerChain: entry.pnlPerChain ?? {},
       isFollowing: isFollowing(entry.profileId),
