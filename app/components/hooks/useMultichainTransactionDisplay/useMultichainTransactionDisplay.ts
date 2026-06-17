@@ -39,7 +39,11 @@ export interface MultichainTransactionDisplayData {
   baseFee?: AggregatedMovementDisplayData;
   priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
+  isUnlimitedApproval: boolean;
 }
+
+// Mirrors EVM TOKEN_VALUE_UNLIMITED_THRESHOLD: amounts above 10^15 are treated as unlimited.
+const APPROVE_AMOUNT_UNLIMITED_THRESHOLD = 1e15;
 
 export function useMultichainTransactionDisplay(
   transaction: Transaction,
@@ -77,6 +81,14 @@ export function useMultichainTransactionDisplay(
 
   const isIncomplete = isTransactionIncomplete(transaction.status);
 
+  const isUnlimitedApproval =
+    transaction.type === TransactionType.TokenApprove &&
+    (transaction.from as Movement[]).some(
+      (mv) =>
+        mv?.asset?.fungible === true &&
+        parseFloat(mv.asset.amount) > APPROVE_AMOUNT_UNLIMITED_THRESHOLD,
+    );
+
   const typeToTitle: Partial<Record<TransactionType, string>> = {
     [TransactionType.Send]: isIncomplete
       ? `${strings('transactions.send')} ${from?.unit || ''}`
@@ -85,6 +97,7 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Swap]: `${strings('transactions.swap')} ${
       from?.unit
     } ${strings('transactions.to').toLowerCase()} ${to?.unit}`,
+    [TransactionType.TokenApprove]: `${strings('transactions.tx_review_approve')}${from?.unit ? ` ${from.unit}` : ''}`,
     [TransactionType.StakeDeposit]: strings(
       'transactions.tx_review_staking_deposit',
     ),
@@ -103,6 +116,7 @@ export function useMultichainTransactionDisplay(
     baseFee,
     priorityFee,
     isRedeposit,
+    isUnlimitedApproval,
   };
 }
 

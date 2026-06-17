@@ -85,6 +85,7 @@ jest.mock('../../../util/date', () => ({
 const mockDisplayData: MultichainTransactionDisplayData = {
   title: 'Send ETH',
   isRedeposit: false,
+  isUnlimitedApproval: false,
   from: {
     address: '0xabc123def456abc123def456abc123def456abc1',
     amount: '0.5',
