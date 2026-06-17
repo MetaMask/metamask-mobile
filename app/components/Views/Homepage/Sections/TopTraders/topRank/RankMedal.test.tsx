@@ -9,10 +9,10 @@ describe('RankMedal', () => {
     expect(screen.getByTestId(`rank-medal-${rank}`)).toBeOnTheScreen();
   });
 
-  it('renders the rank numeral on the medallion', () => {
-    const { toJSON } = render(<RankMedal rank={2} />);
+  it('sizes the medal from the size prop', () => {
+    render(<RankMedal rank={2} size={30} />);
 
-    expect(JSON.stringify(toJSON())).toContain('"2"');
+    expect(screen.getByTestId('rank-medal-2').props.height).toBe(30);
   });
 
   it.each([0, 4, 5, 100, -1])(

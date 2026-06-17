@@ -89,7 +89,9 @@ const TraderRow: React.FC<TraderRowProps> = ({
               size={AVATAR_SIZE}
             />
             {showMedal ? (
-              <View style={tw.style('absolute -bottom-1 -right-1')}>
+              // Offset so the medal bottom (incl. its 2px border) sits ~10px
+              // below the avatar's bottom edge.
+              <View style={tw.style('absolute -bottom-[10px] -right-1')}>
                 <RankMedal rank={trader.rank} />
               </View>
             ) : null}
