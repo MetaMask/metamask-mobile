@@ -46,7 +46,6 @@ describe(SmokePerps('Perps Position'), () => {
               type: 'erc20',
             },
           ])
-          .withPopularNetworks()
           .build(),
         restartDevice: true,
         permissions: { notifications: 'YES' },

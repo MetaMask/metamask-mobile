@@ -8,6 +8,21 @@ import { hasDepositOrderField } from './index';
 import { AnalyticsEvents } from '../types';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 
+/**
+ * Builds the terminal RAMPS_TRANSACTION_COMPLETED / RAMPS_TRANSACTION_FAILED
+ * payload for an order processed by the global FiatOrders observer
+ * (`app/components/UI/Ramp/index.tsx`).
+ *
+ * TRAM-3623 scope note: this is the DEPOSIT path only. The observer polls the
+ * redux `fiatOrders` store (`getPendingOrders`), which is fed exclusively by
+ * `addFiatOrder` (native Deposit via `useHandleNewOrder`, plus the aggregator
+ * paths). Headless buy orders are added through
+ * `RampsController.addOrder` (`useTransakRouting` -> `useRampsOrders`) and never
+ * enter the redux store, so they do not flow through this observer. Headless
+ * terminal success/failure are emitted directly by `useTransakRouting`
+ * (`RAMPS_TRANSACTION_CONFIRMED` / `RAMPS_ORDER_FAILED`). Hence `ramp_type`
+ * stays hardcoded `'DEPOSIT'` here and no `ramp_surface` is emitted.
+ */
 function getDepositAnalyticsPayload(
   fiatOrder: FiatOrder,
   state: RootState,
