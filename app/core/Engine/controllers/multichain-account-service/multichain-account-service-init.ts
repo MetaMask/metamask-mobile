@@ -4,6 +4,7 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  XLM_ACCOUNT_PROVIDER_NAME,
 } from '@metamask/multichain-account-service';
 import { MessengerClientInitFunction } from '../../types';
 import Engine from '../../Engine';
@@ -60,6 +61,14 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
       /// BEGIN:ONLY_INCLUDE_IF(tron)
       [TRX_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF
+      [XLM_ACCOUNT_PROVIDER_NAME]: {
+        ...snapAccountProviderConfig,
+        createAccounts: {
+          ...snapAccountProviderConfig.createAccounts,
+          batched: true,
+          timeoutMs: 10000,
+        },
+      },
     },
   });
 

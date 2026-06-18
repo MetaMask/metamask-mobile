@@ -11,6 +11,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  XlmScope,
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 import {
@@ -30,6 +31,11 @@ import {
   TronWalletSnapSender,
 } from './TronWalletSnap';
 ///: END:ONLY_INCLUDE_IF
+import {
+  STELLAR_WALLET_SNAP_ID,
+  STELLAR_WALLET_NAME,
+  StellarWalletSnapSender,
+} from './StellarWalletSnap';
 import Engine from '../Engine';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { store } from '../../store';
@@ -48,6 +54,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON_DISCOVERY_PENDING,
   ///: END:ONLY_INCLUDE_IF
+  STELLAR_DISCOVERY_PENDING,
 } from '../../constants/storage';
 
 export enum WalletClientType {
@@ -62,6 +69,8 @@ export enum WalletClientType {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   Tron = 'tron',
   ///: END:ONLY_INCLUDE_IF
+
+  Stellar = 'stellar',
 }
 
 export const WALLET_SNAP_MAP = {
@@ -91,6 +100,13 @@ export const WALLET_SNAP_MAP = {
     discoveryStorageId: TRON_DISCOVERY_PENDING,
   },
   ///: END:ONLY_INCLUDE_IF
+
+  [WalletClientType.Stellar]: {
+    id: STELLAR_WALLET_SNAP_ID,
+    name: STELLAR_WALLET_NAME,
+    discoveryScope: XlmScope.Pubnet,
+    discoveryStorageId: STELLAR_DISCOVERY_PENDING,
+  },
 };
 
 export interface MultichainWalletSnapOptions {
@@ -391,6 +407,27 @@ export class TronWalletSnapClient extends MultichainWalletSnapClient {
 }
 ///: END:ONLY_INCLUDE_IF
 
+export class StellarWalletSnapClient extends MultichainWalletSnapClient {
+  constructor(snapKeyringOptions: SnapKeyringOptions) {
+    super(STELLAR_WALLET_SNAP_ID, STELLAR_WALLET_NAME, snapKeyringOptions);
+  }
+
+  getClientType(): WalletClientType {
+    return WalletClientType.Stellar;
+  }
+
+  protected getSnapSender(): Sender {
+    return new StellarWalletSnapSender();
+  }
+
+  async createAccount(
+    options: MultichainWalletSnapOptions,
+    snapKeyringOptions?: SnapKeyringOptions,
+  ) {
+    return super.createAccount(options, snapKeyringOptions);
+  }
+}
+
 export class MultichainWalletSnapFactory {
   private static defaultOptions: SnapKeyringOptions = {
     displayConfirmation: false,
@@ -416,6 +453,8 @@ export class MultichainWalletSnapFactory {
       case WalletClientType.Tron:
         return new TronWalletSnapClient(snapKeyringOptions);
       ///: END:ONLY_INCLUDE_IF
+      case WalletClientType.Stellar:
+        return new StellarWalletSnapClient(snapKeyringOptions);
       default:
         throw new Error(`Unsupported client type: ${clientType}`);
     }

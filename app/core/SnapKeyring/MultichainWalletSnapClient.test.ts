@@ -3,6 +3,7 @@ import {
   MultichainWalletSnapClient,
   MultichainWalletSnapFactory,
   SolanaWalletSnapClient,
+  StellarWalletSnapClient,
   TronWalletSnapClient,
   WalletClientType,
 } from './MultichainWalletSnapClient';
@@ -14,6 +15,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { BitcoinWalletSnapSender } from './BitcoinWalletSnap';
 import { SolanaWalletSnapSender } from './SolanaWalletSnap';
 import { TronWalletSnapSender } from './TronWalletSnap';
+import { StellarWalletSnapSender } from './StellarWalletSnap';
 
 const mockSnapKeyring = {
   createAccount: jest.fn(),
@@ -254,6 +256,13 @@ describe('MultichainWalletSnapFactory', () => {
     expect(tronClient).toBeInstanceOf(TronWalletSnapClient);
   });
 
+  it('creates a StellarWalletSnapClient', () => {
+    const stellarClient = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Stellar,
+    );
+    expect(stellarClient).toBeInstanceOf(StellarWalletSnapClient);
+  });
+
   it('throws if an invalid wallet type is provided', () => {
     expect(() =>
       MultichainWalletSnapFactory.createClient('invalid' as WalletClientType),
@@ -304,6 +313,16 @@ describe('Wallet Client Implementations', () => {
   }
 
   class TestTronWalletSnapClient extends TronWalletSnapClient {
+    constructor() {
+      super(mockSnapKeyringOptions);
+    }
+
+    public testGetSnapSender(): Sender {
+      return this.getSnapSender();
+    }
+  }
+
+  class TestStellarWalletSnapClient extends StellarWalletSnapClient {
     constructor() {
       super(mockSnapKeyringOptions);
     }
@@ -377,6 +396,25 @@ describe('Wallet Client Implementations', () => {
       const tronClient = new TronWalletSnapClient(mockSnapKeyringOptions);
       expect(tronClient.getSnapId()).toBeDefined();
       expect(tronClient.getSnapName()).toBeDefined();
+    });
+  });
+
+  describe('StellarWalletSnapClient', () => {
+    it('should create a StellarWalletSnapClient', () => {
+      const stellarClient = new StellarWalletSnapClient(mockSnapKeyringOptions);
+      expect(stellarClient).toBeDefined();
+    });
+
+    it('should return Stellar client type', () => {
+      const stellarClient = new StellarWalletSnapClient(mockSnapKeyringOptions);
+      expect(stellarClient.getClientType()).toBe(WalletClientType.Stellar);
+    });
+
+    it('should return a StellarWalletSnapSender instance', () => {
+      const stellarClient = new TestStellarWalletSnapClient();
+      const sender = stellarClient.testGetSnapSender();
+      expect(sender).toBeDefined();
+      expect(sender).toBeInstanceOf(StellarWalletSnapSender);
     });
   });
 });
