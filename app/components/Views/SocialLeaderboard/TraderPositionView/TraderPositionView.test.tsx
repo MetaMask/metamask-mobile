@@ -516,7 +516,7 @@ describe('TraderPositionView', () => {
         });
       });
 
-      it('disables the Trade button as Unsupported asset when no xyz market exists', () => {
+      it('disables the Trade button as Unsupported market when no xyz market exists', () => {
         mockUseTradablePerpsMarketSymbols.mockReturnValue({
           tradableSymbols: new Set<string>(),
           isLoading: false,
@@ -530,7 +530,7 @@ describe('TraderPositionView', () => {
 
         renderWithProvider(<TraderPositionView />, { state: mockState });
 
-        expect(screen.getByText('Unsupported asset')).toBeOnTheScreen();
+        expect(screen.getByText('Unsupported market')).toBeOnTheScreen();
 
         fireEvent.press(
           screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
@@ -554,7 +554,7 @@ describe('TraderPositionView', () => {
 
         renderWithProvider(<TraderPositionView />, { state: mockState });
 
-        expect(screen.queryByText('Unsupported asset')).toBeNull();
+        expect(screen.queryByText('Unsupported market')).toBeNull();
         fireEvent.press(
           screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
         );

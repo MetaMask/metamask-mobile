@@ -62,7 +62,7 @@ const PerpsTradeButtonInner: React.FC<PerpsTradeButtonProps> = ({
       >
         {isSupported
           ? strings('social_leaderboard.trader_position.trade')
-          : strings('social_leaderboard.trader_position.unsupported_asset')}
+          : strings('social_leaderboard.trader_position.unsupported_market')}
       </Button>
     </Box>
   );
