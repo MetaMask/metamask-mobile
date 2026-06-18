@@ -62,12 +62,6 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-jest.mock(
-  '../../../../../animations/money_account_first_time_deposit_with_parallax.riv',
-  () => 1,
-  { virtual: true },
-);
-
 jest.mock('expo-sensors', () => ({
   Accelerometer: {
     setUpdateInterval: jest.fn(),

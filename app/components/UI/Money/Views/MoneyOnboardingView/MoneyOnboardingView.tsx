@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -21,6 +21,7 @@ import Rive, {
   useRiveTrigger,
 } from 'rive-react-native';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
+import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MoneyOnboardingAnimationV5 = require('../../../../../animations/money_account_onboarding_animation_v5.riv');
@@ -59,6 +60,10 @@ const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
 const MoneyOnboardingView = () => {
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+
+  const isUsUnauthenticatedNonCardholder = useSelector(
+    selectIsUsUnauthenticatedNonCardholder,
+  );
 
   const dispatch = useDispatch();
 
@@ -131,9 +136,14 @@ const MoneyOnboardingView = () => {
     // Step 3
     setStep3Title(strings('money.rive_onboarding.step3_title'));
     setStep3Content(
-      strings('money.rive_onboarding.step3_body', {
-        percentage: CARD_CASHBACK_PERCENTAGE,
-      }),
+      strings(
+        isUsUnauthenticatedNonCardholder
+          ? 'money.rive_onboarding.step3_body_card_ineligible'
+          : 'money.rive_onboarding.step3_body_card_eligible',
+        {
+          percentage: CARD_CASHBACK_PERCENTAGE,
+        },
+      ),
     );
     setStep3Footer(strings('money.rive_onboarding.step3_footer_text'));
     setStep3ButtonText(strings('money.rive_onboarding.button_text'));
@@ -170,6 +180,7 @@ const MoneyOnboardingView = () => {
     setStep2ButtonText,
     setStep3ButtonText,
     setStep4ButtonText,
+    isUsUnauthenticatedNonCardholder,
   ]);
 
   const handleClose = useCallback(
