@@ -27,7 +27,7 @@ export function useTransactionDepositLimitAlert({
   const depositLimit = useMemo(() => {
     for (const [type, limit] of Object.entries(depositLimits)) {
       if (hasTransactionType(transactionMeta, [type as TransactionType])) {
-        return 0;
+        return limit;
       }
     }
     return undefined;
