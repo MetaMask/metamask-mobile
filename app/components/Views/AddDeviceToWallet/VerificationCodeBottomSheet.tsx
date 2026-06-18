@@ -1,6 +1,7 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -14,20 +15,44 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-
-const MOCK_VERIFICATION_CODE = '123456';
+import type { RootState } from '../../../reducers';
 
 const VerificationCodeBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const hasDisplayedOtpRef = useRef(false);
+  const hasAutoClosedRef = useRef(false);
+  const { otp, phase } = useSelector((state: RootState) => ({
+    otp: state.engine.backgroundState.QrSyncController.otp?.otp ?? '',
+    phase: state.engine.backgroundState.QrSyncController.phase,
+  }));
 
-  const goBack = useCallback(() => {
-    DeviceEventEmitter.emit('addDeviceVerificationDone');
+  const closeSheet = useCallback(() => {
     navigation.goBack();
     setTimeout(() => {
       navigation.goBack();
     }, 100);
   }, [navigation]);
+
+  const goBack = useCallback(() => {
+    DeviceEventEmitter.emit('addDeviceVerificationDone');
+    closeSheet();
+  }, [closeSheet]);
+
+  useEffect(() => {
+    if (otp) {
+      hasDisplayedOtpRef.current = true;
+    }
+
+    if (
+      hasDisplayedOtpRef.current &&
+      !hasAutoClosedRef.current &&
+      (phase !== 'displaying-otp' || !otp)
+    ) {
+      hasAutoClosedRef.current = true;
+      closeSheet();
+    }
+  }, [closeSheet, otp, phase]);
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={goBack}>
@@ -48,7 +73,7 @@ const VerificationCodeBottomSheet = () => {
           color={TextColor.TextDefault}
           twClassName="my-6"
         >
-          {MOCK_VERIFICATION_CODE}
+          {otp}
         </Text>
         <Button twClassName="w-full" onPress={goBack}>
           {strings('app_settings.add_device.done')}

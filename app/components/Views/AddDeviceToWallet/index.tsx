@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -9,6 +10,7 @@ import {
   TextVariant,
   Button,
   BoxBackgroundColor,
+  TextField,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
@@ -16,14 +18,14 @@ import { DeviceEventEmitter, Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import type { RootState } from '../../../reducers';
 import {
   createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
-
-const MOCK_SCAN_DELAY_MS = 2000;
+import Engine from '../../../core/Engine';
 
 const Points = ({
   number,
@@ -54,8 +56,14 @@ const Points = ({
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [deviceAdded, setDeviceAdded] = useState(false);
+  const [manualQrPayload, setManualQrPayload] = useState('');
+  const [isSubmittingManualPayload, setIsSubmittingManualPayload] =
+    useState(false);
+  const hasOpenedVerificationSheetRef = useRef(false);
+  const qrSyncState = useSelector(
+    (state: RootState) => state.engine.backgroundState.QrSyncController,
+  );
 
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener(
@@ -72,12 +80,37 @@ const AddDeviceToWallet = () => {
     );
   }, [navigation]);
 
+  useEffect(() => {
+    if (
+      deviceAdded ||
+      hasOpenedVerificationSheetRef.current ||
+      qrSyncState?.phase !== 'displaying-otp' ||
+      !qrSyncState?.otp?.otp
+    ) {
+      return;
+    }
+
+    hasOpenedVerificationSheetRef.current = true;
+    showVerificationSheet();
+  }, [
+    deviceAdded,
+    qrSyncState?.otp?.otp,
+    qrSyncState?.phase,
+    showVerificationSheet,
+  ]);
+
+  const submitQrPayload = useCallback(async (qrPayload: string) => {
+    hasOpenedVerificationSheetRef.current = false;
+    await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
+  }, []);
+
   const onScanSuccess = useCallback(
-    (_data: ScanSuccess, _content?: string) => {
-      // TODO: replace mock with real scan handling. This is a temporary mock to simulate a scan after delay.
-      setTimeout(showVerificationSheet, 300);
+    (data: ScanSuccess, content?: string) => {
+      const scannedQrPayload = content ?? data.content ?? '';
+
+      submitQrPayload(scannedQrPayload).catch(() => undefined);
     },
-    [showVerificationSheet],
+    [submitQrPayload],
   );
 
   const openQRScanner = useCallback(() => {
@@ -85,22 +118,31 @@ const AddDeviceToWallet = () => {
       ...createQRScannerNavDetails({
         initialScreen: QRTabSwitcherScreens.Scanner,
         disableTabber: true,
+        origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
         onScanSuccess,
-        onScanError: () => {
-          if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-          }
-        },
       }),
     );
+  }, [navigation, onScanSuccess]);
 
-    // TODO: uncomment when integrating real scan
-    // Mock: simulate a scan after delay (remove when integrating real scan)
-    timerRef.current = setTimeout(() => {
-      showVerificationSheet();
-    }, MOCK_SCAN_DELAY_MS);
-  }, [navigation, onScanSuccess, showVerificationSheet]);
+  const handleManualQrSubmit = useCallback(async () => {
+    if (!manualQrPayload.trim()) {
+      return;
+    }
+
+    setIsSubmittingManualPayload(true);
+
+    try {
+      await submitQrPayload(manualQrPayload);
+    } catch {
+      // Error state is already handled by the controller and reflected in Redux state.
+    } finally {
+      setIsSubmittingManualPayload(false);
+    }
+  }, [manualQrPayload, submitQrPayload]);
+
+  const triggerManualQrSubmit = useCallback(() => {
+    handleManualQrSubmit().catch(() => undefined);
+  }, [handleManualQrSubmit]);
 
   if (deviceAdded) {
     return <DeviceAdded />;
@@ -153,9 +195,55 @@ const AddDeviceToWallet = () => {
           </Points>
         </Box>
 
-        <Button twClassName="w-full mt-auto" onPress={openQRScanner}>
-          {strings('app_settings.add_device.scan_qr_code_button')}
-        </Button>
+        <Box twClassName="mt-auto gap-4">
+          <Button twClassName="w-full" onPress={openQRScanner}>
+            {strings('app_settings.add_device.scan_qr_code_button')}
+          </Button>
+
+          <Box
+            backgroundColor={BoxBackgroundColor.BackgroundSection}
+            twClassName="rounded-xl p-4 gap-3"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              fontWeight={FontWeight.Bold}
+            >
+              Enter QR data manually
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              Paste the QR code payload here when testing on an emulator.
+            </Text>
+            <TextField
+              value={manualQrPayload}
+              onChangeText={setManualQrPayload}
+              placeholder="Paste QR payload"
+              isDisabled={isSubmittingManualPayload}
+              inputProps={{
+                autoCapitalize: 'none',
+                autoCorrect: false,
+                onSubmitEditing: triggerManualQrSubmit,
+                returnKeyType: 'done',
+              }}
+            />
+            {qrSyncState?.error?.message ? (
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+                {qrSyncState?.error?.message}
+              </Text>
+            ) : null}
+            <Button
+              twClassName="w-full"
+              onPress={triggerManualQrSubmit}
+              isDisabled={!manualQrPayload.trim() || isSubmittingManualPayload}
+              isLoading={isSubmittingManualPayload}
+            >
+              Submit QR data
+            </Button>
+          </Box>
+        </Box>
       </Box>
     </SafeAreaView>
   );

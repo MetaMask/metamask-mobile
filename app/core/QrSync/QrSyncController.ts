@@ -1,4 +1,5 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import {
   QR_SYNC_CONTROLLER_NAME,
@@ -12,6 +13,7 @@ import type {
   QrSyncConnectionStatusChangedEvent,
   QrSyncImportPlan,
   QrSyncImportReview,
+  QrSyncOffer,
   QrSyncPhaseChangedEvent,
   QrSyncPhase,
   QrSyncSyncErrorEvent,
@@ -22,8 +24,14 @@ import type {
 import { QrSyncSession } from './services/qr-sync-session';
 import { parseQrSyncConnectionRequest } from './services/qr-sync-connection-request';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
-import { QrSyncActionTypes, RELAY_URL } from './constants';
+import {
+  QrSyncActionTypes,
+  QrSyncMessageVersion,
+  RELAY_URL,
+} from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
+
+const SYNC_OFFER_DEADLINE_MS = 5 * 60 * 1000;
 
 const isConnectionStatusChangedEvent = (
   event: QrSyncServiceEvent,
@@ -264,6 +272,7 @@ export class QrSyncController extends BaseController<
       this.attachSession(session);
       this.setPhase('waiting-for-otp-grant');
       await session.connect(sessionRequest);
+      await this.sendSyncOffer(session);
     } catch (error) {
       this.detachSession();
       this.setRuntimeError(this.toQrSyncError(error));
@@ -299,6 +308,22 @@ export class QrSyncController extends BaseController<
       state.review = null;
       state.otp = null;
       state.error = null;
+    });
+  }
+
+  private async sendSyncOffer(session: QrSyncSession): Promise<void> {
+    this.update((state) => {
+      state.otp = null;
+      state.phase = 'waiting-for-sync-ready';
+    });
+
+    await session.send({
+      type: QrSyncActionTypes.SYNC_OFFER,
+      version: QrSyncMessageVersion.V1,
+      data: {
+        sessionId: this.session?.id,
+        deadline: Date.now() + SYNC_OFFER_DEADLINE_MS,
+      },
     });
   }
 

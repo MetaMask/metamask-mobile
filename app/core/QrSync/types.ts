@@ -58,7 +58,6 @@ export interface QrSyncAccountCandidate {
 export interface QrSyncOffer {
   sessionId?: string;
   deadline: number;
-  accounts: QrSyncAccountCandidate[];
 }
 
 /** Stable error codes shared across QR sync validation and runtime errors. */

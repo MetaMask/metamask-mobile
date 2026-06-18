@@ -485,6 +485,52 @@ describe('QrScanner', () => {
         });
       });
 
+      it('allows add device QR scans while the wallet is locked', async () => {
+        const validatorsModule = jest.requireMock('../../../util/validators');
+        (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
+        (
+          validatorsModule.failedSeedPhraseRequirements as jest.Mock
+        ).mockReturnValue(true);
+
+        const EngineModule = jest.requireMock('../../../core/Engine');
+        (
+          EngineModule.context.KeyringController.isUnlocked as jest.Mock
+        ).mockReturnValue(false);
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={mockOnScanSuccess}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          {
+            state: initialState,
+          },
+        );
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        const qrPayload = '{"sessionRequest":{"id":"test"}}';
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: qrPayload }]);
+        });
+
+        await waitFor(() => {
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+          });
+          expect(mockOnScanSuccess).toHaveBeenCalledWith(
+            { content: qrPayload },
+            qrPayload,
+          );
+        });
+      });
+
       it('tracks QR_SCANNED with send flow type when scanning ethereum address', async () => {
         const validatorsModule = jest.requireMock('../../../util/validators');
         (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);

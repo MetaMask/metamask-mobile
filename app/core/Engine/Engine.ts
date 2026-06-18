@@ -1462,6 +1462,7 @@ export default {
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
+      QrSyncController,
     } = instance.context;
 
     return {
@@ -1537,6 +1538,7 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
+      QrSyncController: QrSyncController.state,
     };
   },
 

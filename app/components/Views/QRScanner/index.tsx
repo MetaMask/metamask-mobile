@@ -380,6 +380,23 @@ const QRScanner = ({
           mountedRef.current = false;
         }
       } else {
+        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
+          shouldReadBarCodeRef.current = false;
+          data = { content };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          onScanSuccess(data, content);
+          return;
+        }
+
         if (
           !failedSeedPhraseRequirements(content) &&
           isValidMnemonic(content)
