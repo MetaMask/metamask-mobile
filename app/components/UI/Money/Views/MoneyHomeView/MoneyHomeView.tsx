@@ -660,29 +660,27 @@ const MoneyHomeView = () => {
     contentSections.push({
       key: 'how-it-works',
       node: (
-        <MoneyHowItWorks
-          apy={apyPercent}
-          onHeaderPress={() =>
-            handleHowItWorksPress({
-              componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
-            })
-          }
-          isLoading={vaultApyQuery.isLoading}
-        />
-      ),
-    });
-    contentSections.push({
-      key: 'musd-row',
-      node: (
-        <MoneyMusdTokenRow
-          onPress={() =>
-            handleMusdRowPress({
-              componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-            })
-          }
-          onAddPress={handleMusdRowAddPress}
-          balance={musdFiatFormatted}
-        />
+        <>
+          <MoneyHowItWorks
+            apy={apyPercent}
+            onHeaderPress={() =>
+              handleHowItWorksPress({
+                componentName:
+                  COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
+              })
+            }
+            isLoading={vaultApyQuery.isLoading}
+          />
+          <MoneyMusdTokenRow
+            onPress={() =>
+              handleMusdRowPress({
+                componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+              })
+            }
+            onAddPress={handleMusdRowAddPress}
+            balance={musdFiatFormatted}
+          />
+        </>
       ),
     });
   }
