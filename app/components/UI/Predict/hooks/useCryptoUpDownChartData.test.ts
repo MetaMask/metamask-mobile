@@ -23,6 +23,25 @@ jest.mock('./useLiveCryptoPrices', () => ({
   useLiveCryptoPrices: (...args: unknown[]) => mockUseLiveCryptoPrices(...args),
 }));
 
+// Captures the config passed to the most recent `useQuery` call so tests can
+// assert on dynamically-computed options (e.g. `refetchInterval`) while still
+// running the real React Query implementation.
+const mockLastUseQueryConfig: { current: Record<string, unknown> | undefined } =
+  {
+    current: undefined,
+  };
+
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQuery: (config: Record<string, unknown>) => {
+      mockLastUseQueryConfig.current = config;
+      return actual.useQuery(config);
+    },
+  };
+});
+
 jest.mock('../utils/cryptoUpDown', () => ({
   getCryptoSymbol: (...args: unknown[]) => mockGetCryptoSymbol(...args),
   getVariant: (...args: unknown[]) => mockGetVariant(...args),
@@ -133,6 +152,53 @@ describe('useCryptoUpDownChartData', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  describe('historical query polling', () => {
+    it('does not poll while live when the live socket is connected', () => {
+      mockUseLiveCryptoPrices.mockImplementation(
+        (_symbol: string, onUpdate: (update: CryptoPriceUpdate) => void) => {
+          liveUpdateHandler = onUpdate;
+          return { isConnected: true };
+        },
+      );
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
+
+      expect(mockLastUseQueryConfig.current?.refetchInterval).toBe(false);
+    });
+
+    it('polls every 10s while live when the live socket is disconnected', () => {
+      mockUseLiveCryptoPrices.mockImplementation(
+        (_symbol: string, onUpdate: (update: CryptoPriceUpdate) => void) => {
+          liveUpdateHandler = onUpdate;
+          return { isConnected: false };
+        },
+      );
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
+
+      expect(mockLastUseQueryConfig.current?.refetchInterval).toBe(10000);
+    });
+
+    it('does not poll for a non-live (historical-only) chart', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(
+        () =>
+          useCryptoUpDownChartData(market, undefined, {
+            liveUpdatesEnabled: false,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(mockLastUseQueryConfig.current?.refetchInterval).toBe(false);
+    });
   });
 
   describe('live path', () => {

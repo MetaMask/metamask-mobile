@@ -20,6 +20,7 @@ const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
 const CONNECTION_ERROR_TIMEOUT_MS = 12000;
+const POLL_INTERVAL_MS = 10000;
 
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
@@ -270,7 +271,14 @@ export const useCryptoUpDownChartData = (
   const wsSymbol =
     enabled && shouldStreamLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
-  useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
+  // When the live-data WebSocket is connected it already streams real-time
+  // ticks, so the HTTP query only needs its initial historical baseline fetch.
+  // We use `isConnected` below to pause interval polling while the socket is
+  // healthy and resume it if the socket drops.
+  const { isConnected: isLiveSocketConnected } = useLiveCryptoPrices(
+    wsSymbol,
+    handleLiveUpdate,
+  );
 
   const historyStartDate =
     options.historicalWindow?.startDate ?? eventStartTime;
@@ -290,7 +298,11 @@ export const useCryptoUpDownChartData = (
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
-    refetchInterval: shouldStreamLive ? 10000 : false,
+    // Only poll while streaming live AND the WebSocket is down. `refetchOnMount`
+    // still seeds the historical baseline once; the socket supplies live ticks
+    // when connected, so redundant interval polling is disabled in that case.
+    refetchInterval:
+      shouldStreamLive && !isLiveSocketConnected ? POLL_INTERVAL_MS : false,
   });
 
   const historicalData = historicalQuery.data ?? EMPTY_DATA;
