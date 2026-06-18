@@ -98,8 +98,15 @@ describe('authenticatedFetch', () => {
 describe('fetchSupportedChains', () => {
   it('calls /alerts/supported-chains', async () => {
     await fetchSupportedChains();
-    const [url] = mockFetch.mock.calls[0] as [string];
-    expect(url).toBe(`${ALERTS_URL}/supported-chains`);
+    expect(mockGetBearerToken).not.toHaveBeenCalled();
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(
+      (init.headers as Record<string, string>).Authorization,
+    ).toBeUndefined();
+    expect((init.headers as Record<string, string>).Accept).toBe(
+      'application/json',
+    );
+    expect(init.credentials).toBe('omit');
   });
 
   it('returns the raw Response from fetch', async () => {

@@ -25,7 +25,10 @@ export const fetchAlerts = (assetId: string): Promise<Response> =>
   authenticatedFetch(`${ALERTS_URL}?asset=${encodeURIComponent(assetId)}`);
 
 export const fetchSupportedChains = (): Promise<Response> =>
-  authenticatedFetch(`${ALERTS_URL}/supported-chains`);
+  fetch(`${ALERTS_URL}/supported-chains`, {
+    headers: { Accept: 'application/json' },
+    credentials: 'omit',
+  });
 
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   authenticatedFetch(ALERTS_URL, {
