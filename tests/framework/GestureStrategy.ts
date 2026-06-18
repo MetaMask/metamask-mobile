@@ -1,5 +1,6 @@
 import Gestures from './Gestures.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import Matchers from './Matchers.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
 import {
   EncapsulatedElementType,
@@ -348,6 +349,36 @@ export class DetoxGestureStrategy implements GestureStrategy {
  */
 export class AppiumGestureStrategy implements GestureStrategy {
   /**
+   * Detox scroll direction is inverted relative to Appium scrollIntoView swipe
+   * direction for vertical scrolling (scroll down → swipe up).
+   */
+  private static toScrollIntoViewDirection(
+    direction?: UnifiedGestureOptions['direction'],
+  ): 'up' | 'down' | 'left' | 'right' {
+    if (direction === 'down') {
+      return 'up';
+    }
+    if (direction === 'up') {
+      return 'down';
+    }
+    return direction ?? 'up';
+  }
+
+  private static async resolveScrollableElement(
+    scrollView?: ScrollContainer,
+  ): Promise<PlaywrightElement | undefined> {
+    if (scrollView === undefined || scrollView instanceof Promise) {
+      return undefined;
+    }
+
+    if (typeof scrollView === 'string') {
+      return asPlaywrightElement(Matchers.getElementByID(scrollView));
+    }
+
+    return undefined;
+  }
+
+  /**
    * Tap an element
    * @param elem - The element to tap
    * @returns A promise that resolves when the tap is complete
@@ -437,12 +468,20 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    _scrollView?: ScrollContainer,
+    scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(target);
+    const scrollableElement =
+      await AppiumGestureStrategy.resolveScrollableElement(scrollView);
+
     await PlaywrightGestures.scrollIntoView(el, {
-      scrollParams: { direction: opts?.direction ?? 'down' },
+      scrollParams: {
+        direction: AppiumGestureStrategy.toScrollIntoViewDirection(
+          opts?.direction,
+        ),
+      },
+      scrollableElement,
     });
   }
 
