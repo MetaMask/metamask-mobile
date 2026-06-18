@@ -39,7 +39,7 @@ export default class Gestures {
     point?: { x: number; y: number },
   ) => {
     const {
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
@@ -94,12 +94,13 @@ export default class Gestures {
         timeout: options.timeout,
         description: options.elemDescription,
         delay: options.delay,
+        checkStability: options.checkStability ?? BASE_DEFAULTS.checkStability,
       });
     }
 
     const {
       timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
@@ -139,12 +140,13 @@ export default class Gestures {
         timeout: options.timeout,
         description: options.elemDescription,
         delay: options.delay,
+        checkStability: options.checkStability ?? BASE_DEFAULTS.checkStability,
       });
     }
 
     const {
       timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
@@ -250,7 +252,7 @@ export default class Gestures {
 
     const {
       timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
@@ -293,7 +295,7 @@ export default class Gestures {
 
     const {
       timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
@@ -340,7 +342,7 @@ export default class Gestures {
 
     const {
       timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkEnabled = true,
       checkVisibility = true,
       duration = 2000,
@@ -390,7 +392,7 @@ export default class Gestures {
       timeout = BASE_DEFAULTS.timeout,
       clearFirst = true,
       hideKeyboard = false,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkEnabled = true,
       checkVisibility = true,
       sensitive = false,
@@ -492,7 +494,7 @@ export default class Gestures {
 
     const {
       timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkEnabled = true,
       checkVisibility = true,
       elemDescription,
@@ -544,7 +546,7 @@ export default class Gestures {
       timeout = BASE_DEFAULTS.timeout,
       speed = 'fast',
       percentage = 0.75,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkEnabled = true,
       checkVisibility = true,
       elemDescription,
@@ -728,7 +730,7 @@ export default class Gestures {
   ): Promise<void> {
     const {
       timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
+      checkStability = BASE_DEFAULTS.checkStability,
       checkEnabled = true,
       checkVisibility = true,
       elemDescription,

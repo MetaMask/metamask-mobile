@@ -1,5 +1,6 @@
 import Gestures from './Gestures.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import { BASE_DEFAULTS } from './Utilities.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
 import {
   EncapsulatedElementType,
@@ -38,6 +39,10 @@ export interface UnifiedGestureOptions {
   enabledStableReads?: number;
   /** Extra wait (ms) after enabled/interactive, before click — Appium only */
   postEnabledSettleMs?: number;
+  /** Wait for UI to settle before interaction — Detox (`checkStability`) / Appium (`checkForStable`) */
+  checkStability?: boolean;
+  /** Appium alias for `checkStability` */
+  checkForStable?: boolean;
   /** Long press duration in ms — passed through to PlaywrightGestures.longPress */
   duration?: number;
 }
@@ -137,6 +142,7 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.tap(asDetoxElement(elem), {
       timeout: opts?.timeout,
+      checkStability: opts?.checkStability,
       elemDescription: opts?.description,
     });
   }
@@ -153,6 +159,7 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.waitAndTap(asDetoxElement(elem), {
       timeout: opts?.timeout,
+      checkStability: opts?.checkStability,
       elemDescription: opts?.description,
     });
   }
@@ -354,11 +361,16 @@ export class AppiumGestureStrategy implements GestureStrategy {
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(elem);
+    const checkForStable =
+      opts?.checkForStable ??
+      opts?.checkStability ??
+      BASE_DEFAULTS.checkStability;
     await PlaywrightGestures.waitAndTap(el, {
       timeout: opts?.timeout,
       delay: opts?.delay,
       checkForDisplayed: opts?.checkForDisplayed ?? true,
       checkForEnabled: opts?.checkForEnabled,
+      checkForStable,
     });
   }
 
@@ -373,6 +385,10 @@ export class AppiumGestureStrategy implements GestureStrategy {
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(elem);
+    const checkForStable =
+      opts?.checkForStable ??
+      opts?.checkStability ??
+      BASE_DEFAULTS.checkStability;
     await PlaywrightGestures.waitAndTap(el, {
       timeout: opts?.timeout,
       delay: opts?.delay,
@@ -381,6 +397,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
       waitForInteractive: opts?.waitForInteractive,
       enabledStableReads: opts?.enabledStableReads,
       postEnabledSettleMs: opts?.postEnabledSettleMs,
+      checkForStable,
     });
   }
 

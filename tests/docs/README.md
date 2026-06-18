@@ -107,11 +107,11 @@ We need this shim mechanism because some app dependencies patch CommonJS package
 ```typescript
 // Default behavior (recommended for most cases)
 await Gestures.tap(button, { description: 'tap button' });
-// checkVisibility: true, checkEnabled: true, checkStability: false
+// checkVisibility: true, checkEnabled: true, checkStability: true
 
-// For animated elements
+// For continuously animating elements
 await Gestures.tap(animatedButton, {
-  checkStability: true,
+  checkStability: false,
   description: 'tap animated button',
 });
 
@@ -130,7 +130,7 @@ await Gestures.tap(loadingButton, {
 - **Page Objects**: Mandatory pattern - no direct element access in test specs
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
-- **Performance**: Use `checkStability: false` by default, enable only for animated elements
+- **Performance**: Stability is on by default; pass `checkStability: false` for elements that never stop moving
 - Check [`docs/testing/e2e-testing.md`](../../docs/testing/e2e-testing.md) for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**

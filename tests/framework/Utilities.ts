@@ -12,6 +12,7 @@ const TEST_CONFIG_DEFAULTS = {
   actionDelay: 100,
   stabilityCheckInterval: 200,
   stabilityCheckCount: 3,
+  checkStability: true,
 };
 
 const logger = createLogger({ name: 'Utilities' });
@@ -228,7 +229,7 @@ export default class Utilities {
   ): DetoxElement {
     const {
       timeout,
-      checkStability = false,
+      checkStability = TEST_CONFIG_DEFAULTS.checkStability,
       checkVisibility = true,
       checkEnabled = true,
     } = options;

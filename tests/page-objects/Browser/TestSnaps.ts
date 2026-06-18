@@ -270,7 +270,6 @@ class TestSnaps {
   async tapCancelButton() {
     const button = Matchers.getElementByText('Cancel');
     await Gestures.waitAndTap(button, {
-      checkStability: true,
       elemDescription: 'snap dialog cancel button',
     });
   }
@@ -342,12 +341,7 @@ class TestSnaps {
       NativeDropdownSelectorWebIDS[selector],
     );
 
-    await Assertions.expectElementToBeVisible(dropdown, {
-      timeout: 15_000,
-      description: `${selector} dropdown should be visible before opening`,
-    });
     await Gestures.waitAndTap(dropdown, {
-      checkStability: true,
       elemDescription: `${selector} dropdown`,
     });
 
@@ -355,7 +349,6 @@ class TestSnaps {
       by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
     ) as unknown as DetoxElement;
     await Gestures.waitAndTap(selectorItem, {
-      checkStability: true,
       elemDescription: `${selector} option ${text}`,
     });
   }
@@ -382,7 +375,6 @@ class TestSnaps {
     );
 
     await Gestures.waitAndTap(this.dateTimePickerTouchable, {
-      checkStability: true,
       elemDescription: 'open date-time picker',
     });
 
@@ -398,7 +390,6 @@ class TestSnaps {
 
   async selectDateInDatePicker() {
     await Gestures.waitAndTap(this.datePickerTouchable, {
-      checkStability: true,
       elemDescription: 'open date picker',
     });
 
@@ -409,7 +400,6 @@ class TestSnaps {
 
   async selectTimeInTimePicker() {
     await Gestures.waitAndTap(this.timePickerTouchable, {
-      checkStability: true,
       elemDescription: 'open time picker',
     });
 
@@ -483,7 +473,6 @@ class TestSnaps {
     await this.blurActiveWebViewInput();
     await Gestures.tap(this.confirmSignatureButton, {
       elemDescription: 'confirm snap signature',
-      checkStability: true,
     });
   }
 

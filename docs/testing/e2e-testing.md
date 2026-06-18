@@ -336,18 +336,18 @@ const MyComponent = () => {
 
 ### Element State Checking Configuration
 
-- **Default behavior**: `checkVisibility: true`, `checkEnabled: true`, `checkStability: false`
-- **Performance optimization**: Stability checking disabled by default for better performance
-- **When to enable stability**: Complex animations, moving screens, carousel components
+- **Default behavior**: `checkVisibility: true`, `checkEnabled: true`, `checkStability: true`
+- **Stability checking**: Enabled by default to avoid tapping during transitions/animations
+- **When to disable stability**: Fast-moving carousels, counters, or other elements that never stop moving
 - **When to disable checks**: Loading states, temporarily disabled elements
 
 ```typescript
-// Default: checks visibility + enabled, skips stability
+// Default: checks visibility + enabled + stability
 await Gestures.tap(button, { description: 'tap button' });
 
-// Enable stability for animated elements
+// Disable stability for continuously animating elements
 await Gestures.tap(carouselItem, {
-  checkStability: true,
+  checkStability: false,
   description: 'tap carousel item',
 });
 
@@ -432,13 +432,13 @@ await Gestures.tap(loadingButton, {
 
 #### "Element moving/animating" Errors
 
-- **Cause**: UI animations interfering with interactions
-- **Solution**: Enable stability checking for that specific interaction
+- **Cause**: UI animations or transition overlays interfering with interactions
+- **Solution**: Stability checking is enabled by default on `Gestures.tap` / `waitAndTap`. If an element never settles (e.g. carousel), opt out:
 
 ```typescript
-await Gestures.tap(animatedButton, {
-  checkStability: true, // Wait for animations to complete
-  description: 'tap animated button',
+await Gestures.tap(carouselItem, {
+  checkStability: false,
+  description: 'tap carousel item',
 });
 ```
 

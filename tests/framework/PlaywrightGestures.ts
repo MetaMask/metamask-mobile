@@ -3,6 +3,7 @@ import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
+import { BASE_DEFAULTS } from './Utilities.ts';
 import {
   createPlaywrightLogger,
   debugElementAction,
@@ -168,7 +169,7 @@ export default class PlaywrightGestures {
       checkForDisplayed = true,
       checkForEnabled = true,
       waitForInteractive = false,
-      checkForStable = false,
+      checkForStable = BASE_DEFAULTS.checkStability,
       enabledStableReads = 3,
       postEnabledSettleMs,
     } = options || {};
