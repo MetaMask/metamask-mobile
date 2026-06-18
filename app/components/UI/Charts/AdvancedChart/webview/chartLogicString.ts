@@ -3724,7 +3724,7 @@ function hasEmptyStudyValues(studyDataList) {
     var values = studyDataList[i].values;
     var cfg = INDICATOR_LEGEND_CONFIG[name];
     if (!cfg) continue;
-    
+
     // Check all values for this indicator
     for (var j = 0; j < values.length; j++) {
       var val = values[j].value;
@@ -3766,6 +3766,12 @@ function scheduleRetryIfNeeded(gen) {
       }
       overlay.innerHTML = buildLegendHTML(fallbackList);
     }
+    // RN keeps the skeleton until LEGEND_RENDERED; notify after fallback so it cannot block forever.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        sendToReactNative('LEGEND_RENDERED', {});
+      });
+    });
     return;
   }
   _legendRetryCount++;
