@@ -10,7 +10,6 @@ describe('isTrackingEvent', () => {
       name: 'test_event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: true,
       get isAnonymous() {
         return false;
       },
