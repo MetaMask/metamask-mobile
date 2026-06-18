@@ -69,7 +69,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
 }) => {
   const config = getLeagueConfig(game.league);
 
-  const liveData = {
+  const gameData = {
     homeScore: game.score?.home ?? 0,
     awayScore: game.score?.away ?? 0,
     elapsed: game.elapsed,
@@ -78,20 +78,20 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   };
 
   const isEnded = isGameEnded({
-    status: liveData.status,
-    period: liveData.period,
+    status: gameData.status,
+    period: gameData.period,
     endTime: game.endTime,
   });
-  const isScheduled = !isEnded && liveData.status === 'scheduled';
+  const isScheduled = !isEnded && gameData.status === 'scheduled';
   const isLive = !isEnded && !isScheduled;
 
   const scheduledTime = formatGameDateTime(game.startTime);
 
   const statusText = getSportLiveStatusText({
     league: game.league,
-    status: liveData.status,
-    period: liveData.period,
-    elapsed: liveData.elapsed,
+    status: gameData.status,
+    period: gameData.period,
+    elapsed: gameData.elapsed,
     endTime: game.endTime,
   });
 
@@ -105,8 +105,8 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   const isHomeFirst = isSoccerLeague(game.league);
   const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
   const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
-  const leftScore = isHomeFirst ? liveData.homeScore : liveData.awayScore;
-  const rightScore = isHomeFirst ? liveData.awayScore : liveData.homeScore;
+  const leftScore = isHomeFirst ? gameData.homeScore : gameData.awayScore;
+  const rightScore = isHomeFirst ? gameData.awayScore : gameData.homeScore;
   const leftLogoTestID = testID
     ? `${testID}${
         isHomeFirst
