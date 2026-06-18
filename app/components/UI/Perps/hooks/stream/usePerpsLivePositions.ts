@@ -167,7 +167,10 @@ export function usePerpsLivePositions(
   // Sorted + memoized so the subscription effect only re-runs when the set of
   // symbols actually changes, not on every positions tick (which creates a new array).
   const symbols = useMemo(
-    () => Array.from(new Set(rawPositions.map((p) => p.symbol))).sort(),
+    () =>
+      Array.from(new Set(rawPositions.map((p) => p.symbol))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
     [rawPositions],
   );
   const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
