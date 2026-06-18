@@ -74,33 +74,32 @@ export function TransactionDetailsNetworkFeeRow() {
       label={strings('transaction_details.label.network_fee')}
     >
       {isSponsored ? (
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={4}
-          testID="paid-by-metamask"
-        >
-          <Icon
-            name={IconName.Check}
-            color={IconColor.Success}
-            size={IconSize.Sm}
-          />
-          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-            {strings('transactions.paid_by_metamask')}
-          </Text>
-        </Box>
-      ) : isMoneyContext ? (
-        <TransactionDetailsFeeCell
-          testID={TransactionDetailsSelectorIDs.NETWORK_FEE}
-          value={networkFeeFormatted}
-          chainId={feeChainId}
-          address={getNativeTokenAddress(feeChainId) as Hex}
-        />
+        <SponsoredIndicator />
       ) : (
         <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
           {networkFeeFormatted}
         </Text>
       )}
     </TransactionDetailsRow>
+  );
+}
+
+function SponsoredIndicator() {
+  return (
+    <Box
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+      gap={4}
+      testID="paid-by-metamask"
+    >
+      <Icon
+        name={IconName.Check}
+        color={IconColor.Success}
+        size={IconSize.Sm}
+      />
+      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+        {strings('transactions.paid_by_metamask')}
+      </Text>
+    </Box>
   );
 }

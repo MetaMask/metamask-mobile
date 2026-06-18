@@ -85,6 +85,33 @@ interface TokenDisplayData {
   chainId: Hex;
 }
 
+function TwoAssetHero({
+  sentData,
+  receivedData,
+}: {
+  sentData: TokenDisplayData;
+  receivedData: TokenDisplayData;
+}) {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Box testID="transaction-details-hero" gap={4} style={styles.container}>
+      <AssetLine
+        label={strings('transaction_details.label.you_sent')}
+        sign="-"
+        data={sentData}
+      />
+      <AssetLine
+        label={strings('transaction_details.label.you_received')}
+        labelStyle={styles.youReceivedLabel}
+        sign="+"
+        data={receivedData}
+        amountColor={TextColor.Success}
+      />
+    </Box>
+  );
+}
+
 function AssetLine({
   label,
   labelStyle,
@@ -147,22 +174,7 @@ export function TransactionDetailsHero() {
     receivedData;
 
   if (showTwoAssetHero) {
-    return (
-      <Box testID="transaction-details-hero" gap={4} style={styles.container}>
-        <AssetLine
-          label={strings('transaction_details.label.you_sent')}
-          sign="-"
-          data={sentData}
-        />
-        <AssetLine
-          label={strings('transaction_details.label.you_received')}
-          labelStyle={styles.youReceivedLabel}
-          sign="+"
-          data={receivedData}
-          amountColor={TextColor.Success}
-        />
-      </Box>
-    );
+    return <TwoAssetHero sentData={sentData} receivedData={receivedData} />;
   }
 
   const showTokenIcon =

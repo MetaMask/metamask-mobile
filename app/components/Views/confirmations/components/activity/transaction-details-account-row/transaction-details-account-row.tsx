@@ -83,12 +83,13 @@ export function TransactionDetailsAccountRow() {
     isMoneyContext &&
     hasTransactionType(transactionMeta, PERPS_PREDICT_OUTFLOW_TYPES);
 
-  if (isInflowFromService) {
-    const fromLabel = hasTransactionType(transactionMeta, [
-      TransactionType.perpsWithdraw,
-    ])
-      ? strings('transaction_details.label.perps_account')
-      : strings('transaction_details.label.predictions_account');
+  if (isInflowFromService || isOutflowToService) {
+    const address = isInflowFromService ? from : (moneyAddress ?? from);
+    const label = isInflowFromService
+      ? hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])
+        ? strings('transaction_details.label.perps_account')
+        : strings('transaction_details.label.predictions_account')
+      : strings('transaction_details.label.money_account');
 
     return (
       <TransactionDetailsRow label={strings('transaction_details.label.from')}>
@@ -97,26 +98,8 @@ export function TransactionDetailsAccountRow() {
           alignItems={AlignItems.center}
           gap={6}
         >
-          <AvatarAccount accountAddress={from} size={AvatarSize.Sm} />
-          <Text>{fromLabel}</Text>
-        </Box>
-      </TransactionDetailsRow>
-    );
-  }
-
-  if (isOutflowToService) {
-    return (
-      <TransactionDetailsRow label={strings('transaction_details.label.from')}>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={6}
-        >
-          <AvatarAccount
-            accountAddress={moneyAddress ?? from}
-            size={AvatarSize.Sm}
-          />
-          <Text>{strings('transaction_details.label.money_account')}</Text>
+          <AvatarAccount accountAddress={address} size={AvatarSize.Sm} />
+          <Text>{label}</Text>
         </Box>
       </TransactionDetailsRow>
     );

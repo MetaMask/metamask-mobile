@@ -49,46 +49,46 @@ export function TransactionDetailsPaidWithRow() {
     transactionMeta.status,
   );
 
-  if (isFiatDeposit) {
-    if (!paymentMethodName) {
+  if (isFiatDeposit && !paymentMethodName) {
+    return null;
+  }
+
+  if (!isFiatDeposit) {
+    if (!chainId || !tokenAddress || !token) {
       return null;
     }
-
-    return (
-      <TransactionDetailsRow
-        label={strings('transaction_details.label.paid_with')}
-      >
-        <Box
-          flexDirection={FlexDirection.Row}
-          gap={6}
-          alignItems={AlignItems.center}
-        >
-          <PaymentMethodIcon
-            paymentMethodType={inferPaymentType(paymentMethodName)}
-            size={16}
-            color={colors.text.default}
-          />
-          <Text testID={TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL}>
-            {paymentMethodName}
-          </Text>
-        </Box>
-      </TransactionDetailsRow>
-    );
-  }
-
-  if (!chainId || !tokenAddress || !token) {
-    return null;
-  }
-
-  if (isMoneyContext && hasTransactionType(transactionMeta, MONEY_HERO_TYPES)) {
-    return null;
+    if (
+      isMoneyContext &&
+      hasTransactionType(transactionMeta, MONEY_HERO_TYPES)
+    ) {
+      return null;
+    }
   }
 
   // For post-quote withdrawals, metamaskPay token is the destination (received),
   // not the source (paid with).
-  const label = isPostQuote
-    ? strings('transaction_details.label.receive_token')
-    : strings('transaction_details.label.paid_with');
+  const label =
+    !isFiatDeposit && isPostQuote
+      ? strings('transaction_details.label.receive_token')
+      : strings('transaction_details.label.paid_with');
+
+  const icon = isFiatDeposit ? (
+    <PaymentMethodIcon
+      paymentMethodType={inferPaymentType(paymentMethodName ?? '')}
+      size={16}
+      color={colors.text.default}
+    />
+  ) : (
+    <TokenIcon
+      chainId={chainId ?? '0x0'}
+      address={tokenAddress ?? '0x0'}
+      variant={TokenIconVariant.Row}
+    />
+  );
+
+  const displayText = isFiatDeposit
+    ? (paymentMethodName ?? '')
+    : (token?.symbol ?? '');
 
   return (
     <TransactionDetailsRow label={label}>
@@ -97,13 +97,9 @@ export function TransactionDetailsPaidWithRow() {
         gap={6}
         alignItems={AlignItems.center}
       >
-        <TokenIcon
-          chainId={chainId}
-          address={tokenAddress}
-          variant={TokenIconVariant.Row}
-        />
+        {icon}
         <Text testID={TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL}>
-          {token.symbol}
+          {displayText}
         </Text>
       </Box>
     </TransactionDetailsRow>
