@@ -69,11 +69,14 @@ export const createStyles = (
     listItemTitleFailed: {
       color: colors.error.default,
     } as TextStyle,
+    listItemTitleWarning: {
+      color: colors.warning.default,
+    } as TextStyle,
     subtitleText: {
       ...typography.sBodySM,
       fontFamily: getFontFamily(TextVariant.BodySM),
       lineHeight: 16,
-      marginTop: 0,
+      marginTop: 4,
       color: colors.text.alternative,
     } as TextStyle,
     listItemAmounts: {
@@ -97,6 +100,8 @@ export const createStyles = (
       fontFamily: getFontFamily(TextVariant.BodySM),
       color: colors.text.alternative,
       lineHeight: 16,
+      // Match the title/subtitle gap so the two amount lines aren't cramped.
+      marginTop: 4,
       textAlign: 'right',
     } as TextStyle,
   });

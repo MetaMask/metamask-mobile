@@ -19,6 +19,38 @@ import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
 export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
 
+/**
+ * Perps (always Arbitrum) and Predict (always Polygon) are single-network
+ * domains, so the network badge on the avatar conveys nothing — suppress it.
+ */
+function isSingleNetworkDomainKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('perps') ||
+    type.startsWith('prediction') ||
+    type.startsWith('market') ||
+    type.startsWith('stopMarket')
+  );
+}
+
+/**
+ * Per-kind title severity for perps closes (design): liquidations are an error
+ * (red), stop-loss closes are a warning (amber). Everything else is neutral.
+ */
+function resolveTitleSeverity(
+  type: ActivityKind,
+): 'error' | 'warning' | undefined {
+  switch (type) {
+    case 'perpsCloseLongLiquidated':
+    case 'perpsCloseShortLiquidated':
+      return 'error';
+    case 'perpsCloseLongStopLoss':
+    case 'perpsCloseShortStopLoss':
+      return 'warning';
+    default:
+      return undefined;
+  }
+}
+
 function resolveIconType(type: ActivityKind): string {
   switch (type) {
     case 'send':
@@ -97,9 +129,11 @@ export function ActivityListItemRow({
     appTheme,
     osColorScheme,
   );
-  const networkImageSource = getNetworkImageSource({
-    chainId: item.chainId,
-  });
+  const networkImageSource = isSingleNetworkDomainKind(item.type)
+    ? undefined
+    : getNetworkImageSource({
+        chainId: item.chainId,
+      });
 
   const handlePress = useCallback(() => {
     onPress?.(item);
@@ -111,12 +145,14 @@ export function ActivityListItemRow({
         <ActivityListItemRowIcon
           fallbackIcon={icon}
           networkImageSource={networkImageSource}
+          iconUrl={content.avatarIconUrl}
           styles={styles}
           tokens={content.avatarTokens}
         />
       }
       index={index}
       isFailed={isFailed}
+      titleSeverity={resolveTitleSeverity(item.type)}
       item={item}
       onPress={handlePress}
       primaryAmount={content.primaryAmount}

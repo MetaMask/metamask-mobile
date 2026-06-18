@@ -10,22 +10,38 @@ function getItemHash(item: ActivityListItem): string | undefined {
 }
 
 /**
- * Merges local-EVM, API-confirmed-EVM, and non-EVM ActivityListItem arrays into
- * a single list sorted newest-first. API-confirmed items win deduplication over
- * local items with the same hash.
+ * Merges local-EVM, API-confirmed-EVM, non-EVM, and domain (perps/predict)
+ * ActivityListItem arrays into a single list sorted newest-first, deduplicated
+ * by hash.
  *
- * Order of precedence: local first, then confirmed, then non-EVM — matching the
- * original Mobile behavior where confirmed beats local by hash.
+ * Precedence: domain (perps/predict) > confirmed EVM > local EVM > non-EVM.
+ * Domain items win because a perps/predict deposit/withdrawal is also a real
+ * EVM transaction — the API/local copy of the same hash maps to a generic kind
+ * (e.g. `contractInteraction`), while the domain copy carries the specific kind
+ * (`perpsAddFunds`, `predictionsAddFunds`, …) the row needs.
  */
 export function mergeActivityItems(
   localItems: ActivityListItem[],
   confirmedEvmItems: ActivityListItem[],
   nonEvmItems: ActivityListItem[],
+  perpsItems: ActivityListItem[] = [],
+  predictItems: ActivityListItem[] = [],
 ): ActivityListItem[] {
   const seenHashes = new Set<string>();
   const result: ActivityListItem[] = [];
 
-  // Confirmed EVM items are authoritative — add them first to seed seen hashes.
+  // Domain items carry the most specific activity kinds — seed them first so
+  // the EVM copies of the same on-chain deposit/withdrawal dedupe away.
+  for (const item of [...perpsItems, ...predictItems]) {
+    const hash = getItemHash(item);
+    if (hash) {
+      if (seenHashes.has(hash)) continue;
+      seenHashes.add(hash);
+    }
+    result.push(item);
+  }
+
+  // Confirmed EVM items are authoritative for everything else.
   for (const item of confirmedEvmItems) {
     const hash = getItemHash(item);
     if (hash) {
