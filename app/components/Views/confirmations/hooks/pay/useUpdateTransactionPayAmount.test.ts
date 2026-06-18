@@ -114,6 +114,7 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledWith(
       expect.any(Object),
       '1.23',
+      undefined,
     );
     expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(2);
     expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(1, {
