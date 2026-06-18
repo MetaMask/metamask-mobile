@@ -246,6 +246,7 @@ const ManagePriceAlertsView: React.FC = () => {
               threshold: formatPriceWithSubscriptNotation(
                 item.threshold,
                 currentCurrency,
+                { maximumFractionDigits: 15 },
               ),
             })}
           </Text>
