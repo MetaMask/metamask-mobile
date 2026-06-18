@@ -297,14 +297,14 @@ export const useCryptoUpDownChartData = (
   const wsSymbol =
     enabled && shouldStreamLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
-  // When the live-data WebSocket is connected it already streams real-time
-  // ticks, so the HTTP query only needs its initial historical baseline fetch.
-  // We use `isConnected` below to pause interval polling while the socket is
-  // healthy and resume it if the socket drops.
-  const { isConnected: isLiveSocketConnected } = useLiveCryptoPrices(
-    wsSymbol,
-    handleLiveUpdate,
-  );
+  // The live-data WebSocket streams real-time ticks while healthy, so the HTTP
+  // query only needs its initial historical baseline in that case. Interval
+  // polling is gated on `liveStreamStale` (see `refetchInterval` below) rather
+  // than this hook's `isConnected` flag: `isConnected` latches true on the first
+  // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
+  // flips back to true when ticks stop arriving — correctly resuming HTTP
+  // polling as a fallback.
+  useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
   const historyStartDate =
     options.historicalWindow?.startDate ?? eventStartTime;
@@ -319,6 +319,16 @@ export const useCryptoUpDownChartData = (
   // separate interval polls. We track the count ourselves: increment on each
   // settled error and reset on the next successful fetch (and on market change).
   const consecutivePollFailuresRef = useRef(0);
+
+  // A fresh live stream is a recovery signal: reset the polling circuit breaker
+  // so that if the socket later drops (stream goes stale again), HTTP polling
+  // resumes from the base cadence instead of staying latched at the disabled
+  // threshold.
+  useEffect(() => {
+    if (!liveStreamStale) {
+      consecutivePollFailuresRef.current = 0;
+    }
+  }, [liveStreamStale]);
 
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
@@ -337,14 +347,15 @@ export const useCryptoUpDownChartData = (
     onSuccess: () => {
       consecutivePollFailuresRef.current = 0;
     },
-    // Only poll while streaming live AND the WebSocket is down. `refetchOnMount`
-    // still seeds the historical baseline once; the socket supplies live ticks
-    // when connected, so redundant interval polling is disabled in that case.
+    // Only poll while streaming live AND the live stream is not currently
+    // delivering fresh ticks (`liveStreamStale`). `refetchOnMount` still seeds
+    // the historical baseline once; while the socket streams real-time ticks the
+    // interval poll is redundant, but it resumes automatically if ticks stop.
     // When polling is active, the interval backs off (and ultimately stops) as
     // consecutive failures accumulate so an unreachable endpoint is not hit
     // every 10s indefinitely.
     refetchInterval: () =>
-      shouldStreamLive && !isLiveSocketConnected
+      shouldStreamLive && liveStreamStale
         ? getHistoricalPollInterval(consecutivePollFailuresRef.current)
         : false,
   });

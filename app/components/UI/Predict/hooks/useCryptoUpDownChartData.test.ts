@@ -177,46 +177,62 @@ describe('useCryptoUpDownChartData', () => {
       (mockLastUseQueryConfig.current?.onSuccess as () => void)();
     };
 
-    it('does not poll while live when the live socket is connected', () => {
-      mockUseLiveCryptoPrices.mockImplementation(
-        (_symbol: string, onUpdate: (update: CryptoPriceUpdate) => void) => {
-          liveUpdateHandler = onUpdate;
-          return { isConnected: true };
-        },
-      );
+    const sendLiveTick = (price = 51000, timestamp = 100): void => {
+      act(() => {
+        liveUpdateHandler?.({ symbol: 'btc/usd', price, timestamp });
+      });
+    };
+
+    // The live stream is considered stale after LIVE_STREAM_STALE_TIMEOUT_MS
+    // (30s) without a tick. Advancing past it simulates a silent socket drop.
+    const advancePastStaleTimeout = (): void => {
+      act(() => {
+        jest.advanceTimersByTime(30_001);
+      });
+    };
+
+    // A live market whose end date is far enough in the future that advancing
+    // timers exercises the stale-stream path rather than market expiry.
+    const createLiveMarket = () =>
+      createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
+
+    it('polls every 10s while live before the stream delivers fresh ticks', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
-      expect(evaluateRefetchInterval()).toBe(false);
-      // Stays disabled even after failures accumulate.
-      recordFailures(5);
+      // The stream starts stale (no ticks yet), so HTTP polling fills the gap.
+      expect(evaluateRefetchInterval()).toBe(10000);
+    });
+
+    it('pauses polling while the live stream is delivering fresh ticks', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
+
+      sendLiveTick();
+
       expect(evaluateRefetchInterval()).toBe(false);
     });
 
-    it('polls every 10s while live when the live socket is disconnected', () => {
-      mockUseLiveCryptoPrices.mockImplementation(
-        (_symbol: string, onUpdate: (update: CryptoPriceUpdate) => void) => {
-          liveUpdateHandler = onUpdate;
-          return { isConnected: false };
-        },
-      );
+    it('resumes polling when the live stream goes stale after a silent drop', () => {
       const { Wrapper } = createWrapper();
-      const market = createMarket();
+      const market = createLiveMarket();
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
+      sendLiveTick();
+      expect(evaluateRefetchInterval()).toBe(false);
+
+      // Ticks stop arriving (socket dropped silently) -> stream goes stale and
+      // HTTP polling resumes as a fallback.
+      advancePastStaleTimeout();
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
     it('backs off, stops, then recovers as failures accumulate and clear', () => {
-      mockUseLiveCryptoPrices.mockImplementation(
-        (_symbol: string, onUpdate: (update: CryptoPriceUpdate) => void) => {
-          liveUpdateHandler = onUpdate;
-          return { isConnected: false };
-        },
-      );
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
@@ -231,6 +247,26 @@ describe('useCryptoUpDownChartData', () => {
       expect(evaluateRefetchInterval()).toBe(false);
       // A successful fetch resets the count and restores the base cadence.
       recordSuccess();
+      expect(evaluateRefetchInterval()).toBe(10000);
+    });
+
+    it('resets the circuit breaker when the live stream recovers', () => {
+      const { Wrapper } = createWrapper();
+      const market = createLiveMarket();
+
+      renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
+
+      // Polling keeps failing until it disables itself.
+      recordFailures(7);
+      expect(evaluateRefetchInterval()).toBe(false);
+
+      // The socket recovers and delivers a tick -> breaker resets, polling paused.
+      sendLiveTick();
+      expect(evaluateRefetchInterval()).toBe(false);
+
+      // The socket later drops again -> the stream goes stale and polling resumes
+      // from the base cadence instead of staying latched at the disabled state.
+      advancePastStaleTimeout();
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
