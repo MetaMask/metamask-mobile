@@ -9,6 +9,9 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { configureUseAnalyticsExternalLinkMock } from '../../../util/test/analyticsMock';
+import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 jest.useFakeTimers();
 
 jest.mock('../../../util/analytics/externalLinkTracking', () => ({
@@ -33,6 +36,19 @@ jest.mock(
   '../../UI/MultichainTransactionListItem',
   () => 'MockTransactionListItem',
 );
+jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
+  ActivityListItemRow: jest.fn(() => null),
+}));
+jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
+  selectIsActivityRedesignEnabled: jest.fn(() => false),
+}));
+jest.mock('../../hooks/useMultichainTransactionDisplay', () => ({
+  useMultichainTransactionDisplay: jest.fn(() => ({
+    title: 'Send TRX',
+    to: { amount: '1', unit: 'TRX' },
+    isRedeposit: false,
+  })),
+}));
 jest.mock('../../../component-library/components/Buttons/Button', () => {
   const ButtonVariants = { Link: 'Link', Primary: 'Primary' };
   const ButtonSize = { Lg: 'Lg', Md: 'Md' };
@@ -133,6 +149,9 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return mockTransactionsData;
       }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return false;
+      }
       return null;
     });
   });
@@ -168,6 +187,40 @@ describe('MultichainTransactionsView', () => {
 
     const transactionItems = queryAllByTestId('transaction-item');
     expect(transactionItems.length).toBe(2);
+  });
+
+  it('renders redesigned activity rows for asset details when activity redesign is enabled', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        return { transactions: mockTransactions };
+      }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+      />,
+    );
+
+    expect(ActivityListItemRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        index: 0,
+        title: 'Send TRX',
+        item: expect.objectContaining({
+          type: 'send',
+        }),
+      }),
+      undefined,
+    );
   });
 
   it('does not render view more link for bitcoin activity', async () => {

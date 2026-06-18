@@ -33,6 +33,8 @@ import { TabEmptyState } from '../../../component-library/components-temp/TabEmp
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
+import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -123,6 +125,9 @@ const MultichainTransactionsView = ({
   );
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
 
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -175,15 +180,34 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-    return bridgeHistoryItem ? (
-      <MultichainBridgeTransactionListItem
-        transaction={item}
-        bridgeHistoryItem={bridgeHistoryItem}
-        navigation={nav}
-        index={index}
-        location={location}
-      />
-    ) : (
+    if (bridgeHistoryItem) {
+      return (
+        <MultichainBridgeTransactionListItem
+          transaction={item}
+          bridgeHistoryItem={bridgeHistoryItem}
+          navigation={nav}
+          index={index}
+          location={location}
+        />
+      );
+    }
+
+    if (
+      isActivityRedesignEnabled &&
+      location === TransactionDetailLocation.AssetDetails
+    ) {
+      return (
+        <MultichainAssetDetailsActivityListItem
+          transaction={item}
+          navigation={nav}
+          index={index}
+          chainId={chainId}
+          location={location}
+        />
+      );
+    }
+
+    return (
       <MultichainTransactionListItem
         transaction={item}
         navigation={nav}

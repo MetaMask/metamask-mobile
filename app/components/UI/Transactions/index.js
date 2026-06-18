@@ -81,6 +81,8 @@ import {
 } from '../../../core/HardwareWallet';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
+import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -219,6 +221,7 @@ class Transactions extends PureComponent {
       hideAwaitingConfirmation: PropTypes.func,
       showHardwareWalletError: PropTypes.func,
     }),
+    isActivityRedesignEnabled: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -811,28 +814,48 @@ class Transactions extends PureComponent {
     }
   };
 
-  renderItem = ({ item, index }) => (
-    <TransactionElement
-      tx={item}
-      i={index}
-      assetSymbol={this.props.assetSymbol}
-      onSpeedUpAction={this.onSpeedUpAction}
-      isQRHardwareAccount={this.state.isQRHardwareAccount}
-      isLedgerAccount={this.state.isLedgerAccount}
-      signQRTransaction={this.signQRTransaction}
-      signLedgerTransaction={this.signLedgerTransaction}
-      cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
-      onCancelAction={this.onCancelAction}
-      onPressItem={this.toggleDetailsView}
-      selectedAddress={this.props.selectedAddress}
-      collectibleContracts={this.props.collectibleContracts}
-      exchangeRate={this.props.exchangeRate}
-      currentCurrency={this.props.currentCurrency}
-      navigation={this.props.navigation}
-      txChainId={item.chainId}
-      location={this.props.location}
-    />
-  );
+  renderItem = ({ item, index }) => {
+    if (
+      this.props.isActivityRedesignEnabled &&
+      this.props.location === TransactionDetailLocation.AssetDetails
+    ) {
+      return (
+        <AssetDetailsActivityListItem
+          transaction={item}
+          index={index}
+          assetSymbol={this.props.assetSymbol}
+          chainId={this.props.chainId}
+          tokenChainId={this.props.tokenChainId}
+          navigation={this.props.navigation}
+          onSpeedUpAction={this.onSpeedUpAction}
+          onCancelAction={this.onCancelAction}
+        />
+      );
+    }
+
+    return (
+      <TransactionElement
+        tx={item}
+        i={index}
+        assetSymbol={this.props.assetSymbol}
+        onSpeedUpAction={this.onSpeedUpAction}
+        isQRHardwareAccount={this.state.isQRHardwareAccount}
+        isLedgerAccount={this.state.isLedgerAccount}
+        signQRTransaction={this.signQRTransaction}
+        signLedgerTransaction={this.signLedgerTransaction}
+        cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
+        onCancelAction={this.onCancelAction}
+        onPressItem={this.toggleDetailsView}
+        selectedAddress={this.props.selectedAddress}
+        collectibleContracts={this.props.collectibleContracts}
+        exchangeRate={this.props.exchangeRate}
+        currentCurrency={this.props.currentCurrency}
+        navigation={this.props.navigation}
+        txChainId={item.chainId}
+        location={this.props.location}
+      />
+    );
+  };
 
   get footer() {
     const {
@@ -981,6 +1004,7 @@ const mapStateToProps = (state) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
+  isActivityRedesignEnabled: selectIsActivityRedesignEnabled(state),
 });
 
 Transactions.contextType = ThemeContext;
