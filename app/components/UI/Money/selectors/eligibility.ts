@@ -7,6 +7,7 @@
  */
 
 import { createSelector } from 'reselect';
+import type { RootState } from '../../../../reducers';
 import { selectMoneyAccountGeoBlockedCountries } from './featureFlags';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import {
@@ -17,7 +18,7 @@ import {
 const US_COUNTRY_CODE = 'US';
 
 export const selectIsMoneyAccountGeoEligible = createSelector(
-  selectMoneyAccountGeoBlockedCountries,
+  (state: RootState) => selectMoneyAccountGeoBlockedCountries(state),
   getDetectedGeolocation,
   (blockedCountries, geolocation): boolean => {
     const userCountry = geolocation?.toUpperCase().split('-')[0] ?? null;
