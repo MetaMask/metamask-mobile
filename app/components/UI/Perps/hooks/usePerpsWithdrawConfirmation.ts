@@ -66,17 +66,11 @@ function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
 export function usePerpsWithdrawConfirmation() {
   // Perps withdraws settle on Arbitrum, so the batch must originate from the
   // selected group's EVM account; the globally selected account can be non-EVM.
-  // Fall back to the globally selected account when the account tree slice is
-  // unavailable.
   const selectedAccount = useSelector((state: RootState) => {
-    try {
-      return (
-        selectSelectedInternalAccountByScope(state)('eip155:1')?.address ??
-        selectSelectedInternalAccountAddress(state)
-      );
-    } catch {
-      return selectSelectedInternalAccountAddress(state);
-    }
+    const evmAddress = state.engine?.backgroundState?.AccountTreeController
+      ? selectSelectedInternalAccountByScope(state)('eip155:1')?.address
+      : undefined;
+    return evmAddress ?? selectSelectedInternalAccountAddress(state);
   });
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
