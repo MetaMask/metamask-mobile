@@ -71,7 +71,19 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   const perpDirection = getPerpPositionDirection(position);
 
-  const topRight = isPerp ? (
+  // Open positions — perp and spot alike — show the current position value in
+  // neutral white (matching spot). Closed positions show signed, colored
+  // realized PnL: perps via `perpPnlValue` (realized + unrealized), spot via
+  // `realizedPnl`.
+  const topRight = !isClosed ? (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+    >
+      {formatUsd(position.currentValueUSD ?? null)}
+    </Text>
+  ) : isPerp ? (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
@@ -80,7 +92,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
     >
       {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : '—'}
     </Text>
-  ) : isClosed ? (
+  ) : (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
@@ -88,14 +100,6 @@ const PositionRow: React.FC<PositionRowProps> = ({
       color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
       {formatSignedUsd(position.realizedPnl)}
-    </Text>
-  ) : (
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {formatUsd(position.currentValueUSD ?? null)}
     </Text>
   );
 

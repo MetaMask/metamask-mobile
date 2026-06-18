@@ -332,12 +332,13 @@ describe('PositionRow', () => {
       expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
     });
 
-    it('shows PnL as the value for perps instead of the current value', () => {
+    it('shows the current value (not PnL) as the top-right value for an open perp, matching spot', () => {
       renderWithProvider(<PositionRow position={perpPosition} />);
 
-      // Perps surface realized/unrealized PnL ($1,059.96), not currentValueUSD.
-      expect(screen.getByText('+$1,059.96')).toBeOnTheScreen();
-      expect(screen.queryByText('$2,259.96')).not.toBeOnTheScreen();
+      // Open perps mirror open spot: the headline figure is the current
+      // position value (neutral), not the signed PnL.
+      expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
+      expect(screen.queryByText('+$1,059.96')).not.toBeOnTheScreen();
     });
 
     it('shows the trade date (not the position amount) for a closed perp', () => {
