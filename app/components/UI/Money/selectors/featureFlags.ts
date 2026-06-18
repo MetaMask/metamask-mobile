@@ -19,9 +19,10 @@ import {
 export const selectMoneyEnableActivityDetailsFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_ENABLE_ACTIVITY_DETAILS === 'true';
     const remoteFlag =
       remoteFeatureFlags?.moneyEnableActivityDetails as unknown as VersionGatedFeatureFlag;
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -31,9 +32,12 @@ export const selectMoneyEnableActivityDetailsFlag = createSelector(
  */
 export const selectMoneyEnableActivityDetailsBlockexplorerLinkFlag =
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_ACTIVITY_DETAILS_BLOCKEXPLORER_LINK ===
+      'true';
     const remoteFlag =
       remoteFeatureFlags?.moneyEnableActivityDetailsBlockexplorerLink as unknown as VersionGatedFeatureFlag;
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   });
 
 /** Temporary flag: remote value is a boolean only. */
