@@ -372,7 +372,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('calculates percentage from OHLCV close price of the reference candle', () => {
-    // Reference candle close = 100, current price = 105
+    // prevBar close = 100, current price = 105
     // Expected: (105 - 100) / 100 * 100 = 5.00%
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
@@ -398,7 +398,7 @@ describe('PriceAdvanced', () => {
         open: 1,
         high: 1,
         low: 1,
-        close: 1,
+        close: 100,
         volume: 1,
       },
     ];
@@ -455,7 +455,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('updates percentage when time range changes and new OHLCV data loads', () => {
-    // Initial: reference candle close = 100, current price = 105
+    // Initial: prevBar close = 100, current price = 105
     // Expected: (105 - 100) / 100 * 100 = 5.00%
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
@@ -481,7 +481,7 @@ describe('PriceAdvanced', () => {
         open: 1,
         high: 1,
         low: 1,
-        close: 1,
+        close: 100,
         volume: 1,
       },
     ];
@@ -519,11 +519,12 @@ describe('PriceAdvanced', () => {
 
     expect(getByText(/5\.00%/)).toBeOnTheScreen();
 
-    // After time range change: reference candle close = 103, current = 105
+    // After time range change: prevBar close = 103, current = 105
     // Expected: (105 - 103) / 103 * 100 = 1.94%
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
-        ...ohlcvPadBefore,
+        ...ohlcvPadBefore.slice(0, -1),
+        { ...ohlcvPadBefore[2], close: 103 },
         {
           time: oneDayAgo,
           open: 102,
@@ -554,7 +555,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('displays price diff when dynamicComparePrice is 0', () => {
-    // Edge case: reference candle close is 0 — should still render, not hide
+    // Edge case: prevBar close is 0 — should still render, not hide
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
     const ohlcvPadBefore = [
@@ -579,7 +580,7 @@ describe('PriceAdvanced', () => {
         open: 1,
         high: 1,
         low: 1,
-        close: 1,
+        close: 0,
         volume: 1,
       },
     ];
@@ -648,13 +649,13 @@ describe('PriceAdvanced', () => {
           close: 200,
           volume: 1,
         },
-        // 2 days ago — still before visible range, should be skipped
+        // 2 days ago — prevBar (last candle before visible range)
         {
           time: lastBarTime - 2 * oneDayMs,
           open: 190,
           high: 195,
           low: 185,
-          close: 190,
+          close: 100,
           volume: 1,
         },
         // ~24h ago — first candle in visible range (close = 100)
@@ -1047,12 +1048,19 @@ describe('PriceAdvanced', () => {
       // lastBarTime = 100000000, visibleFromMs = 13600000
       // First visible candle at time 20000000 has close=100
       // Last candle has close=95
-      // displayDiff = 95 - 100 = -5 (negative)
+      // prevBar.close = 100, displayPrice = 95, diff = -5 (negative)
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
           { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
-          { time: 3000000, open: 91, high: 92, low: 90, close: 92, volume: 1 },
+          {
+            time: 3000000,
+            open: 91,
+            high: 101,
+            low: 90,
+            close: 100,
+            volume: 1,
+          },
           {
             time: 20000000,
             open: 100,
@@ -1108,11 +1116,19 @@ describe('PriceAdvanced', () => {
       const mockOnPriceDirectionChange = jest.fn();
 
       // Mock OHLCV data with negative price movement
+      // prevBar.close = 100, lastBar.close = 95 → negative diff
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
           { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
-          { time: 3000000, open: 91, high: 92, low: 90, close: 92, volume: 1 },
+          {
+            time: 3000000,
+            open: 91,
+            high: 101,
+            low: 90,
+            close: 100,
+            volume: 1,
+          },
           {
             time: 20000000,
             open: 100,

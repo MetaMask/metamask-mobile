@@ -4,6 +4,15 @@ import type { Hex } from '@metamask/utils';
 import MoneyCardTransactionDetailsSheet from './MoneyCardTransactionDetailsSheet';
 import { MoneyCardTransactionDetailsSheetTestIds } from './MoneyCardTransactionDetailsSheet.testIds';
 import type { CardTransaction } from '../../types/moneyActivity';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: jest.fn(),
+}));
+
+const mockedSelectBlockexplorerFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+);
 
 const card: CardTransaction = {
   hash: '0x2b45bda071d8feff265c541e251a5e035e5f55270f8ad288dcd80f6740793847' as Hex,
@@ -20,6 +29,7 @@ const card: CardTransaction = {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 let mockRouteParams: { card?: CardTransaction } | undefined;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
@@ -58,11 +68,23 @@ jest.mock('../../../../../util/networks', () => ({
 // Heavy presentational deps reduced to passthroughs / stubs.
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
   return {
     ...actual,
-    BottomSheet: ({ children }: { children: React.ReactNode }) => (
-      <View>{children}</View>
+    // Forward a ref exposing `onCloseBottomSheet`, mirroring the real sheet:
+    // it runs the post-close callback once the close animation finishes (here,
+    // synchronously) so navigation-on-close can be asserted.
+    BottomSheet: ReactActual.forwardRef(
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+        return <View>{children}</View>;
+      },
     ),
     BottomSheetHeader: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
@@ -119,6 +141,7 @@ describe('MoneyCardTransactionDetailsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = { card };
+    mockedSelectBlockexplorerFlag.mockReturnValue(true);
   });
 
   it('renders the outgoing card amount', () => {
@@ -129,7 +152,7 @@ describe('MoneyCardTransactionDetailsSheet', () => {
     ).toHaveTextContent('-5.38 mUSD');
   });
 
-  it('opens the block explorer for the tx hash on press', () => {
+  it('closes the sheet before opening the block explorer for the tx hash on press', () => {
     const { getByTestId } = render(<MoneyCardTransactionDetailsSheet />);
 
     fireEvent.press(
@@ -141,6 +164,9 @@ describe('MoneyCardTransactionDetailsSheet', () => {
       card.hash,
       'https://monadscan.com',
     );
+    // The sheet must dismiss first — navigating while the transparent modal is
+    // still presented leaves the WebView behind it and strands the overlay.
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       'Webview',
       expect.objectContaining({
@@ -150,6 +176,16 @@ describe('MoneyCardTransactionDetailsSheet', () => {
         },
       }),
     );
+  });
+
+  it('hides the block explorer button when moneyEnableActivityDetailsBlockexplorerLink flag is off', () => {
+    mockedSelectBlockexplorerFlag.mockReturnValue(false);
+
+    const { queryByTestId } = render(<MoneyCardTransactionDetailsSheet />);
+
+    expect(
+      queryByTestId(MoneyCardTransactionDetailsSheetTestIds.EXPLORER_BUTTON),
+    ).toBeNull();
   });
 
   it('pops back and renders nothing when reached without a card param', () => {

@@ -9,7 +9,6 @@ import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
-import MoneyPotentialEarningsView from '../Views/MoneyPotentialEarningsView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
@@ -22,6 +21,7 @@ import MoneyCardTransactionDetailsSheet from '../components/MoneyCardTransaction
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
 
 const Stack = createNativeStackNavigator();
 const ModalStack = createNativeStackNavigator();
@@ -48,10 +48,6 @@ const MoneyTabScreenStack = () => {
       <Stack.Screen
         name={Routes.MONEY.HOW_IT_WORKS}
         component={MoneyHowItWorksView}
-      />
-      <Stack.Screen
-        name={Routes.MONEY.POTENTIAL_EARNINGS}
-        component={MoneyPotentialEarningsView}
       />
     </Stack.Navigator>
   );
@@ -134,6 +130,11 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.CARD_TRANSACTION_DETAILS_SHEET}
       component={MoneyCardTransactionDetailsSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
+      component={MoneyGeoBlockSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>
