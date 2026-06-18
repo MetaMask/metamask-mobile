@@ -24,14 +24,9 @@ type AllowedEvents = MessengerEvents<RampsControllerMessenger>;
  * @returns The RampsControllerMessenger.
  */
 export function getRampsControllerMessenger(
-  rootMessenger: RootMessenger,
+  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): RampsControllerMessenger {
-  const messenger = new Messenger<
-    'RampsController',
-    AllowedActions,
-    AllowedEvents,
-    typeof rootMessenger
-  >({
+  const messenger: RampsControllerMessenger = new Messenger({
     namespace: 'RampsController',
     parent: rootMessenger,
   });
@@ -79,8 +74,11 @@ export function getRampsControllerMessenger(
   return messenger;
 }
 
-export type RampsControllerInitMessenger = ReturnType<
-  typeof getRampsControllerInitMessenger
+export type RampsControllerInitMessenger = Messenger<
+  'RampsControllerInit',
+  RemoteFeatureFlagControllerGetStateAction,
+  | RampsControllerOrderStatusChangedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent
 >;
 
 /**
@@ -90,14 +88,13 @@ export type RampsControllerInitMessenger = ReturnType<
  * @param rootMessenger - The root messenger.
  * @returns The RampsControllerInitMessenger.
  */
-export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
-    'RampsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
-    | RampsControllerOrderStatusChangedEvent
-    | RemoteFeatureFlagControllerStateChangeEvent,
-    RootMessenger
-  >({
+export function getRampsControllerInitMessenger(
+  rootMessenger: RootMessenger<
+    MessengerActions<RampsControllerInitMessenger>,
+    MessengerEvents<RampsControllerInitMessenger>
+  >,
+): RampsControllerInitMessenger {
+  const messenger: RampsControllerInitMessenger = new Messenger({
     namespace: 'RampsControllerInit',
     parent: rootMessenger,
   });
