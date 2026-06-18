@@ -155,6 +155,28 @@ describe('MultichainTransactionDetailsSheet', () => {
     expect(getByText('0.5 ETH')).toBeOnTheScreen();
   });
 
+  it('renders "Unlimited" in the amount row for unlimited token approvals', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        displayData: {
+          ...mockDisplayData,
+          isUnlimitedApproval: true,
+          to: {
+            ...mockDisplayData.to,
+            amount: '115792089237316200000000000000000',
+            unit: 'USDT',
+          },
+        },
+        transaction: mockTransaction,
+      },
+    });
+
+    const { getByText, queryByText } = renderSheet();
+
+    expect(getByText('Unlimited USDT')).toBeOnTheScreen();
+    expect(queryByText('115792089237316200000000000000000 USDT')).toBeNull();
+  });
+
   it('renders the network fee row', () => {
     const { getByText } = renderSheet();
     expect(getByText('Network fee')).toBeOnTheScreen();
