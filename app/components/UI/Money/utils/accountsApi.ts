@@ -2,10 +2,7 @@ import type { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
-import type {
-  CardTransaction,
-  CashbackTransaction,
-} from '../types/moneyActivity';
+import type { AccountsApiActivity } from '../types/moneyActivity';
 
 export const METAMASK_CARD_PAYMENT_TYPE = 'METAMASK_CARD_PAYMENT';
 export const METAMASK_CARD_CASHBACK_TYPE = 'METAMASK_CARD_CASHBACK';
@@ -122,34 +119,37 @@ function parseSettlement(
   };
 }
 
-export function parseCardTransactions(
+/**
+ * Parse the latest Accounts-API page into Money activity rows. Card spends and
+ * cashback rewards arrive in the same response; each is the inverse of the
+ * other — a card spend keeps the leg leaving the money account, a cashback keeps
+ * the leg crediting it — so they share {@link parseSettlement} and differ only
+ * in direction and counterparty. Rows of any other type, or with a malformed /
+ * off-chain settlement leg, are dropped.
+ */
+export function parseAccountsApiActivity(
   response: AccountsApiTransactionsResponse,
   moneyAddress: string,
-): CardTransaction[] {
-  return (response.data ?? [])
-    .filter((tx) => tx.transactionType === METAMASK_CARD_PAYMENT_TYPE)
-    .flatMap((tx): CardTransaction[] => {
+): AccountsApiActivity[] {
+  return (response.data ?? []).flatMap((tx): AccountsApiActivity[] => {
+    if (tx.transactionType === METAMASK_CARD_PAYMENT_TYPE) {
       const transfer = outboundTransfer(tx, moneyAddress);
       const parsed = parseSettlement(tx, transfer);
       if (!parsed || !transfer) {
         return [];
       }
-      return [{ ...parsed, to: transfer.to as Hex }];
-    });
-}
-
-export function parseCashbackTransactions(
-  response: AccountsApiTransactionsResponse,
-  moneyAddress: string,
-): CashbackTransaction[] {
-  return (response.data ?? [])
-    .filter((tx) => tx.transactionType === METAMASK_CARD_CASHBACK_TYPE)
-    .flatMap((tx): CashbackTransaction[] => {
+      return [{ ...parsed, kind: 'card', paidTo: transfer.to as Hex }];
+    }
+    if (tx.transactionType === METAMASK_CARD_CASHBACK_TYPE) {
       const transfer = inboundTransfer(tx, moneyAddress);
       const parsed = parseSettlement(tx, transfer);
       if (!parsed || !transfer) {
         return [];
       }
-      return [{ ...parsed, from: transfer.from as Hex }];
-    });
+      return [
+        { ...parsed, kind: 'cashback', receivedFrom: transfer.from as Hex },
+      ];
+    }
+    return [];
+  });
 }

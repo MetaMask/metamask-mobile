@@ -45,14 +45,14 @@ import {
   TokenIconVariant,
 } from '../../../../Views/confirmations/components/token-icon';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
-import { cardTransactionDisplayInfo } from '../../utils/cardTransactionDisplayInfo';
+import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
-import type { CardTransaction } from '../../types/moneyActivity';
-import { MoneyCardTransactionDetailsSheetTestIds } from './MoneyCardTransactionDetailsSheet.testIds';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
+import { MoneyApiActivityDetailsSheetTestIds } from './MoneyApiActivityDetailsSheet.testIds';
 
-type CardDetailsRoute = RouteProp<
-  { params?: { card?: CardTransaction } },
+type ApiActivityDetailsRoute = RouteProp<
+  { params?: { activity?: AccountsApiActivity } },
   'params'
 >;
 
@@ -60,7 +60,38 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingVertical: 12 },
 });
 
-const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
+/**
+ * Kind-specific labels and the counterparty to surface. A card spend reads
+ * "Card transaction / You spent / Paid to <recipient>"; a cashback reward reads
+ * "Cashback / You earned / Received from <rewarder>".
+ */
+function detailsCopy(activity: AccountsApiActivity): {
+  title: string;
+  amountLabel: string;
+  counterpartyLabel: string;
+  counterparty: Hex;
+} {
+  if (activity.kind === 'cashback') {
+    return {
+      title: strings('money.api_activity_details.cashback_title'),
+      amountLabel: strings('money.api_activity_details.you_earned'),
+      counterpartyLabel: strings('money.api_activity_details.received_from'),
+      counterparty: activity.receivedFrom,
+    };
+  }
+  return {
+    title: strings('money.api_activity_details.card_title'),
+    amountLabel: strings('money.api_activity_details.you_spent'),
+    counterpartyLabel: strings('money.api_activity_details.paid_to'),
+    counterparty: activity.paidTo,
+  };
+}
+
+const ApiActivityDetails = ({
+  activity,
+}: {
+  activity: AccountsApiActivity;
+}) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const surfaceClass = useElevatedSurface();
@@ -71,27 +102,29 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   );
-  const { networkName, networkImage } = useNetworkInfo(card.chainId);
+  const { networkName, networkImage } = useNetworkInfo(activity.chainId);
 
   const display = useMemo(
     () =>
-      cardTransactionDisplayInfo(card, {
+      accountsApiActivityDisplayInfo(activity, {
         currentCurrency,
         usdToCurrentCurrencyRate: getUsdToFiatConversionRate(currencyRates),
       }),
-    [card, currentCurrency, currencyRates],
+    [activity, currentCurrency, currencyRates],
   );
+
+  const copy = useMemo(() => detailsCopy(activity), [activity]);
 
   const formattedDate = useMemo(
     () =>
-      new Date(card.time).toLocaleString(I18n.locale, {
+      new Date(activity.time).toLocaleString(I18n.locale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
       }),
-    [card.time],
+    [activity.time],
   );
 
   const handleClose = useCallback(() => {
@@ -100,12 +133,12 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
 
   const handleViewOnExplorer = useCallback(() => {
     const rpcBlockExplorer = findBlockExplorerUrlForChain(
-      card.chainId,
+      activity.chainId,
       networkConfigurations,
     );
     const { url, title } = getBlockExplorerTxUrl(
       RPC,
-      card.hash,
+      activity.hash,
       rpcBlockExplorer,
     );
     if (!url) {
@@ -123,7 +156,7 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
         params: { url, title },
       });
     });
-  }, [card.chainId, card.hash, navigation, networkConfigurations]);
+  }, [activity.chainId, activity.hash, navigation, networkConfigurations]);
 
   return (
     <BottomSheet
@@ -134,18 +167,16 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
       twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('money.card_details.title')}
-        </Text>
+        <Text variant={TextVariant.HeadingMd}>{copy.title}</Text>
       </BottomSheetHeader>
-      <ScrollView testID={MoneyCardTransactionDetailsSheetTestIds.CONTAINER}>
+      <ScrollView testID={MoneyApiActivityDetailsSheetTestIds.CONTAINER}>
         <Box style={styles.content} gap={12}>
           <Box gap={8}>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
             >
-              {strings('money.card_details.you_spent')}
+              {copy.amountLabel}
             </Text>
             <Box
               flexDirection={FlexDirection.Row}
@@ -153,15 +184,20 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
               gap={12}
             >
               <TokenIcon
-                chainId={card.chainId}
-                address={card.token.address}
-                symbol={card.token.symbol}
+                chainId={activity.chainId}
+                address={activity.token.address}
+                symbol={activity.token.symbol}
                 variant={TokenIconVariant.Hero}
                 showNetwork={false}
               />
               <Text
                 variant={TextVariant.HeadingLg}
-                testID={MoneyCardTransactionDetailsSheetTestIds.AMOUNT}
+                color={
+                  display.isIncoming
+                    ? TextColor.SuccessDefault
+                    : TextColor.TextDefault
+                }
+                testID={MoneyApiActivityDetailsSheetTestIds.AMOUNT}
               >
                 {display.primaryAmount}
               </Text>
@@ -170,11 +206,13 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
 
           <TransactionDetailsRow label={strings('transactions.status')}>
             <Text color={TextColor.SuccessDefault}>
-              {strings('money.card_details.completed')}
+              {strings('money.api_activity_details.completed')}
             </Text>
           </TransactionDetailsRow>
 
-          <TransactionDetailsRow label={strings('money.card_details.date')}>
+          <TransactionDetailsRow
+            label={strings('money.api_activity_details.date')}
+          >
             <Text>{formattedDate}</Text>
           </TransactionDetailsRow>
 
@@ -197,11 +235,11 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
             </TransactionDetailsRow>
           ) : null}
 
-          <TransactionDetailsRow label={strings('money.card_details.paid_to')}>
+          <TransactionDetailsRow label={copy.counterpartyLabel}>
             <Name
               type={NameType.EthereumAddress}
-              value={card.to}
-              variation={card.chainId as Hex}
+              value={copy.counterparty}
+              variation={activity.chainId as Hex}
             />
           </TransactionDetailsRow>
 
@@ -212,7 +250,7 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
               width={ButtonWidthTypes.Full}
               label={strings('transaction_details.view_on_block_explorer')}
               onPress={handleViewOnExplorer}
-              testID={MoneyCardTransactionDetailsSheetTestIds.EXPLORER_BUTTON}
+              testID={MoneyApiActivityDetailsSheetTestIds.EXPLORER_BUTTON}
             />
           )}
         </Box>
@@ -222,26 +260,26 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
 };
 
 /**
- * Route entry for the card detail sheet. Guards against being reached without
- * its `card` param (e.g. navigation-state restoration) — the card object is the
- * sheet's only data source — by popping back rather than rendering a broken
- * sheet.
+ * Route entry for the Accounts-API activity detail sheet (card spends and
+ * cashback). Guards against being reached without its `activity` param (e.g.
+ * navigation-state restoration) — the activity object is the sheet's only data
+ * source — by popping back rather than rendering a broken sheet.
  */
-const MoneyCardTransactionDetailsSheet = () => {
+const MoneyApiActivityDetailsSheet = () => {
   const navigation = useNavigation();
-  const card = useRoute<CardDetailsRoute>().params?.card;
+  const activity = useRoute<ApiActivityDetailsRoute>().params?.activity;
 
   useEffect(() => {
-    if (!card) {
+    if (!activity) {
       navigation.goBack();
     }
-  }, [card, navigation]);
+  }, [activity, navigation]);
 
-  if (!card) {
+  if (!activity) {
     return null;
   }
 
-  return <CardTransactionDetails card={card} />;
+  return <ApiActivityDetails activity={activity} />;
 };
 
-export default MoneyCardTransactionDetailsSheet;
+export default MoneyApiActivityDetailsSheet;

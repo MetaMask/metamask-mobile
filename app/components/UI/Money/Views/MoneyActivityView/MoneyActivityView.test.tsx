@@ -2,8 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
-import { useMoneyAccountCashbackTransactions } from '../../hooks/useMoneyAccountCashbackTransactions';
+import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import {
   isMoneyActivityDeposit,
@@ -12,10 +11,7 @@ import {
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
 import MoneyActivityView from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
-import type {
-  CardTransaction,
-  CashbackTransaction,
-} from '../../types/moneyActivity';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -50,16 +46,15 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 48, bottom: 34, left: 0, right: 0 }),
 }));
 
+// The view consumes `useMoneyActivityItems`, which fans out to these two data
+// hooks. Mocking the data hooks (not the bucketing hook) keeps the
+// merge/bucket/filter wiring under test end-to-end through the real view.
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountCardTransactions', () => ({
-  useMoneyAccountCardTransactions: jest.fn(),
-}));
-
-jest.mock('../../hooks/useMoneyAccountCashbackTransactions', () => ({
-  useMoneyAccountCashbackTransactions: jest.fn(),
+jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
+  useMoneyAccountApiActivity: jest.fn(),
 }));
 
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
@@ -83,29 +78,20 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   };
 });
 
-jest.mock('../../components/CardActivityItem/CardActivityItem', () => {
-  const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ card }: { card: { hash: string } }) => (
-      <RNPressable testID={`activity-mock-card-${card.hash}`}>
-        <Text>{card.hash}</Text>
-      </RNPressable>
-    ),
-  };
-});
-
-jest.mock('../../components/CashbackActivityItem/CashbackActivityItem', () => {
-  const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ cashback }: { cashback: { hash: string } }) => (
-      <RNPressable testID={`activity-mock-cashback-${cashback.hash}`}>
-        <Text>{cashback.hash}</Text>
-      </RNPressable>
-    ),
-  };
-});
+jest.mock(
+  '../../components/AccountsApiActivityItem/AccountsApiActivityItem',
+  () => {
+    const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ activity }: { activity: { hash: string } }) => (
+        <RNPressable testID={`activity-mock-api-${activity.hash}`}>
+          <Text>{activity.hash}</Text>
+        </RNPressable>
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -126,17 +112,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
-const mockUseMoneyAccountCardTransactions = jest.mocked(
-  useMoneyAccountCardTransactions,
-);
-const mockUseMoneyAccountCashbackTransactions = jest.mocked(
-  useMoneyAccountCashbackTransactions,
-);
+const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 
 const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
 const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
 
-const CARD_TX: CardTransaction = {
+const CARD_TX: AccountsApiActivity = {
+  kind: 'card',
   hash: '0xcard1',
   time: 1780574031000,
   chainId: '0x8f',
@@ -146,11 +128,12 @@ const CARD_TX: CardTransaction = {
     decimals: 6,
   },
   amount: '5381986',
-  to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+  paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
 };
-const CARD_ROW_TEST_ID = `activity-mock-card-${CARD_TX.hash}`;
+const CARD_ROW_TEST_ID = `activity-mock-api-${CARD_TX.hash}`;
 
-const CASHBACK_TX: CashbackTransaction = {
+const CASHBACK_TX: AccountsApiActivity = {
+  kind: 'cashback',
   hash: '0xback1',
   time: 1780574031000,
   chainId: '0x8f',
@@ -160,9 +143,21 @@ const CASHBACK_TX: CashbackTransaction = {
     decimals: 6,
   },
   amount: '300000',
-  from: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0',
+  receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0',
 };
-const CASHBACK_ROW_TEST_ID = `activity-mock-cashback-${CASHBACK_TX.hash}`;
+const CASHBACK_ROW_TEST_ID = `activity-mock-api-${CASHBACK_TX.hash}`;
+
+function mockApiActivity(
+  overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
+) {
+  mockUseMoneyAccountApiActivity.mockReturnValue({
+    activity: [],
+    isLoading: false,
+    error: false,
+    refetch: jest.fn(),
+    ...overrides,
+  });
+}
 
 describe('MoneyActivityView', () => {
   beforeEach(() => {
@@ -180,27 +175,11 @@ describe('MoneyActivityView', () => {
       trackButtonClicked: mockTrackButtonClicked,
       trackActivitySurfaceClicked: mockTrackActivitySurfaceClicked,
     });
-    mockUseMoneyAccountCardTransactions.mockReturnValue({
-      cardTransactions: [],
-      isLoading: false,
-      error: false,
-      refetch: jest.fn(),
-    });
-    mockUseMoneyAccountCashbackTransactions.mockReturnValue({
-      cashbackTransactions: [],
-      isLoading: false,
-      error: false,
-      refetch: jest.fn(),
-    });
+    mockApiActivity();
   });
 
-  it('shows the loading spinner (not rows) while card payments load', () => {
-    mockUseMoneyAccountCardTransactions.mockReturnValue({
-      cardTransactions: [],
-      isLoading: true,
-      error: false,
-      refetch: jest.fn(),
-    });
+  it('shows the loading spinner (not rows) while Accounts-API activity loads', () => {
+    mockApiActivity({ isLoading: true });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyActivityView />,
@@ -331,13 +310,8 @@ describe('MoneyActivityView', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
-  it('renders card payment rows merged into the list', () => {
-    mockUseMoneyAccountCardTransactions.mockReturnValue({
-      cardTransactions: [CARD_TX],
-      isLoading: false,
-      error: false,
-      refetch: jest.fn(),
-    });
+  it('renders Accounts-API rows merged into the list', () => {
+    mockApiActivity({ activity: [CARD_TX] });
 
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
@@ -345,12 +319,7 @@ describe('MoneyActivityView', () => {
   });
 
   it('buckets card payments into Transfers and All, but not Deposits', () => {
-    mockUseMoneyAccountCardTransactions.mockReturnValue({
-      cardTransactions: [CARD_TX],
-      isLoading: false,
-      error: false,
-      refetch: jest.fn(),
-    });
+    mockApiActivity({ activity: [CARD_TX] });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyActivityView />,
@@ -369,12 +338,7 @@ describe('MoneyActivityView', () => {
   });
 
   it('buckets cashback credits into Deposits and All, but not Transfers', () => {
-    mockUseMoneyAccountCashbackTransactions.mockReturnValue({
-      cashbackTransactions: [CASHBACK_TX],
-      isLoading: false,
-      error: false,
-      refetch: jest.fn(),
-    });
+    mockApiActivity({ activity: [CASHBACK_TX] });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyActivityView />,
@@ -392,7 +356,7 @@ describe('MoneyActivityView', () => {
     expect(queryByTestId(CASHBACK_ROW_TEST_ID)).toBeNull();
   });
 
-  it('does not render card rows in mock-data mode', () => {
+  it('does not render real Accounts-API rows in mock-data mode', () => {
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: MOCK_MONEY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
@@ -401,12 +365,7 @@ describe('MoneyActivityView', () => {
       moneyAddress: '0x0000000000000000000000000000000000000001',
       mockDataEnabled: true,
     });
-    mockUseMoneyAccountCardTransactions.mockReturnValue({
-      cardTransactions: [CARD_TX],
-      isLoading: false,
-      error: false,
-      refetch: jest.fn(),
-    });
+    mockApiActivity({ activity: [CARD_TX] });
 
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
 

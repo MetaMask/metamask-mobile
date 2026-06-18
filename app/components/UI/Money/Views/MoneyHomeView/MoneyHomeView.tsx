@@ -36,7 +36,7 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
+import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
@@ -145,18 +145,14 @@ const MoneyHomeView = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
-  const { cardTransactions, isLoading: isCardActivityLoading } =
-    useMoneyAccountCardTransactions();
-  // Mock mode shows curated demo data only — never merge real card spends (or
-  // their loading state) into it.
-  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
+  const { activity, isLoading: isApiActivityLoading } =
+    useMoneyAccountApiActivity();
+  // Mock mode shows curated demo data only — never merge real Accounts-API rows
+  // (or their loading state) into it.
+  const showCardActivityLoading = isApiActivityLoading && !mockDataEnabled;
   const activityItems = useMemo(
-    () =>
-      mergeMoneyActivity(
-        allTransactions,
-        mockDataEnabled ? [] : cardTransactions,
-      ),
-    [allTransactions, cardTransactions, mockDataEnabled],
+    () => mergeMoneyActivity(allTransactions, mockDataEnabled ? [] : activity),
+    [allTransactions, activity, mockDataEnabled],
   );
 
   const isCardholder = useSelector(selectIsCardholder);

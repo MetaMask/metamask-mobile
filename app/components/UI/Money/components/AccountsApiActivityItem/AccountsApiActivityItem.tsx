@@ -6,49 +6,53 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import Routes from '../../../../../constants/navigation/Routes';
-import { cashbackTransactionDisplayInfo } from '../../utils/cashbackTransactionDisplayInfo';
+import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
-import type { CashbackTransaction } from '../../types/moneyActivity';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
 import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
 
-export interface CashbackActivityItemProps {
-  cashback: CashbackTransaction;
+export interface AccountsApiActivityItemProps {
+  activity: AccountsApiActivity;
   showNetworkBadge?: boolean;
 }
 
-const CashbackActivityItem = ({
-  cashback,
+const AccountsApiActivityItem = ({
+  activity,
   showNetworkBadge = false,
-}: CashbackActivityItemProps) => {
+}: AccountsApiActivityItemProps) => {
   const navigation = useNavigation();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
 
   const display = useMemo(
     () =>
-      cashbackTransactionDisplayInfo(cashback, {
+      accountsApiActivityDisplayInfo(activity, {
         currentCurrency,
         usdToCurrentCurrencyRate: getUsdToFiatConversionRate(currencyRates),
       }),
-    [cashback, currentCurrency, currencyRates],
+    [activity, currentCurrency, currencyRates],
   );
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.CASHBACK_TRANSACTION_DETAILS_SHEET,
-      params: { cashback },
+      screen: Routes.MONEY.MODALS.API_ACTIVITY_DETAILS_SHEET,
+      params: { activity },
     });
-  }, [navigation, cashback]);
+  }, [navigation, activity]);
 
   return (
     <ActivityRowView
-      id={cashback.hash}
+      id={activity.hash}
       display={display}
-      chainId={cashback.chainId}
-      onPress={handlePress}
+      chainId={activity.chainId}
+      onPress={activityDetailsEnabled ? handlePress : undefined}
       showNetworkBadge={showNetworkBadge}
     />
   );
 };
 
-export default CashbackActivityItem;
+export default AccountsApiActivityItem;

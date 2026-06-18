@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
-import CardActivityItem from './CardActivityItem';
-import type { CardTransaction } from '../../types/moneyActivity';
+import AccountsApiActivityItem from './AccountsApiActivityItem';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 
 jest.mock('../../selectors/featureFlags', () => ({
@@ -38,17 +38,30 @@ jest.mock('../MoneyActivityItem/ActivityRowView', () => ({
   default: (props: unknown) => mockRowView(props),
 }));
 
-const card: CardTransaction = {
-  hash: '0xabc' as Hex,
+const token = {
+  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
+  symbol: 'mUSD',
+  decimals: 6,
+};
+
+const card: AccountsApiActivity = {
+  kind: 'card',
+  hash: '0xcard' as Hex,
   time: 1780574031000,
   chainId: '0x8f',
-  token: {
-    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
-    symbol: 'mUSD',
-    decimals: 6,
-  },
+  token,
   amount: '5381986',
-  to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
+  paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
+};
+
+const cashback: AccountsApiActivity = {
+  kind: 'cashback',
+  hash: '0xback' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f',
+  token,
+  amount: '300000',
+  receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
 interface CapturedRowProps {
@@ -58,52 +71,56 @@ interface CapturedRowProps {
   display: {
     icon: IconName;
     primaryAmount: string;
-    fiatAmount: string;
+    isIncoming: boolean;
     status: string;
   };
 }
 
-describe('CardActivityItem', () => {
+const lastRowProps = () =>
+  mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
+
+describe('AccountsApiActivityItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectActivityDetailsFlag.mockReturnValue(true);
   });
 
-  it('feeds a card display (Card icon, outgoing amount) into the row view', () => {
-    // Act
-    render(<CardActivityItem card={card} />);
+  it('feeds a card spend (outgoing amount) into the row view', () => {
+    render(<AccountsApiActivityItem activity={card} />);
 
-    // Assert
-    expect(mockRowView).toHaveBeenCalledTimes(1);
-    const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
+    const props = lastRowProps();
     expect(props.id).toBe(card.hash);
     expect(props.chainId).toBe('0x8f');
     expect(props.display.status).toBe('confirmed');
     expect(props.display.icon).toBe(IconName.Card);
+    expect(props.display.isIncoming).toBe(false);
     expect(props.display.primaryAmount).toBe('-5.38 mUSD');
-    expect(props.display.fiatAmount).toContain('5.38');
   });
 
-  it('navigates to the card details sheet with the card param on press', () => {
-    // Arrange
-    render(<CardActivityItem card={card} />);
-    const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
+  it('feeds a cashback credit (incoming amount) into the row view', () => {
+    render(<AccountsApiActivityItem activity={cashback} />);
 
-    // Act
-    props.onPress?.(card.hash);
+    const props = lastRowProps();
+    expect(props.display.isIncoming).toBe(true);
+    expect(props.display.primaryAmount).toBe('+0.30 mUSD');
+  });
 
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
-      card,
+  it('navigates to the API activity details sheet with the activity on press', () => {
+    render(<AccountsApiActivityItem activity={card} />);
+
+    lastRowProps().onPress?.(card.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyModals', {
+      screen: 'MoneyApiActivityDetailsSheet',
+      params: { activity: card },
     });
   });
 
   it('passes undefined onPress when moneyEnableActivityDetails flag is off', () => {
     mockedSelectActivityDetailsFlag.mockReturnValue(false);
 
-    render(<CardActivityItem card={card} />);
+    render(<AccountsApiActivityItem activity={card} />);
 
-    const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
-    expect(props.onPress).toBeUndefined();
+    expect(lastRowProps().onPress).toBeUndefined();
   });
 });

@@ -7236,17 +7236,13 @@
       "received_from": "From: {{address}}",
       "failed": "Failed"
     },
-    "card_details": {
-      "title": "Card transaction",
+    "api_activity_details": {
+      "card_title": "Card transaction",
+      "cashback_title": "Cashback",
       "you_spent": "You spent",
-      "completed": "Completed",
-      "paid_to": "Paid to",
-      "date": "Date"
-    },
-    "cashback_details": {
-      "title": "Cashback",
       "you_earned": "You earned",
       "completed": "Completed",
+      "paid_to": "Paid to",
       "received_from": "Received from",
       "date": "Date"
     },

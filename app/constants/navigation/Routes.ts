@@ -476,10 +476,8 @@ const Routes = {
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
       TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
-      CARD_TRANSACTION_DETAILS_SHEET: 'MoneyCardTransactionDetailsSheet',
       GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
-      CASHBACK_TRANSACTION_DETAILS_SHEET:
-        'MoneyCashbackTransactionDetailsSheet',
+      API_ACTIVITY_DETAILS_SHEET: 'MoneyApiActivityDetailsSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

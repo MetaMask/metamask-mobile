@@ -1,27 +1,49 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { Hex } from '@metamask/utils';
-import MoneyCashbackTransactionDetailsSheet from './MoneyCashbackTransactionDetailsSheet';
-import { MoneyCashbackTransactionDetailsSheetTestIds } from './MoneyCashbackTransactionDetailsSheet.testIds';
-import type { CashbackTransaction } from '../../types/moneyActivity';
+import MoneyApiActivityDetailsSheet from './MoneyApiActivityDetailsSheet';
+import { MoneyApiActivityDetailsSheetTestIds } from './MoneyApiActivityDetailsSheet.testIds';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 
-const cashback: CashbackTransaction = {
+jest.mock('../../selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: jest.fn(),
+}));
+
+const mockedSelectBlockexplorerFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+);
+
+const token = {
+  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
+  symbol: 'mUSD',
+  decimals: 6,
+};
+
+const card: AccountsApiActivity = {
+  kind: 'card',
   hash: '0x2b45bda071d8feff265c541e251a5e035e5f55270f8ad288dcd80f6740793847' as Hex,
   time: 1780574031000,
   chainId: '0x8f',
-  token: {
-    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
-    symbol: 'mUSD',
-    decimals: 6,
-  },
+  token,
+  amount: '5381986',
+  paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
+};
+
+const cashback: AccountsApiActivity = {
+  kind: 'cashback',
+  hash: '0x9c3aa0a1f1f4a8c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aa' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f',
+  token,
   amount: '300000',
-  from: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
+  receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
-let mockRouteParams: { cashback?: CashbackTransaction } | undefined;
+let mockRouteParams: { activity?: AccountsApiActivity } | undefined;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useRoute: () => ({ params: mockRouteParams }),
@@ -128,30 +150,41 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-describe('MoneyCashbackTransactionDetailsSheet', () => {
+describe('MoneyApiActivityDetailsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { cashback };
+    mockRouteParams = { activity: card };
+    mockedSelectBlockexplorerFlag.mockReturnValue(true);
+  });
+
+  it('renders the outgoing card amount', () => {
+    const { getByTestId } = render(<MoneyApiActivityDetailsSheet />);
+
+    expect(
+      getByTestId(MoneyApiActivityDetailsSheetTestIds.AMOUNT),
+    ).toHaveTextContent('-5.38 mUSD');
   });
 
   it('renders the incoming cashback amount', () => {
-    const { getByTestId } = render(<MoneyCashbackTransactionDetailsSheet />);
+    mockRouteParams = { activity: cashback };
+
+    const { getByTestId } = render(<MoneyApiActivityDetailsSheet />);
 
     expect(
-      getByTestId(MoneyCashbackTransactionDetailsSheetTestIds.AMOUNT),
+      getByTestId(MoneyApiActivityDetailsSheetTestIds.AMOUNT),
     ).toHaveTextContent('+0.30 mUSD');
   });
 
   it('closes the sheet before opening the block explorer for the tx hash on press', () => {
-    const { getByTestId } = render(<MoneyCashbackTransactionDetailsSheet />);
+    const { getByTestId } = render(<MoneyApiActivityDetailsSheet />);
 
     fireEvent.press(
-      getByTestId(MoneyCashbackTransactionDetailsSheetTestIds.EXPLORER_BUTTON),
+      getByTestId(MoneyApiActivityDetailsSheetTestIds.EXPLORER_BUTTON),
     );
 
     expect(mockGetBlockExplorerTxUrl).toHaveBeenCalledWith(
       expect.anything(),
-      cashback.hash,
+      card.hash,
       'https://monadscan.com',
     );
     // The sheet must dismiss first — navigating while the transparent modal is
@@ -168,17 +201,27 @@ describe('MoneyCashbackTransactionDetailsSheet', () => {
     );
   });
 
-  it('pops back and renders nothing when reached without a cashback param', () => {
+  it('hides the block explorer button when moneyEnableActivityDetailsBlockexplorerLink flag is off', () => {
+    mockedSelectBlockexplorerFlag.mockReturnValue(false);
+
+    const { queryByTestId } = render(<MoneyApiActivityDetailsSheet />);
+
+    expect(
+      queryByTestId(MoneyApiActivityDetailsSheetTestIds.EXPLORER_BUTTON),
+    ).toBeNull();
+  });
+
+  it('pops back and renders nothing when reached without an activity param', () => {
     // Arrange — e.g. navigation-state restoration with no params.
     mockRouteParams = undefined;
 
     // Act
-    const { queryByTestId } = render(<MoneyCashbackTransactionDetailsSheet />);
+    const { queryByTestId } = render(<MoneyApiActivityDetailsSheet />);
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(
-      queryByTestId(MoneyCashbackTransactionDetailsSheetTestIds.CONTAINER),
+      queryByTestId(MoneyApiActivityDetailsSheetTestIds.CONTAINER),
     ).toBeNull();
   });
 });
