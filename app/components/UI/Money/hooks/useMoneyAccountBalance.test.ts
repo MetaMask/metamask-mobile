@@ -454,6 +454,66 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.apyPercentFormatted).toBe('4%');
     });
 
+    it('does not use vaultApyFallback while vault APY query is loading', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBeUndefined();
+      expect(result.current.apyPercent).toBeUndefined();
+      expect(result.current.apyPercentFormatted).toBeUndefined();
+    });
+
+    it('uses vaultApyFallback when vault APY query errors and fallback is configured', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0.04);
+      expect(result.current.apyPercent).toBe(4);
+      expect(result.current.apyPercentFormatted).toBe('4%');
+    });
+
+    it('uses vaultApyOverride when query errors and override is configured', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: 0.08,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0.08);
+      expect(result.current.apyPercent).toBe(8);
+      expect(result.current.apyPercentFormatted).toBe('8%');
+    });
+
     it('returns undefined APY when service is undefined and vaultApyFallback is unconfigured', () => {
       setupDefaultSelectors({
         remoteApyConfig: {

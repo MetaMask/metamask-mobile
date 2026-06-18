@@ -225,12 +225,19 @@ const useMoneyAccountBalance = (
 
   const serviceApy = vaultApyQuery.data?.apy;
 
-  // Override always wins when set; otherwise use live service value;
-  // fall back to remote fallback only when service returns undefined.
+  // During first load with no cache, do not show fallback to avoid flicker.
+  // Show fallback on explicit APY query errors (service outage path) or when
+  // a settled query still yields no APY value.
+  const shouldUseFallback =
+    !vaultApyQuery.isLoading &&
+    (vaultApyQuery.isError || serviceApy === undefined);
+
+  // Override always wins when set; otherwise use live service value; then use
+  // fallback only when the APY query is settled/error and no live APY exists.
   const apyDecimal =
     vaultApyOverride !== undefined
       ? vaultApyOverride
-      : (serviceApy ?? vaultApyFallback);
+      : (serviceApy ?? (shouldUseFallback ? vaultApyFallback : undefined));
 
   const apyPercent = apyDecimal !== undefined ? apyDecimal * 100 : undefined;
   const apyPercentFormatted =
