@@ -2338,7 +2338,6 @@
       "btc_title": "BTC Price: {{price}}",
       "btc_price_to_beat": "Price to beat: {{price}}",
       "btc_live": "Live",
-      "nba_2026_champion_title": "NBA 2026 Champion",
       "fifa_world_cup_2026_title": "FIFA World Cup 2026",
       "events_in_total": "{{count}} events in total",
       "events_in_total_overflow": "{{count}}+ markets in total",

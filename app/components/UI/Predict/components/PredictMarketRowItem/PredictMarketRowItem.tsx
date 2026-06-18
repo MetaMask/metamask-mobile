@@ -28,6 +28,8 @@ interface PredictMarketRowItemProps {
   leadingAccessory?: React.ReactNode;
   /** Optional title for market-details navigation (row can still show `market.title`). */
   detailsTitle?: string;
+  /** Optional content rendered between the row text and chevron. */
+  endAccessory?: React.ReactNode;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onPress?: () => void;
 }
@@ -39,6 +41,7 @@ const PredictMarketRowItem = ({
   showChevron = false,
   leadingAccessory,
   detailsTitle,
+  endAccessory,
   transactionActiveAbTests,
   onPress,
 }: PredictMarketRowItemProps) => {
@@ -130,8 +133,11 @@ const PredictMarketRowItem = ({
           {topOutcome.probability} chance on {topOutcome.outcomeTitle}
         </Text>
       </View>
+      {endAccessory}
       {showChevron && (
-        <Box twClassName="pl-2 justify-center">
+        <Box
+          twClassName={endAccessory ? 'justify-center' : 'pl-2 justify-center'}
+        >
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}

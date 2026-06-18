@@ -13,7 +13,7 @@ import {
 } from '@metamask/bridge-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import type { BridgeToken, IncludeAsset } from '../types';
+import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { getSwapDestToken } from './getSwapDestToken';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 
