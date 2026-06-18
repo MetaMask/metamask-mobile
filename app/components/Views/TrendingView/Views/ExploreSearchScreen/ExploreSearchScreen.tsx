@@ -239,7 +239,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box twClassName="px-4">
+      <Box>
         <PillRow
           pills={pills}
           activeKey={activePill}

@@ -10,6 +10,7 @@ import {
   IconName,
   IconSize,
   IconColor,
+  SectionHeader as MMDSSectionHeader,
 } from '@metamask/design-system-react-native';
 import {
   type MarketTypeFilter,
@@ -18,7 +19,6 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -161,10 +161,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
 
   return (
     <View style={styles.container} testID={TEST_ID}>
-      <SectionHeader
-        title={strings('perps.home.products')}
-        twClassName="mb-0"
-      />
+      <MMDSSectionHeader title={strings('perps.home.products')} />
 
       <ScrollView
         horizontal

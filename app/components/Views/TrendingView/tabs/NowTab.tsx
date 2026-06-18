@@ -294,8 +294,9 @@ const NowTabContent: React.FC<TabProps> = ({
       content: (
         <WhatsHappeningSection
           source={WhatsHappeningSource.Explore}
-          hideHeader
           feed={whatsHappening}
+          tabName="Now"
+          sectionName="whats_happening"
         />
       ),
     };
