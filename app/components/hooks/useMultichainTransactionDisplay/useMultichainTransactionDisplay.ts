@@ -90,7 +90,7 @@ export function useMultichainTransactionDisplay(
     ].some(
       (mv) =>
         mv?.asset?.fungible === true &&
-        parseFloat(mv.asset.amount) > APPROVE_AMOUNT_UNLIMITED_THRESHOLD,
+        Number.parseFloat(mv.asset.amount) > APPROVE_AMOUNT_UNLIMITED_THRESHOLD,
     );
 
   const typeToTitle: Partial<Record<TransactionType, string>> = {
@@ -139,14 +139,14 @@ function aggregateAmount(
     const assetId = mv.asset.type;
     if (!amountByAsset[assetId]) {
       amountByAsset[assetId] = {
-        amount: parseFloat(mv.asset.amount),
+        amount: Number.parseFloat(mv.asset.amount),
         address: mv.address,
         unit: mv.asset.unit,
       };
       continue;
     }
 
-    amountByAsset[assetId].amount += parseFloat(mv.asset.amount);
+    amountByAsset[assetId].amount += Number.parseFloat(mv.asset.amount);
   }
 
   // We make an assumption that there is only one asset in the transaction.

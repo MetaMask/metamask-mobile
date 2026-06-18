@@ -128,7 +128,8 @@ const MultichainTransactionListItem = ({
     if (transaction.type === TransactionType.TokenApprove) {
       const unit = from?.unit || to?.unit || '';
       if (isUnlimitedApproval) {
-        return `${strings('confirm.unlimited')}${unit ? ` ${unit}` : ''}`;
+        const unitSuffix = unit ? ` ${unit}` : '';
+        return `${strings('confirm.unlimited')}${unitSuffix}`;
       }
       const amount = to?.amount || from?.amount?.replace(/^-/, '') || '';
       return `${amount} ${unit}`.trim();
