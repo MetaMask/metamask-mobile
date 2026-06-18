@@ -870,10 +870,10 @@ describe('CustomAmountInfo', () => {
   });
 
   // TRAM-3623 headless ramps funnel, driven by the real adapter + ramps hook.
-  // The shared money-deposit screen mounts the funnel exactly ONCE and owns the
-  // screen-viewed/reactive/order-proposed/continue events; selector-opened is
-  // owned by the fiat-options hook so it must NOT fire here. Payloads + dedupe
-  // are proven in useFiatFunnelMetrics.test.ts, surface in the adapter test.
+  // The shared money-deposit screen mounts the funnel exactly ONCE. The adapter
+  // owns screen-viewed/reactive/order-proposed/continue events; selector-opened
+  // is called from fiat options via the ramps selector hook, so it must NOT fire
+  // here. Payloads + dedupe are proven in useFiatFunnelMetrics.test.ts.
   describe('TRAM-3623 funnel', () => {
     function setMoneyFlow({
       withQuote = false,
@@ -986,7 +986,7 @@ describe('CustomAmountInfo', () => {
       expect(emitCount('RAMPS_QUOTE_ERROR')).toBe(1);
       expect(emitCount('RAMPS_ORDER_PROPOSED')).toBe(1);
       expect(emitCount('RAMPS_CONTINUE_BUTTON_CLICKED')).toBe(1);
-      // selector-opened is owned by the fiat-options hook, so not emitted here.
+      // selector-opened is called from fiat options, so not emitted here.
       expect(emitCount('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED')).toBe(0);
       // The adapter threaded the money surface through (payload proven elsewhere).
       expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toEqual(

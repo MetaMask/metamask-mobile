@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { TransactionType } from '@metamask/transaction-controller';
 import useAnalytics from './useAnalytics';
+import { useRampsUserRegion } from './useRampsUserRegion';
 import { getChainIdFromAssetId } from '../headless';
-import type { RampSurface } from '../Deposit/types/analytics';
+import { RAMP_SURFACE, type RampSurface } from '../Deposit/types/analytics';
 import type { Quote } from '../types';
 
 /**
@@ -34,14 +36,32 @@ export interface FiatFunnelMetricsResult {
   trackContinue: () => void;
 }
 
+export interface FiatPaymentSelectorMetricsInput {
+  rampSurface?: RampSurface;
+  currentPaymentMethodId?: string;
+}
+
 /** Reads a numeric field that the SDK may type as `number | string`. */
 function toNumber(value: number | string | undefined): number {
   return Number(value ?? 0) || 0;
 }
 
+const TRANSACTION_TYPE_TO_RAMP_SURFACE: Partial<
+  Record<TransactionType, RampSurface>
+> = {
+  [TransactionType.moneyAccountDeposit]: RAMP_SURFACE.MONEY_ACCOUNT,
+};
+
+export function getFiatFunnelRampSurface(
+  transactionType: TransactionType | undefined,
+): RampSurface | undefined {
+  return transactionType
+    ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionType]
+    : undefined;
+}
+
 /**
- * RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED payload, shared so the fiat-options path
- * that owns the emit (FIX 3 / TRAM-3623) and this hook stay in sync.
+ * RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED payload shared by funnel emitters.
  */
 export function buildSelectorOpenedPayload(
   rampSurface: RampSurface,
@@ -55,6 +75,27 @@ export function buildSelectorOpenedPayload(
     location: 'Amount Input',
     current_payment_method: currentPaymentMethodId,
   } as const;
+}
+
+export function useFiatPaymentSelectorMetrics({
+  rampSurface,
+  currentPaymentMethodId,
+}: FiatPaymentSelectorMetricsInput): void {
+  const trackEvent = useAnalytics();
+  const { userRegion } = useRampsUserRegion();
+  const region = userRegion?.regionCode ?? '';
+
+  const hasTrackedRef = useRef(false);
+
+  useEffect(() => {
+    if (hasTrackedRef.current || !rampSurface) return;
+
+    hasTrackedRef.current = true;
+    trackEvent(
+      'RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED',
+      buildSelectorOpenedPayload(rampSurface, region, currentPaymentMethodId),
+    );
+  }, [rampSurface, region, currentPaymentMethodId, trackEvent]);
 }
 
 /** Fiat-per-crypto rate `(amountIn - totalFees) / amountOut`; 0 if no crypto out. */
@@ -135,8 +176,8 @@ export function useFiatFunnelMetrics(
     selectedPaymentMethodId,
   ]);
 
-  // RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED. Imperative; the fiat-options path now
-  // owns the live emit (FIX 3), so this is kept no-op-safe for API symmetry.
+  // RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED. Imperative for callers that own the
+  // selector action directly.
   const trackPaymentSelectorOpened = useCallback(() => {
     if (!rampSurface) return;
     trackEvent(

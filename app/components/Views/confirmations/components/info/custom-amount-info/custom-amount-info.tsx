@@ -1,11 +1,4 @@
-import React, {
-  ReactNode,
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -82,7 +75,7 @@ import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { useFiatFunnelMetricsAdapter } from '../../../hooks/pay/useFiatFunnelMetricsAdapter';
+import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
@@ -143,14 +136,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
-    // TRAM-3623 headless ramps funnel, mounted once for the money-deposit
-    // screen. The adapter derives ramp_surface from the tx type, so every emit
-    // (including the screen-viewed effect below) is inert for non-money flows.
-    const { trackScreenViewed, trackAmountCommitted, trackContinue } =
+    // TRAM-3623 headless ramps funnel. The adapter owns screen-viewed tracking
+    // and derives ramp_surface from the tx type, so non-money flows stay inert.
+    const { trackAmountCommitted, trackContinue } =
       useFiatFunnelMetricsAdapter();
-
-    // Amount screen viewed; the hook self-guards to a single money-only emit.
-    useEffect(trackScreenViewed, [trackScreenViewed]);
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();

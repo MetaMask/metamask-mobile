@@ -1,23 +1,30 @@
 import { renderHook } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
-import { RAMP_SURFACE } from '../../../../UI/Ramp/Deposit/types/analytics';
-import { AlertKeys } from '../../constants/alerts';
+import { RAMP_SURFACE } from '../Deposit/types/analytics';
+import { AlertKeys } from '../../../Views/confirmations/constants/alerts';
 import { useFiatFunnelMetricsAdapter } from './useFiatFunnelMetricsAdapter';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPayFiatPayment } from './useTransactionPayData';
-import { useAlerts } from '../../context/alert-system-context';
-import { useRampsUserRegion } from '../../../../UI/Ramp/hooks/useRampsUserRegion';
+import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { useTransactionPayFiatPayment } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useAlerts } from '../../../Views/confirmations/context/alert-system-context';
+import { useRampsUserRegion } from './useRampsUserRegion';
 
-jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('./useTransactionPayData');
-jest.mock('../../context/alert-system-context');
-jest.mock('../../../../UI/Ramp/hooks/useRampsUserRegion');
-
-// Stub the generic hook so the adapter test only asserts the forwarded input.
-const mockUseFiatFunnelMetrics = jest.fn(
-  (_input: Record<string, unknown>) => ({}),
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
-jest.mock('../../../../UI/Ramp/hooks/useFiatFunnelMetrics', () => ({
+jest.mock('../../../Views/confirmations/hooks/pay/useTransactionPayData');
+jest.mock('../../../Views/confirmations/context/alert-system-context');
+jest.mock('./useRampsUserRegion');
+
+const mockTrackScreenViewed = jest.fn();
+const mockUseFiatFunnelMetrics = jest.fn((_input: Record<string, unknown>) => ({
+  trackScreenViewed: mockTrackScreenViewed,
+  trackAmountCommitted: jest.fn(),
+  trackPaymentSelectorOpened: jest.fn(),
+  trackContinue: jest.fn(),
+}));
+
+jest.mock('./useFiatFunnelMetrics', () => ({
+  ...jest.requireActual('./useFiatFunnelMetrics'),
   useFiatFunnelMetrics: (input: Record<string, unknown>) =>
     mockUseFiatFunnelMetrics(input),
 }));
@@ -66,8 +73,6 @@ describe('useFiatFunnelMetricsAdapter', () => {
     setMocks();
   });
 
-  // Money-account deposit is the only wired surface; every other flow that
-  // renders the shared screen resolves to undefined so the hook stays inert.
   it.each([
     [TransactionType.moneyAccountDeposit, RAMP_SURFACE.MONEY_ACCOUNT],
     [TransactionType.perpsDeposit, undefined],
@@ -82,6 +87,12 @@ describe('useFiatFunnelMetricsAdapter', () => {
   it('derives an undefined surface when there is no transaction', () => {
     txMetaMock.mockReturnValue(undefined as never);
     expect(forwardedInput().rampSurface).toBeUndefined();
+  });
+
+  it('tracks the amount screen view from inside the adapter', () => {
+    forwardedInput();
+
+    expect(mockTrackScreenViewed).toHaveBeenCalledTimes(1);
   });
 
   it('forwards the fiat payment fields and region', () => {

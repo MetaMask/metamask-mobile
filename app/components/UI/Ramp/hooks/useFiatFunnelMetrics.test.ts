@@ -1,10 +1,16 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
+  getFiatFunnelRampSurface,
+  useFiatPaymentSelectorMetrics,
   useFiatFunnelMetrics,
   type FiatFunnelMetricsInput,
 } from './useFiatFunnelMetrics';
 import { RAMP_SURFACE } from '../Deposit/types/analytics';
 import type { Quote } from '../types';
+
+const REGION = 'us-ca';
+const PM_ID = '/payments/debit-credit-card';
 
 const mockTrackEvent = jest.fn();
 jest.mock('./useAnalytics', () => ({
@@ -12,8 +18,20 @@ jest.mock('./useAnalytics', () => ({
   default: () => mockTrackEvent,
 }));
 
-const REGION = 'us-ca';
-const PM_ID = '/payments/debit-credit-card';
+interface RampsUserRegionMockReturn {
+  userRegion: { regionCode: string } | null;
+  setUserRegion: jest.Mock;
+}
+
+const mockUseRampsUserRegion = jest.fn(
+  (): RampsUserRegionMockReturn => ({
+    userRegion: { regionCode: REGION },
+    setUserRegion: jest.fn(),
+  }),
+);
+jest.mock('./useRampsUserRegion', () => ({
+  useRampsUserRegion: () => mockUseRampsUserRegion(),
+}));
 
 const RAMPS_QUOTE_MOCK = {
   provider: '/providers/transak',
@@ -62,6 +80,10 @@ function renderFunnel(overrides: Partial<FiatFunnelMetricsInput> = {}) {
 describe('useFiatFunnelMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRampsUserRegion.mockReturnValue({
+      userRegion: { regionCode: REGION },
+      setUserRegion: jest.fn(),
+    });
   });
 
   // Each emitted event keeps its full payload (proves no analytics regression).
@@ -240,4 +262,76 @@ describe('useFiatFunnelMetrics', () => {
       );
     },
   );
+});
+
+describe('getFiatFunnelRampSurface', () => {
+  it.each([
+    [TransactionType.moneyAccountDeposit, RAMP_SURFACE.MONEY_ACCOUNT],
+    [TransactionType.perpsDeposit, undefined],
+    [TransactionType.predictDeposit, undefined],
+    [TransactionType.moneyAccountWithdraw, undefined],
+    [TransactionType.musdConversion, undefined],
+    [undefined, undefined],
+  ])('maps %s to %s', (type, expected) => {
+    expect(getFiatFunnelRampSurface(type)).toBe(expected);
+  });
+});
+
+describe('useFiatPaymentSelectorMetrics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseRampsUserRegion.mockReturnValue({
+      userRegion: { regionCode: REGION },
+      setUserRegion: jest.fn(),
+    });
+  });
+
+  it('emits the selector-opened payload exactly once', () => {
+    const { rerender } = renderHook(
+      ({ currentPaymentMethodId }) =>
+        useFiatPaymentSelectorMetrics({
+          rampSurface: RAMP_SURFACE.MONEY_ACCOUNT,
+          currentPaymentMethodId,
+        }),
+      { initialProps: { currentPaymentMethodId: PM_ID } },
+    );
+
+    rerender({ currentPaymentMethodId: '/payments/apple-pay' });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(payloadFor('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED')).toEqual({
+      ...EXPECTED_BASE,
+      location: 'Amount Input',
+      current_payment_method: PM_ID,
+    });
+  });
+
+  it('falls back to an empty region when unavailable', () => {
+    mockUseRampsUserRegion.mockReturnValue({
+      userRegion: null,
+      setUserRegion: jest.fn(),
+    });
+
+    renderHook(() =>
+      useFiatPaymentSelectorMetrics({
+        rampSurface: RAMP_SURFACE.MONEY_ACCOUNT,
+        currentPaymentMethodId: PM_ID,
+      }),
+    );
+
+    expect(payloadFor('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED')).toEqual(
+      expect.objectContaining({ region: '' }),
+    );
+  });
+
+  it('emits nothing without a surface', () => {
+    renderHook(() =>
+      useFiatPaymentSelectorMetrics({
+        rampSurface: undefined,
+        currentPaymentMethodId: PM_ID,
+      }),
+    );
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
 });
