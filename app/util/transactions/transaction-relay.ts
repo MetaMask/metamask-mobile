@@ -85,21 +85,23 @@ export async function waitForRelayResult(
 
     const url = `${baseUrl}smart-transactions/${uuid}`;
 
-    const waitResult = await new Promise<RelayWaitResponse>((resolve, reject) => {
-      const intervalId = setInterval(async () => {
-        try {
-          const headers = await getSentinelApiHeadersAsync();
-          const relayResult = await pollResult(url, headers);
-          if (relayResult.status !== RelayStatus.Pending) {
+    const waitResult = await new Promise<RelayWaitResponse>(
+      (resolve, reject) => {
+        const intervalId = setInterval(async () => {
+          try {
+            const headers = await getSentinelApiHeadersAsync();
+            const relayResult = await pollResult(url, headers);
+            if (relayResult.status !== RelayStatus.Pending) {
+              clearInterval(intervalId);
+              resolve(relayResult);
+            }
+          } catch (error) {
             clearInterval(intervalId);
-            resolve(relayResult);
+            reject(error);
           }
-        } catch (error) {
-          clearInterval(intervalId);
-          reject(error);
-        }
-      }, interval);
-    });
+        }, interval);
+      },
+    );
 
     return waitResult;
   } catch (error) {

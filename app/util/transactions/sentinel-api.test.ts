@@ -308,21 +308,15 @@ describe('sentinel-api', () => {
 
       expect(results[0]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Sentinel: Failed to fetch network flags: 500',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
       expect(results[1]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Sentinel: Failed to fetch network flags: 500',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
       expect(results[2]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Sentinel: Failed to fetch network flags: 500',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
 
       // Only one fetch was made (concurrent deduplication worked)

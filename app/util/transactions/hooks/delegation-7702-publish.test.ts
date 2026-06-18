@@ -677,7 +677,9 @@ describe('Delegation 7702 Publish Hook', () => {
         },
         SIGNED_TX_MOCK,
       ),
-    ).rejects.toThrow('Gas Station 7702: Transaction relay error - TEST_STATUS');
+    ).rejects.toThrow(
+      'Gas Station 7702: Transaction relay error - TEST_STATUS',
+    );
   });
 
   it('prefixes relay submit errors', async () => {
@@ -702,9 +704,7 @@ describe('Delegation 7702 Publish Hook', () => {
         },
         SIGNED_TX_MOCK,
       ),
-    ).rejects.toThrow(
-      'Gas Station 7702: Sentinel: Relay: submission failed',
-    );
+    ).rejects.toThrow('Gas Station 7702: Sentinel: Relay: submission failed');
   });
 
   it('submits request to relay for gasless 7702 swap without gas fee tokens', async () => {
