@@ -31,15 +31,13 @@ export function useIsPriceAlertsChainSupported(
   assetId: string | null | undefined,
   options?: { enabled?: boolean },
 ): boolean {
-  const enabled = options?.enabled ?? true;
-
   const { data: supportedChains } = useQuery({
     queryKey: PRICE_ALERTS_SUPPORTED_CHAINS_QUERY_KEY,
     queryFn: fetchSupportedChainsData,
     staleTime: TWENTY_FOUR_HOURS_MS,
     cacheTime: TWENTY_FOUR_HOURS_MS,
     retry: false,
-    enabled,
+    enabled: options?.enabled,
   });
 
   return useMemo(() => {
