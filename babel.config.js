@@ -66,6 +66,7 @@ module.exports = {
   presets: ['babel-preset-expo'],
   plugins: [
     ...reactCompilerBabelConfig,
+    'transform-inline-environment-variables',
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
     // Required by reanimated v3 to compile `'worklet'` directives; without it,
