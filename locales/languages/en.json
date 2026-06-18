@@ -7033,7 +7033,7 @@
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
       "step2_footer_text": "Money account uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
-      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
       "step3_body_card_ineligible": "Coming soon! Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
       "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
