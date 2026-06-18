@@ -24,6 +24,9 @@ async function authenticatedFetch(
 export const fetchAlerts = (assetId: string): Promise<Response> =>
   authenticatedFetch(`${ALERTS_URL}?asset=${encodeURIComponent(assetId)}`);
 
+export const fetchSupportedChains = (): Promise<Response> =>
+  authenticatedFetch(`${ALERTS_URL}/supported-chains`);
+
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   authenticatedFetch(ALERTS_URL, {
     method: 'POST',

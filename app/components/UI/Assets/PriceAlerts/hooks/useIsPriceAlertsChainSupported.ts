@@ -1,0 +1,53 @@
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { fetchSupportedChains } from '../api';
+
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+export const PRICE_ALERTS_SUPPORTED_CHAINS_QUERY_KEY = [
+  'priceAlerts',
+  'supportedChains',
+] as const;
+
+export interface SupportedChainsResponse {
+  chains: string[];
+}
+
+async function fetchSupportedChainsData(): Promise<string[]> {
+  const response = await fetchSupportedChains();
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  const body = (await response.json()) as SupportedChainsResponse;
+  return body.chains;
+}
+
+/**
+ * Returns whether the chain of the given CAIP-19 asset id is supported for price alerts.
+ * Supported chains are fetched once and cached for 24 hours.
+ */
+export function useIsPriceAlertsChainSupported(
+  assetId: string | null | undefined,
+  options?: { enabled?: boolean },
+): boolean {
+  const enabled = options?.enabled ?? true;
+
+  const { data: supportedChains } = useQuery({
+    queryKey: PRICE_ALERTS_SUPPORTED_CHAINS_QUERY_KEY,
+    queryFn: fetchSupportedChainsData,
+    staleTime: TWENTY_FOUR_HOURS_MS,
+    cacheTime: TWENTY_FOUR_HOURS_MS,
+    retry: false,
+    enabled,
+  });
+
+  return useMemo(() => {
+    if (!assetId || !supportedChains || !isCaipAssetType(assetId)) {
+      return false;
+    }
+
+    const { chainId } = parseCaipAssetType(assetId);
+    return supportedChains.includes(chainId);
+  }, [assetId, supportedChains]);
+}
