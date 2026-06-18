@@ -82,6 +82,11 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
+const mockMoneyAccountGeoEligible = true;
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
+}));
+
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
 jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
   const ReactMock = jest.requireActual('react');
@@ -103,15 +108,48 @@ jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
 
 // Control discovery tabs AB test variant per test (default control so existing tests are unaffected)
 let mockDiscoveryTabsVariantName = 'control';
+let mockDiscoveryPillsVariantName = 'control';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
-  useABTest: jest.fn(() => ({
-    variantName: mockDiscoveryTabsVariantName,
-    variant: {
-      discoveryTabsEnabled: mockDiscoveryTabsVariantName === 'treatment',
-    },
-  })),
+  useABTest: jest.fn((flagKey: string) => {
+    if (flagKey === 'homeTMCU926AbtestDiscoveryPills') {
+      const isGrayIcons = mockDiscoveryPillsVariantName === 'grayIcons';
+      const isColorIcons = mockDiscoveryPillsVariantName === 'colorIcons';
+      const showPills = isGrayIcons || isColorIcons;
+
+      return {
+        variantName: mockDiscoveryPillsVariantName,
+        variant: {
+          showPills,
+          iconStyle: isGrayIcons ? 'gray' : isColorIcons ? 'color' : null,
+        },
+        isActive: showPills,
+      };
+    }
+
+    return {
+      variantName: mockDiscoveryTabsVariantName,
+      variant: {
+        discoveryTabsEnabled: mockDiscoveryTabsVariantName === 'treatment',
+      },
+      isActive: mockDiscoveryTabsVariantName === 'treatment',
+    };
+  }),
 }));
+
+const mockHomepageDiscoveryPills = jest.fn();
+jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    HomepageDiscoveryPills: (props: { iconStyle: string }) => {
+      mockHomepageDiscoveryPills(props);
+      return React.createElement(View, {
+        testID: 'homepage-discovery-pills-mock',
+      });
+    },
+  };
+});
 
 // Track HomepageDiscoveryTabs renders
 const mockHomepageDiscoveryTabs = jest.fn();
@@ -1664,6 +1702,90 @@ describe('HomepageDiscoveryTabs AB test', () => {
     // HomepageDiscoveryTabs must not render; the legacy Homepage mock renders instead
     expect(mockHomepageDiscoveryTabs).not.toHaveBeenCalled();
     expect(capturedContext).toBeDefined();
+  });
+});
+
+describe('HomepageDiscoveryPills AB test', () => {
+  let mockNavigation: NavigationProp<ParamListBase>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDiscoveryTabsVariantName = 'control';
+    mockDiscoveryPillsVariantName = 'control';
+    mockHomepageDiscoveryPills.mockClear();
+
+    mockNavigation = {
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+      dangerouslyGetParent: jest.fn(() => ({
+        dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+        addListener: jest.fn(() => jest.fn()),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => undefined),
+        })),
+      })),
+    } as unknown as NavigationProp<ParamListBase>;
+
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockDiscoveryTabsVariantName = 'control';
+    mockDiscoveryPillsVariantName = 'control';
+    jest.clearAllMocks();
+  });
+
+  it('renders discovery pills on legacy homepage when grayIcons variant is active', () => {
+    mockDiscoveryPillsVariantName = 'grayIcons';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageDiscoveryPills).toHaveBeenCalledWith(
+      expect.objectContaining({ iconStyle: 'gray' }),
+    );
+  });
+
+  it('does not render discovery pills when control variant is active', () => {
+    mockDiscoveryPillsVariantName = 'control';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageDiscoveryPills).not.toHaveBeenCalled();
+  });
+
+  it('does not render discovery pills when discovery tabs treatment is active', () => {
+    mockDiscoveryPillsVariantName = 'grayIcons';
+    mockDiscoveryTabsVariantName = 'treatment';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageDiscoveryPills).not.toHaveBeenCalled();
   });
 });
 

@@ -28,6 +28,8 @@ export interface UnifiedGestureOptions {
   scrollAmount?: number;
   /** Delay before tapping (ms) */
   delay?: number;
+  /** Wait for element position to stabilize before tapping — Detox only */
+  checkStability?: boolean;
   /** Check if the element is displayed — Appium only; Detox ignores this */
   checkForDisplayed?: boolean;
   /** Check if the element is enabled — Appium only; Detox ignores this */
@@ -40,6 +42,10 @@ export interface UnifiedGestureOptions {
   postEnabledSettleMs?: number;
   /** Long press duration in ms — passed through to PlaywrightGestures.longPress */
   duration?: number;
+  /** Dismiss the keyboard after typing. Default: true */
+  hideKeyboard?: boolean;
+  /** Clear the field before typing — Detox only; Appium fill() replaces by default */
+  clearFirst?: boolean;
 }
 
 /**
@@ -154,6 +160,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.waitAndTap(asDetoxElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description,
+      delay: opts?.delay,
+      checkStability: opts?.checkStability,
     });
   }
 
@@ -170,7 +178,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await Gestures.typeText(asDetoxElement(elem), text, {
-      hideKeyboard: true,
+      hideKeyboard: opts?.hideKeyboard ?? true,
+      clearFirst: opts?.clearFirst ?? true,
       timeout: opts?.timeout,
       elemDescription: opts?.description,
     });
@@ -390,9 +399,17 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param text - The text to type
    * @returns A promise that resolves when the type text is complete
    */
-  async typeText(elem: EncapsulatedElementType, text: string): Promise<void> {
+  async typeText(
+    elem: EncapsulatedElementType,
+    text: string,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
     await el.fill(text);
+
+    if (opts?.hideKeyboard ?? true) {
+      await PlaywrightGestures.hideKeyboard();
+    }
   }
 
   /**

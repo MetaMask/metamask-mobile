@@ -42,6 +42,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
@@ -74,6 +75,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   })),
 }));
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
+jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 jest.mock('../../../../../../util/Logger');
 jest.mock('../../../../../../core/Engine', () => ({
@@ -226,6 +228,7 @@ describe('CustomAmountInfo', () => {
   const useClearConfirmationOnBackSwipeMock = jest.mocked(
     useClearConfirmationOnBackSwipe,
   );
+  const useMoneyNoFeeTokensMock = jest.mocked(useMoneyNoFeeTokens);
   const setIsConfirmationSubmittingMock = jest.fn();
 
   const useRouteMock = jest.mocked(useRoute);
@@ -318,6 +321,8 @@ describe('CustomAmountInfo', () => {
       type: TransactionType.contractInteraction,
       txParams: { from: '0x123' },
     } as never);
+
+    useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
   });
 
   it('renders amount', () => {
@@ -734,6 +739,47 @@ describe('CustomAmountInfo', () => {
     );
 
     it('renders 90% when hasMax is not provided', () => {
+      const { getByText, queryByText } = render();
+
+      expect(getByText('90%')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
+    });
+
+    it('renders Max for money deposit when useMoneyNoFeeTokens returns true', () => {
+      useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Max')).toBeOnTheScreen();
+      expect(queryByText('90%')).not.toBeOnTheScreen();
+    });
+
+    it('renders 90% for money deposit when useMoneyNoFeeTokens returns false', () => {
+      useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('90%')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
+    });
+
+    it('falls back to 90% when useMoneyNoFeeTokens is true but pay token is native', () => {
+      useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: '0x123',
+          balanceHuman: '0',
+          balanceFiat: '0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'ETH',
+        },
+        setPayToken: noop as never,
+        isNative: true,
+      });
+
       const { getByText, queryByText } = render();
 
       expect(getByText('90%')).toBeOnTheScreen();

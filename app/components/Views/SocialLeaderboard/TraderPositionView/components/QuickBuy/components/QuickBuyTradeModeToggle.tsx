@@ -18,6 +18,7 @@ import { useQuickBuyContext } from '../useQuickBuyContext';
 import type { QuickBuyTradeMode } from '../types';
 import { useTheme } from '../../../../../../../util/theme';
 import { playSelection } from '../../../../../../../util/haptics';
+import { brandColor } from '@metamask/design-tokens';
 
 const styles = StyleSheet.create({
   // Inner row owns the relative positioning context. It carries no border or
@@ -38,10 +39,12 @@ const styles = StyleSheet.create({
 
 interface QuickBuyTradeModeToggleProps {
   testID?: string;
+  buyOnly?: boolean;
 }
 
 const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   testID = 'quick-buy-trade-mode-toggle',
+  buyOnly = false,
 }) => {
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
@@ -57,7 +60,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   };
 
   useEffect(() => {
-    if (!buyLayout) return;
+    if (buyOnly || !buyLayout) return;
     Animated.spring(slideAnim, {
       toValue: tradeMode === 'buy' ? 0 : buyLayout.width,
       // Color interpolation (backgroundColor below) is not supported by the
@@ -66,19 +69,42 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
       tension: 180,
       friction: 20,
     }).start();
-  }, [tradeMode, buyLayout, slideAnim]);
+  }, [tradeMode, buyLayout, slideAnim, buyOnly]);
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
-  // Transition the slider background from green (buy, translateX 0) to red
+  // Transition the slider background from green (buy, translateX 0) to orange
   // (sell, translateX = buy button width) as it slides across.
   const sliderBackgroundColor =
     buyLayout && buyLayout.width > 0
       ? slideAnim.interpolate({
           inputRange: [0, buyLayout.width],
-          outputRange: [colors.success.default, colors.error.default],
+          outputRange: [colors.success.default, brandColor.orange400],
         })
       : colors.success.default;
+
+  if (buyOnly) {
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="border border-muted rounded-xl p-1"
+        testID={testID}
+      >
+        <Box
+          twClassName="rounded-lg px-4 py-1"
+          style={{ backgroundColor: colors.success.default }}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.PrimaryInverse}
+          >
+            {strings('social_leaderboard.quick_buy.buy_label')}
+          </Text>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box

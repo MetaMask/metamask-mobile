@@ -1030,6 +1030,35 @@ describe('getTokenBalancesControllerTokenBalances', () => {
         ],
       ).toBe('0x1312d00'); // 20 * 10^6
     });
+
+    it('maps non-mainnet native assets to zero address to match TokenBalancesController behavior', () => {
+      const zeroAddress: Hex = '0x0000000000000000000000000000000000000000';
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativePolygonAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativePolygonAssetId]: { amount: '2' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: { internalAccounts: baseInternalAccounts },
+          },
+        },
+      };
+      const result = getTokenBalancesControllerTokenBalances(state);
+
+      expect(result[mockAccountAddressLowercase]['0x89']).toStrictEqual({
+        [zeroAddress]: '0x1bc16d674ec80000', // 2 MATIC (18 decimals)
+      });
+    });
   });
 });
 

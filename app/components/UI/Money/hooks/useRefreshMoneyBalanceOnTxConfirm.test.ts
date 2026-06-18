@@ -1,8 +1,10 @@
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
@@ -177,6 +179,58 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     });
 
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  const MUSD_ON_MONAD = {
+    tokenAddress: MUSD_TOKEN_ADDRESS,
+    chainId: CHAIN_IDS.MONAD,
+  };
+
+  it('invalidates on a confirmed Perps deposit funded from the Money account', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.perpsDeposit),
+      metamaskPay: MUSD_ON_MONAD,
+    } as unknown as TransactionMeta);
+    await waitFor(() => {
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('invalidates on a confirmed Predict withdraw landing in the Money account', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.batch, TransactionStatus.confirmed, [
+        { type: TransactionType.predictWithdraw },
+      ]),
+      metamaskPay: MUSD_ON_MONAD,
+    } as unknown as TransactionMeta);
+    await waitFor(() => {
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not invalidate for a Perps deposit NOT funded from the Money account', () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.perpsDeposit),
+      metamaskPay: {
+        tokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+        chainId: CHAIN_IDS.ARBITRUM,
+      },
+    } as unknown as TransactionMeta);
+
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
   });
 
   it('does not invalidate for non-confirmed status', () => {
