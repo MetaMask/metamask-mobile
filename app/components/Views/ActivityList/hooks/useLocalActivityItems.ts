@@ -32,6 +32,7 @@ const BRIDGE_FAIL_STATUSES = [
 
 const QUEUE_BLOCKING_STATUSES = new Set<string>([
   TransactionStatus.submitted,
+  TransactionStatus.signed,
   'approved',
   'unapproved',
 ]);
