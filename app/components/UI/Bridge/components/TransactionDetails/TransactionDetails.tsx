@@ -4,14 +4,16 @@ import {
   HeaderStandard,
   Button,
   ButtonVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { TextVariant as TextVariantLegacy } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
-import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import {
   TransactionMeta,
@@ -122,7 +124,7 @@ const PaidByMetaMask = () => (
     color={TagColor.Success}
     style={styles.paidByMetaMask}
     labelProps={{
-      variant: TextVariant.BodySM,
+      variant: TextVariantLegacy.BodySM,
       style: {
         textTransform: 'none',
         textAlign: 'center',
@@ -136,30 +138,30 @@ const PaidByMetaMask = () => (
 );
 
 const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
-  [StatusTypes.PENDING]: TextColor.Warning,
-  [StatusTypes.COMPLETE]: TextColor.Success,
-  [StatusTypes.FAILED]: TextColor.Error,
-  [StatusTypes.UNKNOWN]: TextColor.Error,
-  [StatusTypes.SUBMITTED]: TextColor.Warning,
+  [StatusTypes.PENDING]: TextColor.WarningDefault,
+  [StatusTypes.COMPLETE]: TextColor.SuccessDefault,
+  [StatusTypes.FAILED]: TextColor.ErrorDefault,
+  [StatusTypes.UNKNOWN]: TextColor.ErrorDefault,
+  [StatusTypes.SUBMITTED]: TextColor.WarningDefault,
 };
 
 const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
-  [TransactionStatus.submitted]: TextColor.Warning,
-  [TransactionStatus.confirmed]: TextColor.Success,
-  [TransactionStatus.failed]: TextColor.Error,
-  [TransactionStatus.unapproved]: TextColor.Warning,
-  [TransactionStatus.approved]: TextColor.Warning,
-  [TransactionStatus.signed]: TextColor.Warning,
-  [TransactionStatus.dropped]: TextColor.Error,
-  [TransactionStatus.rejected]: TextColor.Error,
-  [TransactionStatus.cancelled]: TextColor.Error,
+  [TransactionStatus.submitted]: TextColor.WarningDefault,
+  [TransactionStatus.confirmed]: TextColor.SuccessDefault,
+  [TransactionStatus.failed]: TextColor.ErrorDefault,
+  [TransactionStatus.unapproved]: TextColor.WarningDefault,
+  [TransactionStatus.approved]: TextColor.WarningDefault,
+  [TransactionStatus.signed]: TextColor.WarningDefault,
+  [TransactionStatus.dropped]: TextColor.ErrorDefault,
+  [TransactionStatus.rejected]: TextColor.ErrorDefault,
+  [TransactionStatus.cancelled]: TextColor.ErrorDefault,
 };
 
 const MultichainTxStatusToColorMap: Record<Transaction['status'], TextColor> = {
-  submitted: TextColor.Warning,
-  confirmed: TextColor.Success,
-  unconfirmed: TextColor.Warning,
-  failed: TextColor.Error,
+  submitted: TextColor.WarningDefault,
+  confirmed: TextColor.SuccessDefault,
+  unconfirmed: TextColor.WarningDefault,
+  failed: TextColor.ErrorDefault,
 };
 
 const getStatusColor = ({
@@ -185,7 +187,7 @@ const getStatusColor = ({
     return MultichainTxStatusToColorMap[multiChainTx.status];
   }
 
-  return TextColor.Error;
+  return TextColor.ErrorDefault;
 };
 
 export const BridgeTransactionDetails = (
@@ -369,16 +371,17 @@ export const BridgeTransactionDetails = (
           )}
         </Box>
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.status')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            gap={4}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            gap={1}
+            alignItems={BoxAlignItems.Center}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={getStatusColor({
                 isBridge,
                 isSwap,
@@ -396,17 +399,19 @@ export const BridgeTransactionDetails = (
           bridgeStatus.status === StatusTypes.PENDING &&
           estimatedCompletionString && (
             <Box style={styles.detailRow}>
-              <Text variant={TextVariant.BodyMDMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings(
                   'bridge_transaction_details.estimated_completion',
                 )}{' '}
               </Text>
               <Box
-                flexDirection={FlexDirection.Row}
-                gap={4}
-                alignItems={AlignItems.center}
+                flexDirection={BoxFlexDirection.Row}
+                gap={1}
+                alignItems={BoxAlignItems.Center}
               >
-                <Text>{estimatedCompletionString}</Text>
+                <Text variant={TextVariant.BodyMd}>
+                  {estimatedCompletionString}
+                </Text>
                 <TouchableOpacity
                   onPress={() => setIsStepListExpanded(!isStepListExpanded)}
                 >
@@ -430,27 +435,27 @@ export const BridgeTransactionDetails = (
           </Box>
         )}
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.date')}
           </Text>
-          <Text>{submissionDateString}</Text>
+          <Text variant={TextVariant.BodyMd}>{submissionDateString}</Text>
         </Box>
         {is7702Batch && batchSellHistoryItems?.length && networkName ? (
           <Box style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMDMedium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('bridge_transaction_details.network')}
             </Text>
             <Box
-              flexDirection={FlexDirection.Row}
-              gap={6}
-              alignItems={AlignItems.center}
+              flexDirection={BoxFlexDirection.Row}
+              gap={2}
+              alignItems={BoxAlignItems.Center}
             >
               <AvatarNetwork
                 name={networkName}
                 imageSource={networkImageSource}
                 size={AvatarSize.Xs}
               />
-              <Text>{networkName}</Text>
+              <Text variant={TextVariant.BodyMd}>{networkName}</Text>
             </Box>
           </Box>
         ) : null}
@@ -462,7 +467,7 @@ export const BridgeTransactionDetails = (
           <Text>{renderShortAddress(bridgeTxHistoryItem.account)}</Text>
         </Box> */}
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
           {isTransactionMarkedAsGasFeeSponsored(evmTxMeta) &&
@@ -472,13 +477,13 @@ export const BridgeTransactionDetails = (
             <>
               {/* TODO get solana gas fee from multiChainTx */}
               {evmTotalGasFee && (
-                <Text>
+                <Text variant={TextVariant.BodyMd}>
                   {evmTotalGasFee}{' '}
                   {getNativeAssetForChainId(quote.srcChainId).symbol}
                 </Text>
               )}
               {multiChainTotalGasFee && (
-                <Text>
+                <Text variant={TextVariant.BodyMd}>
                   {multiChainTotalGasFee}{' '}
                   {getNativeAssetForChainId(quote.srcChainId).symbol}
                 </Text>
