@@ -7,6 +7,12 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { isTransactionIncomplete } from '../../../util/transactions';
+import {
+  isTrustlineApproveTransaction,
+  isTrustlineDisapproveTransaction,
+  isTrustlineTransaction,
+  resolveTrustlineActivityTitle,
+} from '../../../util/activity-adapters/trustline';
 
 /**
  * Custom labels for non-EVM transactions mapped from `transaction.details.typeLabel`.
@@ -104,26 +110,23 @@ export function useMultichainTransactionDisplay(
   };
 
   const typeLabel = transaction.details?.typeLabel;
-  const isTrustlineType = [
-    CustomTransactionTypeLabel.TrustlineApprove,
-    CustomTransactionTypeLabel.TrustlineDisapprove,
-  ].includes(typeLabel as CustomTransactionTypeLabel);
+  const isTrustlineType = isTrustlineTransaction(transaction);
 
   let title = isRedeposit
     ? strings('transactions.redeposit')
     : typeToTitle[transaction.type];
 
-  if (typeLabel) {
+  if (isTrustlineApproveTransaction(transaction)) {
+    title = resolveTrustlineActivityTitle(from?.unit, true);
+  } else if (isTrustlineDisapproveTransaction(transaction)) {
+    title = resolveTrustlineActivityTitle(from?.unit, false);
+  } else if (typeLabel) {
     switch (typeLabel) {
       case CustomTransactionTypeLabel.TrustlineApprove:
-        title = from?.unit
-          ? `${strings('trustlineApprove')}: ${from.unit}`
-          : strings('trustlineApprove');
+        title = resolveTrustlineActivityTitle(from?.unit, true);
         break;
       case CustomTransactionTypeLabel.TrustlineDisapprove:
-        title = from?.unit
-          ? `${strings('trustlineDisapprove')}: ${from.unit}`
-          : strings('trustlineDisapprove');
+        title = resolveTrustlineActivityTitle(from?.unit, false);
         break;
       default:
         break;

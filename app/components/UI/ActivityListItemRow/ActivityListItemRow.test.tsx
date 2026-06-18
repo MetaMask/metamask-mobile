@@ -372,6 +372,8 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketShort',
   'stopMarketCloseShort',
   'marketCloseShort',
+  'trustlineActivate',
+  'trustlineDeactivate',
 ];
 
 const EXPECTED_TITLES = {
@@ -437,6 +439,8 @@ const EXPECTED_TITLES = {
     'transactions.activity_stop_market_close_short',
   ),
   marketCloseShort: strings('transactions.activity_market_close_short'),
+  trustlineActivate: strings('transactions.trustline_activated'),
+  trustlineDeactivate: strings('transactions.trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {

@@ -165,4 +165,93 @@ describe('mapKeyringTransaction', () => {
       }),
     );
   });
+
+  it('maps trustline approve transactions to trustlineActivate activity items', () => {
+    const item = mapKeyringTransaction({
+      transaction: {
+        id: 'trustline-add-id',
+        chain: 'stellar:pubnet',
+        account: '00000000-0000-4000-8000-000000000000',
+        status: TransactionStatus.Confirmed,
+        timestamp: 1716367781,
+        type: TransactionType.TokenApprove,
+        from: [
+          {
+            address: 'GABC123',
+            asset: {
+              fungible: true,
+              type: 'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+              unit: 'USDC',
+              amount: '0',
+            },
+          },
+        ],
+        to: [{ address: 'GABC123', asset: null }],
+        fees: [],
+        events: [],
+        details: {
+          typeLabel: 'trustline-approve',
+        },
+      } as Transaction,
+    });
+
+    expect(item).toStrictEqual(
+      expect.objectContaining({
+        type: 'trustlineActivate',
+        data: {
+          hash: 'trustline-add-id',
+          from: 'GABC123',
+          to: 'GABC123',
+          token: {
+            amount: '0',
+            assetId:
+              'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+            direction: 'out',
+            symbol: 'USDC',
+          },
+        },
+      }),
+    );
+  });
+
+  it('maps trustline disapprove transactions to trustlineDeactivate activity items', () => {
+    const item = mapKeyringTransaction({
+      transaction: {
+        id: 'trustline-remove-id',
+        chain: 'stellar:pubnet',
+        account: '00000000-0000-4000-8000-000000000000',
+        status: TransactionStatus.Confirmed,
+        timestamp: 1716367781,
+        type: TransactionType.TokenDisapprove,
+        from: [
+          {
+            address: 'GABC123',
+            asset: {
+              fungible: true,
+              type: 'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+              unit: 'USDC',
+              amount: '0',
+            },
+          },
+        ],
+        to: [{ address: 'GABC123', asset: null }],
+        fees: [],
+        events: [],
+        details: {
+          typeLabel: 'trustline-disapprove',
+        },
+      } as Transaction,
+    });
+
+    expect(item).toMatchObject({
+      type: 'trustlineDeactivate',
+      data: {
+        hash: 'trustline-remove-id',
+        token: {
+          symbol: 'USDC',
+          direction: 'out',
+        },
+      },
+    });
+  });
 });

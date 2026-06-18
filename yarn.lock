@@ -8929,19 +8929,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^23.1.0":
-  version: 23.1.0
-  resolution: "@metamask/keyring-api@npm:23.1.0"
-  dependencies:
-    "@metamask/keyring-utils": "npm:^3.2.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.11.0"
-    bitcoin-address-validation: "npm:^2.2.3"
-  checksum: 10/ca7e1b49f8c30078ebd76f1f7e74c57846ac3e73ffdc2f7b446af6cb3c006cef75a13eec6a0aeae0bfefbb5549d576af410bb9df16196fcefe17ded64f8714f2
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-api@npm:^23.3.0":
+"@metamask/keyring-api@npm:^23.1.0, @metamask/keyring-api@npm:^23.3.0":
   version: 23.3.0
   resolution: "@metamask/keyring-api@npm:23.3.0"
   dependencies:
@@ -10197,10 +10185,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/stellar-wallet-snap@npm:0.0.1-dev.249":
-  version: 0.0.1-dev.249
-  resolution: "@metamask/stellar-wallet-snap@npm:0.0.1-dev.249"
-  checksum: 10/a16116ea7d9cf2add74440017171e16e969ae99adbd40e550eca340d5466c6acdd90e36bd775b1a4192fb952ad21fd9f5031ed47578d4dd6048ea608dc5a0805
+"@metamask/stellar-wallet-snap@npm:0.0.1-dev.251":
+  version: 0.0.1-dev.251
+  resolution: "@metamask/stellar-wallet-snap@npm:0.0.1-dev.251"
+  checksum: 10/0f2f589e7e4d3d056057667efcf34ffb6e900b8558d38074934a4177b18b28d91f0afd8240ae8a90c9eb1da765d210351bdc9010642797192a631f36a67b3074
   languageName: node
   linkType: hard
 
@@ -35349,7 +35337,7 @@ __metadata:
     "@metamask/solana-wallet-snap": "npm:^2.8.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
-    "@metamask/stellar-wallet-snap": "npm:0.0.1-dev.249"
+    "@metamask/stellar-wallet-snap": "npm:0.0.1-dev.251"
     "@metamask/storage-service": "npm:^1.0.0"
     "@metamask/superstruct": "npm:^3.2.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"

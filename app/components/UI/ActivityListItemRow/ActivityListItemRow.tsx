@@ -270,6 +270,18 @@ const ACTIVITY_TITLE_RESOLVERS = {
   stopMarketCloseShort: () =>
     strings('transactions.activity_stop_market_close_short'),
   marketCloseShort: () => strings('transactions.activity_market_close_short'),
+  trustlineActivate: (token) =>
+    withSymbol(
+      token,
+      'transactions.trustline_activated_unit',
+      'transactions.trustline_activated',
+    ),
+  trustlineDeactivate: (token) =>
+    withSymbol(
+      token,
+      'transactions.trustline_deactivated_unit',
+      'transactions.trustline_deactivated',
+    ),
 } satisfies Record<ActivityKind, ActivityTitleResolver>;
 
 /** Returns a display title for each ActivityKind. */
@@ -331,6 +343,8 @@ function resolveIconType(type: ActivityKind): string {
     case 'approveSpendingCap':
     case 'revokeSpendingCap':
     case 'increaseSpendingCap':
+    case 'trustlineActivate':
+    case 'trustlineDeactivate':
     case 'contractInteraction':
     case 'contractDeployment':
     case 'smartAccountUpgrade':
@@ -356,8 +370,15 @@ function resolveIconType(type: ActivityKind): string {
 // Amount display
 // ---------------------------------------------------------------------------
 
-function resolveAmount(token: TokenAmount | undefined): string {
-  if (!token?.symbol) {
+function resolveAmount(
+  token: TokenAmount | undefined,
+  activityType: ActivityKind,
+): string {
+  if (
+    !token?.symbol ||
+    activityType === 'trustlineActivate' ||
+    activityType === 'trustlineDeactivate'
+  ) {
     return '';
   }
 
@@ -461,7 +482,7 @@ export function ActivityListItemRow({
 
   const title = resolveActivityListItemTitle(item, titleOverride);
   const displayToken = resolveDisplayToken(item);
-  const amount = resolveAmount(displayToken);
+  const amount = resolveAmount(displayToken, item.type);
   const marketData = useSelector(selectTokenMarketData);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const hexChainId = getHexChainId(item.chainId);

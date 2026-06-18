@@ -220,7 +220,8 @@
     "@metamask/network-enablement-controller": "npm:@metamask-previews/network-enablement-controller@5.1.0-preview-6c5b6b08f",
     "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@109.0.0-preview-280f4f25b",
     "@metamask/bridge-controller": "75.1.1-dev.1",
-    "@metamask/accounts-controller": "^39.0.0"
+    "@metamask/accounts-controller": "^39.0.0",
+    "@metamask/stellar-wallet-snap": "0.0.1-dev.251"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -348,7 +349,7 @@
     "@metamask/solana-wallet-snap": "^2.8.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
-    "@metamask/stellar-wallet-snap": "0.0.1-dev.249",
+    "@metamask/stellar-wallet-snap": "0.0.1-dev.251",
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",

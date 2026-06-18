@@ -54,7 +54,9 @@ export type ActivityKind =
   | 'marketShort'
   | 'stopMarketCloseShort'
   | 'marketCloseShort'
-  | 'nftMint';
+  | 'nftMint'
+  | 'trustlineActivate'
+  | 'trustlineDeactivate';
 
 export interface TokenAmount {
   amount?: string;
@@ -151,6 +153,14 @@ export type ActivityListItem =
         transactionCategory?: string;
         transactionProtocol?: string;
         transactionType?: string;
+      }
+    >
+  | ActivityData<
+      'trustlineActivate' | 'trustlineDeactivate',
+      {
+        from?: string;
+        to?: string;
+        token?: TokenAmount;
       }
     >
   | ActivityData<

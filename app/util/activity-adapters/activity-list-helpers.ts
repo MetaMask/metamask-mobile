@@ -9,6 +9,8 @@ const hidePlusSignActivityTypes = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
   'increaseSpendingCap',
   'revokeSpendingCap',
+  'trustlineActivate',
+  'trustlineDeactivate',
 ]);
 
 export type ActivityListFilter =

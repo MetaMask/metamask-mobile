@@ -9,6 +9,10 @@ import {
   TransactionType as KeyringTransactionType,
 } from '@metamask/keyring-api';
 import type { ActivityListItem, Status, TokenAmount } from '../types';
+import {
+  isTrustlineApproveTransaction,
+  isTrustlineDisapproveTransaction,
+} from '../trustline';
 
 type Movement = Transaction['from'][number];
 type FungibleAsset = Extract<
@@ -175,6 +179,38 @@ export function mapKeyringTransaction({
         hash: transaction.id,
         destinationToken: getToken(transaction.to, 'in'),
         sourceToken: getToken(transaction.from, 'out'),
+      },
+    };
+  }
+
+  if (isTrustlineApproveTransaction(transaction)) {
+    return {
+      type: 'trustlineActivate',
+      chainId,
+      status,
+      timestamp,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        hash: transaction.id,
+        from,
+        to,
+        token: getToken(transaction.from, 'out'),
+      },
+    };
+  }
+
+  if (isTrustlineDisapproveTransaction(transaction)) {
+    return {
+      type: 'trustlineDeactivate',
+      chainId,
+      status,
+      timestamp,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        hash: transaction.id,
+        from,
+        to,
+        token: getToken(transaction.from, 'out'),
       },
     };
   }

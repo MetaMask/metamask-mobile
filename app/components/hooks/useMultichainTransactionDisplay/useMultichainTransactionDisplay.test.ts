@@ -46,7 +46,7 @@ describe('useMultichainTransactionDisplay', () => {
       'stellar:pubnet',
     );
 
-    expect(displayData.title).toBe('trustlineApprove: USDC');
+    expect(displayData.title).toBe('transactions.trustline_activated_unit');
     expect(displayData.shouldShowAmountOrUnit).toBe(false);
   });
 
@@ -64,7 +64,22 @@ describe('useMultichainTransactionDisplay', () => {
       'stellar:pubnet',
     );
 
-    expect(displayData.title).toBe('trustlineDisapprove');
+    expect(displayData.title).toBe('transactions.trustline_deactivated');
+    expect(displayData.shouldShowAmountOrUnit).toBe(false);
+  });
+
+  it('uses trustline title for token approve transactions without typeLabel', () => {
+    const transaction: Transaction = {
+      ...baseTransaction,
+      type: TransactionType.TokenApprove,
+    };
+
+    const displayData = useMultichainTransactionDisplay(
+      transaction,
+      'stellar:pubnet',
+    );
+
+    expect(displayData.title).toBe('transactions.trustline_activated_unit');
     expect(displayData.shouldShowAmountOrUnit).toBe(false);
   });
 
