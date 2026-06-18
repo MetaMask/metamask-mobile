@@ -118,7 +118,7 @@ describe('Transaction Metric Event Handlers', () => {
       properties: {},
       sensitiveProperties: {},
     }),
-  } as ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>;
+  } as unknown as ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>;
 
   beforeEach(() => {
     jest.clearAllMocks();
