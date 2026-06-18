@@ -13,6 +13,7 @@ import {
 } from '../../types';
 import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -83,6 +84,14 @@ jest.mock('../../hooks/useLiveGameUpdates', () => ({
   useLiveGameUpdates: () => ({ gameUpdate: null }),
 }));
 
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
+}));
+const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
+
 jest.mock('../../constants/sportLeagueConfigs', () => ({
   getLeagueConfig: () => ({}),
 }));
@@ -106,6 +115,24 @@ const initialState = {
     backgroundState,
   },
 };
+
+const stateWithSportCardLivePricesEnabled = (enabled: boolean) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        ...backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+          predictSportCardLivePrices: {
+            enabled,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+});
 
 const createMockOutcome = (
   tokens: PredictOutcomeToken[],
@@ -184,6 +211,7 @@ const createMockSportMarket = (
 describe('FeaturedCarouselSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
   });
 
   it('renders league name and live indicator for ongoing games', () => {
@@ -257,7 +285,9 @@ describe('FeaturedCarouselSportCard', () => {
       { state: initialState },
     );
 
-    expect(getByText(strings('predict.outcome_draw'))).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 20%`),
+    ).toBeOnTheScreen();
   });
 
   it.each(['nba', 'nfl'] as const)(
@@ -412,6 +442,62 @@ describe('FeaturedCarouselSportCard', () => {
       expect.objectContaining({
         outcomeToken: expect.objectContaining({ title: 'Celtics' }),
       }),
+    );
+  });
+
+  it('renders live best ask prices when available', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk:
+        tokenId === 'home-token'
+          ? 0.75
+          : tokenId === 'draw-token'
+            ? 0.18
+            : 0.25,
+    }));
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('$133.33')).toBeOnTheScreen();
+    expect(getByText('$400.00')).toBeOnTheScreen();
+    expect(getByText('75%')).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 18%`),
+    ).toBeOnTheScreen();
+    expect(getByText('25%')).toBeOnTheScreen();
+  });
+
+  it('renders static prices and disables live subscriptions when the flag is off', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk: 0.99,
+    }));
+    const market = createMockSportMarket();
+
+    const { getByText, queryByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: stateWithSportCardLivePricesEnabled(false) },
+    );
+
+    expect(getByText('$166.67')).toBeOnTheScreen();
+    expect(getByText('$250.00')).toBeOnTheScreen();
+    expect(getByText('60%')).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 20%`),
+    ).toBeOnTheScreen();
+    expect(getByText('40%')).toBeOnTheScreen();
+    expect(queryByText('99%')).not.toBeOnTheScreen();
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['home-token', 'draw-token', 'away-token'],
+      { enabled: false },
     );
   });
 });
