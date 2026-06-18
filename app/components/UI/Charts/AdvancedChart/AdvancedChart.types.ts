@@ -298,6 +298,7 @@ export type WebViewToRNMessage =
   | { type: 'CHART_LAYOUT_SETTLED' }
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
+  | { type: 'LEGEND_RENDERED' }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }

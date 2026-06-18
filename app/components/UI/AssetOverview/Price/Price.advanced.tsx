@@ -57,6 +57,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
+import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -389,10 +390,6 @@ const PriceAdvanced = ({
     vsCurrency: currentCurrency,
   });
 
-  const handleInlineIntervalSelect = useCallback((interval: string) => {
-    setDisplayInterval(interval);
-  }, []);
-
   const maLabel = useMemo(() => {
     if (selectedMAs.length === 0) return 'MA';
     if (selectedMAs.length === 1) return selectedMAs[0];
@@ -400,39 +397,107 @@ const PriceAdvanced = ({
   }, [selectedMAs]);
 
   const handleMAPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+        .addProperties({
+          interaction_type: 'indicator_selector_opened',
+          selector_type: 'moving_averages',
+          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
+          indicators_active: [...activeIndicators],
+        })
+        .build(),
+    );
+
     navigation.navigate(
       ...createMAPickerNavDetails({
         selectedMAs,
         onDone: (selected: string[]) => {
           setActiveIndicators((prev) => {
             const next = new Set([...prev].filter((i) => !/^MA\d+$/.test(i)));
+            const previousMAs = [...prev].filter((i) => /^MA\d+$/.test(i));
+            const selectedSet = new Set(selected);
+
             selected.forEach((ma) => next.add(ma));
+
+            // Track individual MA state changes
+            const allMAs = new Set([...previousMAs, ...selected]);
+
+            allMAs.forEach((ma) => {
+              const wasActive = previousMAs.includes(ma);
+              const isActive = selectedSet.has(ma);
+
+              // Only emit event if state changed
+              if (wasActive !== isActive) {
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+                    .addProperties({
+                      interaction_type: 'indicator_toggled',
+                      indicator_type: ma,
+                      indicator_action: isActive ? 'on' : 'off',
+                      indicators_active: [...next],
+                      chart_type:
+                        chartType === ChartType.Candles
+                          ? 'candlestick'
+                          : 'line',
+                    })
+                    .build(),
+                );
+              }
+            });
+
             return next;
           });
         },
       }),
     );
-  }, [navigation, selectedMAs]);
+  }, [
+    navigation,
+    selectedMAs,
+    trackEvent,
+    createEventBuilder,
+    chartType,
+    activeIndicators,
+  ]);
 
   const chartHeight = BASE_CHART_HEIGHT;
 
-  const handleIndicatorToggle = useCallback((name: string) => {
-    const subPaneIndicators = ['MACD', 'RSI'];
-    setActiveIndicators((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
-        if (subPaneIndicators.includes(name)) {
-          subPaneIndicators.forEach((i) => {
-            if (i !== name) next.delete(i);
-          });
+  const handleIndicatorToggle = useCallback(
+    (name: string) => {
+      setActiveIndicators((prev) => {
+        const next = new Set(prev);
+        const wasActive = next.has(name);
+
+        if (wasActive) {
+          next.delete(name);
+        } else {
+          if ((SUB_PANE_INDICATORS as readonly string[]).includes(name)) {
+            SUB_PANE_INDICATORS.forEach((i) => {
+              if (i !== name) next.delete(i);
+            });
+          }
+          next.add(name);
         }
-        next.add(name);
-      }
-      return next;
-    });
-  }, []);
+
+        // Track immediately with the new state
+        const updatedIndicators = [...next];
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+            .addProperties({
+              interaction_type: 'indicator_toggled',
+              indicator_type: name,
+              indicator_action: wasActive ? 'off' : 'on',
+              indicators_active: updatedIndicators,
+              chart_type:
+                chartType === ChartType.Candles ? 'candlestick' : 'line',
+            })
+            .build(),
+        );
+
+        return next;
+      });
+    },
+    [trackEvent, createEventBuilder, chartType],
+  );
 
   const wsEnabled =
     isOhlcvWsEnabled &&
@@ -460,6 +525,25 @@ const PriceAdvanced = ({
     timePeriod: timeRange.toLowerCase(),
     enabled: wsEnabled,
   });
+
+  const handleInlineIntervalSelect = useCallback(
+    (interval: string) => {
+      setDisplayInterval(interval);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: 'granularity_changed',
+            chart_granularity: interval.toLowerCase(),
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
+            indicators_active: [...activeIndicators],
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, chartType, activeIndicators],
+  );
 
   // TradingView Advanced Charts Bar.time expects milliseconds
   // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
