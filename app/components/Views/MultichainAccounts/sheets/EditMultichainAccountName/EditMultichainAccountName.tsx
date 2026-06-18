@@ -79,8 +79,6 @@ export const EditMultichainAccountName = () => {
     [insets.bottom, tw],
   );
 
-  const footerStyle = useMemo(() => tw.style('mt-4 w-full px-6 py-2.5'), [tw]);
-
   const handleAccountNameChange = useCallback(() => {
     // Validate that account name is not empty
     if (!accountName || accountName.trim() === '') {
@@ -109,7 +107,7 @@ export const EditMultichainAccountName = () => {
   }, [accountName, accountGroup, navigation]);
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={containerStyle}>
+    <SafeAreaView edges={['bottom', 'left', 'right']} style={containerStyle}>
       <HeaderStandard
         includesTopInset
         title={accountGroup?.metadata?.name || 'Account Group'}
@@ -119,7 +117,7 @@ export const EditMultichainAccountName = () => {
         }}
       />
       <KeyboardAvoidingView
-        style={tw.style('flex-1')}
+        style={tw.style('flex-1  justify-between')}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Box
@@ -150,18 +148,18 @@ export const EditMultichainAccountName = () => {
           />
           {error ? <Text color={TextColor.ErrorDefault}>{error}</Text> : null}
         </Box>
+        <Box twClassName="mt-4 w-full px-6 py-2.5">
+          <Button
+            isFullWidth
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={handleAccountNameChange}
+            testID={EditAccountNameIds.SAVE_BUTTON}
+          >
+            {strings('multichain_accounts.edit_account_name.confirm_button')}
+          </Button>
+        </Box>
       </KeyboardAvoidingView>
-      <Box style={footerStyle}>
-        <Button
-          isFullWidth
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={handleAccountNameChange}
-          testID={EditAccountNameIds.SAVE_BUTTON}
-        >
-          {strings('multichain_accounts.edit_account_name.confirm_button')}
-        </Button>
-      </Box>
     </SafeAreaView>
   );
 };
