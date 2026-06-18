@@ -1,4 +1,4 @@
-# Appium Smoke Tests — Android
+e# Appium Smoke Tests — Android
 #
 # Fans out one reusable job per Appium smoke tag. Add a matching job below.
 # Invoked from ci.yml when build-android-apks succeeds (PR + main).
@@ -86,13 +86,17 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokePerps'))
       }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: appium-perps-android-smoke
       platform: android
       test_suite_tag: SmokePerps
       split_number: 1
-      total_splits: 1
+      total_splits: 2
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
