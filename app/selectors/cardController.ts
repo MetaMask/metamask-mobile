@@ -30,7 +30,7 @@ import { isEthAccount } from '../core/Multichain/utils';
 import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import { selectCardFeatureFlag } from './featureFlagController/card';
-import { selectMusdConversionBlockedCountries } from '../components/UI/Earn/selectors/featureFlags';
+import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
   isCardResidencyInBlockedRegions,
@@ -182,7 +182,7 @@ export const selectCardResidencyRegion = createSelector(
 );
 
 const selectCardResidencyBlockedRegions = (state: RootState): string[] =>
-  selectMusdConversionBlockedCountries(state);
+  selectMoneyAccountGeoBlockedCountries(state);
 
 export const selectIsCardResidencyBlocked = createSelector(
   selectCardResidencyRegion,

@@ -48,6 +48,15 @@ describe('ProfileHeader', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render a podium medal badge on the profile avatar', () => {
+    renderWithProvider(
+      <ProfileHeader profile={baseProfile} followerCount={45} />,
+    );
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+    expect(screen.queryByTestId('rank-medal-2')).toBeNull();
+    expect(screen.queryByTestId('rank-medal-3')).toBeNull();
+  });
+
   it('renders Maskicon fallback when imageUrl is falsy', () => {
     const profileNoImage = { ...baseProfile, imageUrl: '' };
     renderWithProvider(

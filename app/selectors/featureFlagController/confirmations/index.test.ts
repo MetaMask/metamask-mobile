@@ -9,27 +9,23 @@ import {
   BUFFER_SUBSEQUENT_DEFAULT,
   STX_DISABLED_DEFAULT,
   selectNonZeroUnusedApprovalsAllowList,
-  selectGasFeeTokenFlags,
-  GasFeeTokenFlags,
   selectPayQuoteConfig,
   selectMetaMaskPayFiatFlags,
   PAY_FIAT_ENABLED_TRANSACTION_TYPES,
   PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
   selectMetaMaskPayHardwareFlags,
   PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT,
-  PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
-  PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
-  PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT,
-  PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT,
+  PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
   PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
+  selectDepositLimits,
+  PAY_DEPOSIT_LIMITS_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
   selectRelayFixedSpread,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
-import { Hex } from '@metamask/utils';
 import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
@@ -212,84 +208,6 @@ describe('Non-Zero Unused Approvals Allow List', () => {
       undefinedFeatureFlagState,
     );
     expect(result).toEqual([]);
-  });
-});
-
-describe('Gas Fee Token Flags', () => {
-  const chainIdMock = '0x1' as Hex;
-
-  const mockedGasFeeTokenFlags: GasFeeTokenFlags = {
-    gasFeeTokens: {
-      [chainIdMock]: {
-        name: 'Ethereum',
-        tokens: [
-          {
-            name: 'USDC',
-            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
-          },
-          {
-            name: 'DAI',
-            address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
-          },
-        ],
-      },
-      '0x89': {
-        name: 'Polygon',
-        tokens: [{ name: 'USDC.e', address: '0xusdce' as Hex }],
-      },
-    },
-  };
-
-  const mockedStateWithGasFeeTokenFlags = {
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            confirmations_gas_fee_tokens: mockedGasFeeTokenFlags,
-          },
-          cacheTimestamp: 0,
-        },
-      },
-    },
-  };
-
-  it('returns empty gasFeeTokens when empty feature flag state', () => {
-    const result = selectGasFeeTokenFlags(mockedEmptyFlagsState);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
-  });
-
-  it('returns empty gasFeeTokens when undefined RemoteFeatureFlagController state', () => {
-    const result = selectGasFeeTokenFlags(mockedUndefinedFlagsState);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
-  });
-
-  it('returns gas fee tokens from feature flag', () => {
-    const result = selectGasFeeTokenFlags(
-      mockedStateWithGasFeeTokenFlags as never,
-    );
-
-    expect(result).toEqual(mockedGasFeeTokenFlags);
-  });
-
-  it('returns empty gasFeeTokens when confirmations_gas_fee_tokens exists but gasFeeTokens is undefined', () => {
-    const stateWithUndefinedGasFeeTokens = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              confirmations_gas_fee_tokens: {},
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
   });
 });
 
@@ -590,123 +508,35 @@ describe('selectMetaMaskPayFlags extended flags', () => {
     );
   });
 
-  it('returns default enablePerpsMoneyAccountTransactions when flag is absent', () => {
+  it('returns default enableMoneyAccountTransactions when flag is absent', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
 
     expect(
-      selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
-    ).toEqual(PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+      selectMetaMaskPayFlags(state).enableMoneyAccountTransactions,
+    ).toEqual(PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
   });
 
-  it('returns enablePerpsMoneyAccountTransactions from flag value', () => {
-    const state = cloneDeep(mockedEmptyFlagsState);
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-      {
-        confirmations_pay_extended: {
-          enablePerpsMoneyAccountTransactions: true,
-        },
-      };
-
-    expect(
-      selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
-    ).toBe(true);
-  });
-
-  it('returns default enablePredictMoneyAccountTransactions when flag is absent', () => {
-    const state = cloneDeep(mockedEmptyFlagsState);
-
-    expect(
-      selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
-    ).toEqual(PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
-  });
-
-  it('returns enablePredictMoneyAccountTransactions from flag value', () => {
+  it('returns enableMoneyAccountTransactions from flag value', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
         confirmations_pay_extended: {
-          enablePredictMoneyAccountTransactions: true,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
         },
       };
 
     expect(
-      selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
-    ).toBe(true);
-  });
-
-  describe('enableMoneyHomePagePerpsTransaction', () => {
-    it('returns default (false) when remote flag is absent', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-
-      expect(
-        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
-      ).toEqual(PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
-    });
-
-    it('returns true when remote flag is true', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePerpsMoneyAccountTransactions: true,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
-      ).toBe(true);
-    });
-
-    it('returns false when remote flag is false', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePerpsMoneyAccountTransactions: false,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
-      ).toBe(false);
-    });
-  });
-
-  describe('enableMoneyHomePagePredictTransaction', () => {
-    it('returns default (false) when remote flag is absent', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-
-      expect(
-        selectMetaMaskPayFlags(state).enableMoneyHomePagePredictTransaction,
-      ).toEqual(PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT);
-    });
-
-    it('returns true when remote flag is true', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePredictMoneyAccountTransactions: true,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enableMoneyHomePagePredictTransaction,
-      ).toBe(true);
-    });
-
-    it('returns false when remote flag is false', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePredictMoneyAccountTransactions: false,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enableMoneyHomePagePredictTransaction,
-      ).toBe(false);
+      selectMetaMaskPayFlags(state).enableMoneyAccountTransactions,
+    ).toEqual({
+      perpsDeposit: true,
+      perpsWithdraw: true,
+      predictDeposit: true,
+      predictWithdraw: true,
     });
   });
 
@@ -731,6 +561,50 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toBe(
         'money-account',
       );
+    });
+  });
+
+  describe('selectDepositLimits', () => {
+    it('returns default empty map when remote flag is absent', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual(
+        PAY_DEPOSIT_LIMITS_DEFAULT,
+      );
+    });
+
+    it('returns all deposit limits from flag value', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            depositLimit: {
+              moneyAccountDeposit: 100000,
+            },
+          },
+        };
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+      });
+    });
+
+    it('returns multiple deposit type limits', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            depositLimit: {
+              moneyAccountDeposit: 100000,
+              perpsDeposit: 25000,
+            },
+          },
+        };
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+        perpsDeposit: 25000,
+      });
     });
   });
 });
