@@ -1553,8 +1553,10 @@ class AuthenticationService {
    * version tracking and migration logic. Called before adding new secret data
    * to ensure data type consistency and correct ordering.
    *
-   * Migration failures are logged and reported but do not propagate, so the
-   * caller's primary operation (e.g. import SRP / private key) can continue.
+   * Migration failures are reported via analytics and Sentry but do not
+   * propagate, so the caller's primary operation (e.g. import SRP / private
+   * key) can continue. Legacy secrets may remain unmigrated until a later
+   * successful run; new secrets are still written with the correct dataType.
    */
   runSeedlessOnboardingMigrations = async (): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
@@ -1621,11 +1623,6 @@ class AuthenticationService {
           sentryError,
         );
       }
-
-      Logger.error(
-        migrationError,
-        'Seedless onboarding migration failed; continuing primary operation',
-      );
     }
   };
 

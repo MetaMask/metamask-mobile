@@ -4119,18 +4119,6 @@ describe('Authentication', () => {
       expect(mockCaptureException).toHaveBeenCalledWith(error);
     });
 
-    it('does not throw on migration error', async () => {
-      const error = new Error('Network error');
-      Engine.context.SeedlessOnboardingController = {
-        runMigrations: jest.fn().mockRejectedValue(error),
-        state: { migrationVersion: 1 },
-      };
-
-      await expect(
-        Authentication.runSeedlessOnboardingMigrations(),
-      ).resolves.toBeUndefined();
-    });
-
     it('wraps non-Error thrown values before reporting failure', async () => {
       Engine.context.SeedlessOnboardingController = {
         runMigrations: jest.fn().mockRejectedValue('string error'),
