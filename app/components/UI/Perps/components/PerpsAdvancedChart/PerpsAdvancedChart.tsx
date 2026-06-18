@@ -351,6 +351,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         visibleCandleCount={visibleCandleCount}
         tpslLines={tpslLines}
         onNeedMoreHistory={fallbackFetchMoreHistory}
+        onOhlcDataChange={onCrosshairDataChange}
         showOverlay={false}
         coloredVolume
       />

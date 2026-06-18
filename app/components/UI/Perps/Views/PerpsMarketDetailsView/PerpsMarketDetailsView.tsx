@@ -1307,7 +1307,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
               {isAdvancedChartEnabled && market?.symbol ? (
                 <PerpsAdvancedChart
-                  key={`${market.symbol}-${selectedCandlePeriod}-${advancedChartResetKey}`}
+                  key={advancedChartResetKey}
                   symbol={market.symbol}
                   interval={selectedCandlePeriod}
                   visibleCandleCount={

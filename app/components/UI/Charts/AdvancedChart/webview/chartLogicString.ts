@@ -7,7 +7,8 @@
  */
 
 // eslint-disable-next-line import-x/no-default-export
-export default `/**
+export default `/* istanbul ignore file -- Browser-only TradingView script covered via AdvancedChartTemplate tests. */
+/**
  * TradingView Chart WebView Logic
  *
  * Generic charting logic for TradingView Advanced Charts.

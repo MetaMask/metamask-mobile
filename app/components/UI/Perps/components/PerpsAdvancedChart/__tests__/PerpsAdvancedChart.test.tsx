@@ -219,7 +219,8 @@ describe('PerpsAdvancedChart', () => {
 
   it('renders Lightweight fallback after AdvancedChart reports an error', () => {
     const onError = jest.fn();
-    renderChart({ fallbackCandleData: null, onError });
+    const onCrosshairDataChange = jest.fn();
+    renderChart({ fallbackCandleData: null, onError, onCrosshairDataChange });
 
     act(() => {
       advancedChartProps().onError?.('chart failed');
@@ -231,6 +232,7 @@ describe('PerpsAdvancedChart', () => {
         candleData: null,
         height: 240,
         visibleCandleCount: 100,
+        onOhlcDataChange: onCrosshairDataChange,
         showOverlay: false,
         coloredVolume: true,
       }),
