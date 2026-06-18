@@ -734,9 +734,12 @@ function handleSetMAVisibility(payload) {
   var visible = payload.visible || [];
   var chart = window.chartWidget.activeChart();
 
-  var visibleSet = {};
+  var visibleSet = Object.create(null);
   for (var i = 0; i < visible.length; i++) {
-    visibleSet[visible[i]] = true;
+    var visibleName = visible[i];
+    if (isOwnStringKey(visibleName) && MA_LENGTHS[visibleName]) {
+      visibleSet[visibleName] = true;
+    }
   }
 
   window.maStudies.forEach(function (studyId, name) {
@@ -754,8 +757,8 @@ function handleSetMAVisibility(payload) {
 
   for (var j = 0; j < visible.length; j++) {
     var name = visible[j];
+    if (!isOwnStringKey(name) || !MA_LENGTHS[name]) continue;
     if (window.maStudies.has(name)) continue;
-    if (!MA_LENGTHS[name]) continue;
     (function (maName) {
       var p = chart
         .createStudy(
