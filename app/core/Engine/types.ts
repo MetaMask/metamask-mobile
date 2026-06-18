@@ -953,7 +953,6 @@ export type MessengerClientsToInitialize =
   | 'AddressBookController'
   | 'AssetsContractController'
   | 'AssetsController'
-  | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -986,7 +985,6 @@ export type MessengerClientsToInitialize =
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
-  | 'AccountsController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
@@ -996,7 +994,6 @@ export type MessengerClientsToInitialize =
   | 'NftController'
   | 'NftDetectionController'
   | 'PhishingController'
-  | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
