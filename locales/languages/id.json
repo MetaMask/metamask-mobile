@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Sedang live",
       "categories_placeholder": "Kategori",
-      "popular_today_placeholder": "Populer saat ini",
       "trending_placeholder": "Sedang tren"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Poin dari referensi",
       "referrals_label": "Referensi VIP",
       "tier_benefits_title": "Manfaat tingkatan",
-      "splash_title": "SELAMAT DATANG\nDI GOLD\nFOX VIP",
+      "splash_title": "SELAMAT DATANG\nDI GOLD FOX\nCOLLECTIVE",
       "splash_description": "Dapatkan keuntungan eksklusif, fitur-fitur awal, dan reward pilihan. Hanya dengan undangan.",
       "splash_accept_invite": "Terima undangan",
       "splash_not_now": "Tidak sekarang",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Tingkatan",
       "tier_thresholds": "{{points}} poin",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "SELAMAT DATANG\nDI GOLD\nFOX VIP",
-      "referee_splash_description": "Dapatkan keuntungan eksklusif, fitur-fitur awal, dan reward pilihan. Hanya dengan undangan.",
       "referee_splash_continue": "Lanjutkan",
-      "referee_splash_not_now": "Tidak sekarang",
       "referee_referred_by": "Direferensikan oleh {{code}}",
       "referee_page_title": "Pilot VIP",
       "referee_stats_title": "Statistik",
       "referee_period_last_30d": "30 hari terakhir",
-      "referee_points_label": "Poin",
       "referee_swaps_volume_label": "Volume swap",
       "referee_perps_volume_label": "Volume perp",
+      "referee_points_to_label": "Poin untuk {{code}}",
       "referee_error_title": "Kami tidak dapat memuat detail perujuk VIP Anda",
       "referee_error_description": "Periksa koneksi Anda dan coba lagi.",
       "last_updated": "Terakhir diperbarui: {{time}}"

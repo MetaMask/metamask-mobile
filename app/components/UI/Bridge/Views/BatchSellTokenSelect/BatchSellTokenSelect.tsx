@@ -29,8 +29,11 @@ import {
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
+  formatChainIdToHex,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -44,6 +47,13 @@ import {
   setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../../../selectors/multichainNetworkController';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { BridgeToken } from '../../types';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize as ButtonToggleSize } from '../../../../../component-library/components/Buttons/Button';
@@ -61,6 +71,7 @@ import { BatchSellEmptyState } from './BatchSellEmptyState';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useBatchSellTokens } from './useBatchSellTokens';
+import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
@@ -112,6 +123,26 @@ export function BatchSellTokenSelect() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
+  const {
+    chainId: selectedEvmChainId,
+    domainIsConnectedDapp,
+    networkName: selectedEvmNetworkName,
+  } = useNetworkInfo();
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
+    domainIsConnectedDapp,
+    selectedChainId: selectedEvmChainId,
+    selectedNetworkName: selectedEvmNetworkName,
+  });
+  const currentChainId = isEvmNetworkSelected
+    ? selectedEvmChainId
+    : selectedNonEvmNetworkChainId;
   const batchSellTokens = useBatchSellTokens();
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
@@ -175,6 +206,10 @@ export function BatchSellTokenSelect() {
   }, [selectedChainId, sortedEligibleChains]);
 
   const activeChainId = selectedChainId ?? sortedEligibleChains[0]?.chainId;
+
+  // Fetch STX liveness for the active batch sell source chain
+  useRefreshSmartTransactionsLiveness(activeChainId);
+
   const destinationStablecoins = useSelector((state: RootState) =>
     selectBatchSellDestStablecoins(state, activeChainId),
   );
@@ -286,6 +321,26 @@ export function BatchSellTokenSelect() {
       tokenSortDirection,
     );
 
+    // Batch Sell picks a source chain in this screen without updating the wallet's
+    // active network. Switch now so STX/gas checks and submit use the source chain
+    // (same pattern as useInitialSourceToken on Swaps entry).
+    if (orderedSelectedTokens[0]?.chainId) {
+      const tokenChainId = orderedSelectedTokens[0].chainId;
+      const tokenCaipChainId = formatChainIdToCaip(tokenChainId);
+      const currentCaipChainId = formatChainIdToCaip(currentChainId);
+
+      if (tokenCaipChainId !== currentCaipChainId) {
+        if (isNonEvmChainId(tokenCaipChainId)) {
+          onNonEvmNetworkChange(tokenCaipChainId);
+        } else {
+          const hexChainId = formatChainIdToHex(tokenCaipChainId);
+          onSetRpcTarget(
+            evmNetworkConfigurations[hexChainId] as NetworkConfiguration,
+          );
+        }
+      }
+    }
+
     dispatch(setBatchSellSourceTokens(orderedSelectedTokens));
     dispatch(
       setBatchSellSourceTokenAmounts(
@@ -307,9 +362,13 @@ export function BatchSellTokenSelect() {
     );
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
   }, [
+    currentChainId,
     destinationStablecoins,
     dispatch,
+    evmNetworkConfigurations,
     navigation,
+    onNonEvmNetworkChange,
+    onSetRpcTarget,
     selectedTokens,
     tokenSortDirection,
   ]);

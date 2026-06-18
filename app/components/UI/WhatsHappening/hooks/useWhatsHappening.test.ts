@@ -1,6 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useWhatsHappening } from './useWhatsHappening';
+import {
+  isWhatsHappeningSectionVisible,
+  useWhatsHappening,
+} from './useWhatsHappening';
 
 const mockFetchMarketOverview = jest.fn();
 
@@ -198,5 +201,59 @@ describe('useWhatsHappening', () => {
 
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBeNull();
+  });
+
+  it('does not fetch when enabled option is false', async () => {
+    const { result } = renderHook(() =>
+      useWhatsHappening(5, { enabled: false }),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockFetchMarketOverview).not.toHaveBeenCalled();
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.error).toBeNull();
+  });
+});
+
+describe('isWhatsHappeningSectionVisible', () => {
+  it('returns true while loading', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: true,
+        items: [],
+        error: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns true when items are available', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: false,
+        items: [{ id: 'trend-0' } as never],
+        error: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns true when an error is present', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: false,
+        items: [],
+        error: 'Network error',
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for an empty loaded feed without error', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: false,
+        items: [],
+        error: null,
+      }),
+    ).toBe(false);
   });
 });
