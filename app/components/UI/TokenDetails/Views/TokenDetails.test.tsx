@@ -244,11 +244,17 @@ jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
   selectPriceAlertsEnabled: jest.fn(() => false),
 }));
 
-const mockUseIsPriceAlertsChainSupported = jest.fn(() => true);
+const mockUseIsPriceAlertsChainSupported = jest.fn<
+  boolean,
+  [string | null | undefined, { enabled?: boolean }?]
+>(() => true);
 jest.mock(
   '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported',
   () => ({
-    useIsPriceAlertsChainSupported: mockUseIsPriceAlertsChainSupported,
+    useIsPriceAlertsChainSupported: (
+      assetId: string | null | undefined,
+      options?: { enabled?: boolean },
+    ) => mockUseIsPriceAlertsChainSupported(assetId, options),
   }),
 );
 
