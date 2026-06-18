@@ -31,6 +31,11 @@ const styles = StyleSheet.create({
   sourceIconsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  swappedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     paddingVertical: 4,
   },
   stackedSourceIcon: {
@@ -124,23 +129,34 @@ export function BatchSell7702TransactionAssets({
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        style={styles.sourceIconsRow}
+        style={styles.swappedRow}
       >
-        {sourceTokens.map(({ token, chainId }, index) => (
-          <Box
-            key={`${token.address}-${index}`}
-            style={[
-              index === 0 ? undefined : styles.stackedSourceIcon,
-              { zIndex: index },
-            ]}
-          >
-            <TransactionTokenIcon
-              token={token}
-              chainId={chainId}
-              showNetworkBadge={false}
-            />
-          </Box>
-        ))}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          style={styles.sourceIconsRow}
+        >
+          {sourceTokens.map(({ token, chainId }, index) => (
+            <Box
+              key={`${token.address}-${index}`}
+              style={[
+                index === 0 ? undefined : styles.stackedSourceIcon,
+                { zIndex: index },
+              ]}
+            >
+              <TransactionTokenIcon
+                token={token}
+                chainId={chainId}
+                showNetworkBadge={false}
+              />
+            </Box>
+          ))}
+        </Box>
+        <Text variant={TextVariant.BodyLGMedium}>
+          {strings('bridge.batch_sell_token_count', {
+            tokenCount: sourceTokens.length,
+          })}
+        </Text>
       </Box>
       <Text
         variant={TextVariant.BodyMDMedium}

@@ -117,6 +117,12 @@ describe('BatchSell7702TransactionAssets', () => {
     expect(getByText('+8.00000 USDC')).toBeOnTheScreen();
   });
 
+  it('renders the number of source tokens swapped', () => {
+    const { getByText } = renderComponent(createBatchSellHistoryItems());
+
+    expect(getByText('2 tokens')).toBeOnTheScreen();
+  });
+
   it('renders a circular token avatar for each source and destination token', () => {
     const { getByTestId } = renderComponent(createBatchSellHistoryItems());
 
