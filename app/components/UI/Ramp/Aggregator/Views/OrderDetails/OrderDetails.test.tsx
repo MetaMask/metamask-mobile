@@ -273,12 +273,7 @@ describe('OrderDetails', () => {
       ...mockOrder,
       orderType: OrderOrderTypeEnum.Sell,
       state: FIAT_ORDER_STATES.FAILED,
-      data: {
-        ...mockOrder.data,
-        provider: {
-          name: 'Transak',
-        },
-      },
+      provider: FIAT_ORDER_PROVIDERS.TRANSAK,
     };
 
     render(OrderDetails, [failedSellOrder]);
