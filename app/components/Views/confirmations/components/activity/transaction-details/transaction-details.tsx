@@ -20,8 +20,7 @@ import {
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { strings } from '../../../../../../../locales/i18n';
-import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
-import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
+import { TransactionDetailsFeeSection } from '../transaction-details-fee-section';
 import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
@@ -75,8 +74,7 @@ export function TransactionDetails() {
             <TransactionDetailsToRow />
             <TransactionDetailsFiatOrderIdRow />
             <TransactionDetailsPaidWithRow />
-            <TransactionDetailsNetworkFeeRow />
-            <TransactionDetailsBridgeFeeRow />
+            <TransactionDetailsFeeSection />
             <TransactionDetailsTotalRow />
             {showSummarySection && (
               <>
