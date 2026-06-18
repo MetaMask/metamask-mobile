@@ -40,6 +40,21 @@ export const selectMoneyHubEnabledFlag = createSelector(
 );
 
 /**
+ * Kill-switch for the first-time deposit Rive animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyFirstTimeDepositAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local =
+      process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
  * Selects the blocked payment tokens for Money surfaces from remote config or local fallback.
  * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
  *

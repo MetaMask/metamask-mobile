@@ -127,6 +127,7 @@ import {
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
+import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
@@ -1220,6 +1221,15 @@ const MainNavigator = () => {
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
             options={{ headerShown: false, ...fadeNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.FIRST_TIME_DEPOSIT}
+            component={MoneyFirstTimeDepositView}
+            options={{
+              ...clearNativeStackNavigatorOptions,
+              ...transparentModalScreenOptions,
+              gestureEnabled: false,
+            }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.POTENTIAL_EARNINGS}

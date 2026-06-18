@@ -135,11 +135,13 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'rewards.vip.referee_referred_by') {
       return `Referred by ${params?.code ?? ''}`;
     }
+    if (key === 'rewards.vip.referee_points_to_label') {
+      return `Points to ${params?.code ?? ''}`;
+    }
     const translations: Record<string, string> = {
       'rewards.vip.referee_page_title': 'VIP Pilot',
       'rewards.vip.referee_stats_title': 'Stats',
       'rewards.vip.referee_period_last_30d': 'Last 30d',
-      'rewards.vip.referee_points_label': 'Points',
       'rewards.vip.referee_swaps_volume_label': 'Swaps volume',
       'rewards.vip.referee_perps_volume_label': 'Perps volume',
       'rewards.vip.referee_error_title': 'Error title',
@@ -280,19 +282,55 @@ describe('RewardsVipRefereeView', () => {
     ).toBeOnTheScreen();
     expect(getByText('VIP Pilot')).toBeOnTheScreen();
     expect(getByText('Referred by TESTCODE')).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS),
-    ).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
+    expect(getByText('Perps volume')).toBeOnTheScreen();
+    expect(getByText('Points to TESTCODE')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME),
     ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO),
+    ).toBeOnTheScreen();
     expect(mockUseTrack).toHaveBeenCalledWith({
       page_type: 'vip_referee',
       enabled: true,
     });
+  });
+
+  it('displays swaps and perps volume in separate stat cells', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME),
+    ).toHaveTextContent(/\$1,000/);
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME),
+    ).toHaveTextContent(/\$2,000/);
+  });
+
+  it('displays dashboard points in the points-to stat cell', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO),
+    ).toHaveTextContent(/1,234/);
+  });
+
+  it('renders an empty points-to label when referredByCode is missing', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: { ...defaultDashboard, referredByCode: null },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByText } = render(<RewardsVipRefereeView />);
+
+    expect(getByText('Points to ')).toBeOnTheScreen();
   });
 
   it('renders the "Last updated" row when computedAt is present', () => {
@@ -405,7 +443,7 @@ describe('RewardsVipRefereeView', () => {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: expect.stringContaining(
-          `priority=vip&account=${encodeURIComponent(mockAccountAddress)}`,
+          `priority=vip&address=${encodeURIComponent(mockAccountAddress)}`,
         ),
         title: 'Contact support',
       },
