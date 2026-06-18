@@ -1,8 +1,13 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
 import type { Position } from '@metamask/social-controllers';
+
+const colorOf = (node: ReturnType<typeof screen.getByText>) =>
+  (StyleSheet.flatten(node.props.style) as { color?: string } | undefined)
+    ?.color;
 
 jest.mock('../../components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -80,6 +85,14 @@ describe('PositionRow', () => {
     expect(screen.queryByText('+$1,059.96')).toBeNull();
   });
 
+  it('colors the percent to match the up triangle for a winning position', () => {
+    renderWithProvider(<PositionRow position={basePosition} />);
+    const triangleColor = colorOf(screen.getByText('▲'));
+    const percentColor = colorOf(screen.getByText('182%'));
+    expect(percentColor).toBeDefined();
+    expect(percentColor).toBe(triangleColor);
+  });
+
   it('renders a down triangle with the unsigned percent for a losing open position', () => {
     const position = {
       ...basePosition,
@@ -92,6 +105,16 @@ describe('PositionRow', () => {
     expect(screen.getByText('25%')).toBeOnTheScreen();
     expect(screen.queryByText('-25%')).toBeNull();
     expect(screen.queryByText('-$250.00 (-25%)')).toBeNull();
+  });
+
+  it('colors the percent to match the down triangle for a losing position', () => {
+    const position = { ...basePosition, pnlValueUsd: -250, pnlPercent: -25 };
+
+    renderWithProvider(<PositionRow position={position} />);
+    const triangleColor = colorOf(screen.getByText('▼'));
+    const percentColor = colorOf(screen.getByText('25%'));
+    expect(percentColor).toBeDefined();
+    expect(percentColor).toBe(triangleColor);
   });
 
   it('renders the percent even when pnlValueUsd is missing', () => {
@@ -359,7 +382,7 @@ describe('PositionRow', () => {
       expect(screen.queryByText('1.50B ETH')).not.toBeOnTheScreen();
     });
 
-    it('renders an up triangle with a neutral, unsigned percent for a winning closed perp (matching spot)', () => {
+    it('renders an up triangle with a colored, unsigned percent for a winning closed perp (matching spot)', () => {
       const closedPerp = {
         ...perpPosition,
         currentValueUSD: 0,
@@ -376,7 +399,7 @@ describe('PositionRow', () => {
       expect(screen.queryByText('+25%')).toBeNull();
     });
 
-    it('renders a down triangle with a neutral, unsigned percent for a losing closed perp', () => {
+    it('renders a down triangle with a colored, unsigned percent for a losing closed perp', () => {
       const closedPerp = {
         ...perpPosition,
         currentValueUSD: 0,
