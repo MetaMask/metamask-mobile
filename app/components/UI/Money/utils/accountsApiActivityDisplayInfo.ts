@@ -6,12 +6,6 @@ import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDi
 import { moneyFormatFiat } from './moneyFormatFiat';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
 
-/**
- * Derive the display row for an Accounts-API activity. Card spends are outflows
- * (`-`, default colour); cashback credits are inflows (`+`, success colour). Both
- * settle before they surface, so they're always `confirmed`, and merchant /
- * rewarder context isn't on-chain yet, so there's no subtitle.
- */
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
   opts: { currentCurrency: string; usdToCurrentCurrencyRate?: number },
@@ -33,12 +27,10 @@ export function accountsApiActivityDisplayInfo(
       : '';
 
   return {
+    description: strings('money.transaction.card'),
     label: strings(
-      isIncoming
-        ? 'money.transaction.cashback'
-        : 'money.transaction.card_transaction',
+      isIncoming ? 'money.transaction.musd_back' : 'money.transaction.purchase',
     ),
-    description: undefined,
     primaryAmount,
     fiatAmount,
     isIncoming,

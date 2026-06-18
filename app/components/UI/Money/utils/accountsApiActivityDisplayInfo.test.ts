@@ -38,7 +38,8 @@ describe('accountsApiActivityDisplayInfo', () => {
 
     expect(info.isIncoming).toBe(false);
     expect(info.icon).toBe(IconName.Card);
-    expect(info.description).toBeUndefined();
+    expect(info.label).toBe('Purchase');
+    expect(info.description).toBe('Card');
     expect(info.primaryAmount).toBe('-5.38 mUSD');
     expect(info.fiatAmount).toContain('5.38');
     expect(info.fiatAmount.startsWith('-')).toBe(true);
@@ -52,6 +53,8 @@ describe('accountsApiActivityDisplayInfo', () => {
 
     expect(info.isIncoming).toBe(true);
     expect(info.icon).toBe(IconName.Card);
+    expect(info.label).toBe('mUSD back');
+    expect(info.description).toBe('Card');
     expect(info.primaryAmount).toBe('+0.30 mUSD');
     expect(info.fiatAmount.startsWith('+')).toBe(true);
   });
