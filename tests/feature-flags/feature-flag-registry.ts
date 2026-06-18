@@ -3249,27 +3249,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyPaymentTokensBlocklist: {
-    name: 'earnMoneyPaymentTokensBlocklist',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      '0x1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDT', 'aDAI'],
-      '0x2105': ['USDC'],
-      '0x38': ['USDC', 'USDT'],
-      '0xa4b1': ['USDC'],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMoneyTokensSortMode: {
-    name: 'earnMoneyTokensSortMode',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: 'noFeePriority',
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMusdBalanceChainIds: {
     name: 'earnMusdBalanceChainIds',
     type: FeatureFlagType.Remote,
@@ -3635,6 +3614,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableActivityDetails: {
+    name: 'moneyEnableActivityDetails',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableActivityDetailsBlockexplorerLink: {
+    name: 'moneyEnableActivityDetailsBlockexplorerLink',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5397,6 +5392,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   predictPortfolio: {
     name: 'predictPortfolio',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.81.0',
+      enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictSportCardLivePrices: {
+    name: 'predictSportCardLivePrices',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {

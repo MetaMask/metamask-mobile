@@ -6,6 +6,7 @@ export interface MoneyMetaMaskCardModeInput {
   isCardAuthenticated: boolean;
   isCardVerified: boolean;
   isResidencyBlocked: boolean;
+  isMoneyAccountVisible: boolean;
   hasMoneyAccountBaseRequirements: boolean;
   hasMoneyAccountRequirements: boolean;
 }
@@ -16,6 +17,7 @@ export const deriveMoneyMetaMaskCardMode = ({
   isCardAuthenticated,
   isCardVerified,
   isResidencyBlocked,
+  isMoneyAccountVisible,
   hasMoneyAccountBaseRequirements,
   hasMoneyAccountRequirements,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
@@ -36,8 +38,8 @@ export const deriveMoneyMetaMaskCardMode = ({
   }
 
   // Authenticated but identity not yet verified -> verification in progress.
-  if (isCardAuthenticated) return 'verifying';
+  if (isCardAuthenticated) return isMoneyAccountVisible ? 'verifying' : null;
 
   // Brand-new user -> upsell.
-  return 'upsell';
+  return isMoneyAccountVisible ? 'upsell' : null;
 };

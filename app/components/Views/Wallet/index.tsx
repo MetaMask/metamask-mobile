@@ -1155,10 +1155,12 @@ const Wallet = ({
                         }
                         hitSlop={touchAreaSlop}
                       />
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
+                      {!isMoneyAccountVisible && (
+                        <CardButton
+                          onPress={handleCardPress}
+                          touchAreaSlop={touchAreaSlop}
+                        />
+                      )}
                       {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}
