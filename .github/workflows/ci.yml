@@ -1201,39 +1201,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  appium-smoke-gate:
-    name: 'Appium Smoke Gate'
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' }}
-    needs: [smart-e2e-selection]
-    outputs:
-      enabled: ${{ steps.gate.outputs.enabled }}
-    steps:
-      - name: Checkout (Namespace)
-        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
-      - name: Checkout
-        uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        with:
-          sparse-checkout: |
-            scripts/e2e/appium-smoke-tags.mjs
-
-      - name: Evaluate whether Appium smoke should run
-        id: gate
-        env:
-          SELECTED_TAGS: >-
-            ${{
-              (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
-               needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-              '["ALL"]'
-            }}
-        run: |
-          enabled=$(node scripts/e2e/appium-smoke-tags.mjs "$SELECTED_TAGS")
-          echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
-
-  # Android Appium smoke (PR CI). iOS: run-appium-smoke-tests-ios-scheduled.yml.
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
     # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
