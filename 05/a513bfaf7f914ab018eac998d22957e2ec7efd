@@ -1,0 +1,34 @@
+e2e/llm-workflow/ios/metro-watch-attach.ts
+  s_cbdc65a715a2d5::t_0c3dff92718e36 108
+  s_cbdc65a715a2d5::t_da2b7db5257df8 112-113,121-122
+  s_cbdc65a715a2d5::t_6a854ac59509e5 23
+  s_cbdc65a715a2d5::t_c1308312dc1129 52
+  s_cbdc65a715a2d5::t_8abf0672ad41a8 79-80,83,86,89,95
+e2e/llm-workflow/__tests__/metro-watch-attach.test.ts
+  s_cbdc65a715a2d5::t_d475529413713e 70
+  s_413c901011a7fe::t_3358b6901129d1 80-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "05a513bfaf7f914ab018eac998d22957e2ec7efd",
+  "prompts": {},
+  "sessions": {
+    "s_413c901011a7fe": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_124826e78ffeRRkaPIrDG8pdiQ",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_cbdc65a715a2d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1259fbff3ffeRsrBqNR840E8KL",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
