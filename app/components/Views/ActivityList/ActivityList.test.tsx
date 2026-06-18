@@ -49,11 +49,11 @@ jest.mock(
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn((state) => state.evmConfigs),
   selectProviderType: jest.fn((state) => state.providerType),
+  selectAllConfiguredEvmChainIds: jest.fn((state) => state.enabledEvm),
 }));
 
-jest.mock('../../../selectors/networkEnablementController', () => ({
-  selectEVMEnabledNetworks: jest.fn((state) => state.enabledEvm),
-  selectNonEVMEnabledNetworks: jest.fn((state) => state.enabledNonEvm),
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  selectAllConfiguredNonEvmChainIds: jest.fn((state) => state.enabledNonEvm),
 }));
 
 jest.mock('../../../selectors/transactionController', () => ({
