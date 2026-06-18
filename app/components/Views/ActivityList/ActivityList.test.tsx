@@ -748,6 +748,31 @@ describe('ActivityList', () => {
     ).toBeNull();
   });
 
+  it('shows the Transactions empty state once EVM settles, even while Perps is still loading', () => {
+    // Perps flag on and its source still loading...
+    selectorValues.perpsEnabled = true;
+    mockPerpsSourceState = { items: [], isLoading: true, error: null };
+    // ...but the EVM query has settled with no rows, and we're on Transactions.
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+
+    // Perps loading is irrelevant to the Transactions filter, so the empty
+    // state shows rather than a spinner blocked on the domain fetch.
+    expect(screen.getByTestId('activity-empty-state')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).toBeNull();
+  });
+
   it('does not render perps items when the perps flag is disabled', () => {
     selectorValues.perpsEnabled = false;
     mockPerpsSourceState = {
