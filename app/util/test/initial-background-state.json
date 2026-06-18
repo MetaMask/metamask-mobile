@@ -818,7 +818,7 @@
     "countries": {
       "data": [],
       "selected": null,
-      "isLoading": false,
+      "isLoading": true,
       "error": null
     },
     "providerAutoSelected": false,
@@ -863,7 +863,15 @@
         }
       }
     },
-    "requests": {},
+    "requests": {
+      "getCountries:[]": {
+        "data": null,
+        "error": null,
+        "lastFetchedAt": 123,
+        "status": "loading",
+        "timestamp": 123
+      }
+    },
     "orders": [],
     "providerAutoSelected": false
   },
