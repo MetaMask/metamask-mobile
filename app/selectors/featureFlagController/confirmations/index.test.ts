@@ -23,8 +23,8 @@ import {
   PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT,
   PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
-  selectDepositLimit,
-  PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT,
+  selectDepositLimits,
+  PAY_DEPOSIT_LIMITS_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '.';
@@ -735,19 +735,16 @@ describe('selectMetaMaskPayFlags extended flags', () => {
     });
   });
 
-  describe('selectDepositLimit', () => {
-    it('returns default (undefined) when remote flag is absent', () => {
+  describe('selectDepositLimits', () => {
+    it('returns default empty map when remote flag is absent', () => {
       const state = cloneDeep(mockedEmptyFlagsState);
 
-      expect(
-        selectDepositLimit(
-          state as unknown as RootState,
-          'moneyAccountDeposit',
-        ),
-      ).toEqual(PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT);
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual(
+        PAY_DEPOSIT_LIMITS_DEFAULT,
+      );
     });
 
-    it('returns limit from flag value for moneyAccountDeposit', () => {
+    it('returns all deposit limits from flag value', () => {
       const state = cloneDeep(mockedEmptyFlagsState);
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
@@ -758,34 +755,12 @@ describe('selectMetaMaskPayFlags extended flags', () => {
           },
         };
 
-      expect(
-        selectDepositLimit(
-          state as unknown as RootState,
-          'moneyAccountDeposit',
-        ),
-      ).toBe(100000);
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+      });
     });
 
-    it('returns custom limit from flag value', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            depositLimit: {
-              moneyAccountDeposit: 50000,
-            },
-          },
-        };
-
-      expect(
-        selectDepositLimit(
-          state as unknown as RootState,
-          'moneyAccountDeposit',
-        ),
-      ).toBe(50000);
-    });
-
-    it('returns value for a different deposit type key', () => {
+    it('returns multiple deposit type limits', () => {
       const state = cloneDeep(mockedEmptyFlagsState);
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
@@ -797,9 +772,10 @@ describe('selectMetaMaskPayFlags extended flags', () => {
           },
         };
 
-      expect(
-        selectDepositLimit(state as unknown as RootState, 'perpsDeposit'),
-      ).toBe(25000);
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+        perpsDeposit: 25000,
+      });
     });
   });
 });

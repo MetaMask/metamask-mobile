@@ -124,7 +124,7 @@
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
-    "money_account_deposit_limit": {
+    "deposit_limit": {
       "title": "Max deposit: {{amount}}"
     },
     "headless_buy_error": {

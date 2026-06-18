@@ -10,8 +10,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
-import { selectDepositLimit } from '../../../../../selectors/featureFlagController/confirmations';
-import { RootState } from '../../../../../reducers';
+import { selectDepositLimits } from '../../../../../selectors/featureFlagController/confirmations';
 
 function formatUsdAmount(value: number): string {
   return `$${value.toLocaleString('en-US')}`;
@@ -23,19 +22,16 @@ export function useTransactionDepositLimitAlert({
   pendingAmount?: string;
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const depositLimits = useSelector(selectDepositLimits);
 
-  const depositType = useMemo(() => {
-    if (
-      hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
-    ) {
-      return TransactionType.moneyAccountDeposit;
+  const depositLimit = useMemo(() => {
+    for (const [type, limit] of Object.entries(depositLimits)) {
+      if (hasTransactionType(transactionMeta, [type as TransactionType])) {
+        return 0;
+      }
     }
     return undefined;
-  }, [transactionMeta]);
-
-  const depositLimit = useSelector((state: RootState) =>
-    depositType ? selectDepositLimit(state, depositType) : undefined,
-  );
+  }, [transactionMeta, depositLimits]);
 
   const exceedsLimit = useMemo(() => {
     if (depositLimit === undefined) {
@@ -51,13 +47,13 @@ export function useTransactionDepositLimitAlert({
       return [];
     }
 
-    const title = strings('alert_system.money_account_deposit_limit.title', {
+    const title = strings('alert_system.deposit_limit.title', {
       amount: formatUsdAmount(depositLimit),
     });
 
     return [
       {
-        key: AlertKeys.MoneyAccountDepositLimit,
+        key: AlertKeys.DepositLimit,
         field: RowAlertKey.Amount,
         title,
         message: title,

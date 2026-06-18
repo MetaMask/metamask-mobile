@@ -18,8 +18,7 @@ export const PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT = false;
 export const PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT = false;
 export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT: string | undefined =
   undefined;
-export const PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT: number | undefined =
-  undefined;
+export const PAY_DEPOSIT_LIMITS_DEFAULT: Record<string, number> = {};
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -175,23 +174,16 @@ export const selectMetaMaskPayFlags = createSelector(
   },
 );
 
-export function selectDepositLimit(
-  state: RootState,
-  depositType: string,
-): number | undefined {
+export function selectDepositLimits(state: RootState): Record<string, number> {
   const featureFlags = selectRemoteFeatureFlags(state);
 
   const metaMaskPayExtendedFlags = featureFlags?.confirmations_pay_extended as
     | Record<string, Json>
     | undefined;
 
-  const depositLimitFlags = metaMaskPayExtendedFlags?.depositLimit as
-    | Record<string, Json>
-    | undefined;
-
   return (
-    (depositLimitFlags?.[depositType] as number) ??
-    PAY_MONEY_ACCOUNT_DEPOSIT_LIMIT_DEFAULT
+    (metaMaskPayExtendedFlags?.depositLimit as Record<string, number>) ??
+    PAY_DEPOSIT_LIMITS_DEFAULT
   );
 }
 

@@ -39,7 +39,7 @@ export function usePendingAmountAlerts({
     pendingAmount: pendingFiatAmount,
   });
 
-  const moneyAccountDepositLimitAlert = useTransactionDepositLimitAlert({
+  const depositLimitAlert = useTransactionDepositLimitAlert({
     pendingAmount: pendingFiatAmount,
   });
 
@@ -53,7 +53,7 @@ export function usePendingAmountAlerts({
       ...insufficientPerpsBalanceAlert,
       ...insufficientMoneyAccountBalanceAlert,
       ...fiatBuyLimitAlert,
-      ...moneyAccountDepositLimitAlert,
+      ...depositLimitAlert,
       ...accountNoFundsAlert,
     ],
     [
@@ -63,7 +63,7 @@ export function usePendingAmountAlerts({
       insufficientPerpsBalanceAlert,
       insufficientMoneyAccountBalanceAlert,
       fiatBuyLimitAlert,
-      moneyAccountDepositLimitAlert,
+      depositLimitAlert,
       accountNoFundsAlert,
     ],
   );
