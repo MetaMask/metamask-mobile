@@ -125,10 +125,24 @@ describe('useMultichainTransactionDisplay', () => {
       expect(result.current.title).toBe('transactions.tx_review_approve');
     });
 
-    it('returns isUnlimitedApproval false when from array is empty', () => {
+    it('returns isUnlimitedApproval true when from is empty but to carries unlimited amount', () => {
       const transaction = {
         ...createApproveTransaction('115792089237316195423570985.639935'),
         from: [],
+      } as unknown as Transaction;
+
+      const { result } = renderHook(() =>
+        useMultichainTransactionDisplay(transaction, TRON_CHAIN_ID),
+      );
+
+      expect(result.current.isUnlimitedApproval).toBe(true);
+    });
+
+    it('returns isUnlimitedApproval false when both from and to are empty', () => {
+      const transaction = {
+        ...createApproveTransaction('115792089237316195423570985.639935'),
+        from: [],
+        to: [],
       } as unknown as Transaction;
 
       const { result } = renderHook(() =>

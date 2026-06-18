@@ -83,7 +83,10 @@ export function useMultichainTransactionDisplay(
 
   const isUnlimitedApproval =
     transaction.type === TransactionType.TokenApprove &&
-    (transaction.from as Movement[]).some(
+    [
+      ...(transaction.from as Movement[]),
+      ...(transaction.to as Movement[]),
+    ].some(
       (mv) =>
         mv?.asset?.fungible === true &&
         parseFloat(mv.asset.amount) > APPROVE_AMOUNT_UNLIMITED_THRESHOLD,
