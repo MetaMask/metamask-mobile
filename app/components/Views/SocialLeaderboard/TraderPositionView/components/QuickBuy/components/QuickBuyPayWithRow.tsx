@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -67,7 +68,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
       >
         <QuickBuyTokenIcon token={token} size={AvatarTokenSize.Md} />
 
-        <Box twClassName="flex-1" gap={1}>
+        <Box twClassName="flex-1" gap={0}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -75,6 +76,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
           >
             <Text
               variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
             >
@@ -89,16 +91,28 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
               />
             ) : null}
           </Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {token.symbol}
           </Text>
         </Box>
 
-        <Box alignItems={BoxAlignItems.End} gap={1}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+        <Box alignItems={BoxAlignItems.End} gap={0}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
             {token.balanceFiat ?? '—'}
           </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {cryptoBalanceLabel ?? '—'}
           </Text>
         </Box>
