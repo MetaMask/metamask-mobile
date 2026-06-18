@@ -30,6 +30,14 @@ jest.mock('./useFiatBuyLimitAlert', () => ({
   useFiatBuyLimitAlert: () => [{ id: 'alert-8' }],
 }));
 
+jest.mock('./useTransactionDepositLimitAlert', () => ({
+  useTransactionDepositLimitAlert: () => [
+    {
+      id: 'alert-9',
+    },
+  ],
+}));
+
 const useInsufficientPayTokenBalanceAlertMock = jest.mocked(
   useInsufficientPayTokenBalanceAlert,
 );
@@ -54,6 +62,7 @@ describe('usePendingAmountAlerts', () => {
       { id: 'alert-5' },
       { id: 'alert-7' },
       { id: 'alert-8' },
+      { id: 'alert-9' },
       { id: 'alert-6' },
     ]);
   });

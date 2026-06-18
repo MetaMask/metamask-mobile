@@ -11,6 +11,35 @@ import {
   WildcardTokenList,
 } from '../../Earn/utils/wildcardTokenList';
 
+/**
+ * Selects whether the Money activity detail view is enabled.
+ * When off, clicking on an activity list item does nothing instead of opening
+ * the detail view.
+ */
+export const selectMoneyEnableActivityDetailsFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_ENABLE_ACTIVITY_DETAILS === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableActivityDetails as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the block explorer link is shown in Money activity detail
+ * views. When off, the "View on block explorer" button is hidden.
+ */
+export const selectMoneyEnableActivityDetailsBlockexplorerLinkFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_ACTIVITY_DETAILS_BLOCKEXPLORER_LINK ===
+      'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableActivityDetailsBlockexplorerLink as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  });
+
 /** Temporary flag: remote value is a boolean only. */
 export const selectMoneyActivityMockDataEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
