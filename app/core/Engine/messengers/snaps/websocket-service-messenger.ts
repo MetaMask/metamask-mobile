@@ -16,14 +16,12 @@ export type { WebSocketServiceMessenger };
  * @returns The WebSocketServiceMessenger.
  */
 export function getWebSocketServiceMessenger(
-  rootMessenger: RootMessenger,
-): WebSocketServiceMessenger {
-  const messenger = new Messenger<
-    'WebSocketService',
+  rootMessenger: RootMessenger<
     MessengerActions<WebSocketServiceMessenger>,
-    MessengerEvents<WebSocketServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<WebSocketServiceMessenger>
+  >,
+): WebSocketServiceMessenger {
+  const messenger: WebSocketServiceMessenger = new Messenger({
     namespace: 'WebSocketService',
     parent: rootMessenger,
   });
