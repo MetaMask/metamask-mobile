@@ -3,7 +3,13 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { predictGameKeys } from '../queries/game';
-import type { GameUpdate, PredictMarketGame, PredictSportTeam } from '../types';
+import {
+  Recurrence,
+  type GameUpdate,
+  type PredictMarket,
+  type PredictMarketGame,
+  type PredictSportTeam,
+} from '../types';
 import {
   __resetPredictGameCacheForTest,
   usePredictGame,
@@ -61,6 +67,26 @@ const createGame = (
   ...overrides,
 });
 
+const createMarket = (
+  overrides: Partial<PredictMarket> = {},
+): PredictMarket => ({
+  id: 'market-123',
+  providerId: 'polymarket',
+  slug: 'away-vs-home',
+  title: 'Away vs Home',
+  description: 'Game winner',
+  image: 'https://example.com/market.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'sports',
+  tags: ['sports'],
+  outcomes: [],
+  liquidity: 100,
+  volume: 100,
+  game: createGame(),
+  ...overrides,
+});
+
 const createUpdate = (overrides: Partial<GameUpdate> = {}): GameUpdate => ({
   gameId: 'game-123',
   score: '21-14',
@@ -96,9 +122,10 @@ describe('usePredictGame', () => {
 
   it('returns the provided REST game before live updates arrive', () => {
     const { Wrapper, queryClient } = createWrapper();
-    const game = createGame();
+    const market = createMarket();
+    const game = market.game as PredictMarketGame;
 
-    const { result } = renderHook(() => usePredictGame(game), {
+    const { result } = renderHook(() => usePredictGame(market), {
       wrapper: Wrapper,
     });
 
@@ -106,6 +133,30 @@ describe('usePredictGame', () => {
     expect(queryClient.getQueryData(predictGameKeys.detail(game.id))).toEqual(
       game,
     );
+    expect(mockSubscribeToGameUpdates).not.toHaveBeenCalled();
+  });
+
+  it('returns null when the market has no game', () => {
+    const { Wrapper } = createWrapper();
+    const market = createMarket({ game: undefined });
+
+    const { result } = renderHook(() => usePredictGame(market), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.game).toBeNull();
+    expect(mockSubscribeToGameUpdates).not.toHaveBeenCalled();
+  });
+
+  it('subscribes when live updates are requested', () => {
+    const { Wrapper } = createWrapper();
+    const market = createMarket();
+    const game = market.game as PredictMarketGame;
+
+    renderHook(() => usePredictGame(market, { live: true }), {
+      wrapper: Wrapper,
+    });
+
     expect(mockSubscribeToGameUpdates).toHaveBeenCalledWith(
       game.id,
       expect.any(Function),
@@ -114,16 +165,20 @@ describe('usePredictGame', () => {
 
   it('writes WebSocket updates into the game query cache', async () => {
     const { Wrapper, queryClient } = createWrapper();
-    const game = createGame();
+    const market = createMarket();
+    const game = market.game as PredictMarketGame;
     let capturedCallback: (update: GameUpdate) => void = jest.fn();
     mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
       capturedCallback = callback;
       return mockUnsubscribe;
     });
 
-    const { result } = renderHook(() => usePredictGame(game), {
-      wrapper: Wrapper,
-    });
+    const { result } = renderHook(
+      () => usePredictGame(market, { live: true }),
+      {
+        wrapper: Wrapper,
+      },
+    );
 
     act(() => {
       capturedCallback(createUpdate());
@@ -152,14 +207,14 @@ describe('usePredictGame', () => {
 
   it('reads the cached live game immediately after remounting', async () => {
     const { Wrapper } = createWrapper();
-    const game = createGame();
+    const market = createMarket();
     let capturedCallback: (update: GameUpdate) => void = jest.fn();
     mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
       capturedCallback = callback;
       return mockUnsubscribe;
     });
 
-    const firstHook = renderHook(() => usePredictGame(game), {
+    const firstHook = renderHook(() => usePredictGame(market, { live: true }), {
       wrapper: Wrapper,
     });
 
@@ -177,9 +232,12 @@ describe('usePredictGame', () => {
 
     firstHook.unmount();
 
-    const secondHook = renderHook(() => usePredictGame(createGame()), {
-      wrapper: Wrapper,
-    });
+    const secondHook = renderHook(
+      () => usePredictGame(createMarket(), { live: true }),
+      {
+        wrapper: Wrapper,
+      },
+    );
 
     expect(secondHook.result.current.game).toEqual(
       expect.objectContaining({
@@ -199,9 +257,9 @@ describe('usePredictGame', () => {
     });
 
     const { result, rerender } = renderHook(
-      ({ game }) => usePredictGame(game),
+      ({ market }) => usePredictGame(market, { live: true }),
       {
-        initialProps: { game: createGame() },
+        initialProps: { market: createMarket() },
         wrapper: Wrapper,
       },
     );
@@ -215,11 +273,13 @@ describe('usePredictGame', () => {
     });
 
     rerender({
-      game: createGame({
-        status: 'scheduled',
-        elapsed: null,
-        period: null,
-        score: { away: 0, home: 0, raw: '0-0' },
+      market: createMarket({
+        game: createGame({
+          status: 'scheduled',
+          elapsed: null,
+          period: null,
+          score: { away: 0, home: 0, raw: '0-0' },
+        }),
       }),
     });
 
@@ -242,9 +302,11 @@ describe('usePredictGame', () => {
     });
 
     const { result, rerender } = renderHook(
-      ({ game }) => usePredictGame(game),
+      ({ market }) => usePredictGame(market, { live: true }),
       {
-        initialProps: { game: createGame({ status: 'ongoing' }) },
+        initialProps: {
+          market: createMarket({ game: createGame({ status: 'ongoing' }) }),
+        },
         wrapper: Wrapper,
       },
     );
@@ -258,12 +320,14 @@ describe('usePredictGame', () => {
     });
 
     rerender({
-      game: createGame({
-        status: 'ended',
-        period: 'FT',
-        elapsed: null,
-        endTime: '2026-01-01T21:00:00.000Z',
-        score: { away: 24, home: 21, raw: '24-21' },
+      market: createMarket({
+        game: createGame({
+          status: 'ended',
+          period: 'FT',
+          elapsed: null,
+          endTime: '2026-01-01T21:00:00.000Z',
+          score: { away: 24, home: 21, raw: '24-21' },
+        }),
       }),
     });
 
@@ -289,9 +353,12 @@ describe('usePredictGame', () => {
         marketConnected: false,
       });
 
-    const { result } = renderHook(() => usePredictGame(createGame()), {
-      wrapper: Wrapper,
-    });
+    const { result } = renderHook(
+      () => usePredictGame(createMarket(), { live: true }),
+      {
+        wrapper: Wrapper,
+      },
+    );
 
     expect(result.current.isConnected).toBe(true);
 
@@ -306,9 +373,12 @@ describe('usePredictGame', () => {
     const { Wrapper } = createWrapper();
     const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 
-    const { unmount } = renderHook(() => usePredictGame(createGame()), {
-      wrapper: Wrapper,
-    });
+    const { unmount } = renderHook(
+      () => usePredictGame(createMarket(), { live: true }),
+      {
+        wrapper: Wrapper,
+      },
+    );
 
     unmount();
 

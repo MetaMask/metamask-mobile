@@ -159,8 +159,8 @@ describe('PredictMarketSportCard', () => {
     jest.clearAllMocks();
     mockIsFromTrending.mockReturnValue(false);
     mockGetLivePrice.mockReturnValue(undefined);
-    mockUsePredictGame.mockImplementation((game) => ({
-      game,
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game ?? null,
       isConnected: false,
       lastUpdateTime: null,
     }));

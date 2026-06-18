@@ -3,12 +3,6 @@ import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render } from '@testing-library/react-native';
 import PredictSportScoreboard from './PredictSportScoreboard';
 import { PredictMarketGame } from '../../types';
-import { usePredictGame } from '../../hooks/usePredictGame';
-
-jest.mock('../../hooks/usePredictGame');
-const mockUsePredictGame = usePredictGame as jest.MockedFunction<
-  typeof usePredictGame
->;
 
 jest.mock('../../constants/sportLeagueConfigs', () => {
   const MockTeamIcon = ({
@@ -86,17 +80,8 @@ const createGame = (
   ...overrides,
 });
 
-const createPredictGameResult = (game: PredictMarketGame) => ({
-  game,
-  isConnected: false,
-  lastUpdateTime: null,
-});
-
 describe('PredictSportScoreboard', () => {
   beforeEach(() => {
-    mockUsePredictGame.mockImplementation((game) =>
-      createPredictGameResult(game),
-    );
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-02-08T15:00:00Z'));
   });
@@ -133,11 +118,11 @@ describe('PredictSportScoreboard', () => {
       expect(getByTestId('scoreboard-away-team-logo')).toBeOnTheScreen();
     });
 
-    it('reads cached game state with the provided game', () => {
+    it('renders the provided game', () => {
       const game = createGame({ id: 'game-456' });
-      render(<PredictSportScoreboard game={game} />);
+      const { getByText } = render(<PredictSportScoreboard game={game} />);
 
-      expect(mockUsePredictGame).toHaveBeenCalledWith(game);
+      expect(getByText('Denver Broncos')).toBeOnTheScreen();
     });
   });
 
@@ -284,97 +269,6 @@ describe('PredictSportScoreboard', () => {
 
       expect(getByText('109')).toBeOnTheScreen();
       expect(getByText('99')).toBeOnTheScreen();
-    });
-  });
-
-  describe('live updates merging', () => {
-    it('uses live score when available', () => {
-      mockUsePredictGame.mockReturnValue(
-        createPredictGameResult(
-          createGame({
-            status: 'ongoing',
-            elapsed: '05:00',
-            period: 'Q2',
-            score: { away: 21, home: 14, raw: '21-14' },
-          }),
-        ),
-      );
-
-      const { getByText, queryByText } = render(
-        <PredictSportScoreboard
-          game={createGame({
-            status: 'ongoing',
-            score: { away: 10, home: 7, raw: '10-7' },
-          })}
-        />,
-      );
-
-      expect(getByText('21')).toBeOnTheScreen();
-      expect(getByText('14')).toBeOnTheScreen();
-      expect(queryByText('10')).toBeNull();
-      expect(queryByText('7')).toBeNull();
-    });
-
-    it('uses live status to transition from scheduled to in-progress', () => {
-      mockUsePredictGame.mockReturnValue(
-        createPredictGameResult(
-          createGame({
-            status: 'ongoing',
-            score: { away: 7, home: 3, raw: '7-3' },
-            elapsed: '10:00',
-            period: 'Q1',
-          }),
-        ),
-      );
-
-      const { getByText } = render(
-        <PredictSportScoreboard game={createGame({ status: 'scheduled' })} />,
-      );
-
-      expect(getByText('Q1 • 10:00')).toBeOnTheScreen();
-    });
-
-    it('uses live period when available', () => {
-      mockUsePredictGame.mockReturnValue(
-        createPredictGameResult(
-          createGame({
-            status: 'ongoing',
-            score: { away: 14, home: 7, raw: '14-7' },
-            elapsed: '02:00',
-            period: 'Q2',
-          }),
-        ),
-      );
-
-      const { getByText, queryByText } = render(
-        <PredictSportScoreboard
-          game={createGame({
-            status: 'ongoing',
-            period: 'Q1',
-            elapsed: '15:00',
-          })}
-        />,
-      );
-
-      expect(getByText('Q2 • 02:00')).toBeOnTheScreen();
-      expect(queryByText('Q1 • 15:00')).toBeNull();
-    });
-
-    it('falls back to static game data when no cached live game is available', () => {
-      const { getByText } = render(
-        <PredictSportScoreboard
-          game={createGame({
-            status: 'ongoing',
-            period: 'Q3',
-            elapsed: '12:00',
-            score: { away: 21, home: 14, raw: '21-14' },
-          })}
-        />,
-      );
-
-      expect(getByText('Q3 • 12:00')).toBeOnTheScreen();
-      expect(getByText('21')).toBeOnTheScreen();
-      expect(getByText('14')).toBeOnTheScreen();
     });
   });
 

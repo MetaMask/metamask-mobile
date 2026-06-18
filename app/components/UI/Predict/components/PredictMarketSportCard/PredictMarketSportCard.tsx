@@ -26,6 +26,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import {
@@ -217,7 +218,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     selectPredictSportCardLivePricesEnabledFlag,
   );
 
-  const game = market.game as PredictMarketGame | undefined;
+  const { game } = usePredictGame(market, { live: true });
   // Mirror the canonical "game over" definition (terminal status, a full-time
   // period, or a stamped endTime) so buy buttons disappear exactly when the
   // scoreboard reads "Final" and the market becomes eligible for hiding.

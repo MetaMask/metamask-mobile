@@ -8,12 +8,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useMemo } from 'react';
+import React from 'react';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import { isSoccerLeague } from '../../constants/sports';
-import { usePredictGame } from '../../hooks/usePredictGame';
 import { PredictMarketGame, PredictSportTeam } from '../../types';
 import { getSportLiveStatusText, isGameEnded } from '../../utils/scoreboard';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
@@ -69,39 +68,31 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   testID,
 }) => {
   const config = getLeagueConfig(game.league);
-  const { game: cachedGame } = usePredictGame(game);
-  const displayGame = cachedGame ?? game;
 
-  const liveData = useMemo(
-    () => ({
-      homeScore: displayGame.score?.home ?? 0,
-      awayScore: displayGame.score?.away ?? 0,
-      elapsed: displayGame.elapsed,
-      period: displayGame.period,
-      status: displayGame.status,
-    }),
-    [displayGame],
-  );
+  const liveData = {
+    homeScore: game.score?.home ?? 0,
+    awayScore: game.score?.away ?? 0,
+    elapsed: game.elapsed,
+    period: game.period,
+    status: game.status,
+  };
 
   const isEnded = isGameEnded({
     status: liveData.status,
     period: liveData.period,
-    endTime: displayGame.endTime,
+    endTime: game.endTime,
   });
   const isScheduled = !isEnded && liveData.status === 'scheduled';
   const isLive = !isEnded && !isScheduled;
 
-  const scheduledTime = useMemo(
-    () => formatGameDateTime(displayGame.startTime),
-    [displayGame.startTime],
-  );
+  const scheduledTime = formatGameDateTime(game.startTime);
 
   const statusText = getSportLiveStatusText({
-    league: displayGame.league,
+    league: game.league,
     status: liveData.status,
     period: liveData.period,
     elapsed: liveData.elapsed,
-    endTime: displayGame.endTime,
+    endTime: game.endTime,
   });
 
   const teamLogoSize = compact ? COMPACT_TEAM_LOGO_SIZE : TEAM_LOGO_SIZE;
@@ -111,9 +102,9 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   // leagues) show the home team on the left, while US sports (e.g. American
   // football) follow the away-then-home convention. testIDs stay tied to the
   // team identity (home/away), not the slot.
-  const isHomeFirst = isSoccerLeague(displayGame.league);
-  const leftTeam = isHomeFirst ? displayGame.homeTeam : displayGame.awayTeam;
-  const rightTeam = isHomeFirst ? displayGame.awayTeam : displayGame.homeTeam;
+  const isHomeFirst = isSoccerLeague(game.league);
+  const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
+  const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
   const leftScore = isHomeFirst ? liveData.homeScore : liveData.awayScore;
   const rightScore = isHomeFirst ? liveData.awayScore : liveData.homeScore;
   const leftLogoTestID = testID

@@ -22,6 +22,7 @@ import {
   PredictMarketGame,
   PredictMarketStatus,
   PredictOutcomeToken,
+  PredictSportTeam,
 } from '../../types';
 import {
   PredictNavigationParamList,
@@ -70,35 +71,33 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
     selectPredictSportCardLivePricesEnabledFlag,
   );
 
-  const game = market.game as PredictMarketGame;
-  const { game: cachedGame } = usePredictGame(game);
-  const displayGame = cachedGame ?? game;
-  const config = getLeagueConfig(displayGame.league);
-  const showDraw = isDrawCapableLeague(displayGame.league);
+  const { game: predictGame } = usePredictGame(market, { live: true });
+  const game = predictGame as PredictMarketGame;
+  const config = getLeagueConfig(game.league);
+  const showDraw = isDrawCapableLeague(game.league);
 
   const liveData = useMemo(
     () => ({
-      homeScore: displayGame.score?.home ?? 0,
-      awayScore: displayGame.score?.away ?? 0,
-      elapsed: displayGame.elapsed,
-      status: displayGame.status,
+      homeScore: game.score?.home ?? 0,
+      awayScore: game.score?.away ?? 0,
+      elapsed: game.elapsed,
+      status: game.status,
     }),
-    [displayGame],
+    [game],
   );
 
   const isLive = liveData.status === 'ongoing';
   const isScheduled = liveData.status === 'scheduled';
   const leagueName =
-    LEAGUE_DISPLAY_NAMES[displayGame.league] ??
-    displayGame.league.toUpperCase();
+    LEAGUE_DISPLAY_NAMES[game.league] ?? game.league.toUpperCase();
   const liveText = isLive ? (liveData.elapsed ?? '') : '';
   const timeRemaining = getTimeRemaining(
-    displayGame,
+    game,
     liveData.elapsed,
     liveData.status,
   );
   const scheduledTime = isScheduled
-    ? formatScheduledTime(displayGame.startTime)
+    ? formatScheduledTime(game.startTime)
     : null;
   const footerTimeText = timeRemaining ?? scheduledTime;
 
@@ -116,10 +115,10 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   };
 
   const homeToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, displayGame.homeTeam)) ??
+    outcome?.tokens?.find((t) => matchesTeam(t.title, game.homeTeam)) ??
     outcome?.tokens?.[0];
   const awayToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, displayGame.awayTeam)) ??
+    outcome?.tokens?.find((t) => matchesTeam(t.title, game.awayTeam)) ??
     outcome?.tokens?.[1];
   const drawToken = showDraw
     ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
@@ -130,6 +129,10 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
         .map((token) => token?.id)
         .filter((id): id is string => Boolean(id)),
     [awayToken, drawToken, homeToken],
+  );
+  const marketWithGame = useMemo(
+    () => (game ? { ...market, game } : market),
+    [game, market],
   );
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled:
@@ -167,21 +170,23 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
       if (!outcome) return;
       executeGuardedAction(
         () => {
-          openBuySheet({ market, outcome, outcomeToken: token, entryPoint });
+          openBuySheet({
+            market: marketWithGame,
+            outcome,
+            outcomeToken: token,
+            entryPoint,
+          });
         },
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, outcome, entryPoint, executeGuardedAction, openBuySheet],
+    [marketWithGame, outcome, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);
   const remainingOptions = Math.max(0, market.outcomes.length - 1);
 
-  const renderTeamLogo = (
-    team: typeof displayGame.homeTeam,
-    testID?: string,
-  ) =>
+  const renderTeamLogo = (team: PredictSportTeam, testID?: string) =>
     config.TeamIcon ? (
       <config.TeamIcon
         color={team.color}
@@ -261,7 +266,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               alignItems={BoxAlignItems.Center}
               twClassName="gap-2"
             >
-              {renderTeamLogo(displayGame.homeTeam)}
+              {renderTeamLogo(game.homeTeam)}
               <Text
                 variant={TextVariant.DisplayMd}
                 color={TextColor.TextDefault}
@@ -281,7 +286,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               >
                 {liveData.awayScore}
               </Text>
-              {renderTeamLogo(displayGame.awayTeam)}
+              {renderTeamLogo(game.awayTeam)}
             </Box>
           </Box>
 
@@ -297,7 +302,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                 color={TextColor.TextDefault}
                 numberOfLines={1}
               >
-                {displayGame.homeTeam.name}
+                {game.homeTeam.name}
               </Text>
               {homeToken && (
                 <FeaturedCarouselPayoutRow price={getDisplayPrice(homeToken)} />
@@ -311,7 +316,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                 color={TextColor.TextDefault}
                 numberOfLines={1}
               >
-                {displayGame.awayTeam.name}
+                {game.awayTeam.name}
               </Text>
               {awayToken && (
                 <FeaturedCarouselPayoutRow price={getDisplayPrice(awayToken)} />

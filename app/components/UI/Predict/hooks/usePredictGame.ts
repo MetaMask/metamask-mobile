@@ -2,9 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { predictQueries } from '../queries';
-import type { GameUpdate, PredictMarketGame } from '../types';
+import type { GameUpdate, PredictMarket, PredictMarketGame } from '../types';
 import { parseScore } from '../utils/gameParser';
 import { isGameEnded } from '../utils/scoreboard';
+
+export interface UsePredictGameOptions {
+  live?: boolean;
+}
 
 export interface UsePredictGameResult {
   game: PredictMarketGame | null;
@@ -66,16 +70,18 @@ const mergeGameUpdate = (
 });
 
 export const usePredictGame = (
-  game: PredictMarketGame | null | undefined,
+  market: PredictMarket | null | undefined,
+  { live = false }: UsePredictGameOptions = {},
 ): UsePredictGameResult => {
   const queryClient = useQueryClient();
+  const initialGame = market?.game ?? null;
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(() =>
-    game?.id ? (liveGameUpdateTimes.get(game.id) ?? null) : null,
+    initialGame?.id ? (liveGameUpdateTimes.get(initialGame.id) ?? null) : null,
   );
   const isMountedRef = useRef(true);
-  const gameRef = useRef<PredictMarketGame | null>(game ?? null);
-  const gameId = game?.id ?? '';
+  const gameRef = useRef<PredictMarketGame | null>(initialGame);
+  const gameId = initialGame?.id ?? '';
 
   const queryKey = useMemo(
     () => predictQueries.game.keys.detail(gameId),
@@ -84,32 +90,35 @@ export const usePredictGame = (
 
   const query = useQuery<PredictMarketGame | null>({
     queryKey,
-    queryFn: async () => game ?? null,
-    enabled: Boolean(game),
-    initialData: () =>
-      game
-        ? mergeCachedGame(
-            game,
-            queryClient.getQueryData<PredictMarketGame>(queryKey),
-          )
-        : null,
+    queryFn: async () => {
+      if (!initialGame) {
+        return null;
+      }
+
+      return mergeCachedGame(
+        initialGame,
+        queryClient.getQueryData<PredictMarketGame>(queryKey),
+      );
+    },
+    enabled: Boolean(initialGame),
+    initialData: initialGame,
     staleTime: Infinity,
   });
 
   useEffect(() => {
-    gameRef.current = game ?? null;
+    gameRef.current = initialGame;
 
-    if (!game) {
+    if (!initialGame) {
       setLastUpdateTime(null);
       return;
     }
 
-    const key = predictQueries.game.keys.detail(game.id);
+    const key = predictQueries.game.keys.detail(initialGame.id);
     queryClient.setQueryData<PredictMarketGame>(key, (cachedGame) =>
-      mergeCachedGame(game, cachedGame),
+      mergeCachedGame(initialGame, cachedGame),
     );
-    setLastUpdateTime(liveGameUpdateTimes.get(game.id) ?? null);
-  }, [game, queryClient]);
+    setLastUpdateTime(liveGameUpdateTimes.get(initialGame.id) ?? null);
+  }, [initialGame, queryClient]);
 
   const handleGameUpdate = useCallback(
     (update: GameUpdate) => {
@@ -137,7 +146,7 @@ export const usePredictGame = (
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (!gameId) {
+    if (!live || !gameId) {
       setIsConnected(false);
       return;
     }
@@ -162,10 +171,10 @@ export const usePredictGame = (
       unsubscribe();
       clearInterval(intervalId);
     };
-  }, [gameId, handleGameUpdate]);
+  }, [gameId, handleGameUpdate, live]);
 
   return {
-    game: query.data ?? game ?? null,
+    game: query.data ?? null,
     isConnected,
     lastUpdateTime,
   };

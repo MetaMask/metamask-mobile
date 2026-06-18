@@ -131,8 +131,8 @@ describe('PredictMarketSportCardWrapper', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetLivePrice.mockReturnValue(undefined);
-    mockUsePredictGame.mockImplementation((game) => ({
-      game,
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game ?? null,
       isConnected: false,
       lastUpdateTime: null,
     }));
