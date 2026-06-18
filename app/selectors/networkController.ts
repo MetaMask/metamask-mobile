@@ -346,7 +346,7 @@ export const selectIsEIP1559Network = createSelector(
 );
 
 // Selector to get the popular network configurations, this filter also testnet networks
-export const selectAllPopularNetworkConfigurations = createSelector(
+export const selectAllPopularNetworkConfigurations = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   (networkConfigurations) => {
     const popularNetworksChainIds = PopularList.map(
