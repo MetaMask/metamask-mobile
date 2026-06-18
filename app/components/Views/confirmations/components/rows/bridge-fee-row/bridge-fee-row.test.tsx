@@ -16,6 +16,7 @@ import {
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
@@ -59,6 +60,9 @@ function render(
 describe('BridgeFeeRow', () => {
   const useTransactionTotalsMock = jest.mocked(useTransactionPayTotals);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useTransactionPaySourceAmountsMock = jest.mocked(
+    useTransactionPaySourceAmounts,
+  );
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
@@ -81,6 +85,8 @@ describe('BridgeFeeRow', () => {
     useTransactionPayQuotesMock.mockReturnValue([
       {} as TransactionPayQuote<Json>,
     ]);
+
+    useTransactionPaySourceAmountsMock.mockReturnValue([]);
 
     useIsPaidByMetaMaskMock.mockReturnValue(false);
   });

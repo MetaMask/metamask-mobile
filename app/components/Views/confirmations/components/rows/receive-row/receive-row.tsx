@@ -9,6 +9,7 @@ import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -31,6 +32,7 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const sourceAmounts = useTransactionPaySourceAmounts();
   const transactionMeta = useTransactionMetadataOrThrow();
 
   const receiveUsd = useMemo(() => {
@@ -38,7 +40,7 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
 
     const inputUsd = new BigNumber(inputAmountUsd);
 
-    if (transactionMeta.isGasFeeSponsored) {
+    if (transactionMeta?.isGasFeeSponsored && !sourceAmounts?.length) {
       return formatFiat(inputUsd.isPositive() ? inputUsd : new BigNumber(0));
     }
 
@@ -57,7 +59,13 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
       .plus(metaMaskFee);
     const youReceive = inputUsd.minus(totalFees);
     return formatFiat(youReceive.isPositive() ? youReceive : new BigNumber(0));
-  }, [totals, formatFiat, inputAmountUsd, transactionMeta.isGasFeeSponsored]);
+  }, [
+    totals,
+    formatFiat,
+    inputAmountUsd,
+    transactionMeta?.isGasFeeSponsored,
+    sourceAmounts?.length,
+  ]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;

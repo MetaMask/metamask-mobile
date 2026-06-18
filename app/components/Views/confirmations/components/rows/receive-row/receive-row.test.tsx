@@ -6,6 +6,7 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import {
   useIsTransactionPayLoading,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { TransactionControllerState } from '@metamask/transaction-controller';
@@ -51,6 +52,8 @@ describe('ReceiveRow', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.mocked(useTransactionPaySourceAmounts).mockReturnValue([]);
 
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {

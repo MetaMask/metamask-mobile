@@ -256,13 +256,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
-  // Money account withdraw MUSD -> MUSD: `calculatePostQuoteSourceAmounts`
-  // filters out same-token/same-chain entries, so `sourceAmounts` is empty
-  // even when the user has entered a positive amount. The alert must still
-  // fire so the Withdraw button stays disabled.
-  it('returns alert for post-quote when sourceAmounts is empty but a required token has a positive amount', () => {
+  it('returns alert for post-quote when sourceAmounts is non-empty but a required token has a positive amount and no quotes', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
+    ]);
     useTransactionPayQuotesMock.mockReturnValue([]);
 
     useTransactionPayRequiredTokensMock.mockReturnValue([
