@@ -270,6 +270,7 @@ const mockInitialState: DeepPartial<RootState> = {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockParentGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -278,6 +279,10 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      getParent: () => ({
+        goBack: mockParentGoBack,
+        canGoBack: () => true,
+      }),
     }),
   };
 });
@@ -321,6 +326,8 @@ describe('TradeWalletActions', () => {
 
   afterEach(() => {
     mockNavigate.mockClear();
+    mockGoBack.mockClear();
+    mockParentGoBack.mockClear();
     mockGoToSwaps.mockClear();
     jest.clearAllMocks();
   });
