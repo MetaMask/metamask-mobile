@@ -16,14 +16,12 @@ import type { RootMessenger } from '../types';
  * @returns The SocialControllerMessenger.
  */
 export function getSocialControllerMessenger(
-  rootMessenger: RootMessenger,
-): SocialControllerMessenger {
-  const messenger = new Messenger<
-    'SocialController',
+  rootMessenger: RootMessenger<
     MessengerActions<SocialControllerMessenger>,
-    MessengerEvents<SocialControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<SocialControllerMessenger>
+  >,
+): SocialControllerMessenger {
+  const messenger: SocialControllerMessenger = new Messenger({
     namespace: 'SocialController',
     parent: rootMessenger,
   });
