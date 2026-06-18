@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   HeaderStandard,
   Text,
@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { Alert, TextInput, View, DimensionValue } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -44,9 +44,14 @@ const ImportPrivateKey = () => {
     Device.isAndroid() ? '99%' : undefined,
   );
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance, typography } = useAppTheme();
   const styles = createStyles(colors, typography);
+  const footerStyle = useMemo(
+    () => [styles.buttonWrapper, { marginBottom: insets.bottom, flex: 0 }],
+    [insets.bottom, styles.buttonWrapper],
+  );
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -146,7 +151,7 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper}>
+    <View style={styles.mainWrapper}>
       <HeaderStandard
         includesTopInset
         backButtonProps={{
@@ -238,10 +243,7 @@ const ImportPrivateKey = () => {
           </View>
         </View>
       </KeyboardAwareScrollView>
-      <SafeAreaView
-        edges={['bottom', 'left', 'right']}
-        style={styles.buttonWrapper}
-      >
+      <View style={footerStyle}>
         <Button
           onPress={() => goNext()}
           label={strings('import_private_key.cta_text')}
@@ -252,9 +254,9 @@ const ImportPrivateKey = () => {
           isDisabled={loading}
           testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
         />
-      </SafeAreaView>
+      </View>
       <ScreenshotDeterrent enabled isSRP={false} />
-    </SafeAreaView>
+    </View>
   );
 };
 
