@@ -99,43 +99,39 @@ const PositionRow: React.FC<PositionRowProps> = ({
     </Text>
   );
 
-  const bottomRight =
-    !isPerp && isClosed ? (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-      >
-        {!hasPnlPercent ? null : isPnlZero ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {'−'}
-          </Text>
-        ) : (
-          <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
-            {isPnlPositive ? '▲' : '▼'}
-          </Text>
-        )}
+  // Closed positions — spot and perp alike — render the directional triangle
+  // alongside a neutral-colored, unsigned percentage; open positions render a
+  // colored, signed percentage. Keyed on `isClosed` only (not `isPerp`) so a
+  // closed perp matches the spot styling rather than showing a colored percent
+  // with no triangle.
+  const bottomRight = isClosed ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+    >
+      {!hasPnlPercent ? null : isPnlZero ? (
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
+          {'−'}
         </Text>
-      </Box>
-    ) : !isPerp ? (
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName={pnlColorClass}
-        color={pnlColorClass ? undefined : TextColor.TextAlternative}
-      >
-        {formatPercent(displayPnlPercent)}
+      ) : (
+        <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
+          {isPnlPositive ? '▲' : '▼'}
+        </Text>
+      )}
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
       </Text>
-    ) : (
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName={pnlColorClass}
-        color={pnlColorClass ? undefined : TextColor.TextAlternative}
-      >
-        {formatPercent(displayPnlPercent)}
-      </Text>
-    );
+    </Box>
+  ) : (
+    <Text
+      variant={TextVariant.BodySm}
+      twClassName={pnlColorClass}
+      color={pnlColorClass ? undefined : TextColor.TextAlternative}
+    >
+      {formatPercent(displayPnlPercent)}
+    </Text>
+  );
 
   const content = (
     <Box

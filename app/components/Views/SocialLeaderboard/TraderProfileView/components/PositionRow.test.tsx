@@ -349,5 +349,47 @@ describe('PositionRow', () => {
       // Not the "<amount> ETH" subtitle that open positions show.
       expect(screen.queryByText('1.50B ETH')).not.toBeOnTheScreen();
     });
+
+    it('renders an up triangle with a neutral, unsigned percent for a winning closed perp (matching spot)', () => {
+      const closedPerp = {
+        ...perpPosition,
+        currentValueUSD: 0,
+        realizedPnl: 300,
+        boughtUsd: 1200,
+        pnlValueUsd: 300,
+      };
+
+      renderWithProvider(<PositionRow position={closedPerp} isClosed />);
+
+      // 300 / 1200 * 100 = 25%, rendered unsigned with the caret carrying direction.
+      expect(screen.getByText('▲')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.queryByText('+25%')).toBeNull();
+    });
+
+    it('renders a down triangle with a neutral, unsigned percent for a losing closed perp', () => {
+      const closedPerp = {
+        ...perpPosition,
+        currentValueUSD: 0,
+        realizedPnl: -300,
+        boughtUsd: 1200,
+        pnlValueUsd: -300,
+      };
+
+      renderWithProvider(<PositionRow position={closedPerp} isClosed />);
+
+      expect(screen.getByText('▼')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.queryByText('-25%')).toBeNull();
+    });
+
+    it('keeps the colored, signed percent (no triangle) for an open perp', () => {
+      renderWithProvider(<PositionRow position={perpPosition} />);
+
+      // Open positions keep the signed percent; the triangle is closed-only.
+      expect(screen.getByText('+182%')).toBeOnTheScreen();
+      expect(screen.queryByText('▲')).toBeNull();
+      expect(screen.queryByText('▼')).toBeNull();
+    });
   });
 });
