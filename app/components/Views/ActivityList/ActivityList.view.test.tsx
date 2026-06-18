@@ -3,7 +3,6 @@ import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
-import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   buildConfirmedLocalSendTransaction,
@@ -17,6 +16,7 @@ import {
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import {
   activityListRowItemTestId,
+  activityListRowPendingSpinnerTestId,
   activityListRowSubtitleTestId,
 } from './ActivityList.testIds';
 
@@ -48,11 +48,15 @@ describeForPlatforms('ActivityList', () => {
     expect(pendingScope.getByText('Sending ETH')).toBeOnTheScreen();
     expect(
       pendingScope.getByTestId(
+        activityListRowPendingSpinnerTestId(pendingTransaction.hash as string),
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      pendingScope.getByTestId(
         activityListRowSubtitleTestId(pendingTransaction.hash as string),
       ),
-    ).toHaveTextContent(
-      `${strings('transaction.queued')} • To: 0x80181...229cC`,
-    );
+    ).toHaveTextContent('To: 0x80181...229cC');
 
     const confirmedRow = await findByTestId(
       activityListRowItemTestId(confirmedRowIndex),

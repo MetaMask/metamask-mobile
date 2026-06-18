@@ -30,6 +30,12 @@ const BRIDGE_FAIL_STATUSES = [
   TransactionStatus.rejected,
 ] as string[];
 
+const QUEUE_BLOCKING_STATUSES = new Set<string>([
+  TransactionStatus.submitted,
+  'approved',
+  'unapproved',
+]);
+
 /**
  * Checks whether a transaction is a TransactionMeta (vs SmartTransaction).
  * SmartTransaction objects have chainId on the object when returned from the Mobile selector.
@@ -67,6 +73,7 @@ function computeIsEarliestNonce(
 
   return !allLocalTxs.some((other) => {
     if (other.id === tx.id) return false;
+    if (!QUEUE_BLOCKING_STATUSES.has(other.status)) return false;
     const otherNonce = Number(other.txParams?.nonce);
     return (
       other.txParams?.from?.toLowerCase() === from &&
