@@ -328,6 +328,24 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Watchlist redesign feature flag
+ * Controls whether the redesigned Watchlist UI (empty state, suggested markets,
+ * show-more/less, tappable header, animations, 10-asset limit) and the
+ * watchlist filter pill in the markets list are shown.
+ * When disabled, falls back to the pre-redesign plain watchlist list.
+ *
+ * @returns boolean - true if redesigned watchlist should be shown, false otherwise
+ */
+export const selectPerpsWatchlistEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsWatchlistV2Enabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for default pay token when no perps balance feature flag.
  * When enabled: preselect allowlist token with highest balance in Pay row when user has no perps balance,
  * and show "Add funds" CTA on market details when no token can be preselected.
