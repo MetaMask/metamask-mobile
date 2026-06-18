@@ -3,6 +3,5 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 
 export const selectIsActivityRedesignEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean =>
-    remoteFeatureFlags.tmcuActivityRedesignEnabled === true,
+  (remoteFeatureFlags): boolean => true,
 );
