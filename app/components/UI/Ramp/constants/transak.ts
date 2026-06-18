@@ -1,4 +1,4 @@
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { DepositCryptoCurrency } from '../types/legacyDeposit';
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 export const TRANSAK_URL = 'https://www.transak.com';

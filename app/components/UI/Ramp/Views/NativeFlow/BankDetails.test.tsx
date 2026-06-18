@@ -111,13 +111,6 @@ jest.mock('../../utils/depositUtils', () => ({
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
-jest.mock('../../orderProcessor/depositOrderProcessor', () => ({
-  depositOrderToFiatOrder: jest.fn((order) => ({
-    ...order,
-    orderType: 'BUY',
-  })),
-}));
-
 jest.mock(
   '../../../../../component-library/components-temp/Loader/Loader',
   () => {

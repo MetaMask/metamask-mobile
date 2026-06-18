@@ -1,5 +1,5 @@
 import SecureKeychain from '../../../../core/SecureKeychain';
-import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
+import { NativeTransakAccessToken } from '../types/legacyDeposit';
 
 const PROVIDER_TOKEN_KEY = 'TRANSAK_ACCESS_TOKEN';
 

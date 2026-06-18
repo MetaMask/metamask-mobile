@@ -1,4 +1,4 @@
-import { SdkEnvironment } from '@consensys/native-ramps-sdk';
+import { SdkEnvironment } from '../types/legacyDeposit';
 import { getSdkEnvironment } from './getSdkEnvironment';
 
 describe('getSdkEnvironment', () => {

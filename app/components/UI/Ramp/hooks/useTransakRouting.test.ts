@@ -148,13 +148,6 @@ jest.mock('../../../../selectors/rampsController', () => ({
   selectTokens: jest.fn(),
 }));
 
-jest.mock('../orderProcessor/depositOrderProcessor', () => ({
-  depositOrderToFiatOrder: jest.fn((order) => ({
-    ...order,
-    orderType: 'BUY',
-  })),
-}));
-
 jest.mock('../utils/depositUtils', () => ({
   generateThemeParameters: jest.fn(() => ({ theme: 'light' })),
 }));

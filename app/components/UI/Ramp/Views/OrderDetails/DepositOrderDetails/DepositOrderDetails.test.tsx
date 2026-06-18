@@ -8,7 +8,7 @@ import {
   FIAT_ORDER_STATES,
   FIAT_ORDER_PROVIDERS,
 } from '../../../../../../constants/on-ramp';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrder, DepositOrderType } from '../../../types/legacyDeposit';
 import { getOrderById, FiatOrder } from '../../../../../../reducers/fiatOrders';
 import AppConstants from '../../../../../../core/AppConstants';
 import { MOCK_DEPOSIT_ORDER, MOCK_US_REGION } from '../../../testUtils';

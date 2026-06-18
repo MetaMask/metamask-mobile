@@ -1,4 +1,4 @@
-import { DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrderType } from '../types/legacyDeposit';
 import getNotificationDetails from './getNotificationDetails';
 import { getNotificationDetails as getAggregatorNotificationDetails } from '../Aggregator/utils';
 import { getNotificationDetails as getDepositNotificationDetails } from '../utils/depositUtils';

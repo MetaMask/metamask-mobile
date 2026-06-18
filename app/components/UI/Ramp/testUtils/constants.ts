@@ -8,7 +8,7 @@ import {
   DepositPaymentMethodDuration,
   NativeTransakUserDetails,
   NativeTransakUserDetailsKycDetails,
-} from '@consensys/native-ramps-sdk';
+} from '../types/legacyDeposit';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import type { DepositSDK } from '../types/depositSdk';
 import {
@@ -219,7 +219,6 @@ export const MOCK_BANK_DETAILS_ORDER = {
 };
 
 export const createMockSDKReturn = (overrides = {}): DepositSDK => ({
-  sdk: undefined,
   sdkError: undefined,
   providerApiKey: null,
   isAuthenticated: false,

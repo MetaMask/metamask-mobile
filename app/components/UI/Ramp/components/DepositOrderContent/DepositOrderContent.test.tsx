@@ -4,7 +4,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import DepositOrderContent from './DepositOrderContent';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrder, DepositOrderType } from '../../types/legacyDeposit';
 import {
   FIAT_ORDER_STATES,
   FIAT_ORDER_PROVIDERS,

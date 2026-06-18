@@ -2,13 +2,11 @@ import type {
   DepositCryptoCurrency,
   DepositPaymentMethod,
   DepositRegion,
-  NativeRampsSdk,
   NativeTransakAccessToken,
-} from '@consensys/native-ramps-sdk';
+} from './legacyDeposit';
 import type { DepositNavigationParams } from './depositNavigationParams';
 
 export interface DepositSDK {
-  sdk?: NativeRampsSdk;
   sdkError?: Error;
   providerApiKey: string | null;
   isAuthenticated: boolean;

@@ -1,4 +1,4 @@
-import { SdkEnvironment } from '@consensys/native-ramps-sdk';
+import { SdkEnvironment } from '../types/legacyDeposit';
 
 /**
  * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).

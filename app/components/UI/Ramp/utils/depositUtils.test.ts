@@ -9,7 +9,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrder, DepositOrderType } from '../types/legacyDeposit';
 import { strings } from '../../../../../locales/i18n';
 import { darkTheme } from '@metamask/design-tokens';
 import { mockTheme } from '../../../../util/theme';

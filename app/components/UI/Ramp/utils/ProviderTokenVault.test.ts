@@ -4,7 +4,7 @@ import {
   resetProviderToken,
   storeProviderToken,
 } from './ProviderTokenVault';
-import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
+import { NativeTransakAccessToken } from '../types/legacyDeposit';
 
 jest.mock('../../../../core/SecureKeychain', () => ({
   setSecureItem: jest.fn(),

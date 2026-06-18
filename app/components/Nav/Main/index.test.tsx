@@ -8,17 +8,11 @@ import initialRootState from '../../../util/test/initial-root-state';
 const mockReact = React;
 const mockView = View;
 
-// Mock Ramp SDK dependencies to prevent SdkEnvironment.Production errors
+// Mock Ramp shell to avoid deep dependency graph in Main mount test
 jest.mock('../../../components/UI/Ramp', () => ({
   __esModule: true,
   default: () => mockReact.createElement('RampOrdersMock'),
 }));
-
-jest.mock('../../../components/UI/Ramp/sdk', () => ({
-  DepositSDKNoAuth: {},
-}));
-
-jest.mock('../../../components/UI/Ramp/orderProcessor/depositOrderProcessor', () => ({}));
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '0.0.0'),
@@ -104,22 +98,6 @@ jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
   startIncomingTransactionPolling: jest.fn(),
   stopIncomingTransactionPolling: jest.fn(),
-}));
-
-jest.mock('@consensys/native-ramps-sdk', () => ({
-  SdkEnvironment: {
-    Production: 'production',
-    Staging: 'staging',
-  },
-  Context: {
-    MobileIOS: 'mobile-ios',
-    MobileAndroid: 'mobile-android',
-  },
-  DepositPaymentMethodDuration: {
-    instant: 'instant',
-    oneToTwoDays: '1_to_2_days',
-  },
-  NativeRampsSdk: jest.fn(),
 }));
 
 describe('Main', () => {

@@ -1,4 +1,4 @@
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { DepositCryptoCurrency } from '../types/legacyDeposit';
 
 export type MockDepositCryptoCurrency = DepositCryptoCurrency & {
   unsupported?: boolean;

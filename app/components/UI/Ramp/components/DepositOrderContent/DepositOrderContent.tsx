@@ -32,7 +32,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
+import { DepositOrder } from '../../types/legacyDeposit';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 interface DepositOrderContentProps {

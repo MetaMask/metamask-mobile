@@ -1,4 +1,4 @@
-import { DepositOrder } from '@consensys/native-ramps-sdk';
+import { DepositOrder } from '../types/legacyDeposit';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { renderNumber } from '../../../../util/number';

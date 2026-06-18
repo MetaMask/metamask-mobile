@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import Fuse from 'fuse.js';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { DepositCryptoCurrency } from '../types/legacyDeposit';
 import { CaipChainId } from '@metamask/utils';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../constants/networks';
 
