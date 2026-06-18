@@ -113,12 +113,10 @@ describe('Transaction Metric Event Handlers', () => {
     addSensitiveProperties: jest.fn().mockReturnThis(),
     removeProperties: jest.fn().mockReturnThis(),
     removeSensitiveProperties: jest.fn().mockReturnThis(),
-    setSaveDataRecording: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({
       name: 'Transaction Added',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
     }),
   } as ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>;
 
