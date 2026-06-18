@@ -8,6 +8,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
+  StyleSheet,
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -19,6 +20,7 @@ import {
   SectionHeader,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import TempSectionHeader from '../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../Views/Homepage/components/ErrorState';
 import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
@@ -30,6 +32,7 @@ import {
   MAX_ITEMS_DISPLAYED,
   WhatsHappeningInteractionType,
   WhatsHappeningView,
+  WhatsHappeningSource,
   type WhatsHappeningSourceValue,
 } from './constants';
 import { useWhatsHappening } from './hooks';
@@ -54,6 +57,10 @@ const SKELETON_KEYS = Array.from(
   (__, i) => `skeleton-${i}`,
 );
 
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
+
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
 }
@@ -68,6 +75,7 @@ const WhatsHappeningSection = forwardRef<
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('whats_happening.title');
+  const isPerpsSource = source === WhatsHappeningSource.Perps;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -165,6 +173,23 @@ const WhatsHappeningSection = forwardRef<
       </ScrollView>
     </PerpsStreamProvider>
   );
+
+  if (isPerpsSource) {
+    if (!isLoading && items.length === 0 && !hasError) {
+      return null;
+    }
+
+    return (
+      <View style={styles.sectionGap}>
+        <TempSectionHeader
+          title={title}
+          onPress={handleViewAll}
+          testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+        />
+        {carouselContent}
+      </View>
+    );
+  }
 
   if (hasError) {
     return (
