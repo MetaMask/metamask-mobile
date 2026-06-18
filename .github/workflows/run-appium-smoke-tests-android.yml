@@ -95,7 +95,7 @@ jobs:
       test-suite-name: appium-perps-android-smoke
       platform: android
       test_suite_tag: SmokePerps
-      split_number: 1
+      split_number: ${{ matrix.split }}
       total_splits: 2
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
