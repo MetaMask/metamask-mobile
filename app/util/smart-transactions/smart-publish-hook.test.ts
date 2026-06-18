@@ -433,32 +433,29 @@ describe('submitBatchSmartTransactionHook', () => {
     );
   });
 
-  it('pads minedHash to match transaction count when txHashes is missing', async () => {
+  it('throws an error if there is no transaction hash', async () => {
     withRequest(
       {
         transactions: [
           { signedTx: createSignedTransaction(), id: '1', params: {} },
         ],
       },
-      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
-        submitSignedTransactionsSpy.mockResolvedValue({
-          uuid: stxUuid,
-        });
-
+      async ({ request, controllerMessenger }) => {
         setImmediate(() => {
           controllerMessenger.publish(
             'SmartTransactionsController:smartTransaction',
             {
-              status: 'success',
-              statusMetadata: { minedHash: transactionHash },
-              uuid: stxUuid,
+              status: 'cancelled',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
             } as SmartTransaction,
           );
         });
-
-        const result = await submitBatchSmartTransactionHook(request);
-
-        expect(result).toEqual({ results: [{ transactionHash }] });
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'Smart Transaction does not have a transaction hash, there was a problem',
+        );
       },
     );
   });
@@ -573,114 +570,8 @@ describe('submitBatchSmartTransactionHook', () => {
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({
-          results: [{ transactionHash }],
+          results: [],
         });
-      },
-    );
-  });
-});
-
-describe('submitBatch - mining wait', () => {
-  it('returns immediately with txHashes from submit response without waiting for mining', async () => {
-    withRequest(
-      {
-        transactions: [
-          { signedTx: createSignedTransaction(), id: '1', params: {} },
-          { signedTx: createSignedTransaction(), id: '2', params: {} },
-        ],
-      },
-      async ({ request, submitSignedTransactionsSpy }) => {
-        submitSignedTransactionsSpy.mockResolvedValue({
-          uuid: 'batch-uuid-no-wait',
-          txHashes: ['0xhash1' as Hex, '0xhash2' as Hex],
-        });
-
-        const subscribeSpy = jest.spyOn(
-          request.controllerMessenger,
-          'subscribe',
-        );
-
-        const result = await submitBatchSmartTransactionHook(request);
-
-        expect(result.results).toHaveLength(2);
-        expect(result.results[0].transactionHash).toBe('0xhash1');
-        expect(result.results[1].transactionHash).toBe('0xhash2');
-        expect(subscribeSpy).toHaveBeenCalledWith(
-          'SmartTransactionsController:smartTransaction',
-          expect.any(Function),
-        );
-      },
-    );
-  });
-
-  it('pads minedHash to match transaction count when txHashes is missing', async () => {
-    withRequest(
-      {
-        transactions: [
-          { signedTx: createSignedTransaction(), id: '1', params: {} },
-        ],
-      },
-      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
-        submitSignedTransactionsSpy.mockResolvedValue({
-          uuid: 'batch-uuid-no-hashes',
-        });
-
-        setImmediate(() => {
-          controllerMessenger.publish(
-            'SmartTransactionsController:smartTransaction',
-            {
-              status: 'success',
-              statusMetadata: { minedHash: transactionHash },
-              uuid: 'batch-uuid-no-hashes',
-            } as SmartTransaction,
-          );
-        });
-
-        const subscribeSpy = jest.spyOn(
-          request.controllerMessenger,
-          'subscribe',
-        );
-
-        const result = await submitBatchSmartTransactionHook(request);
-
-        expect(result.results).toEqual([{ transactionHash }]);
-        expect(subscribeSpy).toHaveBeenCalledWith(
-          'SmartTransactionsController:smartTransaction',
-          expect.any(Function),
-        );
-      },
-    );
-  });
-
-  it('pads minedHash to match multi-tx batch size when txHashes is missing', async () => {
-    withRequest(
-      {
-        transactions: [
-          { signedTx: createSignedTransaction(), id: '1', params: {} },
-          { signedTx: createSignedTransaction(), id: '2', params: {} },
-        ],
-      },
-      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
-        submitSignedTransactionsSpy.mockResolvedValue({
-          uuid: 'multi-tx-no-hashes',
-        });
-
-        setImmediate(() => {
-          controllerMessenger.publish(
-            'SmartTransactionsController:smartTransaction',
-            {
-              status: 'success',
-              statusMetadata: { minedHash: transactionHash },
-              uuid: 'multi-tx-no-hashes',
-            } as SmartTransaction,
-          );
-        });
-
-        const result = await submitBatchSmartTransactionHook(request);
-
-        expect(result.results).toHaveLength(2);
-        expect(result.results[0].transactionHash).toBe(transactionHash);
-        expect(result.results[1].transactionHash).toBe(transactionHash);
       },
     );
   });

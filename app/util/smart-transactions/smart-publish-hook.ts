@@ -198,7 +198,15 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      await this.#getTransactionHash(submitTransactionResponse, uuid);
+      const transactionHash = await this.#getTransactionHash(
+        submitTransactionResponse,
+        uuid,
+      );
+      if (transactionHash === null) {
+        throw new Error(
+          'Transaction does not have a transaction hash in the publish batch hook, there was a problem',
+        );
+      }
 
       let submitBatchResponse;
       if (submitTransactionResponse?.txHashes) {
