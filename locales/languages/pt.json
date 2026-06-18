@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Ao vivo agora",
       "categories_placeholder": "Categorias",
-      "popular_today_placeholder": "Popular hoje",
       "trending_placeholder": "Tendência"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Pontos de indicações",
       "referrals_label": "Indicações VIP",
       "tier_benefits_title": "Benefícios de nível",
-      "splash_title": "BOAS-VINDAS\nAO GOLD\nFOX VIP",
+      "splash_title": "BOAS-VINDAS\nAO GOLD FOX\nCOLLECTIVE",
       "splash_description": "Desbloqueie vantagens exclusivas, acesso antecipado a recursos e recompensas selecionadas. Somente por convite.",
       "splash_accept_invite": "Aceitar convite",
       "splash_not_now": "Agora não",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Níveis",
       "tier_thresholds": "{{points}} pontos",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "BOAS-VINDAS\nAO GOLD\nFOX VIP",
-      "referee_splash_description": "Desbloqueie vantagens exclusivas, acesso antecipado a recursos e recompensas selecionadas. Somente por convite.",
       "referee_splash_continue": "Continuar",
-      "referee_splash_not_now": "Agora não",
       "referee_referred_by": "Indicado por {{code}}",
       "referee_page_title": "Piloto VIP",
       "referee_stats_title": "Estatísticas",
       "referee_period_last_30d": "Últimos 30 dias",
-      "referee_points_label": "Pontos",
       "referee_swaps_volume_label": "Volume de trocas",
       "referee_perps_volume_label": "Volume de perps",
+      "referee_points_to_label": "Pontos para {{code}}",
       "referee_error_title": "Não foi possível carregar os detalhes do seu árbitro VIP",
       "referee_error_description": "Verifique sua conexão e tente novamente.",
       "last_updated": "Última atualização: {{time}}"
