@@ -2,12 +2,12 @@ import React from 'react';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render } from '@testing-library/react-native';
 import PredictSportScoreboard from './PredictSportScoreboard';
-import { PredictMarketGame, PredictGameStatus } from '../../types';
-import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { PredictMarketGame } from '../../types';
+import { usePredictGame } from '../../hooks/usePredictGame';
 
-jest.mock('../../hooks/useLiveGameUpdates');
-const mockUseLiveGameUpdates = useLiveGameUpdates as jest.MockedFunction<
-  typeof useLiveGameUpdates
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
 >;
 
 jest.mock('../../constants/sportLeagueConfigs', () => {
@@ -86,16 +86,17 @@ const createGame = (
   ...overrides,
 });
 
-const createLiveUpdate = (overrides = {}) => ({
-  gameUpdate: null,
+const createPredictGameResult = (game: PredictMarketGame) => ({
+  game,
   isConnected: false,
   lastUpdateTime: null,
-  ...overrides,
 });
 
 describe('PredictSportScoreboard', () => {
   beforeEach(() => {
-    mockUseLiveGameUpdates.mockReturnValue(createLiveUpdate());
+    mockUsePredictGame.mockImplementation((game) =>
+      createPredictGameResult(game),
+    );
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-02-08T15:00:00Z'));
   });
@@ -132,10 +133,11 @@ describe('PredictSportScoreboard', () => {
       expect(getByTestId('scoreboard-away-team-logo')).toBeOnTheScreen();
     });
 
-    it('subscribes to live game updates with game id', () => {
-      render(<PredictSportScoreboard game={createGame({ id: 'game-456' })} />);
+    it('reads cached game state with the provided game', () => {
+      const game = createGame({ id: 'game-456' });
+      render(<PredictSportScoreboard game={game} />);
 
-      expect(mockUseLiveGameUpdates).toHaveBeenCalledWith('game-456');
+      expect(mockUsePredictGame).toHaveBeenCalledWith(game);
     });
   });
 
@@ -287,16 +289,15 @@ describe('PredictSportScoreboard', () => {
 
   describe('live updates merging', () => {
     it('uses live score when available', () => {
-      mockUseLiveGameUpdates.mockReturnValue(
-        createLiveUpdate({
-          gameUpdate: {
-            gameId: 'game-123',
-            score: '21-14',
+      mockUsePredictGame.mockReturnValue(
+        createPredictGameResult(
+          createGame({
+            status: 'ongoing',
             elapsed: '05:00',
             period: 'Q2',
-            status: 'ongoing' as PredictGameStatus,
-          },
-        }),
+            score: { away: 21, home: 14, raw: '21-14' },
+          }),
+        ),
       );
 
       const { getByText, queryByText } = render(
@@ -315,16 +316,15 @@ describe('PredictSportScoreboard', () => {
     });
 
     it('uses live status to transition from scheduled to in-progress', () => {
-      mockUseLiveGameUpdates.mockReturnValue(
-        createLiveUpdate({
-          gameUpdate: {
-            gameId: 'game-123',
-            score: '7-3',
+      mockUsePredictGame.mockReturnValue(
+        createPredictGameResult(
+          createGame({
+            status: 'ongoing',
+            score: { away: 7, home: 3, raw: '7-3' },
             elapsed: '10:00',
             period: 'Q1',
-            status: 'ongoing' as PredictGameStatus,
-          },
-        }),
+          }),
+        ),
       );
 
       const { getByText } = render(
@@ -335,16 +335,15 @@ describe('PredictSportScoreboard', () => {
     });
 
     it('uses live period when available', () => {
-      mockUseLiveGameUpdates.mockReturnValue(
-        createLiveUpdate({
-          gameUpdate: {
-            gameId: 'game-123',
-            score: '14-7',
+      mockUsePredictGame.mockReturnValue(
+        createPredictGameResult(
+          createGame({
+            status: 'ongoing',
+            score: { away: 14, home: 7, raw: '14-7' },
             elapsed: '02:00',
             period: 'Q2',
-            status: 'ongoing' as PredictGameStatus,
-          },
-        }),
+          }),
+        ),
       );
 
       const { getByText, queryByText } = render(
@@ -361,43 +360,7 @@ describe('PredictSportScoreboard', () => {
       expect(queryByText('Q1 • 15:00')).toBeNull();
     });
 
-    it('uses a parent-provided gameUpdate without opening its own subscription', () => {
-      // If the scoreboard subscribed, the hook would return this Q1 update.
-      mockUseLiveGameUpdates.mockReturnValue(
-        createLiveUpdate({
-          gameUpdate: {
-            gameId: 'game-123',
-            score: '0-0',
-            elapsed: '00:00',
-            period: 'Q1',
-            status: 'ongoing' as PredictGameStatus,
-          },
-        }),
-      );
-
-      const { getByText } = render(
-        <PredictSportScoreboard
-          game={createGame({ status: 'scheduled' })}
-          gameUpdate={{
-            gameId: 'game-123',
-            score: '21-14',
-            elapsed: '07:30',
-            period: 'Q3',
-            status: 'ongoing' as PredictGameStatus,
-          }}
-        />,
-      );
-
-      // The prop wins over what the hook would have returned.
-      expect(getByText('Q3 • 07:30')).toBeOnTheScreen();
-      // The hook is disabled (called with null), not subscribed to the game id.
-      expect(mockUseLiveGameUpdates).toHaveBeenCalledWith(null);
-      expect(mockUseLiveGameUpdates).not.toHaveBeenCalledWith('game-123');
-    });
-
-    it('falls back to static game data when no live update', () => {
-      mockUseLiveGameUpdates.mockReturnValue(createLiveUpdate());
-
+    it('falls back to static game data when no cached live game is available', () => {
       const { getByText } = render(
         <PredictSportScoreboard
           game={createGame({
