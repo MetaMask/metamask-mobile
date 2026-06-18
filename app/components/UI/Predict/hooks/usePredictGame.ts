@@ -11,7 +11,7 @@ export interface UsePredictGameOptions {
 }
 
 export interface UsePredictGameResult {
-  game: PredictMarketGame | undefined;
+  game: PredictMarket['game'];
   isConnected: boolean;
   lastUpdateTime: number | null;
 }
@@ -88,11 +88,11 @@ export const usePredictGame = (
     [gameId],
   );
 
-  const query = useQuery<PredictMarketGame | undefined>({
+  const query = useQuery<PredictMarketGame | null>({
     queryKey,
     queryFn: async () => {
       if (!initialGame) {
-        return undefined;
+        return null;
       }
 
       return mergeCachedGame(
@@ -174,7 +174,7 @@ export const usePredictGame = (
   }, [gameId, handleGameUpdate, live]);
 
   return {
-    game: query.data,
+    game: query.data ?? undefined,
     isConnected,
     lastUpdateTime,
   };

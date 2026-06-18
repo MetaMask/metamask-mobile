@@ -130,10 +130,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
         .filter((id): id is string => Boolean(id)),
     [awayToken, drawToken, homeToken],
   );
-  const marketWithGame = useMemo(
-    () => (game ? { ...market, game } : market),
-    [game, market],
-  );
+
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled:
       livePricesEnabled &&
@@ -171,7 +168,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
       executeGuardedAction(
         () => {
           openBuySheet({
-            market: marketWithGame,
+            market,
             outcome,
             outcomeToken: token,
             entryPoint,
@@ -180,7 +177,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [marketWithGame, outcome, entryPoint, executeGuardedAction, openBuySheet],
+    [market, outcome, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);
