@@ -21,7 +21,10 @@ import PerpsMarketDetailsView from './PerpsMarketDetailsView';
 import {
   EncapsulatedElementType,
   FrameworkDetector,
+  PlatformDetector,
+  PlaywrightGestures,
   PlaywrightMatchers,
+  sleep,
 } from '../../framework';
 
 /** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
@@ -502,6 +505,13 @@ class PerpsView {
         }
       }
 
+      if (PlatformDetector.isIOS()) {
+        return this.isIosElementVisibleByXPath(
+          "//*[@type='XCUIElementTypeButton' and (@name='Add funds' or @label='Add funds')]",
+          timeout,
+        );
+      }
+
       return false;
     }
 
@@ -518,6 +528,70 @@ class PerpsView {
     }
 
     return false;
+  }
+
+  private isIosAppium(): boolean {
+    return FrameworkDetector.isAppium() && PlatformDetector.isIOS();
+  }
+
+  private get iosHeaderBackButtonXPath(): string {
+    return [
+      "//*[@type='XCUIElementTypeButton' and (",
+      "@name='Back' or @label='Back' or contains(@name,'Back') or ",
+      "contains(@label,'Back') or contains(@name,'arrow-left') or ",
+      "contains(@label,'arrow-left') or contains(@name,'arrow.left') or ",
+      "contains(@label,'arrow.left') or contains(@name,'ArrowLeft') or ",
+      "contains(@label,'ArrowLeft')",
+      ')]',
+    ].join('');
+  }
+
+  private async isIosElementVisibleByXPath(
+    xpath: string,
+    timeout = 2000,
+  ): Promise<boolean> {
+    if (!this.isIosAppium()) {
+      return false;
+    }
+
+    try {
+      const el = await PlaywrightMatchers.getElementByXPath(xpath, {
+        lastElement: false,
+      });
+      await el.unwrap().waitForDisplayed({ timeout });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async isIosHeaderBackVisible(timeout = 2000): Promise<boolean> {
+    return this.isIosElementVisibleByXPath(
+      this.iosHeaderBackButtonXPath,
+      timeout,
+    );
+  }
+
+  private async tapIosHeaderBackButton(): Promise<boolean> {
+    if (!this.isIosAppium()) {
+      return false;
+    }
+
+    try {
+      const backButton = await PlaywrightMatchers.getElementByXPath(
+        this.iosHeaderBackButtonXPath,
+        { lastElement: false },
+      );
+
+      await PlaywrightGestures.waitAndTap(backButton, {
+        checkForEnabled: false,
+        timeout: 10000,
+      });
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private async isMarketDetailsBackVisible(timeout = 2000): Promise<boolean> {
@@ -546,6 +620,117 @@ class PerpsView {
     return Utilities.isElementVisible(Matchers.getElementByID(testId), timeout);
   }
 
+  private async isMarketOrderFlowNavigationTargetVisible(
+    marketListBackTestId: string,
+    timeout = 500,
+  ): Promise<boolean> {
+    if (await this.isOnPerpsPortfolioHome(timeout)) {
+      return true;
+    }
+    if (await this.isMarketDetailsBackVisible(timeout)) {
+      return true;
+    }
+    if (await this.isTestIdVisible(marketListBackTestId, timeout)) {
+      return true;
+    }
+    if (
+      await this.isTestIdVisible(
+        PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
+        timeout,
+      )
+    ) {
+      return true;
+    }
+
+    return this.isIosHeaderBackVisible(timeout);
+  }
+
+  private async waitForMarketOrderFlowNavigationTarget(
+    marketListBackTestId: string,
+    timeout = 30000,
+  ): Promise<void> {
+    await Utilities.waitUntil(
+      async () =>
+        this.isMarketOrderFlowNavigationTargetVisible(
+          marketListBackTestId,
+          500,
+        ),
+      {
+        interval: 500,
+        timeout,
+      },
+    );
+  }
+
+  private async tapMarketOrderFlowBackButton(
+    marketListBackTestId: string,
+  ): Promise<boolean> {
+    if (
+      await this.isTestIdVisible(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON, 1000)
+    ) {
+      await Gestures.waitAndTap(
+        Matchers.getElementByID(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON),
+        {
+          elemDescription: 'Perps order header back (to market details)',
+          timeout: 15000,
+        },
+      );
+      return true;
+    }
+
+    if (await this.isMarketDetailsBackVisible(1000)) {
+      await PerpsMarketDetailsView.tapBackButton();
+      return true;
+    }
+
+    if (await this.isTestIdVisible(marketListBackTestId, 1000)) {
+      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
+      return true;
+    }
+
+    return this.tapIosHeaderBackButton();
+  }
+
+  private async navigateToPerpsPortfolioHomeFromMarketOrderFlowAppium(
+    marketListBackTestId: string,
+  ): Promise<void> {
+    await this.waitForMarketOrderFlowNavigationTarget(
+      marketListBackTestId,
+      30000,
+    );
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (await this.isOnPerpsPortfolioHome(1000)) {
+        return;
+      }
+
+      const didTapBack =
+        await this.tapMarketOrderFlowBackButton(marketListBackTestId);
+      if (!didTapBack) {
+        break;
+      }
+
+      await sleep(700);
+
+      try {
+        await this.waitForMarketOrderFlowNavigationTarget(
+          marketListBackTestId,
+          10000,
+        );
+      } catch {
+        // Let the next attempt decide whether we reached home or have no path.
+      }
+    }
+
+    if (await this.isOnPerpsPortfolioHome(1000)) {
+      return;
+    }
+
+    throw new Error(
+      'Could not reach Perps portfolio home: no market list back or market header back visible',
+    );
+  }
+
   /**
    * After placing an order from market details (explore → market → order), return to Perps
    * portfolio home where open orders are listed. Uses market-details header back, then
@@ -555,32 +740,14 @@ class PerpsView {
   async navigateToPerpsPortfolioHomeFromMarketOrderFlow(): Promise<void> {
     const marketListBackTestId = `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`;
 
-    await Utilities.waitUntil(
-      async () => {
-        if (await this.isOnPerpsPortfolioHome(500)) {
-          return true;
-        }
-        if (await this.isMarketDetailsBackVisible(500)) {
-          return true;
-        }
-        if (await this.isTestIdVisible(marketListBackTestId, 500)) {
-          return true;
-        }
-        if (
-          await this.isTestIdVisible(
-            PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
-            500,
-          )
-        ) {
-          return true;
-        }
-        return false;
-      },
-      {
-        interval: 500,
-        timeout: 30000,
-      },
-    );
+    if (FrameworkDetector.isAppium()) {
+      await this.navigateToPerpsPortfolioHomeFromMarketOrderFlowAppium(
+        marketListBackTestId,
+      );
+      return;
+    }
+
+    await this.waitForMarketOrderFlowNavigationTarget(marketListBackTestId);
 
     if (await this.isOnPerpsPortfolioHome(1000)) {
       return;

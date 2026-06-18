@@ -219,11 +219,17 @@ class PerpsOrderView {
   getTpslDoneButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText('Done'),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsTPSLViewSelectorsIDs.DONE_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsTPSLViewSelectorsIDs.DONE_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            "//*[@type='XCUIElementTypeButton' and (@name='Done' or @label='Done')]",
+          ),
+      },
     });
   }
 
