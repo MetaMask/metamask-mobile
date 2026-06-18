@@ -264,6 +264,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       autoSelectFiatPayment: true,
+      intent: 'card',
     });
   });
 
@@ -360,6 +361,7 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       autoSelectFiatPayment: true,
+      intent: 'card',
     });
   });
 
@@ -376,6 +378,7 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       autoSelectFiatPayment: true,
+      intent: 'card',
     });
   });
 
