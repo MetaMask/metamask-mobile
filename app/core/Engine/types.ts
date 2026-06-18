@@ -1185,10 +1185,19 @@ export interface InitMessengerClientsFunctionRequest {
 }
 
 /**
+ * Map of only the messenger clients that `initMessengerClients` constructs.
+ * Wallet-owned controllers (e.g. `AccountsController`) are intentionally absent;
+ * resolve those via `wallet.getInstance(...)`, not this map.
+ */
+export type InitializedMessengerClientsByName = {
+  [Name in MessengerClientsToInitialize]: MessengerClientsByName[Name];
+};
+
+/**
  * Function to initialize the messenger clients in the engine.
  */
 export type InitMessengerClientsFunction = (
   request: InitMessengerClientsFunctionRequest,
 ) => {
-  messengerClientsByName: MessengerClientsByName;
+  messengerClientsByName: InitializedMessengerClientsByName;
 };

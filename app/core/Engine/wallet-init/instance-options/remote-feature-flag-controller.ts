@@ -43,6 +43,9 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
     getMetaMetricsId: () =>
       messenger.call('AnalyticsController:getState').analyticsId,
     clientVersion: getBaseSemVerVersion(),
+    fetchInterval: __DEV__
+      ? 1000
+      : AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
     prevClientVersion:
       typeof state?.AppMetadataController?.currentAppVersion === 'string'
         ? state.AppMetadataController.currentAppVersion
