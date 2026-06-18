@@ -17,7 +17,7 @@ import {
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import {
   activityListRowItemTestId,
-  activityListRowStatusTestId,
+  activityListRowSubtitleTestId,
 } from './ActivityList.testIds';
 
 const transactionControllerWithIncomingSync = Engine.context
@@ -29,9 +29,10 @@ describeForPlatforms('ActivityList', () => {
   it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
     const pendingRowIndex = 1;
     const confirmedRowIndex = 3;
+    const pendingTransaction = buildPendingLocalSendTransaction();
     const state = initialStateActivityWithLocalTransactions([
       buildConfirmedLocalSendTransaction(),
-      buildPendingLocalSendTransaction(),
+      pendingTransaction,
     ]).build();
 
     const { findByTestId } = renderActivityListViewWithRoutes({
@@ -39,11 +40,19 @@ describeForPlatforms('ActivityList', () => {
       extraRoutes: [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
     });
 
-    const pendingStatus = await findByTestId(
-      activityListRowStatusTestId(pendingRowIndex),
+    const pendingRow = await findByTestId(
+      activityListRowItemTestId(pendingRowIndex),
     );
+    const pendingScope = within(pendingRow);
 
-    expect(pendingStatus).toHaveTextContent(strings('transaction.submitted'));
+    expect(pendingScope.getByText('Sending ETH')).toBeOnTheScreen();
+    expect(
+      pendingScope.getByTestId(
+        activityListRowSubtitleTestId(pendingTransaction.hash as string),
+      ),
+    ).toHaveTextContent(
+      `${strings('transaction.queued')} • To: 0x80181...229cC`,
+    );
 
     const confirmedRow = await findByTestId(
       activityListRowItemTestId(confirmedRowIndex),
