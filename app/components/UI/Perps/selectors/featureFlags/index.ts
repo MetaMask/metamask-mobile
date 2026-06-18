@@ -91,12 +91,11 @@ export const PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY =
 export const selectPerpsAdvancedChartEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_ADVANCED_CHART_ENABLED === 'true';
     const remoteFlag = remoteFeatureFlags?.[
       PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY
     ] as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 
