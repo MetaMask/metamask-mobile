@@ -80,6 +80,7 @@ export function useMultichainTransactionDisplay(
   );
 
   const isIncomplete = isTransactionIncomplete(transaction.status);
+  const approveUnitSuffix = from?.unit ? ` ${from.unit}` : '';
 
   const isUnlimitedApproval =
     transaction.type === TransactionType.TokenApprove &&
@@ -100,7 +101,7 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Swap]: `${strings('transactions.swap')} ${
       from?.unit
     } ${strings('transactions.to').toLowerCase()} ${to?.unit}`,
-    [TransactionType.TokenApprove]: `${strings('transactions.tx_review_approve')}${from?.unit ? ` ${from.unit}` : ''}`,
+    [TransactionType.TokenApprove]: `${strings('transactions.tx_review_approve')}${approveUnitSuffix}`,
     [TransactionType.StakeDeposit]: strings(
       'transactions.tx_review_staking_deposit',
     ),
