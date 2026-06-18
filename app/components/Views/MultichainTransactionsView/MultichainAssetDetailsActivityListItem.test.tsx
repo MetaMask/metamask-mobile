@@ -2,9 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import {
   SolScope,
+  type Transaction,
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -50,13 +52,23 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   }),
 }));
 
-const createNavigation = () => ({
-  navigate: jest.fn(),
-});
+const createNavigation = () =>
+  ({
+    navigate: jest.fn(),
+  }) as unknown as AppNavigationProp & { navigate: jest.Mock };
 
-const createTransaction = (overrides = {}) => ({
+type TransactionWithImportTime = Transaction & {
+  insertImportTime?: boolean;
+};
+
+const createTransaction = (
+  overrides: Partial<TransactionWithImportTime> = {},
+): TransactionWithImportTime => ({
   id: 'tx-1',
   chain: SolScope.Mainnet,
+  account: 'from',
+  events: [],
+  fees: [],
   status: TransactionStatus.Confirmed,
   timestamp: 1,
   type: TransactionType.Send,
@@ -71,7 +83,7 @@ const createTransaction = (overrides = {}) => ({
       },
     },
   ],
-  to: [{ address: 'to' }],
+  to: [{ address: 'to', asset: null }],
   ...overrides,
 });
 

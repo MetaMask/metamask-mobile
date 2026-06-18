@@ -2,6 +2,7 @@ import React from 'react';
 import { default as Transactions, UnconnectedTransactions } from '.';
 import TransactionElement from '../TransactionElement';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
+import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render, cleanup, act } from '@testing-library/react-native';
@@ -2833,6 +2834,80 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
           chainId: '0x1',
           index: 0,
           navigation: mockNavigation,
+        }),
+      );
+    });
+
+    it('renders date headers for grouped redesigned asset details activity', () => {
+      instance = new UnconnectedTransactions({
+        ...defaultTestProps,
+        isActivityRedesignEnabled: true,
+        location: TransactionDetailLocation.AssetDetails,
+      });
+
+      const element = instance.renderGroupedActivityItem({
+        item: { type: 'date-header', date: 1000000 },
+        index: 0,
+      });
+
+      expect(element.type).toBe(ActivityListDateHeader);
+      expect(element.props).toEqual(
+        expect.objectContaining({
+          timestamp: 1000000,
+        }),
+      );
+    });
+
+    it('renders redesigned rows for grouped asset details activity items', () => {
+      instance = new UnconnectedTransactions({
+        ...defaultTestProps,
+        assetSymbol: 'ETH',
+        isActivityRedesignEnabled: true,
+        location: TransactionDetailLocation.AssetDetails,
+      });
+
+      const transaction = {
+        id: 'tx-1',
+        chainId: '0x1',
+        hash: '0xabc',
+        status: 'confirmed',
+        time: 1000000,
+        type: 'simpleSend',
+        txParams: {
+          from: '0x123',
+          to: '0x456',
+          value: '100',
+        },
+      };
+
+      const element = instance.renderGroupedActivityItem({
+        item: {
+          type: 'item',
+          item: {
+            id: 'activity-1',
+            type: 'send',
+            chainId: '0x1',
+            status: 'success',
+            timestamp: 1000000,
+            raw: {
+              type: 'localTransaction',
+              data: {
+                primaryTransaction: transaction,
+                initialTransaction: transaction,
+              },
+            },
+            data: {},
+          },
+        },
+        index: 1,
+      });
+
+      expect(element.type).toBe(AssetDetailsActivityListItem);
+      expect(element.props).toEqual(
+        expect.objectContaining({
+          transaction,
+          index: 1,
+          assetSymbol: 'ETH',
         }),
       );
     });

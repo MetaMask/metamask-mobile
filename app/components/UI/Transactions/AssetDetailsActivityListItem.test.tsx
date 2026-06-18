@@ -5,9 +5,11 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -40,14 +42,18 @@ jest.mock('../ActivityListItemRow/ActivityListItemRow', () => ({
 
 const mockUseSelector = jest.mocked(useSelector);
 
-const createNavigation = () => ({
-  navigate: jest.fn(),
-});
+const createNavigation = () =>
+  ({
+    navigate: jest.fn(),
+  }) as unknown as AppNavigationProp & { navigate: jest.Mock };
 
-const createTransaction = (overrides = {}) => ({
+const createTransaction = (
+  overrides: Partial<TransactionWithImportTime> = {},
+): TransactionWithImportTime => ({
   id: 'tx-1',
   chainId: '0x1',
   hash: '0xabc',
+  networkClientId: 'mainnet',
   status: TransactionStatus.confirmed,
   time: 1000,
   type: TransactionType.simpleSend,

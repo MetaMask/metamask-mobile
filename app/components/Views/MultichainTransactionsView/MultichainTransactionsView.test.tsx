@@ -2,7 +2,12 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
-import { BtcScope, SolScope, TransactionType } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  SolScope,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/keyring-api';
 import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -105,7 +110,8 @@ describe('MultichainTransactionsView', () => {
       to: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
       value: '1500000000',
       type: TransactionType.Send,
-      timestamp: 1742313600000,
+      status: TransactionStatus.Confirmed,
+      timestamp: 1742313600,
     },
     {
       id: 'tx-456',
@@ -114,7 +120,8 @@ describe('MultichainTransactionsView', () => {
       to: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
       value: '2000000000',
       type: TransactionType.Receive,
-      timestamp: 1742400000000,
+      status: TransactionStatus.Confirmed,
+      timestamp: 1742400000,
     },
   ];
 
@@ -137,6 +144,22 @@ describe('MultichainTransactionsView', () => {
     jest.clearAllTimers();
 
     configureUseAnalyticsExternalLinkMock();
+    mockUseTheme.mockReturnValue({
+      colors: {
+        background: {
+          alternative: 'background-alternative',
+          default: 'background-default',
+        },
+        border: { muted: 'border-muted' },
+        icon: { default: 'icon-default' },
+        primary: { default: 'primary-default' },
+        text: {
+          alternative: 'text-alternative',
+          default: 'text-default',
+        },
+      },
+      typography: {},
+    });
 
     // Ensure selector returns a static instance
     const mockTransactionsData = { transactions: mockTransactions };
@@ -203,7 +226,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    const { queryAllByTestId } = customRender(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -213,7 +236,7 @@ describe('MultichainTransactionsView', () => {
 
     expect(ActivityListItemRow).toHaveBeenCalledWith(
       expect.objectContaining({
-        index: 0,
+        index: 1,
         title: 'Send TRX',
         item: expect.objectContaining({
           type: 'send',
@@ -221,6 +244,7 @@ describe('MultichainTransactionsView', () => {
       }),
       undefined,
     );
+    expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
   });
 
   it('does not render view more link for bitcoin activity', async () => {
