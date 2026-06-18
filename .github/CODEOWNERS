@@ -288,6 +288,7 @@ app/components/Views/Homepage/Sections/NFTs/ @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions              @MetaMask/mobile-core-ux
+app/components/Views/AccountPermissions          @MetaMask/mobile-core-ux
 app/components/Views/AccountSelector             @MetaMask/mobile-core-ux
 app/components/Views/AddressQRCode               @MetaMask/mobile-core-ux
 app/components/Views/EditAccountName             @MetaMask/mobile-core-ux
