@@ -34,6 +34,7 @@ import {
   type MarketDataFormatters,
   type InvalidateCacheParams,
 } from '@metamask/perps-controller';
+import { TERMINAL_API_CONFIG } from '@metamask/perps-controller/constants';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import { store } from '../../../../store';
@@ -286,6 +287,9 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Market Data Formatting ===
     marketDataFormatters: createMobileMarketDataFormatters(),
+
+    // === Terminal API ===
+    terminalApiBaseUrl: TERMINAL_API_CONFIG.Endpoints.dev,
 
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),

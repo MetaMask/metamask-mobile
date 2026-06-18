@@ -51,6 +51,10 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+const localPerpsController = path.resolve(
+  '/Users/michalszorad/Documents/GitHub/core/packages/perps-controller',
+);
+
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
   const {
@@ -93,13 +97,16 @@ module.exports = function (baseConfig) {
 
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
+      watchFolders: [localPerpsController],
       resolver: {
+        nodeModulesPaths: [path.resolve(__dirname, 'node_modules')],
         unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
         extraNodeModules: {
           ...defaultConfig.resolver.extraNodeModules,
+          '@metamask/perps-controller': localPerpsController,
           'node:crypto': require.resolve('react-native-crypto'),
           crypto: require.resolve('react-native-crypto'),
           stream: require.resolve('stream-browserify'),

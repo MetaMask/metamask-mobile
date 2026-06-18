@@ -68,7 +68,7 @@ export function usePerpsTrading() {
   const getMarkets = useCallback(
     async (params?: GetMarketsParams): Promise<MarketInfo[]> => {
       const controller = Engine.context.PerpsController;
-      return controller.getMarkets(params);
+      return controller.getMarkets({ ...params, useTerminalApi: true });
     },
     [],
   );
