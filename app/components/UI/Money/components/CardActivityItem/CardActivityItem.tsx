@@ -8,6 +8,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { cardTransactionDisplayInfo } from '../../utils/cardTransactionDisplayInfo';
 import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import type { CardTransaction } from '../../types/moneyActivity';
 import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
 
@@ -23,6 +24,9 @@ const CardActivityItem = ({
   const navigation = useNavigation();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
 
   const display = useMemo(
     () =>
@@ -45,7 +49,7 @@ const CardActivityItem = ({
       id={card.hash}
       display={display}
       chainId={card.chainId}
-      onPress={handlePress}
+      onPress={activityDetailsEnabled ? handlePress : undefined}
       showNetworkBadge={showNetworkBadge}
     />
   );
