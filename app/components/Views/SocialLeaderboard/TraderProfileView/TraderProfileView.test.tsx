@@ -366,9 +366,9 @@ describe('TraderProfileView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders follower count', () => {
+  it('does not render a follower count', () => {
     renderWithProvider(<TraderProfileView />);
-    expect(screen.getByText('45 followers')).toBeOnTheScreen();
+    expect(screen.queryByText(/follower/i)).toBeNull();
   });
 
   it('renders the win rate stat', () => {
@@ -438,7 +438,9 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders position skeletons when positions are loading', () => {
@@ -554,7 +556,9 @@ describe('TraderProfileView', () => {
   it('renders skeleton when profile is null even if not loading', () => {
     mockProfileResult.profile = null;
     renderWithProvider(<TraderProfileView />);
-    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).not.toBeOnTheScreen();
   });
 
   describe('error state', () => {
@@ -589,7 +593,9 @@ describe('TraderProfileView', () => {
 
     it('does not show skeleton when error is present', () => {
       renderWithProvider(<TraderProfileView />);
-      expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      ).not.toBeOnTheScreen();
       expect(screen.queryByText('Follow')).not.toBeOnTheScreen();
     });
 
@@ -608,7 +614,9 @@ describe('TraderProfileView', () => {
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
       ).not.toBeOnTheScreen();
-      expect(screen.getByText('45 followers')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
     });
   });
 
