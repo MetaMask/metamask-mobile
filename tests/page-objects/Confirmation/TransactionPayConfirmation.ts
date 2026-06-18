@@ -15,7 +15,6 @@ import {
   PlaywrightGestures,
   PlaywrightMatchers,
   UnifiedGestures,
-  Utilities,
   asDetoxElement,
   asPlaywrightElement,
   encapsulated,
@@ -400,12 +399,6 @@ class TransactionPayConfirmation {
   async tapKeyboardContinueButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        if (PlatformDetector.isAndroid()) {
-          await Utilities.waitForElementToBeEnabled(
-            this.keyboardContinueButton,
-            30_000,
-          );
-        }
         await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
           description: 'Keyboard Continue Button',
           timeout: 30_000,
