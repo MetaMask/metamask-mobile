@@ -161,7 +161,7 @@ describeForPlatforms('Wallet', () => {
         },
       },
     },
-  } as unknown as Record<string, unknown>;
+  };
 
   const renderWalletWithState = (
     configure: (
