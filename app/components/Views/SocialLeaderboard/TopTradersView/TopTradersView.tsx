@@ -65,6 +65,8 @@ import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
@@ -346,6 +348,17 @@ const TopTradersView = () => {
     [navigation, traders, selectedChain, track],
   );
 
+  const renderTraderRow = useCallback(
+    ({ item }: { item: TopTrader }) => (
+      <TraderRow
+        trader={item}
+        onFollowPress={handleFollowPress}
+        onTraderPress={handleTraderPress}
+      />
+    ),
+    [handleFollowPress, handleTraderPress],
+  );
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
@@ -421,13 +434,7 @@ const TopTradersView = () => {
         <FlatList
           data={traders}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TraderRow
-              trader={item}
-              onFollowPress={handleFollowPress}
-              onTraderPress={handleTraderPress}
-            />
-          )}
+          renderItem={renderTraderRow}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           testID={TopTradersViewSelectorsIDs.TRADER_LIST}

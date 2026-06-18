@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { TopTrader } from '../types';
@@ -66,6 +67,16 @@ describe('TraderRow', () => {
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByTestId('trader-row-trader-1')).toBeOnTheScreen();
+  });
+
+  it('caches the avatar with expo-image and a per-row recyclingKey so fast FlatList scrolling does not re-fetch avatars on cell reuse', () => {
+    renderWithProvider(
+      <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+
+    const image = screen.UNSAFE_getByType(Image);
+    expect(image.props.cachePolicy).toBe('memory-disk');
+    expect(image.props.recyclingKey).toBe(baseTrader.id);
   });
 
   it('renders Maskicon fallback when avatarUri is absent', () => {

@@ -4,6 +4,15 @@ import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import CardActivityItem from './CardActivityItem';
 import type { CardTransaction } from '../../types/moneyActivity';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsFlag: jest.fn(),
+}));
+
+const mockedSelectActivityDetailsFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsFlag,
+);
 
 // Selectors are stubbed to plain getters and useSelector just invokes them, so
 // the component's currency/rate wiring runs without a full redux store.
@@ -55,7 +64,10 @@ interface CapturedRowProps {
 }
 
 describe('CardActivityItem', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedSelectActivityDetailsFlag.mockReturnValue(true);
+  });
 
   it('feeds a card display (Card icon, outgoing amount) into the row view', () => {
     // Act
@@ -85,5 +97,14 @@ describe('CardActivityItem', () => {
       screen: 'MoneyCardTransactionDetailsSheet',
       params: { card },
     });
+  });
+
+  it('passes undefined onPress when moneyEnableActivityDetails flag is off', () => {
+    mockedSelectActivityDetailsFlag.mockReturnValue(false);
+
+    render(<CardActivityItem card={card} />);
+
+    const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
+    expect(props.onPress).toBeUndefined();
   });
 });
