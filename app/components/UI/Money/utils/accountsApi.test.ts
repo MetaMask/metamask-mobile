@@ -1,4 +1,7 @@
-import { parseCardTransactions } from './accountsApi';
+import {
+  parseCardTransactions,
+  parseCashbackTransactions,
+} from './accountsApi';
 
 const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
@@ -183,4 +186,120 @@ describe('parseCardTransactions', () => {
       expect(result).toEqual([]);
     },
   );
+});
+
+const REWARDER_ADDRESS = '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0';
+
+const cashbackRow = {
+  hash: '0x9c3aa0a1f1f4a8c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aa',
+  timestamp: '2026-06-04T12:10:00.000Z',
+  chainId: 143,
+  from: REWARDER_ADDRESS,
+  to: MONEY_ADDRESS.toLowerCase(),
+  isError: false,
+  transactionType: 'METAMASK_CARD_CASHBACK',
+  valueTransfers: [
+    {
+      from: REWARDER_ADDRESS,
+      to: MONEY_ADDRESS.toLowerCase(),
+      amount: '300000',
+      decimal: 6,
+      contractAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      symbol: 'mUSD',
+    },
+  ],
+};
+
+describe('parseCashbackTransactions', () => {
+  it('keeps only METAMASK_CARD_CASHBACK rows and maps the inbound credit leg', () => {
+    // Arrange — a card payment and a top-up alongside the cashback row.
+    const response = { data: [cardPaymentRow, cashbackRow, inboundTopUpRow] };
+
+    // Act
+    const result = parseCashbackTransactions(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(result).toEqual([
+      {
+        hash: cashbackRow.hash,
+        time: Date.parse('2026-06-04T12:10:00.000Z'),
+        chainId: '0x8f',
+        token: {
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          symbol: 'mUSD',
+          decimals: 6,
+        },
+        amount: '300000',
+        from: REWARDER_ADDRESS,
+      },
+    ]);
+  });
+
+  it('selects the value transfer crediting the money account', () => {
+    // Arrange — credit leg listed second, an unrelated outgoing leg first.
+    const response = {
+      data: [
+        {
+          ...cashbackRow,
+          valueTransfers: [
+            {
+              from: MONEY_ADDRESS.toLowerCase(),
+              to: '0x0000000000000000000000000000000000000000',
+              amount: '1',
+              decimal: 6,
+              contractAddress: '0xaaa',
+              symbol: 'OTHER',
+            },
+            cashbackRow.valueTransfers[0],
+          ],
+        },
+      ],
+    };
+
+    // Act
+    const [cashback] = parseCashbackTransactions(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(cashback.amount).toBe('300000');
+    expect(cashback.from).toBe(REWARDER_ADDRESS);
+  });
+
+  it('drops a cashback row with no leg crediting the money account', () => {
+    // Arrange — funds leave the money account; that's not a credit.
+    const response = {
+      data: [
+        {
+          ...cashbackRow,
+          valueTransfers: [
+            {
+              ...cashbackRow.valueTransfers[0],
+              from: MONEY_ADDRESS.toLowerCase(),
+              to: REWARDER_ADDRESS,
+            },
+          ],
+        },
+      ],
+    };
+
+    // Act
+    const result = parseCashbackTransactions(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(result).toEqual([]);
+  });
+
+  it('drops rows whose chainId is not an accepted (Monad) chain', () => {
+    // Arrange
+    const response = { data: [{ ...cashbackRow, chainId: 1 }] };
+
+    // Act
+    const result = parseCashbackTransactions(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(result).toEqual([]);
+  });
+
+  it('returns an empty array when there is no data', () => {
+    expect(parseCashbackTransactions({}, MONEY_ADDRESS)).toEqual([]);
+  });
 });

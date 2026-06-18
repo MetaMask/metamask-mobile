@@ -478,6 +478,8 @@ const Routes = {
       TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
       CARD_TRANSACTION_DETAILS_SHEET: 'MoneyCardTransactionDetailsSheet',
       GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
+      CASHBACK_TRANSACTION_DETAILS_SHEET:
+        'MoneyCashbackTransactionDetailsSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

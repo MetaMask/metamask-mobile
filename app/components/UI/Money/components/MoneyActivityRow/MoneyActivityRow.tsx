@@ -2,6 +2,7 @@ import React from 'react';
 import type { MoneyActivityItem } from '../../types/moneyActivity';
 import MoneyActivityItemView from '../MoneyActivityItem/MoneyActivityItem';
 import CardActivityItem from '../CardActivityItem/CardActivityItem';
+import CashbackActivityItem from '../CashbackActivityItem/CashbackActivityItem';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 export interface MoneyActivityRowProps {
@@ -21,6 +22,14 @@ const MoneyActivityRow = ({
   if (item.kind === 'card') {
     return (
       <CardActivityItem card={item.tx} showNetworkBadge={showNetworkBadge} />
+    );
+  }
+  if (item.kind === 'cashback') {
+    return (
+      <CashbackActivityItem
+        cashback={item.tx}
+        showNetworkBadge={showNetworkBadge}
+      />
     );
   }
   return (

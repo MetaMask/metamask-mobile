@@ -7,7 +7,10 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import type { CardTransaction } from '../types/moneyActivity';
+import type {
+  CardTransaction,
+  CashbackTransaction,
+} from '../types/moneyActivity';
 
 export type MoneyActivityFilterType = 'deposit' | 'transfer';
 
@@ -210,6 +213,27 @@ export const MOCK_CARD_TRANSACTIONS: CardTransaction[] = [
     },
     amount: '10000000', // 10.00 mUSD → "-10.00 mUSD"
     to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+  },
+];
+
+/**
+ * Mock cashback reward for QA. Like card spends, cashback comes from the
+ * Accounts API (a separate source from on-chain txns), so it isn't part of
+ * MOCK_MONEY_TRANSACTIONS — MoneyActivityView merges these in (as inflows, under
+ * Deposits) when mock data is enabled.
+ */
+export const MOCK_CASHBACK_TRANSACTIONS: CashbackTransaction[] = [
+  {
+    hash: '0xca5b000000000000000000000000000000000000000000000000000000000001',
+    time: 1747002000 * 1000,
+    chainId: MOCK_CHAIN_ID,
+    token: {
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: MUSD_TOKEN.symbol,
+      decimals: MUSD_TOKEN.decimals,
+    },
+    amount: '300000', // 0.30 mUSD → "+0.30 mUSD"
+    from: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
   },
 ];
 

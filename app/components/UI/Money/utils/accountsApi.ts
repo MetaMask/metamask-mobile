@@ -2,9 +2,13 @@ import type { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
-import type { CardTransaction } from '../types/moneyActivity';
+import type {
+  CardTransaction,
+  CashbackTransaction,
+} from '../types/moneyActivity';
 
 export const METAMASK_CARD_PAYMENT_TYPE = 'METAMASK_CARD_PAYMENT';
+export const METAMASK_CARD_CASHBACK_TYPE = 'METAMASK_CARD_CASHBACK';
 
 const ALLOWED_CHAIN_IDS = new Set(
   MUSD_MONEY_ACCOUNT_CHAIN_IDS.map((c) => c.toLowerCase()),
@@ -37,12 +41,23 @@ interface AccountsApiTransactionsResponse {
   pageInfo?: { count: number; hasNextPage: boolean; cursor?: string };
 }
 
-function settlementTransfer(
+/** The leg that leaves the money account — a card spend's settlement. */
+function outboundTransfer(
   tx: AccountsApiTransaction,
   moneyAddress: string,
 ): AccountsApiValueTransfer | undefined {
   return (tx.valueTransfers ?? []).find((vt) =>
     areAddressesEqual(vt.from, moneyAddress),
+  );
+}
+
+/** The leg that credits the money account — a cashback reward. */
+function inboundTransfer(
+  tx: AccountsApiTransaction,
+  moneyAddress: string,
+): AccountsApiValueTransfer | undefined {
+  return (tx.valueTransfers ?? []).find((vt) =>
+    areAddressesEqual(vt.to, moneyAddress),
   );
 }
 
@@ -61,6 +76,52 @@ function parseChainId(chainId: unknown): Hex | undefined {
   return ALLOWED_CHAIN_IDS.has(hex.toLowerCase()) ? hex : undefined;
 }
 
+/** The fields shared by card and cashback rows, validated at the boundary. */
+interface ParsedSettlement {
+  hash: Hex;
+  time: number;
+  chainId: Hex;
+  token: { address: Hex; symbol: string; decimals: number };
+  amount: string;
+}
+
+/**
+ * Validate a transaction + its relevant value-transfer leg into the common
+ * settlement shape, or `undefined` if anything is malformed / off the allowed
+ * chains. Card and cashback differ only in which leg they care about and the
+ * counterparty they keep, so they layer that on top of this.
+ */
+function parseSettlement(
+  tx: AccountsApiTransaction,
+  transfer: AccountsApiValueTransfer | undefined,
+): ParsedSettlement | undefined {
+  const time = new Date(tx.timestamp).getTime();
+  const chainId = parseChainId(tx.chainId);
+  if (
+    !tx.hash ||
+    !transfer ||
+    Number.isNaN(time) ||
+    !chainId ||
+    !Number.isInteger(transfer.decimal) ||
+    transfer.decimal < 0 ||
+    typeof transfer.amount !== 'string' ||
+    !AMOUNT_PATTERN.test(transfer.amount)
+  ) {
+    return undefined;
+  }
+  return {
+    hash: tx.hash as Hex,
+    time,
+    chainId,
+    token: {
+      address: transfer.contractAddress as Hex,
+      symbol: transfer.symbol,
+      decimals: transfer.decimal,
+    },
+    amount: transfer.amount,
+  };
+}
+
 export function parseCardTransactions(
   response: AccountsApiTransactionsResponse,
   moneyAddress: string,
@@ -68,34 +129,27 @@ export function parseCardTransactions(
   return (response.data ?? [])
     .filter((tx) => tx.transactionType === METAMASK_CARD_PAYMENT_TYPE)
     .flatMap((tx): CardTransaction[] => {
-      const transfer = settlementTransfer(tx, moneyAddress);
-      const time = new Date(tx.timestamp).getTime();
-      const chainId = parseChainId(tx.chainId);
-      if (
-        !tx.hash ||
-        !transfer ||
-        Number.isNaN(time) ||
-        !chainId ||
-        !Number.isInteger(transfer.decimal) ||
-        transfer.decimal < 0 ||
-        typeof transfer.amount !== 'string' ||
-        !AMOUNT_PATTERN.test(transfer.amount)
-      ) {
+      const transfer = outboundTransfer(tx, moneyAddress);
+      const parsed = parseSettlement(tx, transfer);
+      if (!parsed || !transfer) {
         return [];
       }
-      return [
-        {
-          hash: tx.hash as Hex,
-          time,
-          chainId,
-          token: {
-            address: transfer.contractAddress as Hex,
-            symbol: transfer.symbol,
-            decimals: transfer.decimal,
-          },
-          amount: transfer.amount,
-          to: transfer.to as Hex,
-        },
-      ];
+      return [{ ...parsed, to: transfer.to as Hex }];
+    });
+}
+
+export function parseCashbackTransactions(
+  response: AccountsApiTransactionsResponse,
+  moneyAddress: string,
+): CashbackTransaction[] {
+  return (response.data ?? [])
+    .filter((tx) => tx.transactionType === METAMASK_CARD_CASHBACK_TYPE)
+    .flatMap((tx): CashbackTransaction[] => {
+      const transfer = inboundTransfer(tx, moneyAddress);
+      const parsed = parseSettlement(tx, transfer);
+      if (!parsed || !transfer) {
+        return [];
+      }
+      return [{ ...parsed, from: transfer.from as Hex }];
     });
 }

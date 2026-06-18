@@ -30,6 +30,32 @@ export interface CardTransaction {
 }
 
 /**
+ * A MetaMask Card cashback reward surfaced in Money activity.
+ *
+ * The mirror image of a {@link CardTransaction}: cashback settles as an on-chain
+ * ERC-20 transfer INTO the money account, so it's an inflow rather than an
+ * outflow. Like card spends it isn't created in this client — it comes from the
+ * MetaMask Accounts API tagged `METAMASK_CARD_CASHBACK`.
+ */
+export interface CashbackTransaction {
+  /** On-chain tx hash. Stable identity for the activity row. */
+  hash: Hex;
+  /** Settlement time, epoch ms (parsed from the API's ISO timestamp). */
+  time: number;
+  chainId: Hex;
+  /** The token credited to the money account. */
+  token: {
+    address: Hex;
+    symbol: string;
+    decimals: number;
+  };
+  /** Raw, minimal-unit amount of the credited transfer. */
+  amount: string;
+  /** Where the cashback came from. Shown as "Received from" in the detail sheet. */
+  from: Hex;
+}
+
+/**
  * One row in the Money activity list, tagged by source. The merge / sort /
  * group / key pipeline operates only on the source-agnostic `time` and `id`
  * fields; just the leaf renderer branches on `kind`. This keeps off-device card
@@ -37,7 +63,8 @@ export interface CardTransaction {
  */
 export type MoneyActivityItem =
   | { kind: 'onchain'; id: string; time: number; tx: TransactionMeta }
-  | { kind: 'card'; id: string; time: number; tx: CardTransaction };
+  | { kind: 'card'; id: string; time: number; tx: CardTransaction }
+  | { kind: 'cashback'; id: string; time: number; tx: CashbackTransaction };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
   kind: 'onchain',
@@ -48,6 +75,13 @@ export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
 
 export const cardItem = (tx: CardTransaction): MoneyActivityItem => ({
   kind: 'card',
+  id: tx.hash,
+  time: tx.time,
+  tx,
+});
+
+export const cashbackItem = (tx: CashbackTransaction): MoneyActivityItem => ({
+  kind: 'cashback',
   id: tx.hash,
   time: tx.time,
   tx,

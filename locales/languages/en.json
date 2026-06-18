@@ -7224,6 +7224,7 @@
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
+      "cashback": "Cashback",
       "converted": "Converted",
       "depositing": "Depositing",
       "converting": "Converting",
@@ -7240,6 +7241,13 @@
       "you_spent": "You spent",
       "completed": "Completed",
       "paid_to": "Paid to",
+      "date": "Date"
+    },
+    "cashback_details": {
+      "title": "Cashback",
+      "you_earned": "You earned",
+      "completed": "Completed",
+      "received_from": "Received from",
       "date": "Date"
     },
     "convert_stablecoins": {

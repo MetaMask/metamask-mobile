@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
+import { useMoneyAccountCashbackTransactions } from '../../hooks/useMoneyAccountCashbackTransactions';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import {
   isMoneyActivityDeposit,
@@ -11,7 +12,10 @@ import {
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
 import MoneyActivityView from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
-import type { CardTransaction } from '../../types/moneyActivity';
+import type {
+  CardTransaction,
+  CashbackTransaction,
+} from '../../types/moneyActivity';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -54,6 +58,10 @@ jest.mock('../../hooks/useMoneyAccountCardTransactions', () => ({
   useMoneyAccountCardTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountCashbackTransactions', () => ({
+  useMoneyAccountCashbackTransactions: jest.fn(),
+}));
+
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
   return {
@@ -87,6 +95,18 @@ jest.mock('../../components/CardActivityItem/CardActivityItem', () => {
   };
 });
 
+jest.mock('../../components/CashbackActivityItem/CashbackActivityItem', () => {
+  const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ cashback }: { cashback: { hash: string } }) => (
+      <RNPressable testID={`activity-mock-cashback-${cashback.hash}`}>
+        <Text>{cashback.hash}</Text>
+      </RNPressable>
+    ),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
@@ -109,6 +129,9 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 const mockUseMoneyAccountCardTransactions = jest.mocked(
   useMoneyAccountCardTransactions,
 );
+const mockUseMoneyAccountCashbackTransactions = jest.mocked(
+  useMoneyAccountCashbackTransactions,
+);
 
 const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
 const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
@@ -126,6 +149,20 @@ const CARD_TX: CardTransaction = {
   to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
 };
 const CARD_ROW_TEST_ID = `activity-mock-card-${CARD_TX.hash}`;
+
+const CASHBACK_TX: CashbackTransaction = {
+  hash: '0xback1',
+  time: 1780574031000,
+  chainId: '0x8f',
+  token: {
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    symbol: 'mUSD',
+    decimals: 6,
+  },
+  amount: '300000',
+  from: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0',
+};
+const CASHBACK_ROW_TEST_ID = `activity-mock-cashback-${CASHBACK_TX.hash}`;
 
 describe('MoneyActivityView', () => {
   beforeEach(() => {
@@ -145,6 +182,12 @@ describe('MoneyActivityView', () => {
     });
     mockUseMoneyAccountCardTransactions.mockReturnValue({
       cardTransactions: [],
+      isLoading: false,
+      error: false,
+      refetch: jest.fn(),
+    });
+    mockUseMoneyAccountCashbackTransactions.mockReturnValue({
+      cashbackTransactions: [],
       isLoading: false,
       error: false,
       refetch: jest.fn(),
@@ -323,6 +366,30 @@ describe('MoneyActivityView', () => {
     // Transfers: present.
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
     expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('buckets cashback credits into Deposits and All, but not Transfers', () => {
+    mockUseMoneyAccountCashbackTransactions.mockReturnValue({
+      cashbackTransactions: [CASHBACK_TX],
+      isLoading: false,
+      error: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    // All (default): present.
+    expect(getByTestId(CASHBACK_ROW_TEST_ID)).toBeOnTheScreen();
+
+    // Deposits: present (cashback credits are incoming).
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
+    expect(getByTestId(CASHBACK_ROW_TEST_ID)).toBeOnTheScreen();
+
+    // Transfers: absent.
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
+    expect(queryByTestId(CASHBACK_ROW_TEST_ID)).toBeNull();
   });
 
   it('does not render card rows in mock-data mode', () => {
