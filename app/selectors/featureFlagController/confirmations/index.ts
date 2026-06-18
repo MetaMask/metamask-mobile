@@ -22,6 +22,7 @@ export const PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT: Record<
 > = {};
 export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT: string | undefined =
   undefined;
+export const PAY_DEPOSIT_LIMITS_DEFAULT: Record<string, number> = {};
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -160,6 +161,19 @@ export const selectMetaMaskPayFlags = createSelector(
     };
   },
 );
+
+export function selectDepositLimits(state: RootState): Record<string, number> {
+  const featureFlags = selectRemoteFeatureFlags(state);
+
+  const metaMaskPayExtendedFlags = featureFlags?.confirmations_pay_extended as
+    | Record<string, Json>
+    | undefined;
+
+  return (
+    (metaMaskPayExtendedFlags?.depositLimit as Record<string, number>) ??
+    PAY_DEPOSIT_LIMITS_DEFAULT
+  );
+}
 
 export const selectMetaMaskPayTokensFlags = createSelector(
   selectRemoteFeatureFlags,

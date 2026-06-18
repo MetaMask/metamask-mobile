@@ -124,6 +124,9 @@
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
+    "deposit_limit": {
+      "title": "Max deposit: {{amount}}"
+    },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
       "message": "Something went wrong with your fiat purchase. Please try again."
