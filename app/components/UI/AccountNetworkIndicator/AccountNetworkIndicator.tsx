@@ -11,7 +11,10 @@ import { getActiveNetworksByScopes } from '../../../selectors/multichainNetworkC
 import styleSheet from './AccountNetworkIndicator.styles';
 import { getNetworkImageSource } from '../../../util/networks';
 
-interface PartialAccount { address: string; scopes: CaipChainId[] }
+interface PartialAccount {
+  address: string;
+  scopes: CaipChainId[];
+}
 
 const arePartialAccountsEqual = (
   prev: PartialAccount,
