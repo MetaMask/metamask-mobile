@@ -26,13 +26,11 @@ import { selectCurrentCurrency } from '../../../selectors/currencyRateController
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import {
+  selectAllConfiguredEvmChainIds,
   selectEvmNetworkConfigurationsByChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
-import {
-  selectEVMEnabledNetworks,
-  selectNonEVMEnabledNetworks,
-} from '../../../selectors/networkEnablementController';
+import { selectAllConfiguredNonEvmChainIds } from '../../../selectors/multichainNetworkController';
 import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
@@ -247,15 +245,13 @@ const ActivityList = ({
     return solanaAccount?.address ?? '';
   }, [selectedAccountGroupInternalAccounts]);
 
-  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
-  const enabledEVMChainIds = useMemo(
-    () => enabledEVMNetworks ?? [],
-    [enabledEVMNetworks],
-  );
-  const enabledNonEVMNetworks = useSelector(selectNonEVMEnabledNetworks);
-  const enabledNonEVMChainIds = useMemo(
-    () => enabledNonEVMNetworks ?? [],
-    [enabledNonEVMNetworks],
+  // All configured networks (not "enabled"): the Activity feed shows every
+  // network the account has, decoupled from NetworkEnablementController so a
+  // single-network enable/disable (e.g. Predict enabling Polygon) can't
+  // collapse the list to one network.
+  const configuredEVMChainIds = useSelector(selectAllConfiguredEvmChainIds);
+  const configuredNonEVMChainIds = useSelector(
+    selectAllConfiguredNonEvmChainIds,
   );
 
   const relatedChainIdsByTransactionId = useSelector(
@@ -264,9 +260,9 @@ const ActivityList = ({
 
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
-  /** Drop confirmed EVM rows not on currently enabled chains (guards stale query pages). */
-  const allConfirmedForEnabledChains = useMemo<ActivityListItem[]>(() => {
-    const chains = enabledEVMChainIds ?? [];
+  /** Drop confirmed EVM rows not on a configured chain (guards stale query pages / removed networks). */
+  const allConfirmedForConfiguredChains = useMemo<ActivityListItem[]>(() => {
+    const chains = configuredEVMChainIds ?? [];
     if (chains.length === 0) return [];
     const allowed = new Set(chains.map((c) => c.toLowerCase()));
     return allConfirmedFiltered.filter((item) => {
@@ -276,7 +272,7 @@ const ActivityList = ({
       const hexFormatted = `0x${parseInt(hexChainId, 10).toString(16)}`;
       return allowed.has(hexFormatted.toLowerCase());
     });
-  }, [allConfirmedFiltered, enabledEVMChainIds]);
+  }, [allConfirmedFiltered, configuredEVMChainIds]);
 
   const { maliciousTokenKeys } =
     useMultichainActivityMaliciousTokenKeys(nonEvmTransactions);
@@ -292,13 +288,13 @@ const ActivityList = ({
     nonEvmItems: ActivityListItem[];
   }>(() => {
     const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
-    const enabledEvmSet = new Set(
-      (enabledEVMChainIds ?? []).map((id) => id.toLowerCase()),
+    const configuredEvmSet = new Set(
+      (configuredEVMChainIds ?? []).map((id) => id.toLowerCase()),
     );
 
-    // Filter local items to enabled EVM chains only, also deduplicate against confirmed
+    // Filter local items to configured EVM chains only, also deduplicate against confirmed
     const confirmedHashes = new Set(
-      allConfirmedForEnabledChains
+      allConfirmedForConfiguredChains
         .map((item) => item.data.hash?.toLowerCase())
         .filter(Boolean) as string[],
     );
@@ -315,7 +311,7 @@ const ActivityList = ({
         txChainId,
       ];
 
-      if (!relatedChainIds.some((id) => enabledEvmSet.has(id))) {
+      if (!relatedChainIds.some((id) => configuredEvmSet.has(id))) {
         return false;
       }
 
@@ -333,7 +329,7 @@ const ActivityList = ({
         const nonce = tx.txParams?.nonce;
         const from = tx.txParams?.from?.toLowerCase();
         if (nonce !== undefined && nonce !== null && from) {
-          const matchedByNonce = allConfirmedForEnabledChains.some(
+          const matchedByNonce = allConfirmedForConfiguredChains.some(
             (confirmed) => {
               // parse nonce from confirmed item if available
               const confirmedRaw = confirmed.raw;
@@ -357,16 +353,16 @@ const ActivityList = ({
       return true;
     });
 
-    // Non-EVM: filter by enabled chains, include bridge txns whose dest chain is enabled
+    // Non-EVM: filter to configured chains, include bridge txns whose dest chain is configured
     const filteredNonEvmTransactions = nonEvmTransactions
       .filter((tx) => {
-        if (enabledNonEVMChainIds.includes(tx.chain)) return true;
+        if (configuredNonEVMChainIds.includes(tx.chain)) return true;
         const bridge = Object.values(bridgeHistory ?? {}).find(
           (item) => item.status?.srcChain?.txHash === tx.id,
         );
         return (
           bridge?.quote?.destChainId !== undefined &&
-          enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
+          configuredEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
         );
       })
       .filter(
@@ -383,15 +379,15 @@ const ActivityList = ({
 
     return {
       localItems: filteredLocalItems,
-      confirmedEvmItems: allConfirmedForEnabledChains,
+      confirmedEvmItems: allConfirmedForConfiguredChains,
       nonEvmItems,
     };
   }, [
-    allConfirmedForEnabledChains,
+    allConfirmedForConfiguredChains,
     localActivityItems,
     nonEvmTransactions,
-    enabledEVMChainIds,
-    enabledNonEVMChainIds,
+    configuredEVMChainIds,
+    configuredNonEVMChainIds,
     bridgeHistory,
     relatedChainIdsByTransactionId,
     maliciousTokenKeys,
@@ -404,27 +400,27 @@ const ActivityList = ({
   }, [unifiedTransactionSource]);
   const groupedData = useMemo(() => groupActivityListItems(data), [data]);
 
-  const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
+  const hasConfiguredEvmChains = configuredEVMChainIds.length > 0;
   const popularListBlockExplorer = useBlockExplorer(
-    hasEvmChainsEnabled ? enabledEVMChainIds[0] : undefined,
+    hasConfiguredEvmChains ? configuredEVMChainIds[0] : undefined,
   );
 
   const configBlockExplorerUrl = useMemo(() => {
-    if (!enabledEVMChainIds?.length || enabledEVMChainIds.length !== 1) {
+    if (!configuredEVMChainIds?.length || configuredEVMChainIds.length !== 1) {
       return undefined;
     }
-    const selectedChainId = enabledEVMChainIds[0];
+    const selectedChainId = configuredEVMChainIds[0];
     const config = evmNetworkConfigurationsByChainId?.[selectedChainId];
     if (!config) return undefined;
     const index = config.defaultBlockExplorerUrlIndex ?? 0;
     return config.blockExplorerUrls?.[index];
-  }, [enabledEVMChainIds, evmNetworkConfigurationsByChainId]);
+  }, [configuredEVMChainIds, evmNetworkConfigurationsByChainId]);
 
   const blockExplorerUrl = useMemo(() => {
     if (configBlockExplorerUrl) {
       return configBlockExplorerUrl;
     }
-    return hasEvmChainsEnabled
+    return hasConfiguredEvmChains
       ? popularListBlockExplorer.getBlockExplorerUrl(
           selectedAccountGroupEvmAddress,
         ) || undefined
@@ -433,13 +429,13 @@ const ActivityList = ({
     configBlockExplorerUrl,
     popularListBlockExplorer,
     selectedAccountGroupEvmAddress,
-    hasEvmChainsEnabled,
+    hasConfiguredEvmChains,
   ]);
 
-  const hasNonEvmChainsEnabled = enabledNonEVMChainIds.length > 0;
+  const hasConfiguredNonEvmChains = configuredNonEVMChainIds.length > 0;
 
-  const showEvmFooter = hasEvmChainsEnabled && !hasNonEvmChainsEnabled;
-  const showNonEvmFooter = hasNonEvmChainsEnabled && !hasEvmChainsEnabled;
+  const showEvmFooter = hasConfiguredEvmChains && !hasConfiguredNonEvmChains;
+  const showNonEvmFooter = hasConfiguredNonEvmChains && !hasConfiguredEvmChains;
 
   const onViewBlockExplorer = useCallback(() => {
     if (!selectedAccountGroupEvmAddress) {
@@ -459,8 +455,10 @@ const ActivityList = ({
       if (!url) return;
     } else {
       url = blockExplorerUrl;
-      title = hasEvmChainsEnabled
-        ? popularListBlockExplorer.getBlockExplorerName(enabledEVMChainIds[0])
+      title = hasConfiguredEvmChains
+        ? popularListBlockExplorer.getBlockExplorerName(
+            configuredEVMChainIds[0],
+          )
         : undefined;
     }
 
@@ -473,24 +471,24 @@ const ActivityList = ({
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
     popularListBlockExplorer,
-    enabledEVMChainIds,
+    configuredEVMChainIds,
     configBlockExplorerUrl,
-    hasEvmChainsEnabled,
+    hasConfiguredEvmChains,
   ]);
 
   const allNonEvmChainsAreSolana = useMemo(
     () =>
-      enabledNonEVMChainIds.every((chain) =>
+      configuredNonEVMChainIds.every((chain) =>
         chain.toLowerCase().startsWith('solana:'),
       ),
-    [enabledNonEVMChainIds],
+    [configuredNonEVMChainIds],
   );
 
   const nonEvmExplorerChainId = useMemo(() => {
-    if (enabledNonEVMChainIds.length) return enabledNonEVMChainIds[0];
+    if (configuredNonEVMChainIds.length) return configuredNonEVMChainIds[0];
     if (chainId?.includes(':')) return chainId;
     return undefined;
-  }, [enabledNonEVMChainIds, chainId]);
+  }, [configuredNonEVMChainIds, chainId]);
 
   const nonEvmExplorerUrl = useMemo(() => {
     if (!selectedAccountGroupSolanaAddress || !nonEvmExplorerChainId) return '';
@@ -523,7 +521,7 @@ const ActivityList = ({
     if (showEvmFooter) {
       return (
         <TransactionsFooter
-          chainId={enabledEVMChainIds[0]}
+          chainId={configuredEVMChainIds[0]}
           providerType={configBlockExplorerUrl ? providerType : undefined}
           rpcBlockExplorer={blockExplorerUrl}
           onViewBlockExplorer={onViewBlockExplorer}
@@ -547,7 +545,7 @@ const ActivityList = ({
 
     return null;
   }, [
-    enabledEVMChainIds,
+    configuredEVMChainIds,
     unifiedTransactionSource.nonEvmItems?.length,
     onViewBlockExplorer,
     onViewNonEvmExplorer,
@@ -841,7 +839,7 @@ const ActivityList = ({
             index={index}
             location={location}
             showDestinationPerspective={
-              !enabledNonEVMChainIds.includes(raw.data.chain)
+              !configuredNonEVMChainIds.includes(raw.data.chain)
             }
           />
         );
