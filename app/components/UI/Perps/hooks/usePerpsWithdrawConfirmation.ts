@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectDefaultEndpointByChainId } from '../../../../selectors/networkController';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { generateTransferData } from '../../../../util/transactions';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -63,7 +64,13 @@ function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
  * CustomAmount / MetaMask Pay experience.
  */
 export function usePerpsWithdrawConfirmation() {
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
+  // Perps withdraws settle on Arbitrum, so the batch must originate from the
+  // selected group's EVM account; the globally selected account can be non-EVM.
+  const selectedAccount = useSelector(
+    (state: RootState) =>
+      selectSelectedInternalAccountByScope(state)('eip155:1')?.address ??
+      selectSelectedInternalAccountAddress(state),
+  );
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
   const { showToast, PerpsToastOptions } = usePerpsToasts();

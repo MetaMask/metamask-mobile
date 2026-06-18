@@ -30,6 +30,10 @@ jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => undefined),
+}));
+
 jest.mock('../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../selectors/networkController'),
   selectDefaultEndpointByChainId: jest.fn(),
