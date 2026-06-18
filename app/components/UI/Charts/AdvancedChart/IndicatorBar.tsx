@@ -24,6 +24,13 @@ interface IndicatorBarProps {
   onIndicatorToggle?: (name: string) => void;
 }
 
+const TOGGLE_INDICATORS: { name: string; showDividerAfter?: boolean }[] = [
+  { name: 'BOL', showDividerAfter: true },
+  { name: 'RSI' },
+  { name: 'Volume' },
+  { name: 'MACD' },
+];
+
 const IndicatorBar: React.FC<IndicatorBarProps> = ({
   maLabel = 'MA',
   onMAPress,
@@ -66,80 +73,32 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
         />
       </Pressable>
 
-      {/* BOL (Bollinger Bands) */}
-      <Pressable
-        style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
-        onPress={() => onIndicatorToggle?.('BOL')}
-        accessibilityRole="button"
-        accessibilityLabel="BOL"
-      >
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={isActive('BOL') ? FontWeight.Bold : FontWeight.Medium}
-          twClassName={
-            isActive('BOL') ? 'text-text-default' : 'text-text-alternative'
-          }
-        >
-          BOL
-        </Text>
-      </Pressable>
-
-      {/* Divider between BOL and RSI */}
-      <Box twClassName="h-4 w-px bg-border-muted" />
-
-      {/* RSI */}
-      <Pressable
-        style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
-        onPress={() => onIndicatorToggle?.('RSI')}
-        accessibilityRole="button"
-        accessibilityLabel="RSI"
-      >
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={isActive('RSI') ? FontWeight.Bold : FontWeight.Medium}
-          twClassName={
-            isActive('RSI') ? 'text-text-default' : 'text-text-alternative'
-          }
-        >
-          RSI
-        </Text>
-      </Pressable>
-
-      {/* Volume */}
-      <Pressable
-        style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
-        onPress={() => onIndicatorToggle?.('Volume')}
-        accessibilityRole="button"
-        accessibilityLabel="Volume"
-      >
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={isActive('Volume') ? FontWeight.Bold : FontWeight.Medium}
-          twClassName={
-            isActive('Volume') ? 'text-text-default' : 'text-text-alternative'
-          }
-        >
-          Volume
-        </Text>
-      </Pressable>
-
-      {/* MACD */}
-      <Pressable
-        style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
-        onPress={() => onIndicatorToggle?.('MACD')}
-        accessibilityRole="button"
-        accessibilityLabel="MACD"
-      >
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={isActive('MACD') ? FontWeight.Bold : FontWeight.Medium}
-          twClassName={
-            isActive('MACD') ? 'text-text-default' : 'text-text-alternative'
-          }
-        >
-          MACD
-        </Text>
-      </Pressable>
+      {TOGGLE_INDICATORS.map(({ name, showDividerAfter }) => {
+        const active = isActive(name);
+        return (
+          <React.Fragment key={name}>
+            <Pressable
+              style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
+              onPress={() => onIndicatorToggle?.(name)}
+              accessibilityRole="button"
+              accessibilityLabel={name}
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={active ? FontWeight.Bold : FontWeight.Medium}
+                twClassName={
+                  active ? 'text-text-default' : 'text-text-alternative'
+                }
+              >
+                {name}
+              </Text>
+            </Pressable>
+            {showDividerAfter ? (
+              <Box twClassName="h-4 w-px bg-border-muted" />
+            ) : null}
+          </React.Fragment>
+        );
+      })}
     </Box>
   );
 };
