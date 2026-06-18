@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Уже активно",
       "categories_placeholder": "Категории",
-      "popular_today_placeholder": "Популярно сегодня",
       "trending_placeholder": "Популярное"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Баллы от рефералов",
       "referrals_label": "VIP-рефералы",
       "tier_benefits_title": "Преимущества уровня",
-      "splash_title": "ДОБРО ПОЖАЛОВАТЬ\nВ GOLD\nFOX VIP",
+      "splash_title": "ДОБРО ПОЖАЛОВАТЬ\nВ GOLD FOX\nCOLLECTIVE",
       "splash_description": "Разблокируйте эксклюзивные привилегии, ранние функции и специально подобранные награды. Только по приглашению.",
       "splash_accept_invite": "Принять приглашение",
       "splash_not_now": "Не сейчас",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Уровни",
       "tier_thresholds": "{{points}} балла(-ов)",
       "bps_value": "{{bps}} базисных пункта(-ов)",
-      "referee_splash_title": "ДОБРО ПОЖАЛОВАТЬ\nВ GOLD\nFOX VIP",
-      "referee_splash_description": "Разблокируйте эксклюзивные привилегии, ранние функции и специально подобранные награды. Только по приглашению.",
       "referee_splash_continue": "Продолжить",
-      "referee_splash_not_now": "Не сейчас",
       "referee_referred_by": "По рекомендации {{code}}",
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "Статистика",
       "referee_period_last_30d": "Последние 30 дн.",
-      "referee_points_label": "Баллы",
       "referee_swaps_volume_label": "Объем свопов",
       "referee_perps_volume_label": "Объем перпов",
+      "referee_points_to_label": "Баллы для {{code}}",
       "referee_error_title": "Не удалось загрузить данные вашего VIP-приглашенного",
       "referee_error_description": "Проверьте соединение и повторите попытку.",
       "last_updated": "Последнее обновление: {{time}}"

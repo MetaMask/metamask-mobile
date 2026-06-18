@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "現在進行中",
       "categories_placeholder": "Categories",
-      "popular_today_placeholder": "Popular today",
       "trending_placeholder": "人気上昇中"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "紹介からのポイント",
       "referrals_label": "VIP紹介",
       "tier_benefits_title": "レベル特典",
-      "splash_title": "GOLD FOX\nVIPへ\nようこそ",
+      "splash_title": "GOLD FOX\nCOLLECTIVEへ\nようこそ",
       "splash_description": "限定特典、先行機能、キュレートされたリワードのロックを解除。招待制。",
       "splash_accept_invite": "招待を受け入れる",
       "splash_not_now": "後で",
@@ -8843,17 +8842,14 @@
       "tiers_title": "レベル",
       "tier_thresholds": "{{points}}ポイント",
       "bps_value": "{{bps}}bps",
-      "referee_splash_title": "GOLD FOX\nVIPへ\nようこそ",
-      "referee_splash_description": "限定特典、先行機能、キュレートされたリワードのロックを解除。招待制。",
       "referee_splash_continue": "続行",
-      "referee_splash_not_now": "後で",
       "referee_referred_by": "Referred by {{code}}",
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "統計",
       "referee_period_last_30d": "Last 30d",
-      "referee_points_label": "ポイント",
       "referee_swaps_volume_label": "Swaps volume",
       "referee_perps_volume_label": "Perps volume",
+      "referee_points_to_label": "{{code}}へのポイント",
       "referee_error_title": "We couldn’t load your VIP referee details",
       "referee_error_description": "接続を確認して、もう一度お試しください。",
       "last_updated": "最終更新時刻: {{time}}"

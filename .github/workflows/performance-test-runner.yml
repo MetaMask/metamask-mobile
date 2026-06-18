@@ -183,7 +183,7 @@ jobs:
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
           FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
-          BROWSERSTACK_GEO_LOCATION="${BROWSERSTACK_GEO_LOCATION:-ES}"
+          BROWSERSTACK_GEO_LOCATION="${BROWSERSTACK_GEO_LOCATION:-SE}"
 
           if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
             echo "❌ Invalid feature_flags_environment '$FEATURE_FLAGS_ENV'. Expected rc, exp, test, dev, or prod."
@@ -258,7 +258,7 @@ jobs:
           echo "QA App Version: ${{ inputs.app_version }}"
           echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
           echo "BrowserStack Local: $BROWSERSTACK_LOCAL"
-          echo "BrowserStack Geo Location: ${BROWSERSTACK_GEO_LOCATION:-ES}"
+          echo "BrowserStack Geo Location: ${BROWSERSTACK_GEO_LOCATION:-SE}"
           if [ -n "$GREP_TAGS" ]; then
             echo "Grep filter: $GREP_TAGS"
           fi

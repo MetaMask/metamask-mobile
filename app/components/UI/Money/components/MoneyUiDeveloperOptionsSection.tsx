@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { type StackNavigationProp } from '@react-navigation/stack';
 
 import { useTheme } from '../../../../util/theme';
 import {
@@ -21,11 +23,13 @@ import {
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { STEPPER_IDS } from '../hooks/useOnboardingStep';
+import Routes from '../../../../constants/navigation/Routes';
 
 export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
+  const navigation = useNavigation();
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
@@ -44,6 +48,10 @@ export const MoneyUiDeveloperOptionsSection = () => {
       await ClipboardManager.setString(moneyAccountAddress);
     }
   }, [moneyAccountAddress]);
+
+  const handlePreviewFirstTimeDepositAnimation = useCallback(() => {
+    navigation.navigate(Routes.MONEY.FIRST_TIME_DEPOSIT);
+  }, [navigation]);
 
   return (
     <Box twClassName="gap-2">
@@ -103,6 +111,24 @@ export const MoneyUiDeveloperOptionsSection = () => {
           isFullWidth
         >
           {'Reset onboarding stepper'}
+        </Button>
+      </Box>
+      <Box>
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+        >
+          {'Preview first-time deposit animation'}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          style={styles.accessory}
+          size={ButtonSize.Lg}
+          onPress={handlePreviewFirstTimeDepositAnimation}
+          isFullWidth
+        >
+          {'View animation'}
         </Button>
       </Box>
     </Box>

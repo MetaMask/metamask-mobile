@@ -77,7 +77,6 @@ const buildPerpsFixture = () =>
         type: 'erc20',
       },
     ])
-    .withPopularNetworks()
     .build();
 
 const expectPositionClosedAfterLiquidation = async () => {
