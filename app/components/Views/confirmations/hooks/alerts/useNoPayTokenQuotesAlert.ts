@@ -59,11 +59,10 @@ export function useNoPayTokenQuotesAlert() {
     !fiatPayment?.rampsQuote &&
     quotes?.length === 0;
 
-  // Post-quote flows (e.g. money account withdraw MUSD -> MUSD) can end up with
-  // an empty `sourceAmounts` when the source and destination tokens match and
-  // get filtered out in `calculatePostQuoteSourceAmounts`. In that case the
-  // non-fiat branch above never fires, so we also emit the alert whenever the
-  // user has entered a positive input amount but no quote is available.
+  // Post-quote flows (e.g. money account withdraw) where `sourceAmounts` is
+  // non-empty but no quote was returned. The non-fiat branch above may not
+  // fire, so we also emit the alert when the user has entered a positive
+  // input amount but no quote is available.
   const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
     (t) =>
       !t.skipIfBalance &&
