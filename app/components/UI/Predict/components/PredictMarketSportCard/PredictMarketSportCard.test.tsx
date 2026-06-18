@@ -11,6 +11,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketSportCard from './';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -50,6 +51,14 @@ let mockGameUpdate: GameUpdate | null = null;
 jest.mock('../../hooks/useLiveGameUpdates', () => ({
   useLiveGameUpdates: () => ({ gameUpdate: mockGameUpdate }),
 }));
+
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
+}));
+const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
 
 jest.mock('../../constants/sportLeagueConfigs', () => ({
   getLeagueConfig: () => ({}),
@@ -126,10 +135,29 @@ const initialState = {
   },
 };
 
+const stateWithSportCardLivePricesEnabled = (enabled: boolean) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        ...backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+          predictSportCardLivePrices: {
+            enabled,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+});
+
 describe('PredictMarketSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFromTrending.mockReturnValue(false);
+    mockGetLivePrice.mockReturnValue(undefined);
     mockGameUpdate = null;
   });
 
@@ -156,6 +184,52 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('SPA 60¢')).toBeOnTheScreen();
     expect(getByText('DRAW 15¢')).toBeOnTheScreen();
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
+  });
+
+  it('renders live Moneyline best ask prices when available', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk:
+        tokenId === 'token-home'
+          ? 0.71
+          : tokenId === 'token-draw'
+            ? 0.12
+            : 0.29,
+    }));
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 71¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 12¢')).toBeOnTheScreen();
+    expect(getByText('ENG 29¢')).toBeOnTheScreen();
+  });
+
+  it('renders static prices and disables live subscriptions when the flag is off', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk: 0.99,
+    }));
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: stateWithSportCardLivePricesEnabled(false) },
+    );
+
+    expect(getByText('SPA 60¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 15¢')).toBeOnTheScreen();
+    expect(getByText('ENG 62¢')).toBeOnTheScreen();
+    expect(queryByText('SPA 99¢')).not.toBeOnTheScreen();
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['token-home', 'token-draw', 'token-away'],
+      { enabled: false },
+    );
   });
 
   it('uses the main moneyline outcome when extended sports markets are present', () => {

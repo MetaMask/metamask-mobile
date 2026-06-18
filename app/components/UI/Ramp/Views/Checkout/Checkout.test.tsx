@@ -904,6 +904,104 @@ describe('Checkout', () => {
       expect(mockParentPop).toHaveBeenCalledTimes(1);
     });
 
+    it('emits HEADLESS RAMPS_ORDER_FAILED with the session quote context when a live headless session fails', async () => {
+      mockUseParams.mockReturnValue({
+        ...callbackFlowParams,
+        currency: 'USD',
+        cryptocurrency: 'ETH',
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: {
+          rampSurface: 'money_account',
+          amount: 100,
+          quote: {
+            quote: {
+              amountIn: 100,
+              amountOut: 0.05,
+              paymentMethod: 'debit-credit-card',
+            },
+          },
+        },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'fiat_on_ramp_aggregator.webview_received_error',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+      });
+
+      expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.anything());
+      const idx = mockCreateEventBuilder.mock.calls.findIndex(
+        (c) => c[0] === MetaMetricsEvents.RAMPS_ORDER_FAILED,
+      );
+      expect(idx).toBeGreaterThanOrEqual(0);
+      expect(mockAddProperties.mock.calls[idx][0]).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          amount_source: 100,
+          amount_destination: 0.05,
+          payment_method_id: 'debit-credit-card',
+          currency_destination: 'ETH',
+          currency_source: 'USD',
+          is_authenticated: true,
+          error_message: expect.any(String),
+        }),
+      );
+    });
+
+    it('falls back to empty/zero context when the failing headless session has no quote', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: {},
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'fiat_on_ramp_aggregator.webview_received_error',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+      });
+
+      const idx = mockCreateEventBuilder.mock.calls.findIndex(
+        (c) => c[0] === MetaMetricsEvents.RAMPS_ORDER_FAILED,
+      );
+      expect(idx).toBeGreaterThanOrEqual(0);
+      expect(mockAddProperties.mock.calls[idx][0]).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: undefined,
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: '',
+          region: '',
+          currency_destination: '',
+          currency_source: '',
+        }),
+      );
+    });
+
     it('treats an empty provider callback as user dismissal when headless', async () => {
       mockUseParams.mockReturnValue(callbackFlowParams);
 

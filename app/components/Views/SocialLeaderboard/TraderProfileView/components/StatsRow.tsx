@@ -12,7 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderStats } from '@metamask/social-controllers';
-import { formatSignedAbbreviatedUsd } from '../../utils/formatters';
+import { formatSignedFullUsdNoDecimals } from '../../utils/formatters';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
 export interface StatsRowProps {
@@ -50,7 +50,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
   const isWinRatePositive = (stats.winRate7d ?? 0) > 0;
 
   const hasPnl = stats.pnl7d != null;
-  const pnl = formatSignedAbbreviatedUsd(stats.pnl7d);
+  const pnl = formatSignedFullUsdNoDecimals(stats.pnl7d);
   const isPnlPositive = stats.pnl7d != null && stats.pnl7d >= 0;
 
   return (

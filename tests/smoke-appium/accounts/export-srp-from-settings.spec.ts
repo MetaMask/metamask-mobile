@@ -6,8 +6,6 @@ import {
   completeSrpQuiz,
 } from '../../flows/accounts.flow.js';
 import { defaultGanacheOptions } from '../../framework/Constants.js';
-import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 
@@ -28,15 +26,6 @@ const IMPORTED_SRP =
 appiumTest.describe(
   SmokeAccounts('Multi-SRP: Exports the correct srp in account actions'),
   () => {
-    const testSpecificMock = async (mockServer: Mockttp) => {
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: /^https:\/\/api\.merkl\.xyz\/v4\/users\/[a-zA-Z0-9]+\/rewards(\?|$)/,
-        response: [],
-        responseCode: 200,
-      });
-    };
-
     appiumTest(
       'exports the correct srp for the default hd keyring',
       async ({ driver: _driver, currentDeviceDetails }) => {
@@ -47,7 +36,6 @@ appiumTest.describe(
               .build(),
             restartDevice: true,
             currentDeviceDetails,
-            testSpecificMock,
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
@@ -68,7 +56,6 @@ appiumTest.describe(
               .build(),
             restartDevice: true,
             currentDeviceDetails,
-            testSpecificMock,
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
