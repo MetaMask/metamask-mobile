@@ -31,7 +31,7 @@ jest.mock('../../../Engine/controllers/remote-feature-flag-controller', () => ({
 }));
 
 // Avoid compareVersions path by forcing minimum version check to pass
-jest.mock('./utils/hasMinimumRequiredVersion', () => ({
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: () => true,
 }));
 

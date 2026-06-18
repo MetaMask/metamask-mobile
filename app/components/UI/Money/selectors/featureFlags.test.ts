@@ -8,6 +8,9 @@ import {
   selectMoneyNoFeeTokens,
   selectMoneyDepositMinBalance,
   selectMoneyTokensSortMode,
+  selectMoneyAccountGeoBlockedCountries,
+  DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
+  selectMoneyFirstTimeDepositAnimationEnabledFlag,
 } from './featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -411,5 +414,169 @@ describe('selectMoneyTokensSortMode', () => {
     const result = selectMoneyTokensSortMode(state as never);
 
     expect(result).toBe('fiatBalanceDesc');
+  });
+});
+
+describe('selectMoneyAccountGeoBlockedCountries', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns blockedRegions array from remote flag when valid', () => {
+    const state = createState({
+      moneyAccountGeoBlockedCountries: { blockedRegions: ['GB', 'US'] },
+    });
+
+    const result = selectMoneyAccountGeoBlockedCountries(state as never);
+
+    expect(result).toEqual(['GB', 'US']);
+  });
+
+  it('returns empty array when remote flag has empty blockedRegions', () => {
+    const state = createState({
+      moneyAccountGeoBlockedCountries: { blockedRegions: [] },
+    });
+
+    const result = selectMoneyAccountGeoBlockedCountries(state as never);
+
+    expect(result).toEqual([]);
+  });
+
+  it('falls back to env var when remote flag is absent', () => {
+    process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES = 'US,FR';
+
+    const state = createState({});
+
+    const result = selectMoneyAccountGeoBlockedCountries(state as never);
+
+    expect(result).toEqual(['US', 'FR']);
+  });
+
+  it('falls back to default blocked countries when both remote and env are absent', () => {
+    delete process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES;
+
+    const state = createState({});
+
+    const result = selectMoneyAccountGeoBlockedCountries(state as never);
+
+    expect(result).toEqual(DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES);
+  });
+
+  it('ignores remote flag when blockedRegions is not an array', () => {
+    process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES = 'IE';
+
+    const state = createState({
+      moneyAccountGeoBlockedCountries: { blockedRegions: 'not-an-array' },
+    });
+
+    const result = selectMoneyAccountGeoBlockedCountries(state as never);
+
+    expect(result).toEqual(['IE']);
+  });
+
+  it('DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES includes GB', () => {
+    expect(DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES).toContain('GB');
+  });
+});
+
+describe('selectMoneyFirstTimeDepositAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyFirstTimeDepositAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyFirstTimeDepositAnimationEnabledFlag(
+      state as never,
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyFirstTimeDepositAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyFirstTimeDepositAnimationEnabledFlag(
+      state as never,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to true when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED;
+
+    const state = createState({
+      _unique: 'first-deposit-default-on',
+    });
+
+    const result = selectMoneyFirstTimeDepositAnimationEnabledFlag(
+      state as never,
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when env var is set to false and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED = 'false';
+
+    const state = createState({
+      _unique: 'first-deposit-env-false',
+    });
+
+    const result = selectMoneyFirstTimeDepositAnimationEnabledFlag(
+      state as never,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('remote flag takes precedence over env var', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      earnMoneyFirstTimeDepositAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyFirstTimeDepositAnimationEnabledFlag(
+      state as never,
+    );
+
+    expect(result).toBe(false);
   });
 });

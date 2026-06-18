@@ -20,6 +20,7 @@ const cryptoMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$1M',
+  openInterest: '$500K',
 };
 
 /** Commodity market (HIP-3): counted in marketCounts.commodities so "Commodities" badge appears */
@@ -31,6 +32,7 @@ const commodityMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$500K',
+  openInterest: '$250K',
   marketType: 'commodity',
   isHip3: true,
 };
