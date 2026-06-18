@@ -737,24 +737,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     describe('default behavior (disabled by default)', () => {
-      it('returns false when remote flag is not set and local env var is not set', () => {
-        delete process.env.MM_PERPS_ADVANCED_CHART_ENABLED;
-        const result = selectPerpsAdvancedChartEnabledFlag(
-          createEmptyFlagsState(),
-        );
-        expect(result).toBe(false);
-      });
-
-      it('returns true when local env var is explicitly true', () => {
-        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
-        const result = selectPerpsAdvancedChartEnabledFlag(
-          createEmptyFlagsState(),
-        );
-        expect(result).toBe(true);
-      });
-
-      it('returns false when local env var is explicitly false', () => {
-        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'false';
+      it('returns false when remote flag is not set', () => {
         const result = selectPerpsAdvancedChartEnabledFlag(
           createEmptyFlagsState(),
         );
@@ -762,10 +745,9 @@ describe('Perps Feature Flag Selectors', () => {
       });
     });
 
-    describe('hybrid flag behavior', () => {
+    describe('remote flag behavior', () => {
       it('uses remote flag when valid and enabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'false';
 
         const stateWithEnabledRemoteFlag = {
           engine: {
@@ -791,7 +773,6 @@ describe('Perps Feature Flag Selectors', () => {
 
       it('uses remote flag when valid but disabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
 
         const stateWithDisabledRemoteFlag = {
           engine: {
@@ -817,7 +798,6 @@ describe('Perps Feature Flag Selectors', () => {
 
       it('returns false when version requirement is not met', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(false);
-        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
 
         const stateWithVersionCheckFailure = {
           engine: {
@@ -841,9 +821,7 @@ describe('Perps Feature Flag Selectors', () => {
         expect(result).toBe(false);
       });
 
-      it('falls back to local flag when remote flag is invalid', () => {
-        process.env.MM_PERPS_ADVANCED_CHART_ENABLED = 'true';
-
+      it('returns false when remote flag is invalid', () => {
         const stateWithInvalidRemoteFlag = {
           engine: {
             backgroundState: {
@@ -863,12 +841,10 @@ describe('Perps Feature Flag Selectors', () => {
         const result = selectPerpsAdvancedChartEnabledFlag(
           stateWithInvalidRemoteFlag,
         );
-        expect(result).toBe(true);
+        expect(result).toBe(false);
       });
 
-      it('falls back to local flag when remote flag is null', () => {
-        delete process.env.MM_PERPS_ADVANCED_CHART_ENABLED;
-
+      it('returns false when remote flag is null', () => {
         const stateWithNullRemoteFlag = {
           engine: {
             backgroundState: {
