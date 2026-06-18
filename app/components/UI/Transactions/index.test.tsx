@@ -2802,10 +2802,54 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
     });
 
-    it('renders new activity row for asset details when activity redesign is enabled', () => {
+    it('uses raw transaction id for grouped activity item keys', () => {
       instance = new UnconnectedTransactions({
         ...defaultTestProps,
-        assetSymbol: 'ETH',
+        isActivityRedesignEnabled: true,
+        location: TransactionDetailLocation.AssetDetails,
+      });
+
+      const transaction = {
+        id: 'tx-1',
+        chainId: '0x1',
+        hash: '0xabc',
+        status: 'confirmed',
+        time: 1000000,
+        type: 'simpleSend',
+        txParams: {
+          from: '0x123',
+          to: '0x456',
+          value: '1000000000000000000',
+        },
+      };
+
+      const key = instance.groupedActivityKeyExtractor(
+        {
+          type: 'item',
+          item: {
+            type: 'send',
+            chainId: '0x1',
+            status: 'success',
+            timestamp: 1000000,
+            raw: {
+              type: 'localTransaction',
+              data: {
+                primaryTransaction: transaction,
+                initialTransaction: transaction,
+              },
+            },
+            data: {},
+          },
+        },
+        0,
+      );
+
+      expect(key).toBe('local-transaction-tx-1');
+    });
+
+    it('keeps legacy transaction element when renderItem receives asset details props', () => {
+      instance = new UnconnectedTransactions({
+        ...defaultTestProps,
         isActivityRedesignEnabled: true,
         location: TransactionDetailLocation.AssetDetails,
       });
@@ -2827,15 +2871,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
         index: 0,
       });
 
-      expect(element.type).toBe(AssetDetailsActivityListItem);
-      expect(element.props).toEqual(
-        expect.objectContaining({
-          assetSymbol: 'ETH',
-          chainId: '0x1',
-          index: 0,
-          navigation: mockNavigation,
-        }),
-      );
+      expect(element.type).toBe(TransactionElement);
     });
 
     it('renders date headers for grouped redesigned asset details activity', () => {

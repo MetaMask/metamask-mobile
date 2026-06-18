@@ -529,7 +529,24 @@ class Transactions extends PureComponent {
       return `date-header-${item.date}`;
     }
 
-    return item.item.id ?? item.item.hash ?? `${item.item.timestamp}-${index}`;
+    const raw = item.item.raw;
+    if (raw?.type === 'localTransaction') {
+      const txId =
+        raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
+      if (txId) {
+        return `local-transaction-${txId}`;
+      }
+    }
+
+    if (raw?.type === 'keyringTransaction' && raw.data.id) {
+      return `keyring-transaction-${raw.data.id}`;
+    }
+
+    if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
+      return `api-evm-transaction-${item.item.hash}`;
+    }
+
+    return `${item.item.type}-${item.item.hash ?? item.item.timestamp}-${index}`;
   };
 
   onSpeedUpAction = (speedUpAction, tx) => {
@@ -829,48 +846,28 @@ class Transactions extends PureComponent {
     }
   };
 
-  renderItem = ({ item, index }) => {
-    if (
-      this.props.isActivityRedesignEnabled &&
-      this.props.location === TransactionDetailLocation.AssetDetails
-    ) {
-      return (
-        <AssetDetailsActivityListItem
-          transaction={item}
-          index={index}
-          assetSymbol={this.props.assetSymbol}
-          chainId={this.props.chainId}
-          tokenChainId={this.props.tokenChainId}
-          navigation={this.props.navigation}
-          onSpeedUpAction={this.onSpeedUpAction}
-          onCancelAction={this.onCancelAction}
-        />
-      );
-    }
-
-    return (
-      <TransactionElement
-        tx={item}
-        i={index}
-        assetSymbol={this.props.assetSymbol}
-        onSpeedUpAction={this.onSpeedUpAction}
-        isQRHardwareAccount={this.state.isQRHardwareAccount}
-        isLedgerAccount={this.state.isLedgerAccount}
-        signQRTransaction={this.signQRTransaction}
-        signLedgerTransaction={this.signLedgerTransaction}
-        cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
-        onCancelAction={this.onCancelAction}
-        onPressItem={this.toggleDetailsView}
-        selectedAddress={this.props.selectedAddress}
-        collectibleContracts={this.props.collectibleContracts}
-        exchangeRate={this.props.exchangeRate}
-        currentCurrency={this.props.currentCurrency}
-        navigation={this.props.navigation}
-        txChainId={item.chainId}
-        location={this.props.location}
-      />
-    );
-  };
+  renderItem = ({ item, index }) => (
+    <TransactionElement
+      tx={item}
+      i={index}
+      assetSymbol={this.props.assetSymbol}
+      onSpeedUpAction={this.onSpeedUpAction}
+      isQRHardwareAccount={this.state.isQRHardwareAccount}
+      isLedgerAccount={this.state.isLedgerAccount}
+      signQRTransaction={this.signQRTransaction}
+      signLedgerTransaction={this.signLedgerTransaction}
+      cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
+      onCancelAction={this.onCancelAction}
+      onPressItem={this.toggleDetailsView}
+      selectedAddress={this.props.selectedAddress}
+      collectibleContracts={this.props.collectibleContracts}
+      exchangeRate={this.props.exchangeRate}
+      currentCurrency={this.props.currentCurrency}
+      navigation={this.props.navigation}
+      txChainId={item.chainId}
+      location={this.props.location}
+    />
+  );
 
   renderGroupedActivityItem = ({ item, index }) => {
     if (item.type === 'pending-header') {
