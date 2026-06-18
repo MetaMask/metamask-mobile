@@ -60,7 +60,10 @@ import {
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
+  selectPerpsProductsEnabledFlag,
+  selectPerpsTopMoversEnabledFlag,
 } from '../../selectors/featureFlags';
+import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -144,6 +147,10 @@ const PerpsHomeView = ({
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
+  const isProductsEnabled = useSelector(selectPerpsProductsEnabledFlag);
+  const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  // Mirrors PerpsProducts' own visibility check (enabled + has categories).
+  const productCategories = usePerpsCategories();
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -324,41 +331,64 @@ const PerpsHomeView = ({
   const rawWatchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
   // Build the ordered list of visible section names for sections_displayed.
-  // Mirrors the render order in the ScrollView so the array is always stable.
+  // Each condition mirrors the matching section component's own render gating
+  // (content OR loading skeleton), so the array reflects what the user actually
+  // sees and stays consistent with per-section scroll impressions.
   const sectionsDisplayed = useMemo(() => {
     const sections: string[] = [PERPS_EVENT_VALUE.SECTION_NAME.BALANCE];
-    if (positions.length > 0)
+    // Positions/orders render a skeleton while loading, then self-hide when empty.
+    if (isLoading.positions || positions.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS);
-    if (orders.length > 0) sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
+    if (isLoading.orders || orders.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningEnabled)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
+    // Watchlist shows a skeleton while markets load, then content when it has
+    // watchlist or suggested markets.
     if (
+      isLoading.markets ||
       watchlistMarkets.length > 0 ||
       (suggestedWatchlistMarkets?.length ?? 0) > 0
     ) {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
     }
-    // Products, Top Movers, and explore sections are always attempted; they
-    // self-hide when empty, so we include them here conditionally.
-    sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
-    sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
-    if (perpsMarkets.length > 0)
+    // Products self-hides when disabled or when no categories are available.
+    if (isProductsEnabled && productCategories.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
+    // Top Movers shows a skeleton while markets load, then self-hides when there
+    // are no markets to rank. It draws from the same market set as the explore
+    // category lists, so any of those being present implies movers exist.
+    const hasAnyMarket =
+      perpsMarkets.length > 0 ||
+      commoditiesMarkets.length > 0 ||
+      stocksMarkets.length > 0 ||
+      forexMarkets.length > 0;
+    if (isTopMoversEnabled && (isLoading.markets || hasAnyMarket))
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
+    // Explore category lists render a skeleton while markets load, then self-hide
+    // when their own market array is empty.
+    if (isLoading.markets || perpsMarkets.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO);
-    if (commoditiesMarkets.length > 0)
+    if (isLoading.markets || commoditiesMarkets.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES);
-    if (stocksMarkets.length > 0)
+    if (isLoading.markets || stocksMarkets.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
-    if (forexMarkets.length > 0)
+    if (isLoading.markets || forexMarkets.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
-    if (recentActivity.length > 0)
+    // Recent activity shows a skeleton while loading, then self-hides when empty.
+    if (isLoading.activity || recentActivity.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
     return sections;
   }, [
+    isLoading,
     positions,
     orders,
     isWhatsHappeningEnabled,
     watchlistMarkets,
     suggestedWatchlistMarkets,
+    isProductsEnabled,
+    productCategories,
+    isTopMoversEnabled,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
