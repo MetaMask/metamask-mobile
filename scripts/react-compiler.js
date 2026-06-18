@@ -19,37 +19,42 @@ const shouldLogReactCompilerFailures = process.env.REACT_COMPILER_LOG_FAILURES =
 // can be reviewed after a build instead of scrolling through Metro's output.
 const reactCompilerLogPath = path.join(__dirname, '..', 'react-compiler.log');
 
-// Truncate + write a header once per build process so each run starts with a
-// clean, self-describing log instead of endlessly appending across builds.
+// Append-only logging. We deliberately do NOT truncate the file at runtime:
+// Metro runs Babel transforms across multiple worker processes, each with its
+// own module state, so a truncate-on-first-write would let a worker that hits
+// its first bailout late wipe entries already written by its siblings. Instead
+// every process writes a header once, then appends each error below it. The
+// file is git-ignored — delete it to clear.
 let reactCompilerLogInitialized = false;
 const initReactCompilerLog = () => {
   if (reactCompilerLogInitialized) {
     return;
   }
   reactCompilerLogInitialized = true;
-  const header =
-    `# React Compiler bailout log\n` +
-    `# Generated: ${new Date().toISOString()}\n` +
-    `# Each entry lists a component the compiler could not optimize.\n` +
-    `${'='.repeat(80)}\n\n`;
+  const divider = '─'.repeat(80);
+  const runHeader =
+    `\n${divider}\n` +
+    `React Compiler errors — ${new Date().toLocaleString()}\n` +
+    `These components could not be optimized and were skipped by the compiler.\n` +
+    `${divider}\n`;
   try {
-    fs.writeFileSync(reactCompilerLogPath, header);
+    fs.appendFileSync(reactCompilerLogPath, runHeader);
   } catch {
     // Logging must never break a build; ignore filesystem errors.
   }
 };
 
 const appendReactCompilerLog = (filename, event) => {
-  initReactCompilerLog();
-  const detail = event.detail ?? event;
-  const formattedDetail =
-    typeof detail === 'string' ? detail : JSON.stringify(detail, null, 2);
-  const entry =
-    `[${new Date().toISOString()}] ${event.kind}\n` +
-    `  File:   ${filename}\n` +
-    `  Detail: ${formattedDetail.replace(/\n/g, '\n          ')}\n` +
-    `${'-'.repeat(80)}\n`;
   try {
+    initReactCompilerLog();
+    const detail = event.detail ?? event;
+    const formattedDetail =
+      typeof detail === 'string' ? detail : JSON.stringify(detail, null, 2);
+    const entry =
+      `[${new Date().toISOString()}] ${event.kind}\n` +
+      `  File:   ${filename}\n` +
+      `  Detail: ${formattedDetail.replace(/\n/g, '\n          ')}\n` +
+      `${'-'.repeat(80)}\n`;
     fs.appendFileSync(reactCompilerLogPath, entry);
   } catch {
     // Logging must never break a build; ignore filesystem errors.
