@@ -369,16 +369,21 @@ const PriceAdvanced = ({
 
   const chartInterval = displayInterval.toLowerCase();
 
-  const effectiveTimePeriod =
-    INTERVAL_TO_TIME_PERIOD[chartInterval] ?? config.timePeriod;
+  const effectiveTimePeriod = isTechnicalIndicatorsEnabled
+    ? INTERVAL_TO_TIME_PERIOD[chartInterval]
+    : config.timePeriod;
+
+  const effectiveInterval = isTechnicalIndicatorsEnabled
+    ? chartInterval
+    : config.interval;
 
   /**
    * Used to make sure changing time range always sends a full SET_OHLCV_DATA
    */
   const ohlcvSeriesKey = useMemo(
     () =>
-      `${assetId}|${effectiveTimePeriod}|${chartInterval}|${currentCurrency}`,
-    [assetId, effectiveTimePeriod, chartInterval, currentCurrency],
+      `${assetId}|${effectiveTimePeriod}|${effectiveInterval}|${currentCurrency}`,
+    [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -428,7 +433,7 @@ const PriceAdvanced = ({
   } = useOHLCVChart({
     assetId,
     timePeriod: effectiveTimePeriod,
-    interval: chartInterval,
+    interval: effectiveInterval,
     vsCurrency: currentCurrency,
   });
 
@@ -562,9 +567,9 @@ const PriceAdvanced = ({
 
   const { latestBar } = useOHLCVRealtime({
     assetId,
-    interval: chartInterval,
+    interval: isTechnicalIndicatorsEnabled ? chartInterval : wsInterval,
     currency: currentCurrency,
-    timePeriod: timeRange.toLowerCase(),
+    timePeriod: effectiveTimePeriod,
     enabled: wsEnabled,
   });
 
