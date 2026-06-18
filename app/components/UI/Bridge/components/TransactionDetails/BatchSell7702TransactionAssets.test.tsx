@@ -1,32 +1,9 @@
 import React from 'react';
-import { Text } from 'react-native';
-import { render } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { FeatureId, StatusTypes } from '@metamask/bridge-controller';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets';
-
-const mockTransactionTokenIcon = jest.fn(
-  ({
-    token,
-    showNetworkBadge,
-  }: {
-    token: { symbol: string };
-    showNetworkBadge?: boolean;
-  }) => (
-    <Text
-      testID={`token-icon-${token.symbol}-${showNetworkBadge ? 'badge' : 'no-badge'}`}
-    >
-      {token.symbol}
-    </Text>
-  ),
-);
-
-jest.mock('./TransactionAsset', () => ({
-  TransactionTokenIcon: (props: {
-    token: { symbol: string };
-    showNetworkBadge?: boolean;
-  }) => mockTransactionTokenIcon(props),
-}));
+import { initialState } from '../../_mocks_/initialState';
 
 function createBatchSellHistoryItems(): BridgeHistoryItem[] {
   const batchId = '0xbatch123';
@@ -112,89 +89,39 @@ function createBatchSellHistoryItems(): BridgeHistoryItem[] {
 }
 
 describe('BatchSell7702TransactionAssets', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  const renderComponent = (batchSellHistoryItems: BridgeHistoryItem[]) =>
+    renderWithProvider(
+      <BatchSell7702TransactionAssets
+        batchSellHistoryItems={batchSellHistoryItems}
+      />,
+      { state: initialState },
+    );
 
   it('renders nothing when batch sell history items are empty', () => {
-    const { queryByText } = render(
-      <BatchSell7702TransactionAssets batchSellHistoryItems={[]} />,
-    );
+    const { queryByText } = renderComponent([]);
 
     expect(queryByText('You swapped')).not.toBeOnTheScreen();
     expect(queryByText('You received')).not.toBeOnTheScreen();
   });
 
   it('renders swapped and received section headers', () => {
-    const { getByText } = render(
-      <BatchSell7702TransactionAssets
-        batchSellHistoryItems={createBatchSellHistoryItems()}
-      />,
-    );
+    const { getByText } = renderComponent(createBatchSellHistoryItems());
 
     expect(getByText('You swapped')).toBeOnTheScreen();
     expect(getByText('You received')).toBeOnTheScreen();
   });
 
   it('renders the summed destination amount with a plus prefix', () => {
-    const { getByText } = render(
-      <BatchSell7702TransactionAssets
-        batchSellHistoryItems={createBatchSellHistoryItems()}
-      />,
-    );
+    const { getByText } = renderComponent(createBatchSellHistoryItems());
 
     expect(getByText('+8.00000 USDC')).toBeOnTheScreen();
   });
 
-  it('renders a source token icon for each batch sell history item', () => {
-    const { getByTestId } = render(
-      <BatchSell7702TransactionAssets
-        batchSellHistoryItems={createBatchSellHistoryItems()}
-      />,
-    );
+  it('renders a circular token avatar for each source and destination token', () => {
+    const { getByTestId } = renderComponent(createBatchSellHistoryItems());
 
-    expect(getByTestId('token-icon-LINK-no-badge')).toBeOnTheScreen();
-    expect(getByTestId('token-icon-ARB-no-badge')).toBeOnTheScreen();
-  });
-
-  it('renders the destination token icon without a network badge', () => {
-    render(
-      <BatchSell7702TransactionAssets
-        batchSellHistoryItems={createBatchSellHistoryItems()}
-      />,
-    );
-
-    expect(mockTransactionTokenIcon).toHaveBeenCalledWith(
-      expect.objectContaining({
-        token: expect.objectContaining({ symbol: 'USDC' }),
-        showNetworkBadge: false,
-      }),
-    );
-  });
-
-  it('does not show network badges on source token icons', () => {
-    render(
-      <BatchSell7702TransactionAssets
-        batchSellHistoryItems={createBatchSellHistoryItems()}
-      />,
-    );
-
-    expect(mockTransactionTokenIcon).toHaveBeenCalledWith(
-      expect.objectContaining({
-        token: expect.objectContaining({ symbol: 'LINK' }),
-        showNetworkBadge: false,
-      }),
-    );
-    expect(mockTransactionTokenIcon).toHaveBeenCalledWith(
-      expect.objectContaining({
-        token: expect.objectContaining({ symbol: 'ARB' }),
-        showNetworkBadge: false,
-      }),
-    );
-    expect(
-      mockTransactionTokenIcon.mock.calls.every(
-        ([props]) => props.showNetworkBadge === false,
-      ),
-    ).toBe(true);
+    expect(getByTestId('token-logo-LINK')).toBeOnTheScreen();
+    expect(getByTestId('token-logo-ARB')).toBeOnTheScreen();
+    expect(getByTestId('token-logo-USDC')).toBeOnTheScreen();
   });
 });
