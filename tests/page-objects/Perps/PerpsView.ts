@@ -7,6 +7,7 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
+  PerpsOrderHeaderSelectorsIDs,
   getPerpsTPSLViewSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
@@ -552,7 +553,61 @@ class PerpsView {
    * exists on portfolio home and exits Perps toward wallet).
    */
   async navigateToPerpsPortfolioHomeFromMarketOrderFlow(): Promise<void> {
-    if (await this.isOnPerpsPortfolioHome()) {
+    const marketListBackTestId = `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`;
+
+    await Utilities.waitUntil(
+      async () => {
+        if (await this.isOnPerpsPortfolioHome(500)) {
+          return true;
+        }
+        if (await this.isMarketDetailsBackVisible(500)) {
+          return true;
+        }
+        if (await this.isTestIdVisible(marketListBackTestId, 500)) {
+          return true;
+        }
+        if (
+          await this.isTestIdVisible(
+            PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
+            500,
+          )
+        ) {
+          return true;
+        }
+        return false;
+      },
+      {
+        interval: 500,
+        timeout: 30000,
+      },
+    );
+
+    if (await this.isOnPerpsPortfolioHome(1000)) {
+      return;
+    }
+
+    if (
+      await this.isTestIdVisible(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON, 2000)
+    ) {
+      await Gestures.waitAndTap(
+        Matchers.getElementByID(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON),
+        {
+          elemDescription: 'Perps order header back (to market details)',
+          timeout: 15000,
+        },
+      );
+      await Utilities.waitUntil(
+        async () =>
+          (await this.isMarketDetailsBackVisible(1000)) ||
+          (await this.isOnPerpsPortfolioHome(1000)),
+        {
+          interval: 500,
+          timeout: 15000,
+        },
+      );
+    }
+
+    if (await this.isOnPerpsPortfolioHome(1000)) {
       return;
     }
 
@@ -560,16 +615,15 @@ class PerpsView {
       await PerpsMarketDetailsView.tapBackButton();
     }
 
-    if (await this.isOnPerpsPortfolioHome()) {
+    if (await this.isOnPerpsPortfolioHome(1000)) {
       return;
     }
 
-    const marketListBackTestId = `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`;
     if (await this.isTestIdVisible(marketListBackTestId, 3000)) {
       await PerpsMarketListView.tapHeaderBackToPortfolioHome();
     }
 
-    if (await this.isOnPerpsPortfolioHome()) {
+    if (await this.isOnPerpsPortfolioHome(1000)) {
       return;
     }
 
