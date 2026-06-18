@@ -243,7 +243,7 @@
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^8.3.1",
     "@metamask/assets-controllers": "^109.0.0",
-    "@metamask/authenticated-user-storage": "^2.0.0",
+    "@metamask/authenticated-user-storage": "npm:@metamask-previews/authenticated-user-storage@2.0.0-preview-ce4057bcb",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.12.0",
     "@metamask/bridge-controller": "^75.1.0",
@@ -306,7 +306,7 @@
     "@metamask/native-utils": "^0.8.0",
     "@metamask/network-controller": "^32.0.0",
     "@metamask/network-enablement-controller": "^5.3.0",
-    "@metamask/notification-services-controller": "24.1.1",
+    "@metamask/notification-services-controller": "npm:@metamask-previews/notification-services-controller@24.1.2-preview-ce4057bcb",
     "@metamask/permission-controller": "^13.1.1",
     "@metamask/perps-controller": "^8.1.0",
     "@metamask/phishing-controller": "^17.2.0",
@@ -809,16 +809,6 @@
       "eslint-import-resolver-typescript>unrs-resolver": false,
       "tsx>esbuild": false,
       "@metamask/transaction-pay-controller>@metamask/bridge-status-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
-    }
-  },
-  "previewBuilds": {
-    "@metamask/authenticated-user-storage": {
-      "type": "breaking",
-      "previewVersion": "2.0.0-preview-ce4057bcb"
-    },
-    "@metamask/notification-services-controller": {
-      "type": "breaking",
-      "previewVersion": "24.1.2-preview-ce4057bcb"
     }
   },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
