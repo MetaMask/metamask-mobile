@@ -11,10 +11,20 @@ import { getActiveNetworksByScopes } from '../../../selectors/multichainNetworkC
 import styleSheet from './AccountNetworkIndicator.styles';
 import { getNetworkImageSource } from '../../../util/networks';
 
+interface PartialAccount { address: string; scopes: CaipChainId[] }
+
+const arePartialAccountsEqual = (
+  prev: PartialAccount,
+  next: PartialAccount,
+): boolean =>
+  prev.address === next.address &&
+  prev.scopes.length === next.scopes.length &&
+  prev.scopes.every((scope, index) => scope === next.scopes[index]);
+
 const AccountNetworkIndicator = ({
   partialAccount,
 }: {
-  partialAccount: { address: string; scopes: CaipChainId[] };
+  partialAccount: PartialAccount;
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const networksWithTransactionActivity = useSelector((state: RootState) =>
@@ -43,4 +53,12 @@ const AccountNetworkIndicator = ({
   );
 };
 
-export default AccountNetworkIndicator;
+const AccountNetworkIndicatorMemoized = React.memo(
+  AccountNetworkIndicator,
+  (prev, next) =>
+    arePartialAccountsEqual(prev.partialAccount, next.partialAccount),
+);
+
+AccountNetworkIndicatorMemoized.displayName = 'AccountNetworkIndicator';
+
+export default AccountNetworkIndicatorMemoized;
