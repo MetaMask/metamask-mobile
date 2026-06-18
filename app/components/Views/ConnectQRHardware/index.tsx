@@ -48,7 +48,7 @@ interface IConnectQRHardwareProps {
   route?: any;
 }
 
-const SAFE_AREA_EDGES: Edge[] = ['top', 'left', 'right'];
+const SAFE_AREA_EDGES: Edge[] = ['left', 'right'];
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
