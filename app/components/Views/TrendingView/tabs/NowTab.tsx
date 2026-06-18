@@ -279,6 +279,32 @@ const NowTabContent: React.FC<TabProps> = ({
   const sections = useMemo((): ExploreSectionItem[] => {
     const items: ExploreSectionItem[] = [];
 
+    if (showPredictions) {
+      items.push({
+        key: 'predict',
+        content: (
+          <PredictionsCarouselSection
+            feed={displayedPredictions}
+            tabName="Now"
+            sectionName="predictions_trending"
+            title={
+              worldCupPredictions.isEnabled
+                ? strings('predict.world_cup.predictions_title')
+                : strings('wallet.predict')
+            }
+            testIdPrefix="predict-market-row-item"
+            idPrefix="predictions"
+            onViewAll={() =>
+              worldCupPredictions.isEnabled
+                ? navigateToExploreWorldCupPredictions(navigation)
+                : navigateToExplorePredictionsList(navigation, 'trending')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
+    }
+
     if (showCryptoMovers) {
       items.push({
         key: 'crypto_movers',
@@ -324,32 +350,6 @@ const NowTabContent: React.FC<TabProps> = ({
               maxPills={CRYPTO_MOVERS_MAX_PILLS}
             />
           </>
-        ),
-      });
-    }
-
-    if (showPredictions) {
-      items.push({
-        key: 'predict',
-        content: (
-          <PredictionsCarouselSection
-            feed={displayedPredictions}
-            tabName="Now"
-            sectionName="predictions_trending"
-            title={
-              worldCupPredictions.isEnabled
-                ? strings('predict.world_cup.predictions_title')
-                : strings('wallet.predict')
-            }
-            testIdPrefix="predict-market-row-item"
-            idPrefix="predictions"
-            onViewAll={() =>
-              worldCupPredictions.isEnabled
-                ? navigateToExploreWorldCupPredictions(navigation)
-                : navigateToExplorePredictionsList(navigation, 'trending')
-            }
-            isEnabled={isPredictEnabled}
-          />
         ),
       });
     }
