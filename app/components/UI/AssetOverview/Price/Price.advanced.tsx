@@ -270,7 +270,7 @@ const PriceAdvanced = ({
   );
 
   const selectedMAs = useMemo(
-    () => [...activeIndicators].filter(isMAIndicator),
+    () => [...activeIndicators].filter((name) => isMAIndicator(name)),
     [activeIndicators, isMAIndicator],
   );
 
