@@ -743,16 +743,16 @@ function handleSetMAVisibility(payload) {
   var visible = payload.visible || [];
   var chart = window.chartWidget.activeChart();
 
-  var visibleSet = Object.create(null);
+  var visibleNames = new Set();
   for (var i = 0; i < visible.length; i++) {
     var visibleName = visible[i];
     if (isOwnStringKey(visibleName) && MA_LENGTHS[visibleName]) {
-      visibleSet[visibleName] = true;
+      visibleNames.add(visibleName);
     }
   }
 
   window.maStudies.forEach(function (studyId, name) {
-    if (!visibleSet[name]) {
+    if (!visibleNames.has(name)) {
       try {
         chart.removeEntity(studyId);
         window.maStudies.delete(name);
