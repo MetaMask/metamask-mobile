@@ -195,6 +195,7 @@ function addPayTypeProperties(
 
   properties.mm_pay = true;
   properties.mm_pay_chain_selected = chainId;
+  properties.mm_pay_payment_method_selected = 'crypto';
 
   const txPayData =
     state.engine.backgroundState.TransactionPayController?.transactionData?.[
@@ -244,10 +245,41 @@ function addPayTypeProperties(
     properties.mm_pay_strategy = 'mm_swaps_bridge';
   } else if (strategy === TransactionPayStrategy.Relay) {
     properties.mm_pay_strategy = 'relay';
+  } else if (strategy === TransactionPayStrategy.Fiat) {
+    properties.mm_pay_strategy = 'fiat';
   }
 
   properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
   properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
+
+  const fiatPayment = txPayData.fiatPayment;
+  const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+
+  if (selectedPaymentMethodId) {
+    properties.mm_pay_payment_method_selected =
+      normalizePaymentMethodId(selectedPaymentMethodId);
+
+    if (fiatPayment?.rampsQuote) {
+      const providerCode = extractFiatProviderCode(
+        fiatPayment.rampsQuote.provider,
+      );
+
+      if (providerCode) {
+        properties.mm_pay_fiat_provider = providerCode;
+      }
+
+      const fiatTokenTargetSymbol =
+        fiatPayment.rampsQuote.quote.cryptoTranslation?.symbol;
+
+      if (fiatTokenTargetSymbol) {
+        properties.mm_pay_fiat_token_target = fiatTokenTargetSymbol;
+      }
+    }
+
+    if (fiatPayment?.caipAssetId) {
+      properties.mm_pay_fiat_chain_target = fiatPayment.caipAssetId;
+    }
+  }
 }
 
 function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
@@ -258,4 +290,41 @@ function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
   );
 
   return token?.symbol;
+}
+
+/**
+ * Normalizes a Ramps payment method ID to a snake_case analytics value.
+ *
+ * Handles both canonical path form (e.g. `/payments/debit-credit-card`)
+ * and bare type form (e.g. `debit-credit-card`), returning the same
+ * snake_case result in both cases (e.g. `debit_credit_card`).
+ */
+function normalizePaymentMethodId(id: string): string {
+  const parts = id.split('/').filter(Boolean);
+  const raw = parts[parts.length - 1] ?? id;
+
+  return raw.replace(/-/g, '_');
+}
+
+/**
+ * Extracts the provider code from a Ramps provider string.
+ *
+ * Accepts the canonical provider code (e.g. `transak-native`) and, for
+ * backwards compatibility, the legacy path form (e.g. `/providers/transak-native`).
+ *
+ * @param provider - Canonical provider code, or legacy provider path.
+ * @returns The provider code, or `null` if the format is invalid.
+ */
+function extractFiatProviderCode(provider: string | undefined): string | null {
+  if (!provider) {
+    return null;
+  }
+
+  const parts = provider.split('/').filter(Boolean);
+
+  if (parts[0] === 'providers') {
+    return parts[1] ?? null;
+  }
+
+  return parts.length === 1 ? parts[0] : null;
 }

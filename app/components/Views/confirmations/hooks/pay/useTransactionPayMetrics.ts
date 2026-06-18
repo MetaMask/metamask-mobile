@@ -21,6 +21,8 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { useAccountTokens } from '../send/useAccountTokens';
 import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
+import { usePayWithSections } from './usePayWithSections';
+import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -42,6 +44,10 @@ export function useTransactionPayMetrics() {
   const quotes = useTransactionPayQuotes();
   const { availableTokens: tokens } = useTransactionPayAvailableTokens();
 
+  const presentedPaymentMethodRef = useRef<string | null>(null);
+  const { sections } = usePayWithSections();
+  const selectedFiatMethod = useTransactionPaySelectedFiatPaymentMethod();
+
   const transactionId = transactionMeta?.id ?? '';
   const storedMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, transactionId),
@@ -61,6 +67,19 @@ export function useTransactionPayMetrics() {
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
+
+  const availableSectionIds = useMemo(
+    () => sections.map((s) => s.id.replace(/-/g, '_')),
+    [sections],
+  );
+
+  const currentPaymentMethodSelection = selectedFiatMethod
+    ? selectedFiatMethod.paymentType.replace(/-/g, '_')
+    : 'crypto';
+
+  if (payToken && presentedPaymentMethodRef.current === null) {
+    presentedPaymentMethodRef.current = currentPaymentMethodSelection;
+  }
 
   const primaryRequiredToken = useTransactionPayRequiredTokens().find(
     (t) => !t.skipIfBalance,
@@ -98,6 +117,9 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_section_recipient_switch_count = recipient.switchCount;
 
     properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
+    properties.mm_pay_payment_methods_available = availableSectionIds;
+    properties.mm_pay_payment_method_presented =
+      presentedPaymentMethodRef.current;
   }
 
   if (
