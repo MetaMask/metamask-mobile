@@ -14,12 +14,9 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
 
 describe('useBridgeQuoteEvents', () => {
   beforeEach(() => {

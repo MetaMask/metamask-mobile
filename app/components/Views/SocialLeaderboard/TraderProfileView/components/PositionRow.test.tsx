@@ -13,7 +13,7 @@ jest.mock('../../utils/formatters', () => {
   const actual = jest.requireActual('../../utils/formatters');
   return {
     ...actual,
-    formatTradeDate: jest.fn().mockReturnValue('Apr 15, 2026 at 2:00 PM'),
+    formatTradeDate: jest.fn().mockReturnValue('Apr 15 at 2:00 pm'),
   };
 });
 
@@ -70,12 +70,14 @@ describe('PositionRow', () => {
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
-  it('renders unrealized $ PnL alongside the percent on the bottom-right', () => {
+  it('renders only the bare percent on the bottom-right (no absolute PnL)', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    expect(screen.getByText('+$1,059.96 (+182%)')).toBeOnTheScreen();
+    expect(screen.getByText('+182%')).toBeOnTheScreen();
+    expect(screen.queryByText('+$1,059.96 (+182%)')).toBeNull();
+    expect(screen.queryByText('+$1,059.96')).toBeNull();
   });
 
-  it('renders negative unrealized $ PnL with the percent', () => {
+  it('renders the negative percent without the absolute PnL', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: -250,
@@ -83,10 +85,11 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('-$250.00 (-25%)')).toBeOnTheScreen();
+    expect(screen.getByText('-25%')).toBeOnTheScreen();
+    expect(screen.queryByText('-$250.00 (-25%)')).toBeNull();
   });
 
-  it('falls back to just the percent when pnlValueUsd is missing', () => {
+  it('renders the percent even when pnlValueUsd is missing', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: null,
@@ -119,7 +122,7 @@ describe('PositionRow', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders zero unrealized $ PnL with zero percent', () => {
+  it('renders zero percent when unrealized PnL is zero', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: 0,
@@ -127,7 +130,8 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('$0.00 (+0%)')).toBeOnTheScreen();
+    expect(screen.getByText('+0%')).toBeOnTheScreen();
+    expect(screen.queryByText('$0.00 (+0%)')).toBeNull();
   });
 
   it('renders negative USD value', () => {
@@ -217,7 +221,7 @@ describe('PositionRow', () => {
     it('renders formatted closed date as subtitle instead of token amount', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
-      expect(screen.getByText('Apr 15, 2026 at 2:00 PM')).toBeOnTheScreen();
+      expect(screen.getByText('Apr 15 at 2:00 pm')).toBeOnTheScreen();
     });
 
     it('renders realized PnL percent as unsigned magnitude (sign comes from caret)', () => {
@@ -284,6 +288,66 @@ describe('PositionRow', () => {
       };
       renderWithProvider(<PositionRow position={negativePosition} />);
       expect(screen.getByText('-$300.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('perp positions', () => {
+    const perpPosition: Position = {
+      ...basePosition,
+      tokenSymbol: 'ETH',
+      chain: 'hyperliquid',
+      perpPositionType: 'long',
+      perpLeverage: 5,
+      positionAmountWithLeverage: 25,
+    };
+
+    it('renders the leverage and LONG direction badges for a long perp', () => {
+      renderWithProvider(<PositionRow position={perpPosition} />);
+
+      expect(screen.getByText('5x')).toBeOnTheScreen();
+      expect(screen.getByText('LONG')).toBeOnTheScreen();
+    });
+
+    it('renders a SHORT badge for a short perp', () => {
+      const position = { ...perpPosition, perpPositionType: 'short' as const };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+    });
+
+    it('omits the leverage badge when perpLeverage is null', () => {
+      const position = { ...perpPosition, perpLeverage: null };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.queryByText('5x')).not.toBeOnTheScreen();
+      expect(screen.getByText('LONG')).toBeOnTheScreen();
+    });
+
+    it('does not render perp badges for a spot position', () => {
+      renderWithProvider(<PositionRow position={basePosition} />);
+
+      expect(screen.queryByText('LONG')).not.toBeOnTheScreen();
+      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+    });
+
+    it('shows PnL as the value for perps instead of the current value', () => {
+      renderWithProvider(<PositionRow position={perpPosition} />);
+
+      // Perps surface realized/unrealized PnL ($1,059.96), not currentValueUSD.
+      expect(screen.getByText('+$1,059.96')).toBeOnTheScreen();
+      expect(screen.queryByText('$2,259.96')).not.toBeOnTheScreen();
+    });
+
+    it('shows the trade date (not the position amount) for a closed perp', () => {
+      const closedPerp = { ...perpPosition, currentValueUSD: 0 };
+
+      renderWithProvider(<PositionRow position={closedPerp} isClosed />);
+
+      expect(screen.getByText('Apr 15 at 2:00 pm')).toBeOnTheScreen();
+      // Not the "<amount> ETH" subtitle that open positions show.
+      expect(screen.queryByText('1.50B ETH')).not.toBeOnTheScreen();
     });
   });
 });

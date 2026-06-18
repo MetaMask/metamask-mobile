@@ -24,15 +24,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import {
-  selectSelectedInternalAccount,
-  selectLastSelectedSolanaAccount,
-} from '../../../selectors/accountsController';
-import { SolAccountType, SolScope } from '@metamask/keyring-api';
-import Engine from '../../../core/Engine';
-///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
 import {
   fetchCarouselSlidesFromContentful,
@@ -40,7 +31,6 @@ import {
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
-import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import { BANNER_EVENT_DISPLAY } from '../../../constants/engagement';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -187,13 +177,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const { navigate } = useNavigation();
   const tw = useTailwind();
   const dismissedBanners = useSelector(selectDismissedBanners);
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const lastSelectedSolanaAccount = useSelector(
-    selectLastSelectedSolanaAccount,
-  );
-  ///: END:ONLY_INCLUDE_IF
-
   const isZeroBalance = !hasBalance;
 
   const applyLocalNavigation = useCallback(
@@ -210,28 +193,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           },
         };
       }
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      // solana → open add-account flow (if we don't already redirect below)
-      if (variableName === 'solana') {
-        return {
-          ...s,
-          navigation: {
-            type: 'function',
-            navigate: () =>
-              [
-                Routes.MODAL.ROOT_MODAL_FLOW,
-                {
-                  screen: Routes.SHEET.ADD_ACCOUNT,
-                  params: {
-                    clientType: WalletClientType.Solana,
-                    scope: SolScope.Mainnet,
-                  },
-                },
-              ] as const,
-          },
-        };
-      }
-      ///: END:ONLY_INCLUDE_IF
       return s; // keep Contentful linkUrl for everything else
     },
     [],
@@ -290,15 +251,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       const active = isActive(slide);
       if (!active) return false;
 
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      if (
-        getSlideVariableName(slide) === 'solana' &&
-        selectedAccount?.type === SolAccountType.DataAccount
-      ) {
-        return false;
-      }
-      ///: END:ONLY_INCLUDE_IF
-
       return !dismissedBanners.includes(slide.id);
     });
 
@@ -313,13 +265,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
 
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
-  }, [
-    slidesConfig,
-    dismissedBanners,
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    selectedAccount,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [slidesConfig, dismissedBanners]);
 
   // Ensure activeSlideIndex is within bounds after filtering
   const safeActiveSlideIndex = Math.min(
@@ -407,16 +353,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     (slide: CarouselSlide) => {
       const slideName = getSlideAnalyticsName(slide);
       const { navigation } = slide;
-      const extraProperties: Record<string, string> = {};
-
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      const isSolanaBanner = slideName === 'solana';
-      if (isSolanaBanner && lastSelectedSolanaAccount) {
-        extraProperties.action = 'redirect-solana-account';
-      } else if (isSolanaBanner && !lastSelectedSolanaAccount) {
-        extraProperties.action = 'create-solana-account';
-      }
-      ///: END:ONLY_INCLUDE_IF
 
       trackEvent(
         createEventBuilder({
@@ -424,16 +360,9 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         })
           .addProperties({
             name: slideName,
-            ...extraProperties,
           })
           .build(),
       );
-
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      if (isSolanaBanner && lastSelectedSolanaAccount) {
-        return Engine.setSelectedAddress(lastSelectedSolanaAccount.address);
-      }
-      ///: END:ONLY_INCLUDE_IF
 
       if (navigation.type === 'url') {
         return openUrl(navigation.href)();
@@ -447,14 +376,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         return navigate(navigation.route);
       }
     },
-    [
-      trackEvent,
-      createEventBuilder,
-      navigate,
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      lastSelectedSolanaAccount,
-      ///: END:ONLY_INCLUDE_IF
-    ],
+    [trackEvent, createEventBuilder, navigate],
   );
 
   const handleTransitionToNextCard = useCallback(

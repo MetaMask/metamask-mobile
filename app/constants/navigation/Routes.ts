@@ -238,7 +238,6 @@ const Routes = {
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
-    ADD_ACCOUNT: 'AddAccount',
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
@@ -463,6 +462,7 @@ const Routes = {
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     ONBOARDING: 'MoneyOnboarding',
+    FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     MODALS: {
       ROOT: 'MoneyModals',
