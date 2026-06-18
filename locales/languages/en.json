@@ -9540,6 +9540,7 @@
       "provider_fee": "Provider fee",
       "network_fee": "Network fee",
       "transaction_fee": "Transaction fee",
+      "transaction_fees": "Transaction fees",
       "paid_with": "Paid with",
       "receive_token": "Receive token",
       "retry_button": "Try again",
