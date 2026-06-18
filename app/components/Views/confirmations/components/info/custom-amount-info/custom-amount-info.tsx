@@ -143,15 +143,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
-    // TRAM-3623 headless ramps funnel telemetry, mounted once for the whole
-    // money-deposit screen. The adapter derives the ramp_surface from the tx
-    // type, so every emit (including the screen-viewed mount effect below) is
-    // inert for the non-money flows that also render this shared screen.
+    // TRAM-3623 headless ramps funnel, mounted once for the money-deposit
+    // screen. The adapter derives ramp_surface from the tx type, so every emit
+    // (including the screen-viewed effect below) is inert for non-money flows.
     const { trackScreenViewed, trackAmountCommitted, trackContinue } =
       useFiatFunnelMetricsAdapter();
 
-    // Amount screen viewed. The hook gates on surface and guards itself to fire
-    // once, so this stays money-only and emits a single RAMPS_SCREEN_VIEWED.
+    // Amount screen viewed; the hook self-guards to a single money-only emit.
     useEffect(trackScreenViewed, [trackScreenViewed]);
 
     const { isNative: isNativePayToken } = useTransactionPayToken();

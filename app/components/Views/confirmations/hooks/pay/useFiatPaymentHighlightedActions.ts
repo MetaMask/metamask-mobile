@@ -87,12 +87,10 @@ function isWithinDelayLimit(
 }
 
 /**
- * TRAM-3623 (review FIX 3): emit RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED from the
- * fiat-options path (mounted only when the Pay-With sheet opens) instead of
- * threading a callback through the shared PayWithRow. Uses the dedicated
- * single-event tracker, not the full funnel hook, so the reactive funnel
- * effects are not re-run here (that would reintroduce the FIX 2 double-emit).
- * Money-account deposit is the only wired surface (mirrors the adapter).
+ * TRAM-3623 (FIX 3): emit RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED from the
+ * fiat-options path (mounted only when the Pay-With sheet opens), via the
+ * dedicated tracker rather than the full funnel hook (which would re-run the
+ * reactive effects and reintroduce the FIX 2 double-emit). Money-account only.
  */
 function useTrackSelectorOpened(
   transactionType: TransactionType | undefined,
@@ -110,9 +108,7 @@ function useTrackSelectorOpened(
   // emits once and non-money flows never latch (stay inert).
   const hasTrackedRef = useRef(false);
   useEffect(() => {
-    if (hasTrackedRef.current || !rampSurface) {
-      return;
-    }
+    if (hasTrackedRef.current || !rampSurface) return;
     hasTrackedRef.current = true;
     trackEvent(
       'RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED',

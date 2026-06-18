@@ -14,8 +14,7 @@ jest.mock('./useTransactionPayData');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('../../../../UI/Ramp/hooks/useRampsUserRegion');
 
-// Capture FIX 3 selector-opened emits at the ramps analytics boundary (the hook
-// emits via the dedicated tracker, not the full reactive funnel hook).
+// Capture FIX 3 selector-opened emits at the ramps analytics boundary.
 const mockRampsTrackEvent = jest.fn();
 jest.mock('../../../../UI/Ramp/hooks/useAnalytics', () => ({
   __esModule: true,
@@ -86,9 +85,9 @@ describe('useFiatPaymentHighlightedActions', () => {
     } as never);
   });
 
-  // TRAM-3623 FIX 3: the fiat-options path owns RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED.
-  // The dedicated tracker emits ONLY this event (no reactive funnel re-mount),
-  // once, money-only. Its payload is proven in useFiatFunnelMetrics.test.ts.
+  // TRAM-3623 FIX 3: the fiat-options path owns the selector-opened event. The
+  // dedicated tracker emits ONLY this event, once, money-only (no funnel
+  // re-mount). Its payload is proven in useFiatFunnelMetrics.test.ts.
   describe('selector-opened telemetry', () => {
     function setMoneyDeposit(selectedPaymentMethodId = 'pm-card') {
       useTransactionMetadataRequestMock.mockReturnValue({

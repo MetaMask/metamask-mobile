@@ -5,12 +5,10 @@ import type { RampSurface } from '../Deposit/types/analytics';
 import type { Quote } from '../types';
 
 /**
- * TRAM-3623 headless ramps funnel telemetry, owned by money-movement (ramps).
- * Arg-driven (no confirmations deps) and generic in structure: every
- * emitter/effect is inert unless a `rampSurface` is supplied, so any headless
- * deposit surface (money / perps / prediction) can wire it via a thin adapter.
- * Payloads are typed against `MergedRampEvents` by the ramps `useAnalytics`
- * callback (no hand-rolled emit/cast).
+ * TRAM-3623 headless ramps funnel telemetry, owned by ramps (money-movement).
+ * Arg-driven and generic: every emitter/effect is inert unless `rampSurface` is
+ * supplied, so any headless deposit surface (money / perps / prediction) can
+ * wire it via a thin adapter. Payloads are typed by the ramps `useAnalytics`.
  */
 
 const RAMP_TYPE_HEADLESS = 'HEADLESS' as const;
@@ -42,9 +40,8 @@ function toNumber(value: number | string | undefined): number {
 }
 
 /**
- * Builds the RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED payload. Shared so the
- * fiat-options path (which now owns the emit, see FIX 3 / TRAM-3623) and this
- * hook stay in sync; the typed `useAnalytics` enforces the event's shape.
+ * RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED payload, shared so the fiat-options path
+ * that owns the emit (FIX 3 / TRAM-3623) and this hook stay in sync.
  */
 export function buildSelectorOpenedPayload(
   rampSurface: RampSurface,
@@ -101,9 +98,7 @@ export function useFiatFunnelMetrics(
 
   // RAMPS_SCREEN_VIEWED. Imperative; fired once on mount by the caller's effect.
   const trackScreenViewed = useCallback(() => {
-    if (!rampSurface || hasTrackedScreenViewRef.current) {
-      return;
-    }
+    if (!rampSurface || hasTrackedScreenViewRef.current) return;
     hasTrackedScreenViewRef.current = true;
     trackEvent('RAMPS_SCREEN_VIEWED', {
       location: 'Amount Input',
@@ -113,14 +108,10 @@ export function useFiatFunnelMetrics(
 
   // RAMPS_ORDER_PROPOSED (amount committed, pre-quote). Imperative.
   const trackAmountCommitted = useCallback(() => {
-    if (!rampSurface) {
-      return;
-    }
+    if (!rampSurface) return;
 
     const amount = toNumber(amountFiat);
-    if (amount <= 0) {
-      return;
-    }
+    if (amount <= 0) return;
 
     trackEvent('RAMPS_ORDER_PROPOSED', {
       ...baseProps,
@@ -144,13 +135,10 @@ export function useFiatFunnelMetrics(
     selectedPaymentMethodId,
   ]);
 
-  // RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED (PayWith selector opened). Imperative.
-  // Shares the payload builder with the fiat-options path that now owns the emit
-  // (FIX 3 / TRAM-3623). Retained as a no-op-safe callback for API symmetry.
+  // RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED. Imperative; the fiat-options path now
+  // owns the live emit (FIX 3), so this is kept no-op-safe for API symmetry.
   const trackPaymentSelectorOpened = useCallback(() => {
-    if (!rampSurface) {
-      return;
-    }
+    if (!rampSurface) return;
     trackEvent(
       'RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED',
       buildSelectorOpenedPayload(rampSurface, region, selectedPaymentMethodId),
@@ -159,9 +147,7 @@ export function useFiatFunnelMetrics(
 
   // RAMPS_CONTINUE_BUTTON_CLICKED (Continue / Add Funds CTA). Imperative.
   const trackContinue = useCallback(() => {
-    if (!rampSurface) {
-      return;
-    }
+    if (!rampSurface) return;
 
     trackEvent('RAMPS_CONTINUE_BUTTON_CLICKED', {
       ...baseProps,
@@ -183,13 +169,9 @@ export function useFiatFunnelMetrics(
 
   // RAMPS_PAYMENT_METHOD_SELECTED. Reactive; once per new defined method id.
   useEffect(() => {
-    if (!rampSurface || !selectedPaymentMethodId) {
+    if (!rampSurface || !selectedPaymentMethodId) return;
+    if (lastSelectedPaymentMethodRef.current === selectedPaymentMethodId)
       return;
-    }
-
-    if (lastSelectedPaymentMethodRef.current === selectedPaymentMethodId) {
-      return;
-    }
 
     lastSelectedPaymentMethodRef.current = selectedPaymentMethodId;
     trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
@@ -201,18 +183,14 @@ export function useFiatFunnelMetrics(
 
   // RAMPS_ORDER_SELECTED with the fee breakdown. Reactive; once per new quote.
   useEffect(() => {
-    if (!rampSurface || !rampsQuote) {
-      return;
-    }
+    if (!rampSurface || !rampsQuote) return;
 
     const quoteDetails = rampsQuote.quote;
     const quoteKey = `${rampsQuote.provider ?? ''}:${
       quoteDetails?.amountIn ?? ''
     }:${quoteDetails?.amountOut ?? ''}`;
 
-    if (lastQuoteSelectedKeyRef.current === quoteKey) {
-      return;
-    }
+    if (lastQuoteSelectedKeyRef.current === quoteKey) return;
 
     lastQuoteSelectedKeyRef.current = quoteKey;
     trackEvent('RAMPS_ORDER_SELECTED', {
@@ -241,9 +219,7 @@ export function useFiatFunnelMetrics(
 
   // RAMPS_QUOTE_ERROR. Reactive; once per error becoming active.
   useEffect(() => {
-    if (!rampSurface) {
-      return;
-    }
+    if (!rampSurface) return;
 
     if (!quoteError) {
       // Reset so a later re-occurrence of the same error key emits again.
@@ -255,9 +231,7 @@ export function useFiatFunnelMetrics(
     const errorKey = `${quoteError.key}:${amount}:${
       selectedPaymentMethodId ?? ''
     }`;
-    if (lastQuoteErrorKeyRef.current === errorKey) {
-      return;
-    }
+    if (lastQuoteErrorKeyRef.current === errorKey) return;
 
     lastQuoteErrorKeyRef.current = errorKey;
     trackEvent('RAMPS_QUOTE_ERROR', {

@@ -116,8 +116,7 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-// TRAM-3623 funnel events flow through the ramps-owned typed analytics callback
-// (single `(eventType, payload)` signature), driven by the real adapter + hook.
+// TRAM-3623 funnel events flow through the ramps-owned typed analytics callback.
 const mockRampsTrackEvent = jest.fn();
 jest.mock('../../../../../UI/Ramp/hooks/useAnalytics', () => ({
   __esModule: true,
@@ -871,12 +870,10 @@ describe('CustomAmountInfo', () => {
   });
 
   // TRAM-3623 headless ramps funnel, driven by the real adapter + ramps hook.
-  // The shared money-deposit screen mounts the funnel exactly ONCE and is the
-  // single owner of the screen-viewed + reactive + order-proposed/continue
-  // events. The selector-opened event is owned by the fiat-options hook (the
-  // Pay-With sheet), so it is asserted NOT to fire from this screen. Payloads
-  // and dedupe are proven in useFiatFunnelMetrics.test.ts; surface derivation in
-  // useFiatFunnelMetricsAdapter.test.ts.
+  // The shared money-deposit screen mounts the funnel exactly ONCE and owns the
+  // screen-viewed/reactive/order-proposed/continue events; selector-opened is
+  // owned by the fiat-options hook so it must NOT fire here. Payloads + dedupe
+  // are proven in useFiatFunnelMetrics.test.ts, surface in the adapter test.
   describe('TRAM-3623 funnel', () => {
     function setMoneyFlow({
       withQuote = false,
@@ -900,11 +897,10 @@ describe('CustomAmountInfo', () => {
       } as never);
       if (withQuoteError) {
         useAlertsMock.mockReturnValue({
+          ...useAlertsMock(),
           alerts: [
             { key: AlertKeys.NoPayTokenQuotes, message: 'No quotes' },
           ] as Alert[],
-          generalAlerts: [] as Alert[],
-          fieldAlerts: [] as Alert[],
         } as AlertsContextParams);
       }
     }
@@ -941,14 +937,7 @@ describe('CustomAmountInfo', () => {
       const error = new Error('update failed');
       const loggerErrorMock = jest.mocked(Logger.error);
       useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '100',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: true,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        ...useTransactionCustomAmountMock(),
         updateTokenAmount: jest.fn().mockRejectedValue(error),
       });
 
@@ -989,34 +978,31 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
       });
 
-      // Screen-viewed (imperative, mount) + the three reactive events + the two
-      // imperative CTA events each fire exactly once from this single mount.
+      // Mount-time screen-viewed + three reactive + two imperative CTA events,
+      // each exactly once from the single funnel mount.
       expect(emitCount('RAMPS_SCREEN_VIEWED')).toBe(1);
       expect(emitCount('RAMPS_PAYMENT_METHOD_SELECTED')).toBe(1);
       expect(emitCount('RAMPS_ORDER_SELECTED')).toBe(1);
       expect(emitCount('RAMPS_QUOTE_ERROR')).toBe(1);
       expect(emitCount('RAMPS_ORDER_PROPOSED')).toBe(1);
       expect(emitCount('RAMPS_CONTINUE_BUTTON_CLICKED')).toBe(1);
-      // The selector-opened event is owned by the fiat-options hook (Pay-With
-      // sheet), so this screen must NOT emit it (proven once there instead).
+      // selector-opened is owned by the fiat-options hook, so not emitted here.
       expect(emitCount('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED')).toBe(0);
-      // The adapter threaded the money surface through (payloads themselves are
-      // proven byte-identical in useFiatFunnelMetrics.test.ts).
+      // The adapter threaded the money surface through (payload proven elsewhere).
       expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toEqual(
         expect.objectContaining({ ramp_surface: 'money_account' }),
       );
     });
 
-    // Money-account deposit is the only wired surface. perps / prediction
-    // deposits render this shared screen but resolve to an undefined surface,
-    // so the funnel stays inert (reverts FIX 1). Withdraw / mUSD likewise.
+    // Money-account deposit is the only wired surface; perps / prediction /
+    // withdraw / mUSD render this shared screen but resolve to an undefined
+    // surface, so the funnel stays inert (reverts FIX 1).
     it.each([
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.moneyAccountWithdraw,
       TransactionType.musdConversion,
     ])('fires no RAMPS funnel events for %s on Done', async (type) => {
-      // Undefined surface => inert regardless of payment data (default mocks).
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
         type,

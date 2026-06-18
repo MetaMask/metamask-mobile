@@ -13,12 +13,10 @@ jest.mock('./useTransactionPayData');
 jest.mock('../../context/alert-system-context');
 jest.mock('../../../../UI/Ramp/hooks/useRampsUserRegion');
 
-const mockUseFiatFunnelMetrics = jest.fn((_input: Record<string, unknown>) => ({
-  trackScreenViewed: jest.fn(),
-  trackAmountCommitted: jest.fn(),
-  trackPaymentSelectorOpened: jest.fn(),
-  trackContinue: jest.fn(),
-}));
+// Stub the generic hook so the adapter test only asserts the forwarded input.
+const mockUseFiatFunnelMetrics = jest.fn(
+  (_input: Record<string, unknown>) => ({}),
+);
 jest.mock('../../../../UI/Ramp/hooks/useFiatFunnelMetrics', () => ({
   useFiatFunnelMetrics: (input: Record<string, unknown>) =>
     mockUseFiatFunnelMetrics(input),
@@ -68,9 +66,8 @@ describe('useFiatFunnelMetricsAdapter', () => {
     setMocks();
   });
 
-  // Money-account deposit is the only wired surface. Every other flow that
-  // renders the shared screen (perps / prediction deposits, withdraw, mUSD)
-  // resolves to undefined so the generic hook stays inert (no funnel events).
+  // Money-account deposit is the only wired surface; every other flow that
+  // renders the shared screen resolves to undefined so the hook stays inert.
   it.each([
     [TransactionType.moneyAccountDeposit, RAMP_SURFACE.MONEY_ACCOUNT],
     [TransactionType.perpsDeposit, undefined],
