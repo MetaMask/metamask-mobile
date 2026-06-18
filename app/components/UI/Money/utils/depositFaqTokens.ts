@@ -15,26 +15,22 @@ const INLINE_EXCLUDED_SYMBOLS = new Set(['MUSD']);
 const isInlineExcludedSymbol = (symbol: string): boolean =>
   INLINE_EXCLUDED_SYMBOLS.has(symbol.toUpperCase());
 
-/**
- * Default no-fee deposit tokens per chain, used when the remote
- * `earnMoneyDepositNoFeeTokens` flag is not configured so the FAQ never renders
- * an empty list. Mirrors the wildcard list shape: chain id -> token symbols.
- */
 export const MONEY_NO_FEE_TOKENS_FALLBACK: WildcardTokenList = {
-  [CHAIN_IDS.MAINNET]: ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDT', 'aDAI'],
-  [CHAIN_IDS.ARBITRUM]: ['USDC'],
-  [CHAIN_IDS.BASE]: ['USDC'],
-  [CHAIN_IDS.BSC]: ['USDC', 'USDT'],
+  [CHAIN_IDS.MAINNET]: [
+    'USDC',
+    'aUSDC',
+    'USDT',
+    'aUSDT',
+    'DAI',
+    'aDAI',
+    'MUSD',
+  ],
+  [CHAIN_IDS.LINEA_MAINNET]: ['MUSD'],
+  [CHAIN_IDS.ARBITRUM]: ['USDC', 'aUSDCN'],
+  [CHAIN_IDS.BASE]: ['USDC', 'aUSDC'],
+  [CHAIN_IDS.BSC]: ['USDC', 'aUSDC', 'aUSDT', 'USDT'],
+  [CHAIN_IDS.MONAD]: ['USDC'],
 };
-
-/**
- * Returns the remote no-fee token list when populated, otherwise the bundled
- * fallback.
- */
-export const resolveNoFeeTokens = (
-  remote: WildcardTokenList,
-): WildcardTokenList =>
-  Object.keys(remote).length > 0 ? remote : MONEY_NO_FEE_TOKENS_FALLBACK;
 
 /**
  * Formats the per-chain no-fee token list as bullet lines, e.g.
