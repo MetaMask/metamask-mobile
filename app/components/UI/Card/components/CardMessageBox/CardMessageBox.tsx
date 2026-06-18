@@ -74,6 +74,16 @@ const CardMessageBox = ({
           'card.cashback_screen.funding_required.confirm_button_label',
         ),
       },
+      [CardMessageBoxType.CashbackMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.cashback_screen.money_account_required.title'),
+        description: strings(
+          'card.cashback_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.cashback_screen.money_account_required.confirm_button_label',
+        ),
+      },
     }),
     [],
   );

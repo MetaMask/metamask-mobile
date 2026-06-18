@@ -1,6 +1,7 @@
 import {
   Box,
   BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -34,15 +35,15 @@ export interface TopTraderCardProps {
   testID?: string;
 }
 
-// Fixed dimensions for every tile in the homepage Top Traders carousel
-const AVATAR_SIZE = 60;
-export const TOP_TRADER_CARD_WIDTH = 200;
+// Fixed dimensions for every tile in the homepage Top Traders carousel.
+const AVATAR_SIZE = 40;
+export const TOP_TRADER_CARD_WIDTH = 155;
 
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
  *
- * Displays a trader's avatar (top-left), username, 7D PnL stats, and a
- * Follow/Following toggle pinned to the bottom.
+ * Lays out the trader's avatar with the username + 7D PnL stacked to its
+ * right, and a small Follow / Following toggle pinned below.
  */
 const TopTraderCard: React.FC<TopTraderCardProps> = ({
   trader,
@@ -55,7 +56,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 
   return (
     <Box
-      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto rounded-2xl bg-muted p-4 overflow-hidden gap-1`}
+      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl bg-muted p-4 overflow-hidden gap-4`}
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
       <TouchableOpacity
@@ -69,7 +70,11 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         disabled={!onTraderPress}
         testID={`top-trader-card-pressable-${trader.id}`}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="gap-1">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
           <TraderAvatar
             imageUrl={trader.avatarUri}
             address={trader.address}
@@ -77,39 +82,25 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             testID={`top-trader-avatar-${trader.id}`}
           />
 
-          <Box twClassName="w-full gap-0.5">
+          <Box twClassName="flex-1 min-w-0">
             <Text
-              variant={TextVariant.HeadingSm}
-              fontWeight={FontWeight.Bold}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
               ellipsizeMode="tail"
-              twClassName="text-center"
             >
               {trader.username}
             </Text>
-
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName="text-center"
+              numberOfLines={1}
+              twClassName={
+                isPnlPositive ? 'text-success-default' : 'text-error-default'
+              }
             >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {pnlText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {' 7D'}
-              </Text>
+              {pnlText}
             </Text>
           </Box>
         </Box>
@@ -119,8 +110,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         variant={
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Md}
-        twClassName="mt-2"
+        size={ButtonSize.Sm}
         isFullWidth
         onPress={() => onFollowPress(trader.id)}
       >

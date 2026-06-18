@@ -124,6 +124,9 @@
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
+    "deposit_limit": {
+      "title": "Max deposit: {{amount}}"
+    },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
       "message": "Something went wrong with your fiat purchase. Please try again."
@@ -1074,9 +1077,9 @@
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
-      "win_rate": "win rate",
-      "pnl_7d": "7D Return",
-      "hold_time": "hold time",
+      "win_rate": "Win rate",
+      "pnl_7d": "7D P&L",
+      "hold_time": "Avg. hold",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
       "hold_time_days": "{{count}} days",
@@ -1098,8 +1101,8 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
-      "bought": "{{name}} bought",
-      "sold": "{{name}} sold",
+      "bought": "Bought",
+      "sold": "Sold",
       "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
@@ -1109,8 +1112,8 @@
       "sell": "Sell",
       "long": "Long",
       "short": "Short",
-      "opened": "{{name}} opened",
-      "closed_action": "{{name}} closed"
+      "opened": "Opened",
+      "closed_action": "Closed"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -2345,7 +2348,6 @@
       "btc_title": "BTC Price: {{price}}",
       "btc_price_to_beat": "Price to beat: {{price}}",
       "btc_live": "Live",
-      "nba_2026_champion_title": "NBA 2026 Champion",
       "fifa_world_cup_2026_title": "FIFA World Cup 2026",
       "events_in_total": "{{count}} events in total",
       "events_in_total_overflow": "{{count}}+ markets in total",
@@ -7021,6 +7023,11 @@
         }
       }
     },
+    "first_time_deposit": {
+      "title": "First deposit, done",
+      "content": "It’s in your Money account —\n and already earning.",
+      "button_text": "Done"
+    },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
       "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
@@ -7029,12 +7036,13 @@
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
       "step2_footer_text": "Money account uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
-      "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
+      "step3_body_card_ineligible": "Coming soon! Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
       "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
       "step4_footer_text": "Powered by Monad.",
-      "continue": "Continue"
+      "button_text": "Continue"
     },
     "action": {
       "add": "Add",
@@ -8705,6 +8713,11 @@
         "title": "Set up Linea funding",
         "description": "You need at least one approved funding source on Linea before redeeming mUSD back.",
         "confirm_button_label": "Set up funding"
+      },
+      "money_account_required": {
+        "title": "Set up Money Account",
+        "description": "You need a linked Money Account before redeeming mUSD back.",
+        "confirm_button_label": "Set up Money Account"
       }
     },
     "change_asset": {
@@ -8928,7 +8941,7 @@
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
-      "splash_title": "WELCOME\nTO GOLD\nFOX VIP",
+      "splash_title": "WELCOME\nTO GOLD FOX\nCOLLECTIVE",
       "splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
       "splash_accept_invite": "Accept invite",
       "splash_not_now": "Not now",
@@ -8943,17 +8956,14 @@
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "WELCOME\nTO GOLD\nFOX VIP",
-      "referee_splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
       "referee_splash_continue": "Continue",
-      "referee_splash_not_now": "Not now",
       "referee_referred_by": "Referred by {{code}}",
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "Stats",
       "referee_period_last_30d": "Last 30d",
-      "referee_points_label": "Points",
       "referee_swaps_volume_label": "Swaps volume",
       "referee_perps_volume_label": "Perps volume",
+      "referee_points_to_label": "Points to {{code}}",
       "referee_error_title": "We couldn’t load your VIP referee details",
       "referee_error_description": "Check your connection and try again.",
       "referee_contact_support": "Contact support",

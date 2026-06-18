@@ -20,14 +20,12 @@ const AVATAR_SIZE = 32;
 
 export interface TradeRowProps {
   trade: Trade;
-  traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
 }
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
-  traderName,
   traderImageUrl,
   traderAddress,
 }) => {
@@ -38,19 +36,11 @@ const TradeRow: React.FC<TradeRowProps> = ({
   // Perp fills read as "opened"/"closed" (vs spot "bought"/"sold").
   const actionLabel = isPerp
     ? isEntry
-      ? strings('social_leaderboard.trader_position.opened', {
-          name: traderName,
-        })
-      : strings('social_leaderboard.trader_position.closed_action', {
-          name: traderName,
-        })
+      ? strings('social_leaderboard.trader_position.opened')
+      : strings('social_leaderboard.trader_position.closed_action')
     : isEntry
-      ? strings('social_leaderboard.trader_position.bought', {
-          name: traderName,
-        })
-      : strings('social_leaderboard.trader_position.sold', {
-          name: traderName,
-        });
+      ? strings('social_leaderboard.trader_position.bought')
+      : strings('social_leaderboard.trader_position.sold');
 
   return (
     <Box
