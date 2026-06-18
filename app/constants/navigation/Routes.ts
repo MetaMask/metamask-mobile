@@ -324,6 +324,8 @@ const Routes = {
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
+    HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
+    HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
       ROOT: 'BridgeModals',
       SWAP_DEFAULT_SLIPPAGE_MODAL: 'SwapDefaultSlippageModal',
@@ -350,7 +352,6 @@ const Routes = {
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
-    HW_QR_SCANNER: 'HardwareWalletQRScanner',
   },
   PERPS: {
     ROOT: 'Perps',
