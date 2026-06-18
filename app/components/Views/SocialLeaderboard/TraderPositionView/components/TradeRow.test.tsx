@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react-native';
 import React from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { AvatarAccount } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -19,30 +19,24 @@ const REAL_AVATAR_URL = 'https://example.com/avatar.png';
 const TRADER_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 describe('TradeRow', () => {
-  it('renders the bought label for an enter trade', () => {
-    renderWithProvider(
-      <TradeRow trade={baseTrade} traderName="nodestack.eth" />,
-    );
+  it('renders the "Bought" label for an enter trade (no trader name)', () => {
+    renderWithProvider(<TradeRow trade={baseTrade} />);
 
-    expect(screen.getByText('nodestack.eth bought')).toBeOnTheScreen();
+    expect(screen.getByText('Bought')).toBeOnTheScreen();
+    expect(screen.queryByText(/nodestack\.eth/)).toBeNull();
   });
 
-  it('renders the sold label for an exit trade', () => {
-    renderWithProvider(
-      <TradeRow
-        trade={{ ...baseTrade, intent: 'exit' }}
-        traderName="nodestack.eth"
-      />,
-    );
+  it('renders the "Sold" label for an exit trade (no trader name)', () => {
+    renderWithProvider(<TradeRow trade={{ ...baseTrade, intent: 'exit' }} />);
 
-    expect(screen.getByText('nodestack.eth sold')).toBeOnTheScreen();
+    expect(screen.getByText('Sold')).toBeOnTheScreen();
+    expect(screen.queryByText(/nodestack\.eth/)).toBeNull();
   });
 
   it('renders the avatar image when a real image url is provided', () => {
     renderWithProvider(
       <TradeRow
         trade={baseTrade}
-        traderName="nodestack.eth"
         traderImageUrl={REAL_AVATAR_URL}
         traderAddress={TRADER_ADDRESS}
       />,
@@ -54,11 +48,7 @@ describe('TradeRow', () => {
 
   it('renders the Maskicon fallback when the image url is absent', () => {
     renderWithProvider(
-      <TradeRow
-        trade={baseTrade}
-        traderName="nodestack.eth"
-        traderAddress={TRADER_ADDRESS}
-      />,
+      <TradeRow trade={baseTrade} traderAddress={TRADER_ADDRESS} />,
     );
 
     expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
