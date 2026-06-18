@@ -373,15 +373,6 @@ describe('MoneyBalanceCard', () => {
           getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
         ).toBeOnTheScreen();
       });
-
-      it('routes add money when Add is pressed', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
-
-        expect(mockInitiateDeposit).toHaveBeenCalled();
-        expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
-      });
     });
 
     describe('when the wallet-home onboarding stepper is displayed', () => {
@@ -408,14 +399,6 @@ describe('MoneyBalanceCard', () => {
         expect(
           getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
         ).toBeOnTheScreen();
-      });
-
-      it('routes add money when Add is pressed', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
-
-        expect(mockInitiateDeposit).toHaveBeenCalled();
       });
     });
   });
@@ -459,6 +442,34 @@ describe('MoneyBalanceCard', () => {
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
         /• mUSD/,
       );
+    });
+  });
+
+  describe('Add button onboarding redirect', () => {
+    describe('when onboarding has not been seen', () => {
+      beforeEach(() => {
+        mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      });
+
+      it('navigates to Money onboarding when Add is pressed', () => {
+        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+        expect(mockInitiateDeposit).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when onboarding has been seen', () => {
+      it('initiates deposit when Add is pressed', () => {
+        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+        expect(mockInitiateDeposit).toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      });
     });
   });
 
@@ -848,6 +859,33 @@ describe('MoneyBalanceCard', () => {
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+    });
+
+    it('tracks Add click with GO_TO_MONEY_ONBOARDING intent when onboarding has not been seen', () => {
+      mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        label_key: 'money.balance_card.add',
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
+
+    it('tracks Add click with ADD_MONEY intent when onboarding has been seen', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.balance_card.add',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
 

@@ -369,7 +369,7 @@ describe('PayWithRow', () => {
       expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
 
-    it('renders interactive row on review page when money account was flag-defaulted', () => {
+    it('renders money account row on review page when paymentOverride is MoneyAccount even with flag default', () => {
       jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         id: TRANSACTION_ID_MOCK,
@@ -378,7 +378,7 @@ describe('PayWithRow', () => {
 
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
 
     it('renders money account row on initial page when money account is flag-defaulted', () => {
@@ -387,6 +387,20 @@ describe('PayWithRow', () => {
       const { getByTestId } = renderMoneyAccount();
 
       expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('renders interactive row on review page when only flag-defaulted (no explicit override)', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-no-override',
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
     });
 
     it('renders money account row for perps deposit', () => {
