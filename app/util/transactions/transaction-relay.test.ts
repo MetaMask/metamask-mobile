@@ -100,7 +100,7 @@ describe('Transaction Relay (mobile)', () => {
     it('throws when chain is not supported by relay', async () => {
       mockRelayUnsupported();
       await expect(submitRelayTransaction(SUBMIT_REQUEST_MOCK)).rejects.toThrow(
-        `Chain not supported by transaction relay - ${SUBMIT_REQUEST_MOCK.chainId}`,
+        `Sentinel: Relay: Chain not supported - ${SUBMIT_REQUEST_MOCK.chainId}`,
       );
     });
 
@@ -128,7 +128,7 @@ describe('Transaction Relay (mobile)', () => {
     it('throws when chain is not supported by relay', async () => {
       mockRelayUnsupported();
       await expect(waitForRelayResult(WAIT_REQUEST_MOCK)).rejects.toThrow(
-        `Chain not supported by transaction relay - ${WAIT_REQUEST_MOCK.chainId}`,
+        `Sentinel: Relay: Chain not supported - ${WAIT_REQUEST_MOCK.chainId}`,
       );
     });
 
@@ -178,7 +178,7 @@ describe('Transaction Relay (mobile)', () => {
 
       // eslint-disable-next-line jest/valid-expect
       expect(resultPromise).rejects.toThrow(
-        'Failed to fetch relay transaction status: 502 - test error',
+        'Sentinel: Relay: Failed to fetch transaction status: 502 - test error',
       );
       await jest.advanceTimersByTimeAsync(INTERVAL_MS);
     });

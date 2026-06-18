@@ -101,6 +101,9 @@ export class Delegation7702PublishHook {
       return await this.#hook(transactionMeta, _signedTx);
     } catch (error) {
       log('Error', error);
+      if (error instanceof Error) {
+        error.message = `Gas Station 7702: ${error.message}`;
+      }
       throw error;
     }
   }

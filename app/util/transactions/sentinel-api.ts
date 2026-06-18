@@ -141,7 +141,7 @@ async function fetchNetworkFlags(): Promise<SentinelNetworkMap> {
     if (!response.ok) {
       const errorBody = await response.text();
       throw new Error(
-        `Failed to fetch sentinel network flags: ${response.status} - ${errorBody}`,
+        `Sentinel: Failed to fetch network flags: ${response.status} - ${errorBody}`,
       );
     }
 

@@ -48,7 +48,7 @@ export async function submitRelayTransaction(
   const url = await getRelayUrl(chainId);
 
   if (!url) {
-    throw new Error(`Chain not supported by transaction relay - ${chainId}`);
+    throw new Error(`Sentinel: Relay: Chain not supported - ${chainId}`);
   }
 
   log('Request', url, request);
@@ -75,7 +75,7 @@ export async function waitForRelayResult(
   const baseUrl = await getRelayUrl(chainId);
 
   if (!baseUrl) {
-    throw new Error(`Chain not supported by transaction relay - ${chainId}`);
+    throw new Error(`Sentinel: Relay: Chain not supported - ${chainId}`);
   }
 
   const url = `${baseUrl}smart-transactions/${uuid}`;
@@ -115,7 +115,7 @@ async function pollResult(
     const errorBody = await response.text();
 
     throw new Error(
-      `Failed to fetch relay transaction status: ${response.status} - ${errorBody}`,
+      `Sentinel: Relay: Failed to fetch transaction status: ${response.status} - ${errorBody}`,
     );
   }
 
