@@ -329,17 +329,7 @@ describe('MultichainTransactionListItem', () => {
     it('renders amount from from when to has no fungible movement', () => {
       const transaction: Transaction = {
         ...createApproveTransaction('200'),
-        to: [
-          {
-            address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
-            asset: {
-              amount: '0',
-              unit: '',
-              fungible: false,
-              type: 'solana:mainnet/token:USDT' as const,
-            },
-          },
-        ],
+        to: [],
       };
 
       const { getByText } = renderWithProvider(
