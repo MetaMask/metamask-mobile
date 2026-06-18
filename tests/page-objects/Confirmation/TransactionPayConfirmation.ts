@@ -400,10 +400,12 @@ class TransactionPayConfirmation {
   async tapKeyboardContinueButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Utilities.waitForElementToBeEnabled(
-          this.keyboardContinueButton,
-          30_000,
-        );
+        if (PlatformDetector.isAndroid()) {
+          await Utilities.waitForElementToBeEnabled(
+            this.keyboardContinueButton,
+            30_000,
+          );
+        }
         await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
           description: 'Keyboard Continue Button',
           timeout: 30_000,
