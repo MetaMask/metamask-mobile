@@ -187,6 +187,13 @@ export function usePerpsLivePositions(
         if (!newPriceData) {
           return;
         }
+        // An empty payload signals a cache clear emitted by PriceStreamChannel
+        // on reconnect, provider change, or account switch. Treat it as a full
+        // reset so stale mark prices are not used for PnL until fresh ticks arrive.
+        if (Object.keys(newPriceData).length === 0) {
+          setPriceData({});
+          return;
+        }
         // Merge incoming price batches into existing state instead of replacing.
         // Live WebSocket ticks deliver only the symbols that changed, so replacing
         // would wipe other positions' prices when a partial batch arrives.
