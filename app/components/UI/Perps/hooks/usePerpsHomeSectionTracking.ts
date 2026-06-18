@@ -84,10 +84,18 @@ export function usePerpsHomeSectionTracking() {
   /**
    * Handler for section layout to capture its y-position and height.
    * Call this from onLayout wrappers around each section container.
+   *
+   * Zero-height sections (e.g. a wrapper whose section renders null when empty)
+   * are excluded from the registry entirely, so they neither emit impressions
+   * nor participate in section_index ranking.
    */
   const handleSectionLayout = useCallback(
     (sectionName: PerpsHomeSectionName) => (event: LayoutChangeEvent) => {
       const { y, height } = event.nativeEvent.layout;
+      if (height === 0) {
+        sectionPositions.current.delete(sectionName);
+        return;
+      }
       sectionPositions.current.set(sectionName, {
         top: y,
         height,

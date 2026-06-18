@@ -162,6 +162,80 @@ describe('usePerpsHomeSectionTracking', () => {
     expect(watchlistCall?.[1][PERPS_EVENT_PROPERTY.SECTION_INDEX]).toBe(2);
   });
 
+  it('does not emit any events for a zero-height (empty) section', () => {
+    const { result } = renderHook(() => usePerpsHomeSectionTracking());
+
+    act(() => {
+      result.current.handleSectionLayout(
+        PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+      )(createLayoutEvent(100, 0));
+    });
+
+    act(() => {
+      result.current.handleScroll(createScrollEvent(0, 500));
+    });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockImperativeTrack).not.toHaveBeenCalled();
+  });
+
+  it('excludes zero-height sections from section_index ranking', () => {
+    const { result } = renderHook(() => usePerpsHomeSectionTracking());
+
+    // Positions renders empty (height 0) above watchlist; it must not occupy an index slot
+    act(() => {
+      result.current.handleSectionLayout(
+        PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+      )(createLayoutEvent(100, 0));
+      result.current.handleSectionLayout(
+        PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
+      )(createLayoutEvent(300, 100));
+    });
+
+    act(() => {
+      result.current.handleScroll(createScrollEvent(0, 500));
+    });
+
+    const calls = mockImperativeTrack.mock.calls.filter(
+      (c) => c[0] === MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    );
+    expect(
+      calls.some(
+        (c) =>
+          c[1][PERPS_EVENT_PROPERTY.SECTION_NAME] ===
+          PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+      ),
+    ).toBe(false);
+    const watchlistCall = calls.find(
+      (c) =>
+        c[1][PERPS_EVENT_PROPERTY.SECTION_NAME] ===
+        PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
+    );
+    // Watchlist is the only registered section, so it ranks at index 1
+    expect(watchlistCall?.[1][PERPS_EVENT_PROPERTY.SECTION_INDEX]).toBe(1);
+  });
+
+  it('removes a section from tracking when it collapses to zero height', () => {
+    const { result } = renderHook(() => usePerpsHomeSectionTracking());
+
+    // Section first renders with content, then collapses to empty
+    act(() => {
+      result.current.handleSectionLayout(
+        PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+      )(createLayoutEvent(100, 100));
+      result.current.handleSectionLayout(
+        PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+      )(createLayoutEvent(100, 0));
+    });
+
+    act(() => {
+      result.current.handleScroll(createScrollEvent(0, 500));
+    });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockImperativeTrack).not.toHaveBeenCalled();
+  });
+
   it('does not duplicate tracking for already-tracked sections', () => {
     const { result } = renderHook(() => usePerpsHomeSectionTracking());
 

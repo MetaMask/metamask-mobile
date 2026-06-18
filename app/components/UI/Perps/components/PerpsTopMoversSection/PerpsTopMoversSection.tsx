@@ -90,10 +90,6 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
   const [direction, setDirection] = useState<SortDirection>('desc');
   const { data, isLoading } = usePerpsTopMovers({ direction });
 
-  if (!isLoading && data.length === 0) {
-    return null;
-  }
-
   // Pills navigate to asset_details — use source=perps_home + direction-aware
   // source_section so analysts can distinguish gainers from losers.
   const pillSourceSection =
@@ -129,6 +125,10 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
       />
     );
   };
+
+  if (!isLoading && data.length === 0) {
+    return null;
+  }
 
   return (
     <Box
