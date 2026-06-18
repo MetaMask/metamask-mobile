@@ -198,34 +198,26 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      const minedHash = await this.#waitForTransactionHash({ uuid });
-      if (minedHash === null) {
-        throw new Error(STX_NO_HASH_ERROR);
-      }
+      await this.#getTransactionHash(submitTransactionResponse, uuid);
 
-      if (submitTransactionResponse?.txHashes?.length) {
-        return {
+      let submitBatchResponse;
+      if (submitTransactionResponse?.txHashes) {
+        submitBatchResponse = {
           results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
             transactionHash: txHash,
           })),
         };
+      } else {
+        submitBatchResponse = {
+          results: [],
+        };
       }
-      // STX polling returns a single minedHash per batch UUID. When the
-      // submit response doesn't include individual txHashes, pad the
-      // minedHash to satisfy TransactionController's 1:1 count contract
-      // (CollectPublishHook.success requires results.length === batch size).
-      // Returning an empty array would throw "Publish batch hook did not
-      // return a result"; returning a single entry would throw "Transaction
-      // hash count mismatch" for multi-tx batches.
-      const transactionCount = this.#transactions?.length ?? 1;
-      return {
-        results: Array.from({ length: transactionCount }, () => ({
-          transactionHash: minedHash,
-        })),
-      };
-    } catch (error: unknown) {
+
+      return submitBatchResponse;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       Logger.error(
-        error as Error,
+        error,
         `${LOG_PREFIX} Error in smart transaction publish batch hook`,
       );
       throw error;
