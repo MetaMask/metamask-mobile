@@ -17,7 +17,7 @@ import {
   selectIsAllPopularNetworks,
 } from './networkController';
 import { RootState } from '../reducers';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, XlmScope } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 
 describe('networkSelectors', () => {
@@ -480,6 +480,17 @@ describe('networkSelectors', () => {
                   imageSource: 1,
                   isTestnet: false,
                 },
+                [XlmScope.Pubnet]: {
+                  // Stellar Pubnet - popular
+                  chainId: XlmScope.Pubnet,
+                  nativeCurrency: 'XLM',
+                  name: 'Stellar',
+                  rpcEndpoints: [],
+                  ticker: 'XLM',
+                  decimals: 7,
+                  imageSource: 1,
+                  isTestnet: false,
+                },
                 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': {
                   // Solana Devnet - popular
                   chainId: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
@@ -493,6 +504,15 @@ describe('networkSelectors', () => {
                 },
               },
             },
+            RemoteFeatureFlagController: {
+              cacheTimestamp: 0,
+              remoteFeatureFlags: {
+                stellarAccounts: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
           },
         },
       } as unknown as RootState;
@@ -502,8 +522,8 @@ describe('networkSelectors', () => {
       );
 
       // Should include only popular networks that aren't testnets
-      // This includes: mainnet, linea, solana mainnet, and bitcoin mainnet
-      expect(result.length).toBeGreaterThanOrEqual(4); // mainnet, linea, solana mainnet, and bitcoin mainnet
+      // This includes: mainnet, linea, solana mainnet, bitcoin mainnet, and stellar pubnet
+      expect(result.length).toBeGreaterThanOrEqual(5);
 
       // Popular networks are included
       expect(result.map((n) => n.chainId)).toEqual(
@@ -520,6 +540,7 @@ describe('networkSelectors', () => {
       // Check non-EVM mainnet networks are included
       expect(result.map((n) => n.caipChainId)).toContain(SolScope.Mainnet);
       expect(result.map((n) => n.caipChainId)).toContain(BtcScope.Mainnet);
+      expect(result.map((n) => n.caipChainId)).toContain(XlmScope.Pubnet);
       expect(result.map((n) => n.chainId)).not.toContain(
         'bip122:000000000933ea01ad0ee984209779ba',
       );
