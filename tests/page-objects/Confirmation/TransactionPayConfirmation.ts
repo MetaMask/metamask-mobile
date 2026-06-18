@@ -15,6 +15,7 @@ import {
   PlaywrightGestures,
   PlaywrightMatchers,
   UnifiedGestures,
+  Utilities,
   asDetoxElement,
   asPlaywrightElement,
   encapsulated,
@@ -410,18 +411,15 @@ class TransactionPayConfirmation {
         });
       },
       appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.keyboardContinueButton),
-          {
-            timeout: 30_000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            waitForInteractive: true,
-            enabledStableReads: 4,
-            postEnabledSettleMs: 400,
-            checkForStable: true,
-          },
-        );
+        await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
+          description: 'Keyboard Continue Button',
+          timeout: 30_000,
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          waitForInteractive: true,
+          enabledStableReads: 4,
+          postEnabledSettleMs: 400,
+        });
       },
     });
   }
