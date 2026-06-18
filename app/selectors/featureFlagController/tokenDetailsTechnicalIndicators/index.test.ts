@@ -34,7 +34,7 @@ describe('selectTokenDetailsTechnicalIndicatorsEnabled', () => {
 
   it('exposes the LD flag key', () => {
     expect(TOKEN_DETAILS_TECHNICAL_INDICATORS_FLAG_KEY).toBe(
-      'token-details-technical-indicators',
+      'tokenDetailsTechnicalIndicators',
     );
   });
 
