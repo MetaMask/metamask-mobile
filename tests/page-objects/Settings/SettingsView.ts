@@ -190,7 +190,7 @@ class SettingsView {
       },
     );
 
-    await Gestures.tap(this.snapsSectionButton, {
+    await Gestures.waitAndTap(this.snapsSectionButton, {
       elemDescription: 'Settings - Snaps Button',
     });
   }
