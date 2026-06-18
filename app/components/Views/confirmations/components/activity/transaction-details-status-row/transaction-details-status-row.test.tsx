@@ -1,7 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -15,7 +14,6 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
-jest.mock('../../../hooks/activity/useIsMoneyAccountContext');
 
 function render() {
   return renderWithProvider(<TransactionDetailsStatusRow />, {
@@ -30,11 +28,9 @@ function render() {
 
 describe('TransactionDetailsStatusRow', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
-  const useIsMoneyAccountContextMock = jest.mocked(useIsMoneyAccountContext);
 
   beforeEach(() => {
     jest.resetAllMocks();
-    useIsMoneyAccountContextMock.mockReturnValue(false);
   });
 
   it.each([
@@ -71,8 +67,7 @@ describe('TransactionDetailsStatusRow', () => {
     expect(getByTestId('status-icon-success')).toBeDefined();
   });
 
-  it('renders text-only without status icon in money context', () => {
-    useIsMoneyAccountContextMock.mockReturnValue(true);
+  it('renders status icon in money context (same as all flows)', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         status: TransactionStatus.confirmed,
@@ -80,9 +75,9 @@ describe('TransactionDetailsStatusRow', () => {
       } as unknown as TransactionMeta,
     });
 
-    const { getByText, queryByTestId } = render();
+    const { getByText, getByTestId } = render();
 
     expect(getByText(strings('transaction.confirmed'))).toBeDefined();
-    expect(queryByTestId('status-icon-success')).toBeNull();
+    expect(getByTestId('status-icon-success')).toBeDefined();
   });
 });

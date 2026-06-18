@@ -8,13 +8,6 @@ import {
 import { TransactionDetailsBridgeFeeRow } from './transaction-details-bridge-fee-row';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
-jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
-  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
-}));
-jest.mock('../../token-icon', () => ({
-  TokenIcon: () => null,
-  TokenIconVariant: { Row: 'row' },
-}));
 
 const BRIDGE_FEE_FIAT_MOCK = '123.45';
 
@@ -75,26 +68,5 @@ describe('TransactionDetailsBridgeFeeRow', () => {
     const { queryByText } = render();
 
     expect(queryByText(`$${BRIDGE_FEE_FIAT_MOCK}`)).toBeNull();
-  });
-
-  it('renders TokenIcon in money context when tokenAddress and chainId exist', () => {
-    const { useIsMoneyAccountContext: useIsMoneyAccountContextMock } =
-      jest.requireMock('../../../hooks/activity/useIsMoneyAccountContext') as {
-        useIsMoneyAccountContext: jest.Mock;
-      };
-    useIsMoneyAccountContextMock.mockReturnValue(true);
-
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        metamaskPay: {
-          bridgeFeeFiat: '2.50',
-          tokenAddress: '0xTokenAddr',
-          chainId: '0x1',
-        },
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render();
-    expect(getByText(/\$2\.50/)).toBeDefined();
   });
 });

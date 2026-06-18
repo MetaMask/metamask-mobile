@@ -20,9 +20,6 @@ import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
-import { TransactionDetailsFeeCell } from '../transaction-details-fee-cell';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
 
 const FALLBACK_TYPES = [
   TransactionType.moneyAccountWithdraw,
@@ -44,10 +41,8 @@ export function TransactionDetailsNetworkFeeRow() {
   const isMoneyContext = useIsMoneyAccountContext();
   const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
-  const { metamaskPay, chainId: txChainId } = transactionMeta;
-  const { networkFeeFiat: payNetworkFeeFiat, chainId: sourceChainId } =
-    metamaskPay || {};
-  const feeChainId = (sourceChainId ?? txChainId ?? '0x1') as Hex;
+  const { metamaskPay } = transactionMeta;
+  const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
 
   const networkFee = payNetworkFeeFiat ?? estimatedFeeFiatPrecise;
 

@@ -39,13 +39,6 @@ export const SUMMARY_SECTION_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-const PERPS_PREDICT_MONEY_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.perpsWithdraw,
-  TransactionType.predictDeposit,
-  TransactionType.predictWithdraw,
-];
-
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -61,11 +54,6 @@ export function TransactionDetails() {
     transactionMeta,
     SUMMARY_SECTION_TYPES,
   );
-
-  // For perps/predict in money context, To row sits with From row above the divider
-  const toRowAboveDivider =
-    isMoneyContext &&
-    hasTransactionType(transactionMeta, PERPS_PREDICT_MONEY_TYPES);
 
   return (
     <View style={styles.wrapper}>
@@ -83,9 +71,8 @@ export function TransactionDetails() {
             <TransactionDetailsStatusRow />
             <TransactionDetailsDateRow />
             <TransactionDetailsAccountRow />
-            {toRowAboveDivider && <TransactionDetailsToRow />}
             <TransactionDetailDivider />
-            {!toRowAboveDivider && <TransactionDetailsToRow />}
+            <TransactionDetailsToRow />
             <TransactionDetailsFiatOrderIdRow />
             <TransactionDetailsPaidWithRow />
             <TransactionDetailsNetworkFeeRow />
