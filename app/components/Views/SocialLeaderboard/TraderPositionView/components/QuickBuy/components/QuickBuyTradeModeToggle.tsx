@@ -49,6 +49,11 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
   const slideAnim = useRef(new Animated.Value(0)).current;
+  // Tracks whether the slider has been placed once since mount. The toggle can
+  // mount already in "sell" (e.g. returning from a subsheet, where tradeMode
+  // persists in context). In that case the first placement must jump straight
+  // to the correct position instead of springing from buy.
+  const hasPositioned = useRef(false);
   const [buyLayout, setBuyLayout] = useState<LayoutRectangle | null>(null);
   const [sellWidth, setSellWidth] = useState(0);
 
@@ -61,8 +66,16 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
 
   useEffect(() => {
     if (buyOnly || !buyLayout) return;
+    const toValue = tradeMode === 'buy' ? 0 : buyLayout.width;
+    if (!hasPositioned.current) {
+      // First placement after layout: snap to the current mode so a toggle
+      // that mounts in "sell" doesn't play a parasite buy -> sell animation.
+      slideAnim.setValue(toValue);
+      hasPositioned.current = true;
+      return;
+    }
     Animated.spring(slideAnim, {
-      toValue: tradeMode === 'buy' ? 0 : buyLayout.width,
+      toValue,
       // Color interpolation (backgroundColor below) is not supported by the
       // native driver, so the slide must run on the JS driver too.
       useNativeDriver: false,
