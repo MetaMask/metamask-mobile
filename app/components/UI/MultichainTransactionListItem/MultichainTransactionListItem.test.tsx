@@ -325,6 +325,35 @@ describe('MultichainTransactionListItem', () => {
 
       expect(getByText('100 USDT')).toBeOnTheScreen();
     });
+
+    it('renders amount from from when to has no fungible movement', () => {
+      const transaction: Transaction = {
+        ...createApproveTransaction('200'),
+        to: [
+          {
+            address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
+            asset: {
+              amount: '0',
+              unit: '',
+              fungible: false,
+              type: 'solana:mainnet/token:USDT' as const,
+            },
+          },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={transaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(getByText('200 USDT')).toBeOnTheScreen();
+    });
   });
 
   describe('analytics tracking', () => {

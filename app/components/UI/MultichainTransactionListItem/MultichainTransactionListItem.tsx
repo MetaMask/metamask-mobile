@@ -130,7 +130,8 @@ const MultichainTransactionListItem = ({
       if (isUnlimitedApproval) {
         return `${strings('confirm.unlimited')}${unit ? ` ${unit}` : ''}`;
       }
-      return `${to?.amount || ''} ${unit}`.trim();
+      const amount = to?.amount || from?.amount?.replace(/^-/, '') || '';
+      return `${amount} ${unit}`.trim();
     }
 
     return `${to?.amount} ${to?.unit}`;
