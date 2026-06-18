@@ -29,16 +29,10 @@ import {
   selectLastKnownMoneyBalance,
   setLastKnownMoneyBalance,
 } from '../../../../core/redux/slices/moneyBalance';
+import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
-
-// TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-const DEV_APY = {
-  decimal: 0.04,
-  percent: 4,
-  percentFormatted: '4%',
-};
 
 /**
  * Fetches the live exchange rate for the mUSD token.
@@ -62,6 +56,9 @@ const useMoneyAccountBalance = (
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);
+  const { vaultApyFallback, vaultApyOverride } = useSelector(
+    selectMoneyVaultApyRemoteConfig,
+  );
 
   const moneyBalanceQuery = useQuery({
     queryKey: [
@@ -226,10 +223,16 @@ const useMoneyAccountBalance = (
     ? lastKnownBalance.value
     : undefined;
 
-  const rawApy = vaultApyQuery.data?.apy;
+  const serviceApy = vaultApyQuery.data?.apy;
 
-  const apyDecimal = rawApy;
-  const apyPercent = rawApy !== undefined ? rawApy * 100 : undefined;
+  // Override always wins when set; otherwise use live service value;
+  // fall back to remote fallback only when service returns undefined.
+  const apyDecimal =
+    vaultApyOverride !== undefined
+      ? vaultApyOverride
+      : (serviceApy ?? vaultApyFallback);
+
+  const apyPercent = apyDecimal !== undefined ? apyDecimal * 100 : undefined;
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
@@ -246,12 +249,9 @@ const useMoneyAccountBalance = (
     totalFiatFormatted,
     totalFiatRaw,
     withdrawableMusd,
-    // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-    apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
-    apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
-    apyPercentFormatted: __DEV__
-      ? DEV_APY.percentFormatted
-      : apyPercentFormatted,
+    apyDecimal,
+    apyPercent,
+    apyPercentFormatted,
   };
 };
 
