@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react-native';
 import React from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { AvatarAccount } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
