@@ -115,6 +115,7 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Components**: Design system first → `component-library` second → custom last
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
+- **Version-gated feature flags**: Use shared helpers from `app/util/remoteFeatureFlag` — see [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
 - **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup
