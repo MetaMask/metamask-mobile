@@ -114,6 +114,90 @@ export const getRelayFixedSpreadFromConfig = (
   return { routes };
 };
 
+/**
+ * Like {@link RelayFixedSpreadRoute} but preserves the original token alias keys
+ * (e.g. `eth_usdc`) alongside the resolved addresses. Consumers that need the
+ * human-facing token symbols (which {@link getRelayFixedSpreadFromConfig}
+ * discards) use this shape.
+ */
+export interface RelayFixedSpreadAliasRoute {
+  sourceChain: Hex;
+  sourceTokenAlias: string;
+  sourceToken: Hex;
+  targetChain: Hex;
+  targetTokenAlias: string;
+  targetToken: Hex;
+}
+
+const resolveRouteWithSymbols = (
+  tuple: unknown,
+  chains: Map<string, Hex>,
+  tokens: Map<string, Hex>,
+): RelayFixedSpreadAliasRoute | null => {
+  if (!Array.isArray(tuple) || tuple.length !== 4) return null;
+  const [srcChainAlias, srcTokenAlias, dstChainAlias, dstTokenAlias] = tuple;
+  if (
+    typeof srcChainAlias !== 'string' ||
+    typeof srcTokenAlias !== 'string' ||
+    typeof dstChainAlias !== 'string' ||
+    typeof dstTokenAlias !== 'string'
+  ) {
+    return null;
+  }
+  const sourceChain = chains.get(srcChainAlias);
+  const sourceToken = tokens.get(srcTokenAlias);
+  const targetChain = chains.get(dstChainAlias);
+  const targetToken = tokens.get(dstTokenAlias);
+  if (!sourceChain || !sourceToken || !targetChain || !targetToken) {
+    return null;
+  }
+  return {
+    sourceChain,
+    sourceTokenAlias: srcTokenAlias,
+    sourceToken,
+    targetChain,
+    targetTokenAlias: dstTokenAlias,
+    targetToken,
+  };
+};
+
+/**
+ * Parses a `confirmations_relay_fixed_spread` remote flag value into a list of
+ * routes that retain their token alias keys. Unlike
+ * {@link getRelayFixedSpreadFromConfig}, the alias (and therefore the token
+ * symbol) is preserved for consumers that render token symbols. Invalid entries
+ * are dropped; an invalid/empty payload yields an empty array.
+ */
+export const getRelayFixedSpreadRoutesWithSymbols = (
+  remoteValue: unknown,
+  remoteFlagName: string,
+): RelayFixedSpreadAliasRoute[] => {
+  if (remoteValue === undefined || remoteValue === null || remoteValue === '') {
+    return [];
+  }
+
+  const parsed =
+    typeof remoteValue === 'string' ? tryJsonParse(remoteValue) : remoteValue;
+  if (!isStringRecord(parsed)) {
+    console.warn(`Failed to parse remote ${remoteFlagName}: invalid JSON.`);
+    return [];
+  }
+
+  const chains = buildAliasMap(parsed.chains);
+  const tokens = buildAliasMap(parsed.tokens);
+  const routes = parsed.routes;
+  if (!chains || !tokens || !Array.isArray(routes)) {
+    console.warn(
+      `Remote ${remoteFlagName} produced invalid structure. ${EXPECTED_FORMAT}`,
+    );
+    return [];
+  }
+
+  return routes
+    .map((tuple) => resolveRouteWithSymbols(tuple, chains, tokens))
+    .filter((route): route is RelayFixedSpreadAliasRoute => route !== null);
+};
+
 const addressesEqual = (
   a: string | undefined,
   b: string | undefined,

@@ -14,6 +14,7 @@ import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+let mockIsUsUnauthenticatedNonCardholder = false;
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -25,6 +26,9 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
+  useSelector: jest
+    .fn()
+    .mockImplementation(() => mockIsUsUnauthenticatedNonCardholder),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -59,16 +63,11 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-jest.mock(
-  '../../../../../animations/money_account_onboarding_animation_v4.riv',
-  () => 1,
-  { virtual: true },
-);
-
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTriggerCallbacks = {};
+    mockIsUsUnauthenticatedNonCardholder = false;
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,
     });
@@ -257,7 +256,9 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Rive text run initialization', () => {
-    it('sets all expected step text and numeric config on mount', () => {
+    it('sets step3 card_eligible body when user is not US unauthenticated non-cardholder', () => {
+      mockIsUsUnauthenticatedNonCardholder = false;
+
       render(<MoneyOnboardingView />);
 
       const expectedStrings = [
@@ -268,7 +269,9 @@ describe('MoneyOnboardingView', () => {
         strings('money.rive_onboarding.step2_body'),
         strings('money.rive_onboarding.step2_footer_text'),
         strings('money.rive_onboarding.step3_title'),
-        strings('money.rive_onboarding.step3_body', { percentage: 3 }),
+        strings('money.rive_onboarding.step3_body_card_eligible', {
+          percentage: 3,
+        }),
         strings('money.rive_onboarding.step3_footer_text'),
         strings('money.rive_onboarding.step4_title'),
         strings('money.rive_onboarding.step4_body'),
@@ -281,6 +284,23 @@ describe('MoneyOnboardingView', () => {
 
       expect(mockSetNumber).toHaveBeenCalledWith(300);
       expect(mockSetNumber).toHaveBeenCalledWith(0);
+    });
+
+    it('sets step3 card_ineligible body when user is US unauthenticated non-cardholder', () => {
+      mockIsUsUnauthenticatedNonCardholder = true;
+
+      render(<MoneyOnboardingView />);
+
+      expect(mockSetString).toHaveBeenCalledWith(
+        strings('money.rive_onboarding.step3_body_card_ineligible', {
+          percentage: 3,
+        }),
+      );
+      expect(mockSetString).not.toHaveBeenCalledWith(
+        strings('money.rive_onboarding.step3_body_card_eligible', {
+          percentage: 3,
+        }),
+      );
     });
   });
 });
