@@ -33,7 +33,10 @@ export interface TPSLLines {
 }
 
 export type { TimeDuration } from '@metamask/perps-controller';
-import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import {
+  CANDLE_DATA_SOURCE,
+  PERPS_CHART_CONFIG,
+} from '../../constants/chartConfig';
 
 export interface OhlcData {
   open: string;
@@ -466,8 +469,7 @@ const TradingViewChart = React.forwardRef<
           // Send the last candle for same-count ticks, or the last two candles
           // for a bar-close transition (previous bar may have been finalized
           // at a different close than its last streamed value).
-          const sliceSize =
-            nextSignature.count === (prev?.count ?? 0) + 1 ? 2 : 1;
+          const sliceSize = nextSignature.count === prev.count + 1 ? 2 : 1;
           const incrementalCandles = formatCandleData({
             ...dataToUse,
             candles: dataToUse.candles.slice(-sliceSize),
@@ -482,7 +484,7 @@ const TradingViewChart = React.forwardRef<
           const message = {
             type: 'SET_CANDLESTICK_DATA',
             data: formatCandleData(dataToUse),
-            source: 'real',
+            source: CANDLE_DATA_SOURCE,
             visibleCandleCount,
             interval: dataToUse.interval, // Pass interval for zoom reset on change
           };
