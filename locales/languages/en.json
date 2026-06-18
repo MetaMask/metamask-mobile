@@ -1101,6 +1101,7 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
+      "unsupported_asset": "Unsupported asset",
       "bought": "Bought",
       "sold": "Sold",
       "no_trades": "No trades yet",

@@ -363,6 +363,21 @@ describe('PositionRow', () => {
       expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
     });
 
+    it('hides the HIP-3 provider prefix in the symbol and amount subtitle', () => {
+      const hip3Position: Position = {
+        ...perpPosition,
+        tokenSymbol: 'cash:SPCX',
+        positionAmount: 3,
+        positionAmountWithLeverage: 3,
+      };
+
+      renderWithProvider(<PositionRow position={hip3Position} />);
+
+      expect(screen.getByText('SPCX')).toBeOnTheScreen();
+      expect(screen.getByText('3 SPCX')).toBeOnTheScreen();
+      expect(screen.queryByText('cash:SPCX')).toBeNull();
+    });
+
     it('shows the current value (not PnL) as the top-right value for an open perp, matching spot', () => {
       renderWithProvider(<PositionRow position={perpPosition} />);
 
