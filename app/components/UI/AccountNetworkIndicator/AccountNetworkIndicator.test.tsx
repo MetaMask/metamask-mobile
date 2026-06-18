@@ -9,7 +9,7 @@ import AccountNetworkIndicator from './AccountNetworkIndicator';
 
 const MOCK_ETH_ACCOUNT = '0xS0M3FAk3ADDr355Dc8Ebf7A2152cdfB9D43FAk3';
 
-const mockAvatarGroup = jest.fn(() => null);
+const mockAvatarGroup = jest.fn((_props: unknown) => null);
 
 jest.mock('../../../component-library/components/Avatars/AvatarGroup', () => ({
   __esModule: true,
