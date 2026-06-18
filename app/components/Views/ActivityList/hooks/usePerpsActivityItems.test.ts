@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { usePerpsActivityItems } from './usePerpsActivityItems';
-import { selectChainId } from '../../../../selectors/networkController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   usePerpsConnection,
@@ -14,10 +13,6 @@ import {
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(),
 }));
 
 jest.mock(
@@ -35,7 +30,7 @@ jest.mock('../../../UI/Perps/hooks', () => ({
 jest.mock('@metamask/perps-controller', () => ({
   ARBITRUM_MAINNET_CAIP_CHAIN_ID: 'eip155:42161',
   formatAccountToCaipAccountId: jest.fn(
-    (address: string) => `eip155:42161:${address}`,
+    (address: string, chainId: string) => `${chainId}:${address}`,
   ),
 }));
 
@@ -159,8 +154,6 @@ describe('usePerpsActivityItems', () => {
     (usePerpsConnection as jest.Mock).mockReturnValue({ isConnected: true });
     (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       switch (selector) {
-        case selectChainId:
-          return '0xa4b1';
         case selectSelectedAccountGroupEvmInternalAccount:
           return { address };
         default:
@@ -281,11 +274,13 @@ describe('usePerpsActivityItems', () => {
     );
   });
 
-  it('builds the CAIP account id from the selected EVM account and chain', () => {
+  it('builds the CAIP account id on the Arbitrum perps chain, not the selected chain', () => {
     setHistory([]);
 
     renderHook(() => usePerpsActivityItems());
 
+    // accountId is always scoped to the Arbitrum perps chain (eip155:42161),
+    // independent of the user's selected network.
     expect(usePerpsTransactionHistory).toHaveBeenCalledWith(
       expect.objectContaining({ accountId: `eip155:42161:${address}` }),
     );
@@ -294,8 +289,6 @@ describe('usePerpsActivityItems', () => {
   it('passes an undefined accountId when no EVM account is selected', () => {
     (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       switch (selector) {
-        case selectChainId:
-          return '0xa4b1';
         case selectSelectedAccountGroupEvmInternalAccount:
           return undefined;
         default:

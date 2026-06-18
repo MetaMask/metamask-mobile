@@ -24,7 +24,6 @@ import {
 } from '@metamask/perps-controller';
 import { USDC_ARBITRUM_MAINNET_ADDRESS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import type { CaipChainId } from '@metamask/utils';
-import { selectChainId } from '../../../../selectors/networkController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   mapPerpsTransaction,
@@ -57,16 +56,20 @@ export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
 
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
-  const currentChainId = useSelector(selectChainId);
 
+  // HyperLiquid is keyed by the EOA address and always settles on Arbitrum, so
+  // build the CAIP account id with the fixed perps chain rather than the user's
+  // currently-selected chain (which doesn't scope perps data and was sourced
+  // from the deprecated `selectChainId`).
   const accountId = useMemo(() => {
-    if (!selectedAddress || !currentChainId) {
+    if (!selectedAddress) {
       return undefined;
     }
     return (
-      formatAccountToCaipAccountId(selectedAddress, currentChainId) ?? undefined
+      formatAccountToCaipAccountId(selectedAddress, PERPS_ACTIVITY_CHAIN_ID) ??
+      undefined
     );
-  }, [selectedAddress, currentChainId]);
+  }, [selectedAddress]);
 
   const { transactions, isLoading, error, refetch } =
     usePerpsTransactionHistory({
