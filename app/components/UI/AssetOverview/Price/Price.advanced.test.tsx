@@ -8,9 +8,13 @@ import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
+import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+const mockDispatch = jest.fn();
 
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
@@ -37,16 +41,15 @@ jest.mock(
   }),
 );
 
-const { selectTokenIndicators } = jest.requireActual(
-  '../../../../reducers/user/selectors',
-);
+const { selectTokenIndicators: selectTokenIndicatorsActual } =
+  jest.requireActual('../../../../reducers/user/selectors');
 
 const mockUseSelector = jest.fn((selector: unknown) => {
-  if (selector === selectTokenIndicators) return [];
+  if (selector === selectTokenIndicatorsActual) return [];
   if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
     return mockSelectTechnicalIndicatorsEnabled();
   }
-  return 2; // ChartType.Line
+  return ChartType.Line;
 });
 
 jest.mock('react-redux', () => {
@@ -54,7 +57,7 @@ jest.mock('react-redux', () => {
   return {
     ...actual,
     useSelector: (selector: unknown) => mockUseSelector(selector),
-    useDispatch: jest.fn(() => jest.fn()),
+    useDispatch: jest.fn(() => mockDispatch),
   };
 });
 
@@ -1427,6 +1430,70 @@ describe('PriceAdvanced', () => {
           interval: '15m',
         }),
       );
+    });
+  });
+
+  describe('indicator persistence across chart type toggle', () => {
+    const defaultUseSelectorImpl = (
+      selector: unknown,
+      chartType: ChartType = ChartType.Candles,
+      persisted: string[] = ['RSI'],
+    ) => {
+      if (selector === selectTokenIndicatorsActual) return persisted;
+      if (selector === selectTokenOverviewChartType) return chartType;
+      if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+        return mockSelectTechnicalIndicatorsEnabled();
+      }
+      return chartType;
+    };
+
+    afterEach(() => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return mockSelectTechnicalIndicatorsEnabled();
+        }
+        return ChartType.Line;
+      });
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
+    });
+
+    it('keeps indicators in Redux and restores chart props when returning to candlestick', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      let chartType: ChartType = ChartType.Candles;
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) =>
+        defaultUseSelectorImpl(selector, chartType, ['RSI']),
+      );
+
+      const { getByTestId, rerender } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      expect(getByTestId('mock-advanced-chart').props.indicators).toEqual([
+        'RSI',
+      ]);
+
+      chartType = ChartType.Line;
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) =>
+        defaultUseSelectorImpl(selector, chartType, ['RSI']),
+      );
+      rerender(<PriceAdvanced {...baseProps} />);
+
+      expect(getByTestId('mock-advanced-chart').props.indicators).toEqual([]);
+      expect(mockDispatch).not.toHaveBeenCalledWith({
+        type: 'SET_TOKEN_INDICATORS',
+        payload: { indicators: [] },
+      });
+
+      chartType = ChartType.Candles;
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) =>
+        defaultUseSelectorImpl(selector, chartType, ['RSI']),
+      );
+      rerender(<PriceAdvanced {...baseProps} />);
+
+      expect(getByTestId('mock-advanced-chart').props.indicators).toEqual([
+        'RSI',
+      ]);
     });
   });
 });

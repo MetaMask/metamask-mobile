@@ -279,7 +279,6 @@ const PriceAdvanced = ({
       if (next === chartType) return;
       if (next !== ChartType.Candles) {
         setCrosshairData(null);
-        setActiveIndicators(new Set());
       }
 
       const properties: Record<string, unknown> = {
@@ -564,6 +563,10 @@ const PriceAdvanced = ({
     ohlcvData.length >= CHART_DATA_THRESHOLD &&
     !hasEmptyData &&
     !chartError;
+
+  /** Candlestick-only: keep selections in state/Redux but hide studies on line chart. */
+  const showChartIndicators =
+    isTechnicalIndicatorsEnabled && chartType === ChartType.Candles;
 
   const { latestBar } = useOHLCVRealtime({
     assetId,
@@ -983,8 +986,8 @@ const PriceAdvanced = ({
               }
               volumeOverlay
               chartType={chartType}
-              indicators={isTechnicalIndicatorsEnabled ? indicatorsArray : []}
-              selectedMAs={isTechnicalIndicatorsEnabled ? selectedMAs : []}
+              indicators={showChartIndicators ? indicatorsArray : []}
+              selectedMAs={showChartIndicators ? selectedMAs : []}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
