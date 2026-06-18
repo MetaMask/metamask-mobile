@@ -258,6 +258,7 @@ const PerpsHomeView = ({
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
+    hasMarkets,
     recentActivity,
     sortBy,
     isLoading,
@@ -355,15 +356,10 @@ const PerpsHomeView = ({
     // Products self-hides when disabled or when no categories are available.
     if (isProductsEnabled && productCategories.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
-    // Top Movers shows a skeleton while markets load, then self-hides when there
-    // are no markets to rank. It draws from the same market set as the explore
-    // category lists, so any of those being present implies movers exist.
-    const hasAnyMarket =
-      perpsMarkets.length > 0 ||
-      commoditiesMarkets.length > 0 ||
-      stocksMarkets.length > 0 ||
-      forexMarkets.length > 0;
-    if (isTopMoversEnabled && (isLoading.markets || hasAnyMarket))
+    // Top Movers ranks the full unfiltered market set (including HIP-3 and any
+    // market type not bucketed into the home explore slices), so use hasMarkets
+    // rather than a union of the four filtered slices to avoid false negatives.
+    if (isTopMoversEnabled && (isLoading.markets || hasMarkets))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
     // Explore category lists render a skeleton while markets load, then self-hide
     // when their own market array is empty.
@@ -389,6 +385,7 @@ const PerpsHomeView = ({
     isProductsEnabled,
     productCategories,
     isTopMoversEnabled,
+    hasMarkets,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,

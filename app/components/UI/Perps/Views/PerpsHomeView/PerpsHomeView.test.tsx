@@ -473,6 +473,7 @@ describe('PerpsHomeView', () => {
     stocksMarkets: [],
     commoditiesMarkets: [],
     forexMarkets: [],
+    hasMarkets: false,
     recentActivity: [],
     sortBy: 'name',
     categoryMarketCounts: {},
@@ -1207,7 +1208,31 @@ describe('PerpsHomeView', () => {
       );
       mockUsePerpsHomeData.mockReturnValue({
         ...mockDefaultData,
+        hasMarkets: true,
         perpsMarkets: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('top_movers');
+    });
+
+    it('includes top_movers when enabled and only HIP-3 markets exist (explore slices empty)', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      // Simulate: all four home explore slices are empty, but a HIP-3 market
+      // (e.g. an unclassified type) appears in the full market set.
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        hasMarkets: true,
+        perpsMarkets: [],
+        commoditiesMarkets: [],
+        stocksMarkets: [],
+        forexMarkets: [],
       });
 
       render(<PerpsHomeView />);
