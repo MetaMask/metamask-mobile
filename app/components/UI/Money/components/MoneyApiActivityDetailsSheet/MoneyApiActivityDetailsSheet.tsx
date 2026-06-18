@@ -60,11 +60,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingVertical: 12 },
 });
 
-/**
- * Kind-specific labels and the counterparty to surface. A card spend reads
- * "Card transaction / You spent / Paid to <recipient>"; a cashback reward reads
- * "Cashback / You earned / Received from <rewarder>".
- */
 function detailsCopy(activity: AccountsApiActivity): {
   title: string;
   amountLabel: string;
@@ -261,7 +256,7 @@ const ApiActivityDetails = ({
 
 /**
  * Route entry for the Accounts-API activity detail sheet (card spends and
- * cashback). Guards against being reached without its `activity` param (e.g.
+ * musdback). Guards against being reached without its `activity` param (e.g.
  * navigation-state restoration) — the activity object is the sheet's only data
  * source — by popping back rather than rendering a broken sheet.
  */

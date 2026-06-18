@@ -73,7 +73,7 @@ function parseChainId(chainId: unknown): Hex | undefined {
   return ALLOWED_CHAIN_IDS.has(hex.toLowerCase()) ? hex : undefined;
 }
 
-/** The fields shared by card and cashback rows, validated at the boundary. */
+/** The fields shared by card and cashback rows. */
 interface ParsedSettlement {
   hash: Hex;
   time: number;
@@ -82,12 +82,6 @@ interface ParsedSettlement {
   amount: string;
 }
 
-/**
- * Validate a transaction + its relevant value-transfer leg into the common
- * settlement shape, or `undefined` if anything is malformed / off the allowed
- * chains. Card and cashback differ only in which leg they care about and the
- * counterparty they keep, so they layer that on top of this.
- */
 function parseSettlement(
   tx: AccountsApiTransaction,
   transfer: AccountsApiValueTransfer | undefined,
@@ -120,13 +114,8 @@ function parseSettlement(
 }
 
 /**
- * Parse the latest Accounts-API page into Money activity rows. Card spends and
- * cashback rewards arrive in the same response; each is the inverse of the
- * other — a card spend keeps the leg leaving the money account, a cashback keeps
- * the leg crediting it — so they share {@link parseSettlement} and differ only
- * in direction and counterparty. Rows of any other type, or with a malformed /
- * off-chain settlement leg, are dropped.
- */
+ * Parse the latest Accounts-API page into Money activity rows.
+ **/
 export function parseAccountsApiActivity(
   response: AccountsApiTransactionsResponse,
   moneyAddress: string,

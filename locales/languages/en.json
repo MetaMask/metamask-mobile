@@ -7224,7 +7224,7 @@
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
-      "cashback": "Cashback",
+      "cashback": "mUSD back",
       "card": "Card",
       "purchase": "Purchase",
       "musd_back": "mUSD back",
@@ -7241,7 +7241,7 @@
     },
     "api_activity_details": {
       "card_title": "Card transaction",
-      "cashback_title": "Cashback",
+      "cashback_title": "mUSD back",
       "you_spent": "You spent",
       "you_earned": "You earned",
       "completed": "Completed",

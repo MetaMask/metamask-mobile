@@ -58,6 +58,21 @@ describe('mergeMoneyActivity', () => {
   it('returns an empty list when both sources are empty', () => {
     expect(mergeMoneyActivity([], [])).toEqual([]);
   });
+
+  it('orders rows sharing a timestamp deterministically by id', () => {
+    // A spend and its cashback can settle in the same second; the tie must
+    // resolve the same way regardless of input order.
+    const onchain = [onchainTx('zzz', 100)];
+    const api = [cardTx('0xccc' as Hex, 100), cashbackTx('0xaaa' as Hex, 100)];
+
+    const forward = mergeMoneyActivity(onchain, api).map((i) => i.id);
+    const reversed = mergeMoneyActivity([...onchain], [...api].reverse()).map(
+      (i) => i.id,
+    );
+
+    expect(forward).toEqual(['0xaaa', '0xccc', 'zzz']);
+    expect(reversed).toEqual(forward);
+  });
 });
 
 describe('buildMoneyActivityBuckets', () => {

@@ -30,10 +30,6 @@ export interface UseMoneyActivityItemsResult {
 /**
  * Merge local on-chain Money transactions with Accounts-API activity (card
  * spends and cashback) into a single source-tagged, time-descending list.
- *
- * The Accounts-API rows are authoritative for any hash they cover, so an
- * on-chain row sharing a hash is dropped to avoid double-rendering the
- * settlement leg.
  */
 export function mergeMoneyActivity(
   onchainTransactions: TransactionMeta[],
@@ -41,18 +37,17 @@ export function mergeMoneyActivity(
 ): MoneyActivityItem[] {
   const apiHashes = new Set(apiActivity.map((a) => a.hash.toLowerCase()));
   const onchain = onchainTransactions
+    // we ignore any on chain data that exists in the accounts API response.
     .filter((tx) => !(tx.hash && apiHashes.has(tx.hash.toLowerCase())))
     .map(onchainItem);
+  // Time-descending, with `id` as a stable tiebreak so rows sharing a timestamp
+  // (e.g. a spend and its cashback in the same second) keep a deterministic
+  // order across renders/refetches and across the two merged sources.
   return [...onchain, ...apiActivity.map(accountsApiItem)].sort(
-    (a, b) => b.time - a.time,
+    (a, b) => b.time - a.time || a.id.localeCompare(b.id),
   );
 }
 
-/**
- * The single place that decides which source lands in which filter tab: card
- * spends are outflows → Transfers; cashback credits are inflows → Deposits; both
- * appear in All.
- */
 export function buildMoneyActivityBuckets(
   onchain: {
     all: TransactionMeta[];

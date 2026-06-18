@@ -35,9 +35,8 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
-import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -143,17 +142,16 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { allTransactions, moneyAddress, mockDataEnabled } =
-    useMoneyAccountTransactions();
-  const { activity, isLoading: isApiActivityLoading } =
-    useMoneyAccountApiActivity();
-  // Mock mode shows curated demo data only — never merge real Accounts-API rows
-  // (or their loading state) into it.
-  const showCardActivityLoading = isApiActivityLoading && !mockDataEnabled;
-  const activityItems = useMemo(
-    () => mergeMoneyActivity(allTransactions, mockDataEnabled ? [] : activity),
-    [allTransactions, activity, mockDataEnabled],
-  );
+  // Share the single merge/bucket path with the full activity view so the home
+  // preview and that view never diverge (notably in mock mode). The home
+  // preview shows the "All" bucket; `isLoading` is already mock-aware.
+  const {
+    buckets,
+    isLoading: showCardActivityLoading,
+    moneyAddress,
+    mockDataEnabled,
+  } = useMoneyActivityItems();
+  const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
