@@ -89,7 +89,7 @@ function TransactionFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const feeTotalUsd = useMemo(() => {
-    if (transactionMeta.isGasFeeSponsored) {
+    if (transactionMeta?.isGasFeeSponsored) {
       return formatFiat(new BigNumber(0));
     }
 
@@ -106,7 +106,7 @@ function TransactionFeeRow({
         .plus(sourceNetwork)
         .plus(targetNetwork),
     );
-  }, [totals, formatFiat, transactionMeta.isGasFeeSponsored]);
+  }, [totals, formatFiat, transactionMeta?.isGasFeeSponsored]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
