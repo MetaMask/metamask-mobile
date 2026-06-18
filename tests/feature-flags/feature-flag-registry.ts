@@ -3249,27 +3249,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyPaymentTokensBlocklist: {
-    name: 'earnMoneyPaymentTokensBlocklist',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      '0x1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDT', 'aDAI'],
-      '0x2105': ['USDC'],
-      '0x38': ['USDC', 'USDT'],
-      '0xa4b1': ['USDC'],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMoneyTokensSortMode: {
-    name: 'earnMoneyTokensSortMode',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: 'noFeePriority',
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMusdBalanceChainIds: {
     name: 'earnMusdBalanceChainIds',
     type: FeatureFlagType.Remote,
