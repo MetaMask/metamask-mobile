@@ -9,6 +9,8 @@ import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
+import RewardsVipRefereeSplashView from './Views/RewardsVipRefereeSplashView';
+import RewardsVipRefereeView from './Views/RewardsVipRefereeView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
@@ -28,6 +30,7 @@ import PredictThePitchCampaignDetailsView from './Views/PredictThePitchCampaignD
 import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignWinningView';
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
+import PredictThePitchCampaignStatsView from './Views/PredictThePitchCampaignStatsView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -196,6 +199,16 @@ const RewardsNavigator: React.FC = () => {
         options={vipScreenOptions}
       />
       <Stack.Screen
+        name={Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW}
+        component={RewardsVipRefereeSplashView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_REFEREE_VIEW}
+        component={RewardsVipRefereeView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
         name={Routes.REWARDS_CAMPAIGNS_VIEW}
         component={CampaignsView}
       />
@@ -263,6 +276,11 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD}
         component={PredictThePitchCampaignLeaderboardView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS}
+        component={PredictThePitchCampaignStatsView}
         options={{ headerShown: false }}
       />
       <Stack.Screen

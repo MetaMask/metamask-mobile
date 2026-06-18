@@ -819,29 +819,54 @@ describe('usePerpsTPSLForm', () => {
       );
     });
 
-    it('prevent price updates when price field is focused', () => {
+    // The percentage->price auto-fill intentionally ignores tpPriceInputFocused.
+    // When a user types a percentage, the percentage field is the active source of
+    // truth and the price must always be updated — even if the focus state flags
+    // are stale (e.g. due to the iOS focus/blur race). Only the price->percentage
+    // direction is still gated by focus state (via tpPercentInputFocused) to avoid
+    // overwriting the user's typed percentage while they are editing it.
+    it('still updates price from percentage even when price field previously focused', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Focus price field first
+      // Focus price field and enter a value — simulates the stale-focus scenario.
       act(() => {
         result.current.handlers.handleTakeProfitPriceFocus();
-      });
-
-      // Set initial price value
-      act(() => {
         result.current.handlers.handleTakeProfitPriceChange('55000');
       });
 
-      const initialPrice = result.current.formState.takeProfitPrice;
-
-      // Now change percentage - this should NOT update price while price field is focused
+      // Now change the percentage. The price field focus flag is still true (stale),
+      // but the auto-fill must still compute and set the new trigger price.
       act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('100');
+        result.current.handlers.handleTakeProfitPercentageChange('10');
       });
 
-      expect(result.current.formState.takeProfitPrice).toBe(initialPrice);
+      // Price must have been recomputed from the 10% RoE value, not left at 55000.
+      // 10% RoE with 10x leverage = 1% price change = 50000 * 1.01 = 50500
+      expect(result.current.formState.takeProfitPrice).not.toBe('55000');
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('still updates stop loss price from percentage even when price field previously focused', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      // Focus stop loss price field — simulates the stale-focus scenario.
+      act(() => {
+        result.current.handlers.handleStopLossPriceFocus();
+        result.current.handlers.handleStopLossPriceChange('46000');
+      });
+
+      // Type a stop loss percentage. The stale slPriceInputFocused must not block it.
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('-10');
+      });
+
+      // Stop loss price must have been recomputed, not left at 46000.
+      expect(result.current.formState.stopLossPrice).not.toBe('46000');
+      expect(result.current.formState.stopLossPrice).not.toBe('');
     });
   });
 
