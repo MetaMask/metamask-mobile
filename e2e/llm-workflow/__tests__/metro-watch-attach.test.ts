@@ -67,7 +67,7 @@ describe('metro-watch-attach', () => {
     );
   });
 
-  it('returns successfully when Metro responds 200 within timeout', async () => {
+  it('polls /status instead of /index.bundle to avoid concurrent bundle requests', async () => {
     await expect(
       attachToMetroWatchMode({
         simulatorUdid: 'SIM-UDID',
@@ -77,10 +77,9 @@ describe('metro-watch-attach', () => {
       }),
     ).resolves.toBeUndefined();
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&disableOnboarding=1',
-      { signal: expect.any(AbortSignal) },
-    );
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8081/status', {
+      signal: expect.any(AbortSignal),
+    });
   });
 
   it('throws IOSLaunchError when openurl fails', async () => {

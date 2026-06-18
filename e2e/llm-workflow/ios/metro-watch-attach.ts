@@ -20,7 +20,7 @@ export type AttachToMetroOptions = {
   stabilizationDelayMs?: number;
   /** Delay between retry attempts. Default: 1000. */
   retryDelayMs?: number;
-  /** Max time to wait for Metro `/index.bundle` to respond 200. Default: 30_000. */
+  /** Max time to wait for Metro `/status` to respond 200. Default: 30_000. */
   metroReadyTimeoutMs?: number;
   /** Optional `fetch` implementation, primarily for testing. Defaults to `globalThis.fetch`. */
   fetchImpl?: typeof fetch;
@@ -40,20 +40,6 @@ export function buildMetroDeepLink(metroPort: number): {
   return { bundleUrl, deepLinkUrl };
 }
 
-async function isMetroBundling(
-  metroPort: number,
-  fetchFn: typeof fetch = globalThis.fetch,
-): Promise<boolean> {
-  try {
-    const resp = await fetchFn(`http://localhost:${metroPort}/status`, {
-      signal: AbortSignal.timeout(2_000),
-    });
-    return resp.ok;
-  } catch {
-    return false;
-  }
-}
-
 export async function attachToMetroWatchMode(
   options: AttachToMetroOptions,
 ): Promise<void> {
@@ -63,9 +49,7 @@ export async function attachToMetroWatchMode(
   const metroReadyTimeoutMs =
     options.metroReadyTimeoutMs ?? DEFAULT_METRO_READY_TIMEOUT_MS;
   const fetchFn = options.fetchImpl ?? globalThis.fetch;
-  const { bundleUrl, deepLinkUrl } = buildMetroDeepLink(options.metroPort);
-
-  await isMetroBundling(options.metroPort, fetchFn).catch(() => false);
+  const { deepLinkUrl } = buildMetroDeepLink(options.metroPort);
 
   process.stderr.write(
     `[mm-mobile] metro-attach: opening deep link to Metro:${options.metroPort}\n`,
@@ -92,21 +76,23 @@ export async function attachToMetroWatchMode(
     });
   }
 
+  const statusUrl = `http://localhost:${options.metroPort}/status`;
+
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     process.stderr.write(
-      `[mm-mobile] metro-attach: waiting for bundle (attempt ${attempt}/${maxAttempts})\n`,
+      `[mm-mobile] metro-attach: waiting for Metro to be ready (attempt ${attempt}/${maxAttempts})\n`,
     );
 
-    if (await waitForMetroBundle(bundleUrl, metroReadyTimeoutMs, fetchFn)) {
+    if (await waitForMetroReady(statusUrl, metroReadyTimeoutMs, fetchFn)) {
       await sleep(stabilizationDelayMs);
       process.stderr.write(
-        `[mm-mobile] metro-attach: bundle ready after attempt ${attempt}\n`,
+        `[mm-mobile] metro-attach: Metro ready after attempt ${attempt}\n`,
       );
       return;
     }
 
     process.stderr.write(
-      `[mm-mobile] metro-attach: bundle not ready within ${metroReadyTimeoutMs}ms on attempt ${attempt}\n`,
+      `[mm-mobile] metro-attach: Metro not ready within ${metroReadyTimeoutMs}ms on attempt ${attempt}\n`,
     );
 
     if (attempt < maxAttempts) {
@@ -119,12 +105,12 @@ export async function attachToMetroWatchMode(
     code: 'MM_IOS_RUNNER_NOT_READY',
     message: `Metro watch-mode attach failed after ${maxAttempts} attempts (port ${options.metroPort})`,
     remediation:
-      'Ensure `yarn watch:clean` is running and the Metro bundler responds at /index.bundle. Try `mm cleanup` then re-launch.',
+      'Ensure `yarn watch:clean` is running and the Metro bundler is responsive. Try `mm cleanup` then re-launch.',
   });
 }
 
-async function waitForMetroBundle(
-  bundleUrl: string,
+async function waitForMetroReady(
+  statusUrl: string,
   timeoutMs: number,
   fetchFn: typeof fetch,
 ): Promise<boolean> {
@@ -132,8 +118,8 @@ async function waitForMetroBundle(
 
   while (Date.now() < deadline) {
     try {
-      const response = await fetchFn(bundleUrl, {
-        signal: AbortSignal.timeout(5_000),
+      const response = await fetchFn(statusUrl, {
+        signal: AbortSignal.timeout(2_000),
       });
 
       if (response.ok) {
