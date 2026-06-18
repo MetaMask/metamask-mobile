@@ -302,9 +302,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert for post-quote with empty sourceAmounts when isMaxAmount is true', () => {
+  it('returns alert for post-quote with non-empty sourceAmounts when isMaxAmount is true', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
+    ]);
     useTransactionPayQuotesMock.mockReturnValue([]);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
 
