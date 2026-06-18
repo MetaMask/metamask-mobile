@@ -46,6 +46,7 @@ import {
 } from '../../../../Views/confirmations/components/token-icon';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
 import { cardTransactionDisplayInfo } from '../../utils/cardTransactionDisplayInfo';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
 import type { CardTransaction } from '../../types/moneyActivity';
 import { MoneyCardTransactionDetailsSheetTestIds } from './MoneyCardTransactionDetailsSheet.testIds';
@@ -67,6 +68,9 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
+  const blockExplorerLinkEnabled = useSelector(
+    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  );
   const { networkName, networkImage } = useNetworkInfo(card.chainId);
 
   const display = useMemo(
@@ -201,14 +205,16 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
             />
           </TransactionDetailsRow>
 
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('transaction_details.view_on_block_explorer')}
-            onPress={handleViewOnExplorer}
-            testID={MoneyCardTransactionDetailsSheetTestIds.EXPLORER_BUTTON}
-          />
+          {blockExplorerLinkEnabled && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('transaction_details.view_on_block_explorer')}
+              onPress={handleViewOnExplorer}
+              testID={MoneyCardTransactionDetailsSheetTestIds.EXPLORER_BUTTON}
+            />
+          )}
         </Box>
       </ScrollView>
     </BottomSheet>

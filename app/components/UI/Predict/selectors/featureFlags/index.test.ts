@@ -11,6 +11,7 @@ import {
   selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
+  selectPredictSportCardLivePricesEnabledFlag,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictWorldCupConfig,
@@ -1779,6 +1780,35 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictHomeRedesignEnabledFlag(state);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictSportCardLivePricesEnabledFlag', () => {
+    it('defaults to true when the remote flag is missing', () => {
+      expect(
+        selectPredictSportCardLivePricesEnabledFlag(mockedEmptyFlagsState),
+      ).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictSportCardLivePrices: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictSportCardLivePricesEnabledFlag(state)).toBe(false);
     });
   });
 
