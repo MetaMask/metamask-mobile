@@ -182,109 +182,51 @@ describe('TransactionDetails', () => {
   });
 
   describe('getTitle', () => {
-    it('renders musd_conversion title for musdConversion type', () => {
+    it.each([
+      [
+        TransactionType.musdConversion,
+        'transaction_details.title.musd_conversion',
+      ],
+      [TransactionType.perpsDeposit, 'transaction_details.title.perps_deposit'],
+      [TransactionType.musdClaim, 'transaction_details.title.musd_claim'],
+    ])('renders title for %s type', (type, titleKey) => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
-          type: TransactionType.musdConversion,
+          type,
         } as unknown as TransactionMeta,
       });
 
       const { getByText } = render();
 
-      expect(
-        getByText(strings('transaction_details.title.musd_conversion')),
-      ).toBeTruthy();
+      expect(getByText(strings(titleKey))).toBeTruthy();
     });
 
-    it('renders perps_deposit title for perpsDeposit type', () => {
+    it.each([
+      [TransactionType.predictClaim, 'transaction_details.title.predict_claim'],
+      [
+        TransactionType.predictDeposit,
+        'transaction_details.title.predict_deposit',
+      ],
+      [
+        TransactionType.predictWithdraw,
+        'transaction_details.title.predict_withdraw',
+      ],
+      [
+        TransactionType.perpsWithdraw,
+        'transaction_details.title.perps_withdraw',
+      ],
+    ])('renders title for nested %s type', (type, titleKey) => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
-          type: TransactionType.perpsDeposit,
+          nestedTransactions: [{ type }],
         } as unknown as TransactionMeta,
       });
 
       const { getByText } = render();
 
-      expect(
-        getByText(strings('transaction_details.title.perps_deposit')),
-      ).toBeTruthy();
-    });
-
-    it('renders musd_claim title for musdClaim type', () => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          type: TransactionType.musdClaim,
-        } as unknown as TransactionMeta,
-      });
-
-      const { getByText } = render();
-
-      expect(
-        getByText(strings('transaction_details.title.musd_claim')),
-      ).toBeTruthy();
-    });
-
-    it('renders predict_claim title for predictClaim type', () => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          nestedTransactions: [{ type: TransactionType.predictClaim }],
-        } as unknown as TransactionMeta,
-      });
-
-      const { getByText } = render();
-
-      expect(
-        getByText(strings('transaction_details.title.predict_claim')),
-      ).toBeTruthy();
-    });
-
-    it('renders predict_deposit title for predictDeposit type', () => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          nestedTransactions: [{ type: TransactionType.predictDeposit }],
-        } as unknown as TransactionMeta,
-      });
-
-      const { getByText } = render();
-
-      expect(
-        getByText(strings('transaction_details.title.predict_deposit')),
-      ).toBeTruthy();
-    });
-
-    it('renders predict_withdraw title for predictWithdraw type', () => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          nestedTransactions: [{ type: TransactionType.predictWithdraw }],
-        } as unknown as TransactionMeta,
-      });
-
-      const { getByText } = render();
-
-      expect(
-        getByText(strings('transaction_details.title.predict_withdraw')),
-      ).toBeTruthy();
-    });
-
-    it('renders perps_withdraw title for perpsWithdraw type', () => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          nestedTransactions: [{ type: TransactionType.perpsWithdraw }],
-        } as unknown as TransactionMeta,
-      });
-
-      const { getByText } = render();
-
-      expect(
-        getByText(strings('transaction_details.title.perps_withdraw')),
-      ).toBeTruthy();
+      expect(getByText(strings(titleKey))).toBeTruthy();
     });
 
     it('renders money_account_deposit title for nested moneyAccountDeposit', () => {
@@ -370,105 +312,58 @@ describe('TransactionDetails', () => {
     });
 
     describe('getConversionTitle (musdConversion)', () => {
-      it('returns converted_to_musd when confirmed', () => {
+      it.each([
+        [
+          TransactionStatus.confirmed,
+          'transaction_details.title.converted_to_musd',
+        ],
+        [
+          TransactionStatus.submitted,
+          'transaction_details.title.converting_to_musd',
+        ],
+        [
+          TransactionStatus.failed,
+          'transaction_details.title.conversion_failed',
+        ],
+      ])('returns %s title for status', (status, titleKey) => {
         useTransactionDetailsMock.mockReturnValue({
           transactionMeta: {
             ...TRANSACTION_META_MOCK,
             type: TransactionType.musdConversion,
-            status: TransactionStatus.confirmed,
+            status,
           } as unknown as TransactionMeta,
         });
 
         const { getByText } = render();
 
-        expect(
-          getByText(strings('transaction_details.title.converted_to_musd')),
-        ).toBeTruthy();
-      });
-
-      it('returns converting_to_musd when submitted', () => {
-        useTransactionDetailsMock.mockReturnValue({
-          transactionMeta: {
-            ...TRANSACTION_META_MOCK,
-            type: TransactionType.musdConversion,
-            status: TransactionStatus.submitted,
-          } as unknown as TransactionMeta,
-        });
-
-        const { getByText } = render();
-
-        expect(
-          getByText(strings('transaction_details.title.converting_to_musd')),
-        ).toBeTruthy();
-      });
-
-      it('returns conversion_failed when failed', () => {
-        useTransactionDetailsMock.mockReturnValue({
-          transactionMeta: {
-            ...TRANSACTION_META_MOCK,
-            type: TransactionType.musdConversion,
-            status: TransactionStatus.failed,
-          } as unknown as TransactionMeta,
-        });
-
-        const { getByText } = render();
-
-        expect(
-          getByText(strings('transaction_details.title.conversion_failed')),
-        ).toBeTruthy();
+        expect(getByText(strings(titleKey))).toBeTruthy();
       });
     });
 
     describe('getFiatDepositTitle (moneyAccountDeposit with fiat orderId)', () => {
-      it('returns deposited_musd when confirmed', () => {
+      it.each([
+        [
+          TransactionStatus.confirmed,
+          'transaction_details.title.deposited_musd',
+        ],
+        [
+          TransactionStatus.submitted,
+          'transaction_details.title.depositing_musd',
+        ],
+        [TransactionStatus.failed, 'transaction_details.title.deposit_failed'],
+      ])('returns %s title for status', (status, titleKey) => {
         useTransactionDetailsMock.mockReturnValue({
           transactionMeta: {
             ...TRANSACTION_META_MOCK,
             type: TransactionType.moneyAccountDeposit,
-            status: TransactionStatus.confirmed,
+            status,
             metamaskPay: { fiat: { orderId: 'order-123' } },
           } as unknown as TransactionMeta,
         });
 
         const { getByText } = render();
 
-        expect(
-          getByText(strings('transaction_details.title.deposited_musd')),
-        ).toBeTruthy();
-      });
-
-      it('returns depositing_musd when submitted', () => {
-        useTransactionDetailsMock.mockReturnValue({
-          transactionMeta: {
-            ...TRANSACTION_META_MOCK,
-            type: TransactionType.moneyAccountDeposit,
-            status: TransactionStatus.submitted,
-            metamaskPay: { fiat: { orderId: 'order-123' } },
-          } as unknown as TransactionMeta,
-        });
-
-        const { getByText } = render();
-
-        expect(
-          getByText(strings('transaction_details.title.depositing_musd')),
-        ).toBeTruthy();
-      });
-
-      it('returns deposit_failed when failed', () => {
-        useTransactionDetailsMock.mockReturnValue({
-          transactionMeta: {
-            ...TRANSACTION_META_MOCK,
-            type: TransactionType.moneyAccountDeposit,
-            status: TransactionStatus.failed,
-            metamaskPay: { fiat: { orderId: 'order-123' } },
-          } as unknown as TransactionMeta,
-        });
-
-        const { getByText } = render();
-
-        expect(
-          getByText(strings('transaction_details.title.deposit_failed')),
-        ).toBeTruthy();
+        expect(getByText(strings(titleKey))).toBeTruthy();
       });
     });
 
@@ -489,52 +384,22 @@ describe('TransactionDetails', () => {
     });
 
     describe('getSendTitle (perpsDeposit)', () => {
-      it('returns sent when confirmed', () => {
+      it.each([
+        [TransactionStatus.confirmed, 'transaction_details.title.sent'],
+        [TransactionStatus.submitted, 'transaction_details.title.sending_musd'],
+        [TransactionStatus.failed, 'transaction_details.title.send_failed'],
+      ])('returns %s title for status', (status, titleKey) => {
         useTransactionDetailsMock.mockReturnValue({
           transactionMeta: {
             ...TRANSACTION_META_MOCK,
             type: TransactionType.perpsDeposit,
-            status: TransactionStatus.confirmed,
+            status,
           } as unknown as TransactionMeta,
         });
 
         const { getByText } = render();
 
-        expect(
-          getByText(strings('transaction_details.title.sent')),
-        ).toBeTruthy();
-      });
-
-      it('returns sending_musd when submitted', () => {
-        useTransactionDetailsMock.mockReturnValue({
-          transactionMeta: {
-            ...TRANSACTION_META_MOCK,
-            type: TransactionType.perpsDeposit,
-            status: TransactionStatus.submitted,
-          } as unknown as TransactionMeta,
-        });
-
-        const { getByText } = render();
-
-        expect(
-          getByText(strings('transaction_details.title.sending_musd')),
-        ).toBeTruthy();
-      });
-
-      it('returns send_failed when failed', () => {
-        useTransactionDetailsMock.mockReturnValue({
-          transactionMeta: {
-            ...TRANSACTION_META_MOCK,
-            type: TransactionType.perpsDeposit,
-            status: TransactionStatus.failed,
-          } as unknown as TransactionMeta,
-        });
-
-        const { getByText } = render();
-
-        expect(
-          getByText(strings('transaction_details.title.send_failed')),
-        ).toBeTruthy();
+        expect(getByText(strings(titleKey))).toBeTruthy();
       });
     });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleProp, TextStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
@@ -84,6 +85,43 @@ interface TokenDisplayData {
   chainId: Hex;
 }
 
+function AssetLine({
+  label,
+  labelStyle,
+  sign,
+  data,
+  amountColor,
+}: {
+  label: string;
+  labelStyle?: StyleProp<TextStyle>;
+  sign: string;
+  data: TokenDisplayData;
+  amountColor?: TextColor;
+}) {
+  return (
+    <>
+      <Text color={TextColor.Alternative} style={labelStyle}>
+        {label}
+      </Text>
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={12}
+      >
+        <TokenIcon
+          chainId={data.chainId}
+          address={data.address as Hex}
+          symbol={data.symbol}
+        />
+        <Text variant={TextVariant.DisplayMD} color={amountColor}>
+          {sign}
+          {data.amount} {data.symbol}
+        </Text>
+      </Box>
+    </>
+  );
+}
+
 export function TransactionDetailsHero() {
   const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
   const formatFiatUser = useFiatFormatter();
@@ -95,14 +133,13 @@ export function TransactionDetailsHero() {
   const { transactionMeta } = useTransactionDetails();
   const tokenMeta = useTokenMeta(transactionMeta);
   const isMoneyContext = useIsMoneyAccountContext();
-  const sourceSentData = useSourceSentData();
+  const sentData = useSourceSentData();
   const receivedData = useReceivedTokenData(tokenMeta);
 
   if (!hasTransactionType(transactionMeta, SUPPORTED_TYPES)) {
     return null;
   }
 
-  const sentData = sourceSentData;
   const showTwoAssetHero =
     isMoneyContext &&
     hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
@@ -112,40 +149,18 @@ export function TransactionDetailsHero() {
   if (showTwoAssetHero) {
     return (
       <Box testID="transaction-details-hero" gap={4} style={styles.container}>
-        <Text color={TextColor.Alternative}>
-          {strings('transaction_details.label.you_sent')}
-        </Text>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={12}
-        >
-          <TokenIcon
-            chainId={sentData.chainId}
-            address={sentData.address as Hex}
-            symbol={sentData.symbol}
-          />
-          <Text variant={TextVariant.DisplayMD}>
-            -{sentData.amount} {sentData.symbol}
-          </Text>
-        </Box>
-        <Text color={TextColor.Alternative} style={styles.youReceivedLabel}>
-          {strings('transaction_details.label.you_received')}
-        </Text>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={12}
-        >
-          <TokenIcon
-            chainId={receivedData.chainId}
-            address={receivedData.address as Hex}
-            symbol={receivedData.symbol}
-          />
-          <Text variant={TextVariant.DisplayMD} color={TextColor.Success}>
-            +{receivedData.amount} {receivedData.symbol}
-          </Text>
-        </Box>
+        <AssetLine
+          label={strings('transaction_details.label.you_sent')}
+          sign="-"
+          data={sentData}
+        />
+        <AssetLine
+          label={strings('transaction_details.label.you_received')}
+          labelStyle={styles.youReceivedLabel}
+          sign="+"
+          data={receivedData}
+          amountColor={TextColor.Success}
+        />
       </Box>
     );
   }
@@ -212,53 +227,47 @@ export function TransactionDetailsHero() {
  * For perpsDeposit → USDC on Arbitrum, for predictDeposit → pUSD on Polygon.
  * For everything else, falls back to the standard tokenMeta (mUSD).
  */
+const RECEIVED_OVERRIDE: Partial<
+  Record<TransactionType, Omit<TokenDisplayData, 'amount'>>
+> = {
+  [TransactionType.perpsDeposit]: {
+    symbol: ARBITRUM_USDC.symbol,
+    address: ARBITRUM_USDC.address,
+    chainId: CHAIN_IDS.ARBITRUM as Hex,
+  },
+  [TransactionType.predictDeposit]: {
+    symbol: POLYGON_PUSD.symbol,
+    address: POLYGON_PUSD.address,
+    chainId: CHAIN_IDS.POLYGON as Hex,
+  },
+};
+
+function toDisplay(
+  tokenMeta: NonNullable<ReturnType<typeof useTokenMeta>>,
+): TokenDisplayData {
+  return {
+    amount: tokenMeta.amount,
+    symbol: tokenMeta.symbol,
+    address: tokenMeta.contractAddress,
+    chainId: tokenMeta.chainId,
+  };
+}
+
 function useReceivedTokenData(
   tokenMeta: ReturnType<typeof useTokenMeta>,
 ): TokenDisplayData | null {
   const { transactionMeta } = useTransactionDetails();
   const isMoneyContext = useIsMoneyAccountContext();
 
-  if (!isMoneyContext) {
-    return tokenMeta
-      ? {
-          amount: tokenMeta.amount,
-          symbol: tokenMeta.symbol,
-          address: tokenMeta.contractAddress,
-          chainId: tokenMeta.chainId,
-        }
-      : null;
+  if (isMoneyContext) {
+    for (const [type, override] of Object.entries(RECEIVED_OVERRIDE)) {
+      if (hasTransactionType(transactionMeta, [type as TransactionType])) {
+        return { amount: tokenMeta?.amount ?? '0.00', ...override };
+      }
+    }
   }
 
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    const sentAmount = tokenMeta?.amount ?? '0.00';
-    return {
-      amount: sentAmount,
-      symbol: ARBITRUM_USDC.symbol,
-      address: ARBITRUM_USDC.address,
-      chainId: CHAIN_IDS.ARBITRUM as Hex,
-    };
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    const sentAmount = tokenMeta?.amount ?? '0.00';
-    return {
-      amount: sentAmount,
-      symbol: POLYGON_PUSD.symbol,
-      address: POLYGON_PUSD.address,
-      chainId: CHAIN_IDS.POLYGON as Hex,
-    };
-  }
-
-  if (tokenMeta) {
-    return {
-      amount: tokenMeta.amount,
-      symbol: tokenMeta.symbol,
-      address: tokenMeta.contractAddress,
-      chainId: tokenMeta.chainId,
-    };
-  }
-
-  return null;
+  return tokenMeta ? toDisplay(tokenMeta) : null;
 }
 
 function useSourceSentData(): TokenDisplayData | null {

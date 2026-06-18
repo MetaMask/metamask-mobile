@@ -20,7 +20,7 @@ import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { TransactionDetailsFeeCell } from '../transaction-details-fee-cell';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 
@@ -90,20 +90,12 @@ export function TransactionDetailsNetworkFeeRow() {
           </Text>
         </Box>
       ) : isMoneyContext ? (
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={4}
-        >
-          <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
-            {networkFeeFormatted}
-          </Text>
-          <TokenIcon
-            chainId={feeChainId}
-            address={getNativeTokenAddress(feeChainId) as Hex}
-            variant={TokenIconVariant.Row}
-          />
-        </Box>
+        <TransactionDetailsFeeCell
+          testID={TransactionDetailsSelectorIDs.NETWORK_FEE}
+          value={networkFeeFormatted}
+          chainId={feeChainId}
+          address={getNativeTokenAddress(feeChainId) as Hex}
+        />
       ) : (
         <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
           {networkFeeFormatted}

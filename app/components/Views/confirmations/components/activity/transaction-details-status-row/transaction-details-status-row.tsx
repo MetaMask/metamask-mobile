@@ -40,26 +40,22 @@ export function TransactionDetailsStatusRow() {
   );
 }
 
+const STATUS_TEXT_MAP: Partial<Record<TransactionStatus, string>> = {
+  [TransactionStatus.confirmed]: 'transaction.confirmed',
+  [TransactionStatus.failed]: 'transaction.failed',
+  [TransactionStatus.dropped]: 'transaction.failed',
+};
+
+const STATUS_COLOR_MAP: Partial<Record<TransactionStatus, TextColor>> = {
+  [TransactionStatus.confirmed]: TextColor.Success,
+  [TransactionStatus.failed]: TextColor.Error,
+  [TransactionStatus.dropped]: TextColor.Error,
+};
+
 function getStatusText(status: TransactionStatus): string {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return strings('transaction.confirmed');
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return strings('transaction.failed');
-    default:
-      return strings('transaction.pending');
-  }
+  return strings(STATUS_TEXT_MAP[status] ?? 'transaction.pending');
 }
 
 function getTextColor(status: TransactionStatus): TextColor {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return TextColor.Success;
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return TextColor.Error;
-    default:
-      return TextColor.Warning;
-  }
+  return STATUS_COLOR_MAP[status] ?? TextColor.Warning;
 }

@@ -3,8 +3,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { hasTransactionType } from '../../../utils/transaction';
@@ -12,7 +10,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { TransactionDetailsFeeCell } from '../transaction-details-fee-cell';
 
 export function TransactionDetailsBridgeFeeRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -49,20 +47,12 @@ export function TransactionDetailsBridgeFeeRow() {
   return (
     <TransactionDetailsRow label={label}>
       {showFeeIcon ? (
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={4}
-        >
-          <Text testID={TransactionDetailsSelectorIDs.TRANSACTION_FEE}>
-            {bridgeFeeFiatFormatted}
-          </Text>
-          <TokenIcon
-            chainId={sourceChainId as Hex}
-            address={tokenAddress as Hex}
-            variant={TokenIconVariant.Row}
-          />
-        </Box>
+        <TransactionDetailsFeeCell
+          testID={TransactionDetailsSelectorIDs.TRANSACTION_FEE}
+          value={bridgeFeeFiatFormatted}
+          chainId={sourceChainId as Hex}
+          address={tokenAddress as Hex}
+        />
       ) : (
         <Text testID={TransactionDetailsSelectorIDs.TRANSACTION_FEE}>
           {bridgeFeeFiatFormatted}

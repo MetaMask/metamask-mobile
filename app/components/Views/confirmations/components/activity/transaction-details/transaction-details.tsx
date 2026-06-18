@@ -119,8 +119,16 @@ function getTitle(
     if (isMoneyContext) {
       const isFiatDeposit = Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
       return isFiatDeposit
-        ? getFiatDepositTitle(transactionMeta.status)
-        : getConversionTitle(transactionMeta.status);
+        ? statusTitle(transactionMeta.status, {
+            confirmed: 'transaction_details.title.deposited_musd',
+            failed: 'transaction_details.title.deposit_failed',
+            pending: 'transaction_details.title.depositing_musd',
+          })
+        : statusTitle(transactionMeta.status, {
+            confirmed: 'transaction_details.title.converted_to_musd',
+            failed: 'transaction_details.title.conversion_failed',
+            pending: 'transaction_details.title.converting_to_musd',
+          });
     }
     return strings('transaction_details.title.money_account_deposit');
   }
@@ -137,7 +145,11 @@ function getTitle(
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
     if (isMoneyContext) {
-      return getSendTitle(transactionMeta.status);
+      return statusTitle(transactionMeta.status, {
+        confirmed: 'transaction_details.title.sent',
+        failed: 'transaction_details.title.send_failed',
+        pending: 'transaction_details.title.sending_musd',
+      });
     }
     return strings('transaction_details.title.predict_deposit');
   }
@@ -159,14 +171,22 @@ function getTitle(
   switch (transactionMeta.type) {
     case TransactionType.musdConversion:
       if (isMoneyContext) {
-        return getConversionTitle(transactionMeta.status);
+        return statusTitle(transactionMeta.status, {
+          confirmed: 'transaction_details.title.converted_to_musd',
+          failed: 'transaction_details.title.conversion_failed',
+          pending: 'transaction_details.title.converting_to_musd',
+        });
       }
       return strings('transaction_details.title.musd_conversion');
     case TransactionType.musdClaim:
       return strings('transaction_details.title.musd_claim');
     case TransactionType.perpsDeposit:
       if (isMoneyContext) {
-        return getSendTitle(transactionMeta.status);
+        return statusTitle(transactionMeta.status, {
+          confirmed: 'transaction_details.title.sent',
+          failed: 'transaction_details.title.send_failed',
+          pending: 'transaction_details.title.sending_musd',
+        });
       }
       return strings('transaction_details.title.perps_deposit');
     default:
@@ -174,38 +194,18 @@ function getTitle(
   }
 }
 
-function getFiatDepositTitle(status: TransactionStatus): string {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return strings('transaction_details.title.deposited_musd');
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return strings('transaction_details.title.deposit_failed');
-    default:
-      return strings('transaction_details.title.depositing_musd');
+function statusTitle(
+  status: TransactionStatus,
+  keys: { confirmed: string; failed: string; pending: string },
+): string {
+  if (status === TransactionStatus.confirmed) {
+    return strings(keys.confirmed);
   }
-}
-
-function getConversionTitle(status: TransactionStatus): string {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return strings('transaction_details.title.converted_to_musd');
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return strings('transaction_details.title.conversion_failed');
-    default:
-      return strings('transaction_details.title.converting_to_musd');
+  if (
+    status === TransactionStatus.failed ||
+    status === TransactionStatus.dropped
+  ) {
+    return strings(keys.failed);
   }
-}
-
-function getSendTitle(status: TransactionStatus): string {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return strings('transaction_details.title.sent');
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return strings('transaction_details.title.send_failed');
-    default:
-      return strings('transaction_details.title.sending_musd');
-  }
+  return strings(keys.pending);
 }
