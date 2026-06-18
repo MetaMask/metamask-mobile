@@ -192,6 +192,12 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
+
+  // Define activeIndicators early so it's available in all callbacks
+  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
+    () => new Set(persistedIndicators),
+  );
+
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
@@ -199,33 +205,54 @@ const PriceAdvanced = ({
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
+      const properties: Record<string, unknown> = {
+        interaction_type: payload.interaction_type,
+        chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
+      };
+
+      // Add indicators_active when feature flag is enabled
+      if (isTechnicalIndicatorsEnabled) {
+        properties.indicators_active = [...activeIndicators];
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-          .addProperties({
-            interaction_type: payload.interaction_type,
-            chart_type:
-              chartType === ChartType.Candles ? 'candlestick' : 'line',
-          })
+          .addProperties(properties)
           .build(),
       );
     },
-    [createEventBuilder, trackEvent, chartType],
+    [
+      createEventBuilder,
+      trackEvent,
+      chartType,
+      isTechnicalIndicatorsEnabled,
+      activeIndicators,
+    ],
   );
 
   const handleChartTradingViewClicked = useCallback(() => {
+    const properties: Record<string, unknown> = {
+      interaction_type: 'tradingview_clicked',
+      chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
+    };
+
+    // Add indicators_active when feature flag is enabled
+    if (isTechnicalIndicatorsEnabled) {
+      properties.indicators_active = [...activeIndicators];
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-        .addProperties({
-          interaction_type: 'tradingview_clicked',
-          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
-        })
+        .addProperties(properties)
         .build(),
     );
-  }, [createEventBuilder, trackEvent, chartType]);
-
-  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
-    () => new Set(persistedIndicators),
-  );
+  }, [
+    createEventBuilder,
+    trackEvent,
+    chartType,
+    isTechnicalIndicatorsEnabled,
+    activeIndicators,
+  ]);
 
   // Sync activeIndicators to Redux for persistence
   useEffect(() => {
@@ -254,17 +281,32 @@ const PriceAdvanced = ({
         setCrosshairData(null);
         setActiveIndicators(new Set());
       }
+
+      const properties: Record<string, unknown> = {
+        interaction_type: 'chart_type_changed',
+        chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
+      };
+
+      // Add indicators_active when feature flag is enabled
+      if (isTechnicalIndicatorsEnabled) {
+        properties.indicators_active = [...activeIndicators];
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-          .addProperties({
-            interaction_type: 'chart_type_changed',
-            chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
-          })
+          .addProperties(properties)
           .build(),
       );
       dispatch(setTokenOverviewChartType(next));
     },
-    [chartType, createEventBuilder, trackEvent, dispatch],
+    [
+      chartType,
+      createEventBuilder,
+      trackEvent,
+      dispatch,
+      isTechnicalIndicatorsEnabled,
+      activeIndicators,
+    ],
   );
 
   const toggleChartType = useCallback(() => {
