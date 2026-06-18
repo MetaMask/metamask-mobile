@@ -36,7 +36,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000001',
     rank: 1,
     overallRank: 1,
-    username: 'sniperliquid.hl',
+    username: 'alpha.eth',
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
     pnlValue: 963146.8,
@@ -48,7 +48,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000002',
     rank: 2,
     overallRank: 2,
-    username: 'nervousdegen',
+    username: 'beta.eth',
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
     pnlValue: 474751.45,
@@ -60,7 +60,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000003',
     rank: 3,
     overallRank: 3,
-    username: 'baznocap',
+    username: 'gamma.eth',
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
     pnlValue: 374735.16,
@@ -69,7 +69,7 @@ const fixtureTraders: TopTrader[] = [
   },
 ];
 
-type ChainKey = 'all' | 'base' | 'solana' | 'ethereum';
+type ChainKey = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
 
 const buildResult = (
   overrides: Partial<UseTopTradersResult> = {},
@@ -90,6 +90,7 @@ const mockResultsByChain: Record<ChainKey, UseTopTradersResult> = {
   base: buildResult(),
   solana: buildResult(),
   ethereum: buildResult(),
+  hyperliquid: buildResult(),
 };
 
 const setChainResult = (
@@ -226,14 +227,14 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('renders the rank for the top trader', () => {
+  it('renders a podium medal for the top trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('1')).toBeOnTheScreen();
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
   });
 
-  it('renders the ROI for the first trader', () => {
+  it('renders the full PnL for the first trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('calls toggleFollow with analytics context when Follow button is pressed', () => {
@@ -261,9 +262,9 @@ describe('TopTradersView', () => {
     expect(typeof refreshControl.props.refreshing).toBe('boolean');
   });
 
-  it('invalidates all four tab queries when the scroll view is pulled down', async () => {
+  it('invalidates every tab query when the scroll view is pulled down', async () => {
     // Each chain's result wraps the shared mockRefresh — pull-to-refresh
-    // should call it once per tab (4 total).
+    // should call it once per tab (all, base, solana, ethereum, hyperliquid).
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
@@ -272,7 +273,7 @@ describe('TopTradersView', () => {
       await list.props.refreshControl.props.onRefresh();
     });
 
-    expect(mockRefresh).toHaveBeenCalledTimes(4);
+    expect(mockRefresh).toHaveBeenCalledTimes(5);
   });
 
   it('logs an error when refresh fails', async () => {
@@ -306,7 +307,7 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders all four chain filter pills', () => {
+  it('renders all chain filter pills including Hyperliquid', () => {
     renderWithProvider(<TopTradersView />);
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
@@ -320,6 +321,9 @@ describe('TopTradersView', () => {
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ETHEREUM),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+    ).toBeOnTheScreen();
   });
 
   it('fires a separate query per chain on mount (parallel prefetch)', () => {
@@ -329,13 +333,15 @@ describe('TopTradersView', () => {
       ([opts]) => opts?.chains,
     );
     // "All" tab explicitly requests the spot chains so hyperliquid (perps)
-    // doesn't dominate the rankings; chain tabs each request their own chain.
+    // doesn't dominate the rankings; chain tabs each request their own chain,
+    // including a dedicated hyperliquid (perps) tab.
     expect(chainsArgs).toEqual(
       expect.arrayContaining([
         ['base', 'solana', 'ethereum'],
         ['base'],
         ['solana'],
         ['ethereum'],
+        ['hyperliquid'],
       ]),
     );
   });
@@ -353,9 +359,23 @@ describe('TopTradersView', () => {
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
     );
 
-    expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
-    expect(screen.getByText('baznocap')).toBeOnTheScreen();
-    expect(screen.queryByText('nervousdegen')).not.toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
+  });
+
+  it('shows the Hyperliquid tab’s own (perps) traders when selected', () => {
+    setChainResult('hyperliquid', {
+      traders: [{ ...fixtureTraders[2], rank: 1 }],
+    });
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_HYPERLIQUID),
+    );
+
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
   });
 
   it('uses the per-tab rank when navigating to a profile', () => {
@@ -367,7 +387,7 @@ describe('TopTradersView', () => {
     fireEvent.press(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
     );
-    fireEvent.press(screen.getByText('sniperliquid.hl'));
+    fireEvent.press(screen.getByText('alpha.eth'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'TraderProfileView',
@@ -384,7 +404,7 @@ describe('TopTradersView', () => {
     expect(
       screen.queryByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
+    expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
   });
 
   describe('analytics', () => {
@@ -415,7 +435,7 @@ describe('TopTradersView', () => {
 
     it('fires Trader Leaderboard Trader Clicked with rank and chain filter on row press', () => {
       renderWithProvider(<TopTradersView />);
-      fireEvent.press(screen.getByText('sniperliquid.hl'));
+      fireEvent.press(screen.getByText('alpha.eth'));
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED,
         expect.objectContaining({

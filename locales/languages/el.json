@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Ζωντανά τώρα",
       "categories_placeholder": "Κατηγορίες",
-      "popular_today_placeholder": "Δημοφιλή σήμερα",
       "trending_placeholder": "Δημοφιλή"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Πόντοι από παραπομπές",
       "referrals_label": "VIP παραπομπές",
       "tier_benefits_title": "Οφέλη επιπέδου",
-      "splash_title": "ΚΑΛΩΣ ΗΡΘΑΤΕ\nΣΤΟ GOLD\nFOX VIP",
+      "splash_title": "ΚΑΛΩΣ ΗΡΘΑΤΕ\nΣΤΟ GOLD FOX\nCOLLECTIVE",
       "splash_description": "Ξεκλειδώστε αποκλειστικά προνόμια, πρώιμη πρόσβαση σε λειτουργίες και επιλεγμένες ανταμοιβές. Μόνο με πρόσκληση.",
       "splash_accept_invite": "Αποδοχή πρόσκλησης",
       "splash_not_now": "Όχι τώρα",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Επίπεδα",
       "tier_thresholds": "{{points}} πόντοι",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "ΚΑΛΩΣ ΗΡΘΑΤΕ\nΣΤΟ GOLD\nFOX VIP",
-      "referee_splash_description": "Ξεκλειδώστε αποκλειστικά προνόμια, πρώιμη πρόσβαση σε λειτουργίες και επιλεγμένες ανταμοιβές. Μόνο με πρόσκληση.",
       "referee_splash_continue": "Συνεχίστε",
-      "referee_splash_not_now": "Όχι τώρα",
       "referee_referred_by": "Παραπομπή από {{code}}",
       "referee_page_title": "VIP δοκιμαστικό πρόγραμμα",
       "referee_stats_title": "Στατιστικά",
       "referee_period_last_30d": "Τελευταίες 30 ημέρες",
-      "referee_points_label": "Πόντοι",
       "referee_swaps_volume_label": "Όγκος ανταλλαγών",
       "referee_perps_volume_label": "Όγκος perps",
+      "referee_points_to_label": "Πόντοι προς {{code}}",
       "referee_error_title": "Δεν ήταν δυνατή η φόρτωση των στοιχείων της VIP παραπομπής σας",
       "referee_error_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
       "last_updated": "Τελευταία ενημέρωση: {{time}}"
