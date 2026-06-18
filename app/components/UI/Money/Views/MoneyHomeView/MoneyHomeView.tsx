@@ -51,6 +51,8 @@ import {
   selectHasMetalCard,
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -160,6 +162,12 @@ const MoneyHomeView = () => {
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const hasMetalCard = useSelector(selectHasMetalCard);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
   const {
     startLinkFlow,
     isCardAuthenticated,
@@ -177,6 +185,7 @@ const MoneyHomeView = () => {
     isCardAuthenticated,
     isCardVerified,
     isResidencyBlocked,
+    isMoneyAccountVisible,
     hasMoneyAccountBaseRequirements,
     hasMoneyAccountRequirements,
   });
