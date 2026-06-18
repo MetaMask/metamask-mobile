@@ -569,7 +569,9 @@ const PriceAdvanced = ({
     assetId,
     interval: isTechnicalIndicatorsEnabled ? chartInterval : wsInterval,
     currency: currentCurrency,
-    timePeriod: effectiveTimePeriod,
+    timePeriod: isTechnicalIndicatorsEnabled
+      ? effectiveTimePeriod
+      : timeRange.toLowerCase(),
     enabled: wsEnabled,
   });
 

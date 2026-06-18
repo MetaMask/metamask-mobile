@@ -8,6 +8,7 @@ import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
@@ -36,11 +37,23 @@ jest.mock(
   }),
 );
 
+const { selectTokenIndicators } = jest.requireActual(
+  '../../../../reducers/user/selectors',
+);
+
+const mockUseSelector = jest.fn((selector: unknown) => {
+  if (selector === selectTokenIndicators) return [];
+  if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+    return mockSelectTechnicalIndicatorsEnabled();
+  }
+  return 2; // ChartType.Line
+});
+
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
     ...actual,
-    useSelector: jest.fn(() => 2), // ChartType.Line = 2
+    useSelector: (selector: unknown) => mockUseSelector(selector),
     useDispatch: jest.fn(() => jest.fn()),
   };
 });
@@ -118,17 +131,23 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
   const MockSelector = ({
     onSelect,
     onChartTypeSelect,
+    onChartTypeToggle,
   }: {
     onSelect: (r: string) => void;
     onChartTypeSelect?: (type: number) => void;
+    onChartTypeToggle?: () => void;
   }) => (
     <View testID="mock-time-range-selector">
       <Pressable testID="select-1W" onPress={() => onSelect('1W')} />
       <Pressable testID="select-1D" onPress={() => onSelect('1D')} />
-      {onChartTypeSelect && (
+      {(onChartTypeSelect || onChartTypeToggle) && (
         <Pressable
           testID="toggle-chart-type"
-          onPress={() => onChartTypeSelect(MockChartType.Candles)}
+          onPress={() =>
+            onChartTypeSelect
+              ? onChartTypeSelect(MockChartType.Candles)
+              : onChartTypeToggle?.()
+          }
         >
           <Text>Toggle</Text>
         </Pressable>
@@ -191,6 +210,7 @@ describe('PriceAdvanced', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
     jest.mocked(PriceLegacy).mockClear();
     const analyticsHook = createMockUseAnalyticsHook({
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
@@ -1325,7 +1345,6 @@ describe('PriceAdvanced', () => {
       expect(mockUseOHLCVChart).toHaveBeenCalledWith(
         expect.objectContaining({
           timePeriod: '1d',
-          interval: '15m', // WS_INTERVAL_BY_TIME_RANGE['1D']
         }),
       );
     });
@@ -1389,7 +1408,7 @@ describe('PriceAdvanced', () => {
       expect(mockUseOHLCVChart).toHaveBeenCalledWith(
         expect.objectContaining({
           timePeriod: '1d', // Initial timeRange is '1D'
-          interval: '15m',
+          interval: undefined, // flag OFF: config.interval omitted (API default)
         }),
       );
     });
