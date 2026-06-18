@@ -107,7 +107,7 @@ export const EditMultichainAccountName = () => {
   }, [accountName, accountGroup, navigation]);
 
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={containerStyle}>
+    <SafeAreaView edges={['left', 'right']} style={containerStyle}>
       <HeaderStandard
         includesTopInset
         title={accountGroup?.metadata?.name || 'Account Group'}
