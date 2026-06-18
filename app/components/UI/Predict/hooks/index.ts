@@ -5,11 +5,7 @@ export type { UseCurrentCryptoUpDownMarketDataParams } from './useCurrentCryptoU
 export { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFromSeries';
 export type { UseCurrentPredictMarketFromSeriesParams } from './useCurrentPredictMarketFromSeries';
 
-export {
-  useLiveGameUpdates,
-  type UseLiveGameUpdatesOptions,
-  type UseLiveGameUpdatesResult,
-} from './useLiveGameUpdates';
+export { usePredictGame, type UsePredictGameResult } from './usePredictGame';
 
 export {
   useLiveMarketPrices,
