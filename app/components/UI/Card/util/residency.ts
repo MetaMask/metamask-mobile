@@ -2,7 +2,7 @@
  * Builds a residency region code from authenticated card KYC data.
  * US cardholders with a known state use the `US-{STATE}` pattern (e.g. US-CA)
  * so blocked-region lists can target specific states via
- * `selectMusdConversionBlockedCountries`.
+ * `selectMoneyAccountGeoBlockedCountries`.
  */
 export const buildCardResidencyRegion = (
   countryOfResidence: string | null,
