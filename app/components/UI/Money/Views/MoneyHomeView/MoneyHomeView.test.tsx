@@ -1272,6 +1272,24 @@ describe('MoneyHomeView', () => {
         mockDataEnabled: false,
       });
       mockSelectIsCardholder.mockReturnValue(true);
+      // Non-US so MetaMask card renders in link mode (manage mode is US-only).
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+      // Money Account ↔ card requirements met (incl. VEDA allowlisted) so the
+      // link CTA is offered.
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'veda' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
     });
 
     it('renders MetaMask Card section in link mode', () => {
@@ -1732,6 +1750,21 @@ describe('MoneyHomeView', () => {
 
     it('selects mode="link" when cardholder but not linked', () => {
       mockSelectIsCardholder.mockReturnValue(true);
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'veda' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1740,22 +1773,34 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('selects mode="link" for cardholder even with zero transactions', () => {
+    it('hides the card section when cardholder but VEDA is not allowlisted (cannot link)', () => {
       mockSelectIsCardholder.mockReturnValue(true);
-      mockUseMoneyAccountTransactions.mockReturnValue({
-        allTransactions: [],
-        deposits: [],
-        transfers: [],
-        submittedTransactions: [],
-        moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
-      });
+      // Non-US so the card would otherwise render in link mode; VEDA not
+      // allowlisted drops hasMoneyAccountRequirements, hiding the section.
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: false,
+        isCardAuthenticated: true,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: null,
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
-      ).toBeOnTheScreen();
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('selects mode="upsell" when not cardholder', () => {

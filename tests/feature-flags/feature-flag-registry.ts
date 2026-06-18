@@ -3857,17 +3857,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  predictHomepageDiscoveryNbaChampionEnabled: {
-    name: 'predictHomepageDiscoveryNbaChampionEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '7.77.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   coreMCU747AbtestPredictPositionsEmptyState: {
     name: 'coreMCU747AbtestPredictPositionsEmptyState',
     type: FeatureFlagType.Remote,
@@ -4943,75 +4932,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  explorePageV2Enabled: {
-    name: 'explorePageV2Enabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
-  exploreSearchV2: {
-    name: 'exploreSearchV2',
+  predictSportCardLivePrices: {
+    name: 'predictSportCardLivePrices',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '7.79.0',
+      minimumVersion: '7.81.0',
       enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  exploreSectionsOrder: {
-    name: 'exploreSectionsOrder',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  homeTMCU828AbtestOnboardingChecklistStepper: {
-    name: 'homeTMCU828AbtestOnboardingChecklistStepper',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyHomeScreenEnabled: {
-    name: 'moneyHomeScreenEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  predictHomeRedesign: {
-    name: 'predictHomeRedesign',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  predictPortfolio: {
-    name: 'predictPortfolio',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },

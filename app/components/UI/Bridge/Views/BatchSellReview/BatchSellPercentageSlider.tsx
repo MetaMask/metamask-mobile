@@ -29,13 +29,17 @@ export function clampToPercentage(value: number): number {
 
 interface BatchSellPercentageSliderProps {
   value: number;
+  /** Called on every 1% change during drag for live display updates. */
   onValueChange: (value: number) => void;
+  /** Called when the user lifts their finger or taps the track. */
+  onDragEnd?: (value: number) => void;
   testID?: string;
 }
 
 export function BatchSellPercentageSlider({
   value,
   onValueChange,
+  onDragEnd,
   testID,
 }: BatchSellPercentageSliderProps) {
   const { styles } = useStyles(styleSheet, {});
@@ -52,7 +56,7 @@ export function BatchSellPercentageSlider({
     [translateX],
   );
 
-  const commitValueFromPosition = useCallback(
+  const updateValueFromPosition = useCallback(
     (position: number, width: number) => {
       if (width === 0) {
         return;
@@ -64,9 +68,28 @@ export function BatchSellPercentageSlider({
       );
 
       updatePosition(nextValue, width);
-      onValueChange(nextValue);
+
+      if (nextValue !== value) {
+        onValueChange(nextValue);
+      }
     },
-    [onValueChange, updatePosition],
+    [onValueChange, updatePosition, value],
+  );
+
+  const commitFromPosition = useCallback(
+    (position: number, width: number) => {
+      if (width === 0 || !onDragEnd) {
+        return;
+      }
+
+      const clampedPosition = Math.max(0, Math.min(position, width));
+      const nextValue = clampToPercentage(
+        (clampedPosition / width) * MAX_PERCENTAGE,
+      );
+
+      onDragEnd(nextValue);
+    },
+    [onDragEnd],
   );
 
   const handleLayout = useCallback(
@@ -103,23 +126,15 @@ export function BatchSellPercentageSlider({
 
   const gesture = Gesture.Simultaneous(
     Gesture.Tap().onEnd((event) => {
-      runOnJS(commitValueFromPosition)(event.x, sliderWidth.value);
+      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+      runOnJS(commitFromPosition)(event.x, sliderWidth.value);
     }),
     Gesture.Pan()
       .onUpdate((event) => {
-        const width = sliderWidth.value;
-
-        if (width === 0) {
-          return;
-        }
-
-        // Track finger position at 1 % granularity while dragging.
-        const rawPos = Math.max(0, Math.min(event.x, width));
-        const pct = Math.round((rawPos / width) * MAX_PERCENTAGE);
-        translateX.value = (pct / MAX_PERCENTAGE) * width;
+        runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
       })
       .onEnd((event) => {
-        runOnJS(commitValueFromPosition)(event.x, sliderWidth.value);
+        runOnJS(commitFromPosition)(event.x, sliderWidth.value);
       }),
   );
 
@@ -130,9 +145,12 @@ export function BatchSellPercentageSlider({
           ? clampToPercentage(clampedValue + 1)
           : clampToPercentage(clampedValue - 1);
 
-      onValueChange(nextValue);
+      if (nextValue !== clampedValue) {
+        onValueChange(nextValue);
+        onDragEnd?.(nextValue);
+      }
     },
-    [onValueChange, clampedValue],
+    [onDragEnd, onValueChange, clampedValue],
   );
 
   return (
@@ -151,7 +169,11 @@ export function BatchSellPercentageSlider({
     >
       <View style={styles.trackContainer}>
         <GestureDetector gesture={gesture}>
-          <Animated.View onLayout={handleLayout} style={styles.gestureArea}>
+          <Animated.View
+            onLayout={handleLayout}
+            style={styles.gestureArea}
+            testID={testID ? `${testID}-gesture-area` : undefined}
+          >
             <Animated.View style={styles.track} />
             <Animated.View style={[styles.progress, progressStyle]} />
             <Animated.View style={[styles.thumb, handleStyle]} />

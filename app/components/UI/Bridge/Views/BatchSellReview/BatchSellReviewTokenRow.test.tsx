@@ -40,16 +40,24 @@ jest.mock('./BatchSellPercentageSlider', () => {
   return {
     BatchSellPercentageSlider: ({
       onValueChange,
+      onDragEnd,
       testID,
       value,
     }: {
       onValueChange: (value: number) => void;
+      onDragEnd?: (value: number) => void;
       testID?: string;
       value: number;
     }) =>
       ReactActual.createElement(
         RNPressable,
-        { testID, onPress: () => onValueChange(75) },
+        {
+          testID,
+          onPress: () => {
+            onValueChange(75);
+            onDragEnd?.(75);
+          },
+        },
         ReactActual.createElement(RNText, null, `${value}%`),
       ),
   };
@@ -214,7 +222,7 @@ describe('BatchSellReviewTokenRow', () => {
     expect(getByText('0.74906 ETH • 50%')).toBeOnTheScreen();
   });
 
-  it('forwards slider percent changes', () => {
+  it('forwards slider percent changes on drag end', () => {
     const { getByTestId } = render(
       <BatchSellReviewTokenRow
         token={mockToken}

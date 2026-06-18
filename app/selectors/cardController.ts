@@ -28,7 +28,10 @@ import {
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { selectPrimaryMoneyAccount } from './moneyAccountController';
+import {
+  selectMoneyAccounts,
+  selectPrimaryMoneyAccount,
+} from './moneyAccountController';
 import { selectCardFeatureFlag } from './featureFlagController/card';
 
 const LINEA_MAINNET_CAIP_CHAIN_ID = 'eip155:59144';
@@ -149,31 +152,6 @@ export const selectMoneyAccountVedaTokenConfig = createSelector(
     getVedaTokenConfig(data?.delegationSettings),
 );
 
-const toFundingTokenWithVedaContext = (
-  asset: Parameters<typeof toCardFundingToken>[0],
-  vedaConfig: VedaTokenConfig | null,
-): CardFundingToken => {
-  const isVedaEntry = isMoneyAccountEntry(
-    {
-      address: asset.address,
-      stagingTokenAddress: asset.stagingTokenAddress,
-      caipChainId: asset.chainId,
-      symbol: asset.symbol,
-    },
-    vedaConfig,
-  );
-  return toCardFundingToken(
-    asset,
-    isVedaEntry,
-    isVedaEntry ? MONEY_ACCOUNT_DISPLAY_SYMBOL : undefined,
-  );
-};
-
-export const selectHasMetalCard = createSelector(
-  selectCardHomeData,
-  (data): boolean => data?.card?.type === CardType.METAL,
-);
-
 export const selectCardPrimaryToken = createSelector(
   selectCardHomeData,
   selectMoneyAccountVedaTokenConfig,
@@ -225,12 +203,15 @@ export const selectCardAvailableTokens = createSelector(
 
     const placeholders = buildDelegationTokenList({
       delegationSettings,
+      enforceSupportList: true,
       getSupportedTokensByChainId: (chainId) =>
-        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? []).map((t) => ({
-          address: t.address ?? undefined,
-          symbol: t.symbol ?? undefined,
-          name: t.name ?? undefined,
-        })),
+        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? [])
+          .filter((t) => t?.enabled !== false)
+          .map((t) => ({
+            address: t.address ?? undefined,
+            symbol: t.symbol ?? undefined,
+            name: t.name ?? undefined,
+          })),
     })
       .filter(
         (placeholder) =>

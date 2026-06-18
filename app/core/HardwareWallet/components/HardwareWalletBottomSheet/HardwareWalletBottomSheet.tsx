@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useCallback, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
-
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -264,15 +264,17 @@ export const HardwareWalletBottomSheet: React.FC<
   }
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      testID={HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID}
-      isFullscreen={false}
-      onClose={handleClose}
-      shouldNavigateBack={false}
-      style={styles.bottomSheet}
-    >
-      {renderContent()}
-    </BottomSheet>
+    <GestureHandlerRootView style={StyleSheet.absoluteFill}>
+      <BottomSheet
+        ref={bottomSheetRef}
+        testID={HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID}
+        isFullscreen={false}
+        onClose={handleClose}
+        shouldNavigateBack={false}
+        style={styles.bottomSheet}
+      >
+        {renderContent()}
+      </BottomSheet>
+    </GestureHandlerRootView>
   );
 };
