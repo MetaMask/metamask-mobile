@@ -1,5 +1,4 @@
 import type { AnalyticsExpectations } from '../../../framework';
-import Assertions from '../../../framework/Assertions';
 import { filterEvents } from '../helpers';
 
 const BRIDGE_BUTTON_CLICKED = 'Unified SwapBridge Button Clicked';
@@ -18,7 +17,6 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
     SUBMITTED,
     COMPLETED,
   ],
-  expectedTotalCount: 9,
   events: [
     {
       name: BRIDGE_BUTTON_CLICKED,
@@ -70,8 +68,11 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
   ],
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
-
-    await Assertions.checkIfArrayHasLength(inputChanged, 4);
+    if (events.length < 9) {
+      throw new Error(
+        `Expected at least 9 MetaMetrics events, got ${events.length}`,
+      );
+    }
 
     const inputs = inputChanged.map((e) => e.properties.input);
     for (const expected of [

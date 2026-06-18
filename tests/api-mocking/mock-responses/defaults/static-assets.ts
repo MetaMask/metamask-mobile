@@ -15,6 +15,12 @@ export const STATIC_ASSETS_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: '',
     },
+    {
+      urlEndpoint:
+        /^https:\/\/static\.cx\.metamask\.io\/api\/v1\/tokenIcons\/.+\.png$/,
+      responseCode: 200,
+      response: '',
+    },
   ],
   GET: [
     {
@@ -34,6 +40,12 @@ export const STATIC_ASSETS_MOCKS: MockEventsObject = {
         /^https:\/\/metamask\.github\.io\/test-dapp\/metamask-fox\.svg$/,
       responseCode: 200,
       response: MINIMAL_SVG,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/static\.cx\.metamask\.io\/api\/v1\/tokenIcons\/.+\.png$/,
+      responseCode: 200,
+      response: '',
     },
   ],
 };

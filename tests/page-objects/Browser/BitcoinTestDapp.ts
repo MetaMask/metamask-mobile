@@ -171,7 +171,13 @@ class BitcoinTestDapp {
     await this.tapButton(this.signMessageButtonSelector);
   }
 
-  async verifyConnectedAccount(connectionStatus: string): Promise<void> {
+  async verifyConnectedAccount(
+    connectionStatus: string,
+    options: {
+      timeout?: number;
+    } = {},
+  ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout } = options;
     await Utilities.executeWithRetry(
       async () => {
         const account = await getTestElement(
@@ -180,7 +186,7 @@ class BitcoinTestDapp {
             extraXPath: '/a',
           },
         );
-        const actualText = await account.getText();
+        const actualText = (await account.getText()).trim();
 
         if (actualText !== connectionStatus) {
           throw new Error(
@@ -189,19 +195,25 @@ class BitcoinTestDapp {
         }
       },
       {
-        timeout: BASE_DEFAULTS.timeout,
+        timeout,
         description: 'Verify connection status',
       },
     );
   }
 
-  async verifyConnectionStatus(connectionStatus: string): Promise<void> {
+  async verifyConnectionStatus(
+    connectionStatus: string,
+    options: {
+      timeout?: number;
+    } = {},
+  ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout } = options;
     await Utilities.executeWithRetry(
       async () => {
         const connectionStatusDiv = await getTestElement(
           dataTestIds.testPage.header.connectionStatus,
         );
-        const actualText = await connectionStatusDiv.getText();
+        const actualText = (await connectionStatusDiv.getText()).trim();
 
         if (actualText !== connectionStatus) {
           throw new Error(
@@ -210,7 +222,7 @@ class BitcoinTestDapp {
         }
       },
       {
-        timeout: BASE_DEFAULTS.timeout,
+        timeout,
         description: 'Verify connection status',
       },
     );
