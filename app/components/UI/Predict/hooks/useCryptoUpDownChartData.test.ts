@@ -1,7 +1,10 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useCryptoUpDownChartData } from './useCryptoUpDownChartData';
+import {
+  getHistoricalPollInterval,
+  useCryptoUpDownChartData,
+} from './useCryptoUpDownChartData';
 import type { CryptoPriceUpdate, PredictMarket, PredictSeries } from '../types';
 import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.types';
 
@@ -155,6 +158,25 @@ describe('useCryptoUpDownChartData', () => {
   });
 
   describe('historical query polling', () => {
+    type RefetchIntervalFn = () => number | false;
+
+    const evaluateRefetchInterval = (): number | false => {
+      const refetchInterval = mockLastUseQueryConfig.current
+        ?.refetchInterval as RefetchIntervalFn;
+      return refetchInterval();
+    };
+
+    const recordFailures = (count: number): void => {
+      const onError = mockLastUseQueryConfig.current?.onError as () => void;
+      for (let i = 0; i < count; i += 1) {
+        onError();
+      }
+    };
+
+    const recordSuccess = (): void => {
+      (mockLastUseQueryConfig.current?.onSuccess as () => void)();
+    };
+
     it('does not poll while live when the live socket is connected', () => {
       mockUseLiveCryptoPrices.mockImplementation(
         (_symbol: string, onUpdate: (update: CryptoPriceUpdate) => void) => {
@@ -167,7 +189,10 @@ describe('useCryptoUpDownChartData', () => {
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
-      expect(mockLastUseQueryConfig.current?.refetchInterval).toBe(false);
+      expect(evaluateRefetchInterval()).toBe(false);
+      // Stays disabled even after failures accumulate.
+      recordFailures(5);
+      expect(evaluateRefetchInterval()).toBe(false);
     });
 
     it('polls every 10s while live when the live socket is disconnected', () => {
@@ -182,7 +207,31 @@ describe('useCryptoUpDownChartData', () => {
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
-      expect(mockLastUseQueryConfig.current?.refetchInterval).toBe(10000);
+      expect(evaluateRefetchInterval()).toBe(10000);
+    });
+
+    it('backs off, stops, then recovers as failures accumulate and clear', () => {
+      mockUseLiveCryptoPrices.mockImplementation(
+        (_symbol: string, onUpdate: (update: CryptoPriceUpdate) => void) => {
+          liveUpdateHandler = onUpdate;
+          return { isConnected: false };
+        },
+      );
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
+
+      expect(evaluateRefetchInterval()).toBe(10000);
+      recordFailures(3);
+      expect(evaluateRefetchInterval()).toBe(30000);
+      recordFailures(2); // 5 total
+      expect(evaluateRefetchInterval()).toBe(60000);
+      recordFailures(2); // 7 total
+      expect(evaluateRefetchInterval()).toBe(false);
+      // A successful fetch resets the count and restores the base cadence.
+      recordSuccess();
+      expect(evaluateRefetchInterval()).toBe(10000);
     });
 
     it('does not poll for a non-live (historical-only) chart', () => {
@@ -197,7 +246,29 @@ describe('useCryptoUpDownChartData', () => {
         { wrapper: Wrapper },
       );
 
-      expect(mockLastUseQueryConfig.current?.refetchInterval).toBe(false);
+      expect(evaluateRefetchInterval()).toBe(false);
+      // Even with many failures recorded, a disabled poll stays disabled.
+      recordFailures(99);
+      expect(evaluateRefetchInterval()).toBe(false);
+    });
+  });
+
+  describe('getHistoricalPollInterval', () => {
+    it('uses the base 10s cadence below the backoff threshold', () => {
+      expect(getHistoricalPollInterval(0)).toBe(10000);
+      expect(getHistoricalPollInterval(2)).toBe(10000);
+    });
+
+    it('backs off to 30s then 60s as failures accumulate', () => {
+      expect(getHistoricalPollInterval(3)).toBe(30000);
+      expect(getHistoricalPollInterval(4)).toBe(30000);
+      expect(getHistoricalPollInterval(5)).toBe(60000);
+      expect(getHistoricalPollInterval(6)).toBe(60000);
+    });
+
+    it('stops polling once the disable threshold is reached', () => {
+      expect(getHistoricalPollInterval(7)).toBe(false);
+      expect(getHistoricalPollInterval(100)).toBe(false);
     });
   });
 
