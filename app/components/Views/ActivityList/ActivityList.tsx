@@ -959,7 +959,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         isInitialFilterRender.current = false;
         return;
       }
-      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
     }, [typeFilter, networkFilter]);
 
     const runAutoScroll = useCallback(() => {
@@ -983,11 +983,25 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const renderInitialLoading = () => (
       <View style={styles.emptyList}>
-        <ActivityIndicator color={colors.icon.default} />
+        <ActivityIndicator
+          color={colors.icon.default}
+          testID={ActivityListSelectorsIDs.LOADING_INDICATOR}
+        />
       </View>
     );
 
-    const shouldShowTransactionList = !isInitialLoading && data.length > 0;
+    // Perps/Predict sources can resolve before or after the EVM query, so don't
+    // gate rendering on the EVM query's initial load: show rows as soon as ANY
+    // source has them, and treat the list as still-loading until every enabled
+    // source has settled. Otherwise already-available domain rows get hidden
+    // behind the EVM spinner, and a premature "no activity" empty state shows on
+    // the Perps/Predict filters while their source is still loading.
+    const isPerpsLoading = isPerpsEnabled && perpsSource.isLoading;
+    const isPredictLoading = isPredictEnabled && predictSource.isLoading;
+    const isAnyActivityLoading =
+      isInitialLoading || isPerpsLoading || isPredictLoading;
+
+    const shouldShowTransactionList = data.length > 0;
     const items = shouldShowTransactionList ? groupedData : [];
 
     const renderItem = ({
@@ -1103,7 +1117,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                 keyExtractor={generateGroupedKey}
                 ListHeaderComponent={header}
                 ListEmptyComponent={
-                  isInitialLoading ? renderInitialLoading : renderEmptyList
+                  isAnyActivityLoading ? renderInitialLoading : renderEmptyList
                 }
                 ListFooterComponent={footerComponent}
                 style={baseStyles.flexGrow}

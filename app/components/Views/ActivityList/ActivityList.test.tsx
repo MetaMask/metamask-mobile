@@ -653,9 +653,11 @@ describe('ActivityList', () => {
       <ActivityList header={<></>} typeFilter={ActivityTypeFilter.Perps} />,
     );
 
+    // Non-animated so the new filter presents at the top instead of visibly
+    // scrolling up from FlashList's retained offset.
     expect(mockScrollToOffset).toHaveBeenCalledWith({
       offset: 0,
-      animated: true,
+      animated: false,
     });
   });
 
@@ -700,6 +702,50 @@ describe('ActivityList', () => {
 
     expect(screen.getByTestId('row-perps-fill-1')).toBeOnTheScreen();
     expect(screen.queryByTestId('row-0xconfirmed')).toBeNull();
+  });
+
+  it('shows the loading indicator (not the empty state) while Perps is still loading after the EVM query settles', () => {
+    selectorValues.perpsEnabled = true;
+    // Perps source still loading with nothing yet...
+    mockPerpsSourceState = { items: [], isLoading: true, error: null };
+    // ...and the EVM query has already settled with no rows.
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+
+    expect(
+      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('activity-empty-state')).toBeNull();
+  });
+
+  it('shows the empty state once every enabled source has settled with no rows', () => {
+    selectorValues.perpsEnabled = true;
+    mockPerpsSourceState = { items: [], isLoading: false, error: null };
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+
+    expect(screen.getByTestId('activity-empty-state')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).toBeNull();
   });
 
   it('does not render perps items when the perps flag is disabled', () => {
