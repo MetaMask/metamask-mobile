@@ -74,7 +74,7 @@ export function useNoPayTokenQuotesAlert() {
     isPostQuote &&
     Boolean(payToken) &&
     !isQuotesLoading &&
-    !sourceAmounts?.length &&
+    sourceAmounts?.length &&
     !quotes?.length &&
     hasPositiveRequiredAmount;
 
