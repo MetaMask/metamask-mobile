@@ -4,6 +4,7 @@ import { FrameworkDetector } from './FrameworkDetector.ts';
 import { resolve } from './Selector.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import type { ScrollContainer } from './types.ts';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -194,14 +195,12 @@ export default class Matchers {
   }
 
   /**
-   * Scroll container matcher for Gestures.scrollToElement.
-   * Detox: native matcher by testID. Appium: omitted (scrollIntoView on target).
+   * Scroll container for Gestures.scrollToElement.
+   * Detox: native matcher by testID. Appium: testID string (resolved in UnifiedGestures).
    */
-  static scrollContainer(
-    selectorString: string,
-  ): Promise<Detox.NativeMatcher | undefined> {
+  static scrollContainer(selectorString: string): ScrollContainer {
     if (FrameworkDetector.isAppium()) {
-      return Promise.resolve(undefined);
+      return selectorString;
     }
     return this.getIdentifier(selectorString);
   }

@@ -442,29 +442,14 @@ class PerpsMarketDetailsView {
         });
       },
       appium: async () => {
-        const scrollView = Matchers.getElementByID(
-          PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
-        );
-
-        for (let attempt = 0; attempt < 8; attempt++) {
-          if (await Utilities.isElementVisible(autoCloseSection, 750)) {
-            break;
-          }
-          await Gestures.swipe(scrollView, 'up', {
-            speed: 'fast',
-            percentage: 0.65,
-            elemDescription:
-              'Swipe market details down to reveal Auto close section',
-          });
-        }
-
-        if (!(await Utilities.isElementVisible(autoCloseSection, 750))) {
-          await Gestures.scrollToElement(autoCloseSection, scrollContainer, {
+        await UnifiedGestures.scrollToElement(
+          autoCloseSection,
+          scrollContainer,
+          {
             direction: 'down',
-            scrollAmount: 250,
-            elemDescription: 'Scroll market details to Auto close section',
-          });
-        }
+            description: 'Scroll market details to Auto close section',
+          },
+        );
 
         await UnifiedGestures.waitAndTap(autoCloseSection, {
           description: 'Tap Auto close section on position card',
