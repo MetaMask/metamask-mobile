@@ -6,6 +6,10 @@ import {
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { isMusdToken } from '../../Earn/constants/musd';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from './moneyTransactionGuards';
 import type {
   MoneyActivityTitleKey,
   MoneyActivityTransactionMeta,
@@ -76,6 +80,15 @@ export function classifyMoneyActivity(tx: TransactionMeta): MoneyActivityKind {
   const { moneyActivityTitleKey } = tx as MoneyActivityTransactionMeta;
   if (moneyActivityTitleKey) {
     return TITLE_KEY_TO_KIND[moneyActivityTitleKey] ?? 'received';
+  }
+
+  // Perps/Predict ↔ Money transfers (matched via the mUSD pay token). Withdraw
+  // into the Money account reads as a deposit; deposit out of it reads as sent.
+  if (isPerpsPredictMoneyWithdraw(tx)) {
+    return 'deposited';
+  }
+  if (isPerpsPredictMoneyDeposit(tx)) {
+    return 'sent';
   }
 
   const type = resolveMoneyTransactionType(tx);

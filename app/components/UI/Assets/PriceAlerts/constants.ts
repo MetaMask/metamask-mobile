@@ -17,6 +17,8 @@ export interface PriceAlertRouteParams {
 export interface CreatePriceAlertRouteParams extends PriceAlertRouteParams {
   /** When true the screen was opened from ManagePriceAlertsView; pop 2 on save to return to TokenDetails. */
   fromManage?: boolean;
+  /** Thresholds of existing alerts for this asset, used for duplicate-threshold validation. */
+  existingThresholds?: number[];
 }
 
 /** API response shape for a single price alert. */
@@ -49,6 +51,13 @@ export interface SaveAlertParams {
   recurring: boolean;
 }
 
+/** Request body for updating an existing price alert via PATCH. At least one field is required. */
+export interface UpdateAlertParams {
+  active?: boolean;
+  threshold?: number;
+  recurring?: boolean;
+}
+
 export const CreatePriceAlertTestIds = {
   CONTAINER: 'create-price-alert-container',
   ALERT_TYPE_TOGGLE: 'create-price-alert-type-toggle',
@@ -69,6 +78,7 @@ export const ManagePriceAlertsTestIds = {
   ALERT_ITEM_PREFIX: 'manage-price-alerts-item',
   ALERT_TOGGLE_PREFIX: 'manage-price-alerts-toggle',
   ALERT_DELETE_PREFIX: 'manage-price-alerts-delete',
+  ALERT_DELETE_SPINNER_PREFIX: 'manage-price-alerts-delete-spinner',
   ADD_ALERT_BUTTON: 'manage-price-alerts-add-button',
   EMPTY_STATE: 'manage-price-alerts-empty',
 } as const;

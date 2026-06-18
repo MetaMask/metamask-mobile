@@ -125,7 +125,6 @@ const MoneyActivityView = () => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
-
   const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
@@ -194,9 +193,8 @@ const MoneyActivityView = () => {
         component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });
 
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId: transaction.id },
+      navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
       });
     },
     [navigation, trackActivitySurfaceClicked],

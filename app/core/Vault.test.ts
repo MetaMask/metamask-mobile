@@ -204,19 +204,6 @@ jest.mock('../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockMultichainWalletSnapClient = {
-  createAccount: jest.fn(),
-};
-
-jest.mock('./SnapKeyring/MultichainWalletSnapClient', () => ({
-  ...jest.requireActual('./SnapKeyring/MultichainWalletSnapClient'),
-  MultichainWalletSnapFactory: {
-    createClient: jest
-      .fn()
-      .mockImplementation(() => mockMultichainWalletSnapClient),
-  },
-}));
-
 describe('Vault', () => {
   beforeEach(() => {
     jest.clearAllMocks();

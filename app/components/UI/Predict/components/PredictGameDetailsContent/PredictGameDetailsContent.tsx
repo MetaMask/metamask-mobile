@@ -12,7 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -37,7 +37,9 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 
 const CHIPS_STICKY_INDEX = 2;
 
-const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
+const PredictGameDetailsContentComponent: React.FC<
+  PredictGameDetailsContentProps
+> = ({
   market,
   onBack,
   onRefresh,
@@ -230,5 +232,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     </SafeAreaView>
   );
 };
+
+// Memoized so a parent (PredictMarketDetails) re-render driven by its own live
+// subscriptions does not re-render this entire subtree when our props are
+// unchanged. The screen's live odds updates are driven by this component's own
+// hooks instead.
+const PredictGameDetailsContent = memo(PredictGameDetailsContentComponent);
 
 export default PredictGameDetailsContent;
