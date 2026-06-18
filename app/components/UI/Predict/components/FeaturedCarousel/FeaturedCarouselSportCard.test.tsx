@@ -215,7 +215,7 @@ describe('FeaturedCarouselSportCard', () => {
     jest.clearAllMocks();
     mockGetLivePrice.mockReturnValue(undefined);
     mockUsePredictGame.mockImplementation((market) => ({
-      game: market?.game ?? null,
+      game: market?.game,
       isConnected: false,
       lastUpdateTime: null,
     }));

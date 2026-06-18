@@ -277,7 +277,7 @@ describe('PredictGameDetailsContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePredictGame.mockImplementation((market) => ({
-      game: market?.game ?? null,
+      game: market?.game,
       isConnected: false,
       lastUpdateTime: null,
     }));

@@ -11,7 +11,7 @@ export interface UsePredictGameOptions {
 }
 
 export interface UsePredictGameResult {
-  game: PredictMarketGame | null;
+  game: PredictMarketGame | undefined;
   isConnected: boolean;
   lastUpdateTime: number | null;
 }
@@ -74,13 +74,13 @@ export const usePredictGame = (
   { live = false }: UsePredictGameOptions = {},
 ): UsePredictGameResult => {
   const queryClient = useQueryClient();
-  const initialGame = market?.game ?? null;
+  const initialGame = market?.game;
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(() =>
     initialGame?.id ? (liveGameUpdateTimes.get(initialGame.id) ?? null) : null,
   );
   const isMountedRef = useRef(true);
-  const gameRef = useRef<PredictMarketGame | null>(initialGame);
+  const gameRef = useRef<PredictMarketGame | undefined>(initialGame);
   const gameId = initialGame?.id ?? '';
 
   const queryKey = useMemo(
@@ -88,11 +88,11 @@ export const usePredictGame = (
     [gameId],
   );
 
-  const query = useQuery<PredictMarketGame | null>({
+  const query = useQuery<PredictMarketGame | undefined>({
     queryKey,
     queryFn: async () => {
       if (!initialGame) {
-        return null;
+        return undefined;
       }
 
       return mergeCachedGame(
@@ -174,7 +174,7 @@ export const usePredictGame = (
   }, [gameId, handleGameUpdate, live]);
 
   return {
-    game: query.data ?? null,
+    game: query.data,
     isConnected,
     lastUpdateTime,
   };

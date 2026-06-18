@@ -136,7 +136,7 @@ describe('usePredictGame', () => {
     expect(mockSubscribeToGameUpdates).not.toHaveBeenCalled();
   });
 
-  it('returns null when the market has no game', () => {
+  it('returns undefined when the market has no game', () => {
     const { Wrapper } = createWrapper();
     const market = createMarket({ game: undefined });
 
@@ -144,7 +144,7 @@ describe('usePredictGame', () => {
       wrapper: Wrapper,
     });
 
-    expect(result.current.game).toBeNull();
+    expect(result.current.game).toBeUndefined();
     expect(mockSubscribeToGameUpdates).not.toHaveBeenCalled();
   });
 
