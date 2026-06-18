@@ -10,6 +10,7 @@ import {
   type AdvancedChartRef,
   type PositionLines,
   type TradeMarker,
+  type PositionLineColors,
 } from '../AdvancedChart.types';
 import { mockTheme } from '../../../../../util/theme';
 
@@ -1072,6 +1073,61 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'SET_POSITION_LINES',
         payload: { position: null },
+      }),
+    );
+  });
+
+  it('resends SET_POSITION_LINES when only positionLineColors values change', () => {
+    const position: PositionLines = {
+      side: 'long',
+      entryPrice: 1991.7,
+      liquidationPrice: 1357.83,
+    };
+    const initialColors: PositionLineColors = {
+      entry: 'entry-color',
+      takeProfit: 'take-profit-color',
+      stopLoss: 'stop-loss-color',
+      liquidation: 'liquidation-color',
+    };
+    const updatedColors: PositionLineColors = {
+      ...initialColors,
+      liquidation: 'updated-liquidation-color',
+    };
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        positionLines={position}
+        positionLineColors={initialColors}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        positionLines={position}
+        positionLineColors={updatedColors}
+      />,
+    );
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_POSITION_LINES',
+        payload: {
+          position,
+          positionLineColors: updatedColors,
+        },
       }),
     );
   });

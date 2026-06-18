@@ -152,8 +152,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevTradeMarkersRef = useRef(tradeMarkers);
-    const positionLineColorsRef = useRef(positionLineColors);
-    positionLineColorsRef.current = positionLineColors;
+    const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
@@ -244,6 +243,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevTradeMarkersRef.current = undefined;
+      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
@@ -318,6 +318,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
+      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
     }, [clearLayoutSettleTimeout, clearIndicatorsSyncFallback]);
 
@@ -500,6 +501,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             setLegendRendered(false);
             prevPositionLinesRef.current = undefined;
             prevTradeMarkersRef.current = undefined;
+            prevPositionLineColorsRef.current = undefined;
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
@@ -668,6 +670,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
           prevTradeMarkersRef.current = undefined;
+          prevPositionLineColorsRef.current = undefined;
           prevChartTypeRef.current = undefined;
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
@@ -823,17 +826,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // Sync positionLines prop
     useEffect(() => {
       if (chartReadyCount === 0) return;
-      if (positionLines === prevPositionLinesRef.current) return;
+      if (
+        positionLines === prevPositionLinesRef.current &&
+        positionLineColors === prevPositionLineColorsRef.current
+      ) {
+        return;
+      }
       prevPositionLinesRef.current = positionLines;
+      prevPositionLineColorsRef.current = positionLineColors;
 
       postMessage({
         type: 'SET_POSITION_LINES',
         payload: {
           position: positionLines ?? null,
-          positionLineColors: positionLineColorsRef.current,
+          positionLineColors,
         },
       });
-    }, [positionLines, chartReadyCount, postMessage]);
+    }, [positionLines, positionLineColors, chartReadyCount, postMessage]);
 
     // Sync tradeMarkers prop (open/close circles). Compares by reference, so
     // parents should memoize the array; a new reference re-renders all markers.
