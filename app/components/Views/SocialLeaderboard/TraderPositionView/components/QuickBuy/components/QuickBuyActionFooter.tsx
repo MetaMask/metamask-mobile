@@ -7,15 +7,11 @@ import {
   Text,
   TextVariant,
   TextColor,
-  AvatarToken,
   AvatarTokenSize,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-  BadgeNetwork,
 } from '@metamask/design-system-react-native';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -23,8 +19,7 @@ import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
-import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
@@ -41,8 +36,8 @@ const QuickBuyActionFooter: React.FC = () => {
     isHardwareSolanaBlocked,
     tradeMode,
     sourceToken,
-    sourceChainId,
     sourceBalanceFiat,
+    destBalanceFiat,
     destToken,
     selectedDestStable,
     features,
@@ -50,20 +45,8 @@ const QuickBuyActionFooter: React.FC = () => {
   } = useQuickBuyContext();
 
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
-  const pickerChainId =
-    tradeMode === 'sell'
-      ? (selectedDestStable?.chainId as
-          | import('@metamask/utils').Hex
-          | undefined)
-      : sourceChainId;
   const pickerBalanceFiat =
-    tradeMode === 'sell'
-      ? (selectedDestStable?.balanceFiat ?? undefined)
-      : sourceBalanceFiat;
-
-  const networkImage = pickerChainId
-    ? getNetworkImageSource({ chainId: pickerChainId })
-    : undefined;
+    tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
 
   return (
     <Box twClassName="px-4 pb-4">
@@ -84,7 +67,7 @@ const QuickBuyActionFooter: React.FC = () => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="pb-5"
       >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {tradeMode === 'sell'
             ? strings('social_leaderboard.quick_buy.receive')
             : strings('social_leaderboard.quick_buy.pay_with')}
@@ -101,27 +84,12 @@ const QuickBuyActionFooter: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-full bg-muted px-3 py-1"
           >
             {pickerToken ? (
-              networkImage ? (
-                <BadgeWrapper
-                  position={BadgeWrapperPosition.BottomRight}
-                  badge={<BadgeNetwork src={networkImage} />}
-                >
-                  <AvatarToken
-                    size={AvatarTokenSize.Sm}
-                    name={pickerToken.symbol}
-                    src={getBridgeTokenImageSource(pickerToken)}
-                  />
-                </BadgeWrapper>
-              ) : (
-                <AvatarToken
-                  size={AvatarTokenSize.Sm}
-                  name={pickerToken.symbol}
-                  src={getBridgeTokenImageSource(pickerToken)}
-                />
-              )
+              <QuickBuyTokenIcon
+                token={pickerToken}
+                size={AvatarTokenSize.Sm}
+              />
             ) : null}
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {pickerToken

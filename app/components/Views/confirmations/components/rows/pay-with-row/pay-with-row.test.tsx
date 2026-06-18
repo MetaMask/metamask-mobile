@@ -1,6 +1,7 @@
 import React from 'react';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
@@ -11,6 +12,7 @@ import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -20,9 +22,11 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/navigation/navUtils');
+jest.mock('../../../hooks/pay/useIsMoneyAccountFlagDefault');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -48,6 +52,9 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useTransactionPayRequiredTokens: jest.fn(),
+}));
+jest.mock('../../../hooks/alerts/useAccountNoFundsAlert', () => ({
+  useAccountNoFundsAlert: jest.fn(() => []),
 }));
 jest.mock(
   '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod',
@@ -140,6 +147,9 @@ describe('PayWithRow', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     isHardwareAccountMock.mockReturnValue(false);
+
+    jest.mocked(useAccountNoFundsAlert).mockReturnValue([]);
+    jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(false);
   });
 
   it('renders selected pay token', async () => {
@@ -313,8 +323,8 @@ describe('PayWithRow', () => {
       },
     });
 
-    function renderMoneyAccount() {
-      return renderWithProvider(<PayWithRow />, {
+    function renderMoneyAccount(props?: { isResultReady?: boolean }) {
+      return renderWithProvider(<PayWithRow {...props} />, {
         state: MONEY_ACCOUNT_STATE,
       });
     }
@@ -328,7 +338,7 @@ describe('PayWithRow', () => {
     it('renders money balance label without inline balance', () => {
       const { getByTestId, queryByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
       expect(queryByTestId('pay-with-balance')).toBeNull();
     });
 
@@ -351,6 +361,82 @@ describe('PayWithRow', () => {
       });
 
       expect(navigateMock).toHaveBeenCalled();
+    });
+
+    it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {
+      const { getByTestId } = renderMoneyAccount({ isResultReady: true });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('renders interactive row on review page when money account was flag-defaulted', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByTestId } = renderMoneyAccount({ isResultReady: true });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+    });
+
+    it('renders money account row on initial page when money account is flag-defaulted', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+
+      const { getByTestId } = renderMoneyAccount();
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('renders money account row for perps deposit', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        type: TransactionType.perpsDeposit,
+      } as never);
+
+      const { getByTestId } = renderMoneyAccount();
+
+      expect(getByTestId('pay-with')).toBeDefined();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+  });
+
+  describe('money home navigation', () => {
+    it('hides row when payWithOption is MoneyAccount in nav params', () => {
+      useParamsMock.mockReturnValue({
+        payWithOption: 'money_account',
+      });
+
+      const { queryByTestId } = renderWithProvider(<PayWithRow />, {
+        state: STATE_MOCK,
+      });
+
+      expect(queryByTestId('pay-with')).toBeNull();
+      expect(queryByTestId('pay-with-symbol')).toBeNull();
+    });
+
+    it('hides row when payWithOption is MoneyAccount regardless of isResultReady', () => {
+      useParamsMock.mockReturnValue({
+        payWithOption: 'money_account',
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PayWithRow isResultReady />,
+        { state: STATE_MOCK },
+      );
+
+      expect(queryByTestId('pay-with')).toBeNull();
+    });
+
+    it('renders interactive row when no payWithOption in nav params', () => {
+      useParamsMock.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
     });
   });
 });

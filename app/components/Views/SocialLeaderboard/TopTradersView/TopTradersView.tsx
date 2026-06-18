@@ -63,9 +63,18 @@ import {
 import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
-type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
+type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum' | 'hyperliquid';
+
+const LEADERBOARD_LIMIT = 50;
+
+// Hyperliquid (perps) is its own tab. It's deliberately kept out of SPOT_CHAINS
+// / the "All" tab — see SPOT_CHAINS — so perps PnL doesn't dominate the spot
+// rankings, but users can still browse the perps leaderboard directly here.
+const HYPERLIQUID_DISPLAY_NAME = 'Hyperliquid';
 
 const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   {
@@ -75,6 +84,7 @@ const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   { key: 'base', label: BASE_DISPLAY_NAME },
   { key: 'solana', label: SOLANA_DISPLAY_NAME },
   { key: 'ethereum', label: MAINNET_DISPLAY_NAME },
+  { key: 'hyperliquid', label: HYPERLIQUID_DISPLAY_NAME },
 ];
 
 const styles = StyleSheet.create({
@@ -171,10 +181,45 @@ const TopTradersView = () => {
     return Array.from({ length: count }, (_, i) => `top-trader-skeleton-${i}`);
   }, [windowHeight]);
 
-  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
-    limit: 250,
+  const allResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: SPOT_CHAINS,
     enabled: isEnabled,
   });
+  const baseResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['base'],
+    enabled: isEnabled,
+  });
+  const solanaResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['solana'],
+    enabled: isEnabled,
+  });
+  const ethereumResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['ethereum'],
+    enabled: isEnabled,
+  });
+  const hyperliquidResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['hyperliquid'],
+    enabled: isEnabled,
+  });
+
+  const resultsByChain = useMemo(
+    () => ({
+      all: allResult,
+      base: baseResult,
+      solana: solanaResult,
+      ethereum: ethereumResult,
+      hyperliquid: hyperliquidResult,
+    }),
+    [allResult, baseResult, solanaResult, ethereumResult, hyperliquidResult],
+  );
+
+  const activeResult = resultsByChain[selectedChain];
+  const { traders, isLoading, toggleFollow } = activeResult;
 
   useEffect(() => {
     if (!isEnabled) {
@@ -206,23 +251,9 @@ const TopTradersView = () => {
     [selectedChain, track],
   );
 
-  const filteredTraders = useMemo(() => {
-    const filtered =
-      selectedChain === 'all'
-        ? traders
-        : traders.filter((t) => (t.pnlPerChain[selectedChain] ?? 0) !== 0);
-
-    // Re-number the displayed rank to reflect the trader's position within the
-    // filtered slice, but keep `overallRank` pointing at the unfiltered rank
-    // so podium decorations only apply to true top-3 traders.
-    return filtered
-      .slice(0, 50)
-      .map((t, i) => ({ ...t, rank: i + 1, overallRank: t.overallRank }));
-  }, [traders, selectedChain]);
-
   const handleFollowPress = useCallback(
     (traderId: string) => {
-      const trader = filteredTraders.find((t) => t.id === traderId);
+      const trader = traders.find((t) => t.id === traderId);
       toggleFollow(traderId, {
         source: 'leaderboard',
         traderAddress: trader?.address ?? '',
@@ -230,7 +261,7 @@ const TopTradersView = () => {
         traderRank: trader?.rank,
       });
     },
-    [filteredTraders, toggleFollow],
+    [traders, toggleFollow],
   );
 
   const handleBack = useCallback(() => {
@@ -269,7 +300,14 @@ const TopTradersView = () => {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, 1000),
       );
-      await Promise.all([refresh(), minDuration]);
+      await Promise.all([
+        allResult.refresh(),
+        baseResult.refresh(),
+        solanaResult.refresh(),
+        ethereumResult.refresh(),
+        hyperliquidResult.refresh(),
+        minDuration,
+      ]);
     } catch (err) {
       Logger.error(
         err as Error,
@@ -284,11 +322,11 @@ const TopTradersView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [refresh]);
+  }, [allResult, baseResult, solanaResult, ethereumResult, hyperliquidResult]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
-      const trader = filteredTraders.find((t) => t.id === traderId);
+      const trader = traders.find((t) => t.id === traderId);
       if (trader) {
         track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED, {
           [SocialLeaderboardEventProperties.TRADER_ADDRESS]: trader.address,
@@ -302,10 +340,10 @@ const TopTradersView = () => {
         traderName,
         traderAddress: trader?.address,
         source: 'leaderboard',
-        traderRank: trader?.overallRank,
+        traderRank: trader?.rank,
       });
     },
-    [navigation, filteredTraders, selectedChain, track],
+    [navigation, traders, selectedChain, track],
   );
 
   return (
@@ -359,7 +397,7 @@ const TopTradersView = () => {
         ))}
       </ScrollView>
 
-      {isLoading ? (
+      {isLoading && traders.length === 0 ? (
         <ScrollView
           // `flex-1` matches FlatList's default behavior so the list area sits
           // directly under the filters and skeletons render top-aligned.
@@ -381,7 +419,7 @@ const TopTradersView = () => {
         </ScrollView>
       ) : (
         <FlatList
-          data={filteredTraders}
+          data={traders}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TraderRow

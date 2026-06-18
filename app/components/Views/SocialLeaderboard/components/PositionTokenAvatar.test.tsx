@@ -26,6 +26,15 @@ jest.mock('../utils/chainMapping', () => ({
   chainNameToId: jest.fn((chain: string) =>
     chain === 'base' ? 'eip155:8453' : undefined,
   ),
+  getPositionNetworkBadge: jest.fn((chain: string) => {
+    if (chain === 'base') {
+      return { name: 'base', imageSource: { uri: 'base.png' } };
+    }
+    if (chain === 'hyperliquid') {
+      return { name: 'Hyperliquid', imageSource: { uri: 'hyperevm.png' } };
+    }
+    return undefined;
+  }),
 }));
 
 jest.mock(
@@ -50,7 +59,7 @@ jest.mock('../../../../util/networks', () => ({
 }));
 
 const MockAvatarToken = AvatarToken as jest.Mock;
-const MockBadgeWrapper = BadgeWrapper as jest.Mock;
+const MockBadgeWrapper = BadgeWrapper as unknown as jest.Mock;
 const MockBadgeNetwork = BadgeNetwork as jest.Mock;
 
 const lastAvatarTokenProps = () =>
@@ -274,6 +283,19 @@ describe('PositionTokenAvatar', () => {
       );
 
       expect(MockBadgeWrapper).not.toHaveBeenCalled();
+    });
+
+    it('wraps the avatar in a Hyperliquid network badge for a hyperliquid position', () => {
+      const position = { ...basePosition, chain: 'hyperliquid' };
+
+      renderWithProvider(
+        <PositionTokenAvatar position={position} showChainBadge />,
+      );
+
+      expect(MockBadgeWrapper).toHaveBeenCalled();
+      const badgeElement = MockBadgeWrapper.mock.calls[0][0]
+        .badgeElement as React.ReactElement<{ name: string }>;
+      expect(badgeElement.props.name).toBe('Hyperliquid');
     });
   });
 });

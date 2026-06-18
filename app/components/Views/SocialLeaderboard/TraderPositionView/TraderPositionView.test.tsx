@@ -68,7 +68,7 @@ const makeDefaultPosition = (): Position => ({
 
 let mockRouteParams: MockRouteParams = {
   traderId: 'trader-1',
-  traderName: 'dutchiono',
+  traderName: 'trader1',
   traderAddress: '0xabc',
   tokenSymbol: 'PEPE',
   position: makeDefaultPosition(),
@@ -224,7 +224,7 @@ describe('TraderPositionView', () => {
     mockGetAssetImageUrl.mockReturnValue('https://example.com/token.png');
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderAddress: '0xabc',
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
@@ -237,7 +237,7 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -246,7 +246,7 @@ describe('TraderPositionView', () => {
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
+    expect(screen.getByText('No trades yet')).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -271,7 +271,7 @@ describe('TraderPositionView', () => {
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -371,6 +371,55 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  describe('perp positions', () => {
+    beforeEach(() => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        tokenSymbol: 'ETH',
+        chain: 'hyperliquid',
+        perpPositionType: 'short',
+        perpLeverage: 10,
+      };
+    });
+
+    it('renders the Trade button instead of the Buy button', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+
+      // Perps has no long/short preselect on the market page, so the single
+      // Trade CTA lands the user on that market's Perps page with a minimal
+      // market object — it never opens the spot QuickBuy sheet.
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: { symbol: 'ETH', name: 'ETH' },
+          source: 'social_leaderboard',
+        },
+      });
+    });
+
+    it('renders the perp leverage and direction badges in the header', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.getByText('10x')).toBeOnTheScreen();
+      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+    });
   });
 
   it('forwards the filtered trades to the chart component', async () => {
@@ -506,9 +555,8 @@ describe('TraderPositionView', () => {
     });
   });
 
-  it('filters trades when switching time periods', async () => {
-    const fixedNow = new Date('2026-04-21T12:00:00.000Z').getTime();
-    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
+  it('shows all trades regardless of the active time period, but filters chart markers', async () => {
+    const now = Date.now();
 
     mockRouteParams.position = {
       ...makeDefaultPosition(),
@@ -518,7 +566,7 @@ describe('TraderPositionView', () => {
           direction: 'buy',
           tokenAmount: 1000,
           usdCost: 2200,
-          timestamp: fixedNow - 30 * 60 * 1000,
+          timestamp: now - 30 * 60 * 1000,
           transactionHash: '0xrecent',
         },
         {
@@ -526,7 +574,7 @@ describe('TraderPositionView', () => {
           direction: 'sell',
           tokenAmount: 500,
           usdCost: 1100,
-          timestamp: fixedNow - 2 * 24 * 60 * 60 * 1000,
+          timestamp: now - 2 * 24 * 60 * 60 * 1000,
           transactionHash: '0xolder',
         },
       ],
@@ -540,10 +588,15 @@ describe('TraderPositionView', () => {
     fireEvent.press(screen.getByText('1H'));
 
     await waitFor(() => {
-      expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
+      const chartTrades =
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0]?.trades;
+      expect(chartTrades).toHaveLength(1);
+      expect(chartTrades[0].transactionHash).toBe('0xrecent');
     });
-
-    dateNowSpy.mockRestore();
+    expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
+    expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
   });
 
   it('refetches position and profile on pull-to-refresh', async () => {
@@ -566,7 +619,7 @@ describe('TraderPositionView', () => {
   it('refreshes profile on pull even when name and image came via nav params', async () => {
     mockRouteParams = {
       ...mockRouteParams,
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderImageUrl: 'https://example.com/avatar.png',
     };
 
@@ -589,7 +642,7 @@ describe('TraderPositionView', () => {
   it('does not render the refresh control in the fallback state', () => {
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       tokenSymbol: 'PEPE',
       position: undefined,
     };

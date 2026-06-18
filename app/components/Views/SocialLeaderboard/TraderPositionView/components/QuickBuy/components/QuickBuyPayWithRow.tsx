@@ -1,9 +1,5 @@
 import {
-  AvatarToken,
   AvatarTokenSize,
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -17,10 +13,9 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
-import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
 import { getTokenKey } from '../tokenKey';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 interface QuickBuyPayWithRowProps {
   token: BridgeToken;
@@ -51,7 +46,6 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
   isSelected,
   onPress,
 }) => {
-  const networkImage = getNetworkImageSource({ chainId: token.chainId });
   const tokenKey = getTokenKey(token);
   const cryptoBalanceLabel = useMemo(
     () => formatTokenBalance(token.balance, token.symbol),
@@ -71,24 +65,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
         gap={4}
         twClassName={`px-4 py-2 ${isSelected ? 'bg-muted' : ''}`}
       >
-        {networkImage ? (
-          <BadgeWrapper
-            position={BadgeWrapperPosition.BottomRight}
-            badge={<BadgeNetwork src={networkImage} />}
-          >
-            <AvatarToken
-              size={AvatarTokenSize.Md}
-              name={token.symbol}
-              src={getBridgeTokenImageSource(token)}
-            />
-          </BadgeWrapper>
-        ) : (
-          <AvatarToken
-            size={AvatarTokenSize.Md}
-            name={token.symbol}
-            src={getBridgeTokenImageSource(token)}
-          />
-        )}
+        <QuickBuyTokenIcon token={token} size={AvatarTokenSize.Md} />
 
         <Box twClassName="flex-1" gap={1}>
           <Box

@@ -31,7 +31,6 @@ import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
@@ -92,7 +91,6 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
   getOrders: jest.fn(),
-  getRampRoutingDecision: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rampsController', () => ({
@@ -151,10 +149,10 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
-const mockRampsUnifiedV1Enabled = jest.fn(() => false);
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+const mockRampsUnifiedV2Enabled = jest.fn(() => false);
+jest.mock('../../Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
   __esModule: true,
-  default: () => mockRampsUnifiedV1Enabled(),
+  default: () => mockRampsUnifiedV2Enabled(),
 }));
 
 const mockSendNonEvmAsset = jest.fn().mockResolvedValue(false);
@@ -228,7 +226,6 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 const mockGetOrders = jest.mocked(getOrders);
-const mockGetRampRoutingDecision = jest.mocked(getRampRoutingDecision);
 const mockSelectRampsOrdersForSelectedAccountGroup = jest.mocked(
   selectRampsOrdersForSelectedAccountGroup,
 );
@@ -266,7 +263,6 @@ const setupSelectorDefaults = () => {
   mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
   mockGetDetectedGeolocation.mockReturnValue('US');
   mockGetOrders.mockReturnValue([]);
-  mockGetRampRoutingDecision.mockReturnValue(null);
   mockSelectRampsOrdersForSelectedAccountGroup.mockReturnValue([]);
   mockGetProviderToken.mockResolvedValue({
     success: true,
@@ -291,7 +287,7 @@ beforeEach(() => {
     goToSwaps: mockGoToSwaps,
     networkModal: null,
   });
-  mockRampsUnifiedV1Enabled.mockReturnValue(false);
+  mockRampsUnifiedV2Enabled.mockReturnValue(false);
 });
 
 /**
@@ -572,14 +568,14 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
     });
   });
 
-  it('switches ramp_type to UNIFIED_BUY when the unified-v1 flag is enabled', async () => {
-    mockRampsUnifiedV1Enabled.mockReturnValue(true);
+  it('switches ramp_type to UNIFIED_BUY_2 when the unified-v2 flag is enabled', async () => {
+    mockRampsUnifiedV2Enabled.mockReturnValue(true);
 
     const { result } = await renderOnBuy();
     result.current();
 
     assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
-      ramp_type: 'UNIFIED_BUY',
+      ramp_type: 'UNIFIED_BUY_2',
     });
   });
 
@@ -673,6 +669,8 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
           networkName: 'Ethereum Mainnet',
           chainId: '0x1',
           groupId: 'group-1',
+          location: 'asset-details',
+          account: mockAccount,
         },
       },
     );
@@ -955,6 +953,25 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
           ...defaultToken,
           balance: '1',
           source: TokenDetailsSource.ExploreCryptoTrending,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('uses TrendingExplore location when token.source is ExploreSearch', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreSearch,
         },
       }),
     );

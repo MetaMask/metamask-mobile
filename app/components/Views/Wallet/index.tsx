@@ -57,6 +57,7 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
@@ -72,6 +73,8 @@ import {
   ButtonIconSize,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  Text as CustomText,
+  TextColor,
 } from '@metamask/design-system-react-native';
 
 import {
@@ -87,9 +90,6 @@ import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import CustomText, {
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import {
   ToastContext,
@@ -133,11 +133,16 @@ import Homepage from '../Homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
 import {
+  HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
+  HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
   HUB_PAGE_DISCOVERY_TABS_AB_KEY,
   HUB_PAGE_DISCOVERY_TABS_VARIANTS,
   HubPageDiscoveryTabsVariant,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Homepage/abTestConfig';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -189,6 +194,7 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
@@ -203,8 +209,15 @@ const createStyles = ({ colors }: Theme) =>
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
-      gap: 16,
       flexDirection: 'column',
+    },
+    portfolioHeaderCluster: {
+      flexDirection: 'column',
+      gap: 16,
+      paddingBottom: 12,
+    },
+    tabContainer: {
+      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -403,6 +416,11 @@ const Wallet = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
 
   /**
    * Provider configuration for the current selected network
@@ -480,6 +498,7 @@ const Wallet = ({
           title: `${strings(
             'multichain_accounts.address_list.receiving_address',
           )}`,
+          source: AddressListViewedSource.RECEIVE_BUTTON,
         }),
       );
     } else {
@@ -769,8 +788,21 @@ const Wallet = ({
     HUB_PAGE_DISCOVERY_TABS_VARIANTS,
   );
 
+  const { variant: discoveryPillsVariant } = useABTest(
+    HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
+    HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
+    HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
   const isDiscoveryTabsTreatment =
     discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
+
+  const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
+  const showDiscoveryPills =
+    discoveryPillsVariant.showPills &&
+    !isDiscoveryTabsTreatment &&
+    showWalletHomeMainActions &&
+    discoveryPillsIconStyle !== null;
 
   const isPerpsEnabled = isPerpsFlagEnabled;
 
@@ -990,7 +1022,7 @@ const Wallet = ({
           title={strings('wallet.banner.title')}
           description={
             <CustomText
-              color={TextColor.Info}
+              color={TextColor.InfoDefault}
               onPress={turnOnBasicFunctionality}
             >
               {strings('wallet.banner.link')}
@@ -1025,26 +1057,36 @@ const Wallet = ({
     />
   ) : null;
 
+  const homepageDiscoveryPills = showDiscoveryPills ? (
+    <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
+  ) : null;
+
   const portfolioHeaderBase = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
-      {homeGrowthBannerContent}
-      {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+      {/* Hide growth banners when money account is enabled but user is geo-blocked */}
+      {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
+        homeGrowthBannerContent}
+      {homepageDiscoveryPills}
+      {isMoneyAccountVisible && <MoneyBalanceCard />}
+    </View>
   );
 
   const portfolioHeader = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
       {walletHomeMainAssetDetailsActions}
-      {homeGrowthBannerContent}
-      {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+      {/* Hide growth banners when money account is enabled but user is geo-blocked */}
+      {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
+        homeGrowthBannerContent}
+      {homepageDiscoveryPills}
+      {isMoneyAccountVisible && <MoneyBalanceCard />}
+    </View>
   );
 
   const renderLoader = useCallback(
@@ -1095,7 +1137,7 @@ const Wallet = ({
                       style={styles.headerActionButtonsContainer}
                       accessible={false}
                     >
-                      {isMoneyAccountEnabled && (
+                      {isMoneyAccountVisible && (
                         <ButtonIcon
                           iconProps={{
                             color: MMDSIconColor.IconDefault,
@@ -1113,10 +1155,12 @@ const Wallet = ({
                         }
                         hitSlop={touchAreaSlop}
                       />
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
+                      {!isMoneyAccountVisible && (
+                        <CardButton
+                          onPress={handleCardPress}
+                          touchAreaSlop={touchAreaSlop}
+                        />
+                      )}
                       {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}

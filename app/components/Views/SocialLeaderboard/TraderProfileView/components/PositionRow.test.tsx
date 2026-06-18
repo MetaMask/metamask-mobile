@@ -13,7 +13,7 @@ jest.mock('../../utils/formatters', () => {
   const actual = jest.requireActual('../../utils/formatters');
   return {
     ...actual,
-    formatTradeDate: jest.fn().mockReturnValue('Apr 15, 2026 at 2:00 PM'),
+    formatTradeDate: jest.fn().mockReturnValue('Apr 15 at 2:00 pm'),
   };
 });
 
@@ -42,6 +42,7 @@ const closedPosition: Position = {
   realizedPnl: 300,
   boughtUsd: 1200,
   currentValueUSD: 0,
+  pnlValueUsd: null,
   pnlPercent: null,
 };
 
@@ -64,31 +65,49 @@ describe('PositionRow', () => {
     expect(screen.getByText('1.50B STARKBOT')).toBeOnTheScreen();
   });
 
-  it('renders current value formatted as USD', () => {
+  it('renders current value formatted as USD on the top-right', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
-  it('renders positive PnL percent with plus sign', () => {
+  it('renders only the bare percent on the bottom-right (no absolute PnL)', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
     expect(screen.getByText('+182%')).toBeOnTheScreen();
+    expect(screen.queryByText('+$1,059.96 (+182%)')).toBeNull();
+    expect(screen.queryByText('+$1,059.96')).toBeNull();
   });
 
-  it('renders negative PnL percent', () => {
-    const position = { ...basePosition, pnlPercent: -25 };
+  it('renders the negative percent without the absolute PnL', () => {
+    const position = {
+      ...basePosition,
+      pnlValueUsd: -250,
+      pnlPercent: -25,
+    };
 
     renderWithProvider(<PositionRow position={position} />);
     expect(screen.getByText('-25%')).toBeOnTheScreen();
+    expect(screen.queryByText('-$250.00 (-25%)')).toBeNull();
+  });
+
+  it('renders the percent even when pnlValueUsd is missing', () => {
+    const position = {
+      ...basePosition,
+      pnlValueUsd: null,
+    } as unknown as Position;
+
+    renderWithProvider(<PositionRow position={position} />);
+    expect(screen.getByText('+182%')).toBeOnTheScreen();
   });
 
   it('renders dash when pnlPercent is null', () => {
     const position = {
       ...basePosition,
       pnlPercent: null,
+      pnlValueUsd: null,
     } as unknown as Position;
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('\u2014')).toBeOnTheScreen();
+    expect(screen.getByText('—')).toBeOnTheScreen();
   });
 
   it('renders dash when currentValueUSD is null', () => {
@@ -99,15 +118,20 @@ describe('PositionRow', () => {
 
     renderWithProvider(<PositionRow position={position} />);
 
-    const dashes = screen.getAllByText('\u2014');
+    const dashes = screen.getAllByText('—');
     expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders zero PnL percent with plus sign', () => {
-    const position = { ...basePosition, pnlPercent: 0 };
+  it('renders zero percent when unrealized PnL is zero', () => {
+    const position = {
+      ...basePosition,
+      pnlValueUsd: 0,
+      pnlPercent: 0,
+    };
 
     renderWithProvider(<PositionRow position={position} />);
     expect(screen.getByText('+0%')).toBeOnTheScreen();
+    expect(screen.queryByText('$0.00 (+0%)')).toBeNull();
   });
 
   it('renders negative USD value', () => {
@@ -178,23 +202,34 @@ describe('PositionRow', () => {
   });
 
   describe('closed position', () => {
-    it('renders soldUsd as the value', () => {
+    it('renders realized $ PnL as the top-right value (not soldUsd)', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
-      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
+      // realizedPnl = 300 → "+$300.00"; soldUsd value ("$1,500.00") must not appear.
+      expect(screen.getByText('+$300.00')).toBeOnTheScreen();
+      expect(screen.queryByText('$1,500.00')).toBeNull();
+    });
+
+    it('renders realized PnL with negative sign and value when at a loss', () => {
+      const position = { ...closedPosition, realizedPnl: -300 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('-$300.00')).toBeOnTheScreen();
     });
 
     it('renders formatted closed date as subtitle instead of token amount', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
-      expect(screen.getByText('Apr 15, 2026 at 2:00 PM')).toBeOnTheScreen();
+      expect(screen.getByText('Apr 15 at 2:00 pm')).toBeOnTheScreen();
     });
 
-    it('renders realized PnL percent', () => {
+    it('renders realized PnL percent as unsigned magnitude (sign comes from caret)', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
       // realizedPnl (300) / boughtUsd (1200) * 100 = 25%
-      expect(screen.getByText('+25%')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.queryByText('+25%')).toBeNull();
     });
 
     it('renders dash for PnL when boughtUsd is zero', () => {
@@ -202,24 +237,17 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.getByText('\u2014')).toBeOnTheScreen();
+      expect(screen.getByText('—')).toBeOnTheScreen();
     });
 
-    it('renders soldUsd as value even when currentValueUSD is zero', () => {
-      const position = { ...closedPosition, currentValueUSD: 0 };
-
-      renderWithProvider(<PositionRow position={position} />);
-
-      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
-    });
-
-    it('renders negative realized PnL percent', () => {
+    it('renders negative realized PnL percent as unsigned magnitude', () => {
       const position = { ...closedPosition, realizedPnl: -300 };
 
       renderWithProvider(<PositionRow position={position} />);
 
       // -300 / 1200 * 100 = -25%
-      expect(screen.getByText('-25%')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.queryByText('-25%')).toBeNull();
     });
 
     it('uses realized PnL percent even when pnlPercent is 0', () => {
@@ -227,7 +255,99 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.getByText('+25%')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+    });
+
+    it('renders break-even realized PnL with a neutral minus and 0% percent', () => {
+      const position = { ...closedPosition, realizedPnl: 0, boughtUsd: 1200 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      // U+2212 minus glyph, not a hyphen
+      expect(screen.getByText('−')).toBeOnTheScreen();
+      expect(screen.getByText('0%')).toBeOnTheScreen();
+    });
+
+    it('renders realized PnL value when boughtUsd is zero (percent null)', () => {
+      const positivePosition = {
+        ...closedPosition,
+        realizedPnl: 300,
+        boughtUsd: 0,
+      };
+      const { unmount } = renderWithProvider(
+        <PositionRow position={positivePosition} />,
+      );
+      expect(screen.getByText('+$300.00')).toBeOnTheScreen();
+      unmount();
+
+      const negativePosition = {
+        ...closedPosition,
+        realizedPnl: -300,
+        boughtUsd: 0,
+      };
+      renderWithProvider(<PositionRow position={negativePosition} />);
+      expect(screen.getByText('-$300.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('perp positions', () => {
+    const perpPosition: Position = {
+      ...basePosition,
+      tokenSymbol: 'ETH',
+      chain: 'hyperliquid',
+      perpPositionType: 'long',
+      perpLeverage: 5,
+      positionAmountWithLeverage: 25,
+    };
+
+    it('renders the leverage and LONG direction badges for a long perp', () => {
+      renderWithProvider(<PositionRow position={perpPosition} />);
+
+      expect(screen.getByText('5x')).toBeOnTheScreen();
+      expect(screen.getByText('LONG')).toBeOnTheScreen();
+    });
+
+    it('renders a SHORT badge for a short perp', () => {
+      const position = { ...perpPosition, perpPositionType: 'short' as const };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+    });
+
+    it('omits the leverage badge when perpLeverage is null', () => {
+      const position = { ...perpPosition, perpLeverage: null };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.queryByText('5x')).not.toBeOnTheScreen();
+      expect(screen.getByText('LONG')).toBeOnTheScreen();
+    });
+
+    it('does not render perp badges for a spot position', () => {
+      renderWithProvider(<PositionRow position={basePosition} />);
+
+      expect(screen.queryByText('LONG')).not.toBeOnTheScreen();
+      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+    });
+
+    it('shows PnL as the value for perps instead of the current value', () => {
+      renderWithProvider(<PositionRow position={perpPosition} />);
+
+      // Perps surface realized/unrealized PnL ($1,059.96), not currentValueUSD.
+      expect(screen.getByText('+$1,059.96')).toBeOnTheScreen();
+      expect(screen.queryByText('$2,259.96')).not.toBeOnTheScreen();
+    });
+
+    it('shows the trade date (not the position amount) for a closed perp', () => {
+      const closedPerp = { ...perpPosition, currentValueUSD: 0 };
+
+      renderWithProvider(<PositionRow position={closedPerp} isClosed />);
+
+      expect(screen.getByText('Apr 15 at 2:00 pm')).toBeOnTheScreen();
+      // Not the "<amount> ETH" subtitle that open positions show.
+      expect(screen.queryByText('1.50B ETH')).not.toBeOnTheScreen();
     });
   });
 });

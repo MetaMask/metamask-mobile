@@ -4,7 +4,7 @@ import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { cleanup, fireEvent } from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
@@ -531,6 +531,16 @@ describe('ActivityView', () => {
       expect(
         getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
       ).toBeOnTheScreen();
+    });
+
+    it('renders SafeAreaView with left, right, and bottom edges only', () => {
+      mockRoute.params = {};
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW).props.edges,
+      ).toEqual(['left', 'right', 'bottom']);
     });
 
     it('renders HeaderRoot with Activity title when showBackButton is false', () => {

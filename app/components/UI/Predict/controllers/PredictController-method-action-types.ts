@@ -15,6 +15,11 @@ export type PredictControllerListMarketsAction = {
   handler: PredictController['listMarkets'];
 };
 
+export type PredictControllerListFilterOptionsAction = {
+  type: `PredictController:listFilterOptions`;
+  handler: PredictController['listFilterOptions'];
+};
+
 export type PredictControllerSearchMarketsAction = {
   type: `PredictController:searchMarkets`;
   handler: PredictController['searchMarkets'];
@@ -94,6 +99,26 @@ export type PredictControllerTrackActivityViewedAction = {
   handler: PredictController['trackActivityViewed'];
 };
 
+export type PredictControllerTrackPortfolioPositionsButtonTappedAction = {
+  type: `PredictController:trackPortfolioPositionsButtonTapped`;
+  handler: PredictController['trackPortfolioPositionsButtonTapped'];
+};
+
+export type PredictControllerTrackPortfolioTransactionInitiatedAction = {
+  type: `PredictController:trackPortfolioTransactionInitiated`;
+  handler: PredictController['trackPortfolioTransactionInitiated'];
+};
+
+export type PredictControllerTrackPositionsScreenViewedAction = {
+  type: `PredictController:trackPositionsScreenViewed`;
+  handler: PredictController['trackPositionsScreenViewed'];
+};
+
+export type PredictControllerTrackPositionsTabViewedAction = {
+  type: `PredictController:trackPositionsTabViewed`;
+  handler: PredictController['trackPositionsTabViewed'];
+};
+
 export type PredictControllerTrackGeoBlockTriggeredAction = {
   type: `PredictController:trackGeoBlockTriggered`;
   handler: PredictController['trackGeoBlockTriggered'];
@@ -112,6 +137,16 @@ export type PredictControllerTrackBannerActionAction = {
 export type PredictControllerTrackShareActionAction = {
   type: `PredictController:trackShareAction`;
   handler: PredictController['trackShareAction'];
+};
+
+/**
+ * Track Predict Search Interacted analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackSearchInteractedAction = {
+  type: `PredictController:trackSearchInteracted`;
+  handler: PredictController['trackSearchInteracted'];
 };
 
 /**
@@ -308,6 +343,7 @@ export type PredictControllerClearWithdrawTransactionAction = {
 export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
   | PredictControllerListMarketsAction
+  | PredictControllerListFilterOptionsAction
   | PredictControllerSearchMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
@@ -322,10 +358,15 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackMarketDetailsOpenedAction
   | PredictControllerTrackPositionViewedAction
   | PredictControllerTrackActivityViewedAction
+  | PredictControllerTrackPortfolioPositionsButtonTappedAction
+  | PredictControllerTrackPortfolioTransactionInitiatedAction
+  | PredictControllerTrackPositionsScreenViewedAction
+  | PredictControllerTrackPositionsTabViewedAction
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackBannerActionAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackSearchInteractedAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction

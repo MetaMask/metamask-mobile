@@ -65,6 +65,7 @@ export interface AIProvider {
 /** Configuration options passed to a provider constructor. */
 export interface AIProviderConfig {
   apiKey?: string;
+  baseURL?: string;
   model?: string;
   maxTokens?: number;
 }

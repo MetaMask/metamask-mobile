@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BackHandler, StyleSheet, View } from 'react-native';
+import { BackHandler, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -47,48 +47,23 @@ import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
+import styleSheet from './ActivityView.styles';
+import { selectIsActivityRedesignEnabled } from './selectors/featureFlags';
 
-const createStyles = (params) => {
-  const { theme } = params;
-  const { colors } = theme;
-  return StyleSheet.create({
-    tabWrapper: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-    },
-    controlButtonOuterWrapper: {
-      flexDirection: 'row',
-      width: '100%',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginVertical: 8,
-      paddingHorizontal: 16,
-    },
-    controlButton: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      borderRadius: 8,
-      maxWidth: '80%',
-      paddingHorizontal: 12,
-    },
-    networkManagerWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    titleText: {
-      color: colors.text.default,
-    },
-  });
-};
+// Lazily loaded so the redesigned Activity screen and its dependencies are not
+// evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
+// fully isolated.
+const ActivityScreen = React.lazy(
+  () =>
+    // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+    import('../ActivityScreen/ActivityScreen'),
+);
 
-const ActivityView = () => {
+const LegacyActivityView = () => {
   const { colors } = useTheme();
   const tw = useTailwind();
 
-  const { styles } = useStyles(createStyles);
+  const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
 
@@ -217,7 +192,7 @@ const ActivityView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={['left', 'right', 'bottom']}
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
@@ -228,12 +203,14 @@ const ActivityView = () => {
           <HeaderStandard
             title={strings('activity_view.title')}
             onBack={handleBackPress}
+            includesTopInset
             backButtonProps={{ testID: 'activity-view-back-button' }}
             testID={ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD}
           />
         ) : (
           <HeaderRoot
             title={strings('activity_view.title')}
+            includesTopInset
             testID={ActivitiesViewSelectorsIDs.HEADER_ROOT}
           />
         )}
@@ -320,6 +297,20 @@ const ActivityView = () => {
         </Box>
       </SafeAreaView>
     </ErrorBoundary>
+  );
+};
+
+const ActivityView = () => {
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
+
+  return isActivityRedesignEnabled ? (
+    <React.Suspense fallback={null}>
+      <ActivityScreen />
+    </React.Suspense>
+  ) : (
+    <LegacyActivityView />
   );
 };
 

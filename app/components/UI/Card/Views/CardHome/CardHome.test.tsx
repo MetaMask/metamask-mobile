@@ -509,6 +509,7 @@ import Engine from '../../../../../core/Engine';
 import { CardHomeSelectors } from './CardHome.testIds';
 import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { isSolanaChainId } from '@metamask/bridge-controller';
+import { CardEntryPoint } from '../../util/metrics';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -610,11 +611,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Failed to load PIN. Please try again.',
       'card.password_bottomsheet.description_view_pin':
         'Enter your wallet password to view your card PIN.',
-      'card.card_home.manage_card_options.cashback': 'Cashback',
       'card.card_home.manage_card_options.cashback_description':
-        'Earn 1% back on all spending',
-      'card.card_home.manage_card_options.cashback_description_metal':
-        'Earn 3% back on all spending',
+        'Earn on all spending',
       'money.metamask_card.link_title': 'Link MetaMask Card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
@@ -634,6 +632,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
       return `Earn up to ~${apy}% APY`;
+    }
+    if (key === 'card.card_home.manage_card_options.cashback') {
+      const cashbackPercentage = (
+        params as { cashbackPercentage?: number | string } | undefined
+      )?.cashbackPercentage;
+      return `${cashbackPercentage}% mUSD Back`;
     }
     return key;
   },
@@ -5680,7 +5684,7 @@ describe('CardHome Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows standard cashback description for virtual card', () => {
+    it('shows standard cashback title for virtual card', () => {
       // Given: authenticated international user with virtual card
       setupMockSelectors({
         isAuthenticated: true,
@@ -5697,13 +5701,11 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: standard description is shown
-      expect(
-        screen.getByText('Earn 1% back on all spending'),
-      ).toBeOnTheScreen();
+      // Then: standard 1% title is shown
+      expect(screen.getByText('1% mUSD Back')).toBeOnTheScreen();
     });
 
-    it('shows metal cashback description for metal card', () => {
+    it('shows metal cashback title for metal card', () => {
       // Given: authenticated international user with metal card
       setupMockSelectors({
         isAuthenticated: true,
@@ -5720,10 +5722,8 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: metal description is shown
-      expect(
-        screen.getByText('Earn 3% back on all spending'),
-      ).toBeOnTheScreen();
+      // Then: metal 3% title is shown
+      expect(screen.getByText('3% mUSD Back')).toBeOnTheScreen();
     });
 
     it('navigates to cashback screen on press', () => {
@@ -6319,9 +6319,6 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
       expect(
@@ -6339,7 +6336,9 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.queryByTestId(
+          CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM,
+        ),
       ).not.toBeOnTheScreen();
       expect(
         screen.queryByText(strings('money.metamask_card.link_title')),
@@ -6353,7 +6352,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
     });
 
@@ -6369,6 +6368,7 @@ describe('CardHome Component', () => {
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
         screen: Routes.CARD.HOME,
+        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
       });
     });
 
@@ -6384,6 +6384,7 @@ describe('CardHome Component', () => {
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
         screen: Routes.CARD.HOME,
+        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
       });
     });
 

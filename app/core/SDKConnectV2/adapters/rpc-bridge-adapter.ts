@@ -128,7 +128,6 @@ export class RPCBridgeAdapter
       isRemoteConn: true,
       channelId: this.connInfo.id,
       url: selfReportedDappUrl,
-      remoteConnHost: selfReportedDappUrl,
       sendMessage: (response: unknown) => {
         this.emit('response', response);
       },

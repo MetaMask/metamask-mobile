@@ -1,6 +1,6 @@
 import {
-  BottomSheet,
-  type BottomSheetRef,
+  BottomSheetDialog,
+  type BottomSheetDialogRef,
   Box,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -15,7 +15,13 @@ import type { LayoutChangeEvent } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+  useSocialLeaderboardAnalytics,
+} from '../../../analytics';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyTokenSelectScreen from './QuickBuyTokenSelectScreen';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
@@ -83,7 +89,8 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   children,
 }) => {
   const tw = useTailwind();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { track } = useSocialLeaderboardAnalytics();
+  const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
   const [lockedHeight, setLockedHeight] = useState<number | null>(null);
@@ -114,11 +121,32 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     [directionSV],
   );
 
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet(() => {
-      setIsContentReady(true);
+  const trackSheetViewed = useCallback(() => {
+    const source = analyticsContext?.source;
+    if (!source || !target.tokenSymbol) {
+      return;
+    }
+    track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
+      [SocialLeaderboardEventProperties.ASSET_NAME]: target.tokenSymbol,
+      ...(typeof analyticsContext.marketCap === 'number'
+        ? {
+            [SocialLeaderboardEventProperties.MARKET_CAP]:
+              analyticsContext.marketCap,
+          }
+        : {}),
+      [SocialLeaderboardEventProperties.SOURCE]: source,
+      [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]:
+        analyticsContext.traderTradeType ??
+        SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
     });
-  }, []);
+  }, [analyticsContext, target.tokenSymbol, track]);
+
+  useEffect(() => {
+    bottomSheetRef.current?.onOpenDialog(() => {
+      setIsContentReady(true);
+      trackSheetViewed();
+    });
+  }, [trackSheetViewed]);
 
   // Animate the sheet down (then run the parent's onClose) and flag the content
   // as closing so it doesn't slide horizontally on the way out. Falls back to a
@@ -126,8 +154,8 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const requestClose = useCallback(() => {
     setIsClosing(true);
     const sheet = bottomSheetRef.current;
-    if (sheet?.onCloseBottomSheet) {
-      sheet.onCloseBottomSheet(onClose);
+    if (sheet?.onCloseDialog) {
+      sheet.onCloseDialog(onClose);
     } else {
       onClose();
     }
@@ -147,7 +175,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   );
 
   return (
-    <BottomSheet
+    <BottomSheetDialog
       ref={bottomSheetRef}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
@@ -186,7 +214,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           <QuickBuyBottomSheetSkeleton />
         </AnimatedScrollView>
       )}
-    </BottomSheet>
+    </BottomSheetDialog>
   );
 };
 

@@ -3,13 +3,14 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import enContent from '../../../locales/languages/en.json';
+import { EncapsulatedElementType } from '../../framework';
 
 class PerpsHomeView {
-  get exploreCrypto(): DetoxElement {
+  get exploreCrypto(): EncapsulatedElementType {
     return Matchers.getElementByText(enContent.perps.home.crypto);
   }
 
-  get backHome(): DetoxElement {
+  get backHome(): EncapsulatedElementType {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON);
   }
 

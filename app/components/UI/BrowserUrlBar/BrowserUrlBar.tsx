@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import {
   NativeSyntheticEvent,
@@ -29,7 +30,6 @@ import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.test
 import { strings } from '../../../../locales/i18n';
 import { BrowserURLBarSelectorsIDs } from './BrowserURLBar.testIds';
 import AccountRightButton from '../AccountRightButton';
-import Text from '../../../component-library/components/Texts/Text';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
@@ -43,6 +43,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { hasProperty } from '@metamask/utils';
 import TabCountIcon from '../Tabs/TabCountIcon';
+import { Text } from '@metamask/design-system-react-native';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -61,7 +62,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     },
     ref,
   ) => {
-    const inputValueRef = useRef<string>('');
+    const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<TextInput>(null);
     const shouldTriggerBlurCallbackRef = useRef(true);
     const accountsLength = useSelector(selectAccountsLength);
@@ -106,7 +107,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const unfocusInput = useCallback(() => {
       setIsUrlBarFocused(false);
       // Reset the input value
-      inputValueRef.current = '';
+      setInputValue('');
     }, [setIsUrlBarFocused]);
 
     const onCancelInput = useCallback(() => {
@@ -201,7 +202,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         const inputText = hasProperty(props, 'text') ? props.text : null;
 
         if (typeof inputText === 'string') {
-          inputValueRef.current = inputText;
+          setInputValue(inputText);
         }
         inputRef?.current?.setNativeProps(props);
       },
@@ -256,7 +257,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         nativeEvent: { text },
       }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
         const trimmedText = text.trim();
-        inputValueRef.current = trimmedText;
+        setInputValue(trimmedText);
         onSubmitEditing(trimmedText);
       },
       [onSubmitEditing],
@@ -268,7 +269,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const onClearInput = useCallback(() => {
       const clearedText = '';
       inputRef?.current?.clear();
-      inputValueRef.current = clearedText;
+      setInputValue(clearedText);
       onChangeText(clearedText);
     }, [onChangeText]);
 
@@ -308,7 +309,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
                 numberOfLines={1}
                 ellipsizeMode="head"
               >
-                {inputValueRef.current || displayUrl}
+                {inputValue || displayUrl}
               </Text>
             </TouchableWithoutFeedback>
           </View>

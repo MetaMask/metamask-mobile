@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -27,6 +27,12 @@ import { getFormattedAddressFromInternalAccount } from '../../../../../core/Mult
 import { getMultichainBlockExplorer } from '../../../../../core/Multichain/networks';
 import { ShareAddressIds } from './ShareAddress.testIds';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  getQrCodeViewedAccountType,
+  trackQrCodeViewed,
+} from '../../../../../util/analytics/qrCodeViewedTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -42,6 +48,7 @@ export const ShareAddress = () => {
   const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);
 
   const blockExplorer:
@@ -52,8 +59,29 @@ export const ShareAddress = () => {
       }
     | undefined = useMemo(() => getMultichainBlockExplorer(account), [account]);
 
+  useEffect(() => {
+    trackQrCodeViewed(trackEvent, createEventBuilder, {
+      location: 'account-details',
+      account_type: getQrCodeViewedAccountType(account),
+    });
+  }, [account, createEventBuilder, trackEvent]);
+
+  const explorerButtonText = strings(
+    'multichain_accounts.share_address.view_on_explorer_button',
+    {
+      explorer:
+        blockExplorer?.blockExplorerName ??
+        strings('multichain_accounts.share_address.view_on_block_explorer'),
+    },
+  );
+
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'share_address',
+        text: explorerButtonText,
+        url: blockExplorer.url,
+      });
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -62,7 +90,13 @@ export const ShareAddress = () => {
         },
       });
     }
-  }, [blockExplorer, navigation]);
+  }, [
+    blockExplorer,
+    createEventBuilder,
+    explorerButtonText,
+    navigation,
+    trackEvent,
+  ]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
@@ -104,16 +138,7 @@ export const ShareAddress = () => {
           testID={ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON}
           style={tw.style('mt-1 self-center')}
         >
-          {strings(
-            'multichain_accounts.share_address.view_on_explorer_button',
-            {
-              explorer:
-                blockExplorer?.blockExplorerName ??
-                strings(
-                  'multichain_accounts.share_address.view_on_block_explorer',
-                ),
-            },
-          )}
+          {explorerButtonText}
         </Button>
       </Box>
     </BottomSheet>

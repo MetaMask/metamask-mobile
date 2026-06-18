@@ -21,22 +21,22 @@ import { RootState } from '../../../reducers';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -99,7 +99,7 @@ const DeleteWalletModal: React.FC = () => {
     properties: Record<string, string | boolean | number>,
   ) => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
+      AnalyticsEventBuilder.createEventBuilder(event)
         .addProperties(properties)
         .build(),
     );
@@ -134,16 +134,16 @@ const DeleteWalletModal: React.FC = () => {
         >
           <Text
             style={styles.heading}
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
+            variant={TextVariant.HeadingMd}
+            color={TextColor.TextDefault}
             testID={ForgotPasswordModalSelectorsIDs.TITLE}
           >
             {strings('login.forgot_password_desc')}
           </Text>
 
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
           >
             {strings('login.forgot_password_desc_2')}
@@ -157,15 +157,16 @@ const DeleteWalletModal: React.FC = () => {
                 color={IconColor.Muted}
               />
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
                 style={styles.forgotPasswordPointText}
               >
                 {strings('login.forgot_password_point_1')}{' '}
                 <Text
-                  variant={TextVariant.BodyMDBold}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                   style={styles.bold}
+                  fontWeight={FontWeight.Bold}
                 >
                   {strings('login.forgot_password_point_1_bold')}
                 </Text>{' '}
@@ -179,15 +180,16 @@ const DeleteWalletModal: React.FC = () => {
                 color={IconColor.Muted}
               />
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
                 style={styles.forgotPasswordPointText}
               >
                 {strings('login.forgot_password_point_2')}{' '}
                 <Text
-                  variant={TextVariant.BodyMDBold}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                   style={styles.bold}
+                  fontWeight={FontWeight.Bold}
                 >
                   {strings('login.forgot_password_point_2_bold')}{' '}
                 </Text>
@@ -197,10 +199,9 @@ const DeleteWalletModal: React.FC = () => {
           </View>
 
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            label={strings('login.reset_wallet')}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             isDanger
             onPress={() => {
               setIsResetWallet(true);
@@ -209,7 +210,9 @@ const DeleteWalletModal: React.FC = () => {
               });
             }}
             testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
-          />
+          >
+            {strings('login.reset_wallet')}
+          </Button>
         </View>
       ) : (
         <View style={styles.container}>
@@ -241,49 +244,52 @@ const DeleteWalletModal: React.FC = () => {
 
             <Text
               style={styles.heading}
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
+              variant={TextVariant.HeadingMd}
+              color={TextColor.TextDefault}
               testID={ForgotPasswordModalSelectorsIDs.WARNING_TEXT}
             >
               {strings('login.are_you_sure')}
             </Text>
             <View style={styles.warningTextContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('login.reset_wallet_desc')}{' '}
                 <Text
                   style={styles.warningText}
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Medium}
                 >
                   {strings('login.reset_wallet_desc_bold')}
                 </Text>{' '}
                 {strings('login.reset_wallet_desc_2')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('login.reset_wallet_desc_srp')}
               </Text>
             </View>
             <View style={styles.buttonContainer}>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={deleteWallet}
-                label={strings('login.erase_my')}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 isDanger
                 testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
-                loading={isDeletingWallet}
+                isLoading={isDeletingWallet}
                 isDisabled={isDeletingWallet}
-              />
+              >
+                {strings('login.erase_my')}
+              </Button>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={triggerClose}
-                label={strings('login.cancel')}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
                 isDisabled={isDeletingWallet}
-              />
+              >
+                {strings('login.cancel')}
+              </Button>
             </View>
           </View>
         </View>

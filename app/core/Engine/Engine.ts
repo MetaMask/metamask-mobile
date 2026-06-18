@@ -17,15 +17,9 @@ import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  KeyringTypes,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
-import {
-  TransactionController,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { AcceptOptions } from '@metamask/approval-controller';
 import {
@@ -36,10 +30,6 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import {
-  QrKeyring,
-  QrKeyringDeferredPromiseBridge,
-} from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
@@ -102,6 +92,7 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
+import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -134,7 +125,6 @@ import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
-import { ApprovalControllerInit } from './controllers/approval-controller';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -333,7 +323,6 @@ export class Engine {
         AssetsContractController: assetsContractControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
-        ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
@@ -378,6 +367,7 @@ export class Engine {
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        SnapAccountService: snapAccountServiceInit,
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
@@ -430,7 +420,7 @@ export class Engine {
       messengerClientsByName.RemoteFeatureFlagController;
     const accountsController = messengerClientsByName.AccountsController;
     const accountTreeController = messengerClientsByName.AccountTreeController;
-    const approvalController = messengerClientsByName.ApprovalController;
+    const approvalController = this.#wallet.getInstance('ApprovalController');
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
     const accountTrackerController =
@@ -544,6 +534,7 @@ export class Engine {
       messengerClientsByName.MultichainTransactionsController;
     const multichainAccountService =
       messengerClientsByName.MultichainAccountService;
+    const snapAccountService = messengerClientsByName.SnapAccountService;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -617,6 +608,7 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
+      SnapAccountService: snapAccountService,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
@@ -661,13 +653,6 @@ export class Engine {
         delete childControllers[name];
       }
     });
-
-    this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionsReceived',
-      (incomingTransactions: TransactionMeta[]) => {
-        NotificationManager.gotIncomingTransaction(incomingTransactions);
-      },
-    );
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -758,8 +743,6 @@ export class Engine {
             } catch {
               // Chain may not be configured locally — skip balance refresh
             }
-
-            this.context.TransactionController.updateIncomingTransactions();
           }
         } catch (error) {
           console.error(
@@ -845,7 +828,6 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
-    this.startPolling();
     this.handleVaultBackup();
 
     Engine.instance = this;
@@ -874,15 +856,6 @@ export class Engine {
           });
       },
     );
-  }
-
-  startPolling() {
-    const { TransactionController } = this.context;
-
-    TransactionController.stopIncomingTransactionPolling();
-
-    // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling();
   }
 
   configureControllersOnNetworkChange() {
@@ -1150,18 +1123,8 @@ export class Engine {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring = async (): Promise<SnapKeyring> => {
-    // TODO: Replace `getKeyringsByType` with `withKeyring`
-    let [snapKeyring] = this.keyringController.getKeyringsByType(
-      KeyringTypes.snap,
-    );
-    if (!snapKeyring) {
-      await this.keyringController.addNewKeyring(KeyringTypes.snap);
-      // TODO: Replace `getKeyringsByType` with `withKeyring`
-      [snapKeyring] = this.keyringController.getKeyringsByType(
-        KeyringTypes.snap,
-      );
-    }
-    return snapKeyring as SnapKeyring;
+    const { SnapAccountService } = this.context;
+    return await SnapAccountService.getLegacySnapKeyring();
   };
 
   /**

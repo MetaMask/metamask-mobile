@@ -13,6 +13,8 @@ import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { positionToQuickBuyTarget } from './types';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import type { Position } from '@metamask/social-controllers';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { SocialLeaderboardEventProperties } from '../../../analytics';
 
 jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
@@ -22,8 +24,18 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
+const mockTrack = jest.fn();
+
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
 let storedOnOpenCallback: (() => void) | undefined;
-const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
+const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -32,7 +44,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheet: ReactMock.forwardRef(
+    BottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
@@ -44,14 +56,14 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
+          onOpenDialog: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
-          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onCloseDialog: mockOnCloseDialog,
         }));
         return ReactMock.createElement(
           View,
-          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
+          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
           children,
         );
       },
@@ -169,21 +181,23 @@ const buildHookResult = (
   setSelectedSourceToken: jest.fn(),
   currentCurrency: 'USD',
   amountDisplayMode: 'fiat',
-  usdAmount: '',
+  fiatAmount: '',
+  fiatAmountLabel: '$0.00',
   sliderPercent: 0,
-  maxSpendUsd: 0,
+  maxSpendFiat: 0,
   formattedExchangeRate: undefined,
   metamaskFeePercent: 0,
   estimatedReceiveAmount: undefined,
   sourceBalanceFiat: '$0.00',
   sourceBalanceDisplay: undefined,
+  destBalanceFiat: undefined,
   formattedNetworkFee: '-',
   formattedSlippage: '-',
   formattedMinimumReceived: '-',
   formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
   formattedRate: undefined,
-  totalAmountUsd: '$0',
+  totalAmountFiat: '$0',
   isQuoteLoading: false,
   isBlockingQuoteLoad: false,
   isSubmittingTx: false,
@@ -253,6 +267,7 @@ describe('QuickBuyRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
+    mockOnCloseDialog.mockImplementation((cb?: () => void) => cb?.());
     (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
@@ -279,6 +294,78 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
+  });
+
+  it('fires SOCIAL_QUICK_BUY_SHEET_VIEWED when the sheet opens with a source', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={{ source: 'market_insights' }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      expect.objectContaining({
+        [SocialLeaderboardEventProperties.ASSET_NAME]: 'PEPE',
+        [SocialLeaderboardEventProperties.SOURCE]: 'market_insights',
+        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: 'buy',
+      }),
+    );
+  });
+
+  it('does not fire SOCIAL_QUICK_BUY_SHEET_VIEWED when analytics source is absent', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('includes market_cap and trader_trade_type from analyticsContext when provided', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={{
+          source: 'profile_position',
+          marketCap: 1_500_000,
+          traderTradeType: 'sell',
+        }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      {
+        [SocialLeaderboardEventProperties.ASSET_NAME]: 'PEPE',
+        [SocialLeaderboardEventProperties.MARKET_CAP]: 1_500_000,
+        [SocialLeaderboardEventProperties.SOURCE]: 'profile_position',
+        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: 'sell',
+      },
+    );
   });
 
   it('renders the price impact confirm screen via the children override', () => {
@@ -420,7 +507,7 @@ describe('QuickBuyRoot', () => {
       return <Pressable testID="probe-close" onPress={onClose} />;
     };
 
-    it('animates the sheet down via onCloseBottomSheet and runs the parent onClose', () => {
+    it('animates the sheet down via onCloseDialog and runs the parent onClose', () => {
       const onClose = jest.fn();
       renderWithProvider(
         <QuickBuyRoot
@@ -440,7 +527,7 @@ describe('QuickBuyRoot', () => {
         fireEvent.press(screen.getByTestId('probe-close'));
       });
 
-      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockOnCloseDialog).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 

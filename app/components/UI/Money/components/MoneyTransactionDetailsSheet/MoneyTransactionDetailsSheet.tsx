@@ -86,6 +86,12 @@ const MoneyTransactionDetailsSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  // Close the sheet first, then navigate — see `MoneySentDetailsProps.onCloseSheet`.
+  const closeAndNavigate = useCallback(
+    (navigate: () => void) => sheetRef.current?.onCloseBottomSheet(navigate),
+    [],
+  );
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -100,7 +106,7 @@ const MoneyTransactionDetailsSheet = () => {
       {isReceived ? (
         <MoneyReceivedDetails />
       ) : isSent ? (
-        <MoneySentDetails />
+        <MoneySentDetails onCloseSheet={closeAndNavigate} />
       ) : (
         <TransactionDetails />
       )}

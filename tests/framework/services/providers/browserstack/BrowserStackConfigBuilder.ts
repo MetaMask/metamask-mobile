@@ -32,6 +32,8 @@ export class BrowserStackConfigBuilder {
     const projectName = path.basename(process.cwd());
     const appBsUrl = this.project.use.app?.buildPath;
     const device = this.project.use.device as BrowserStackConfig;
+    const isLocal = process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+    const geoLocation = process.env.BROWSERSTACK_GEO_LOCATION || 'SE';
 
     if (!appBsUrl) {
       throw new Error('BrowserStack app URL (buildPath) is required');
@@ -82,6 +84,9 @@ export class BrowserStackConfigBuilder {
     logger.info(
       `BrowserStack idleTimeout: ${DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS}s, newCommandTimeout: ${DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS}s`,
     );
+    logger.info(
+      `BrowserStack local: ${isLocal}, geoLocation: ${isLocal ? 'disabled for local sessions' : geoLocation}`,
+    );
 
     return {
       port: 443,
@@ -97,7 +102,7 @@ export class BrowserStackConfigBuilder {
       capabilities: {
         'bstack:options': {
           debug: true,
-          local: process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true',
+          local: isLocal,
           interactiveDebugging: true,
           networkLogsOptions: {
             captureContent: true,
@@ -121,9 +126,7 @@ export class BrowserStackConfigBuilder {
           appProfiling: true,
           selfHeal: device.selfHeal ?? true,
           networkProfile: '4g-lte-advanced-good',
-          ...(process.env.BROWSERSTACK_LOCAL?.toLowerCase() !== 'true'
-            ? { geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES' }
-            : {}),
+          ...(!isLocal ? { geoLocation } : {}),
           enableCameraImageInjection: device.enableCameraImageInjection,
           ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
             ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }

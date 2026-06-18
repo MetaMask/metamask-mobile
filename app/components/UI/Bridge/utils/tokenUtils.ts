@@ -17,6 +17,14 @@ import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { getSwapDestToken } from './getSwapDestToken';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 
+export interface ApiTokenForBridgeToken {
+  assetId: string;
+  name?: string;
+  symbol: string;
+  decimals: number;
+  iconUrl?: string;
+}
+
 /**
  * Normalizes chain-specific native token addresses to the zero address for the bridge flow.
  *
@@ -88,6 +96,49 @@ export const getNativeSourceToken = (
 
   return nativeSourceTokenFormatted;
 };
+
+/**
+ * Converts API tokens to BridgeTokens with proper address and chainId formatting
+ * based on whether the chain is EVM or non-EVM.
+ */
+export const convertApiTokenToBridgeToken = <T extends ApiTokenForBridgeToken>(
+  token: T,
+  image?: string,
+): BridgeToken & { assetId: CaipAssetType } => {
+  const assetId = token.assetId as CaipAssetType;
+  const { assetReference, chainId, assetNamespace } =
+    parseCaipAssetType(assetId);
+  const isNonEvm = isNonEvmChainId(chainId);
+  const isNative = assetNamespace === 'slip44';
+
+  let address: string;
+  if (isNonEvm) {
+    address = assetId;
+  } else if (isNative) {
+    address = zeroAddress();
+  } else {
+    address = assetReference;
+  }
+
+  const formattedChainId = isNonEvm ? chainId : formatChainIdToHex(chainId);
+  const { iconUrl, ...tokenWithoutIconUrl } = token;
+
+  return {
+    ...tokenWithoutIconUrl,
+    assetId,
+    name: token.name ?? '',
+    address,
+    chainId: formattedChainId,
+    image: image ?? iconUrl,
+  } as BridgeToken & { assetId: CaipAssetType };
+};
+
+export const convertAPITokensToBridgeTokens = (
+  apiTokens?: (PopularToken | IncludeAsset)[] | null,
+): (BridgeToken & { assetId: CaipAssetType })[] =>
+  (Array.isArray(apiTokens) ? apiTokens : []).map((token) =>
+    convertApiTokenToBridgeToken(token),
+  );
 
 /**
  * Helper function to get default destination token, handling both hex and CAIP format chain IDs.
