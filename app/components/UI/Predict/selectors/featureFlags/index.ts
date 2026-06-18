@@ -182,6 +182,11 @@ export const selectPredictHomeRedesignEnabledFlag = createSelector(
   (flags) => flags.predictHomeRedesignEnabled,
 );
 
+export const selectPredictSportCardLivePricesEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictSportCardLivePricesEnabled,
+);
+
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>

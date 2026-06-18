@@ -2,6 +2,7 @@ jest.mock('./PlaywrightGestures.ts', () => ({
   __esModule: true,
   default: {
     dblTap: jest.fn(),
+    hideKeyboard: jest.fn(),
   },
 }));
 
@@ -84,5 +85,41 @@ describe('AppiumGestureStrategy.tapAtIndex', () => {
 
     expect(asPlaywrightElement).toHaveBeenCalledWith(elem);
     expect(playwrightElement.click).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('AppiumGestureStrategy.typeText', () => {
+  const strategy = new AppiumGestureStrategy();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('fills text and hides keyboard by default', async () => {
+    const elem = Promise.resolve({}) as never;
+    const playwrightElement = {
+      fill: jest.fn(),
+      unwrap: jest.fn(),
+    } as unknown as PlaywrightElement;
+    (asPlaywrightElement as jest.Mock).mockResolvedValue(playwrightElement);
+
+    await strategy.typeText(elem, 'hello');
+
+    expect(playwrightElement.fill).toHaveBeenCalledWith('hello');
+    expect(PlaywrightGestures.hideKeyboard).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips hideKeyboard when hideKeyboard is false', async () => {
+    const elem = Promise.resolve({}) as never;
+    const playwrightElement = {
+      fill: jest.fn(),
+      unwrap: jest.fn(),
+    } as unknown as PlaywrightElement;
+    (asPlaywrightElement as jest.Mock).mockResolvedValue(playwrightElement);
+
+    await strategy.typeText(elem, 'hello', { hideKeyboard: false });
+
+    expect(playwrightElement.fill).toHaveBeenCalledWith('hello');
+    expect(PlaywrightGestures.hideKeyboard).not.toHaveBeenCalled();
   });
 });

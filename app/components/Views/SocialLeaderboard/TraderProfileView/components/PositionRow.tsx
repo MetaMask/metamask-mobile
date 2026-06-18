@@ -71,7 +71,19 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   const perpDirection = getPerpPositionDirection(position);
 
-  const topRight = isPerp ? (
+  // Open positions — perp and spot alike — show the current position value in
+  // neutral white (matching spot). Closed positions show signed, colored
+  // realized PnL: perps via `perpPnlValue` (realized + unrealized), spot via
+  // `realizedPnl`.
+  const topRight = !isClosed ? (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+    >
+      {formatUsd(position.currentValueUSD ?? null)}
+    </Text>
+  ) : isPerp ? (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
@@ -80,7 +92,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
     >
       {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : '—'}
     </Text>
-  ) : isClosed ? (
+  ) : (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
@@ -89,55 +101,36 @@ const PositionRow: React.FC<PositionRowProps> = ({
     >
       {formatSignedUsd(position.realizedPnl)}
     </Text>
-  ) : (
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {formatUsd(position.currentValueUSD ?? null)}
-    </Text>
   );
 
-  const bottomRight =
-    !isPerp && isClosed ? (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-      >
-        {!hasPnlPercent ? null : isPnlZero ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {'−'}
-          </Text>
-        ) : (
-          <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
-            {isPnlPositive ? '▲' : '▼'}
-          </Text>
-        )}
+  // All positions — open and closed, perp and spot — render a directional
+  // triangle (▲/▼) alongside an unsigned percentage, both colored by direction
+  // (green up / red down). A break-even position shows a neutral minus and a
+  // neutral percentage. The sign lives in the caret, so the percent is unsigned.
+  const bottomRight = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+    >
+      {!hasPnlPercent ? null : isPnlZero ? (
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
+          {'−'}
         </Text>
-      </Box>
-    ) : !isPerp ? (
+      ) : (
+        <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
+          {isPnlPositive ? '▲' : '▼'}
+        </Text>
+      )}
       <Text
         variant={TextVariant.BodySm}
         twClassName={pnlColorClass}
         color={pnlColorClass ? undefined : TextColor.TextAlternative}
       >
-        {position.pnlValueUsd != null
-          ? `${formatSignedUsd(position.pnlValueUsd)} (${formatPercent(displayPnlPercent)})`
-          : formatPercent(displayPnlPercent)}
+        {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
       </Text>
-    ) : (
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName={pnlColorClass}
-        color={pnlColorClass ? undefined : TextColor.TextAlternative}
-      >
-        {formatPercent(displayPnlPercent)}
-      </Text>
-    );
+    </Box>
+  );
 
   const content = (
     <Box

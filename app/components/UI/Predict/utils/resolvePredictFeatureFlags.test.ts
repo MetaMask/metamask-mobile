@@ -28,12 +28,14 @@ describe('resolvePredictFeatureFlags', () => {
       feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
       liveSportsLeagues: [],
       extendedSportsMarketsLeagues: [],
+      enabledSportsMarketTypes: [],
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
       predictPortfolioEnabled: false,
       predictHomeRedesignEnabled: false,
+      predictSportCardLivePricesEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
@@ -214,6 +216,39 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
+  });
+
+  describe('predictSportCardLivePricesEnabled', () => {
+    it('defaults to true so sport cards fetch live prices by default', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictSportCardLivePricesEnabled).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportCardLivePrices: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictSportCardLivePricesEnabled).toBe(false);
+    });
   });
 
   describe('predictWorldCup', () => {
@@ -688,6 +723,164 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.extendedSportsMarketsLeagues).toEqual([]);
+    });
+  });
+
+  describe('enabledSportsMarketTypes', () => {
+    it('returns empty array when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns supported market types when enabledSportsMarketTypes is missing', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+    });
+
+    it('returns empty array when enabledSportsMarketTypes is explicit empty array', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: [],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns empty array when flag is disabled', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            ...DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
+            enabled: false,
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns empty array when version check fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns filtered market types when enabled and version check passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: [
+              'moneyline',
+              'MONEYLINE',
+              'spreads',
+              'totals',
+              'first_half_moneyline',
+              'points',
+            ],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+    });
+
+    it('applies local override over remote flag', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            'leagues' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['moneyline', 'spreads'],
+          },
+        },
+        localOverrides: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['totals'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual(['totals']);
     });
   });
 });

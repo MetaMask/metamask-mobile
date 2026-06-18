@@ -1471,6 +1471,41 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('formattedExchangeRate', () => {
+    it('shows pay-with token on the left in buy mode pre-quote', () => {
+      const solToken = createSourceToken({
+        symbol: 'SOL',
+        currencyExchangeRate: 150,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solToken],
+        isLoading: false,
+      });
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: '0xDEST',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'GIGA',
+          name: 'Gigachad',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      (usePositionTokenBalance as jest.Mock).mockReturnValue({
+        currencyExchangeRate: 0.006375,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget({ tokenSymbol: 'GIGA' }), jest.fn()),
+      );
+
+      expect(result.current.formattedExchangeRate).toMatch(/^1 SOL = /);
+      expect(result.current.formattedExchangeRate).not.toMatch(/^1 GIGA = /);
+    });
+  });
+
   describe('source token auto-selection', () => {
     it('auto-selects the first option when options load (legacy — native on dest chain matches priority 1)', () => {
       const firstToken = createSourceToken({ symbol: 'ETH' });

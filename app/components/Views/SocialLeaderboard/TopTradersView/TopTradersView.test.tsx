@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { FlatList } from 'react-native';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -23,9 +24,18 @@ const mockHasNotificationPreferences = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  // Real React Navigation returns a stable `navigation` reference across
+  // renders. Mirror that here (lazily, to respect const TDZ at mock-init time)
+  // so hooks depending on `navigation` stay referentially stable.
+  let navigation: { goBack: jest.Mock; navigate: jest.Mock } | undefined;
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useNavigation: () => {
+      if (!navigation) {
+        navigation = { goBack: mockGoBack, navigate: mockNavigate };
+      }
+      return navigation;
+    },
     useRoute: () => ({ params: {} }),
   };
 });
@@ -215,14 +225,14 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('renders the rank for the top trader', () => {
+  it('renders a podium medal for the top trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('1')).toBeOnTheScreen();
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
   });
 
-  it('renders the ROI for the first trader', () => {
+  it('renders the full PnL for the first trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('calls toggleFollow with analytics context when Follow button is pressed', () => {
@@ -380,6 +390,45 @@ describe('TopTradersView', () => {
       screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
     ).toBeOnTheScreen();
     expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
+  });
+
+  describe('performance', () => {
+    it('keeps a stable renderItem reference across a parent re-render with unchanged trader props', async () => {
+      // An inline `renderItem` closure would be re-created on every render,
+      // defeating the `React.memo` on `TraderRow`. The memoized `renderTraderRow`
+      // must keep a stable identity when nothing it depends on changes.
+      //
+      // Pull-to-refresh sets `refreshing` to true, forcing a parent re-render
+      // while the trader data (and every renderItem dependency) stays unchanged.
+      // Fake timers hold the view in that refreshing state so the re-render's
+      // renderItem can be compared against the initial one.
+      jest.useFakeTimers();
+      mockRefresh.mockResolvedValue(undefined);
+      const { UNSAFE_getByType } = renderWithProvider(<TopTradersView />);
+
+      const renderItemBefore = UNSAFE_getByType(FlatList).props.renderItem;
+
+      let refreshPromise: Promise<void> | undefined;
+      act(() => {
+        refreshPromise = screen
+          .getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST)
+          .props.refreshControl.props.onRefresh();
+      });
+
+      const renderItemDuringRefresh =
+        UNSAFE_getByType(FlatList).props.renderItem;
+
+      expect(typeof renderItemBefore).toBe('function');
+      expect(renderItemDuringRefresh).toBe(renderItemBefore);
+
+      // Drain the artificial min-duration timer and let refresh settle so no
+      // state update leaks outside `act`.
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+        await refreshPromise;
+      });
+      jest.useRealTimers();
+    });
   });
 
   describe('analytics', () => {
