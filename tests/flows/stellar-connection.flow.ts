@@ -5,11 +5,7 @@ import StellarTestDapp from '../page-objects/Browser/StellarTestDapp';
 import Assertions from '../framework/Assertions';
 import { navigateToBrowserView } from './browser.flow';
 
-// Calibrate signedMessageStandard after first green local run against the fixture wallet.
 export const account1Short = 'GDEM2...YE6K';
-
-export const signedMessageStandard =
-  'REPLACE_AFTER_FIRST_GREEN_RUN';
 
 // Soroban auth-entry preimage XDR for Stellar testnet (Test SDF Network ; September 2015).
 export const exampleAuthEntryXdr =

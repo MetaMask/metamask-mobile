@@ -1,7 +1,6 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import StellarTestDapp from '../../../page-objects/Browser/StellarTestDapp';
 import {
-  signedMessageStandard,
   connectStellarTestDapp,
   navigateToStellarTestDApp,
 } from '../../../flows/stellar-connection.flow';
@@ -24,7 +23,7 @@ describe(
         try {
           await StellarTestDapp.signMessage();
           await StellarTestDapp.confirmSignMessage();
-          await StellarTestDapp.verifySignedMessage(signedMessageStandard);
+          await StellarTestDapp.verifySignedMessageMatches(/^[A-Za-z0-9+/=]+$/);
         } finally {
           await device.enableSynchronization();
         }

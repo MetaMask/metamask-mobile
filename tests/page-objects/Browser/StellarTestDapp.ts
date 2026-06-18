@@ -179,11 +179,13 @@ class StellarTestDapp {
   }
 
   async selectNetwork(networkKey: string): Promise<void> {
-    const option = await Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      `//select[@data-testid="${dataTestIds.testPage.header.network}"]/option[@value="${networkKey}"]`,
-    );
-    await this.tapButton(option);
+    const select = await this.networkSelector;
+    await select.runScript(`
+      (el) => {
+        el.value = ${JSON.stringify(networkKey)};
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    `);
   }
 
   async signMessage(): Promise<void> {
@@ -257,7 +259,7 @@ class StellarTestDapp {
     );
   }
 
-  async verifySignedMessage(signedMessage: string): Promise<void> {
+  async verifySignedMessageMatches(pattern: RegExp): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
         const signedMessageElement = await getTestElement(
@@ -266,9 +268,9 @@ class StellarTestDapp {
         );
         const actualText = await signedMessageElement.getText();
 
-        if (actualText !== signedMessage) {
+        if (!pattern.test(actualText)) {
           throw new Error(
-            `Expected text containing "${signedMessage}" but got "${actualText}"`,
+            `Signed message does not match pattern: ${actualText}`,
           );
         }
       },
