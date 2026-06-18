@@ -263,11 +263,12 @@ export async function updateMoneyAccountDepositTokenAmount(
 export async function updateMoneyAccountWithdrawTokenAmount(
   transactionMeta: TransactionMeta,
   amountHuman: string,
+  recipientOverride?: Hex,
 ): Promise<UpdateTransactionPayAmountCall[]> {
   const state = ReduxService.store.getState() as RootState;
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  const recipient = selectEvmAddress(state);
+  const recipient = recipientOverride ?? selectEvmAddress(state);
   if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
 
   const chainIdHex = transactionMeta.chainId as Hex;
