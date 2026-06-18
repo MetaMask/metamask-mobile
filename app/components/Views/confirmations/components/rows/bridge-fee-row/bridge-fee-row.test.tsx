@@ -32,7 +32,9 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   }),
 }));
 
-function render(options: { type?: TransactionType } = {}) {
+function render(
+  options: { type?: TransactionType; isGasFeeSponsored?: boolean } = {},
+) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
@@ -40,10 +42,16 @@ function render(options: { type?: TransactionType } = {}) {
     otherControllersMock,
   );
 
-  (
+  const tx = (
     state.engine.backgroundState
       .TransactionController as TransactionControllerState
-  ).transactions[0].type = options.type ?? TransactionType.perpsDeposit;
+  ).transactions[0];
+
+  tx.type = options.type ?? TransactionType.perpsDeposit;
+
+  if (options.isGasFeeSponsored !== undefined) {
+    tx.isGasFeeSponsored = options.isGasFeeSponsored;
+  }
 
   return renderWithProvider(<BridgeFeeRow />, { state });
 }
@@ -190,6 +198,11 @@ describe('BridgeFeeRow', () => {
     });
 
     expect(getByText('$0.50')).toBeOnTheScreen();
+  });
+
+  it('renders $0 fee when transaction is gas fee sponsored', () => {
+    const { getByText } = render({ isGasFeeSponsored: true });
+    expect(getByText('$0')).toBeOnTheScreen();
   });
 
   describe('paid by MetaMask', () => {
