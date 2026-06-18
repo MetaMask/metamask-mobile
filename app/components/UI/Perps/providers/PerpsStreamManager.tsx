@@ -63,12 +63,21 @@ interface StreamSubscription<T> {
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
   hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
+  // Symbols this subscriber cares about. When present, the channel can dispatch
+  // an update only to subscribers registered for the symbols that changed,
+  // instead of iterating every subscriber on every tick. Used by the price channel.
+  symbols?: string[];
 }
 
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
+  // Reverse index: symbol -> set of subscriber ids registered for that symbol.
+  // Populated only for subscriptions that declare `symbols` (the price channel),
+  // so symbol-scoped channels can dispatch a tick to just the relevant
+  // subscribers. Channels without symbol subscriptions never touch this map.
+  protected readonly symbolSubscribers = new Map<string, Set<string>>();
   protected wsSubscription: (() => void) | null = null;
   readonly #onDataPersist?: () => void;
 
@@ -100,40 +109,130 @@ abstract class StreamChannel<T> {
     }
 
     this.subscribers.forEach((subscriber) => {
-      // Check if this is the first update for this subscriber
-      if (!subscriber.hasReceivedFirstUpdate) {
-        subscriber.callback(updates);
-        subscriber.hasReceivedFirstUpdate = true;
-        return; // Don't set up throttle for the first update
-      }
+      this.deliverToSubscriber(subscriber, updates);
+    });
+  }
 
-      // If no throttling (throttleMs is 0 or undefined), notify immediately
-      if (!subscriber.throttleMs) {
-        subscriber.callback(updates);
+  /**
+   * Symbol-scoped variant of {@link notifySubscribers}. Only subscribers that
+   * registered for at least one of `changedSymbols` are notified, so a tick that
+   * carries a subset of symbols does not iterate (or allocate filtered payloads
+   * for) subscribers that don't care about it. Each notified subscriber receives
+   * the exact same `updates` payload it would via notifySubscribers, so its own
+   * filtering wrapper still produces the correct slice. First-update and throttle
+   * semantics are identical because delivery goes through the shared
+   * {@link deliverToSubscriber}.
+   */
+  protected notifySubscribersForSymbols(
+    updates: T,
+    changedSymbols: Iterable<string>,
+  ) {
+    // Block emission while any pause is held (WebSocket continues receiving updates)
+    if (this.pauseCount > 0) {
+      return;
+    }
+
+    // A subscriber registered for multiple changed symbols must be delivered to
+    // exactly once per tick (not once per matching symbol).
+    const notifiedIds = new Set<string>();
+    for (const symbol of changedSymbols) {
+      const ids = this.symbolSubscribers.get(symbol);
+      if (!ids) {
+        continue;
+      }
+      ids.forEach((id) => {
+        if (notifiedIds.has(id)) {
+          return;
+        }
+        const subscriber = this.subscribers.get(id);
+        if (!subscriber) {
+          return;
+        }
+        notifiedIds.add(id);
+        this.deliverToSubscriber(subscriber, updates);
+      });
+    }
+  }
+
+  /**
+   * Deliver a single update to one subscriber, applying first-update and throttle
+   * semantics. Shared by {@link notifySubscribers} and
+   * {@link notifySubscribersForSymbols} so both dispatch paths behave identically.
+   */
+  private deliverToSubscriber(subscriber: StreamSubscription<T>, updates: T) {
+    // Check if this is the first update for this subscriber
+    if (!subscriber.hasReceivedFirstUpdate) {
+      subscriber.callback(updates);
+      subscriber.hasReceivedFirstUpdate = true;
+      return; // Don't set up throttle for the first update
+    }
+
+    // If no throttling (throttleMs is 0 or undefined), notify immediately
+    if (!subscriber.throttleMs) {
+      subscriber.callback(updates);
+      return;
+    }
+
+    // For subsequent updates with throttling, use throttle logic
+    // Store pending update
+    subscriber.pendingUpdate = updates;
+
+    // Throttle pattern: Only set timer if one isn't already running
+    // This ensures callbacks fire at most once per throttleMs interval
+    // WITHOUT resetting the countdown on every update (which would be debouncing)
+    // The conditional check prevents timer accumulation - no memory leaks
+    subscriber.timer ??= setTimeout(() => {
+      if (subscriber.pendingUpdate) {
+        subscriber.callback(subscriber.pendingUpdate);
+        subscriber.pendingUpdate = undefined;
+      }
+      subscriber.timer = undefined;
+    }, subscriber.throttleMs);
+  }
+
+  /**
+   * Register a subscription's symbols into the reverse index so symbol-scoped
+   * dispatch can find it. No-op for subscriptions without symbols.
+   */
+  private indexSubscriptionSymbols(subscription: StreamSubscription<T>) {
+    const { symbols } = subscription;
+    if (!symbols) {
+      return;
+    }
+    symbols.forEach((symbol) => {
+      let ids = this.symbolSubscribers.get(symbol);
+      if (!ids) {
+        ids = new Set<string>();
+        this.symbolSubscribers.set(symbol, ids);
+      }
+      ids.add(subscription.id);
+    });
+  }
+
+  /**
+   * Remove a subscription's symbols from the reverse index, pruning empty sets.
+   */
+  private deindexSubscriptionSymbols(subscription?: StreamSubscription<T>) {
+    const symbols = subscription?.symbols;
+    if (!subscription || !symbols) {
+      return;
+    }
+    symbols.forEach((symbol) => {
+      const ids = this.symbolSubscribers.get(symbol);
+      if (!ids) {
         return;
       }
-
-      // For subsequent updates with throttling, use throttle logic
-      // Store pending update
-      subscriber.pendingUpdate = updates;
-
-      // Throttle pattern: Only set timer if one isn't already running
-      // This ensures callbacks fire at most once per throttleMs interval
-      // WITHOUT resetting the countdown on every update (which would be debouncing)
-      // The conditional check prevents timer accumulation - no memory leaks
-      subscriber.timer ??= setTimeout(() => {
-        if (subscriber.pendingUpdate) {
-          subscriber.callback(subscriber.pendingUpdate);
-          subscriber.pendingUpdate = undefined;
-        }
-        subscriber.timer = undefined;
-      }, subscriber.throttleMs);
+      ids.delete(subscription.id);
+      if (ids.size === 0) {
+        this.symbolSubscribers.delete(symbol);
+      }
     });
   }
 
   subscribe(params: {
     callback: (data: T) => void;
     throttleMs?: number;
+    symbols?: string[];
   }): () => void {
     const id = Math.random().toString(36);
 
@@ -143,6 +242,7 @@ abstract class StreamChannel<T> {
       hasReceivedFirstUpdate: false, // Initialize as false
     };
     this.subscribers.set(id, subscription);
+    this.indexSubscriptionSymbols(subscription);
 
     // Give immediate cached data if available
     const cached = this.getCachedData();
@@ -162,6 +262,7 @@ abstract class StreamChannel<T> {
         clearTimeout(sub.timer);
         sub.timer = undefined;
       }
+      this.deindexSubscriptionSymbols(sub);
       this.subscribers.delete(id);
 
       // Disconnect if no subscribers
@@ -439,7 +540,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           priceMap[update.symbol] = priceUpdate;
         });
 
-        this.notifySubscribers(priceMap);
+        // Scope dispatch to subscribers registered for the symbols in this tick.
+        this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
       },
     });
   }
@@ -488,6 +590,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
 
     return this.subscribe({
+      // Registering symbols lets the channel scope dispatch to only the
+      // subscribers interested in the symbols present in a given tick.
+      symbols: params.symbols,
       callback: (allPrices) => {
         // Filter to only requested symbols
         const filtered: Record<string, PriceUpdate> = {};
@@ -580,7 +685,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             });
 
             if (this.subscribers.size > 0) {
-              this.notifySubscribers(priceMap);
+              // Scope dispatch to subscribers registered for the symbols in this tick.
+              this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
             }
           },
         });

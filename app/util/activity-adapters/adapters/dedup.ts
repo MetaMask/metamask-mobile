@@ -6,7 +6,7 @@
 import type { ActivityListItem } from '../types';
 
 function getItemHash(item: ActivityListItem): string | undefined {
-  return item.data.hash?.toLowerCase();
+  return item.hash?.toLowerCase();
 }
 
 /**
