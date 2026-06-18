@@ -23,7 +23,7 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 
 const LOG_TAG = '[Money Account]';
 
-export type MoneyAccountDepositIntent = 'convert' | 'addMusd';
+export type MoneyAccountDepositIntent = 'convert' | 'addMusd' | 'card';
 
 const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
 
