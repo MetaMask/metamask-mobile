@@ -114,7 +114,11 @@ export function useNotificationOnClick(
     [handleNotificationClickMetricsAndUpdates, onNavigation],
   );
 
-  return { onNotificationClick, handleNotificationClickMetricsAndUpdates, onNavigation };
+  return {
+    onNotificationClick,
+    handleNotificationClickMetricsAndUpdates,
+    onNavigation,
+  };
 }
 
 export function NotificationsListItem(props: NotificationsListItemProps) {
