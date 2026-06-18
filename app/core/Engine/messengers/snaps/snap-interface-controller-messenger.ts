@@ -18,15 +18,13 @@ export type { SnapInterfaceControllerMessenger };
  * @returns The SnapInterfaceControllerMessenger.
  */
 export function getSnapInterfaceControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SnapInterfaceControllerMessenger> | MaybeUpdateState,
-    MessengerEvents<SnapInterfaceControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): SnapInterfaceControllerMessenger {
   const messenger = new Messenger<
     'SnapInterfaceController',
     MessengerActions<SnapInterfaceControllerMessenger> | MaybeUpdateState,
-    MessengerEvents<SnapInterfaceControllerMessenger>
+    MessengerEvents<SnapInterfaceControllerMessenger>,
+    RootMessenger
   >({
     namespace: 'SnapInterfaceController',
     parent: rootMessenger,
