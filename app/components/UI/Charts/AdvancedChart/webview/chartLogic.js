@@ -3711,11 +3711,15 @@ function refreshStudyLegendFromExport() {
 
 function hasEmptyStudyValues(studyDataList) {
   for (var i = 0; i < studyDataList.length; i++) {
-    var cfg = INDICATOR_LEGEND_CONFIG[studyDataList[i].name];
+    var name = studyDataList[i].name;
+    var values = studyDataList[i].values;
+    var cfg = INDICATOR_LEGEND_CONFIG[name];
     if (!cfg) continue;
-    if (cfg.isMA) {
-      var v0 = studyDataList[i].values[0];
-      if (!v0 || !v0.value || v0.value === 'n/a' || v0.value === '∅') {
+
+    // Check all values for this indicator
+    for (var j = 0; j < values.length; j++) {
+      var val = values[j].value;
+      if (!val || val === '' || val === 'n/a' || val === '∅') {
         return true;
       }
     }

@@ -760,7 +760,7 @@ function handleSetMAVisibility(payload) {
 
   var promises = [];
   var maCallbacks = []; // Store callbacks to call after all MAs created and legend refreshed
-  
+
   for (var j = 0; j < visible.length; j++) {
     var name = visible[j];
     if (window.maStudies.has(name)) continue;
@@ -780,7 +780,7 @@ function handleSetMAVisibility(payload) {
         .then(function (studyId) {
           window.maStudies.set(maName, studyId);
           // Store the callback to be called after legend refresh
-          maCallbacks.push(function() {
+          maCallbacks.push(function () {
             subscribeStudyDataLoaded(studyId, function () {
               sendToReactNative('INDICATOR_ADDED', {
                 name: maName,
@@ -790,7 +790,9 @@ function handleSetMAVisibility(payload) {
           });
         })
         .catch(function (err) {
-          sendToReactNative('ERROR', { message: 'MA creation failed: ' + maName + ' - ' + String(err) });
+          sendToReactNative('ERROR', {
+            message: 'MA creation failed: ' + maName + ' - ' + String(err),
+          });
         });
       promises.push(p);
     })(name);
@@ -3350,11 +3352,10 @@ function refreshLineEndDot() {
 // ============================================
 
 function isLegendOverlayEnabled() {
-  var enabled = (
+  var enabled =
     window.CONFIG &&
     window.CONFIG.legendOverlay &&
-    window.CONFIG.legendOverlay.enabled
-  );
+    window.CONFIG.legendOverlay.enabled;
   return enabled;
 }
 
@@ -3584,7 +3585,7 @@ function updateStudyLegendFromEntityValues(entityValues) {
 function subscribeStudyDataLoaded(studyId, onDataLoadedCallback) {
   if (!onDataLoadedCallback) return;
 
-  requestAnimationFrame(function() {
+  requestAnimationFrame(function () {
     onDataLoadedCallback();
   });
 }
@@ -3634,12 +3635,12 @@ function refreshStudyLegendFromExport() {
   }
 
   var gen = ++_legendExportGeneration;
-  
+
   // Start timeout on first attempt
   if (_legendRetryCount === 0) {
     startLegendTimeout(gen);
   }
-  
+
   try {
     chart
       .exportData({
@@ -3701,10 +3702,10 @@ function refreshStudyLegendFromExport() {
 
         // Clear timeout on success
         clearLegendTimeout();
-        
+
         // Wait for browser to paint the legend DOM before reporting completion
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
             sendToReactNative('LEGEND_RENDERED', {});
           });
         });
@@ -3719,11 +3720,15 @@ function refreshStudyLegendFromExport() {
 
 function hasEmptyStudyValues(studyDataList) {
   for (var i = 0; i < studyDataList.length; i++) {
-    var cfg = INDICATOR_LEGEND_CONFIG[studyDataList[i].name];
+    var name = studyDataList[i].name;
+    var values = studyDataList[i].values;
+    var cfg = INDICATOR_LEGEND_CONFIG[name];
     if (!cfg) continue;
-    if (cfg.isMA) {
-      var v0 = studyDataList[i].values[0];
-      if (!v0 || !v0.value || v0.value === 'n/a' || v0.value === '∅') {
+    
+    // Check all values for this indicator
+    for (var j = 0; j < values.length; j++) {
+      var val = values[j].value;
+      if (!val || val === '' || val === 'n/a' || val === '∅') {
         return true;
       }
     }
@@ -3733,7 +3738,7 @@ function hasEmptyStudyValues(studyDataList) {
 
 function startLegendTimeout(gen) {
   clearLegendTimeout();
-  _legendTimeoutId = setTimeout(function() {
+  _legendTimeoutId = setTimeout(function () {
     if (gen !== _legendExportGeneration) return;
     _legendRetryCount = 0;
     clearLegendTimeout();
