@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
+import { TOKEN_DETAILS_LEGEND_OVERLAY } from '../indicatorColors';
 import {
   ChartType,
   resolveLineChromeOptions,
@@ -959,5 +960,77 @@ describe('AdvancedChart', () => {
 
     expect(queryByText(/Load failed/)).not.toBeOnTheScreen();
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+  });
+
+  it('waits for indicator and legend WebView messages before hiding skeleton', () => {
+    const onSkeletonHidden = jest.fn();
+    const { getByTestId, queryByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        indicators={['RSI', 'MACD']}
+        legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(onSkeletonHidden).not.toHaveBeenCalled();
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'INDICATOR_ADDED',
+            payload: { name: 'RSI', id: 'rsi-1' },
+          }),
+        },
+      });
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'INDICATOR_ADDED',
+            payload: { name: 'MACD', id: 'macd-1' },
+          }),
+        },
+      });
+    });
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'LEGEND_RENDERED', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'INDICATOR_REMOVED',
+            payload: { name: 'RSI' },
+          }),
+        },
+      });
+    });
   });
 });

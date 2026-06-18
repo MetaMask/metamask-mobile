@@ -170,6 +170,33 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
   };
 });
 
+jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
+  const { View, Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onIndicatorToggle,
+    }: {
+      onIndicatorToggle?: (name: string) => void;
+    }) => (
+      <View testID="mock-indicator-bar">
+        <Pressable
+          testID="toggle-rsi"
+          onPress={() => onIndicatorToggle?.('RSI')}
+        />
+        <Pressable
+          testID="toggle-macd"
+          onPress={() => onIndicatorToggle?.('MACD')}
+        />
+        <Pressable
+          testID="toggle-bol"
+          onPress={() => onIndicatorToggle?.('BOL')}
+        />
+      </View>
+    ),
+  };
+});
+
 jest.mock('./Price.legacy', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View } = require('react-native');
@@ -1494,6 +1521,87 @@ describe('PriceAdvanced', () => {
       expect(getByTestId('mock-advanced-chart').props.indicators).toEqual([
         'RSI',
       ]);
+    });
+  });
+
+  describe('handleIndicatorToggle', () => {
+    const enableIndicatorBar = (persisted: string[] = []) => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return persisted;
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+    };
+
+    afterEach(() => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return mockSelectTechnicalIndicatorsEnabled();
+        }
+        return ChartType.Line;
+      });
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
+    });
+
+    it('tracks indicator_toggled on when an indicator is turned on', () => {
+      enableIndicatorBar();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      fireEvent.press(getByTestId('toggle-rsi'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'chart_interacted',
+          properties: expect.objectContaining({
+            interaction_type: 'indicator_toggled',
+            indicator_type: 'RSI',
+            indicator_action: 'on',
+            indicators_active: ['RSI'],
+            chart_type: 'candlestick',
+          }),
+        }),
+      );
+    });
+
+    it('tracks indicator_toggled off when an active indicator is turned off', () => {
+      enableIndicatorBar(['RSI']);
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      fireEvent.press(getByTestId('toggle-rsi'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'chart_interacted',
+          properties: expect.objectContaining({
+            interaction_type: 'indicator_toggled',
+            indicator_type: 'RSI',
+            indicator_action: 'off',
+            indicators_active: [],
+          }),
+        }),
+      );
+    });
+
+    it('replaces other sub-pane indicators when selecting a new one', () => {
+      enableIndicatorBar(['MACD']);
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      fireEvent.press(getByTestId('toggle-rsi'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            indicator_type: 'RSI',
+            indicator_action: 'on',
+            indicators_active: ['RSI'],
+          }),
+        }),
+      );
     });
   });
 });

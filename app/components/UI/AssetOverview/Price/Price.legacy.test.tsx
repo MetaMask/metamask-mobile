@@ -1,5 +1,7 @@
 import React from 'react';
-import { userEvent } from '@testing-library/react-native';
+import { View } from 'react-native';
+import { userEvent, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PriceLegacy, { type PriceLegacyProps } from './Price.legacy';
 import PriceChart from '../PriceChart/PriceChart';
@@ -7,6 +9,34 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import type { TokenPrice } from '../../../../components/hooks/useTokenHistoricalPrices';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
+import { CHART_DATA_THRESHOLD } from './tokenOverviewChart.constants';
+
+const mockSelectTechnicalIndicatorsEnabled = jest.fn(() => false);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators',
+  () => ({
+    selectTokenDetailsTechnicalIndicatorsEnabled: jest.fn(),
+  }),
+);
+
+jest.mock('../ChartNavigationButton', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onPress }: { onPress: () => void }) => (
+      <Pressable testID="chart-navigation-button" onPress={onPress} />
+    ),
+  };
+});
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 /** Matches CHART_DATA_THRESHOLD (tokenOverviewChart.constants) — enough points for a non-empty line chart. */
 const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
@@ -15,7 +45,6 @@ const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
 ]);
 
 jest.mock('../PriceChart/PriceChart', () => ({
-  ...jest.requireActual('../PriceChart/PriceChart'),
   __esModule: true,
   default: jest.fn().mockImplementation(() => null),
 }));
@@ -33,6 +62,13 @@ const baseProps: PriceLegacyProps = {
 describe('PriceLegacy', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+        return mockSelectTechnicalIndicatorsEnabled();
+      }
+      return undefined;
+    });
     jest.mocked(PriceChart).mockImplementation(() => <></>);
   });
 
@@ -126,12 +162,15 @@ describe('PriceLegacy', () => {
   });
 
   it('passes sparse prices to PriceChart so empty state uses the same threshold', () => {
-    const ActualPriceChart = jest.requireActual<
-      typeof import('../PriceChart/PriceChart')
-    >('../PriceChart/PriceChart').default;
     jest
       .mocked(PriceChart)
-      .mockImplementationOnce((props) => <ActualPriceChart {...props} />);
+      .mockImplementationOnce(({ prices }) =>
+        prices.length < CHART_DATA_THRESHOLD ? (
+          <View testID="price-chart-insufficient-data" />
+        ) : (
+          <></>
+        ),
+      );
 
     const fourPrices: TokenPrice[] = Array.from({ length: 4 }, (_, i) => [
       String(1736761237983 + i),
@@ -148,5 +187,47 @@ describe('PriceLegacy', () => {
       undefined,
     );
     expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
+  });
+
+  describe('chart navigation buttons', () => {
+    it('calls onTimePeriodChange when a button is pressed with flag OFF (below chart)', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
+      const onTimePeriodChange = jest.fn();
+      const { getAllByTestId } = renderWithProvider(
+        <PriceLegacy
+          {...baseProps}
+          chartNavigationButtons={['1d', '7d']}
+          onTimePeriodChange={onTimePeriodChange}
+        />,
+      );
+
+      fireEvent.press(getAllByTestId('chart-navigation-button')[0]);
+
+      expect(onTimePeriodChange).toHaveBeenCalledWith('1d');
+    });
+
+    it('calls onTimePeriodChange when a button is pressed with flag ON (above chart)', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      const onTimePeriodChange = jest.fn();
+      const { getAllByTestId } = renderWithProvider(
+        <PriceLegacy
+          {...baseProps}
+          chartNavigationButtons={['1d', '7d']}
+          onTimePeriodChange={onTimePeriodChange}
+        />,
+      );
+
+      fireEvent.press(getAllByTestId('chart-navigation-button')[1]);
+
+      expect(onTimePeriodChange).toHaveBeenCalledWith('7d');
+    });
+
+    it('does not render navigation buttons when onTimePeriodChange is omitted', () => {
+      const { queryAllByTestId } = renderWithProvider(
+        <PriceLegacy {...baseProps} chartNavigationButtons={['1d', '7d']} />,
+      );
+
+      expect(queryAllByTestId('chart-navigation-button')).toHaveLength(0);
+    });
   });
 });
