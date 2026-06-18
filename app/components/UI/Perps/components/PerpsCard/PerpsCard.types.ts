@@ -6,5 +6,7 @@ export interface PerpsCardProps {
   onPress?: () => void;
   testID?: string;
   source?: string;
+  /** Sub-section of the parent screen that triggered navigation (e.g., 'positions'). */
+  source_section?: string;
   iconSize?: number;
 }
