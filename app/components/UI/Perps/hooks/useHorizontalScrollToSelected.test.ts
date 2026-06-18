@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { useScrollToSelected } from './useScrollToSelected';
+import { useHorizontalScrollToSelected } from './useHorizontalScrollToSelected';
 
-describe('useScrollToSelected', () => {
+describe('useHorizontalScrollToSelected', () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -12,7 +12,7 @@ describe('useScrollToSelected', () => {
 
   it('returns scroll handlers and ref', () => {
     const { result } = renderHook(() =>
-      useScrollToSelected({ selectedKey: undefined }),
+      useHorizontalScrollToSelected({ selectedKey: undefined }),
     );
 
     expect(result.current.scrollViewRef).toBeDefined();
@@ -25,7 +25,7 @@ describe('useScrollToSelected', () => {
     const scrollTo = jest.fn();
 
     const { result } = renderHook(() =>
-      useScrollToSelected({ selectedKey: undefined }),
+      useHorizontalScrollToSelected({ selectedKey: undefined }),
     );
 
     (result.current.scrollViewRef as { current: unknown }).current = {
@@ -43,7 +43,7 @@ describe('useScrollToSelected', () => {
     const scrollTo = jest.fn();
 
     const { result } = renderHook(() =>
-      useScrollToSelected({ selectedKey: 'forex', delay: 350 }),
+      useHorizontalScrollToSelected({ selectedKey: 'forex', delay: 350 }),
     );
 
     (result.current.scrollViewRef as { current: unknown }).current = {
@@ -78,7 +78,7 @@ describe('useScrollToSelected', () => {
     const scrollTo = jest.fn();
 
     const { result } = renderHook(() =>
-      useScrollToSelected({ selectedKey: 'crypto', delay: 350 }),
+      useHorizontalScrollToSelected({ selectedKey: 'crypto', delay: 350 }),
     );
 
     (result.current.scrollViewRef as { current: unknown }).current = {
@@ -110,7 +110,7 @@ describe('useScrollToSelected', () => {
     const scrollTo = jest.fn();
 
     const { result } = renderHook(() =>
-      useScrollToSelected({ selectedKey: 'crypto', delay: 350 }),
+      useHorizontalScrollToSelected({ selectedKey: 'crypto', delay: 350 }),
     );
 
     (result.current.scrollViewRef as { current: unknown }).current = {
@@ -153,7 +153,7 @@ describe('useScrollToSelected', () => {
     const scrollTo = jest.fn();
 
     const { result } = renderHook(() =>
-      useScrollToSelected({ selectedKey: 'forex', delay: 350 }),
+      useHorizontalScrollToSelected({ selectedKey: 'forex', delay: 350 }),
     );
 
     (result.current.scrollViewRef as { current: unknown }).current = {
@@ -191,7 +191,7 @@ describe('useScrollToSelected', () => {
     const scrollTo = jest.fn();
 
     const { result } = renderHook(() =>
-      useScrollToSelected({ selectedKey: 'forex', delay: 350 }),
+      useHorizontalScrollToSelected({ selectedKey: 'forex', delay: 350 }),
     );
 
     (result.current.scrollViewRef as { current: unknown }).current = {

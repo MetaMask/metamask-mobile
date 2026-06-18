@@ -5,7 +5,7 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 
-interface ScrollToSelectedOptions {
+interface HorizontalScrollToSelectedOptions {
   /** Key of the currently selected item, or null/undefined to disable scrolling */
   selectedKey: string | undefined;
   /** Delay (ms) before scrolling — allows entry animations to settle */
@@ -20,11 +20,11 @@ interface ScrollToSelectedOptions {
  *
  * Returns props/handlers to wire into the ScrollView and its child items.
  */
-export function useScrollToSelected({
+export function useHorizontalScrollToSelected({
   selectedKey,
   delay = 350,
   padding = 16,
-}: ScrollToSelectedOptions) {
+}: HorizontalScrollToSelectedOptions) {
   const scrollViewRef = useRef<{
     scrollTo(opts: { x: number; animated: boolean }): void;
   } | null>(null);

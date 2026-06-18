@@ -12,7 +12,7 @@ import {
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
-import { useScrollToSelected } from '../../hooks/useScrollToSelected';
+import { useHorizontalScrollToSelected } from '../../hooks/useHorizontalScrollToSelected';
 
 const ANIMATION_DURATION = 250;
 
@@ -48,7 +48,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     handleItemLayout,
     handleScroll,
     handleScrollViewLayout,
-  } = useScrollToSelected({
+  } = useHorizontalScrollToSelected({
     selectedKey: selectedCategory === 'all' ? undefined : selectedCategory,
     delay: ANIMATION_DURATION + 100,
   });
