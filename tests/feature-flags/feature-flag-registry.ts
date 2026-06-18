@@ -3730,17 +3730,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  predictHomepageDiscoveryNbaChampionEnabled: {
-    name: 'predictHomepageDiscoveryNbaChampionEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   coreMCU747AbtestPredictPositionsEmptyState: {
     name: 'coreMCU747AbtestPredictPositionsEmptyState',
     type: FeatureFlagType.Remote,
@@ -4835,6 +4824,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '7.81.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictSportCardLivePrices: {
+    name: 'predictSportCardLivePrices',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.81.0',
+      enabled: true,
     },
     status: FeatureFlagStatus.Active,
   },

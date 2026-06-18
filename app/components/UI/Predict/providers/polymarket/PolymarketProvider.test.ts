@@ -347,6 +347,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
   liveSportsLeagues: [],
   extendedSportsMarketsLeagues: [],
+  enabledSportsMarketTypes: [],
   marketHighlightsFlag: {
     enabled: false,
     highlights: [],
@@ -357,7 +358,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictUpDownEnabled: false,
   predictPortfolioEnabled: false,
   predictHomeRedesignEnabled: false,
-  predictHomepageDiscoveryNbaChampionEnabled: true,
+  predictSportCardLivePricesEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
 };
 

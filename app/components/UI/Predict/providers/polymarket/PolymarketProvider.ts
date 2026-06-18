@@ -329,6 +329,10 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().extendedSportsMarketsLeagues;
   }
 
+  #getEnabledSportsMarketTypes(): string[] {
+    return this.#getFeatureFlags().enabledSportsMarketTypes;
+  }
+
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -385,6 +389,7 @@ export class PolymarketProvider implements PredictProvider {
       sortMarketsBy: 'price',
       teamLookup,
       extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+      enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
     });
 
     if (filterEmptyOutcomes) {
@@ -841,6 +846,7 @@ export class PolymarketProvider implements PredictProvider {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues,
+        enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
       });
 
       if (!parsedMarket) {
@@ -1077,6 +1083,7 @@ export class PolymarketProvider implements PredictProvider {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -1115,6 +1122,7 @@ export class PolymarketProvider implements PredictProvider {
         sortMarketsBy: 'price',
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
       })
         .filter((m) => m.status === 'open' && m.outcomes.length > 0)
         .map((market) => {
