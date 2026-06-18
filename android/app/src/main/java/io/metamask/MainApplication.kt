@@ -31,6 +31,7 @@ import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
 import com.braze.BrazeActivityLifecycleCallbackListener
+import com.margelo.nitro.nitrofetch.AutoPrefetcher
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -88,6 +89,16 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         // Enable debugging WebView from Chrome DevTools
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
+        }
+
+        // Fire prefetchOnAppStart queue before JS loads (Android requires explicit call;
+        // iOS is auto-bootstrapped via NitroBootstrap.mm +load).
+        try {
+            AutoPrefetcher.prefetchOnStart(this)
+        } catch (e: Exception) {
+            // Non-fatal: prefetch is a cold-start optimisation. If it fails (e.g. fresh
+            // install, missing native queue, or early init race) the app continues normally
+            // and requests are served by the standard fetch path.
         }
 
         loadReactNative(this)
