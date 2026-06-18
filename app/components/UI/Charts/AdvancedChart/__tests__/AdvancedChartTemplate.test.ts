@@ -42,4 +42,14 @@ describe('createAdvancedChartTemplate', () => {
     );
     expect(html).toContain('window.pendingOlderBarsCallbacks.set(requestId, {');
   });
+
+  it('resolves RN-backed pending older-bar callbacks before discarding them', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('function resolvePendingOlderBarsNoData(pending)');
+    expect(html).toContain('pending.onResult([], { noData: true });');
+    expect(html).toContain('function resolveAllPendingOlderBarsNoData()');
+    expect(html).toContain('resolveAllPendingOlderBarsNoData();');
+    expect(html).toContain('resolvePendingOlderBarsNoData(pending);');
+  });
 });

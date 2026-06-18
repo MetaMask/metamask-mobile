@@ -558,7 +558,6 @@ function handleSetOHLCVData(payload) {
 
   // Resolve pending older-bar callbacks from the previous series before clearing.
   resolveAllPendingOlderBarsNoData();
-  window.pendingOlderBarsCallbacks = new Map();
 
   let visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
@@ -5044,7 +5043,9 @@ function resolvePendingOlderBarsNoData(pending) {
   if (!pending || typeof pending.onResult !== 'function') {
     return;
   }
-  pending.onResult([], { noData: true });
+  try {
+    pending.onResult([], { noData: true });
+  } catch (e) {}
   if (window.__mmLayoutSettlePending) {
     queueTryCompleteLayoutSettleAfterData();
   }
@@ -5061,7 +5062,7 @@ function resolveAllPendingOlderBarsNoData() {
   window.pendingOlderBarsCallbacks.forEach(function (pending) {
     resolvePendingOlderBarsNoData(pending);
   });
-  window.pendingOlderBarsCallbacks.clear();
+  window.pendingOlderBarsCallbacks = new Map();
 }
 
 /**
