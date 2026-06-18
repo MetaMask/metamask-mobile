@@ -248,8 +248,7 @@ const mockUseIsPriceAlertsChainSupported = jest.fn(() => true);
 jest.mock(
   '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported',
   () => ({
-    useIsPriceAlertsChainSupported: (...args: unknown[]) =>
-      mockUseIsPriceAlertsChainSupported(...args),
+    useIsPriceAlertsChainSupported: mockUseIsPriceAlertsChainSupported,
   }),
 );
 
