@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { BackHandler } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
 import { Accelerometer } from 'expo-sensors';
@@ -202,6 +202,18 @@ const MoneyFirstTimeDepositView = () => {
   // Running sum/count for the calibration window's average.
   const calibrationAccumulator = useRef({ sumX: 0, sumY: 0, count: 0 });
 
+  // Per-platform accelerometer sign correction.
+  //
+  // iOS (CoreMotion) reports accelerometer axes with the opposite sign to
+  // Android (SensorManager): e.g. resting upright in portrait, iOS reads
+  // y ≈ -1 while Android reads y ≈ +1. expo-sensors passes both through without
+  // normalizing. Flipping iOS makes a given physical tilt drive parallax
+  // identically on both platforms (tilt down → parallax down).
+  //
+  // Read at runtime (not module scope) so the value reflects Platform.OS on
+  // each mount, which also lets tests exercise both platforms by mocking it.
+  const axisSign = Platform.OS === 'ios' ? -1 : 1;
+
   useEffect(() => {
     if (!riveRef) return;
 
@@ -247,8 +259,8 @@ const MoneyFirstTimeDepositView = () => {
         // --- Live phase ---
         // Subtract the baseline so parallax is relative to the user's
         // resting hold, not relative to "device perfectly flat on a table".
-        targetX.current = gForceToParallax(x - baseline.x);
-        targetY.current = gForceToParallax(y - baseline.y);
+        targetX.current = gForceToParallax(axisSign * (x - baseline.x));
+        targetY.current = gForceToParallax(axisSign * (y - baseline.y));
       });
     } catch {
       // Sensor unavailable — parallax stays at static center.
@@ -283,7 +295,7 @@ const MoneyFirstTimeDepositView = () => {
       cancelAnimationFrame(rafId);
       subscription?.remove();
     };
-  }, [riveRef]);
+  }, [riveRef, axisSign]);
 
   const handleError = useCallback(
     (riveError: RNRiveError) => {
