@@ -62,8 +62,7 @@ interface PayWithRouteParams {
 
 export function PayWithRow({
   isResultReady,
-  onSelectorOpen,
-}: { isResultReady?: boolean; onSelectorOpen?: () => void } = {}) {
+}: { isResultReady?: boolean } = {}) {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
@@ -85,16 +84,17 @@ export function PayWithRow({
     return null;
   }
 
-  if (
-    paymentOverride === PaymentOverride.MoneyAccount ||
-    (isDefaultMoneyAccount && !overrideApplied.current)
-  ) {
-    if (!(isResultReady && isDefaultMoneyAccount)) {
-      return <PayWithRowMoneyAccount onSelectorOpen={onSelectorOpen} />;
-    }
+  // Explicit selection via controller — always honor it.
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
+    return <PayWithRowMoneyAccount />;
   }
 
-  return <PayWithRowInteractive onSelectorOpen={onSelectorOpen} />;
+  // Flag-based default — step aside when results are ready so user can change.
+  if (isDefaultMoneyAccount && !overrideApplied.current && !isResultReady) {
+    return <PayWithRowMoneyAccount />;
+  }
+
+  return <PayWithRowInteractive />;
 }
 
 function PayWithRowLayout({
@@ -149,11 +149,7 @@ function PayWithRowLayout({
   );
 }
 
-function PayWithRowInteractive({
-  onSelectorOpen,
-}: {
-  onSelectorOpen?: () => void;
-} = {}) {
+function PayWithRowInteractive() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
@@ -183,17 +179,10 @@ function PayWithRowInteractive({
         mm_pay_token_list_opened: true,
       },
     });
-    onSelectorOpen?.();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
       preferredPaymentToken,
     });
-  }, [
-    isDisabled,
-    navigation,
-    onSelectorOpen,
-    preferredPaymentToken,
-    setConfirmationMetric,
-  ]);
+  }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
@@ -350,11 +339,7 @@ function PayWithRowEmpty({
   );
 }
 
-function PayWithRowMoneyAccount({
-  onSelectorOpen,
-}: {
-  onSelectorOpen?: () => void;
-} = {}) {
+function PayWithRowMoneyAccount() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
@@ -366,16 +351,10 @@ function PayWithRowMoneyAccount({
     setConfirmationMetric({
       properties: { mm_pay_token_list_opened: true },
     });
-    onSelectorOpen?.();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
       preferredPaymentToken,
     });
-  }, [
-    navigation,
-    onSelectorOpen,
-    preferredPaymentToken,
-    setConfirmationMetric,
-  ]);
+  }, [navigation, preferredPaymentToken, setConfirmationMetric]);
 
   if (!payToken) {
     return <PayWithRowSkeleton />;

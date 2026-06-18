@@ -1,4 +1,11 @@
-import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
+import React, {
+  ReactNode,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -75,7 +82,7 @@ import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { useMoneyDepositFunnelMetrics } from './useMoneyDepositFunnelMetrics';
+import { useFiatFunnelMetricsAdapter } from '../../../hooks/pay/useFiatFunnelMetricsAdapter';
 
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
@@ -136,11 +143,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
-    // TRAM-3623 headless ramps funnel telemetry. All emits are gated on
-    // moneyAccountDeposit inside the hook, so this is inert for the other flows
-    // (perps / predict / withdraw / mUSD) that also render this shared screen.
-    const { trackAmountCommitted, trackPaymentSelectorOpened, trackContinue } =
-      useMoneyDepositFunnelMetrics();
+    // TRAM-3623 headless ramps funnel telemetry, mounted once for the whole
+    // money-deposit screen. The adapter derives the ramp_surface from the tx
+    // type, so every emit (including the screen-viewed mount effect below) is
+    // inert for the non-money flows that also render this shared screen.
+    const { trackScreenViewed, trackAmountCommitted, trackContinue } =
+      useFiatFunnelMetricsAdapter();
+
+    // Amount screen viewed. The hook gates on surface and guards itself to fire
+    // once, so this stays money-only and emits a single RAMPS_SCREEN_VIEWED.
+    useEffect(trackScreenViewed, [trackScreenViewed]);
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
@@ -285,9 +297,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
               {disablePay !== true &&
-                (hasPaymentOption || hasAccountNoFunds) && (
-                  <PayWithRow onSelectorOpen={trackPaymentSelectorOpened} />
-                )}
+                (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
             </>
           )}
           {isResultReady && (
@@ -298,10 +308,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && (
-                <PayWithRow
-                  isResultReady
-                  onSelectorOpen={trackPaymentSelectorOpened}
-                />
+                <PayWithRow isResultReady />
               )}
               {showPaymentDetails && (
                 <>

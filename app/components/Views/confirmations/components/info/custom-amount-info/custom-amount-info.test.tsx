@@ -45,7 +45,6 @@ import { useTransactionAccountOverride } from '../../../hooks/transactions/useTr
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -108,18 +107,21 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
     setConfirmationMetric: jest.fn(),
   }),
 }));
-const mockTrackEvent = jest.fn();
-const mockAddProperties = jest.fn((_properties: Record<string, unknown>) => ({
-  build: () => 'built-event',
-}));
-const mockCreateEventBuilder = jest.fn((_event: unknown) => ({
-  addProperties: mockAddProperties,
-}));
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: () => 'built-event' })),
+    })),
   }),
+}));
+
+// TRAM-3623 funnel events flow through the ramps-owned typed analytics callback
+// (single `(eventType, payload)` signature), driven by the real adapter + hook.
+const mockRampsTrackEvent = jest.fn();
+jest.mock('../../../../../UI/Ramp/hooks/useAnalytics', () => ({
+  __esModule: true,
+  default: () => mockRampsTrackEvent,
 }));
 
 const mockUseRampsUserRegion = jest.fn(() => ({
@@ -130,20 +132,15 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsUserRegion', () => ({
   useRampsUserRegion: () => mockUseRampsUserRegion(),
 }));
 
-/** Returns the addProperties payload for the first emit of `event`. */
-function emittedPayloadFor(
-  event: unknown,
-): Record<string, unknown> | undefined {
-  const callIndex = mockCreateEventBuilder.mock.calls.findIndex(
-    ([arg]) => arg === event,
-  );
-  if (callIndex === -1) {
-    return undefined;
-  }
-  return mockAddProperties.mock.calls[callIndex]?.[0] as Record<
-    string,
-    unknown
-  >;
+/** Returns the payload for the first ramps funnel emit of `event`. */
+function emittedPayloadFor(event: string): Record<string, unknown> | undefined {
+  return mockRampsTrackEvent.mock.calls.find(([type]) => type === event)?.[1];
+}
+
+/** How many times the ramps funnel emitted `event`. */
+function emitCount(event: string): number {
+  return mockRampsTrackEvent.mock.calls.filter(([type]) => type === event)
+    .length;
 }
 
 const mockGoToBuy = jest.fn();
@@ -266,13 +263,6 @@ describe('CustomAmountInfo', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    // resetAllMocks clears implementations; restore the analytics capture mocks.
-    mockAddProperties.mockImplementation(() => ({
-      build: () => 'built-event',
-    }));
-    mockCreateEventBuilder.mockImplementation(() => ({
-      addProperties: mockAddProperties,
-    }));
     mockUseRampsUserRegion.mockReturnValue({
       userRegion: { regionCode: 'us-ca' },
       setUserRegion: jest.fn(),
@@ -880,9 +870,18 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  // TRAM-3623 headless ramps funnel wiring through the shared screen.
-  describe('TRAM-3623 funnel events', () => {
-    function setMoneyDeposit() {
+  // TRAM-3623 headless ramps funnel, driven by the real adapter + ramps hook.
+  // The shared money-deposit screen mounts the funnel exactly ONCE and is the
+  // single owner of the screen-viewed + reactive + order-proposed/continue
+  // events. The selector-opened event is owned by the fiat-options hook (the
+  // Pay-With sheet), so it is asserted NOT to fire from this screen. Payloads
+  // and dedupe are proven in useFiatFunnelMetrics.test.ts; surface derivation in
+  // useFiatFunnelMetricsAdapter.test.ts.
+  describe('TRAM-3623 funnel', () => {
+    function setMoneyFlow({
+      withQuote = false,
+      withQuoteError = false,
+    }: { withQuote?: boolean; withQuoteError?: boolean } = {}) {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
         type: TransactionType.moneyAccountDeposit,
@@ -892,35 +891,55 @@ describe('CustomAmountInfo', () => {
         selectedPaymentMethodId: '/payments/debit-credit-card',
         amountFiat: '100',
         caipAssetId: 'eip155:1/slip44:60',
+        ...(withQuote && {
+          rampsQuote: {
+            provider: '/providers/transak',
+            quote: { amountIn: 100, amountOut: 0.05, totalFees: 5 },
+          },
+        }),
       } as never);
+      if (withQuoteError) {
+        useAlertsMock.mockReturnValue({
+          alerts: [
+            { key: AlertKeys.NoPayTokenQuotes, message: 'No quotes' },
+          ] as Alert[],
+          generalAlerts: [] as Alert[],
+          fieldAlerts: [] as Alert[],
+        } as AlertsContextParams);
+      }
     }
 
-    it('emits RAMPS_ORDER_PROPOSED on Done press for moneyAccountDeposit', async () => {
-      setMoneyDeposit();
+    it('emits RAMPS_SCREEN_VIEWED with HEADLESS / money_account / region on mount', () => {
+      setMoneyFlow();
 
-      const { getByText } = render({
-        transactionType: TransactionType.moneyAccountDeposit,
+      render({ transactionType: TransactionType.moneyAccountDeposit });
+
+      expect(emittedPayloadFor('RAMPS_SCREEN_VIEWED')).toEqual({
+        location: 'Amount Input',
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'money_account',
+        region: 'us-ca',
+      });
+    });
+
+    it('falls back to an empty region when the user region is unavailable', () => {
+      setMoneyFlow();
+      mockUseRampsUserRegion.mockReturnValue({
+        userRegion: null as never,
+        setUserRegion: jest.fn(),
       });
 
-      await act(async () => {
-        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-      });
+      render({ transactionType: TransactionType.moneyAccountDeposit });
 
-      expect(emittedPayloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED)).toEqual(
-        expect.objectContaining({
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          region: 'us-ca',
-          amount_source: 100,
-        }),
+      expect(emittedPayloadFor('RAMPS_SCREEN_VIEWED')).toEqual(
+        expect.objectContaining({ region: '' }),
       );
     });
 
-    it('does not emit RAMPS_ORDER_PROPOSED when applying the amount throws on Done press', async () => {
-      setMoneyDeposit();
+    it('does not fire RAMPS_ORDER_PROPOSED when applying the amount throws on Done', async () => {
+      setMoneyFlow();
       const error = new Error('update failed');
       const loggerErrorMock = jest.mocked(Logger.error);
-      loggerErrorMock.mockClear();
       useTransactionCustomAmountMock.mockReturnValue({
         amountFiat: '100',
         amountHuman: '0',
@@ -941,19 +960,19 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText(strings('confirm.edit_amount_done')));
       });
 
-      // Amount-committed must not fire when the apply rejects; the error is
-      // still logged by the Done handler's catch block.
-      expect(
-        emittedPayloadFor(MetaMetricsEvents.RAMPS_ORDER_PROPOSED),
-      ).toBeUndefined();
+      // The Done handler's catch suppresses the commit but logs the error.
+      expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toBeUndefined();
       expect(loggerErrorMock).toHaveBeenCalledWith(
         error,
         expect.stringContaining('Failed to apply custom amount on Done press'),
       );
     });
 
-    it('emits RAMPS_CONTINUE_BUTTON_CLICKED on confirm press for moneyAccountDeposit', async () => {
-      setMoneyDeposit();
+    // Regression guard for FIX 2 (no double emission). Renders the REAL money
+    // flow (no mock hiding the adapter/hook) and asserts EXACT call counts: the
+    // single funnel mount fires each of its events exactly once.
+    it('fires every money funnel event exactly once (no double emission)', async () => {
+      setMoneyFlow({ withQuote: true, withQuoteError: true });
       useConfirmActionsMock.mockReturnValue({
         onConfirm: jest.fn(),
         onReject: jest.fn(),
@@ -963,7 +982,6 @@ describe('CustomAmountInfo', () => {
         transactionType: TransactionType.moneyAccountDeposit,
       });
 
-      // Commit the amount first to dismiss the keyboard and reveal the CTA.
       await act(async () => {
         fireEvent.press(getByText(strings('confirm.edit_amount_done')));
       });
@@ -971,104 +989,48 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
       });
 
-      expect(
-        emittedPayloadFor(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED),
-      ).toEqual(
-        expect.objectContaining({
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          region: 'us-ca',
-        }),
+      // Screen-viewed (imperative, mount) + the three reactive events + the two
+      // imperative CTA events each fire exactly once from this single mount.
+      expect(emitCount('RAMPS_SCREEN_VIEWED')).toBe(1);
+      expect(emitCount('RAMPS_PAYMENT_METHOD_SELECTED')).toBe(1);
+      expect(emitCount('RAMPS_ORDER_SELECTED')).toBe(1);
+      expect(emitCount('RAMPS_QUOTE_ERROR')).toBe(1);
+      expect(emitCount('RAMPS_ORDER_PROPOSED')).toBe(1);
+      expect(emitCount('RAMPS_CONTINUE_BUTTON_CLICKED')).toBe(1);
+      // The selector-opened event is owned by the fiat-options hook (Pay-With
+      // sheet), so this screen must NOT emit it (proven once there instead).
+      expect(emitCount('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED')).toBe(0);
+      // The adapter threaded the money surface through (payloads themselves are
+      // proven byte-identical in useFiatFunnelMetrics.test.ts).
+      expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toEqual(
+        expect.objectContaining({ ramp_surface: 'money_account' }),
       );
     });
 
-    it('emits RAMPS_ORDER_SELECTED reactively when a usable quote is present', () => {
-      setMoneyDeposit();
-      useTransactionPayFiatPaymentMock.mockReturnValue({
-        selectedPaymentMethodId: '/payments/debit-credit-card',
-        amountFiat: '100',
-        caipAssetId: 'eip155:1/slip44:60',
-        rampsQuote: {
-          provider: '/providers/transak',
-          quote: {
-            amountIn: 100,
-            amountOut: 0.05,
-            paymentMethod: '/payments/debit-credit-card',
-            totalFees: 5,
-            networkFee: 2,
-            providerFee: 3,
-          },
-        },
-      } as never);
-
-      render({ transactionType: TransactionType.moneyAccountDeposit });
-
-      expect(emittedPayloadFor(MetaMetricsEvents.RAMPS_ORDER_SELECTED)).toEqual(
-        expect.objectContaining({
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          amount_destination: 0.05,
-          total_fee: 5,
-        }),
-      );
-    });
-
-    // Cross-flow isolation: the shared screen also serves these flows; none of
-    // the money RAMPS funnel events may fire for them.
+    // Money-account deposit is the only wired surface. perps / prediction
+    // deposits render this shared screen but resolve to an undefined surface,
+    // so the funnel stays inert (reverts FIX 1). Withdraw / mUSD likewise.
     it.each([
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.moneyAccountWithdraw,
       TransactionType.musdConversion,
-    ])(
-      'fires no money RAMPS funnel events for %s on Done press',
-      async (type) => {
-        useTransactionMetadataRequestMock.mockReturnValue({
-          id: 'tx-1',
-          type,
-          txParams: { from: '0x123' },
-        } as never);
-        useTransactionPayFiatPaymentMock.mockReturnValue({
-          selectedPaymentMethodId: '/payments/debit-credit-card',
-          amountFiat: '100',
-          caipAssetId: 'eip155:1/slip44:60',
-          rampsQuote: {
-            provider: '/providers/transak',
-            quote: { amountIn: 100, amountOut: 0.05 },
-          },
-        } as never);
-        useAlertsMock.mockReturnValue({
-          alerts: [
-            {
-              key: AlertKeys.NoPayTokenQuotes,
-              severity: Severity.Danger,
-              isBlocking: true,
-            },
-          ] as Alert[],
-          generalAlerts: [] as Alert[],
-          fieldAlerts: [] as Alert[],
-        } as AlertsContextParams);
+    ])('fires no RAMPS funnel events for %s on Done', async (type) => {
+      // Undefined surface => inert regardless of payment data (default mocks).
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type,
+        txParams: { from: '0x123' },
+      } as never);
 
-        const { getByText } = render({ transactionType: type });
+      const { getByText } = render({ transactionType: type });
 
-        await act(async () => {
-          fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-        });
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
 
-        const moneyRampEvents = [
-          MetaMetricsEvents.RAMPS_ORDER_PROPOSED,
-          MetaMetricsEvents.RAMPS_ORDER_SELECTED,
-          MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED,
-          MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
-          MetaMetricsEvents.RAMPS_QUOTE_ERROR,
-          MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED,
-          MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
-        ];
-        for (const event of moneyRampEvents) {
-          expect(emittedPayloadFor(event)).toBeUndefined();
-        }
-      },
-    );
+      expect(mockRampsTrackEvent).not.toHaveBeenCalled();
+    });
   });
 });
 
