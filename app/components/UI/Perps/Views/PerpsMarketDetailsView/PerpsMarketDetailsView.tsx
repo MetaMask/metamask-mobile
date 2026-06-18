@@ -339,6 +339,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
+  const [advancedChartResetKey, setAdvancedChartResetKey] = useState(0);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -678,7 +679,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setVisibleCandleCount(45);
 
       // Reset chart view to default position
-      chartRef.current?.resetToDefault();
+      if (isAdvancedChartEnabled) {
+        setAdvancedChartResetKey((key) => key + 1);
+      } else {
+        chartRef.current?.resetToDefault();
+      }
 
       // WebSocket streaming provides real-time data - no manual refresh needed
       // Just reset the UI state and the chart will update automatically
@@ -690,7 +695,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [isAdvancedChartEnabled]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -1404,6 +1409,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
               {isAdvancedChartEnabled && market?.symbol ? (
                 <PerpsAdvancedChart
+                  key={`${market.symbol}-${selectedCandlePeriod}-${advancedChartResetKey}`}
                   symbol={market.symbol}
                   interval={selectedCandlePeriod}
                   visibleCandleCount={

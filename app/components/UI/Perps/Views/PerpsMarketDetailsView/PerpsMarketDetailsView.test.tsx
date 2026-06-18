@@ -14,8 +14,14 @@ import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefault
 import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectPerpsRelatedMarketsEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsRelatedMarketsEnabledFlag,
+} from '../../selectors/featureFlags';
 import type { PerpsMarketData } from '@metamask/perps-controller';
+
+const mockPerpsAdvancedChartMount = jest.fn();
+const mockPerpsAdvancedChartUnmount = jest.fn();
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -34,6 +40,22 @@ jest.mock('react-native-modal', () => {
         {children}
       </View>
     ) : null;
+});
+
+jest.mock('../../components/PerpsAdvancedChart/PerpsAdvancedChart', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      ReactActual.useEffect(() => {
+        mockPerpsAdvancedChartMount();
+        return mockPerpsAdvancedChartUnmount;
+      }, []);
+      return <View testID="mock-perps-advanced-chart" {...(props as object)} />;
+    },
+  };
 });
 
 jest.mock('../../../Ramp/types/legacyDeposit', () => ({
@@ -827,6 +849,9 @@ describe('PerpsMarketDetailsView', () => {
       if (selector === selectPerpsRelatedMarketsEnabledFlag) {
         return false;
       }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
       return undefined;
     });
 
@@ -951,6 +976,9 @@ describe('PerpsMarketDetailsView', () => {
       }
       if (selector === selectPerpsRelatedMarketsEnabledFlag) {
         return true;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
       }
       return undefined;
     });
@@ -1410,6 +1438,47 @@ describe('PerpsMarketDetailsView', () => {
 
       // Note: Candle data now uses WebSocket streaming (usePerpsLiveCandles)
       // so no manual refresh is needed - data updates automatically
+    });
+
+    it('remounts the advanced chart when RefreshControl is pulled and advanced charts are enabled', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+      expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(1);
+      expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(2);
     });
 
     it('refreshes candle data when position tab is active', async () => {
