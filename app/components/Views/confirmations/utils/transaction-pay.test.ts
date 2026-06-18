@@ -27,23 +27,11 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { store } from '../../../../store';
-import {
-  selectGasFeeTokenFlags,
+import type {
   BlockedTokensListConfig,
   BlockedTokensConfig,
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
-
-jest.mock('../../../../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
-}));
-
-jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
-  selectGasFeeTokenFlags: jest.fn(),
-}));
 
 jest.mock('../../../../util/transaction-controller', () => ({
   updateAtomicBatchData: jest.fn(),
@@ -81,12 +69,8 @@ const ERC20_TOKEN_MOCK = {
 } as AssetType;
 
 describe('Transaction Pay Utils', () => {
-  const selectGasFeeTokenFlagsMock = jest.mocked(selectGasFeeTokenFlags);
-
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(store.getState).mockReturnValue({} as never);
-    selectGasFeeTokenFlagsMock.mockReturnValue({ gasFeeTokens: {} });
   });
 
   describe('getRequiredBalance', () => {
@@ -335,7 +319,7 @@ describe('Transaction Pay Utils', () => {
     });
 
     describe('disabled', () => {
-      it('marks token as disabled when no native balance and no gas station support', () => {
+      it('keeps token enabled when native balance is zero', () => {
         const result = getAvailableTokens({
           tokens: [
             ERC20_TOKEN_MOCK,
@@ -344,10 +328,8 @@ describe('Transaction Pay Utils', () => {
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(true);
-        expect(result[0].disabledMessage).toBe(
-          strings('pay_with_modal.no_gas'),
-        );
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
       });
 
       it('marks token as enabled when native balance exists', () => {
@@ -360,43 +342,14 @@ describe('Transaction Pay Utils', () => {
         expect(result[0].disabledMessage).toBeUndefined();
       });
 
-      it('marks token as enabled when no native balance but gas station supports token', () => {
-        selectGasFeeTokenFlagsMock.mockReturnValue({
-          gasFeeTokens: {
-            [CHAIN_ID_MOCK]: {
-              name: 'Ethereum',
-              tokens: [
-                {
-                  name: 'Test Token',
-                  address: ERC20_TOKEN_MOCK.address as Hex,
-                },
-              ],
-            },
-          },
-        });
-
-        const result = getAvailableTokens({
-          tokens: [
-            ERC20_TOKEN_MOCK,
-            { ...TOKEN_MOCK, balance: '0' } as AssetType,
-          ],
-        });
-
-        expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(false);
-        expect(result[0].disabledMessage).toBeUndefined();
-      });
-
-      it('marks token as disabled when native token is not found in tokens list', () => {
+      it('keeps token enabled when native token is not found in tokens list', () => {
         const result = getAvailableTokens({
           tokens: [ERC20_TOKEN_MOCK],
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(true);
-        expect(result[0].disabledMessage).toBe(
-          strings('pay_with_modal.no_gas'),
-        );
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
       });
     });
 
@@ -516,7 +469,7 @@ describe('Transaction Pay Utils', () => {
         expect(result[1].disabled).toBe(false);
       });
 
-      it('keeps no-gas disabled message when token is disabled for no gas but not blocked', () => {
+      it('keeps token enabled when token is not blocked and native balance is zero', () => {
         const blockedTokens: BlockedTokensListConfig = {
           chainIds: [],
           tokens: [],
@@ -531,10 +484,8 @@ describe('Transaction Pay Utils', () => {
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(true);
-        expect(result[0].disabledMessage).toBe(
-          strings('pay_with_modal.no_gas'),
-        );
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
       });
     });
   });

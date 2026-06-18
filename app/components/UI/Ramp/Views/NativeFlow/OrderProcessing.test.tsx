@@ -53,17 +53,14 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../components/DepositOrderContent/DepositOrderContent',
-  () => {
-    const { createElement } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () => createElement(View, { testID: 'deposit-order-content' }),
-    };
-  },
-);
+jest.mock('../../components/DepositOrderContent/DepositOrderContent', () => {
+  const { createElement } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => createElement(View, { testID: 'deposit-order-content' }),
+  };
+});
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(

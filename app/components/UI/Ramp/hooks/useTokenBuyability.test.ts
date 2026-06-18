@@ -75,13 +75,11 @@ describe('useTokenBuyability', () => {
 
       setupControllerTokens([
         getMockRampToken({
-          assetId:
-            'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+          assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
           tokenSupported: true,
         }),
         getMockRampToken({
-          assetId:
-            'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           tokenSupported: false,
         }),
       ]);
@@ -117,8 +115,7 @@ describe('useTokenBuyability', () => {
       });
       setupControllerTokens([
         getMockRampToken({
-          assetId:
-            'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+          assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
           tokenSupported: true,
         }),
       ]);
@@ -139,8 +136,7 @@ describe('useTokenBuyability', () => {
       });
       setupControllerTokens([
         getMockRampToken({
-          assetId:
-            'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+          assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
           tokenSupported: true,
         }),
       ]);
@@ -177,8 +173,7 @@ describe('useTokenBuyability', () => {
       const nativeToken = getMockToken({ isNative: true, chainId: '0x1' });
       setupControllerTokens([
         getMockRampToken({
-          assetId:
-            'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+          assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
           chainId: 'eip155:1',
           tokenSupported: true,
         }),
@@ -275,8 +270,7 @@ describe('useTokenBuyability', () => {
     it('returns isBuyable: true when token is in controller token list (checksummed)', () => {
       setupControllerTokens([
         getMockRampToken({
-          assetId:
-            'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
+          assetId: 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
           chainId: 'eip155:1',
           tokenSupported: true,
         }),
@@ -332,8 +326,7 @@ describe('useTokenBuyability', () => {
       const token = getMockToken();
       setupControllerTokens([
         getMockRampToken({
-          assetId:
-            'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+          assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
           tokenSupported: true,
         }),
       ]);

@@ -248,12 +248,7 @@ function OrdersList() {
         handleNavigateToAggregatorTxDetails(orderId);
       }
     },
-    [
-      allLegacyOrders,
-      goToBuy,
-      handleNavigateToAggregatorTxDetails,
-      navigation,
-    ],
+    [allLegacyOrders, goToBuy, handleNavigateToAggregatorTxDetails, navigation],
   );
 
   const handleItemPress = useCallback(

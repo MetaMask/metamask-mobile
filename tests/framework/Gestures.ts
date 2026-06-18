@@ -383,6 +383,8 @@ export default class Gestures {
       return UnifiedGestures.typeText(elem as EncapsulatedElementType, text, {
         timeout: options.timeout,
         description: options.elemDescription,
+        hideKeyboard: options.hideKeyboard,
+        clearFirst: options.clearFirst,
       });
     }
 

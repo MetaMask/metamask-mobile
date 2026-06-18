@@ -32,6 +32,7 @@ import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
 import StateSelector from './StateSelector';
 
@@ -63,6 +64,11 @@ const V2EnterAddress = (): JSX.Element => {
   const trackEvent = useAnalytics();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
+
+  // Headless deposit (TRAM-3623): tag RAMPS_ADDRESS_ENTERED with
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
+  // part of a headless buy flow; keep 'DEPOSIT' otherwise.
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const transakRoutingConfig = useMemo(
     () =>
@@ -204,7 +210,7 @@ const V2EnterAddress = (): JSX.Element => {
 
     trackEvent('RAMPS_ADDRESS_ENTERED', {
       region: regionIsoCode,
-      ramp_type: 'DEPOSIT',
+      ...headlessDepositRampProps,
       kyc_type: 'SIMPLE',
     });
 
@@ -238,6 +244,7 @@ const V2EnterAddress = (): JSX.Element => {
     routeAfterAuthentication,
     regionIsoCode,
     trackEvent,
+    headlessDepositRampProps,
   ]);
 
   return (

@@ -68,7 +68,7 @@ const makeDefaultPosition = (): Position => ({
 
 let mockRouteParams: MockRouteParams = {
   traderId: 'trader-1',
-  traderName: 'dutchiono',
+  traderName: 'trader1',
   traderAddress: '0xabc',
   tokenSymbol: 'PEPE',
   position: makeDefaultPosition(),
@@ -224,7 +224,7 @@ describe('TraderPositionView', () => {
     mockGetAssetImageUrl.mockReturnValue('https://example.com/token.png');
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderAddress: '0xabc',
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
@@ -237,7 +237,7 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('trader1')).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -271,7 +271,7 @@ describe('TraderPositionView', () => {
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -371,6 +371,66 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  describe('perp positions', () => {
+    beforeEach(() => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        tokenSymbol: 'ETH',
+        chain: 'hyperliquid',
+        perpPositionType: 'short',
+        perpLeverage: 10,
+      };
+    });
+
+    it('renders the Trade button instead of the Buy button', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+
+      // Perps has no long/short preselect on the market page, so the single
+      // Trade CTA lands the user on that market's Perps page with a minimal
+      // market object — it never opens the spot QuickBuy sheet.
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: { symbol: 'ETH', name: 'ETH' },
+          source: 'social_leaderboard',
+        },
+      });
+    });
+
+    it('renders the perp leverage and direction badges in the header', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.getByText('10x')).toBeOnTheScreen();
+      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+    });
+
+    it('does not render the copy token address button for a perp position', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      // Perps have no on-chain token address, so copy is not offered.
+      expect(
+        screen.queryByTestId(
+          TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('forwards the filtered trades to the chart component', async () => {
@@ -570,7 +630,7 @@ describe('TraderPositionView', () => {
   it('refreshes profile on pull even when name and image came via nav params', async () => {
     mockRouteParams = {
       ...mockRouteParams,
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderImageUrl: 'https://example.com/avatar.png',
     };
 
@@ -593,7 +653,7 @@ describe('TraderPositionView', () => {
   it('does not render the refresh control in the fallback state', () => {
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       tokenSymbol: 'PEPE',
       position: undefined,
     };

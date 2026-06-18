@@ -58,17 +58,14 @@ jest.mock('../../utils/depositUtils', () => ({
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
-jest.mock(
-  '../../components/DepositProgressBar/DepositProgressBar',
-  () => {
-    const { createElement } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () => createElement(View, { testID: 'deposit-progress-bar' }),
-    };
-  },
-);
+jest.mock('../../components/DepositProgressBar/DepositProgressBar', () => {
+  const { createElement } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => createElement(View, { testID: 'deposit-progress-bar' }),
+  };
+});
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(

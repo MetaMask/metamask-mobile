@@ -245,6 +245,13 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Whether the tapped position came from the closed list. Authoritative
+       * closed/open signal (more reliable than re-deriving from fields). */
+      isClosed?: boolean;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -259,6 +266,12 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Deep links have no list context; resolved heuristically downstream. */
+      isClosed?: never;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     };
 
 /**
@@ -553,8 +566,11 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
-  // Perps routes - use PerpsNavigationParamList for type-safe perps navigation
-  Perps: PerpsNavigationParamList['Perps'];
+  // Perps routes - use PerpsNavigationParamList for type-safe perps navigation.
+  // The `Perps` root is a nested stack navigator, so it also accepts the
+  // `{ screen, params }` form for cross-stack navigation (e.g. from the social
+  // leaderboard into PerpsMarketDetails).
+  Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];

@@ -69,7 +69,6 @@ jest.mock('../../hooks/useRampNavigation', () => ({
   }),
 }));
 
-
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
@@ -135,7 +134,6 @@ describe('TokenSelection Component', () => {
 
     const rampsTokens = convertToRampsTokens(mockTokens);
 
-
     mockUseRampsController.mockReturnValue({
       tokens: {
         topTokens: rampsTokens,
@@ -177,7 +175,6 @@ describe('TokenSelection Component', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-
 
   it('renders token list', () => {
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -269,7 +266,6 @@ describe('TokenSelection Component', () => {
     });
   });
 
-
   it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed ', () => {
     const mockSetSelectedToken = jest.fn();
     mockUseRampsController.mockReturnValue({
@@ -299,9 +295,6 @@ describe('TokenSelection Component', () => {
       screen: 'RampUnsupportedTokenModal',
     });
   });
-
-
-
 
   it('displays loading indicator while fetching tokens', () => {
     mockUseRampsController.mockReturnValue({
@@ -387,7 +380,6 @@ describe('TokenSelection Component', () => {
     ).toBeOnTheScreen();
   });
 
-
   it('displays error message when token fetch fails', () => {
     mockUseRampsController.mockReturnValue({
       tokens: null,
@@ -427,7 +419,6 @@ describe('TokenSelection Component', () => {
 
     expect(getByText(/unable to load tokens/i)).toBeOnTheScreen();
   });
-
 
   it('uses topTokens when search string is empty', () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
@@ -478,7 +469,6 @@ describe('TokenSelection Component', () => {
       }),
     );
   });
-
 
   it('uses allTokens when user is searching', async () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
@@ -536,7 +526,6 @@ describe('TokenSelection Component', () => {
     });
   });
 
-
   it('uses topTokens when search string contains only whitespace', () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
     const allTokens = convertToRampsTokens(mockTokens);
@@ -592,7 +581,6 @@ describe('TokenSelection Component', () => {
   });
 
   it('filters tokens to only include those for configured networks', () => {
-
     const allTokensWithUnconfiguredNetwork = convertToRampsTokens([
       ...mockTokens,
       {

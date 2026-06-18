@@ -382,7 +382,13 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta false when MUSD is not buyable on any chain', () => {
-        mockUseRampsTokens.mockReturnValue({ tokens: { topTokens: defaultRampTokens.topTokens, allTokens: [] }, selectedToken: null, setSelectedToken: jest.fn(), isLoading: false, error: null });
+        mockUseRampsTokens.mockReturnValue({
+          tokens: { topTokens: defaultRampTokens.topTokens, allTokens: [] },
+          selectedToken: null,
+          setSelectedToken: jest.fn(),
+          isLoading: false,
+          error: null,
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -477,18 +483,18 @@ describe('useMusdCtaVisibility', () => {
 
         it('returns shouldShowCta false when MUSD not buyable in region for mainnet', () => {
           mockUseRampsTokens.mockReturnValue({
-          tokens: {
-            topTokens: defaultRampTokens.topTokens,
-            allTokens: [
-              createMusdRampToken(CHAIN_IDS.MAINNET, false), // tokenSupported = false
-              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
-            ],
-          },
-          selectedToken: null,
-          setSelectedToken: jest.fn(),
-          isLoading: false,
-          error: null,
-        });
+            tokens: {
+              topTokens: defaultRampTokens.topTokens,
+              allTokens: [
+                createMusdRampToken(CHAIN_IDS.MAINNET, false), // tokenSupported = false
+                createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
+              ],
+            },
+            selectedToken: null,
+            setSelectedToken: jest.fn(),
+            isLoading: false,
+            error: null,
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -501,18 +507,18 @@ describe('useMusdCtaVisibility', () => {
 
         it('returns shouldShowCta false when MUSD not buyable anywhere', () => {
           mockUseRampsTokens.mockReturnValue({
-          tokens: {
-            topTokens: defaultRampTokens.topTokens,
-            allTokens: [
-              createMusdRampToken(CHAIN_IDS.MAINNET, false),
-              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false),
-            ],
-          },
-          selectedToken: null,
-          setSelectedToken: jest.fn(),
-          isLoading: false,
-          error: null,
-        });
+            tokens: {
+              topTokens: defaultRampTokens.topTokens,
+              allTokens: [
+                createMusdRampToken(CHAIN_IDS.MAINNET, false),
+                createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false),
+              ],
+            },
+            selectedToken: null,
+            setSelectedToken: jest.fn(),
+            isLoading: false,
+            error: null,
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -556,18 +562,18 @@ describe('useMusdCtaVisibility', () => {
 
         it('returns shouldShowCta false when MUSD not buyable in region for Linea', () => {
           mockUseRampsTokens.mockReturnValue({
-          tokens: {
-            topTokens: defaultRampTokens.topTokens,
-            allTokens: [
-              createMusdRampToken(CHAIN_IDS.MAINNET),
-              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false), // tokenSupported = false
-            ],
-          },
-          selectedToken: null,
-          setSelectedToken: jest.fn(),
-          isLoading: false,
-          error: null,
-        });
+            tokens: {
+              topTokens: defaultRampTokens.topTokens,
+              allTokens: [
+                createMusdRampToken(CHAIN_IDS.MAINNET),
+                createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false), // tokenSupported = false
+              ],
+            },
+            selectedToken: null,
+            setSelectedToken: jest.fn(),
+            isLoading: false,
+            error: null,
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -747,9 +753,9 @@ describe('useMusdCtaVisibility', () => {
           tokens: {
             topTokens: defaultRampTokens.topTokens,
             allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable on selected chain
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable elsewhere
-          ],
+              createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable on selected chain
+              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable elsewhere
+            ],
           },
           selectedToken: null,
           setSelectedToken: jest.fn(),
@@ -917,7 +923,13 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
         });
-        mockUseRampsTokens.mockReturnValue({ tokens: null, selectedToken: null, setSelectedToken: jest.fn(), isLoading: true, error: null });
+        mockUseRampsTokens.mockReturnValue({
+          tokens: null,
+          selectedToken: null,
+          setSelectedToken: jest.fn(),
+          isLoading: true,
+          error: null,
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -941,9 +953,9 @@ describe('useMusdCtaVisibility', () => {
           tokens: {
             topTokens: defaultRampTokens.topTokens,
             allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable
-          ],
+              createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable
+              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable
+            ],
           },
           selectedToken: null,
           setSelectedToken: jest.fn(),

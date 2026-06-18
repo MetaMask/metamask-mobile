@@ -149,7 +149,10 @@ const Main = (props) => {
     }
   }, [props.chainId]);
 
-  const checkInfuraAvailability = useCallback(async () => {
+  // Plain function (not useCallback): it is only invoked, never used as a
+  // dependency, so letting the React Compiler memoize it avoids the "could not
+  // preserve existing manual memoization" bailout while keeping behavior intact.
+  const checkInfuraAvailability = async () => {
     if (props.providerType !== 'rpc') {
       try {
         const ethQuery = getGlobalEthQuery();
@@ -164,13 +167,7 @@ const Main = (props) => {
     } else {
       props.setInfuraAvailabilityNotBlocked();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    props.navigation,
-    props.providerType,
-    props.setInfuraAvailabilityBlocked,
-    props.setInfuraAvailabilityNotBlocked,
-  ]);
+  };
 
   const handleAppStateChange = useCallback(
     (appState) => {
@@ -367,7 +364,7 @@ const Main = (props) => {
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {

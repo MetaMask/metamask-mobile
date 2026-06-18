@@ -100,27 +100,22 @@ const MoneyBalanceCard = () => {
 
   const balanceText = totalFiatFormatted ?? '';
 
+  const buttonLabelKey = 'money.balance_card.add';
+  const buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+
   let buttonVariant: ButtonVariant;
-  let buttonLabelKey: string;
-  let buttonTestId: string;
   let containerTestId: string;
 
   if (!hasMoneyAccount || isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelKey = 'money.balance_card.add';
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelKey = 'money.balance_card.add';
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
   } else if (isEmpty) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelKey = 'homepage.sections.money_empty_state.earn';
-    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = isNewUser
       ? MoneyBalanceCardTestIds.NEW_USER_CONTAINER
       : MoneyBalanceCardTestIds.EMPTY_CONTAINER;
@@ -128,8 +123,6 @@ const MoneyBalanceCard = () => {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelKey = 'money.balance_card.add';
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
 
@@ -151,6 +144,18 @@ const MoneyBalanceCard = () => {
   }, [hasSeenMoneyOnboarding, navigateToMoneyHome, trackSurfaceClicked]);
 
   const handleAddPress = useCallback(() => {
+    if (!hasSeenMoneyOnboarding) {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        label_key: buttonLabelKey,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+      navigation.navigate(Routes.MONEY.ONBOARDING);
+      return;
+    }
+
+    // Initiate deposit
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
@@ -163,7 +168,7 @@ const MoneyBalanceCard = () => {
         message: '[MoneyBalanceCard] Failed to initiate deposit',
       }),
     );
-  }, [buttonLabelKey, initiateDeposit, trackButtonClicked]);
+  }, [hasSeenMoneyOnboarding, initiateDeposit, navigation, trackButtonClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({

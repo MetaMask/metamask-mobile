@@ -55,10 +55,7 @@ jest.mock('../../constants/transak', () => ({
   TRANSAK_URL: 'https://transak.com',
 }));
 
-jest.mock(
-  '../../assets/verifyIdentityIllustration.png',
-  () => 'mock-image',
-);
+jest.mock('../../assets/verifyIdentityIllustration.png', () => 'mock-image');
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({

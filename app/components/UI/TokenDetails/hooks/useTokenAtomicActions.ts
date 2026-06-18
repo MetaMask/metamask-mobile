@@ -280,14 +280,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [
-    store,
-    token,
-    trackEvent,
-    createEventBuilder,
-    isAuthenticated,
-    goToBuy,
-  ]);
+  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
 };
 
 /**

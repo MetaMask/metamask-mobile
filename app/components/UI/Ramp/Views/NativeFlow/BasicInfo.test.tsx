@@ -95,12 +95,9 @@ jest.mock('../../constants/transak', () => ({
   },
 }));
 
-jest.mock(
-  '../../utils/formatNumberToTemplate',
-  () => ({
-    formatNumberToTemplate: (num: string) => num,
-  }),
-);
+jest.mock('../../utils/formatNumberToTemplate', () => ({
+  formatNumberToTemplate: (num: string) => num,
+}));
 
 jest.mock('../../hooks/useForm', () => ({
   useForm: <T extends Record<string, string>>({

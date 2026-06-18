@@ -1395,7 +1395,7 @@ jobs:
           if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
             echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
           else
-            PROJECT_KEY="metamask-mobile"
+            PROJECT_KEY="MetaMask_metamask-mobile"
             PR_NUMBER="${{ github.event.pull_request.number }}"
             SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
 

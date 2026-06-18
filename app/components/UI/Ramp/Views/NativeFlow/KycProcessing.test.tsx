@@ -6,12 +6,15 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
+let mockRouteParams: Record<string, unknown> = {};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useRoute: () => ({ params: mockRouteParams }),
   useFocusEffect: (cb: () => void) => {
     const { useEffect } = jest.requireActual('react');
     useEffect(cb, [cb]);
@@ -45,6 +48,16 @@ jest.mock('../../hooks/useTransakRouting', () => ({
   }),
 }));
 
+let mockUserRegion: { regionCode?: string } | null = { regionCode: 'us-ca' };
+jest.mock('../../hooks/useRampsUserRegion', () => ({
+  __esModule: true,
+  useRampsUserRegion: () => ({ userRegion: mockUserRegion }),
+}));
+
+jest.mock('../../headless/sessionRegistry', () => ({
+  getSession: jest.fn(() => undefined),
+}));
+
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useAnalytics', () => ({
   __esModule: true,
@@ -75,6 +88,8 @@ describe('V2KycProcessing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockRouteParams = {};
+    mockUserRegion = { regionCode: 'us-ca' };
     mockBuyQuote = { quoteId: 'test-quote-id', fiatAmount: 100 };
     mockGetAdditionalRequirements.mockResolvedValue({
       formsRequired: [],
@@ -245,6 +260,41 @@ describe('V2KycProcessing', () => {
         'RAMPS_KYC_APPLICATION_FAILED',
         expect.objectContaining({
           ramp_type: 'DEPOSIT',
+        }),
+      );
+    });
+  });
+
+  it('flips KYC events to HEADLESS with surface/region/error_message in a headless flow (TRAM-3623 §2/§7)', async () => {
+    mockRouteParams = { headlessSessionId: 'hs-1' };
+    const { getSession } = jest.requireMock('../../headless/sessionRegistry');
+    (getSession as jest.Mock).mockReturnValue({
+      id: 'hs-1',
+      status: 'continued',
+      params: { rampSurface: 'money_account' },
+    });
+    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'REJECTED', type: 'SIMPLE' },
+    });
+
+    renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_APPLICATION_FAILED',
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          region: 'us-ca',
+          error_message: expect.any(String),
         }),
       );
     });
