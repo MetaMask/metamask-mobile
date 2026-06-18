@@ -8,7 +8,6 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
   FontWeight,

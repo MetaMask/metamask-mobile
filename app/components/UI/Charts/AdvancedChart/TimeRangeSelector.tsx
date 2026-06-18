@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
+import ChartTypeToggle from './ChartTypeToggle';
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
@@ -192,60 +193,10 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               )}
             </Pressable>
           ) : onChartTypeSelect ? (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="ml-2 rounded-lg border border-border-muted p-0.5"
-            >
-              <Pressable
-                style={({ pressed }) =>
-                  tw.style(
-                    'items-center justify-center rounded-md px-2 py-1',
-                    chartType === ChartType.Line && 'bg-background-hover',
-                    pressed && 'opacity-70',
-                  )
-                }
-                onPress={() => onChartTypeSelect(ChartType.Line)}
-                accessibilityRole="button"
-                accessibilityLabel="Line chart"
-                accessibilityState={{ selected: chartType === ChartType.Line }}
-              >
-                <Icon
-                  name={IconName.Diagram}
-                  size={IconSize.Sm}
-                  twClassName={
-                    chartType === ChartType.Line
-                      ? 'text-icon-default'
-                      : 'text-icon-alternative'
-                  }
-                />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) =>
-                  tw.style(
-                    'items-center justify-center rounded-md px-2 py-1',
-                    chartType === ChartType.Candles && 'bg-background-hover',
-                    pressed && 'opacity-70',
-                  )
-                }
-                onPress={() => onChartTypeSelect(ChartType.Candles)}
-                accessibilityRole="button"
-                accessibilityLabel="Candlestick chart"
-                accessibilityState={{
-                  selected: chartType === ChartType.Candles,
-                }}
-              >
-                <Icon
-                  name={IconName.Candlestick}
-                  size={IconSize.Sm}
-                  twClassName={
-                    chartType === ChartType.Candles
-                      ? 'text-icon-default'
-                      : 'text-icon-alternative'
-                  }
-                />
-              </Pressable>
-            </Box>
+            <ChartTypeToggle
+              chartType={chartType}
+              onChartTypeSelect={onChartTypeSelect}
+            />
           ) : null}
         </Box>
       )}

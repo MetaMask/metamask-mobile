@@ -14,11 +14,17 @@ import { ChartType } from './AdvancedChart.types';
 interface ChartTypeToggleProps {
   chartType?: ChartType;
   onChartTypeSelect?: (type: ChartType) => void;
+  /** Outer container classes; defaults to time-range row spacing. */
+  containerTwClassName?: string;
 }
+
+const DEFAULT_CONTAINER_CLASS =
+  'ml-2 rounded-lg border border-border-muted p-0.5';
 
 const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
   chartType,
   onChartTypeSelect,
+  containerTwClassName = DEFAULT_CONTAINER_CLASS,
 }) => {
   const tw = useTailwind();
 
@@ -28,7 +34,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="ml-2 rounded-lg border border-border-muted p-0.5"
+      twClassName={containerTwClassName}
     >
       <Pressable
         style={({ pressed }) =>
