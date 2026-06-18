@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, userEvent } from '@testing-library/react-native';
+import { userEvent } from '@testing-library/react-native';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PriceLegacy, { type PriceLegacyProps } from './Price.legacy';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
@@ -36,14 +37,14 @@ describe('PriceLegacy', () => {
   });
 
   it('renders the token price when not loading', () => {
-    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
+    const { getByTestId } = renderWithProvider(<PriceLegacy {...baseProps} />);
     expect(
       getByTestId(TokenOverviewSelectorsIDs.TOKEN_PRICE),
     ).toBeOnTheScreen();
   });
 
   it('shows loading skeletons when isLoading is true', () => {
-    const { getByTestId, queryByTestId } = render(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <PriceLegacy {...baseProps} isLoading />,
     );
 
@@ -52,18 +53,20 @@ describe('PriceLegacy', () => {
   });
 
   it('renders price diff with positive color and sign', () => {
-    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
+    const { getByTestId } = renderWithProvider(<PriceLegacy {...baseProps} />);
     const label = getByTestId('price-label');
     expect(label).toBeOnTheScreen();
   });
 
   it('shows price diff text even when prices array is empty', () => {
-    const { getByTestId } = render(<PriceLegacy {...baseProps} prices={[]} />);
+    const { getByTestId } = renderWithProvider(
+      <PriceLegacy {...baseProps} prices={[]} />,
+    );
     expect(getByTestId('price-label')).toBeOnTheScreen();
   });
 
   it('does not render token price when currentPrice is NaN', () => {
-    const { queryByTestId } = render(
+    const { queryByTestId } = renderWithProvider(
       <PriceLegacy {...baseProps} currentPrice={NaN} />,
     );
     expect(
@@ -82,7 +85,7 @@ describe('PriceLegacy', () => {
       </Button>
     ));
 
-    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
+    const { getByTestId } = renderWithProvider(<PriceLegacy {...baseProps} />);
 
     expect(getByTestId('price-label')).toHaveTextContent('Today');
 
@@ -92,7 +95,7 @@ describe('PriceLegacy', () => {
   });
 
   it('passes PriceChart the correct props', () => {
-    render(<PriceLegacy {...baseProps} />);
+    renderWithProvider(<PriceLegacy {...baseProps} />);
 
     expect(PriceChart).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -104,14 +107,14 @@ describe('PriceLegacy', () => {
   });
 
   it('handles zero priceDiff without sign prefix', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <PriceLegacy {...baseProps} priceDiff={0} comparePrice={100} />,
     );
     expect(getByTestId('price-label')).toBeOnTheScreen();
   });
 
   it('handles negative priceDiff', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <PriceLegacy
         {...baseProps}
         priceDiff={-10}
@@ -134,7 +137,7 @@ describe('PriceLegacy', () => {
       String(1736761237983 + i),
       100 + i,
     ]);
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <PriceLegacy {...baseProps} prices={fourPrices} />,
     );
 
