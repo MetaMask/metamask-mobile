@@ -943,7 +943,7 @@ const PriceAdvanced = ({
         shouldShowTechnicalIndicators && (
           <View style={styles.intervalBarContainer}>
             <View style={styles.timeRangeSelectorWrap}>
-              <Box twClassName="w-full px-4">
+              <Box twClassName="w-full">
                 <IntervalBar
                   selectedInterval={displayInterval}
                   onIntervalSelect={handleInlineIntervalSelect}
