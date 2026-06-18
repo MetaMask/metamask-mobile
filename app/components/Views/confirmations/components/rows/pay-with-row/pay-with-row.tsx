@@ -84,13 +84,14 @@ export function PayWithRow({
     return null;
   }
 
-  if (
-    paymentOverride === PaymentOverride.MoneyAccount ||
-    (isDefaultMoneyAccount && !overrideApplied.current)
-  ) {
-    if (!(isResultReady && isDefaultMoneyAccount)) {
-      return <PayWithRowMoneyAccount />;
-    }
+  // Explicit selection via controller — always honor it.
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
+    return <PayWithRowMoneyAccount />;
+  }
+
+  // Flag-based default — step aside when results are ready so user can change.
+  if (isDefaultMoneyAccount && !overrideApplied.current && !isResultReady) {
+    return <PayWithRowMoneyAccount />;
   }
 
   return <PayWithRowInteractive />;
