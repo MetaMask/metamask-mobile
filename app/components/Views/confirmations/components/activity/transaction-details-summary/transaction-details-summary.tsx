@@ -83,11 +83,13 @@ export function TransactionDetailsSummary() {
 
   const parentConfirmed =
     transactionMeta.status === TransactionStatus.confirmed;
-  const extraCompletedSteps =
-    (fiatOrderId && parentConfirmed ? 1 : 0) +
-    (showSourceHash && parentConfirmed ? 1 : 0);
 
-  const completedCount = txCompletedCount + extraCompletedSteps;
+  // fiatOrderId (fiat deposits) and showSourceHash (perps/predict via polymarket)
+  // are mutually exclusive — at most one extra completed step applies.
+  const hasExtraCompletedStep =
+    parentConfirmed && (Boolean(fiatOrderId) || showSourceHash);
+
+  const completedCount = txCompletedCount + (hasExtraCompletedStep ? 1 : 0);
 
   const heading = isMoneyContext
     ? strings('transaction_details.label.steps_completed', {
