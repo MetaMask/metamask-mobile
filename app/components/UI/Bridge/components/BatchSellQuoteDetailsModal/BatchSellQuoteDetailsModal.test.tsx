@@ -2,7 +2,11 @@ import React from 'react';
 import { fireEvent, render, within } from '@testing-library/react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { BatchSellQuoteDetails, BatchSellQuoteDetailsModal } from './index';
+import {
+  BatchSellQuoteDetails,
+  BatchSellQuoteDetailsModal,
+  TotalReceivedSummaryRow,
+} from './index';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
 import { BatchSellQuoteDetailsProps } from './BatchSellQuoteDetailsModal.types';
 
@@ -135,6 +139,55 @@ function renderModal(overrides: Partial<typeof defaultQuoteData> = {}) {
 
   return render(<BatchSellQuoteDetailsModal />);
 }
+
+const defaultSummaryRowProps = {
+  totalReceived: { formatted: '7,638.23 USDC' },
+  minimumReceived: { formatted: '7,485.47 USDC' },
+};
+
+describe('TotalReceivedSummaryRow', () => {
+  it('renders formatted values when isLoading is omitted', () => {
+    const { getByText, queryByTestId } = render(
+      <TotalReceivedSummaryRow {...defaultSummaryRowProps} />,
+    );
+
+    expect(getByText('Total received')).toBeOnTheScreen();
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
+    expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
+      ),
+    ).toBeNull();
+    expect(
+      queryByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON,
+      ),
+    ).toBeNull();
+  });
+
+  it('renders summary skeletons when isLoading is true', () => {
+    const { getByTestId, getByText, queryByText } = render(
+      <TotalReceivedSummaryRow {...defaultSummaryRowProps} isLoading />,
+    );
+
+    expect(getByText('Total received')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('7,638.23 USDC')).toBeNull();
+    expect(queryByText('7,485.47 USDC')).toBeNull();
+  });
+});
 
 describe('BatchSellQuoteDetailsModal', () => {
   beforeEach(() => {

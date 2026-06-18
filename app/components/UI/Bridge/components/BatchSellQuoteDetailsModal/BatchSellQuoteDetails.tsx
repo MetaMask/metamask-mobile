@@ -88,7 +88,7 @@ function QuoteDetailsRow({
   );
 }
 
-function TotalReceivedSummaryRow({
+export function TotalReceivedSummaryRow({
   totalReceived,
   minimumReceived,
   isLoading = false,
