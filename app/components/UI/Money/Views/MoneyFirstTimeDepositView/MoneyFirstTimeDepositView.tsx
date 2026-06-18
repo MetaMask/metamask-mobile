@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { BackHandler } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
 import { Accelerometer } from 'expo-sensors';
@@ -24,7 +24,7 @@ const log = createProjectLogger('money-first-time-deposit');
 // -- Rive animation assets ------------------------------------------------
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyFirstTimeDepositAnimationWithParallax = require('../../../../../animations/money_account_first_time_deposit_with_parallax.riv');
+const MoneyFirstTimeDepositAnimationWithParallaxV2 = require('../../../../../animations/money_account_first_time_deposit_with_parallax_v2.riv');
 
 // -- Rive data-binding names ----------------------------------------------
 // These MUST match the names authored in the .riv file. If the Rive designer
@@ -41,6 +41,9 @@ const RIVE_DONE_TRIGGER = 'done';
 
 /** Text data-binding path for the headline shown during the animation. */
 const RIVE_TITLE_PATH = 'title';
+
+/** Text data-binding path for the button text shown during the animation. */
+const BUTTON_TEXT_PATH = 'button';
 
 /** Text data-binding path for the body copy shown during the animation. */
 const RIVE_CONTENT_PATH = 'content';
@@ -147,6 +150,7 @@ const MoneyFirstTimeDepositView = () => {
 
   const [, setTitle] = useRiveString(riveRef, RIVE_TITLE_PATH);
   const [, setContent] = useRiveString(riveRef, RIVE_CONTENT_PATH);
+  const [, setButtonText] = useRiveString(riveRef, BUTTON_TEXT_PATH);
 
   const fireStart = useRiveTrigger(riveRef, RIVE_START_TRIGGER);
 
@@ -161,9 +165,11 @@ const MoneyFirstTimeDepositView = () => {
 
     setTitle(strings('money.first_time_deposit.title'));
     setContent(strings('money.first_time_deposit.content'));
+    setButtonText(strings('money.first_time_deposit.button_text'));
+
     fireStart?.();
     dataBindingsReady.current = true;
-  }, [riveRef, setTitle, setContent, fireStart]);
+  }, [riveRef, setTitle, setContent, fireStart, setButtonText]);
 
   // -- Accelerometer-driven parallax --------------------------------------
   //
@@ -195,6 +201,18 @@ const MoneyFirstTimeDepositView = () => {
 
   // Running sum/count for the calibration window's average.
   const calibrationAccumulator = useRef({ sumX: 0, sumY: 0, count: 0 });
+
+  // Per-platform accelerometer sign correction.
+  //
+  // iOS (CoreMotion) reports accelerometer axes with the opposite sign to
+  // Android (SensorManager): e.g. resting upright in portrait, iOS reads
+  // y ≈ -1 while Android reads y ≈ +1. expo-sensors passes both through without
+  // normalizing. Flipping iOS makes a given physical tilt drive parallax
+  // identically on both platforms (tilt down → parallax down).
+  //
+  // Read at runtime (not module scope) so the value reflects Platform.OS on
+  // each mount, which also lets tests exercise both platforms by mocking it.
+  const axisSign = Platform.OS === 'ios' ? -1 : 1;
 
   useEffect(() => {
     if (!riveRef) return;
@@ -241,8 +259,8 @@ const MoneyFirstTimeDepositView = () => {
         // --- Live phase ---
         // Subtract the baseline so parallax is relative to the user's
         // resting hold, not relative to "device perfectly flat on a table".
-        targetX.current = gForceToParallax(x - baseline.x);
-        targetY.current = gForceToParallax(y - baseline.y);
+        targetX.current = gForceToParallax(axisSign * (x - baseline.x));
+        targetY.current = gForceToParallax(axisSign * (y - baseline.y));
       });
     } catch {
       // Sensor unavailable — parallax stays at static center.
@@ -277,7 +295,7 @@ const MoneyFirstTimeDepositView = () => {
       cancelAnimationFrame(rafId);
       subscription?.remove();
     };
-  }, [riveRef]);
+  }, [riveRef, axisSign]);
 
   const handleError = useCallback(
     (riveError: RNRiveError) => {
@@ -290,7 +308,7 @@ const MoneyFirstTimeDepositView = () => {
   return (
     <Rive
       ref={ref}
-      source={MoneyFirstTimeDepositAnimationWithParallax}
+      source={MoneyFirstTimeDepositAnimationWithParallaxV2}
       artboardName={RIVE_ARTBOARD_NAME}
       dataBinding={AutoBind(true)}
       fit={Fit.FitWidth}
