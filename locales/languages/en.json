@@ -1046,7 +1046,9 @@
     "top_traders_view": {
       "title": "Weekly Top Traders",
       "chain_filter": {
-        "all": "All"
+        "all": "All",
+        "tokens": "Tokens",
+        "perps": "Perps"
       }
     },
     "notification_preferences": {
