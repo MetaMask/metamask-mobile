@@ -70,14 +70,17 @@ describe('PositionRow', () => {
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
-  it('renders only the bare percent on the bottom-right (no absolute PnL)', () => {
+  it('renders an up triangle with the unsigned percent on the bottom-right (no absolute PnL)', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    expect(screen.getByText('+182%')).toBeOnTheScreen();
+    // Direction lives in the caret, so the percent is unsigned.
+    expect(screen.getByText('▲')).toBeOnTheScreen();
+    expect(screen.getByText('182%')).toBeOnTheScreen();
+    expect(screen.queryByText('+182%')).toBeNull();
     expect(screen.queryByText('+$1,059.96 (+182%)')).toBeNull();
     expect(screen.queryByText('+$1,059.96')).toBeNull();
   });
 
-  it('renders the negative percent without the absolute PnL', () => {
+  it('renders a down triangle with the unsigned percent for a losing open position', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: -250,
@@ -85,7 +88,9 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('-25%')).toBeOnTheScreen();
+    expect(screen.getByText('▼')).toBeOnTheScreen();
+    expect(screen.getByText('25%')).toBeOnTheScreen();
+    expect(screen.queryByText('-25%')).toBeNull();
     expect(screen.queryByText('-$250.00 (-25%)')).toBeNull();
   });
 
@@ -96,7 +101,7 @@ describe('PositionRow', () => {
     } as unknown as Position;
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('+182%')).toBeOnTheScreen();
+    expect(screen.getByText('182%')).toBeOnTheScreen();
   });
 
   it('renders dash when pnlPercent is null', () => {
@@ -122,7 +127,7 @@ describe('PositionRow', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders zero percent when unrealized PnL is zero', () => {
+  it('renders a neutral minus and unsigned 0% when unrealized PnL is zero', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: 0,
@@ -130,7 +135,10 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('+0%')).toBeOnTheScreen();
+    // U+2212 minus glyph (not a triangle) for break-even, then unsigned 0%.
+    expect(screen.getByText('−')).toBeOnTheScreen();
+    expect(screen.getByText('0%')).toBeOnTheScreen();
+    expect(screen.queryByText('+0%')).toBeNull();
     expect(screen.queryByText('$0.00 (+0%)')).toBeNull();
   });
 
@@ -384,13 +392,13 @@ describe('PositionRow', () => {
       expect(screen.queryByText('-25%')).toBeNull();
     });
 
-    it('keeps the colored, signed percent (no triangle) for an open perp', () => {
+    it('renders the directional triangle with an unsigned percent for an open perp', () => {
       renderWithProvider(<PositionRow position={perpPosition} />);
 
-      // Open positions keep the signed percent; the triangle is closed-only.
-      expect(screen.getByText('+182%')).toBeOnTheScreen();
-      expect(screen.queryByText('▲')).toBeNull();
-      expect(screen.queryByText('▼')).toBeNull();
+      // Open positions now match closed: caret carries direction, percent is unsigned.
+      expect(screen.getByText('▲')).toBeOnTheScreen();
+      expect(screen.getByText('182%')).toBeOnTheScreen();
+      expect(screen.queryByText('+182%')).toBeNull();
     });
   });
 });

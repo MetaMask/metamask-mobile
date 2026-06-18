@@ -103,12 +103,11 @@ const PositionRow: React.FC<PositionRowProps> = ({
     </Text>
   );
 
-  // Closed positions — spot and perp alike — render the directional triangle
-  // alongside a neutral-colored, unsigned percentage; open positions render a
-  // colored, signed percentage. Keyed on `isClosed` only (not `isPerp`) so a
-  // closed perp matches the spot styling rather than showing a colored percent
-  // with no triangle.
-  const bottomRight = isClosed ? (
+  // All positions — open and closed, perp and spot — render a directional
+  // triangle (▲/▼, colored by direction) alongside a neutral, unsigned
+  // percentage. A break-even position shows a neutral minus instead of a
+  // triangle. The sign lives in the caret, so the percent text is unsigned.
+  const bottomRight = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
@@ -127,14 +126,6 @@ const PositionRow: React.FC<PositionRowProps> = ({
         {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
       </Text>
     </Box>
-  ) : (
-    <Text
-      variant={TextVariant.BodySm}
-      twClassName={pnlColorClass}
-      color={pnlColorClass ? undefined : TextColor.TextAlternative}
-    >
-      {formatPercent(displayPnlPercent)}
-    </Text>
   );
 
   const content = (
