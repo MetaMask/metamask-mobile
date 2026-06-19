@@ -171,9 +171,14 @@ async function processAndHandleNotification(
       { id: notification.id, type: (notification as { type?: string }).type },
     );
     await handler(notification);
-    logPushEvent('FCM_FOREGROUND_DISPLAYED', `Notification displayed: ${notification.id}`);
+    logPushEvent(
+      'FCM_FOREGROUND_DISPLAYED',
+      `Notification displayed: ${notification.id}`,
+    );
   } catch (error) {
-    logPushEvent('FCM_FOREGROUND_ERROR', 'processAndHandleNotification threw', { error: String(error) });
+    logPushEvent('FCM_FOREGROUND_ERROR', 'processAndHandleNotification threw', {
+      error: String(error),
+    });
     // Do Nothing, cannot parse a bad notification
     Logger.log('Unable to send push notification:', {
       notification: payload?.data?.data,
@@ -196,7 +201,10 @@ class FCMService {
     try {
       await registerForRemoteMessages();
       const fcmToken = await messaging().getToken();
-      logPushEvent('FCM_TOKEN_CREATED', `Token registered (last 8): ...${fcmToken.slice(-8)}`);
+      logPushEvent(
+        'FCM_TOKEN_CREATED',
+        `Token registered (last 8): ...${fcmToken.slice(-8)}`,
+      );
       return fcmToken;
     } catch {
       return null;
@@ -296,7 +304,10 @@ class FCMService {
         logPushEvent(
           'FCM_OPENED_FROM_KILLED',
           'App opened from a notification (was killed)',
-          { deeplink: remoteMessage?.data?.deeplink, hasDataData: Boolean(remoteMessage?.data?.data) },
+          {
+            deeplink: remoteMessage?.data?.deeplink,
+            hasDataData: Boolean(remoteMessage?.data?.data),
+          },
         );
       }
       analyticsTrackPushClickEvent(remoteMessage);
@@ -316,7 +327,10 @@ class FCMService {
           logPushEvent(
             'FCM_OPENED_FROM_BACKGROUND',
             'App opened from a notification (was backgrounded)',
-            { deeplink: remoteMessage?.data?.deeplink, hasDataData: Boolean(remoteMessage?.data?.data) },
+            {
+              deeplink: remoteMessage?.data?.deeplink,
+              hasDataData: Boolean(remoteMessage?.data?.data),
+            },
           );
           analyticsTrackPushClickEvent(remoteMessage);
           const deeplink = remoteMessage?.data?.deeplink?.toString();
