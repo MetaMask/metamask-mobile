@@ -52,6 +52,11 @@
 	<string>12.0.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- NSAppTransportSecurity below is the strict default that ships in
+	     production, rc, beta, and exp builds. For dev / test / e2e builds the
+	     dict is rewritten at build time to enable NSAllowsArbitraryLoads, by
+	     the "Configure ATS for environment" run-script phase on the MetaMask
+	     target. See scripts/ios/configure-ats.sh. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

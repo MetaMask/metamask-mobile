@@ -92,4 +92,5 @@ jobs:
     with:
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: 'rc'
+      is_test_build: true
     secrets: inherit

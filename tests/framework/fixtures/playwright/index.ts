@@ -1,6 +1,7 @@
 import '../../nodeNativeUtilsShim.cjs';
 import { test as base } from '@playwright/test';
 import type { TestLevelFixtures } from './types.ts';
+import { commandQueueServerFixture } from './commandQueueServer.fixture.ts';
 import { currentDeviceDetailsFixture } from './currentDeviceDetails.fixture.ts';
 import { deviceProviderFixture } from './deviceProvider.fixture.ts';
 import { driverFixture } from './driver.fixture.ts';
@@ -15,6 +16,7 @@ declare global {
 
 export const test = base.extend<TestLevelFixtures>({
   ...currentDeviceDetailsFixture,
+  ...commandQueueServerFixture,
   ...deviceProviderFixture,
   ...driverFixture,
   ...performanceTrackerFixture,

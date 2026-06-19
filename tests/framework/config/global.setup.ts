@@ -89,21 +89,22 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
 
   logger.info(`🚀 Setting up project(s): ${requestedProjects.join(', ')}`);
 
-  // Setup all requested projects in parallel (with proper error handling)
-  await Promise.all(
-    projectsToSetup.map(async (project) => {
-      try {
-        const provider = createServiceProvider(project);
-        await provider.globalSetup?.();
-        logger.info(`✅ Setup complete for: ${project.name}`);
-      } catch (error) {
-        logger.error(`❌ Setup failed for: ${project.name}`);
-        throw new Error(
-          `Failed to setup project "${project.name}": ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }),
-  );
+  // Setup projects sequentially to avoid port conflicts (CommandQueueServer,
+  // PortManager) and tunnel collisions (BrowserStack Local) when multiple
+  // projects share the same process (e.g. --project android-onboarding
+  // --project android-onboarding-seedless).
+  for (const project of projectsToSetup) {
+    try {
+      const provider = createServiceProvider(project);
+      await provider.globalSetup?.();
+      logger.info(`✅ Setup complete for: ${project.name}`);
+    } catch (error) {
+      logger.error(`❌ Setup failed for: ${project.name}`);
+      throw new Error(
+        `Failed to setup project "${project.name}": ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
 
   logger.info('✨ All projects ready!');
 }

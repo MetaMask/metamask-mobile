@@ -12,6 +12,7 @@ The performance framework lives under the `tests/` directory alongside the rest 
 
 - [Test Structure](#test-structure)
 - [Configuration](#configuration)
+- [Single-Build Architecture (CommandQueueServer)](#single-build-architecture-commandqueueserver)
 - [Running Tests](#running-tests)
 - [Test Categories](#test-categories)
 - [Performance Tracking System](#performance-tracking-system)
@@ -36,7 +37,7 @@ tests/
 │   │   ├── FixtureBuilder.ts
 │   │   └── playwright/              # Playwright test.extend (performance tests)
 │   │       ├── index.ts             # import `test` from fixtures/playwright
-│   │       └── *.fixture.ts         # currentDeviceDetails, deviceProvider, driver, performanceTracker
+│   │       └── *.fixture.ts         # currentDeviceDetails, commandQueueServer, deviceProvider, driver, performanceTracker
 │   ├── quality-gates/
 │   │   ├── types.ts                 # Shared type definitions for quality gates
 │   │   ├── QualityGateError.ts      # Custom error class for threshold failures
@@ -101,6 +102,35 @@ The test suite is configured in `tests/playwright.config.ts`, which defines mult
 - **Reporters**: HTML report, custom performance reporter, and list reporter
 - **Report Location**: `./test-reports/playwright-report`
 
+## Single-Build Architecture (CommandQueueServer)
+
+Performance CI uses **one BrowserStack build per platform** (Android + iOS). Wallet state is no longer baked into separate with-SRP / without-SRP builds. Instead, each Playwright project declares an `SrpProfile` in `tests/playwright.config.ts`, and the `commandQueueServer` fixture serves that profile to the app at startup via `GET /srp-profile-type.json`.
+
+| Playwright project           | `SrpProfile`  | Use case                                   |
+| ---------------------------- | ------------- | ------------------------------------------ |
+| `browserstack-{android,ios}` | `performance` | Pre-imported wallet (login, swaps, assets) |
+| `{android,ios}-onboarding`   | `onboarding`  | Fresh onboarding (no vault init)           |
+| `mm-connect-*-browserstack`  | `mm-connect`  | Single empty SRP for MM Connect tests      |
+
+**Build-time env vars** (baked into the unified `main-e2e-bs-unified` profile in `builds.yml`):
+
+| Variable                   | Purpose                                                           |
+| -------------------------- | ----------------------------------------------------------------- |
+| `IS_TEST_BUILD=true`       | Enables runtime profile fetch in `generateSkipOnboardingState.ts` |
+| `IS_PERFORMANCE_TEST=true` | Suppresses E2E command polling overhead                           |
+| `ADDITIONAL_SRP_1`         | SRP for `performance` profile                                     |
+| `MM_CONNECT_SRP_1`         | SRP for `mm-connect` profile                                      |
+| `PREDEFINED_PASSWORD`      | Wallet password                                                   |
+| `E2E_MOCK_OAUTH=true`      | Seedless onboarding mock                                          |
+
+**BrowserStack Local** is required for **all** BrowserStack performance projects (not just mm-connect). The tunnel lets cloud devices reach the CommandQueueServer on the CI runner (`localhost` / `bs-local.com:2446`). iOS uses HTTPS for the local server when `BROWSERSTACK_LOCAL=true`.
+
+When running locally against BrowserStack, set `BROWSERSTACK_LOCAL=true` before any performance project:
+
+```bash
+BROWSERSTACK_LOCAL=true yarn run-playwright:android-onboarding-bs --grep "@PerformanceLaunch"
+```
+
 ### Device Matrix
 
 The `tests/performance/device-matrix.json` file defines device configurations for parallel testing, with device categories for different testing tiers:
@@ -150,7 +180,7 @@ yarn run-playwright:mm-connect-android-bs-local # BrowserStack Android (alias; t
 
 #### MM Connect on BrowserStack (local dapp)
 
-**BrowserStack Local (tunnel) must be enabled** when you run mm-connect tests against BrowserStack: the suite serves the Browser Playground from your machine on port **8090**, and only the tunnel lets cloud devices reach it via `bs-local.com`. Start the tunnel **before** the test and set `BROWSERSTACK_LOCAL=true` (see step 2 below). Performance CI starts the tunnel and sets these variables **only for the mm-connect build type**; other performance jobs do not use the tunnel.
+**BrowserStack Local (tunnel) must be enabled** when you run **any** performance tests against BrowserStack. The suite runs a CommandQueueServer on port **2446** so the app can fetch its SRP profile at startup; mm-connect tests additionally serve the Browser Playground on port **8090**. Start the tunnel **before** the test and set `BROWSERSTACK_LOCAL=true` (see step 2 below). Performance CI starts the tunnel and sets these variables for **all** performance build types (onboarding, login, mm-connect).
 
 The `connection-multichain` test starts a **local dapp server** (Browser Playground) on port **8090**. To run it on BrowserStack, the cloud device must reach that server via **BrowserStack Local** (tunnel).
 
@@ -183,7 +213,7 @@ The `connection-multichain` test starts a **local dapp server** (Browser Playgro
 - **One tunnel per account:** don't run multiple Local binaries for the same account unless you use different `localIdentifier` values and pass them in capabilities.
 - **Tunnel timeouts** (`TIMEOUT_CONNECTING` to port 45691 in the Local terminal): the cloud device cannot reach your Local binary. Allow incoming connections for ports **45690** and **45691** in your firewall, or try a different network (e.g. avoid strict NAT). See [BrowserStack Local troubleshooting](https://www.browserstack.com/docs/app-automate/appium/troubleshooting/local-issues) for more.
 
-**CI:** For **mm-connect** runs only, the workflow starts BrowserStack Local (`--force-local --verbose`, no `--include-hosts`), sets `BROWSERSTACK_LOCAL=true` and `BROWSERSTACK_LOCAL_IDENTIFIER`, and waits **15s** after the tunnel is up before running tests. Other performance build types (for example onboarding) **do not** start the tunnel or enable local capabilities. Using `--include-hosts localhost 127.0.0.1` can prevent requests to `bs-local.com:8090` from reaching the runner; the device then cannot load the dapp.
+**CI:** All performance jobs start BrowserStack Local, set `BROWSERSTACK_LOCAL=true` and a per-device `BROWSERSTACK_LOCAL_IDENTIFIER`, and run tests with the unified app build. The CommandQueueServer starts per test via the Playwright `commandQueueServer` fixture before the Appium session launches the app.
 
 ### Using CLI Directly
 
@@ -610,13 +640,13 @@ BROWSERSTACK_ACCESS_KEY=your_access_key
 BROWSERSTACK_DEVICE="Samsung Galaxy S25 Ultra"
 BROWSERSTACK_OS_VERSION="15.0"
 
-# App URLs (required for BrowserStack tests)
+# App URLs (required for BrowserStack tests — same URL for all performance projects)
 BROWSERSTACK_ANDROID_APP_URL=bs://your-android-app-id
 BROWSERSTACK_IOS_APP_URL=bs://your-ios-app-id
 
-# Clean Apps for Onboarding Tests
-BROWSERSTACK_ANDROID_CLEAN_APP_URL=bs://your-clean-android-app-id
-BROWSERSTACK_IOS_CLEAN_APP_URL=bs://your-clean-ios-app-id
+# Legacy aliases (optional — CI sets all to the same unified build URL)
+BROWSERSTACK_ANDROID_CLEAN_APP_URL=bs://your-android-app-id
+BROWSERSTACK_IOS_CLEAN_APP_URL=bs://your-ios-app-id
 ```
 
 ### Test Configuration

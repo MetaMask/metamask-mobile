@@ -1,36 +1,60 @@
 import { FrameworkDetector } from './FrameworkDetector.ts';
-import { getPlatform as getCachedPlatform } from './DeviceInfoCache.ts';
 
 /**
  * Platform detector for Appium/WebdriverIO and Detox context
- * Uses cached device info to avoid repeated HTTP calls to the Appium server.
  */
 export class PlatformDetector {
+  private static _platform: 'android' | 'ios' | undefined;
+
   /**
-   * Get current platform (android/ios).
-   * For Appium/WebdriverIO, reads from the cached device info populated once in the fixture.
-   * For Detox, reads from the Detox device object.
+   * Get current platform (android/ios)
    */
-  static getPlatform(): 'android' | 'ios' {
+  static async getPlatform(): Promise<'android' | 'ios'> {
     if (FrameworkDetector.isDetox()) {
       return device.getPlatform() as 'android' | 'ios';
     }
 
-    // For Appium/WebdriverIO, read from cache (no HTTP call)
-    return getCachedPlatform();
+    // For Appium/WebdriverIO
+    if (typeof driver !== 'undefined') {
+      const capabilities = await driver.capabilities;
+      return capabilities.platformName?.toLowerCase() === 'android'
+        ? 'android'
+        : 'ios';
+    }
+
+    throw new Error('Unable to detect platform');
+  }
+
+  /**
+   * Set the platform for the PlatformDetector.
+   * @param platform - The platform to set
+   */
+  static setPlatform(platform: 'android' | 'ios'): void {
+    this._platform = platform;
+  }
+
+  /**
+   * Get the platform for the PlatformDetector.
+   * @returns The platform
+   */
+  private static async _getPlatform(): Promise<'android' | 'ios'> {
+    if (this._platform) {
+      return this._platform;
+    }
+    return await this.getPlatform();
   }
 
   /**
    * Check if running on Android
    */
-  static isAndroid(): boolean {
-    return PlatformDetector.getPlatform() === 'android';
+  static async isAndroid(): Promise<boolean> {
+    return (await this.getPlatform()) === 'android';
   }
 
   /**
    * Check if running on iOS
    */
-  static isIOS(): boolean {
-    return PlatformDetector.getPlatform() === 'ios';
+  static async isIOS(): Promise<boolean> {
+    return (await this.getPlatform()) === 'ios';
   }
 }

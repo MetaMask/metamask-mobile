@@ -78,8 +78,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
 
   // Get device ID to target specific device (important for CI with multiple devices)
   // In Detox: use device.id for multi-device support
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
+  // In Appium/Playwright: skip device flag (single emulator assumption)
   let deviceFlag = '';
   if (FrameworkDetector.isDetox()) {
     const deviceId = device.id || '';
@@ -186,8 +185,7 @@ async function setupAndroidPortForwarding(
 
   // Get device ID to target specific device (important for CI with multiple devices)
   // In Detox: use device.id for multi-device support
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
+  // In Appium/Playwright: skip device flag (single emulator assumption)
   let deviceFlag = '';
   if (FrameworkDetector.isDetox()) {
     const deviceId = device.id || '';
@@ -256,16 +254,6 @@ export async function startResourceWithRetry(
   resource: Resource,
   maxRetries: number = 3,
 ): Promise<number> {
-  const isRetryableAnvilForkError = (errorMessage: string): boolean =>
-    resourceType === ResourceType.ANVIL &&
-    [
-      'failed to create genesis',
-      'failed to get account for',
-      'failed to get fork block number',
-      'http error 401',
-      'error code -32603',
-    ].some((signature) => errorMessage.includes(signature));
-
   let attempt = 0;
   let lastError: Error | undefined;
 
@@ -308,18 +296,6 @@ export async function startResourceWithRetry(
         logger.debug(
           `Port ${failedPort} conflict for ${resourceType}, retrying with new random port (${attempt}/${maxRetries})`,
         );
-        continue;
-      }
-
-      // Anvil forks can fail transiently when upstream RPC returns temporary
-      // errors during genesis/account fetch. Retrying usually recovers.
-      if (attempt < maxRetries && isRetryableAnvilForkError(errorMessage)) {
-        attempt++;
-        const retryDelayMs = 2000;
-        logger.debug(
-          `Transient fork startup error for ${resourceType}, retrying (${attempt}/${maxRetries}) after ${retryDelayMs}ms: ${errorMessage}`,
-        );
-        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         continue;
       }
 
@@ -438,7 +414,7 @@ export async function startMultiInstanceResourceWithRetry(
  *
  * @returns True when BrowserStack local tunnel is enabled
  */
-function isBrowserStack() {
+export function isBrowserStack() {
   return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
 }
 

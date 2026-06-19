@@ -1,5 +1,6 @@
 import type { ServiceProvider } from '../../services';
 import type { PerformanceTracker } from '../../../reporters/PerformanceTracker';
+import type CommandQueueServer from '../CommandQueueServer.ts';
 
 export interface CurrentDeviceDetails {
   platform: 'android' | 'ios';
@@ -22,6 +23,12 @@ export interface TestLevelFixtures {
    * This detects the platform of the device being tested.
    */
   currentDeviceDetails: CurrentDeviceDetails;
+
+  /**
+   * Command queue server for performance tests.
+   * Serves SRP profile to the app at startup via /srp-profile-type.json.
+   */
+  commandQueueServer: CommandQueueServer | null;
 
   /**
    * Device provider to be used for the test.
