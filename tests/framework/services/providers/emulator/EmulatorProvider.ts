@@ -8,6 +8,7 @@ import { EmulatorConfigBuilder } from './EmulatorConfigBuilder';
 import { Platform, type EmulatorConfig } from '../../../types';
 import {
   applyResolvedAndroidAdbToDevice,
+  clearAndroidAdbUdidResolutionCache,
   resolveAndroidAdbUdidForDevice,
 } from './android/resolveAndroidAdbUdid';
 import {
@@ -251,6 +252,14 @@ export class EmulatorProvider extends BaseServiceProvider {
           'Android local emulator: set `use.device.name` (AVD name) or `use.device.udid` (e.g. emulator-5554).',
         );
       }
+      // Re-ensure the emulator on every session (including Playwright retries).
+      // globalSetup boots once; a failed test can leave adb offline until we wait or reboot.
+      clearAndroidAdbUdidResolutionCache();
+      const serial = await ensureAndroidEmulatorReady(
+        emulatorDevice.name ?? '',
+        emulatorDevice.udid,
+      );
+      emulatorDevice.udid = serial;
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
         setAndroidSerialEnv: true,
       });

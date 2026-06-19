@@ -66,7 +66,11 @@ export default class PlaywrightAssertions {
     const interval = 300;
     const start = Date.now();
     let attempt = 0;
-    while (Date.now() - start < timeout - interval) {
+    while (Date.now() - start < timeout) {
+      const remaining = timeout - (Date.now() - start);
+      if (remaining <= 0) {
+        break;
+      }
       try {
         attempt++;
         const t0 = Date.now();
@@ -83,10 +87,11 @@ export default class PlaywrightAssertions {
       } catch {
         // element not ready yet
       }
-      await sleep(interval);
+      await sleep(Math.min(interval, remaining));
     }
+    const remainingTimeout = timeout - (Date.now() - start);
     await el.waitForDisplayed({
-      timeout: Math.max(interval, timeout - (Date.now() - start)),
+      timeout: Math.max(interval, remainingTimeout),
     });
     if (isOverheadTrackingActive()) {
       await this.probeOverhead(el);

@@ -9,6 +9,7 @@ import {
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
   PredictClaimConfirmationSelectorsIDs,
+  PredictMarketDetailsSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
@@ -30,6 +31,7 @@ import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
@@ -1098,6 +1100,12 @@ class WalletView {
       appium: async () => {
         const driver = getDriver();
         const description = `Predictions Position: ${positionName}`;
+        const marketDetailsScreen = Matchers.getElementByID(
+          PredictMarketDetailsSelectorsIDs.SCREEN,
+        );
+        const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(30_000);
+        // Short probe while scrolling — full timeout only after a confirmed tap.
+        const marketDetailsProbeTimeoutMs = 8_000;
 
         if (
           await this.tapIfAlreadyVisible(
@@ -1105,7 +1113,17 @@ class WalletView {
             description,
           )
         ) {
+          await Assertions.expectElementToBeVisible(marketDetailsScreen, {
+            timeout: predictNavigationTimeoutMs,
+            description: 'Predict market details screen after position tap',
+          });
           return;
+        }
+
+        try {
+          await this.scrollPredictionsSectionIntoView('down');
+        } catch {
+          await this.scrollPredictionsSectionIntoView('up');
         }
 
         await Utilities.executeWithRetry(
@@ -1119,6 +1137,11 @@ class WalletView {
                   await UnifiedGestures.waitAndTap(target, {
                     description,
                     timeout: 30_000,
+                  });
+                  await Assertions.expectElementToBeVisible(marketDetailsScreen, {
+                    timeout: marketDetailsProbeTimeoutMs,
+                    description:
+                      'Predict market details screen after position tap (scroll probe)',
                   });
                   return;
                 } catch {
@@ -1137,6 +1160,10 @@ class WalletView {
             await UnifiedGestures.waitAndTap(target, {
               description,
               timeout: 30_000,
+            });
+            await Assertions.expectElementToBeVisible(marketDetailsScreen, {
+              timeout: predictNavigationTimeoutMs,
+              description: 'Predict market details screen after position tap',
             });
           },
           {

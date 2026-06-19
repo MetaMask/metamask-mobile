@@ -8,6 +8,7 @@ import {
   encapsulatedAction,
   type EncapsulatedElementType,
 } from '../../framework';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import {
   PredictBalanceSelectorsIDs,
   PredictBuyPreviewSelectorsIDs,
@@ -232,7 +233,7 @@ class PredictDetailsPage {
   async waitForScreenToDisplay(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Predict market details screen',
-      timeout: 15000,
+      timeout: resolveE2EWaitTimeoutMs(30_000),
     });
   }
 

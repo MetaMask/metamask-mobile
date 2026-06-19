@@ -216,8 +216,16 @@ export async function applyResolvedAndroidAdbToDevice(
 }
 
 /**
+ * Clears the in-process adb serial resolution cache.
+ * Call before re-resolving after Playwright retries or emulator restarts.
+ */
+export function clearAndroidAdbUdidResolutionCache(): void {
+  resolutionCache.clear();
+}
+
+/**
  * Clears the in-process resolution cache (for tests).
  */
 export function __clearAndroidAdbUdidCacheForTests(): void {
-  resolutionCache.clear();
+  clearAndroidAdbUdidResolutionCache();
 }

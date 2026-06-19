@@ -29,7 +29,7 @@ import {
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response.js';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response.js';
-import Utilities from '../../framework/Utilities.js';
+import Utilities, { sleep } from '../../framework/Utilities.js';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage.js';
 import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
@@ -37,6 +37,7 @@ import {
   PredictHelpers,
   loginForPredictTests,
 } from './helpers/predict-helpers.js';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import {
   SPURS_PELICANS_POSITION_ID,
   BLUE_JAYS_MARINERS_POSITION_ID,
@@ -199,10 +200,18 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           );
           await PredictDetailsPage.tapBackButton();
 
+          await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet after leaving open position market details',
+            timeout: resolveE2EWaitTimeoutMs(30_000),
+          });
+
           // Switch mock so winning positions return redeemable: true.
           // By this point, React Query's 5s staleTime has elapsed, so the
           // positions query will refetch when market details re-enables it.
           await POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(mockServer);
+
+          // Allow homepage positions to settle after mock swap before re-opening details.
+          await sleep(6_000);
 
           await WalletView.scrollAndTapPredictionsPosition(
             positions.Won,
@@ -213,6 +222,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
             PredictDetailsPage.container,
             {
               description: 'Winning position details page should be visible',
+              timeout: resolveE2EWaitTimeoutMs(30_000),
             },
           );
 

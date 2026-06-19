@@ -51,6 +51,6 @@ export async function loginForPredictTests(): Promise<void> {
   await TabBarComponent.tapWallet();
   await Assertions.expectElementToBeVisible(WalletView.container, {
     description: 'Wallet should be visible after login',
-    timeout: resolveE2EWaitTimeoutMs(60_000),
+    timeout: resolveE2EWaitTimeoutMs(15_000),
   });
 }

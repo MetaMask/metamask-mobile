@@ -23,6 +23,7 @@ import PredictActivityDetails from '../../page-objects/Transactions/predictionsA
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics.js';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import { loginForPredictTests } from './helpers/predict-helpers.js';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -79,7 +80,10 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
             positionDetails.name,
             SPURS_PELICANS_POSITION_ID,
           );
-          await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
+          await Assertions.expectElementToBeVisible(PredictDetailsPage.container, {
+            timeout: resolveE2EWaitTimeoutMs(30_000),
+            description: 'Predict market details screen should be visible',
+          });
           await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
           await PredictDetailsPage.tapGameCashOutButton(
