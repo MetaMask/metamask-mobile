@@ -494,10 +494,14 @@ describe('Engine', () => {
         // @ts-expect-error Partial service: matches the file-level default shape.
         .mockReturnValue({ remoteFeatureFlags: {}, cacheTimestamp: 0 });
       mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = false;
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
     });
 
     it('logs and skips the fetch when basic functionality is disabled', () => {
-      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValueOnce(false);
+      // The selector is read twice per init (the RFFC instance-options builder
+      // seeds `disabled`, then the Engine startup gate re-reads it), so use a
+      // persistent return rather than `mockReturnValueOnce`.
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
       const fetchRemoteFeatureFlags = jest.fn();
       ClientConfigApiServiceMock
         // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
