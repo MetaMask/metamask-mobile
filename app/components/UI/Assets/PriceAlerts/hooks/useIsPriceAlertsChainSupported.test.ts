@@ -28,7 +28,7 @@ const makeOkResponse = (chains: string[]) =>
   ({
     ok: true,
     status: 200,
-    json: jest.fn().mockResolvedValue({ chains }),
+    json: jest.fn().mockResolvedValue(chains),
   }) as unknown as Response;
 
 const makeErrorResponse = (status: number) =>
