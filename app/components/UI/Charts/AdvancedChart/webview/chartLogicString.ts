@@ -83,11 +83,11 @@ function bumpLineChartOhlcvEpoch() {
 // ============================================
 // Indicator colors from CONFIG (single source of truth in indicatorColors.ts)
 // ============================================
-var _ic = (window.CONFIG && window.CONFIG.indicatorColors) || {};
-var _maColors = _ic.MA || {};
-var _macdColors = _ic.MACD || {};
-var _rsiColors = _ic.RSI || {};
-var _bolColors = _ic.BOL || {};
+const _ic = window.CONFIG?.indicatorColors ?? {};
+const _maColors = _ic.MA ?? {};
+const _macdColors = _ic.MACD ?? {};
+const _rsiColors = _ic.RSI ?? {};
+const _bolColors = _ic.BOL ?? {};
 
 function getMAColor(name, fallback) {
   return _maColors[name] || fallback;
@@ -137,7 +137,7 @@ function scheduleChartLayoutSettledNotify() {
 }
 
 /** Milliseconds to wait if TradingView never calls \`getBars\` again after \`resetData\` (e.g. same-resolution cache). */
-var LAYOUT_SETTLE_DATA_FALLBACK_MS = 400;
+const LAYOUT_SETTLE_DATA_FALLBACK_MS = 400;
 
 /**
  * Clears the WebView-side fallback timer that would force \`CHART_LAYOUT_SETTLED\` if data delivery
@@ -236,7 +236,7 @@ function abortDeferredLayoutSettleAndNotify() {
 // ============================================
 function handleMessage(event) {
   try {
-    var message =
+    let message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
     if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
@@ -285,7 +285,7 @@ window.addEventListener('message', handleMessage);
 document.addEventListener('message', handleMessage);
 
 /** Mirrors \`DEFAULT_LINE_CHROME\` in AdvancedChart.types.ts (WebView cannot import RN modules). */
-var LINE_CHROME_DEFAULTS = {
+const LINE_CHROME_DEFAULTS = {
   hideTimeScale: false,
   useCustomLineEndMarker: true,
   useCustomDashedLastPriceLine: true,
@@ -300,7 +300,7 @@ function lineChromePickBool(lc, key, fallback) {
  * Effective line chrome: \`CONFIG.lineChrome\` written by the HTML template and \`SET_LINE_CHROME\`.
  */
 function getLineChrome() {
-  var lc = (window.CONFIG && window.CONFIG.lineChrome) || {};
+  let lc = (window.CONFIG && window.CONFIG.lineChrome) || {};
   return {
     hideTimeScale: lineChromePickBool(
       lc,
@@ -353,7 +353,7 @@ function resolveLineChromeFromPayload(payload) {
 }
 
 function handleSetLineChrome(payload) {
-  var resolved = resolveLineChromeFromPayload(payload);
+  let resolved = resolveLineChromeFromPayload(payload);
   if (!resolved) {
     return;
   }
@@ -386,7 +386,7 @@ function handleSetLineChrome(payload) {
 // ============================================
 // Data Handlers
 // ============================================
-var INTERVAL_MS_TO_TV = {
+const INTERVAL_MS_TO_TV = {
   60000: '1',
   180000: '3',
   300000: '5',
@@ -406,22 +406,22 @@ var INTERVAL_MS_TO_TV = {
 function detectResolution(data) {
   if (data.length < 2) return '5';
   // Use median of first few diffs to avoid gaps skewing the result
-  var diffs = [];
-  var len = Math.min(data.length - 1, 10);
-  for (var i = 0; i < len; i++) {
+  let diffs = [];
+  let len = Math.min(data.length - 1, 10);
+  for (let i = 0; i < len; i++) {
     diffs.push(data[i + 1].time - data[i].time);
   }
   diffs.sort(function (a, b) {
     return a - b;
   });
-  var median = diffs[Math.floor(diffs.length / 2)];
+  let median = diffs[Math.floor(diffs.length / 2)];
 
   // Find closest match
-  var keys = Object.keys(INTERVAL_MS_TO_TV);
-  var best = '5';
-  var bestDist = Infinity;
-  for (var k = 0; k < keys.length; k++) {
-    var d = Math.abs(Number(keys[k]) - median);
+  let keys = Object.keys(INTERVAL_MS_TO_TV);
+  let best = '5';
+  let bestDist = Infinity;
+  for (let k = 0; k < keys.length; k++) {
+    let d = Math.abs(Number(keys[k]) - median);
     if (d < bestDist) {
       bestDist = d;
       best = INTERVAL_MS_TO_TV[keys[k]];
@@ -455,14 +455,14 @@ function handleSetOHLCVData(payload) {
     };
   }
 
-  var visibleFromMs =
+  let visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
   window.visibleFromMs = visibleFromMs;
 
-  var visibleToMs = payload.visibleToMs != null ? payload.visibleToMs : null;
+  let visibleToMs = payload.visibleToMs != null ? payload.visibleToMs : null;
   window.visibleToMs = visibleToMs;
 
-  var newResolution = detectResolution(window.ohlcvData);
+  let newResolution = detectResolution(window.ohlcvData);
 
   function scheduleVisibleRangeAfterDataLoad(chart) {
     if (visibleFromMs == null) {
@@ -471,19 +471,19 @@ function handleSetOHLCVData(payload) {
       } catch (e) {}
       return;
     }
-    var capturedGeneration = window.ohlcvGeneration;
-    var sub = chart.onDataLoaded();
+    let capturedGeneration = window.ohlcvGeneration;
+    let sub = chart.onDataLoaded();
     sub.subscribe(null, function onLoaded() {
       sub.unsubscribe(null, onLoaded);
       if (capturedGeneration !== window.ohlcvGeneration) {
         return;
       }
-      var fromSec = Math.floor(visibleFromMs / 1000);
-      var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-      var toSec = lastBar
+      let fromSec = Math.floor(visibleFromMs / 1000);
+      let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+      let toSec = lastBar
         ? Math.ceil(lastBar.time / 1000)
         : Math.ceil(Date.now() / 1000);
-      var barPadSec = getApproxBarDurationSec() * 2;
+      let barPadSec = getApproxBarDurationSec() * 2;
       try {
         chart.setVisibleRange(
           { from: fromSec, to: toSec + barPadSec },
@@ -496,11 +496,11 @@ function handleSetOHLCVData(payload) {
   }
 
   if (window.chartWidget && window.isChartReady) {
-    var previousResolution = window.currentResolution;
+    let previousResolution = window.currentResolution;
     window.currentResolution = newResolution;
 
     try {
-      var chart = window.chartWidget.activeChart();
+      let chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
         chart.setResolution(newResolution, function () {
           try {
@@ -554,11 +554,11 @@ function handleSetOHLCVData(payload) {
 function handleRealtimeUpdate(payload) {
   if (!payload || !payload.bar) return;
 
-  var bar = payload.bar;
+  let bar = payload.bar;
 
   // Append or update the last bar in the local data store
   if (window.ohlcvData.length > 0) {
-    var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+    let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
     if (lastBar.time === bar.time) {
       window.ohlcvData[window.ohlcvData.length - 1] = bar;
     } else {
@@ -570,7 +570,7 @@ function handleRealtimeUpdate(payload) {
   bumpLineChartOhlcvEpoch();
 
   // Forward to all active TradingView subscribeBars callbacks
-  var tick = {
+  let tick = {
     time: bar.time,
     open: bar.open,
     high: bar.high,
@@ -578,8 +578,8 @@ function handleRealtimeUpdate(payload) {
     close: bar.close,
     volume: bar.volume,
   };
-  var guids = Object.keys(window.realtimeCallbacks);
-  for (var i = 0; i < guids.length; i++) {
+  let guids = Object.keys(window.realtimeCallbacks);
+  for (let i = 0; i < guids.length; i++) {
     window.realtimeCallbacks[guids[i]](tick);
   }
 
@@ -619,7 +619,7 @@ function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload || !payload.name) return;
 
-  var indicatorName = payload.name;
+  let indicatorName = payload.name;
   if (!isOwnStringKey(indicatorName)) return;
 
   if (window.activeStudies.has(indicatorName)) {
@@ -627,8 +627,8 @@ function handleAddIndicator(payload) {
   }
 
   try {
-    var chart = window.chartWidget.activeChart();
-    var studyName, inputs, overrides;
+    let chart = window.chartWidget.activeChart();
+    let studyName, inputs, overrides;
 
     switch (indicatorName) {
       case 'MACD':
@@ -673,7 +673,7 @@ function handleAddIndicator(payload) {
         break;
     }
 
-    var promise = chart.createStudy(
+    let promise = chart.createStudy(
       studyName,
       false,
       false,
@@ -706,15 +706,15 @@ function handleRemoveIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload || !payload.name) return;
 
-  var indicatorName = payload.name;
+  let indicatorName = payload.name;
   if (!isOwnStringKey(indicatorName)) return;
   if (!window.activeStudies.has(indicatorName)) return;
 
-  var studyId = window.activeStudies.get(indicatorName);
+  let studyId = window.activeStudies.get(indicatorName);
   if (!studyId) return;
 
   try {
-    var chart = window.chartWidget.activeChart();
+    let chart = window.chartWidget.activeChart();
     chart.removeEntity(studyId);
     window.activeStudies.delete(indicatorName);
     scheduleStudyLegendRefresh();
@@ -727,8 +727,8 @@ function handleRemoveIndicator(payload) {
 // ============================================
 // MA Study Visibility (built-in Moving Average studies)
 // ============================================
-var MA_LENGTHS = { MA5: 5, MA10: 10, MA20: 20, MA50: 50, MA200: 200 };
-var MA_COLORS = {
+const MA_LENGTHS = { MA5: 5, MA10: 10, MA20: 20, MA50: 50, MA200: 200 };
+const MA_COLORS = {
   MA5: getMAColor('MA5', '#8B8BF5'),
   MA10: getMAColor('MA10', '#FF6B9D'),
   MA20: getMAColor('MA20', '#F5A623'),
@@ -740,12 +740,11 @@ function handleSetMAVisibility(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload) return;
 
-  var visible = payload.visible || [];
-  var chart = window.chartWidget.activeChart();
+  const visible = payload.visible || [];
+  const chart = window.chartWidget.activeChart();
 
-  var visibleNames = new Set();
-  for (var i = 0; i < visible.length; i++) {
-    var visibleName = visible[i];
+  const visibleNames = new Set();
+  for (const visibleName of visible) {
     if (isOwnStringKey(visibleName) && MA_LENGTHS[visibleName]) {
       visibleNames.add(visibleName);
     }
@@ -761,51 +760,47 @@ function handleSetMAVisibility(payload) {
     }
   });
 
-  var promises = [];
-  var maCallbacks = []; // Store callbacks to call after all MAs created and legend refreshed
+  const promises = [];
+  const maCallbacks = [];
 
-  for (var j = 0; j < visible.length; j++) {
-    var name = visible[j];
+  for (const name of visible) {
     if (!isOwnStringKey(name) || !MA_LENGTHS[name]) continue;
     if (window.maStudies.has(name)) continue;
-    (function (maName) {
-      var p = chart
-        .createStudy(
-          'Moving Average',
-          false,
-          false,
-          { length: MA_LENGTHS[maName] },
-          {
-            showLegendValues: false,
-            'Plot.color': MA_COLORS[maName],
-          },
-        )
-        .then(function (studyId) {
-          window.maStudies.set(maName, studyId);
-          // Store the callback to be called after legend refresh
-          maCallbacks.push(function () {
-            subscribeStudyDataLoaded(studyId, function () {
-              sendToReactNative('INDICATOR_ADDED', {
-                name: maName,
-                id: String(studyId),
-              });
+    const p = chart
+      .createStudy(
+        'Moving Average',
+        false,
+        false,
+        { length: MA_LENGTHS[name] },
+        {
+          showLegendValues: false,
+          'Plot.color': MA_COLORS[name],
+        },
+      )
+      .then(function (studyId) {
+        window.maStudies.set(name, studyId);
+        maCallbacks.push(function () {
+          subscribeStudyDataLoaded(studyId, function () {
+            sendToReactNative('INDICATOR_ADDED', {
+              name: name,
+              id: String(studyId),
             });
           });
-        })
-        .catch(function (err) {
-          sendToReactNative('ERROR', {
-            message: 'MA creation failed: ' + maName + ' - ' + String(err),
-          });
         });
-      promises.push(p);
-    })(name);
+      })
+      .catch(function (err) {
+        sendToReactNative('ERROR', {
+          message: 'MA creation failed: ' + name + ' - ' + String(err),
+        });
+      });
+    promises.push(p);
   }
 
   if (promises.length > 0) {
     Promise.all(promises).then(function () {
       scheduleStudyLegendRefresh();
-      for (var i = 0; i < maCallbacks.length; i++) {
-        maCallbacks[i]();
+      for (const cb of maCallbacks) {
+        cb();
       }
     });
   } else {
@@ -817,20 +812,20 @@ function handleSetMAVisibility(payload) {
 // Series Color Helper
 // ============================================
 function generatePaletteShades(hex) {
-  var r = parseInt(hex.slice(1, 3), 16);
-  var g = parseInt(hex.slice(3, 5), 16);
-  var b = parseInt(hex.slice(5, 7), 16);
-  var shades = [];
-  for (var i = 0; i < 19; i++) {
-    var t = i / 18;
-    var sr, sg, sb;
+  let r = parseInt(hex.slice(1, 3), 16);
+  let g = parseInt(hex.slice(3, 5), 16);
+  let b = parseInt(hex.slice(5, 7), 16);
+  let shades = [];
+  for (let i = 0; i < 19; i++) {
+    let t = i / 18;
+    let sr, sg, sb;
     if (t < 0.5) {
-      var f = 1 - t * 2;
+      let f = 1 - t * 2;
       sr = Math.round(r + (255 - r) * f);
       sg = Math.round(g + (255 - g) * f);
       sb = Math.round(b + (255 - b) * f);
     } else {
-      var f2 = (t - 0.5) * 2;
+      let f2 = (t - 0.5) * 2;
       sr = Math.round(r * (1 - f2));
       sg = Math.round(g * (1 - f2));
       sb = Math.round(b * (1 - f2));
@@ -876,7 +871,7 @@ function applySeriesColors() {
     window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
-    var series = window.chartWidget.activeChart().getSeries();
+    let series = window.chartWidget.activeChart().getSeries();
     series.setChartStyleProperties(2, {
       color: color,
       colorType: 'solid',
@@ -898,7 +893,7 @@ function applySeriesColors() {
  */
 function handleSetThemeColors(payload) {
   if (!payload) return;
-  var theme = window.CONFIG.theme;
+  let theme = window.CONFIG.theme;
   if (payload.lineColor != null) theme.lineColor = payload.lineColor;
   if (payload.successColor != null) theme.successColor = payload.successColor;
   if (payload.errorColor != null) theme.errorColor = payload.errorColor;
@@ -918,9 +913,9 @@ function handleSetThemeColors(payload) {
 
   applySeriesColors();
 
-  var chart = window.chartWidget.activeChart();
-  var lineColor = theme.lineColor || theme.successColor;
-  var currentPriceColor = theme.currentPriceColor || lineColor;
+  let chart = window.chartWidget.activeChart();
+  let lineColor = theme.lineColor || theme.successColor;
+  let currentPriceColor = theme.currentPriceColor || lineColor;
 
   // Update volume study colors if present
   if (window.volumeStudyId) {
@@ -933,7 +928,7 @@ function handleSetThemeColors(payload) {
   }
 
   // Update custom DOM pill colors
-  var elLast = document.getElementById('last-close-price-label');
+  let elLast = document.getElementById('last-close-price-label');
   if (elLast) {
     elLast.style.background = lineColor;
   }
@@ -1002,13 +997,13 @@ function scheduleLineChartLayoutReflow() {
 function applyChartScaleLayout(type) {
   if (!window.chartWidget) return;
 
-  var theme = window.CONFIG.theme;
-  var isLineChart = type === 2;
-  var lc = getLineChrome();
-  var useCustomLabels = lc.useCustomPriceLabels;
-  var useCustomDashed = lc.useCustomDashedLastPriceLine;
+  let theme = window.CONFIG.theme;
+  let isLineChart = type === 2;
+  let lc = getLineChrome();
+  let useCustomLabels = lc.useCustomPriceLabels;
+  let useCustomDashed = lc.useCustomDashedLastPriceLine;
   /** Match pane background so time/price scale rules disappear; labels use textColor above. */
-  var axisLineColor = theme.backgroundColor || '#131416';
+  let axisLineColor = theme.backgroundColor || '#131416';
 
   try {
     window.chartWidget.applyOverrides({
@@ -1055,7 +1050,7 @@ function applyChartScaleLayout(type) {
  * This file is injected as a standalone script string in the chart WebView (see chartLogicString.ts),
  * not executed in the Metro/RN bundle, so we cannot import or require the shared TS module.
  */
-var SUBSCRIPT_DIGITS_CROSSHAIR = [
+const SUBSCRIPT_DIGITS_CROSSHAIR = [
   '₀',
   '₁',
   '₂',
@@ -1079,13 +1074,13 @@ function toSubscriptDigitsCrosshair(n) {
 
 function formatSubscriptNotationCrosshair(abs) {
   if (abs > 0 && abs < 0.0001) {
-    var priceStr = abs.toFixed(20);
-    var match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
+    let priceStr = abs.toFixed(20);
+    let match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
     if (match) {
-      var leadingZeros = priceStr.indexOf(match[1]) - 2;
+      let leadingZeros = priceStr.indexOf(match[1]) - 2;
       if (leadingZeros >= 4) {
-        var sig = match[1];
-        var significantDigits =
+        let sig = match[1];
+        let significantDigits =
           sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
         return (
           '0.0' + toSubscriptDigitsCrosshair(leadingZeros) + significantDigits
@@ -1104,12 +1099,12 @@ function formatCrosshairPrice(price) {
   if (price === undefined || price === null || isNaN(Number(price))) {
     return '';
   }
-  var p = Number(price);
+  let p = Number(price);
   if (p === 0) {
     return '0.00';
   }
-  var abs = Math.abs(p);
-  var sub = formatSubscriptNotationCrosshair(abs);
+  let abs = Math.abs(p);
+  let sub = formatSubscriptNotationCrosshair(abs);
   if (sub) {
     return p < 0 ? '-' + sub : sub;
   }
@@ -1128,9 +1123,9 @@ function formatCrosshairTime(timeSeconds) {
   ) {
     return '';
   }
-  var d = new Date(Number(timeSeconds) * 1000);
-  var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  var months = [
+  let d = new Date(Number(timeSeconds) * 1000);
+  let weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let months = [
     'Jan',
     'Feb',
     'Mar',
@@ -1144,12 +1139,12 @@ function formatCrosshairTime(timeSeconds) {
     'Nov',
     'Dec',
   ];
-  var w = weekdays[d.getDay()];
-  var day = d.getDate();
-  var mo = months[d.getMonth()];
-  var y = String(d.getFullYear()).slice(-2);
-  var h = String(d.getHours());
-  var min = String(d.getMinutes());
+  let w = weekdays[d.getDay()];
+  let day = d.getDate();
+  let mo = months[d.getMonth()];
+  let y = String(d.getFullYear()).slice(-2);
+  let h = String(d.getHours());
+  let min = String(d.getMinutes());
   if (h.length < 2) {
     h = '0' + h;
   }
@@ -1160,8 +1155,8 @@ function formatCrosshairTime(timeSeconds) {
 }
 
 function hideCustomCrosshairLabels() {
-  var elP = document.getElementById('crosshair-price-label');
-  var elT = document.getElementById('crosshair-time-label');
+  let elP = document.getElementById('crosshair-price-label');
+  let elT = document.getElementById('crosshair-time-label');
   if (elP) {
     elP.style.display = 'none';
     elP.style.left = '';
@@ -1185,14 +1180,14 @@ function getMainPriceAxisLeftRelativeToOverlay(overlay) {
   if (!overlay || !overlay.getBoundingClientRect) {
     return null;
   }
-  var orect = overlay.getBoundingClientRect();
-  var bestLeft = null;
-  var bestTop = Infinity;
+  let orect = overlay.getBoundingClientRect();
+  let bestLeft = null;
+  let bestTop = Infinity;
   eachChartDocument(function (doc) {
-    var nodes = doc.querySelectorAll('.price-axis-container');
-    var i;
+    let nodes = doc.querySelectorAll('.price-axis-container');
+    let i;
     for (i = 0; i < nodes.length; i++) {
-      var r = nodes[i].getBoundingClientRect();
+      let r = nodes[i].getBoundingClientRect();
       if (r.width < 2 || r.height < 16) {
         continue;
       }
@@ -1205,7 +1200,7 @@ function getMainPriceAxisLeftRelativeToOverlay(overlay) {
   if (bestLeft === null || isNaN(bestLeft)) {
     return null;
   }
-  var maxW = overlay.clientWidth;
+  let maxW = overlay.clientWidth;
   if (maxW <= 0) {
     return null;
   }
@@ -1229,14 +1224,14 @@ function positionPricePillAtPlotPriceBoundary(el, overlay, yPx) {
     el.style.transform = 'translateY(-50%)';
     return;
   }
-  var boundaryLeft = getMainPriceAxisLeftRelativeToOverlay(overlay);
+  let boundaryLeft = getMainPriceAxisLeftRelativeToOverlay(overlay);
   if (boundaryLeft !== null && !isNaN(boundaryLeft) && boundaryLeft >= 0) {
-    var w = el.offsetWidth;
+    let w = el.offsetWidth;
     if (!w || w <= 0) {
       w = 0;
     }
-    var pillLeft = boundaryLeft + 2; // Adding 2px to the boundary left to ensure the pill is not too close to the boundary.
-    var maxW = overlay.clientWidth;
+    let pillLeft = boundaryLeft + 2; // Adding 2px to the boundary left to ensure the pill is not too close to the boundary.
+    let maxW = overlay.clientWidth;
     if (maxW > 0) {
       pillLeft = Math.max(0, Math.min(pillLeft, maxW - w));
     }
@@ -1251,9 +1246,9 @@ function positionPricePillAtPlotPriceBoundary(el, overlay, yPx) {
 }
 
 function updateCustomCrosshairLabels(params) {
-  var elP = document.getElementById('crosshair-price-label');
-  var elT = document.getElementById('crosshair-time-label');
-  var overlay = document.getElementById('custom-crosshair-overlay');
+  let elP = document.getElementById('crosshair-price-label');
+  let elT = document.getElementById('crosshair-time-label');
+  let overlay = document.getElementById('custom-crosshair-overlay');
   if (!elP || !elT || !overlay) {
     return;
   }
@@ -1261,14 +1256,14 @@ function updateCustomCrosshairLabels(params) {
     hideCustomCrosshairLabels();
     return;
   }
-  var ox = params.offsetX;
-  var oy = params.offsetY;
+  let ox = params.offsetX;
+  let oy = params.offsetY;
   if (ox === undefined || oy === undefined || isNaN(ox) || isNaN(oy)) {
     hideCustomCrosshairLabels();
     return;
   }
   elP.textContent = formatCrosshairPrice(params.price);
-  var tSec = params.time;
+  let tSec = params.time;
   elT.textContent = formatCrosshairTime(tSec);
   elP.style.display = 'flex';
   elT.style.display = 'flex';
@@ -1280,11 +1275,11 @@ function updateCustomCrosshairLabels(params) {
     requestAnimationFrame(positionPricePill);
   } catch (e) {}
   /* Time label: left + translateX(-50%) → center at crosshair X; remeasure after layout. */
-  var ow = overlay.clientWidth;
+  let ow = overlay.clientWidth;
   function positionTimeLabel() {
-    var tw = elT.offsetWidth;
-    var halfTw = tw / 2;
-    var clampedOx = Math.max(halfTw, Math.min(ox, ow - halfTw));
+    let tw = elT.offsetWidth;
+    let halfTw = tw / 2;
+    let clampedOx = Math.max(halfTw, Math.min(ox, ow - halfTw));
     elT.style.left = clampedOx + 'px';
     elT.style.transform = 'translateX(-50%)';
   }
@@ -1329,7 +1324,7 @@ function scheduleLastCloseLabelUpdate() {
 }
 
 function hideLastClosePriceLabelDom() {
-  var el = document.getElementById('last-close-price-label');
+  let el = document.getElementById('last-close-price-label');
   if (el) {
     el.style.display = 'none';
     el.style.left = '';
@@ -1343,7 +1338,7 @@ function hideLastClosePriceLabelDom() {
  * Safe to call when the DOM node is missing (older cached HTML).
  */
 function hideCustomSeriesLastValueLabelDom() {
-  var elC = document.getElementById('custom-series-last-value-label');
+  let elC = document.getElementById('custom-series-last-value-label');
   if (elC) {
     elC.style.display = 'none';
     elC.style.left = '';
@@ -1549,11 +1544,11 @@ function getPriceYForLastCloseOverlay(chart, price) {
  * Stays visible alongside the crosshair price pill (crosshair stacks above when Y aligns).
  */
 function updateLastClosePriceLabel() {
-  var el = document.getElementById('last-close-price-label');
+  let el = document.getElementById('last-close-price-label');
   if (!el) {
     return;
   }
-  var w = window;
+  let w = window;
   if (!getLineChrome().useCustomPriceLabels) {
     hideLastClosePriceLabelDom();
     return;
@@ -1567,24 +1562,24 @@ function updateLastClosePriceLabel() {
     hideLastClosePriceLabelDom();
     return;
   }
-  var ct = w.currentChartType;
+  let ct = w.currentChartType;
   if (ct !== 1 && ct !== 2) {
     hideLastClosePriceLabelDom();
     return;
   }
-  var lastBar = w.ohlcvData[w.ohlcvData.length - 1];
-  var chart = w.chartWidget.activeChart();
-  var resolved = resolveLineEndOverlayPoint(chart);
-  var labelPrice =
+  let lastBar = w.ohlcvData[w.ohlcvData.length - 1];
+  let chart = w.chartWidget.activeChart();
+  let resolved = resolveLineEndOverlayPoint(chart);
+  let labelPrice =
     resolved && isFinite(resolved.price) ? resolved.price : lastBar.close;
-  var y = getPriceYForLastCloseOverlay(chart, labelPrice);
+  let y = getPriceYForLastCloseOverlay(chart, labelPrice);
   if (y === null || y === undefined || isNaN(y)) {
     el.style.display = 'none';
     return;
   }
   el.textContent = formatCrosshairPrice(labelPrice);
   el.style.display = 'flex';
-  var overlay = document.getElementById('custom-crosshair-overlay');
+  let overlay = document.getElementById('custom-crosshair-overlay');
   positionPricePillAtPlotPriceBoundary(el, overlay, y);
 }
 
@@ -1592,7 +1587,7 @@ function updateLastClosePriceLabel() {
  * Debounced line-end icon refresh when the time scale pans. Uses \`lineChartOhlcvEpoch\` so a burst
  * of \`onVisibleRangeChanged\` during interval switches does not run after newer \`SET_OHLCV_DATA\`.
  */
-var lineEndDotVisibleRangeDebounce = null;
+let lineEndDotVisibleRangeDebounce = null;
 
 /** Clears pending visible-range debounce so no \`refreshLineEndDot\` runs after chrome turns off. */
 function clearLineEndDotVisibleRangeDebounce() {
@@ -1612,7 +1607,7 @@ function scheduleLineEndDotAfterVisibleRangeChange() {
   if (lineEndDotVisibleRangeDebounce) {
     clearTimeout(lineEndDotVisibleRangeDebounce);
   }
-  var epochAtSchedule = window.lineChartOhlcvEpoch;
+  let epochAtSchedule = window.lineChartOhlcvEpoch;
   lineEndDotVisibleRangeDebounce = setTimeout(function () {
     lineEndDotVisibleRangeDebounce = null;
     if (window.lineChartOhlcvEpoch !== epochAtSchedule) {
@@ -1626,7 +1621,7 @@ function scheduleLineEndDotAfterVisibleRangeChange() {
       return;
     }
     try {
-      var chart = window.chartWidget.activeChart();
+      let chart = window.chartWidget.activeChart();
       if (chart && typeof chart.dataReady === 'function') {
         chart.dataReady(function () {
           if (window.lineChartOhlcvEpoch !== epochAtSchedule) {
@@ -1647,7 +1642,7 @@ function scheduleLineEndDotAfterVisibleRangeChange() {
  */
 function subscribeLastCloseLabelUpdates() {
   if (!window.chartWidget) return;
-  var tick = scheduleLastCloseLabelUpdate;
+  let tick = scheduleLastCloseLabelUpdate;
   function tickIfCustomPriceLabels() {
     if (getLineChrome().useCustomPriceLabels) {
       tick();
@@ -1685,10 +1680,10 @@ function findOuterChartMarkupTable(doc) {
   if (!doc || !doc.querySelectorAll) {
     return null;
   }
-  var list = doc.querySelectorAll('.chart-markup-table');
-  var i;
-  var el;
-  var cn;
+  let list = doc.querySelectorAll('.chart-markup-table');
+  let i;
+  let el;
+  let cn;
   for (i = 0; i < list.length; i++) {
     el = list[i];
     cn = el.className && String(el.className);
@@ -1712,19 +1707,19 @@ function eachChartDocument(fn) {
     fn(document);
   } catch (e) {}
   try {
-    var container = document.getElementById('tv_chart_container');
-    var iframe = container && container.querySelector('iframe');
+    let container = document.getElementById('tv_chart_container');
+    let iframe = container && container.querySelector('iframe');
     if (iframe && iframe.contentDocument) {
       fn(iframe.contentDocument);
     }
   } catch (e2) {}
 }
 
-var TV_EXTERNAL_BRIDGE_DEBOUNCE_MS = 600;
+let TV_EXTERNAL_BRIDGE_DEBOUNCE_MS = 600;
 
 function isTradingViewExternalHostname(hostname) {
   if (!hostname) return false;
-  var h = String(hostname).toLowerCase();
+  let h = String(hostname).toLowerCase();
   return (
     h === 'tradingview.com' ||
     h === 'www.tradingview.com' ||
@@ -1735,11 +1730,11 @@ function isTradingViewExternalHostname(hostname) {
 function isTradingViewExternalHref(href) {
   if (!href) return false;
   try {
-    var base =
+    let base =
       typeof window !== 'undefined' && window.location
         ? window.location.href
         : 'https://localhost/';
-    var u = new URL(href, base);
+    let u = new URL(href, base);
     return isTradingViewExternalHostname(u.hostname);
   } catch (e) {
     return false;
@@ -1756,15 +1751,15 @@ function installTradingViewExternalOpenBridge() {
   }
 
   function handleTradingViewLinkCapture(ev) {
-    var t = ev.target;
+    let t = ev.target;
     if (!t || typeof t.closest !== 'function') {
       return;
     }
-    var a = t.closest('a');
+    let a = t.closest('a');
     if (!a || !a.href || !isTradingViewExternalHref(a.href)) {
       return;
     }
-    var now = Date.now();
+    let now = Date.now();
     if (
       now - (window.__mmLastTvExternalBridgeAt || 0) <
       TV_EXTERNAL_BRIDGE_DEBOUNCE_MS
@@ -1784,10 +1779,10 @@ function installTradingViewExternalOpenBridge() {
       return;
     }
     win.__mmTvOpenPatched = true;
-    var origOpen = win.open.bind(win);
+    let origOpen = win.open.bind(win);
     win.open = function (url, name, specs) {
       if (url != null && url !== '' && isTradingViewExternalHref(String(url))) {
-        var now2 = Date.now();
+        let now2 = Date.now();
         if (
           now2 - (window.__mmLastTvExternalBridgeAt || 0) <
           TV_EXTERNAL_BRIDGE_DEBOUNCE_MS
@@ -1817,8 +1812,8 @@ function installTradingViewExternalOpenBridge() {
 
   applyAll();
   try {
-    var container = document.getElementById('tv_chart_container');
-    var iframe = container && container.querySelector('iframe');
+    let container = document.getElementById('tv_chart_container');
+    let iframe = container && container.querySelector('iframe');
     if (iframe) {
       iframe.addEventListener('load', applyAll);
     }
@@ -1830,7 +1825,7 @@ function installTradingViewExternalOpenBridge() {
 
 function removeInjectedStyleByIdFromChartDocs(styleId) {
   eachChartDocument(function (d) {
-    var node = d.getElementById(styleId);
+    let node = d.getElementById(styleId);
     if (node) {
       node.remove();
     }
@@ -1847,7 +1842,7 @@ function removeLineChartMarkupStyle() {
  * (same pattern as tv-candle-volume-markup). No effect on candle mode when hide is false.
  */
 function injectHideTimeAxisStyle() {
-  var paneBg =
+  let paneBg =
     window.CONFIG && window.CONFIG.theme && window.CONFIG.theme.backgroundColor
       ? String(window.CONFIG.theme.backgroundColor)
       : '#131416';
@@ -1855,21 +1850,21 @@ function injectHideTimeAxisStyle() {
     if (!targetDoc || !targetDoc.getElementById) {
       return;
     }
-    var id = 'tv-hide-time-axis';
-    var existing = targetDoc.getElementById(id);
+    let id = 'tv-hide-time-axis';
+    let existing = targetDoc.getElementById(id);
     if (existing) {
       existing.remove();
     }
-    var sel = tvScopedDomSelectors(targetDoc);
+    let sel = tvScopedDomSelectors(targetDoc);
     // Collapse time row — TV keeps chart-markup-table / chart-widget at pane+time height (~204px)
     // while the main row + .pane stay at ~176px inline; the empty strip is transparent and shows
     // .chart-container-border .screen-* (rgb(19,20,22)) as a dark band. Fill that strip with the
     // same surface as the chart and stretch the first row to the full widget height.
-    var hide =
+    let hide =
       'display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;' +
       'max-height:0!important;overflow:hidden!important;pointer-events:none!important;opacity:0!important;' +
       'flex:0 0 0!important;margin:0!important;padding:0!important;border:none!important;';
-    var style = targetDoc.createElement('style');
+    let style = targetDoc.createElement('style');
     style.id = id;
     style.textContent =
       sel.widgetSel +
@@ -1927,7 +1922,7 @@ function removeHideTimeAxisStyle() {
 
 function applyLineTimeScaleVisibility(hide) {
   if (!window.chartWidget) return;
-  var shouldHide = window.currentChartType === 2 && hide;
+  let shouldHide = window.currentChartType === 2 && hide;
   try {
     window.chartWidget.applyOverrides({
       'timeScale.visible': !shouldHide,
@@ -1971,8 +1966,8 @@ function applyLineTimeScaleVisibility(hide) {
  * price pane + gui wrapper; the watermark ring often straddles the pane bottom.
  */
 function buildChartDomUnclipCss(targetDoc) {
-  var top = targetDoc === document;
-  var p = top ? '#tv_chart_container ' : '';
+  let top = targetDoc === document;
+  let p = top ? '#tv_chart_container ' : '';
   return (
     p +
     '.layout__area--center,' +
@@ -1998,9 +1993,9 @@ function injectChartContainerOverflowUnclip(targetDoc) {
   if (!targetDoc || !targetDoc.getElementById) {
     return;
   }
-  var id = 'tv-chart-container-unclip';
-  var css = buildChartDomUnclipCss(targetDoc);
-  var node = targetDoc.getElementById(id);
+  let id = 'tv-chart-container-unclip';
+  let css = buildChartDomUnclipCss(targetDoc);
+  let node = targetDoc.getElementById(id);
   if (!node) {
     node = targetDoc.createElement('style');
     node.id = id;
@@ -2033,18 +2028,18 @@ function scheduleChartDomUnclip() {
  * Locate outer .chart-markup-table (TradingView may host it under #tv_chart_container or in a same-origin iframe).
  */
 function getChartMarkupTableContext() {
-  var container = document.getElementById('tv_chart_container');
+  let container = document.getElementById('tv_chart_container');
   if (!container) {
     return null;
   }
-  var table = findOuterChartMarkupTable(document);
-  var doc = document;
+  let table = findOuterChartMarkupTable(document);
+  let doc = document;
   if (!table || !container.contains(table)) {
     table = null;
   }
   if (!table) {
     try {
-      var iframe = container.querySelector('iframe');
+      let iframe = container.querySelector('iframe');
       if (iframe && iframe.contentDocument) {
         table = findOuterChartMarkupTable(iframe.contentDocument);
         if (table) {
@@ -2058,8 +2053,8 @@ function getChartMarkupTableContext() {
 
 /** CSS selector prefix: top window uses \`#tv_chart_container \`; chart iframe document uses none. */
 function tvScopedDomSelectors(targetDoc) {
-  var top = targetDoc === document;
-  var p = top ? '#tv_chart_container ' : '';
+  let top = targetDoc === document;
+  let p = top ? '#tv_chart_container ' : '';
   return {
     overflowRule:
       buildChartDomUnclipCss(targetDoc) +
@@ -2080,11 +2075,11 @@ function injectHidePriceScaleModeButtonsStyle(targetDoc) {
   if (!targetDoc || !targetDoc.getElementById) {
     return;
   }
-  var id = 'tv-hide-price-scale-mode-buttons';
+  let id = 'tv-hide-price-scale-mode-buttons';
   if (targetDoc.getElementById(id)) {
     return;
   }
-  var style = targetDoc.createElement('style');
+  let style = targetDoc.createElement('style');
   style.id = id;
   style.textContent =
     '[class*="priceScaleModeButtons"]{' +
@@ -2132,16 +2127,16 @@ function updateCandleVolumeScaleColumnVisibility() {
     return;
   }
 
-  var ctx = getChartMarkupTableContext();
+  let ctx = getChartMarkupTableContext();
   if (!ctx) {
     return;
   }
 
-  var targetDoc = ctx.doc;
-  var sel = tvScopedDomSelectors(targetDoc);
-  var bg = window.CONFIG.theme.backgroundColor;
+  let targetDoc = ctx.doc;
+  let sel = tvScopedDomSelectors(targetDoc);
+  let bg = window.CONFIG.theme.backgroundColor;
 
-  var style = targetDoc.createElement('style');
+  let style = targetDoc.createElement('style');
   style.id = 'tv-candle-volume-markup';
 
   style.textContent =
@@ -2166,7 +2161,7 @@ function handleSetChartType(payload) {
 
   if (!window.chartWidget) return;
 
-  var type = payload.type;
+  let type = payload.type;
   window.currentChartType = type;
 
   if (!window.isChartReady) return;
@@ -2181,12 +2176,12 @@ function handleSetChartType(payload) {
   }
 
   try {
-    var ac = window.chartWidget.activeChart();
+    let ac = window.chartWidget.activeChart();
     ac.setChartType(type);
 
     const color =
       window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
-    var series = ac.getSeries();
+    let series = ac.getSeries();
     if (type === 2) {
       series.setChartStyleProperties(2, {
         color: color,
@@ -2206,7 +2201,7 @@ function handleSetChartType(payload) {
 
     // Update price indicators after chart type change
     // Capture type to prevent stale updates if user switches again quickly
-    var capturedType = type;
+    let capturedType = type;
     setTimeout(function () {
       if (window.currentChartType !== capturedType) return;
 
@@ -2229,8 +2224,8 @@ function clearPositionLines() {
   if (!window.chartWidget || !window.isChartReady) return;
 
   try {
-    var chart = window.chartWidget.activeChart();
-    for (var i = 0; i < window.positionShapeIds.length; i++) {
+    let chart = window.chartWidget.activeChart();
+    for (let i = 0; i < window.positionShapeIds.length; i++) {
       try {
         chart.removeEntity(window.positionShapeIds[i]);
       } catch (e) {
@@ -2254,12 +2249,12 @@ function handleSetPositionLines(payload) {
   // null or missing position means "clear only"
   if (!payload || !payload.position) return;
 
-  var position = payload.position;
-  var theme = window.CONFIG.theme;
+  let position = payload.position;
+  let theme = window.CONFIG.theme;
 
   try {
-    var chart = window.chartWidget.activeChart();
-    var lines = [];
+    let chart = window.chartWidget.activeChart();
+    let lines = [];
 
     if (position.entryPrice) {
       lines.push({
@@ -2297,7 +2292,7 @@ function handleSetPositionLines(payload) {
     // Add a line for position.currentPrice (e.g. a solid line showing live mark
     // price) when the Perps integration is ready.
 
-    for (var i = 0; i < lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
       (function (line) {
         chart
           .createShape(
@@ -2357,13 +2352,13 @@ window.__lineLastPriceLinePlacementGen = 0;
 function sweepNonPositionHorizontalLines() {
   if (!window.chartWidget || !window.isChartReady) return;
   try {
-    var chart = window.chartWidget.activeChart();
-    var shapes = chart.getAllShapes();
+    let chart = window.chartWidget.activeChart();
+    let shapes = chart.getAllShapes();
     if (!shapes || !shapes.length) return;
-    var positionIds = window.positionShapeIds || [];
-    for (var i = 0; i < shapes.length; i++) {
-      var id = shapes[i].id;
-      var name = String(shapes[i].name || '');
+    let positionIds = window.positionShapeIds || [];
+    for (let i = 0; i < shapes.length; i++) {
+      let id = shapes[i].id;
+      let name = String(shapes[i].name || '');
       if (!/horizontal|horz/i.test(name)) continue;
       if (positionIds.indexOf(id) !== -1) continue;
       try {
@@ -2393,12 +2388,12 @@ function createLastPriceLine() {
 
   removeAllLastPriceHorizontalOverlays();
 
-  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-  var chart = window.chartWidget.activeChart();
-  var color =
+  let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+  let chart = window.chartWidget.activeChart();
+  let color =
     window.CONFIG.theme.currentPriceColor || window.CONFIG.theme.successColor;
-  var candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
-  var candlePrice =
+  let candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
+  let candlePrice =
     candlePt && isFinite(candlePt.price) ? candlePt.price : lastBar.close;
 
   chart
@@ -2452,7 +2447,7 @@ function removeAllLastPriceHorizontalOverlays(options) {
   sweepNonPositionHorizontalLines();
   window.lastPriceShapeId = null;
   window.lineLastPriceShapeId = null;
-  var hideDom = true;
+  let hideDom = true;
   if (options && options.hideLastCloseDom === false) {
     hideDom = false;
   }
@@ -2465,13 +2460,13 @@ function createLineLastPriceLine() {
   if (!window.chartWidget || !window.isChartReady) return;
   if (window.ohlcvData.length === 0) return;
 
-  var shouldDrawLineLastPrice =
+  let shouldDrawLineLastPrice =
     window.currentChartType === 2 &&
     getLineChrome().useCustomDashedLastPriceLine;
 
   window.__lineLastPriceLinePlacementGen =
     (window.__lineLastPriceLinePlacementGen || 0) + 1;
-  var placementGen = window.__lineLastPriceLinePlacementGen;
+  let placementGen = window.__lineLastPriceLinePlacementGen;
 
   removeAllLastPriceHorizontalOverlays();
 
@@ -2479,14 +2474,14 @@ function createLineLastPriceLine() {
     return;
   }
 
-  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-  var chart = window.chartWidget.activeChart();
+  let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+  let chart = window.chartWidget.activeChart();
   const color =
     window.CONFIG.theme.currentPriceColor ||
     window.CONFIG.theme.lineColor ||
     window.CONFIG.theme.successColor;
-  var seriesPt = resolveLineEndOverlayPoint(chart);
-  var linePrice =
+  let seriesPt = resolveLineEndOverlayPoint(chart);
+  let linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
 
   chart
@@ -2570,19 +2565,19 @@ function parseTimeFromTvDataLast(last) {
     return null;
   }
   if (Array.isArray(last)) {
-    var t0 = Number(last[0]);
+    let t0 = Number(last[0]);
     return isFinite(t0) ? t0 : null;
   }
   if (typeof last === 'object') {
     if (last.time !== undefined && last.time !== null) {
-      var nt = Number(last.time);
+      let nt = Number(last.time);
       if (isFinite(nt)) {
         return nt;
       }
     }
-    var v = last.value;
+    let v = last.value;
     if (Array.isArray(v) && v.length > 0) {
-      var tv = Number(v[0]);
+      let tv = Number(v[0]);
       if (isFinite(tv)) {
         return tv;
       }
@@ -2600,7 +2595,7 @@ function parseCloseFromTvDataLast(last) {
   }
   if (Array.isArray(last)) {
     if (last.length > 4) {
-      var c = Number(last[4]);
+      let c = Number(last[4]);
       if (isFinite(c)) {
         return c;
       }
@@ -2609,14 +2604,14 @@ function parseCloseFromTvDataLast(last) {
   }
   if (typeof last === 'object') {
     if (last.close !== undefined && last.close !== null) {
-      var nc = Number(last.close);
+      let nc = Number(last.close);
       if (isFinite(nc)) {
         return nc;
       }
     }
-    var v = last.value;
+    let v = last.value;
     if (Array.isArray(v) && v.length > 4) {
-      var nvc = Number(v[4]);
+      let nvc = Number(v[4]);
       if (isFinite(nvc)) {
         return nvc;
       }
@@ -2633,13 +2628,13 @@ function parseCloseFromTvDataLast(last) {
  * (\`data().last()\` / \`bars()\`) so the icon matches the native last point; falls back to feed tail.
  */
 function getLineEndDotTimeAndPriceFromSeries(chart) {
-  var fallback = null;
+  let fallback = null;
   if (window.ohlcvData && window.ohlcvData.length > 0) {
-    var b = window.ohlcvData[window.ohlcvData.length - 1];
-    var tr = Number(b.time);
-    var cl = Number(b.close);
+    let b = window.ohlcvData[window.ohlcvData.length - 1];
+    let tr = Number(b.time);
+    let cl = Number(b.close);
     if (isFinite(tr) && isFinite(cl)) {
-      var trSec = tr >= 1e12 ? Math.floor(tr / 1000) : Math.floor(tr);
+      let trSec = tr >= 1e12 ? Math.floor(tr / 1000) : Math.floor(tr);
       fallback = { timeSec: trSec, price: cl };
     }
   }
@@ -2647,19 +2642,19 @@ function getLineEndDotTimeAndPriceFromSeries(chart) {
     return fallback;
   }
   try {
-    var series = chart.getSeries();
+    let series = chart.getSeries();
     if (!series) {
       return fallback;
     }
     if (typeof series.data === 'function') {
-      var ds = series.data();
+      let ds = series.data();
       if (ds && typeof ds.last === 'function') {
-        var last = ds.last();
+        let last = ds.last();
         if (last) {
-          var tvT = parseTimeFromTvDataLast(last);
-          var tvC = parseCloseFromTvDataLast(last);
+          let tvT = parseTimeFromTvDataLast(last);
+          let tvC = parseCloseFromTvDataLast(last);
           if (tvT !== null && isFinite(tvT) && tvC !== null && isFinite(tvC)) {
-            var timeSec =
+            let timeSec =
               tvT >= 1e12 ? Math.floor(tvT / 1000) : Math.floor(tvT);
             return { timeSec: timeSec, price: tvC };
           }
@@ -2667,18 +2662,18 @@ function getLineEndDotTimeAndPriceFromSeries(chart) {
       }
     }
     if (typeof series.bars === 'function') {
-      var bars = series.bars();
+      let bars = series.bars();
       if (bars && bars.length) {
-        var lb = bars[bars.length - 1];
-        var tvT2 = parseTimeFromTvDataLast(lb);
-        var tvC2 = parseCloseFromTvDataLast(lb);
+        let lb = bars[bars.length - 1];
+        let tvT2 = parseTimeFromTvDataLast(lb);
+        let tvC2 = parseCloseFromTvDataLast(lb);
         if (
           tvT2 !== null &&
           isFinite(tvT2) &&
           tvC2 !== null &&
           isFinite(tvC2)
         ) {
-          var timeSec2 =
+          let timeSec2 =
             tvT2 >= 1e12 ? Math.floor(tvT2 / 1000) : Math.floor(tvT2);
           return { timeSec: timeSec2, price: tvC2 };
         }
@@ -2732,11 +2727,11 @@ function getApproxBarDurationSec() {
 }
 
 /** Time-scale inset from right so line-end icon stays on-screen (not under price scale). */
-var LINE_END_ICON_TIME_INSET_PX = 40;
+let LINE_END_ICON_TIME_INSET_PX = 40;
 /** Outline edge sample inset (0 = rightmost pixel; not the line-icon inset). */
-var OUTLINE_EDGE_TIME_INSET_PX = 0;
-var LINE_END_ICON_PROBE_STEP_PX = 8;
-var LINE_END_ICON_MAX_PROBES = 14;
+let OUTLINE_EDGE_TIME_INSET_PX = 0;
+let LINE_END_ICON_PROBE_STEP_PX = 8;
+let LINE_END_ICON_MAX_PROBES = 14;
 
 /**
  * Skip extrapolation during interval switches / odd zoom: too few bars, incoherent visible range vs data.
@@ -3204,13 +3199,13 @@ function sweepOrphanLineChartIconShapes() {
     return;
   }
   try {
-    var chart = window.chartWidget.activeChart();
-    var shapes = chart.getAllShapes();
+    let chart = window.chartWidget.activeChart();
+    let shapes = chart.getAllShapes();
     if (!shapes || !shapes.length) {
       return;
     }
-    for (var i = 0; i < shapes.length; i++) {
-      var name = String(shapes[i].name || '');
+    for (let i = 0; i < shapes.length; i++) {
+      let name = String(shapes[i].name || '');
       if (!/icon/i.test(name)) {
         continue;
       }
@@ -3232,11 +3227,11 @@ function ensureNoLineChartEndIcons() {
   window.lineEndDotShapeId = null;
   if (!window.chartWidget || !window.isChartReady) return;
   try {
-    var chart = window.chartWidget.activeChart();
-    var shapes = chart.getAllShapes();
+    let chart = window.chartWidget.activeChart();
+    let shapes = chart.getAllShapes();
     if (!shapes || !shapes.length) return;
-    for (var i = 0; i < shapes.length; i++) {
-      var name = String(shapes[i].name || '');
+    for (let i = 0; i < shapes.length; i++) {
+      let name = String(shapes[i].name || '');
       if (/icon/i.test(name)) {
         try {
           chart.removeEntity(shapes[i].id);
@@ -3248,7 +3243,7 @@ function ensureNoLineChartEndIcons() {
 
 function refreshLineEndDot() {
   window.__lineEndDotPlacementGen = (window.__lineEndDotPlacementGen || 0) + 1;
-  var placementGen = window.__lineEndDotPlacementGen;
+  let placementGen = window.__lineEndDotPlacementGen;
 
   removeLineEndDot();
   sweepOrphanLineChartIconShapes();
@@ -3280,15 +3275,15 @@ function refreshLineEndDot() {
     ) {
       return;
     }
-    var chart = window.chartWidget.activeChart();
-    var pt = resolveLineEndOverlayPoint(chart);
+    let chart = window.chartWidget.activeChart();
+    let pt = resolveLineEndOverlayPoint(chart);
     if (!pt || !isFinite(pt.timeSec) || !isFinite(pt.price)) {
       return;
     }
     if (placementGen !== window.__lineEndDotPlacementGen) {
       return;
     }
-    var iconTimeSec = getLineEndIconTimeSec(chart, pt.timeSec);
+    let iconTimeSec = getLineEndIconTimeSec(chart, pt.timeSec);
 
     // Drawings API: icon + size matches design (16px); circle tool has no radius override.
     // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/Drawings-Overrides/
@@ -3335,7 +3330,7 @@ function refreshLineEndDot() {
   }
 
   try {
-    var chartForReady = window.chartWidget.activeChart();
+    let chartForReady = window.chartWidget.activeChart();
     if (chartForReady && typeof chartForReady.dataReady === 'function') {
       chartForReady.dataReady(placeLineEndIcon);
     } else {
@@ -3355,23 +3350,14 @@ function refreshLineEndDot() {
 // ============================================
 
 function isLegendOverlayEnabled() {
-  var enabled =
-    window.CONFIG &&
-    window.CONFIG.legendOverlay &&
-    window.CONFIG.legendOverlay.enabled;
-  return enabled;
+  return Boolean(window.CONFIG?.legendOverlay?.enabled);
 }
 
 function getLegendConfig() {
-  return (
-    (window.CONFIG &&
-      window.CONFIG.legendOverlay &&
-      window.CONFIG.legendOverlay.config) ||
-    {}
-  );
+  return window.CONFIG?.legendOverlay?.config ?? {};
 }
 
-var INDICATOR_LEGEND_CONFIG = {
+const INDICATOR_LEGEND_CONFIG = {
   MACD: {
     plots: [
       {
@@ -3446,15 +3432,15 @@ var INDICATOR_LEGEND_CONFIG = {
 };
 
 function createStudyLegendOverlay() {
-  var existing = document.getElementById('study-legend-overlay');
+  const existing = document.getElementById('study-legend-overlay');
   if (existing) existing.parentNode.removeChild(existing);
 
-  var container = document.getElementById('tv_chart_container');
+  const container = document.getElementById('tv_chart_container');
   if (!container) {
     return;
   }
 
-  var div = document.createElement('div');
+  const div = document.createElement('div');
   div.id = 'study-legend-overlay';
   div.style.cssText =
     'position:absolute;top:4px;left:8px;z-index:5;pointer-events:none;' +
@@ -3464,7 +3450,7 @@ function createStudyLegendOverlay() {
 }
 
 function collectStudyIdMap() {
-  var map = {};
+  const map = {};
   window.activeStudies.forEach(function (studyId, name) {
     map[String(studyId)] = name;
   });
@@ -3478,26 +3464,25 @@ function collectStudyIdMap() {
 }
 
 function buildLegendHTML(studyDataList) {
-  var html = '';
-  var maSpans = '';
+  let html = '';
+  let maSpans = '';
 
-  for (var i = 0; i < studyDataList.length; i++) {
-    var entry = studyDataList[i];
-    var indicatorName = entry.name;
-    var values = entry.values;
+  for (const entry of studyDataList) {
+    const indicatorName = entry.name;
+    const values = entry.values;
 
-    var dynamicConfig = getLegendConfig();
-    var cfg =
+    const dynamicConfig = getLegendConfig();
+    const cfg =
       dynamicConfig[indicatorName] || INDICATOR_LEGEND_CONFIG[indicatorName];
     if (!cfg) continue;
 
     if (cfg.isMA) {
-      var maPlot = cfg.plots[0];
-      var maVal = cfg.useIndex && values.length > 0 ? values[0].value : '';
+      const maPlot = cfg.plots[0];
+      let maVal = cfg.useIndex && values.length > 0 ? values[0].value : '';
       if (!maVal) {
-        for (var v = 0; v < values.length; v++) {
-          if (values[v].title === maPlot.tvTitle) {
-            maVal = values[v].value;
+        for (const value of values) {
+          if (value.title === maPlot.tvTitle) {
+            maVal = value.value;
             break;
           }
         }
@@ -3516,22 +3501,21 @@ function buildLegendHTML(studyDataList) {
       continue;
     }
 
-    var spans = '';
-    for (var p = 0; p < cfg.plots.length; p++) {
-      var plotCfg = cfg.plots[p];
-      var plotVal = '';
+    let spans = '';
+    for (const [p, plotCfg] of cfg.plots.entries()) {
+      let plotVal = '';
       if (cfg.useIndex && p < values.length) {
         plotVal = values[p].value;
       } else {
-        for (var j = 0; j < values.length; j++) {
-          if (values[j].title === plotCfg.tvTitle) {
-            plotVal = values[j].value;
+        for (const value of values) {
+          if (value.title === plotCfg.tvTitle) {
+            plotVal = value.value;
             break;
           }
         }
       }
       if (!plotVal || plotVal === 'n/a' || plotVal === '∅') continue;
-      var color =
+      const color =
         plotCfg.color || window.CONFIG.theme.successColor || '#26A69A';
       if (spans) spans += '<span style="margin-left:8px"></span>';
       spans +=
@@ -3552,23 +3536,21 @@ function buildLegendHTML(studyDataList) {
 
 function updateStudyLegendFromEntityValues(entityValues) {
   if (!isLegendOverlayEnabled()) return;
-  var overlay = document.getElementById('study-legend-overlay');
+  const overlay = document.getElementById('study-legend-overlay');
   if (!overlay) return;
   if (!entityValues) {
     overlay.innerHTML = '';
     return;
   }
 
-  var studyIdMap = collectStudyIdMap();
-  var studyDataList = [];
-  var keys = Object.keys(entityValues);
+  const studyIdMap = collectStudyIdMap();
+  const studyDataList = [];
 
-  for (var i = 0; i < keys.length; i++) {
-    var sid = keys[i];
+  for (const sid of Object.keys(entityValues)) {
     if (sid === '_seriesId') continue;
-    var name = studyIdMap[sid];
+    const name = studyIdMap[sid];
     if (!name) continue;
-    var ev = entityValues[sid];
+    const ev = entityValues[sid];
     if (!ev || !ev.values) continue;
     studyDataList.push({ name: name, values: ev.values });
   }
@@ -3600,7 +3582,7 @@ function scheduleStudyLegendRefresh() {
 
 function formatLegendValue(num) {
   if (num === undefined || num === null || isNaN(num)) return '';
-  var abs = Math.abs(num);
+  const abs = Math.abs(num);
   if (abs >= 1e9) return (num / 1e9).toFixed(2) + 'B';
   if (abs >= 1e6) return (num / 1e6).toFixed(2) + 'M';
   if (abs >= 1e4) return (num / 1e3).toFixed(1) + 'K';
@@ -3610,25 +3592,21 @@ function formatLegendValue(num) {
   return num.toPrecision(4);
 }
 
-var _legendExportGeneration = 0;
-var _legendRetryCount = 0;
-var MAX_LEGEND_RETRIES = 5;
-var LEGEND_RETRY_DELAY_MS = 100;
-var LEGEND_RENDER_TIMEOUT_MS = 3000;
-var _legendTimeoutId = null;
+let _legendExportGeneration = 0;
+let _legendRetryCount = 0;
+const MAX_LEGEND_RETRIES = 5;
+const LEGEND_RETRY_DELAY_MS = 100;
+const LEGEND_RENDER_TIMEOUT_MS = 3000;
+let _legendTimeoutId = null;
 
 function refreshStudyLegendFromExport() {
   if (!window.chartWidget || !window.isChartReady) return;
-  var overlay = document.getElementById('study-legend-overlay');
+  const overlay = document.getElementById('study-legend-overlay');
   if (!overlay) return;
 
-  var chart = window.chartWidget.activeChart();
-  var studyIds = [];
-  var studyIdMap = collectStudyIdMap();
-  var mapKeys = Object.keys(studyIdMap);
-  for (var i = 0; i < mapKeys.length; i++) {
-    studyIds.push(mapKeys[i]);
-  }
+  const chart = window.chartWidget.activeChart();
+  const studyIdMap = collectStudyIdMap();
+  const studyIds = Object.keys(studyIdMap);
 
   if (studyIds.length === 0) {
     overlay.innerHTML = '';
@@ -3637,7 +3615,7 @@ function refreshStudyLegendFromExport() {
     return;
   }
 
-  var gen = ++_legendExportGeneration;
+  const gen = ++_legendExportGeneration;
 
   // Start timeout on first attempt
   if (_legendRetryCount === 0) {
@@ -3656,27 +3634,26 @@ function refreshStudyLegendFromExport() {
           scheduleRetryIfNeeded(gen);
           return;
         }
-        var lastRow = data.data[data.data.length - 1];
+        const lastRow = data.data[data.data.length - 1];
         if (!lastRow) {
           scheduleRetryIfNeeded(gen);
           return;
         }
 
-        var byStudy = {};
-        for (var s = 0; s < data.schema.length; s++) {
-          var field = data.schema[s];
+        const byStudy = {};
+        for (const [s, field] of data.schema.entries()) {
           if (field.type === 'time' || field.type === 'userTime') continue;
-          var sourceId = field.sourceId;
+          const sourceId = field.sourceId;
           if (!sourceId) continue;
-          var sid = String(sourceId);
+          const sid = String(sourceId);
           if (!byStudy[sid]) byStudy[sid] = [];
-          var rawVal = lastRow[s];
-          var displayVal =
+          const rawVal = lastRow[s];
+          let displayVal =
             rawVal !== undefined && !isNaN(rawVal)
               ? formatLegendValue(rawVal)
               : '';
           if (data.displayedData && data.displayedData.length > 0) {
-            var dispRow = data.displayedData[data.displayedData.length - 1];
+            const dispRow = data.displayedData[data.displayedData.length - 1];
             if (dispRow && dispRow[s]) displayVal = dispRow[s];
           }
           byStudy[sid].push({
@@ -3685,16 +3662,14 @@ function refreshStudyLegendFromExport() {
           });
         }
 
-        var studyDataList = [];
-        var bKeys = Object.keys(byStudy);
-        for (var k = 0; k < bKeys.length; k++) {
-          var studyKey = bKeys[k];
-          var name = studyIdMap[studyKey];
+        const studyDataList = [];
+        for (const studyKey of Object.keys(byStudy)) {
+          const name = studyIdMap[studyKey];
           if (!name) continue;
           studyDataList.push({ name: name, values: byStudy[studyKey] });
         }
 
-        var hasEmpty = hasEmptyStudyValues(studyDataList);
+        const hasEmpty = hasEmptyStudyValues(studyDataList);
         if (hasEmpty && _legendRetryCount < MAX_LEGEND_RETRIES) {
           scheduleRetryIfNeeded(gen);
           return;
@@ -3722,15 +3697,11 @@ function refreshStudyLegendFromExport() {
 }
 
 function hasEmptyStudyValues(studyDataList) {
-  for (var i = 0; i < studyDataList.length; i++) {
-    var name = studyDataList[i].name;
-    var values = studyDataList[i].values;
-    var cfg = INDICATOR_LEGEND_CONFIG[name];
+  for (const { name, values } of studyDataList) {
+    const cfg = INDICATOR_LEGEND_CONFIG[name];
     if (!cfg) continue;
 
-    // Check all values for this indicator
-    for (var j = 0; j < values.length; j++) {
-      var val = values[j].value;
+    for (const { value: val } of values) {
       if (!val || val === '' || val === 'n/a' || val === '∅') {
         return true;
       }
@@ -3759,14 +3730,12 @@ function scheduleRetryIfNeeded(gen) {
   if (_legendRetryCount >= MAX_LEGEND_RETRIES) {
     _legendRetryCount = 0;
     clearLegendTimeout();
-    var overlay = document.getElementById('study-legend-overlay');
+    const overlay = document.getElementById('study-legend-overlay');
     if (overlay) {
-      var studyIdMap = collectStudyIdMap();
-      var fallbackList = [];
-      var fKeys = Object.keys(studyIdMap);
-      for (var f = 0; f < fKeys.length; f++) {
-        fallbackList.push({ name: studyIdMap[fKeys[f]], values: [] });
-      }
+      const studyIdMap = collectStudyIdMap();
+      const fallbackList = Object.values(studyIdMap).map(function (studyName) {
+        return { name: studyName, values: [] };
+      });
       overlay.innerHTML = buildLegendHTML(fallbackList);
     }
     // RN keeps the skeleton until LEGEND_RENDERED; notify after fallback so it cannot block forever.
@@ -3786,21 +3755,21 @@ function scheduleRetryIfNeeded(gen) {
 }
 
 function injectHideLegendButtonsCSS() {
-  var styleId = 'mm-hide-legend-buttons';
+  const styleId = 'mm-hide-legend-buttons';
   if (document.getElementById(styleId)) return;
 
-  var targetDoc = document;
+  let targetDoc = document;
   try {
-    var iframes = document.querySelectorAll('iframe');
-    for (var i = 0; i < iframes.length; i++) {
-      if (iframes[i].contentDocument) {
-        targetDoc = iframes[i].contentDocument;
+    const iframes = document.querySelectorAll('iframe');
+    for (const iframe of iframes) {
+      if (iframe.contentDocument) {
+        targetDoc = iframe.contentDocument;
         break;
       }
     }
   } catch (e) {}
 
-  var style = targetDoc.createElement('style');
+  const style = targetDoc.createElement('style');
   style.id = styleId;
   style.textContent =
     '.chart-controls-bar .apply-common-tooltip,' +
@@ -3827,15 +3796,15 @@ function createVolumeStudy(useOverlay) {
   if (window.volumeStudyId) return;
 
   try {
-    var chart = window.chartWidget.activeChart();
-    var t = window.CONFIG.theme;
-    var overrides = {
+    const chart = window.chartWidget.activeChart();
+    const t = window.CONFIG.theme;
+    const overrides = {
       showLegendValues: false,
       'volume.transparency': useOverlay ? 70 : 0,
       'volume.color.0': t.errorColor,
       'volume.color.1': t.successColor,
     };
-    var promise = useOverlay
+    const promise = useOverlay
       ? chart.createStudy('Volume', true, false, {}, overrides, {
           priceScale: 'no-scale',
         })
@@ -3846,13 +3815,13 @@ function createVolumeStudy(useOverlay) {
         window.volumeStudyId = studyId;
         subscribeStudyDataLoaded(studyId);
         try {
-          var heights = chart.getAllPanesHeight();
+          const heights = chart.getAllPanesHeight();
           if (heights.length === 2) {
-            var total = heights[0] + heights[1];
-            var minVolumePx = 56;
-            var minMainPx = 72;
-            var vol = Math.max(Math.round(total * 0.22), minVolumePx);
-            var main = total - vol;
+            const total = heights[0] + heights[1];
+            const minVolumePx = 56;
+            const minMainPx = 72;
+            let vol = Math.max(Math.round(total * 0.22), minVolumePx);
+            let main = total - vol;
             if (main < minMainPx && total > minMainPx + minVolumePx) {
               main = minMainPx;
               vol = total - main;
@@ -3880,7 +3849,7 @@ function handleToggleVolume(payload) {
 
   suppressChartUserInteraction(600);
 
-  var useOverlay = payload.volumeOverlay === true;
+  let useOverlay = payload.volumeOverlay === true;
 
   if (!payload.visible) {
     if (window.volumeStudyId) {
@@ -3927,7 +3896,7 @@ function handleToggleVolume(payload) {
  * This replaces a manual pricescale computation and adapts automatically
  * as prices change (e.g. meme token pumps from $0.0001 to $1).
  */
-var VARIABLE_TICK_SIZE = [
+let VARIABLE_TICK_SIZE = [
   '0.0000000001',
   '0.000001', // prices < $0.000001 → 10 dp
   '0.00000001',
@@ -3942,9 +3911,9 @@ var VARIABLE_TICK_SIZE = [
 ].join(' ');
 
 function filterBarsForRange(fromMs, toMs, countBack) {
-  var barsInRange = [];
-  for (var i = 0; i < window.ohlcvData.length; i++) {
-    var b = window.ohlcvData[i];
+  let barsInRange = [];
+  for (let i = 0; i < window.ohlcvData.length; i++) {
+    let b = window.ohlcvData[i];
     if (b.time >= fromMs && b.time < toMs) {
       barsInRange.push({
         time: b.time,
@@ -3958,16 +3927,16 @@ function filterBarsForRange(fromMs, toMs, countBack) {
   }
 
   if (barsInRange.length < countBack) {
-    var allBeforeTo = [];
-    for (var j = 0; j < window.ohlcvData.length; j++) {
+    let allBeforeTo = [];
+    for (let j = 0; j < window.ohlcvData.length; j++) {
       if (window.ohlcvData[j].time < toMs) {
         allBeforeTo.push(window.ohlcvData[j]);
       }
     }
-    var startIdx = Math.max(0, allBeforeTo.length - countBack);
+    let startIdx = Math.max(0, allBeforeTo.length - countBack);
     barsInRange = [];
-    for (var k = startIdx; k < allBeforeTo.length; k++) {
-      var bar = allBeforeTo[k];
+    for (let k = startIdx; k < allBeforeTo.length; k++) {
+      let bar = allBeforeTo[k];
       barsInRange.push({
         time: bar.time,
         open: bar.open,
@@ -3982,14 +3951,14 @@ function filterBarsForRange(fromMs, toMs, countBack) {
   return barsInRange;
 }
 
-var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
+let OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 
 /**
  * Fetches the next page of OHLCV history directly from the Price API inside the WebView.
  * Called from \`getBars\` when \`window.ohlcvPagination\` has a cursor, avoiding the RN round-trip.
  */
 function fetchOlderBars(pending) {
-  var pag = window.ohlcvPagination;
+  let pag = window.ohlcvPagination;
 
   if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
     pending.onResult([], { noData: true });
@@ -3999,11 +3968,11 @@ function fetchOlderBars(pending) {
     return;
   }
 
-  var gen = window.ohlcvGeneration;
+  let gen = window.ohlcvGeneration;
   // Build URL using the same approach as RN: construct then add query params
   // AssetId contains "/" which should be preserved in the path
-  var url = OHLCV_BASE_URL + '/' + pag.assetId;
-  var queryParams = [];
+  let url = OHLCV_BASE_URL + '/' + pag.assetId;
+  let queryParams = [];
   queryParams.push('nextCursor=' + encodeURIComponent(pag.nextCursor));
   if (pag.vsCurrency) {
     queryParams.push('vsCurrency=' + encodeURIComponent(pag.vsCurrency));
@@ -4026,9 +3995,9 @@ function fetchOlderBars(pending) {
         throw new Error('OHLCV API response: invalid payload');
       }
 
-      var newBars = [];
-      for (var i = 0; i < result.data.length; i++) {
-        var c = result.data[i];
+      let newBars = [];
+      for (let i = 0; i < result.data.length; i++) {
+        let c = result.data[i];
         newBars.push({
           time: c.timestamp,
           open: c.open,
@@ -4046,8 +4015,8 @@ function fetchOlderBars(pending) {
         window.ohlcvData = newBars.concat(window.ohlcvData);
       }
 
-      var olderBars = [];
-      for (var j = 0; j < newBars.length; j++) {
+      let olderBars = [];
+      for (let j = 0; j < newBars.length; j++) {
         if (newBars[j].time < pending.oldestAtDefer) {
           olderBars.push(newBars[j]);
         }
@@ -4069,7 +4038,7 @@ function fetchOlderBars(pending) {
     });
 }
 
-var customDatafeed = {
+let customDatafeed = {
   onReady: function (callback) {
     setTimeout(function () {
       callback({
@@ -4140,10 +4109,10 @@ var customDatafeed = {
 
   getBars: function (symbolInfo, resolution, periodParams, onResult, onError) {
     try {
-      var fromMs = periodParams.from * 1000;
-      var toMs = periodParams.to * 1000;
-      var countBack = periodParams.countBack;
-      var firstRequest = periodParams.firstDataRequest;
+      let fromMs = periodParams.from * 1000;
+      let toMs = periodParams.to * 1000;
+      let countBack = periodParams.countBack;
+      let firstRequest = periodParams.firstDataRequest;
 
       /**
        * Invokes TradingView’s callback, then completes deferred layout settle when this response is
@@ -4156,7 +4125,7 @@ var customDatafeed = {
         }
       }
 
-      var bars = filterBarsForRange(fromMs, toMs, countBack);
+      let bars = filterBarsForRange(fromMs, toMs, countBack);
 
       if (bars.length > 0) {
         deliverBars(bars, { noData: false });
@@ -4168,7 +4137,7 @@ var customDatafeed = {
         return;
       }
 
-      var oldestTs = window.ohlcvData[0].time;
+      let oldestTs = window.ohlcvData[0].time;
 
       fetchOlderBars({
         onResult: onResult,
@@ -4192,13 +4161,13 @@ var customDatafeed = {
 // ============================================
 // Library Loading
 // ============================================
-var libraryLoadAttempts = 0;
-var maxLibraryLoadAttempts = 50;
+let libraryLoadAttempts = 0;
+let maxLibraryLoadAttempts = 50;
 
 function loadLibrary() {
-  var scriptUrl = window.CONFIG.libraryUrl + 'charting_library.js';
+  let scriptUrl = window.CONFIG.libraryUrl + 'charting_library.js';
 
-  var script = document.createElement('script');
+  let script = document.createElement('script');
   script.type = 'text/javascript';
   script.src = scriptUrl;
   script.onload = function () {
@@ -4234,7 +4203,7 @@ function initChart() {
   if (typeof TradingView === 'undefined') {
     libraryLoadAttempts++;
     if (libraryLoadAttempts >= maxLibraryLoadAttempts) {
-      var errorMsg =
+      let errorMsg =
         'TradingView library failed to initialize after ' +
         maxLibraryLoadAttempts * 100 +
         'ms';
@@ -4251,30 +4220,30 @@ function initChart() {
   }
 
   try {
-    var theme = window.CONFIG.theme;
-    var features = window.CONFIG.features || {};
-    var lcInit = getLineChrome();
-    var initCustomLabels = lcInit.useCustomPriceLabels;
-    var initCustomDashed = lcInit.useCustomDashedLastPriceLine;
+    let theme = window.CONFIG.theme;
+    let features = window.CONFIG.features || {};
+    let lcInit = getLineChrome();
+    let initCustomLabels = lcInit.useCustomPriceLabels;
+    let initCustomDashed = lcInit.useCustomDashedLastPriceLine;
 
     // Disabled features are passed from React Native via CONFIG.features.disabledFeatures.
     // Defaults are set in DEFAULT_DISABLED_FEATURES (AdvancedChart.types.ts) and are
     // optimized for the Token Details mobile UX. Consumers needing TradingView's
     // native UI (e.g. Perps) can override via the disabledFeatures prop.
-    var disabledFeatures = (features.disabledFeatures || []).slice();
+    let disabledFeatures = (features.disabledFeatures || []).slice();
 
     if (!features.enableDrawingTools) {
       disabledFeatures.push('left_toolbar');
       disabledFeatures.push('context_menus');
     }
 
-    var visibleToSec = Math.ceil(
+    let visibleToSec = Math.ceil(
       (window.visibleToMs != null ? window.visibleToMs : Date.now()) / 1000,
     );
     // Pad \`to\` by 2 bar durations so the end dot clears the price axis.
     // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
-    var initBarPadSec = getApproxBarDurationSec() * 2;
-    var tfOption =
+    let initBarPadSec = getApproxBarDurationSec() * 2;
+    let tfOption =
       window.visibleFromMs != null
         ? {
             type: 'time-range',
@@ -4286,7 +4255,7 @@ function initChart() {
     // TradingView only supports a fixed set of IANA timezone IDs.
     // If the device returns an unsupported ID we fall back to Etc/UTC.
     // List of supported timezones:  https://www.tradingview.com/charting-library-docs/latest/ui_elements/timezones#supported-time-zones
-    var TV_SUPPORTED_TIMEZONES = [
+    let TV_SUPPORTED_TIMEZONES = [
       'Etc/UTC',
       'Africa/Cairo',
       'Africa/Casablanca',
@@ -4385,16 +4354,16 @@ function initChart() {
     ];
 
     // Intl returns canonical IANA names, but TradingView uses some legacy aliases.
-    var CANONICAL_TO_TV = {
+    let CANONICAL_TO_TV = {
       'America/Denver': 'US/Mountain',
       'Asia/Ashgabat': 'Asia/Ashkhabad',
       'Asia/Almaty': 'Asia/Astana',
     };
 
-    var userTimezone = (function () {
+    let userTimezone = (function () {
       try {
-        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
-        var mapped = CANONICAL_TO_TV[tz] || tz;
+        let tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
+        let mapped = CANONICAL_TO_TV[tz] || tz;
         return TV_SUPPORTED_TIMEZONES.indexOf(mapped) !== -1
           ? mapped
           : 'Etc/UTC';
@@ -4524,7 +4493,7 @@ function initChart() {
       } catch (e) {}
 
       // After zoom/pan, TV may reset time-scale and re-apply overflow on layout shells.
-      var chartTimeScaleLayoutDebounce = null;
+      let chartTimeScaleLayoutDebounce = null;
       try {
         window.chartWidget
           .activeChart()
@@ -4672,11 +4641,11 @@ function initChart() {
             }
             window.ohlcvBarVisible = true;
 
-            var targetTime = params.time * 1000;
-            var closestBar = null;
-            var minDiff = Infinity;
-            for (var i = 0; i < window.ohlcvData.length; i++) {
-              var diff = Math.abs(window.ohlcvData[i].time - targetTime);
+            let targetTime = params.time * 1000;
+            let closestBar = null;
+            let minDiff = Infinity;
+            for (let i = 0; i < window.ohlcvData.length; i++) {
+              let diff = Math.abs(window.ohlcvData[i].time - targetTime);
               if (diff < minDiff) {
                 minDiff = diff;
                 closestBar = window.ohlcvData[i];
@@ -4706,7 +4675,7 @@ function initChart() {
             }
           });
 
-        var mouseDownTime = 0;
+        let mouseDownTime = 0;
 
         window.chartWidget.subscribe('mouse_down', function () {
           mouseDownTime = Date.now();
@@ -4715,7 +4684,7 @@ function initChart() {
 
         window.chartWidget.subscribe('mouse_up', function () {
           if (!window.ohlcvBarVisible) return;
-          var pressDuration = Date.now() - mouseDownTime;
+          let pressDuration = Date.now() - mouseDownTime;
           if (pressDuration < 400) {
             // Short tap — only dismiss if bar has been visible long enough
             // to avoid synthetic click events on long-press release
@@ -4736,7 +4705,7 @@ function initChart() {
       }
     });
   } catch (error) {
-    var errMsg = error && error.message ? String(error.message) : String(error);
+    let errMsg = error && error.message ? String(error.message) : String(error);
     sendToReactNative('ERROR', {
       message: 'Failed to initialize chart: ' + errMsg,
     });
