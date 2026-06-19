@@ -38,9 +38,10 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
-    track: jest.fn(),
+    track: mockTrack,
   })),
 }));
 
@@ -276,6 +277,7 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     onStocksCommoditiesPress,
     showWatchlistBadge,
     onWatchlistToggle,
+    onCategorySelect,
     testID,
   }: {
     selectedOptionId: string;
@@ -289,6 +291,7 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     showWatchlistBadge?: boolean;
     isWatchlistSelected?: boolean;
     onWatchlistToggle?: () => void;
+    onCategorySelect?: (category: string) => void;
     testID?: string;
   }) {
     // Map sort option IDs to display labels
@@ -366,6 +369,18 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
             onPress: onWatchlistToggle,
           },
           MockReact.createElement(Text, null, 'Watchlist'),
+        ),
+      onCategorySelect &&
+        ['all', 'crypto', 'stock', 'commodity', 'forex'].map((cat) =>
+          MockReact.createElement(
+            RNTouchableOpacity,
+            {
+              key: cat,
+              testID: testID ? `${testID}-category-${cat}` : undefined,
+              onPress: () => onCategorySelect(cat),
+            },
+            MockReact.createElement(Text, null, cat),
+          ),
         ),
     );
   };
@@ -1508,6 +1523,138 @@ describe('PerpsMarketListView', () => {
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-categories-watchlist`,
         ),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Discovery Analytics', () => {
+    const FILTERS_TEST_ID = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+
+    const { PERPS_EVENT_VALUE: PEV, PERPS_EVENT_PROPERTY: PEP } =
+      jest.requireActual('@metamask/perps-controller');
+
+    it('fires market_list_filter tracking with the selected category when a category badge is pressed', () => {
+      mockWatchlistFlagEnabled = true;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId(`${FILTERS_TEST_ID}-category-crypto`));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.MARKET_LIST_FILTER,
+          [PEP.BUTTON_CLICKED]: 'crypto',
+          [PEP.BUTTON_LOCATION]: PEV.BUTTON_LOCATION.MARKET_LIST,
+        }),
+      );
+    });
+
+    it('fires market_list_filter tracking for the "all" category too', () => {
+      mockWatchlistFlagEnabled = true;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId(`${FILTERS_TEST_ID}-category-all`));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.MARKET_LIST_FILTER,
+          [PEP.BUTTON_CLICKED]: 'all',
+        }),
+      );
+    });
+
+    it('fires market_list_filter tracking with button_clicked=watchlist when watchlist toggle is pressed', () => {
+      mockWatchlistFlagEnabled = true;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(`${FILTERS_TEST_ID}-categories-watchlist`),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.MARKET_LIST_FILTER,
+          [PEP.BUTTON_CLICKED]: PEV.BUTTON_CLICKED.WATCHLIST,
+          [PEP.BUTTON_LOCATION]: PEV.BUTTON_LOCATION.MARKET_LIST,
+        }),
+      );
+    });
+
+    it('includes source_section=all_markets when pressing a market with no active filter or search', () => {
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId('market-row-BTC'));
+
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            params: expect.objectContaining({
+              source_section: 'all_markets',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('fires search result_count after search query stabilises (debounced)', async () => {
+      jest.useFakeTimers();
+
+      // Set hook to return a non-empty searchQuery + 1 result so the debounce effect fires
+      mockUsePerpsMarketListView.mockReturnValue({
+        markets: [mockMarketData[0]], // BTC only
+        searchState: {
+          searchQuery: 'BT',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: false,
+          watchlistMarketObjects: [],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 1,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Advance past the 600ms debounce window
+      jest.advanceTimersByTime(700);
+
+      await waitFor(() => {
+        expect(mockTrack).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.SEARCH_CLICKED,
+            [PEP.RESULT_COUNT]: 1,
+          }),
+        );
+      });
+
+      jest.useRealTimers();
     });
   });
 

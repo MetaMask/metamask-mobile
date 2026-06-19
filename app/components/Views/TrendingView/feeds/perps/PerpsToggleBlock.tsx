@@ -84,6 +84,7 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
     ({ item, index }) => (
       <PerpsRowItem
         market={item}
+        sourceSection={sectionName}
         onCardPress={() =>
           trackExploreInteracted({
             interaction_type: 'section_item_tapped',

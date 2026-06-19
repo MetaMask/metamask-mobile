@@ -18,6 +18,8 @@ import {
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import type { WhatsHappeningSourceValue } from '../../../UI/WhatsHappening/constants';
+import { useTradablePerpsMarketSymbols } from '../../../UI/WhatsHappening/hooks';
+import { isRelatedAssetTradable } from '../../../UI/WhatsHappening/util/tradableAssets';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
@@ -88,8 +90,18 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     [item.date],
   );
 
+  const { tradableSymbols } = useTradablePerpsMarketSymbols();
+
+  const tradableRelatedAssets = useMemo(
+    () =>
+      item.relatedAssets.filter((a) =>
+        isRelatedAssetTradable(a, tradableSymbols),
+      ),
+    [item.relatedAssets, tradableSymbols],
+  );
+
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
-    item.relatedAssets,
+    tradableRelatedAssets,
   );
 
   const scrollBottomFadeColors = useMemo((): string[] => {
@@ -252,7 +264,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             )}
 
             {/* Related assets section */}
-            {item.relatedAssets.length > 0 && (
+            {tradableRelatedAssets.length > 0 && (
               <Box gap={1}>
                 <Text
                   variant={TextVariant.HeadingSm}
@@ -262,7 +274,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                   {strings('homepage.sections.related_assets')}
                 </Text>
 
-                {item.relatedAssets.map((asset, index) => (
+                {tradableRelatedAssets.map((asset, index) => (
                   <PerpsRow
                     key={`${asset.symbol}-${index}`}
                     asset={asset}

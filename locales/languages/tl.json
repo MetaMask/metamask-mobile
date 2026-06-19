@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Live ngayon",
       "categories_placeholder": "Mga Kategorya",
-      "popular_today_placeholder": "Sikat ngayon",
       "trending_placeholder": "Nagte-trend"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Mga punto mula sa mga referral",
       "referrals_label": "Mga Referral ng VIP",
       "tier_benefits_title": "Mga benepisyo ng tier",
-      "splash_title": "MALIGAYANG PAGDATING\nSA GOLD\nFOX VIP",
+      "splash_title": "MALIGAYANG PAGDATING\nSA GOLD FOX\nCOLLECTIVE",
       "splash_description": "I-unlock ang mga eksklusibong perk, mga unang feature, at na-curate na reward. Para sa imbitado lang.",
       "splash_accept_invite": "Tanggapin ang imbitasyon",
       "splash_not_now": "Hindi sa ngayon",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Mga Tier",
       "tier_thresholds": "{{points}} (na) point",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "MALIGAYANG PAGDATING\nSA GOLD\nFOX VIP",
-      "referee_splash_description": "I-unlock ang mga eksklusibong perk, mga unang feature, at na-curate na reward. Para sa imbitado lang.",
       "referee_splash_continue": "Magpatuloy",
-      "referee_splash_not_now": "Hindi sa ngayon",
       "referee_referred_by": "Referred by {{code}}",
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "Estadistika",
       "referee_period_last_30d": "Last 30d",
-      "referee_points_label": "Mga Point",
       "referee_swaps_volume_label": "Swaps volume",
       "referee_perps_volume_label": "Perps volume",
+      "referee_points_to_label": "Mga puntos para kay {{code}}",
       "referee_error_title": "We couldn’t load your VIP referee details",
       "referee_error_description": "Suriin ang iyong koneksyon at subukang muli.",
       "last_updated": "Huling na-update: {{time}}"
