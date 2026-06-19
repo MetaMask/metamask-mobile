@@ -18,7 +18,6 @@ import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
-  TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
