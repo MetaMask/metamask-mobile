@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import {
   validatedVersionGatedFeatureFlag,
@@ -10,6 +11,9 @@ import {
   getWildcardTokenListFromConfig,
   WildcardTokenList,
 } from '../../Earn/utils/wildcardTokenList';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import { MONEY_NO_FEE_TOKENS_FALLBACK } from '../utils/depositFaqTokens';
+import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
 
 /**
  * Selects whether the Money activity detail view is enabled.
@@ -84,39 +88,9 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
 );
 
 /**
- * Selects the blocked payment tokens for Money surfaces from remote config or local fallback.
- * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
- *
- * Supports wildcards:
- * - "*" as chain key: applies to all chains
- * - "*" in symbol array: blocks all tokens on that chain
- *
- * Examples:
- * - { "*": ["SCAM"] }              - Block SCAM on ALL chains
- * - { "0x1": ["*"] }               - Block ALL tokens on Ethereum mainnet
- * - { "0xa4b1": ["USDT", "DAI"] }  - Block specific tokens on specific chain
- *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (no blocking).
- */
-export const selectMoneyDepositTokensBlocklist = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList =>
-    getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyPaymentTokensBlocklist,
-      'earnMoneyPaymentTokensBlocklist',
-      process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST,
-      'MM_MONEY_PAYMENT_TOKENS_BLOCKLIST',
-    ),
-);
-
-/**
  * Selects the no-fee tokens for Money surfaces from remote config or local fallback.
  * Returns a wildcard map of chain IDs (or "*") to token symbols (or ["*"]) that are
  * eligible for fee-free deposit into the Money account.
- *
- * Used by useMoneyDepositTokens to apply "no-fee priority" sorting when the remote
- * sort mode flag is set to `noFeePriority`.
  *
  * Remote flag takes precedence over local env var.
  * If both are unavailable, returns {} (no tokens have subsidised fees).
@@ -167,35 +141,72 @@ export const selectMoneyDepositMinBalance = createSelector(
 );
 
 /**
- * Valid sort modes for useMoneyDepositTokens.
- * - fiatBalanceDesc: all eligible tokens sorted by fiat balance descending (default)
- * - noFeePriority: no-fee tokens bucket first (fiat-desc), then fee tokens bucket (fiat-desc)
+ * Converts a raw token alias (e.g. "eth_usdc", "eth_ausdc", "musd") to its
+ * display symbol:
+ * - Strip the chain prefix ("eth_usdc" → "usdc")
+ * - aave-style tokens (leading 'a' followed by a letter): "ausdc" → "aUSDC"
+ * - all others: full uppercase ("usdc" → "USDC")
  */
-export type MoneyTokensSortMode = 'fiatBalanceDesc' | 'noFeePriority';
-
-const VALID_SORT_MODES: MoneyTokensSortMode[] = [
-  'fiatBalanceDesc',
-  'noFeePriority',
-];
+const normalizeTokenSymbol = (tokenAlias: string): string => {
+  const underscoreIdx = tokenAlias.indexOf('_');
+  const raw =
+    underscoreIdx >= 0 ? tokenAlias.slice(underscoreIdx + 1) : tokenAlias;
+  if (/^a[a-z]/i.test(raw)) {
+    return 'a' + raw.slice(1).toUpperCase();
+  }
+  return raw.toUpperCase();
+};
 
 /**
- * Selects the remote sort mode for Money token lists.
- * Remote flag `moneyTokensSortMode` accepts the string values
- * `fiatBalanceDesc` or `noFeePriority`.
+ * Derives the no-fee deposit token catalog from the `confirmations_relay_fixed_spread`
+ * remote feature flag, scoped to Money account deposits (output = Monad mUSD).
  *
- * Fallback: `fiatBalanceDesc` when the remote value is absent or invalid.
+ * Filters routes where the destination is Monad mUSD, then maps each input
+ * (chainId, tokenAlias) to a display symbol, emitting a WildcardTokenList
+ * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets and
+ * formatBaseStablecoins in depositFaqTokens.ts.
+ *
+ * Falls back to MONEY_NO_FEE_TOKENS_FALLBACK when the flag is absent or
+ * structurally invalid, preserving current FAQ behaviour.
+ *
+ * Uses getRelayFixedSpreadRoutesWithSymbols (the alias-preserving parser) rather
+ * than selectRelayFixedSpread, because the parsed RelayFixedSpreadConfig drops
+ * the token alias keys that carry the symbols the FAQ renders.
  */
-export const selectMoneyTokensSortMode = createSelector(
+export const selectMoneyNoFeeDepositTokens = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): MoneyTokensSortMode => {
-    const remote = remoteFeatureFlags?.earnMoneyTokensSortMode;
-    if (
-      typeof remote === 'string' &&
-      VALID_SORT_MODES.includes(remote as MoneyTokensSortMode)
-    ) {
-      return remote as MoneyTokensSortMode;
+  (remoteFeatureFlags): WildcardTokenList => {
+    const routes = getRelayFixedSpreadRoutesWithSymbols(
+      remoteFeatureFlags?.confirmations_relay_fixed_spread,
+      'confirmations_relay_fixed_spread',
+    );
+
+    const monadHex = CHAIN_IDS.MONAD.toLowerCase();
+    const musdAddress = MUSD_TOKEN_ADDRESS.toLowerCase();
+
+    const catalog: Record<string, string[]> = {};
+
+    for (const route of routes) {
+      // Only deposit routes: output must resolve to Monad mUSD
+      if (
+        route.targetChain.toLowerCase() !== monadHex ||
+        route.targetToken.toLowerCase() !== musdAddress
+      ) {
+        continue;
+      }
+
+      const srcChainHex = route.sourceChain.toLowerCase();
+      const symbol = normalizeTokenSymbol(route.sourceTokenAlias);
+
+      if (!catalog[srcChainHex]) catalog[srcChainHex] = [];
+      if (!catalog[srcChainHex].includes(symbol)) {
+        catalog[srcChainHex].push(symbol);
+      }
     }
-    return 'fiatBalanceDesc';
+
+    return Object.keys(catalog).length > 0
+      ? catalog
+      : MONEY_NO_FEE_TOKENS_FALLBACK;
   },
 );
 

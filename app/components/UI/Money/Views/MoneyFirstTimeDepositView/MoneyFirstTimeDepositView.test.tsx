@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import { BackHandler } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 import { Accelerometer } from 'expo-sensors';
 import MoneyFirstTimeDepositView from './MoneyFirstTimeDepositView';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -61,12 +61,6 @@ jest.mock('rive-react-native', () => {
     RNRiveError: class {},
   };
 });
-
-jest.mock(
-  '../../../../../animations/money_account_first_time_deposit_with_parallax.riv',
-  () => 1,
-  { virtual: true },
-);
 
 jest.mock('expo-sensors', () => ({
   Accelerometer: {
@@ -223,14 +217,21 @@ describe('MoneyFirstTimeDepositView', () => {
     // calibration window rather than relying on Date.now() call ordering.
     let mockNow: number;
     let dateSpy: jest.SpyInstance<number, []>;
+    let originalPlatformOS: typeof Platform.OS;
 
     beforeEach(() => {
       mockNow = 0;
       dateSpy = jest.spyOn(Date, 'now').mockImplementation(() => mockNow);
+      // Pin to Android so the sign-sensitive assertions below are deterministic
+      // (the Jest env defaults Platform.OS to 'ios', which flips the sign). The
+      // per-platform behavior itself is covered in 'Platform axis sign'.
+      originalPlatformOS = Platform.OS;
+      Platform.OS = 'android';
     });
 
     afterEach(() => {
       dateSpy.mockRestore();
+      Platform.OS = originalPlatformOS;
     });
 
     it('keeps parallax centered during calibration regardless of device tilt', () => {
@@ -451,6 +452,73 @@ describe('MoneyFirstTimeDepositView', () => {
 
       expect(mockSetNumber).not.toHaveBeenCalled();
       expect(rafSpy).toHaveBeenCalled();
+    });
+
+    describe('Platform axis sign', () => {
+      // The same raw accelerometer delta must drive parallax in OPPOSITE
+      // directions per platform, because iOS (CoreMotion) and Android
+      // (SensorManager) report opposite signs for the same physical tilt.
+      // Both runs: baseline {0, 0}, then an identical live reading {0.2, 0.2}.
+      //   Android (sign +1): gForceToParallax(+0.2) = 70 -> EMA 50 + 0.04*(70-50) = 50.8
+      //   iOS     (sign -1): gForceToParallax(-0.2) = 30 -> EMA 50 + 0.04*(30-50) = 49.2
+
+      it('does not flip the sign on Android (raw +0.2 tilt pushes past center)', () => {
+        Platform.OS = 'android';
+        render(<MoneyFirstTimeDepositView />);
+
+        // Calibration reading establishes baseline = {0, 0}.
+        mockNow = 301;
+        act(() => {
+          sensorCallback?.({ x: 0, y: 0 });
+        });
+
+        // Live reading: raw +0.2 on both axes.
+        act(() => {
+          sensorCallback?.({ x: 0.2, y: 0.2 });
+        });
+
+        act(() => {
+          rafCallback?.(0);
+        });
+
+        expect(mockSetNumber).toHaveBeenCalledWith(
+          'xValue',
+          expect.closeTo(50.8),
+        );
+        expect(mockSetNumber).toHaveBeenCalledWith(
+          'yValue',
+          expect.closeTo(50.8),
+        );
+      });
+
+      it('flips the sign on iOS so the same raw tilt pushes the opposite way', () => {
+        Platform.OS = 'ios';
+        render(<MoneyFirstTimeDepositView />);
+
+        // Calibration reading establishes baseline = {0, 0}.
+        mockNow = 301;
+        act(() => {
+          sensorCallback?.({ x: 0, y: 0 });
+        });
+
+        // Identical live reading to the Android case: raw +0.2 on both axes.
+        act(() => {
+          sensorCallback?.({ x: 0.2, y: 0.2 });
+        });
+
+        act(() => {
+          rafCallback?.(0);
+        });
+
+        expect(mockSetNumber).toHaveBeenCalledWith(
+          'xValue',
+          expect.closeTo(49.2),
+        );
+        expect(mockSetNumber).toHaveBeenCalledWith(
+          'yValue',
+          expect.closeTo(49.2),
+        );
+      });
     });
   });
 });
