@@ -70,4 +70,16 @@ describe('classifyAddDeviceScanContent', () => {
       'invalid',
     );
   });
+
+  it('returns invalid when MWP payload parsing throws', () => {
+    mockIsMwpDeeplink.mockReturnValue(true);
+    mockTryParse.mockReturnValue(null);
+    mockParseMwpConnectPayload.mockImplementation(() => {
+      throw new Error('parse failed');
+    });
+
+    expect(classifyAddDeviceScanContent('metamask://connect/mwp?p=abc')).toBe(
+      'invalid',
+    );
+  });
 });
