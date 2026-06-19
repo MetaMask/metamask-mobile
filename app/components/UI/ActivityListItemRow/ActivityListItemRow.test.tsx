@@ -543,6 +543,28 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
+  it('renders unlimited spending cap amount without compacting the raw allowance', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        amount: '115792089237316195423570985.639935',
+        isUnlimitedApproval: true,
+        symbol: 'USDT',
+        direction: 'out',
+      },
+    });
+
+    const { getByTestId, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      `${strings('confirm.unlimited')} USDT`,
+    );
+    expect(queryByText('115792089237316195423570985.639935 USDT')).toBeNull();
+  });
+
   it('renders cross-token bridge as swapped with token pair subtitle', () => {
     const item = makeItem({
       type: 'bridge',

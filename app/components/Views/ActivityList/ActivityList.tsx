@@ -102,7 +102,7 @@ const updateIncomingTransactions = () =>
 
 const generateGroupedKey = (
   item: GroupedActivityListItem,
-  index = 0,
+  index: number = 0,
 ): string => getGroupedActivityListItemKey(item, index);
 
 const noop = () => undefined;

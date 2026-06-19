@@ -93,23 +93,24 @@ export const getGroupedActivityListItemKey = (
   }
 
   const raw = item.item.raw;
+  const { chainId } = item.item;
   if (raw?.type === 'localTransaction') {
     const txId =
       raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
     if (txId) {
-      return `local-transaction-${txId}`;
+      return `local-transaction-${chainId}-${txId}`;
     }
   }
 
   if (raw?.type === 'keyringTransaction' && raw.data.id) {
-    return `keyring-transaction-${raw.data.id}`;
+    return `keyring-transaction-${chainId}-${raw.data.id}`;
   }
 
   if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
-    return `api-evm-transaction-${item.item.hash}`;
+    return `api-evm-transaction-${chainId}-${item.item.hash}`;
   }
 
-  return `${item.item.type}-${item.item.hash ?? item.item.timestamp}-${index}`;
+  return `${chainId}-${item.item.type}-${item.item.hash ?? item.item.timestamp}-${index}`;
 };
 
 export function activityMatchesAssetId(

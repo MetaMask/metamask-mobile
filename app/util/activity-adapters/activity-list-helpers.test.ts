@@ -216,21 +216,46 @@ describe('activity list helpers', () => {
         { type: 'item', item: localTransactionItem },
         0,
       ),
-    ).toBe('local-transaction-local-tx-id');
+    ).toBe('local-transaction-eip155:1-local-tx-id');
     expect(
       getGroupedActivityListItemKey(
         { type: 'item', item: keyringTransactionItem },
         0,
       ),
-    ).toBe('keyring-transaction-keyring-tx-id');
+    ).toBe('keyring-transaction-eip155:1-keyring-tx-id');
     expect(
       getGroupedActivityListItemKey(
         { type: 'item', item: apiTransactionItem },
         0,
       ),
-    ).toBe('api-evm-transaction-0xapi');
+    ).toBe('api-evm-transaction-eip155:1-0xapi');
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: fallbackItem }, 7),
-    ).toBe('contractInteraction-123-7');
+    ).toBe('eip155:1-contractInteraction-123-7');
+  });
+
+  it('uses chain id and row index in fallback keys', () => {
+    const firstItem = makeItem({
+      chainId: 'eip155:1',
+      hash: undefined,
+      timestamp: 123,
+      type: 'contractInteraction',
+    });
+    const secondItem = makeItem({
+      chainId: 'eip155:137',
+      hash: undefined,
+      timestamp: 123,
+      type: 'contractInteraction',
+    });
+
+    expect(
+      getGroupedActivityListItemKey({ type: 'item', item: firstItem }, 0),
+    ).toBe('eip155:1-contractInteraction-123-0');
+    expect(
+      getGroupedActivityListItemKey({ type: 'item', item: firstItem }, 1),
+    ).toBe('eip155:1-contractInteraction-123-1');
+    expect(
+      getGroupedActivityListItemKey({ type: 'item', item: secondItem }, 0),
+    ).toBe('eip155:137-contractInteraction-123-0');
   });
 });
