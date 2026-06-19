@@ -33,7 +33,10 @@ export interface TPSLLines {
 }
 
 export type { TimeDuration } from '@metamask/perps-controller';
-import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import {
+  CANDLE_DATA_SOURCE,
+  PERPS_CHART_CONFIG,
+} from '../../constants/chartConfig';
 
 export interface OhlcData {
   open: string;
@@ -395,8 +398,6 @@ const TradingViewChart = React.forwardRef<
       // Chart is ready - send data
       if (!webViewRef.current) return;
 
-      let dataToSend = null;
-      let dataSource = 'none';
       let dataToUse: CandleData | null = null;
 
       // Check for pending buffered data first (Android case)
@@ -430,11 +431,6 @@ const TradingViewChart = React.forwardRef<
           return;
         }
 
-        dataToSend = formatCandleData(dataToUse);
-        dataSource = 'real';
-      }
-
-      if (dataToSend && dataToUse) {
         // Compute signature for incremental-vs-full routing.
         // Times are read from the raw CandleData (milliseconds) — only used
         // for equality checks, so the unit doesn't matter as long as it's stable.
@@ -466,13 +462,18 @@ const TradingViewChart = React.forwardRef<
           (nextSignature.count === prev.count ||
             nextSignature.count === prev.count + 1);
 
+        // Route BEFORE formatting so live ticks only format the 1-2 tail candles
+        // they actually send, instead of re-formatting the entire (up to ~1000)
+        // candle array on every tick.
         if (canIncrementalUpdate) {
           // Send the last candle for same-count ticks, or the last two candles
           // for a bar-close transition (previous bar may have been finalized
           // at a different close than its last streamed value).
-          const sliceSize =
-            nextSignature.count === (prev?.count ?? 0) + 1 ? 2 : 1;
-          const incrementalCandles = dataToSend.slice(-sliceSize);
+          const sliceSize = nextSignature.count === prev.count + 1 ? 2 : 1;
+          const incrementalCandles = formatCandleData({
+            ...dataToUse,
+            candles: dataToUse.candles.slice(-sliceSize),
+          });
           webViewRef.current.postMessage(
             JSON.stringify({
               type: 'UPDATE_LAST_CANDLE',
@@ -482,8 +483,8 @@ const TradingViewChart = React.forwardRef<
         } else {
           const message = {
             type: 'SET_CANDLESTICK_DATA',
-            data: dataToSend,
-            source: dataSource,
+            data: formatCandleData(dataToUse),
+            source: CANDLE_DATA_SOURCE,
             visibleCandleCount,
             interval: dataToUse.interval, // Pass interval for zoom reset on change
           };
