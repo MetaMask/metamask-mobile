@@ -147,10 +147,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
+    const requiredTokens = useTransactionPayRequiredTokens();
+    const primaryRequiredToken = requiredTokens.find(
+      (token) => !token.skipIfBalance,
+    );
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const isAwaitingRequiredToken = !disablePay && !primaryRequiredToken;
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
@@ -245,6 +250,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       supportAccountSelection && !accountOverride;
 
     const { headlessBuyError } = useConfirmationContext();
+
+    if (!transactionMeta || isAwaitingRequiredToken) {
+      return <CustomAmountInfoSkeleton />;
+    }
 
     return (
       <Box style={styles.container}>
