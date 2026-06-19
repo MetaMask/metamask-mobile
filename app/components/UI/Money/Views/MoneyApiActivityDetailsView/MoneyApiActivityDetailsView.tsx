@@ -10,44 +10,47 @@ import { HeaderStandard } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { Box } from '../../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
-import { useStyles } from '../../../../../hooks/useStyles';
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
-import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
+} from '../../../../../component-library/components/Texts/Text';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { Box } from '../../../Box/Box';
+import { AlignItems, FlexDirection } from '../../../Box/box.types';
+import { useStyles } from '../../../../hooks/useStyles';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
-} from '../../../../../../selectors/currencyRateController';
+} from '../../../../../selectors/currencyRateController';
 import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
-} from '../../../../../../util/networks';
-import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
-import { RPC } from '../../../../../../constants/network';
-import Routes from '../../../../../../constants/navigation/Routes';
-import I18n, { strings } from '../../../../../../../locales/i18n';
-import { TransactionDetailDivider } from '../transaction-detail-divider/transaction-detail-divider';
-import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
-import useNetworkInfo from '../../../hooks/useNetworkInfo';
-import Name from '../../../../../UI/Name/Name';
-import { NameType } from '../../../../../UI/Name/Name.types';
-import type { AccountsApiActivity } from '../../../../../UI/Money/types/moneyActivity';
-import { accountsApiActivityDisplayInfo } from '../../../../../UI/Money/utils/accountsApiActivityDisplayInfo';
-import { getUsdToFiatConversionRate } from '../../../../../UI/Money/utils/moneyActivityFiat';
-import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../../../../UI/Money/selectors/featureFlags';
-import styleSheet from '../transaction-details/transaction-details.styles';
+} from '../../../../../util/networks';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import { RPC } from '../../../../../constants/network';
+import Routes from '../../../../../constants/navigation/Routes';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { TransactionDetailDivider } from '../../../../Views/confirmations/components/activity/transaction-detail-divider/transaction-detail-divider';
+import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
+import {
+  TokenIcon,
+  TokenIconVariant,
+} from '../../../../Views/confirmations/components/token-icon';
+import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
+import Name from '../../../Name/Name';
+import { NameType } from '../../../Name/Name.types';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
+import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
+import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
+import styleSheet from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details.styles';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 /**
  * Full-screen details for an Accounts-API activity (a card spend or musdback).
@@ -61,7 +64,7 @@ type ActivityDetailsRoute = RouteProp<
   'params'
 >;
 
-export function CardTransactionDetails() {
+export function MoneyApiActivityDetailsView() {
   const navigation = useNavigation();
   const activity = useRoute<ActivityDetailsRoute>().params?.activity;
 
@@ -75,10 +78,10 @@ export function CardTransactionDetails() {
     return null;
   }
 
-  return <CardTransactionDetailsContent activity={activity} />;
+  return <MoneyApiActivityDetailsContent activity={activity} />;
 }
 
-function CardTransactionDetailsContent({
+function MoneyApiActivityDetailsContent({
   activity,
 }: {
   activity: AccountsApiActivity;
