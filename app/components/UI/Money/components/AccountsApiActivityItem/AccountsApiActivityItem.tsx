@@ -6,21 +6,21 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import Routes from '../../../../../constants/navigation/Routes';
-import { cardTransactionDisplayInfo } from '../../utils/cardTransactionDisplayInfo';
+import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
-import type { CardTransaction } from '../../types/moneyActivity';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
 import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
 
-export interface CardActivityItemProps {
-  card: CardTransaction;
+export interface AccountsApiActivityItemProps {
+  activity: AccountsApiActivity;
   showNetworkBadge?: boolean;
 }
 
-const CardActivityItem = ({
-  card,
+const AccountsApiActivityItem = ({
+  activity,
   showNetworkBadge = false,
-}: CardActivityItemProps) => {
+}: AccountsApiActivityItemProps) => {
   const navigation = useNavigation();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -30,28 +30,26 @@ const CardActivityItem = ({
 
   const display = useMemo(
     () =>
-      cardTransactionDisplayInfo(card, {
+      accountsApiActivityDisplayInfo(activity, {
         currentCurrency,
         usdToCurrentCurrencyRate: getUsdToFiatConversionRate(currencyRates),
       }),
-    [card, currentCurrency, currencyRates],
+    [activity, currentCurrency, currencyRates],
   );
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
-      card,
-    });
-  }, [navigation, card]);
+    navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, { activity });
+  }, [navigation, activity]);
 
   return (
     <ActivityRowView
-      id={card.hash}
+      id={activity.hash}
       display={display}
-      chainId={card.chainId}
+      chainId={activity.chainId}
       onPress={activityDetailsEnabled ? handlePress : undefined}
       showNetworkBadge={showNetworkBadge}
     />
   );
 };
 
-export default CardActivityItem;
+export default AccountsApiActivityItem;
