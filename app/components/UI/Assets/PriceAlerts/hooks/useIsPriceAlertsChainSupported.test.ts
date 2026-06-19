@@ -31,6 +31,13 @@ const makeOkResponse = (chains: string[]) =>
     json: jest.fn().mockResolvedValue({ chains }),
   }) as unknown as Response;
 
+const makeErrorResponse = (status: number) =>
+  ({
+    ok: false,
+    status,
+    json: jest.fn(),
+  }) as unknown as Response;
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockFetchSupportedChains.mockResolvedValue(
@@ -112,6 +119,34 @@ describe('useIsPriceAlertsChainSupported', () => {
     );
 
     expect(mockFetchSupportedChains).not.toHaveBeenCalled();
+  });
+
+  it('retries the fetch after a transient failure', async () => {
+    jest.useFakeTimers();
+
+    mockFetchSupportedChains
+      .mockResolvedValueOnce(makeErrorResponse(500))
+      .mockResolvedValueOnce(makeOkResponse(['eip155:1', 'eip155:137']));
+
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(
+      () => useIsPriceAlertsChainSupported('eip155:1/slip44:60'),
+      { wrapper: Wrapper },
+    );
+
+    expect(mockFetchSupportedChains).toHaveBeenCalledTimes(1);
+
+    await jest.advanceTimersByTimeAsync(5_000);
+
+    await waitFor(() => {
+      expect(mockFetchSupportedChains).toHaveBeenCalledTimes(2);
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBe(true);
+    });
+
+    jest.useRealTimers();
   });
 
   it('caches supported chains for 24 hours', async () => {

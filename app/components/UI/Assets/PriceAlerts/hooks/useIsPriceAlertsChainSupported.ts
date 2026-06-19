@@ -5,6 +5,10 @@ import { fetchSupportedChains } from '../api';
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
+// Backoff between retries: 5s → 30s → 1m (3 retries, then give up).
+const SUPPORTED_CHAINS_MAX_RETRIES = 3;
+const SUPPORTED_CHAINS_RETRY_DELAYS_MS = [5_000, 30_000, 60_000] as const;
+
 export const PRICE_ALERTS_SUPPORTED_CHAINS_QUERY_KEY = [
   'priceAlerts',
   'supportedChains',
@@ -36,7 +40,8 @@ export function useIsPriceAlertsChainSupported(
     queryFn: fetchSupportedChainsData,
     staleTime: TWENTY_FOUR_HOURS_MS,
     cacheTime: TWENTY_FOUR_HOURS_MS,
-    retry: false,
+    retry: SUPPORTED_CHAINS_MAX_RETRIES,
+    retryDelay: (attempt) => SUPPORTED_CHAINS_RETRY_DELAYS_MS[attempt],
     enabled: options?.enabled,
   });
 
