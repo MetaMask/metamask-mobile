@@ -1033,4 +1033,43 @@ describe('AdvancedChart', () => {
       });
     });
   });
+
+  it('does not show skeleton when adding indicators after initial reveal', () => {
+    const onSkeletonHidden = jest.fn();
+    const { getByTestId, queryByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        indicators={[]}
+        legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        indicators={['RSI']}
+        legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+  });
 });

@@ -679,18 +679,21 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       theme.colors.error.default,
     ]);
 
-    // Wait for all indicators to be painted before hiding skeleton
+    // On first paint, wait for indicators/legend before hiding skeleton. After the chart
+    // has been revealed once, keep it visible while users toggle indicators live.
     const expectedIndicators = useMemo(
       () => new Set([...indicators, ...selectedMAs]),
       [indicators, selectedMAs],
     );
+    const awaitingInitialIndicatorPaint = !skeletonHiddenReportedRef.current;
     const waitingForIndicators =
+      awaitingInitialIndicatorPaint &&
       isChartReady &&
       expectedIndicators.size > 0 &&
       activeIndicatorsRef.current.size < expectedIndicators.size;
 
-    // If legend overlay is enabled and we have indicators, also wait for legend to render
     const waitingForLegend =
+      awaitingInitialIndicatorPaint &&
       isChartReady &&
       legendOverlay?.enabled &&
       expectedIndicators.size > 0 &&
@@ -708,21 +711,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (!onSkeletonHidden) return;
       if (isLoading || !isChartReady || layoutSettling) return;
 
-      // If we expect indicators, wait for all of them to be painted
-      if (
-        expectedIndicators.size > 0 &&
-        activeIndicatorsRef.current.size < expectedIndicators.size
-      ) {
-        return;
-      }
+      if (!skeletonHiddenReportedRef.current) {
+        // If we expect indicators, wait for all of them to be painted
+        if (
+          expectedIndicators.size > 0 &&
+          activeIndicatorsRef.current.size < expectedIndicators.size
+        ) {
+          return;
+        }
 
-      // If legend overlay is enabled and we have indicators, wait for it to render
-      if (
-        legendOverlay?.enabled &&
-        expectedIndicators.size > 0 &&
-        !legendRendered
-      ) {
-        return;
+        // If legend overlay is enabled and we have indicators, wait for it to render
+        if (
+          legendOverlay?.enabled &&
+          expectedIndicators.size > 0 &&
+          !legendRendered
+        ) {
+          return;
+        }
       }
 
       // Hide skeleton
