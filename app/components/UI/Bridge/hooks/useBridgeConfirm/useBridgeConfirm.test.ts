@@ -6,6 +6,8 @@ import { useABTest } from '../../../../../hooks';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isHardwareAccount } from '../../../../../util/address';
+import { HardwareWalletsSwapsStatus } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import {
   POST_TRADE_MODAL_VARIANTS,
@@ -21,20 +23,22 @@ const defaultParams = {
   location: MetaMetricsSwapsEventSource.MainView,
 };
 
-// Navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-// selectSourceWalletAddress
 jest.mock('../../../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(),
 }));
 
-// useSubmitBridgeTx
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
+
 const mockSubmitBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
@@ -46,7 +50,6 @@ jest.mock('../../../../../hooks', () => ({
 }));
 const mockUseABTest = jest.mocked(useABTest);
 
-// Engine (required by store / other transitive deps)
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
@@ -81,6 +84,7 @@ describe('useBridgeConfirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockSubmitBridgeTx.mockResolvedValue({
       id: 'tx-meta-id',
       hash: '0xabc',
@@ -111,6 +115,23 @@ describe('useBridgeConfirm', () => {
         quoteResponse: mockQuoteWithMetadata,
         location: MetaMetricsSwapsEventSource.MainView,
       });
+    });
+
+    it('passes the location prop through to submitBridgeTx', async () => {
+      const { result } = renderHook({
+        ...defaultParams,
+        location: MetaMetricsSwapsEventSource.MainView,
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockSubmitBridgeTx).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: MetaMetricsSwapsEventSource.MainView,
+        }),
+      );
     });
 
     it('opens the post-trade bottom sheet after submission', async () => {
@@ -169,6 +190,110 @@ describe('useBridgeConfirm', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('navigates to TRANSACTIONS_VIEW when post-trade modal is disabled', async () => {
+      mockUseABTest.mockReturnValue({
+        variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Control],
+        variantName: PostTradeModalVariant.Control,
+        isActive: true,
+      });
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+  });
+
+  describe('hardware wallet submissions', () => {
+    it('navigates to hardware wallets progress view without calling submitBridgeTx', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result } = renderHook({
+        ...defaultParams,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          approval: { raw_data_hex: '0xabc' },
+        },
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.ROOT,
+        expect.objectContaining({
+          screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('sets Waiting status for hardware wallet submissions', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { status: string };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.status,
+      ).toBe(HardwareWalletsSwapsStatus.Waiting);
+    });
+
+    it('starts two-step progress for hardware wallet submissions with approval', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook({
+        ...defaultParams,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          approval: { raw_data_hex: '0xabc' },
+        },
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { totalSteps: number };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.totalSteps,
+      ).toBe(2);
+    });
+
+    it('starts one-step progress for hardware wallet submissions without approval', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { totalSteps: number };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.totalSteps,
+      ).toBe(1);
     });
   });
 
@@ -231,6 +356,22 @@ describe('useBridgeConfirm', () => {
           destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
         }),
       });
+    });
+
+    it('navigates to TRANSACTIONS_VIEW after the error when post-trade modal is disabled', async () => {
+      mockUseABTest.mockReturnValue({
+        variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Control],
+        variantName: PostTradeModalVariant.Control,
+        isActive: true,
+      });
+      jest.spyOn(console, 'error').mockImplementation();
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
     it('resets isSubmittingTx to false after the error', async () => {

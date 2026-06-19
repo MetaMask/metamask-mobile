@@ -125,7 +125,6 @@ const MoneyActivityView = () => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
-
   const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
