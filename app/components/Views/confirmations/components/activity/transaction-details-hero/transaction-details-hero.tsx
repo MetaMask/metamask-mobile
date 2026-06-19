@@ -71,6 +71,7 @@ const TOKEN_ICON_TYPES = [
 
 const TWO_ASSET_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
@@ -174,7 +175,15 @@ export function TransactionDetailsHero() {
     receivedData;
 
   if (showTwoAssetHero) {
-    return <TwoAssetHero sentData={sentData} receivedData={receivedData} />;
+    const isOutbound = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountWithdraw,
+    ]);
+    return (
+      <TwoAssetHero
+        sentData={isOutbound ? receivedData : sentData}
+        receivedData={isOutbound ? sentData : receivedData}
+      />
+    );
   }
 
   const showTokenIcon =
