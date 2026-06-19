@@ -153,7 +153,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
-    const isAwaitingRequiredToken = !disablePay && !primaryRequiredToken;
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
+    // Withdraw flows never have required tokens (user receives, not pays),
+    // so only gate on primaryRequiredToken for deposit/swap flows.
+    const isAwaitingRequiredToken =
+      !disablePay && !isWithdraw && !primaryRequiredToken;
+
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
@@ -162,7 +168,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       hideAccountSelector && !fiatEverSelectedRef.current;
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
-    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();

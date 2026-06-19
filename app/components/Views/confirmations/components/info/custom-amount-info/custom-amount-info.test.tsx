@@ -432,6 +432,27 @@ describe('CustomAmountInfo', () => {
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
     });
 
+    it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
+      'does not render the skeleton for %s even when no primary required token is resolved',
+      (transactionType) => {
+        useTransactionPayPrimaryRequiredTokenMock.mockReturnValue(undefined);
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type: transactionType,
+          txParams: { from: '0x123' },
+        } as never);
+
+        const { getByTestId, queryByTestId } = render({
+          disablePay: false,
+          transactionType,
+        });
+
+        expect(
+          getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK),
+        ).toBeOnTheScreen();
+        expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      },
+    );
+
     it('renders the full UI once a primary required token is resolved', () => {
       const { getByTestId, queryByTestId } = render({ disablePay: false });
 
