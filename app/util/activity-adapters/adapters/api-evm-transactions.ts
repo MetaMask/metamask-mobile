@@ -13,6 +13,7 @@ import {
   getTokenMetadataFromKnownToken,
   getTokenAmountFromTransfer,
   getTokenApprovalAmountFromData,
+  isUnlimitedApprovalAmount,
   isNftTransferType,
   isNativeTransferType,
   withFallbackTokenAssetId,
@@ -191,6 +192,16 @@ export function mapApiEvmTransactions({
       getTransactionCalldata(transaction),
       environment,
     );
+    const token =
+      approveToken && approveAmount
+        ? {
+            ...approveToken,
+            amount: approveAmount,
+            ...(isUnlimitedApprovalAmount(approveAmount, approveToken.decimals)
+              ? { isUnlimitedApproval: true }
+              : {}),
+          }
+        : approveToken;
 
     return {
       type: 'approveSpendingCap',
@@ -200,10 +211,7 @@ export function mapApiEvmTransactions({
       hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        token:
-          approveToken && approveAmount
-            ? { ...approveToken, amount: approveAmount }
-            : approveToken,
+        token,
       },
     };
   }

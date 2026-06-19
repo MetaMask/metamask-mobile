@@ -26,6 +26,7 @@ import {
   getKnownTokenMetadata,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
+  isUnlimitedApprovalAmount,
 } from './helpers';
 import {
   mobileActivityAdapterEnvironment,
@@ -433,7 +434,17 @@ export function mapLocalTransaction(
     case TransactionType.shieldSubscriptionApprove:
     case TransactionType.swapApproval:
     case TransactionType.tokenMethodApprove:
-    case TransactionType.tokenMethodSetApprovalForAll:
+    case TransactionType.tokenMethodSetApprovalForAll: {
+      const approvalAmount = getTokenApprovalAmountFromData(
+        initialTransaction.txParams.data,
+        environment,
+      );
+      const token = getContractToken({
+        amount: approvalAmount,
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: initialTransaction.txParams.to,
+      });
       return {
         type: 'approveSpendingCap',
         chainId,
@@ -442,19 +453,30 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getContractToken({
-            amount: getTokenApprovalAmountFromData(
-              initialTransaction.txParams.data,
-              environment,
-            ),
-            transaction: initialTransaction,
-            direction: 'out',
-            contractAddress: initialTransaction.txParams.to,
-          }),
+          token:
+            token && approvalAmount
+              ? {
+                  ...token,
+                  ...(isUnlimitedApprovalAmount(approvalAmount, token.decimals)
+                    ? { isUnlimitedApproval: true }
+                    : {}),
+                }
+              : token,
         },
       };
+    }
 
-    case TransactionType.tokenMethodIncreaseAllowance:
+    case TransactionType.tokenMethodIncreaseAllowance: {
+      const approvalAmount = getTokenApprovalAmountFromData(
+        initialTransaction.txParams.data,
+        environment,
+      );
+      const token = getContractToken({
+        amount: approvalAmount,
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: initialTransaction.txParams.to,
+      });
       return {
         type: 'increaseSpendingCap',
         chainId,
@@ -463,17 +485,18 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getContractToken({
-            amount: getTokenApprovalAmountFromData(
-              initialTransaction.txParams.data,
-              environment,
-            ),
-            transaction: initialTransaction,
-            direction: 'out',
-            contractAddress: initialTransaction.txParams.to,
-          }),
+          token:
+            token && approvalAmount
+              ? {
+                  ...token,
+                  ...(isUnlimitedApprovalAmount(approvalAmount, token.decimals)
+                    ? { isUnlimitedApproval: true }
+                    : {}),
+                }
+              : token,
         },
       };
+    }
 
     case TransactionType.lendingDeposit:
       return {
