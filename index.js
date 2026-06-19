@@ -40,6 +40,23 @@ import {
 } from './app/core/ErrorHandler';
 
 import { enableFreeze } from 'react-native-screens';
+import messaging from '@react-native-firebase/messaging';
+import { logPushEvent } from './app/util/notifications/pushDebugLog';
+
+// Must be registered before AppRegistry — runs in headless JS context when app is
+// killed/backgrounded and a data-only FCM message arrives (primarily Android).
+messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  logPushEvent(
+    'FCM_BACKGROUND_RECEIVED',
+    'Background or headless FCM message received',
+    {
+      hasNotification: Boolean(remoteMessage.notification),
+      hasDataData: Boolean(remoteMessage?.data?.data),
+      hasMetadata: Boolean(remoteMessage?.data?.metadata),
+      dataKeys: Object.keys(remoteMessage.data ?? {}),
+    },
+  );
+});
 
 if (__DEV__) {
   require('./ReactotronConfig');
