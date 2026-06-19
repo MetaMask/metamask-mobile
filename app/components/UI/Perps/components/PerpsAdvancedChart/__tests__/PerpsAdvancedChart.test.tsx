@@ -229,10 +229,69 @@ describe('PerpsAdvancedChart', () => {
     expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
   });
 
+  it('supersedes the active trace and starts an interval trace when only the interval changes', () => {
+    const { rerender } = renderChart();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvSeriesKey: 'BTC|4h',
+    });
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.FourHours}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+      />,
+    );
+
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Perps Advanced Chart Initial Visible',
+        id: 'BTC|1h',
+        data: { superseded: true },
+      }),
+    );
+    expect(trace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: 'Perps Advanced Chart Interval Visible',
+        op: 'perps.advanced_chart_interval',
+        id: 'BTC|4h',
+      }),
+    );
+  });
+
+  it('ends the active visibility trace when unmounted before the skeleton hides', () => {
+    const { unmount } = renderChart();
+
+    unmount();
+
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Perps Advanced Chart Initial Visible',
+        id: 'BTC|1h',
+        data: { unmounted: true },
+      }),
+    );
+  });
+
   it('renders Lightweight fallback after AdvancedChart reports an error', () => {
     const onError = jest.fn();
     const onCrosshairDataChange = jest.fn();
-    renderChart({ fallbackCandleData: null, onError, onCrosshairDataChange });
+    const fallbackFetchMoreHistory = jest.fn();
+    const tpslLines: TPSLLines = {
+      entryPrice: '42000',
+      takeProfitPrice: '45000',
+    };
+    renderChart({
+      fallbackCandleData: null,
+      fallbackFetchMoreHistory,
+      onError,
+      onCrosshairDataChange,
+      tpslLines,
+    });
 
     act(() => {
       advancedChartProps().onError?.('chart failed');
@@ -244,6 +303,8 @@ describe('PerpsAdvancedChart', () => {
         candleData: null,
         height: 240,
         visibleCandleCount: 100,
+        tpslLines,
+        onNeedMoreHistory: fallbackFetchMoreHistory,
         onOhlcDataChange: onCrosshairDataChange,
         showOverlay: false,
         coloredVolume: true,
