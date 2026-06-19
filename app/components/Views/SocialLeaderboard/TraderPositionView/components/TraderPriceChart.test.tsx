@@ -288,6 +288,29 @@ describe('TraderPriceChart', () => {
         result.getByTestId('trade-marker-highlight-ring-0xhighlight'),
       ).toBeOnTheScreen();
     });
+
+    it('hides the scrub tooltip while a trade marker is highlighted', () => {
+      const prices = makePrices(10);
+      const trade = makeTrade({
+        intent: 'exit',
+        direction: 'sell',
+        transactionHash: '0xsell-highlight',
+      });
+      const onChartIndexChange = jest.fn();
+      const result = render(
+        <TraderPriceChart
+          {...defaultProps}
+          prices={prices}
+          trades={[trade]}
+          highlightedTradeHash="0xsell-highlight"
+          onChartIndexChange={onChartIndexChange}
+        />,
+      );
+      triggerChartLayout(result.getByTestId);
+
+      expect(onChartIndexChange).toHaveBeenCalled();
+      expect(result.queryByTestId('price-chart-area')).toBeOnTheScreen();
+    });
   });
 
   // ── PriceChartProvider integration ────────────────────────────────────────

@@ -375,10 +375,11 @@ const TraderPositionView = () => {
     !resolvedPosition && !isPositionLoading && !isProfileLoading;
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
-      testID={TraderPositionViewSelectorsIDs.CONTAINER}
-    >
+    <>
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        testID={TraderPositionViewSelectorsIDs.CONTAINER}
+      >
       <TraderPositionHeader
         traderName={traderName}
         traderImageUrl={traderImageUrl}
@@ -493,20 +494,21 @@ const TraderPositionView = () => {
               />
             </>
           )}
-
-          {selectedTrade ? (
-            <TraderTradeDetailBottomSheet
-              isVisible
-              trade={selectedTrade}
-              tokenSymbol={symbol}
-              chain={resolvedPosition?.chain ?? ''}
-              tokenAddress={resolvedPosition?.tokenAddress ?? ''}
-              onClose={handleTradeDetailClose}
-            />
-          ) : null}
         </>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+
+      {selectedTrade ? (
+        <TraderTradeDetailBottomSheet
+          isVisible
+          trade={selectedTrade}
+          tokenSymbol={symbol}
+          chain={resolvedPosition?.chain ?? ''}
+          tokenAddress={resolvedPosition?.tokenAddress ?? ''}
+          onClose={handleTradeDetailClose}
+        />
+      ) : null}
+    </>
   );
 };
 

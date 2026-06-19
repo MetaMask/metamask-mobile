@@ -14,11 +14,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  BottomSheet,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import type { Trade } from '@metamask/social-controllers';
-import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   formatTokenAmount,
@@ -144,7 +144,6 @@ const TraderTradeDetailBottomSheet: React.FC<
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack={false}
       isInteractable
       onClose={handleSheetClosed}
       testID={TraderTradeDetailBottomSheetSelectorsIDs.CONTAINER}
