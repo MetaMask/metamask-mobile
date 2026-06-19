@@ -95,35 +95,39 @@ export function useNotificationOnClick(
     [createEventBuilder, markNotificationAsRead, trackEvent],
   );
 
-  const onNavigation = useCallback(
-    (item: INotification) => {
-      if (hasNotificationModal(item?.type)) {
+  const onNotificationPress = useCallback(
+    (item: INotification, ctaLink?: string) => {
+      handleNotificationClickMetricsAndUpdates(item);
+
+      if (ctaLink) {
+        try {
+          if (ctaLink.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
+            SharedDeeplinkManager.parse(ctaLink, {
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            });
+          } else {
+            Linking.openURL(ctaLink);
+          }
+        } catch (e) {
+          console.warn(`Failed to open NotificationCTA link ${ctaLink}`, e);
+        }
+      } else if (hasNotificationModal(item?.type)) {
         props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
           notification: item,
         });
       }
     },
-    [props.navigation],
-  );
-
-  const onNotificationClick = useCallback(
-    (item: INotification) => {
-      handleNotificationClickMetricsAndUpdates(item);
-      onNavigation(item);
-    },
-    [handleNotificationClickMetricsAndUpdates, onNavigation],
+    [handleNotificationClickMetricsAndUpdates, props.navigation],
   );
 
   return {
-    onNotificationClick,
+    onNotificationPress,
     handleNotificationClickMetricsAndUpdates,
-    onNavigation,
   };
 }
 
 export function NotificationsListItem(props: NotificationsListItemProps) {
-  const { handleNotificationClickMetricsAndUpdates, onNavigation } =
-    useNotificationOnClick(props);
+  const { onNotificationPress } = useNotificationOnClick(props);
   const tw = useTailwind();
 
   const menuItemState = useMemo(() => {
@@ -138,29 +142,8 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
   }, [props.notification]);
 
   const handlePress = useCallback(() => {
-    handleNotificationClickMetricsAndUpdates(props.notification);
-    const ctaLink = menuItemState?.cta?.link;
-    if (ctaLink) {
-      try {
-        if (ctaLink.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
-          SharedDeeplinkManager.parse(ctaLink, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-          });
-        } else {
-          Linking.openURL(ctaLink);
-        }
-      } catch (e) {
-        console.warn(`Failed to open NotificationCTA link ${ctaLink}`, e);
-      }
-    } else {
-      onNavigation(props.notification);
-    }
-  }, [
-    handleNotificationClickMetricsAndUpdates,
-    menuItemState?.cta?.link,
-    onNavigation,
-    props.notification,
-  ]);
+    onNotificationPress(props.notification, menuItemState?.cta?.link);
+  }, [onNotificationPress, props.notification, menuItemState?.cta?.link]);
 
   if (!isValidNotificationComponent(props.notification) || !menuItemState) {
     return null;
