@@ -66,16 +66,27 @@ const AddDeviceToWallet = () => {
     return () => subscription.remove();
   }, []);
 
+  const handleMwpDeeplinkScanned = useCallback(
+    (_deeplink: string) => {
+      navigation.goBack();
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+      });
+    },
+    [navigation],
+  );
+
   const openQRScanner = useCallback(() => {
     navigation.navigate(
       ...createQRScannerNavDetails({
         initialScreen: QRTabSwitcherScreens.Scanner,
         disableTabber: true,
         onScanSuccess: noopScanSuccess,
+        onMwpDeeplinkScanned: handleMwpDeeplinkScanned,
         origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
       }),
     );
-  }, [navigation]);
+  }, [navigation, handleMwpDeeplinkScanned]);
 
   if (deviceAdded) {
     return <DeviceAdded />;

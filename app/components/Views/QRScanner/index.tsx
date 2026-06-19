@@ -151,16 +151,13 @@ const QRScanner = ({
       mountedRef.current = true;
       shouldReadBarCodeRef.current = true;
       setIsCameraActive(true);
-      if (isAddDeviceScanner) {
-        setAddDeviceScannerUiState(AddDeviceScannerUiState.Searching);
-      }
 
       return () => {
         mountedRef.current = false;
         shouldReadBarCodeRef.current = false;
         setIsCameraActive(false);
       };
-    }, [isAddDeviceScanner]),
+    }, []),
   );
   useEffect(() => {
     if (

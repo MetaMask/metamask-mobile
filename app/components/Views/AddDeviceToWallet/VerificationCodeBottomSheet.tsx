@@ -1,6 +1,6 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -15,16 +15,35 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 
-const MOCK_VERIFICATION_CODE = '123456';
+interface VerificationCodeBottomSheetParams {
+  verificationCode?: string;
+}
 
 const VerificationCodeBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const route = useRoute();
+  const verificationCode = (
+    route.params as VerificationCodeBottomSheetParams | undefined
+  )?.verificationCode;
+  const pendingNavigationTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  useEffect(
+    () => () => {
+      if (pendingNavigationTimeoutRef.current) {
+        clearTimeout(pendingNavigationTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const goBack = useCallback(() => {
     DeviceEventEmitter.emit('addDeviceVerificationDone');
     navigation.goBack();
-    setTimeout(() => {
+    pendingNavigationTimeoutRef.current = setTimeout(() => {
+      pendingNavigationTimeoutRef.current = null;
       navigation.goBack();
     }, 100);
   }, [navigation]);
@@ -48,7 +67,8 @@ const VerificationCodeBottomSheet = () => {
           color={TextColor.TextDefault}
           twClassName="my-6"
         >
-          {MOCK_VERIFICATION_CODE}
+          {verificationCode ??
+            strings('app_settings.add_device.verification_code_pending')}
         </Text>
         <Button twClassName="w-full" onPress={goBack}>
           {strings('app_settings.add_device.done')}
