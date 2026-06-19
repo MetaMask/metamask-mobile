@@ -22,6 +22,10 @@ import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
 import { FrameworkDetector } from '../FrameworkDetector.ts';
+import {
+  isBrowserStack,
+  isBrowserStackLocal,
+} from '../BrowserStackDetector.ts';
 
 const execAsync = promisify(exec);
 
@@ -298,12 +302,13 @@ export async function startResourceWithRetry(
         PortManager.getInstance().releasePort(resourceType);
       }
 
-      // Check if it's a port conflict error that we should retry
-      if (
-        attempt < maxRetries &&
+      // BrowserStack uses static fallback ports — retrying with a new port is not possible.
+      const canRetryPortConflict =
+        !isBrowserStack() &&
         (errorMessage.includes('eaddrinuse') ||
-          errorMessage.includes('address already in use'))
-      ) {
+          errorMessage.includes('address already in use'));
+
+      if (attempt < maxRetries && canRetryPortConflict) {
         attempt++;
         logger.debug(
           `Port ${failedPort} conflict for ${resourceType}, retrying with new random port (${attempt}/${maxRetries})`,
@@ -397,12 +402,12 @@ export async function startMultiInstanceResourceWithRetry(
         );
       }
 
-      // Check if it's a port conflict error that we should retry
-      if (
-        attempt < maxRetries &&
+      const canRetryPortConflict =
+        !isBrowserStack() &&
         (errorMessage.includes('eaddrinuse') ||
-          errorMessage.includes('address already in use'))
-      ) {
+          errorMessage.includes('address already in use'));
+
+      if (attempt < maxRetries && canRetryPortConflict) {
         attempt++;
         logger.debug(
           `Port ${failedPort} conflict for ${resourceType}:${instanceId}, retrying with new random port (${attempt}/${maxRetries})`,
@@ -425,43 +430,25 @@ export async function startMultiInstanceResourceWithRetry(
 }
 
 /**
- * Determines if tests are running on BrowserStack with local tunnel enabled.
- *
- * This function provides consistent BrowserStack detection used by both
- * getServerPort() and getLocalHost() to ensure matching host/port configurations.
- *
- * Handles environment variable patterns:
- * - BROWSERSTACK_LOCAL=true → true
- * - BROWSERSTACK_LOCAL=false → false
- * - BROWSERSTACK_LOCAL="" → false
- * - BROWSERSTACK_LOCAL unset → false
- *
- * @returns True when BrowserStack local tunnel is enabled
- */
-function isBrowserStack() {
-  return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-}
-
-/**
  * @description
- * When running tests on BrowserStack, local services need to be accessed through
- * BrowserStack's local tunnel hostname. For local development,
- * standard localhost is used.
+ * When running tests on BrowserStack with Local tunnel enabled, local services
+ * need to be accessed through BrowserStack's tunnel hostname. For local
+ * development and BrowserStack runs without Local, standard localhost is used.
  *
  * @returns The hostname to use for connecting to local services:
- * - 'bs-local.com' when running on BrowserStack (detected via BROWSERSTACK_LOCAL env var)
- * - 'localhost' for local development and other environments
+ * - 'bs-local.com' when BrowserStack Local tunnel is enabled
+ * - 'localhost' otherwise
  *
  * @example
  * ```typescript
  * const fixtureServerHost = getLocalHost();
  * const serverUrl = `http://${fixtureServerHost}:${port}`;
- * // Returns: "http://bs-local.com:12345" on BrowserStack
+ * // Returns: "http://bs-local.com:12345" when BROWSERSTACK_LOCAL=true
  * // Returns: "http://localhost:12345" locally
  * ```
  */
 export function getLocalHost() {
-  return isBrowserStack() ? 'bs-local.com' : 'localhost';
+  return isBrowserStackLocal() ? 'bs-local.com' : 'localhost';
 }
 
 /**

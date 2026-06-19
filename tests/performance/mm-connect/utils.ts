@@ -15,6 +15,7 @@ import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
+import { getLocalHost } from '../../framework/fixtures/FixtureUtils.ts';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
@@ -77,7 +78,19 @@ export async function waitForDappServerReady(
 /**
  * Get the dapp URL for mobile browser access.
  * Android emulator browser needs 10.0.2.2 to reach the host machine.
+ * BrowserStack Local tunnel uses bs-local.com when enabled.
  */
+export function getMmConnectDappUrl(
+  currentDeviceDetails: CurrentDeviceDetails,
+  port = DEFAULT_DAPP_PORT,
+): string {
+  if (currentDeviceDetails.isBrowserstack) {
+    return `http://${getLocalHost()}:${port}`;
+  }
+
+  return getDappUrlForBrowser(currentDeviceDetails.platform, port);
+}
+
 export function getDappUrlForBrowser(
   platform: string,
   port = DEFAULT_DAPP_PORT,

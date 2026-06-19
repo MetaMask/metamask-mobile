@@ -15,6 +15,7 @@ import {
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
+import { syncBrowserStackModeFromProvider } from '../BrowserStackDetector.ts';
 import Utilities from '../Utilities';
 import {
   dismissDevScreens,
@@ -36,6 +37,7 @@ import {
   AnvilNodeOptions,
   GanacheNodeOptions,
   TestSpecificMock,
+  ProviderName,
 } from '../types';
 import {
   TestDapps,
@@ -541,6 +543,14 @@ export async function withFixtures(
     currentDeviceDetails && !currentDeviceDetails.isBrowserstack
       ? new DeviceCommandHandler({ currentDeviceDetails, logger })
       : undefined;
+
+  if (currentDeviceDetails) {
+    syncBrowserStackModeFromProvider(
+      currentDeviceDetails.isBrowserstack
+        ? ProviderName.BROWSERSTACK
+        : ProviderName.EMULATOR,
+    );
+  }
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android

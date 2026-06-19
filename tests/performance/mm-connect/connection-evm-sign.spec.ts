@@ -10,7 +10,7 @@ import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
 import {
-  getDappUrlForBrowser,
+  getMmConnectDappUrl,
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
@@ -90,12 +90,7 @@ test.describe(Performance, () => {
     currentDeviceDetails,
     driver,
   }) => {
-    const platform = currentDeviceDetails.platform;
-    const useBrowserStackLocal =
-      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-    const DAPP_URL = useBrowserStackLocal
-      ? `http://bs-local.com:${DAPP_PORT}`
-      : getDappUrlForBrowser(platform);
+    const DAPP_URL = getMmConnectDappUrl(currentDeviceDetails, DAPP_PORT);
 
     await PlaywrightContextHelpers.withNativeAction(async () => {
       await loginToAppPlaywright();

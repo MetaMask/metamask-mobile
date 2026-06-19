@@ -10,6 +10,7 @@ import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulat
 import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import type { CurrentDeviceDetails } from './types.ts';
+import { syncBrowserStackModeFromProvider } from '../../BrowserStackDetector.ts';
 
 const logger = createPlaywrightLogger('currentDeviceDetails');
 
@@ -34,6 +35,7 @@ export const currentDeviceDetailsFixture = {
     const launchableActivity = project.use.app?.launchableActivity;
     const deviceConfig = project.use.device as DeviceConfig | undefined;
     const isBrowserstack = deviceConfig?.provider === ProviderName.BROWSERSTACK;
+    syncBrowserStackModeFromProvider(deviceConfig?.provider);
 
     const hasLocalDeviceId =
       Boolean(deviceNameField) ||

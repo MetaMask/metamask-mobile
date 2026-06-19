@@ -10,6 +10,7 @@ import {
 } from './Constants.ts';
 import { ACCOUNT_ACTIVITY_WS as ACCOUNT_ACTIVITY_WS_CONFIG } from '../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
+import { isBrowserStack } from './BrowserStackDetector.ts';
 
 const logger = createLogger({
   name: 'PortManager',
@@ -72,16 +73,6 @@ export default class PortManager {
     logger.debug('PortManager singleton instance created');
   }
 
-  /**
-   * Determines if tests are running on BrowserStack with local tunnel enabled.
-   * Protected to allow mocking in tests.
-   *
-   * @returns True when BrowserStack local tunnel is enabled
-   */
-  protected isBrowserStack(): boolean {
-    return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-  }
-
   public static getInstance(): PortManager {
     if (!PortManager.instance) {
       PortManager.instance = new PortManager();
@@ -119,7 +110,7 @@ export default class PortManager {
     }
 
     // On BrowserStack, use static fallback ports (no adb access for dynamic mapping)
-    if (this.isBrowserStack()) {
+    if (isBrowserStack()) {
       const fallbackPort = getFallbackPortForResource(resourceType);
       logger.info(
         `BrowserStack mode: Using static fallback port ${fallbackPort} for ${resourceType}`,
@@ -164,7 +155,7 @@ export default class PortManager {
     }
 
     // On BrowserStack, use static fallback ports + instance offset
-    if (this.isBrowserStack()) {
+    if (isBrowserStack()) {
       const baseFallbackPort = getFallbackPortForResource(resourceType);
       // Extract instance number from instanceId (e.g., "dapp-server-0" -> 0)
       const instanceIndex = parseInt(instanceId.split('-').pop() || '0', 10);
