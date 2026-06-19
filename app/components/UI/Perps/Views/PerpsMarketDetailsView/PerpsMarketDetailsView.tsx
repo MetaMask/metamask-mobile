@@ -1384,7 +1384,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 size={ButtonIconSize.Md}
                 onPress={handleFullscreenChartOpen}
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
-                accessibilityLabel="Fullscreen chart"
+                accessibilityLabel={strings(
+                  'perps.market_details.fullscreen_chart',
+                )}
               />
             </Box>
           </Box>
