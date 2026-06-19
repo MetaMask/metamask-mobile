@@ -15,7 +15,7 @@ import {
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
-import { isMonadMainnetChainId } from '../../../../util/networks';
+
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -126,6 +126,7 @@ export function useMoneyAccountDeposit() {
           isInternal: true,
           disableHook: true,
           disableSequential: true,
+          isGasFeeSponsored: true,
           transactions: [approveTx, depositTx],
           requiredAssets: [
             {
@@ -205,7 +206,7 @@ export function useMoneyAccountWithdrawal() {
         isInternal: true,
         disableHook: true,
         disableSequential: true,
-        isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
+        isGasFeeSponsored: true,
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {
