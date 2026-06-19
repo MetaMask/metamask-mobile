@@ -6252,10 +6252,13 @@ describe('PredictController', () => {
         });
         (analytics.trackEvent as jest.Mock).mockClear();
 
-        // Footer 5JA7 guard fires first.
-        controller.trackClaimResolutionLagFailure({ address: accountAddress });
+        // Footer 5JA7 guard fires first, keyed by the claim transaction id.
+        controller.trackClaimResolutionLagFailure({
+          transactionId: 'tx-1',
+          address: accountAddress,
+        });
 
-        // The confirmation rejection arrives afterwards.
+        // The confirmation rejection arrives afterwards for the same tx id.
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictClaim,
           status: TransactionStatus.rejected,
@@ -6272,6 +6275,72 @@ describe('PredictController', () => {
           'pending_resolution',
         );
         expect(findPredictTradeEvent('succeeded')).toBeUndefined();
+      });
+    });
+
+    it('does not let a stale terminal update for an old claim suppress or misattribute a newer claim', () => {
+      withController(({ controller, messenger }) => {
+        mockPolymarketProvider.confirmClaim = jest.fn();
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+
+        // An earlier claim's transaction already emitted its terminal event.
+        const oldClaimMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          id: 'tx-old',
+        };
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: oldClaimMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        // A newer claim is initiated for the same address.
+        (
+          controller as unknown as {
+            pendingClaimAnalytics: Record<string, unknown>;
+          }
+        ).pendingClaimAnalytics = {
+          [accountAddress.toLowerCase()]: {
+            entryPoint: 'predict_market_details',
+            transactionType: 'mm_predict_claim',
+          },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // A delayed/duplicate terminal update for the OLD transaction arrives.
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: oldClaimMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        // It must not emit anything (already emitted for tx-old) and must leave
+        // the newer claim's stash intact.
+        expect((analytics.trackEvent as jest.Mock).mock.calls).toHaveLength(0);
+
+        // The newer claim's own terminal update still emits with its attribution.
+        const newClaimMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          id: 'tx-new',
+        };
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: newClaimMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const succeeded = findPredictTradeEvent('succeeded');
+        expect(succeeded).toBeDefined();
+        expect(succeeded.properties.entry_point).toBe('predict_market_details');
       });
     });
 

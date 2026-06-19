@@ -39,6 +39,7 @@ export function PredictClaimFooter({
   const { setIsConfirmationSubmitting } = useConfirmationContext();
 
   const address = transactionMetadata?.txParams.from;
+  const transactionId = transactionMetadata?.id;
 
   const wonPositions = useSelector(
     selectPredictWonPositions({
@@ -60,13 +61,14 @@ export function PredictClaimFooter({
       if (!hasTrackedNoPositions.current) {
         hasTrackedNoPositions.current = true;
         Engine.context.PredictController?.trackClaimResolutionLagFailure?.({
+          transactionId,
           address,
         });
       }
 
       onError(new Error('Tried to claim but no positions were won'));
     }
-  }, [hasNoPositions, onError, address]);
+  }, [hasNoPositions, onError, address, transactionId]);
 
   const handlePress = useCallback(async () => {
     setIsConfirmationSubmitting(true);

@@ -157,9 +157,9 @@ describe('PredictClaimFooter', () => {
     // Assert - the Sentry 5JA7 guard is routed through the controller so it
     // shares the per-attempt idempotency guard (single terminal event).
     await waitFor(() => {
-      expect(mockTrackClaimResolutionLagFailure).toHaveBeenCalledWith({
-        address: '0xunknown',
-      });
+      expect(mockTrackClaimResolutionLagFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ address: '0xunknown' }),
+      );
     });
   });
 
