@@ -267,7 +267,6 @@ jest.mock('../../Assets/PriceAlerts/hooks/usePriceInUsd', () => ({
     mockUsePriceInUsd(chainId, price),
 }));
 
-
 jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampNativeTokenSupported: jest.fn(() => true),
   isNetworkRampSupported: jest.fn(() => true),
@@ -877,7 +876,6 @@ describe('TokenDetails', () => {
         }),
       );
     });
-
 
     it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
       enablePriceAlerts();
