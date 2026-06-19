@@ -6,10 +6,10 @@ export { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFrom
 export type { UseCurrentPredictMarketFromSeriesParams } from './useCurrentPredictMarketFromSeries';
 
 export {
-  useLiveGameUpdates,
-  type UseLiveGameUpdatesOptions,
-  type UseLiveGameUpdatesResult,
-} from './useLiveGameUpdates';
+  usePredictGame,
+  type UsePredictGameOptions,
+  type UsePredictGameResult,
+} from './usePredictGame';
 
 export {
   useLiveMarketPrices,

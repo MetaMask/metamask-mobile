@@ -5,7 +5,7 @@ import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
 import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
-import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
+import { selectAllConfiguredEvmCaipNetworks } from '../../../selectors/networkController';
 import { selectApiEvmTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
 import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
@@ -17,7 +17,10 @@ export const useTransactionsQuery = () => {
   const globalEvmAddress = useSelector(selectEvmAddress);
   /** Activity must load EVM history for the group's EVM account when e.g. Bitcoin is selected. */
   const evmAddress = (groupEvmAccount?.address ?? globalEvmAddress ?? '') || '';
-  const networks = useSelector(selectEvmEnabledCaipNetworks);
+  // Fetch history for every configured network — decoupled from
+  // NetworkEnablementController so enabling/disabling a single network (e.g.
+  // Predict enabling Polygon) never collapses the Activity feed to one network.
+  const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
   const excludedTxHashes = useSelector(selectRequiredTransactionHashes);
   const accountAddresses = evmAddress
     ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]

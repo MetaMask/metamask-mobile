@@ -57,8 +57,11 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   copyTokenAddressTestID,
 }) => {
   const tw = useTailwind();
+  // Perps have no on-chain token address — `tokenAddress` carries the perp
+  // symbol — so copying it is meaningless. Only spot positions expose copy.
+  const isPerp = position ? isPerpPosition(position) : false;
   const canCopyTokenAddress = Boolean(
-    position?.tokenAddress && onCopyTokenAddress,
+    position?.tokenAddress && onCopyTokenAddress && !isPerp,
   );
   const perpDirection = position ? getPerpPositionDirection(position) : null;
 
