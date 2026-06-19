@@ -7225,6 +7225,10 @@
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
+      "cashback": "mUSD back",
+      "card": "Card",
+      "purchase": "Purchase",
+      "musd_back": "mUSD back",
       "converted": "Converted",
       "depositing": "Depositing",
       "converting": "Converting",
@@ -7236,11 +7240,14 @@
       "received_from": "From: {{address}}",
       "failed": "Failed"
     },
-    "card_details": {
-      "title": "Card transaction",
+    "api_activity_details": {
+      "card_title": "Card transaction",
+      "cashback_title": "mUSD back",
       "you_spent": "You spent",
+      "you_earned": "You earned",
       "completed": "Completed",
       "paid_to": "Paid to",
+      "received_from": "Received from",
       "date": "Date"
     },
     "convert_stablecoins": {
