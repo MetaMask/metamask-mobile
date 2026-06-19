@@ -28,4 +28,14 @@ describe('isTrackingEvent', () => {
 
     expect(isTrackingEvent(event)).toBe(false);
   });
+
+  it('returns false when name is not a string', () => {
+    const event = {
+      name: 123,
+      properties: {},
+      sensitiveProperties: {},
+    } as unknown as ITrackingEvent;
+
+    expect(isTrackingEvent(event)).toBe(false);
+  });
 });
