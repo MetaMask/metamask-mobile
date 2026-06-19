@@ -3,6 +3,10 @@ import type {
   QrSyncError,
   QrSyncImportPlan,
   QrSyncServiceEvent,
+  QrSyncSyncCancelledEvent,
+  QrSyncSyncCompletedEvent,
+  QrSyncSyncErrorEvent,
+  QrSyncSyncReadyEvent,
 } from '../types';
 import { validateAndNormalizeQrSyncSyncReadyMessage } from './qr-sync-payload-validator';
 
@@ -27,18 +31,17 @@ const isQrSyncErrorPayload = (data: unknown): data is QrSyncError => {
   );
 };
 
-const toInvalidPayloadEvent = (message: string) =>
-  ({
-    handled: false,
-    event: {
-      type: QrSyncActionTypes.SYNC_ERROR,
-      data: {
-        code: 'INVALID_PAYLOAD',
-        message,
-        retryable: false,
-      },
+const toInvalidPayloadEvent = (message: string): QrSyncRoutedMessageResult => ({
+  handled: false,
+  event: {
+    type: QrSyncActionTypes.SYNC_ERROR,
+    data: {
+      code: 'INVALID_PAYLOAD',
+      message,
+      retryable: false,
     },
-  }) satisfies QrSyncRoutedMessageResult;
+  } satisfies QrSyncSyncErrorEvent,
+});
 
 /** Routes one decrypted incoming peer message into controller-consumable output. */
 export function routeIncomingQrSyncMessage(
@@ -72,7 +75,7 @@ export function routeIncomingQrSyncMessage(
           event: {
             type: QrSyncActionTypes.SYNC_ERROR,
             data: normalizedResult.error,
-          },
+          } satisfies QrSyncSyncErrorEvent,
         };
       }
 
@@ -81,8 +84,7 @@ export function routeIncomingQrSyncMessage(
         importPlan: normalizedResult.plan,
         event: {
           type: QrSyncActionTypes.SYNC_READY,
-          data: normalizedResult.review,
-        },
+        } satisfies QrSyncSyncReadyEvent,
       };
     }
 
@@ -91,7 +93,7 @@ export function routeIncomingQrSyncMessage(
         handled: true,
         event: {
           type: QrSyncActionTypes.SYNC_COMPLETED,
-        },
+        } satisfies QrSyncSyncCompletedEvent,
       };
 
     case QrSyncActionTypes.SYNC_CANCEL:
@@ -99,7 +101,7 @@ export function routeIncomingQrSyncMessage(
         handled: true,
         event: {
           type: QrSyncActionTypes.SYNC_CANCEL,
-        },
+        } satisfies QrSyncSyncCancelledEvent,
       };
 
     case QrSyncActionTypes.SYNC_ERROR:
@@ -112,7 +114,7 @@ export function routeIncomingQrSyncMessage(
         event: {
           type: QrSyncActionTypes.SYNC_ERROR,
           data: message.data,
-        },
+        } satisfies QrSyncSyncErrorEvent,
       };
 
     case QrSyncActionTypes.INIT_SYNC_SESSION:

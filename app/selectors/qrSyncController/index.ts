@@ -23,7 +23,10 @@ export const selectQrSyncError = createSelector(
 
 export const selectQrSyncPrimaryMnemonic = createSelector(
   selectQrSyncControllerState,
-  (qrSyncState) => qrSyncState.importPlan?.primaryMnemonic?.value ?? null,
+  (qrSyncState) =>
+    qrSyncState.importPlan?.find(
+      (entry) => entry.type === 'MNEMONIC' && entry.isPrimary,
+    )?.value ?? null,
 );
 
 export const selectQrSyncIsBusy = createSelector(

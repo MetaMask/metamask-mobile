@@ -6,8 +6,6 @@ import {
   QrSyncError,
   QrSyncImportPlan,
   QrSyncImportPlanEntry,
-  QrSyncImportReview,
-  QrSyncImportReviewItem,
   QrSyncMessage,
   QrSyncSecretMetadata,
   SyncDataType,
@@ -28,7 +26,6 @@ export type QrSyncNormalizationResult =
   | {
       valid: true;
       plan: QrSyncImportPlan;
-      review: QrSyncImportReview;
     }
   | QrSyncValidationErrorResult;
 
@@ -196,61 +193,19 @@ export function normalizeQrSyncDataEntry(
     index,
     value: entry.value,
     type: entry.type,
-    accountName: entry.metadata?.accountName,
+    accountName: entry.metadata?.accountName ?? null,
     hiddenIndexes: entry.metadata?.hiddenIndexes ?? [],
     isPrimary: entry.metadata?.isPrimary === true,
   };
 }
 
-export function normalizeQrSyncData(data: QrSyncData): {
-  plan: QrSyncImportPlan;
-  review: QrSyncImportReview;
-} {
-  const entries = data.data.map((entry, index) => {
+export function normalizeQrSyncData(data: QrSyncData): QrSyncImportPlan {
+  return data.data.map((entry, index) => {
     const valueBytes = base64ToBytes(entry.value);
-    const value = bytesToString(valueBytes);
-    return {
-      index,
-      value,
-      type: entry.type,
-      accountName: entry.metadata?.accountName,
-      hiddenIndexes: entry.metadata?.hiddenIndexes ?? [],
-      isPrimary: entry.metadata?.isPrimary === true,
-    };
+    const decodedValue = bytesToString(valueBytes);
+
+    return normalizeQrSyncDataEntry({ ...entry, value: decodedValue }, index);
   });
-  const mnemonicEntries = entries.filter((entry) => entry.type === 'MNEMONIC');
-  const privateKeyEntries = entries.filter(
-    (entry) => entry.type === 'PRIVATE_KEY',
-  );
-  const primaryMnemonic = mnemonicEntries.find((entry) => entry.isPrimary);
-
-  const reviewEntries: QrSyncImportReviewItem[] = entries.map((entry) => ({
-    index: entry.index,
-    type: entry.type,
-    accountName: entry.accountName,
-    hiddenIndexes: entry.hiddenIndexes,
-    isPrimary: entry.isPrimary,
-  }));
-
-  return {
-    plan: {
-      deadline: data.deadline,
-      entries,
-      primaryMnemonic,
-      mnemonicEntries,
-      privateKeyEntries,
-    },
-    review: {
-      deadline: data.deadline,
-      entries: reviewEntries,
-      summary: {
-        entryCount: entries.length,
-        mnemonicCount: mnemonicEntries.length,
-        privateKeyCount: privateKeyEntries.length,
-        hasPrimaryMnemonic: primaryMnemonic !== undefined,
-      },
-    },
-  };
 }
 
 export function validateAndNormalizeQrSyncData(
@@ -265,7 +220,7 @@ export function validateAndNormalizeQrSyncData(
 
   return {
     valid: true,
-    ...normalizeQrSyncData(data),
+    plan: normalizeQrSyncData(data),
   };
 }
 

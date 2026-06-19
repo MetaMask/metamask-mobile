@@ -7,8 +7,17 @@ import {
 } from '@metamask/mobile-wallet-protocol-core';
 import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
 
-import { RELAY_URL } from '../constants';
-import { QrSyncError, QrSyncServiceEvent, QrSyncWireMessage } from '../types';
+import {
+  QrSyncActionTypes,
+  QrSyncServiceEventTypes,
+  RELAY_URL,
+} from '../constants';
+import {
+  QrSyncConnectionStatus,
+  QrSyncError,
+  QrSyncServiceEvent,
+  QrSyncWireMessage,
+} from '../types';
 import { KVStore } from '../../SDKConnectV2/store/kv-store';
 
 interface QrSyncSessionConfig {
@@ -35,12 +44,7 @@ export class QrSyncSession extends EventEmitter {
 
   public readonly client: WalletClient;
 
-  private previousConnectionStatus:
-    | 'disconnected'
-    | 'connecting'
-    | 'connected'
-    | 'reconnecting'
-    | 'errored' = 'disconnected';
+  private previousConnectionStatus: QrSyncConnectionStatus = 'disconnected';
 
   private constructor(sessionId: string, client: WalletClient) {
     super();
@@ -50,7 +54,7 @@ export class QrSyncSession extends EventEmitter {
 
     this.client.on('display_otp', (otp, deadline) => {
       this.emit('serviceEvent', {
-        type: 'otp-display-grant',
+        type: QrSyncActionTypes.OTP_DISPLAY_GRANT,
         data: { otp, deadline },
       } satisfies QrSyncServiceEvent);
     });
@@ -71,7 +75,7 @@ export class QrSyncSession extends EventEmitter {
     this.client.on('error', (error) => {
       this.emitConnectionStatus('errored');
       this.emit('serviceEvent', {
-        type: 'sync-error',
+        type: QrSyncActionTypes.SYNC_ERROR,
         data: this.toQrSyncError(error),
       } satisfies QrSyncServiceEvent);
     });
@@ -151,19 +155,12 @@ export class QrSyncSession extends EventEmitter {
     await this.client.disconnect();
   }
 
-  private emitConnectionStatus(
-    status:
-      | 'disconnected'
-      | 'connecting'
-      | 'connected'
-      | 'reconnecting'
-      | 'errored',
-  ): void {
+  private emitConnectionStatus(status: QrSyncConnectionStatus): void {
     const previousStatus = this.previousConnectionStatus;
     this.previousConnectionStatus = status;
 
     this.emit('serviceEvent', {
-      type: 'connection-status-changed',
+      type: QrSyncServiceEventTypes.CONNECTION_STATUS_CHANGED,
       data: {
         status,
         previousStatus,

@@ -2,22 +2,10 @@ import { BaseController, type StateMetadata } from '@metamask/base-controller';
 
 import {
   QR_SYNC_CONTROLLER_NAME,
-  type QrSyncControllerErrorState,
   type QrSyncControllerMessenger,
-  type QrSyncControllerReviewItemState,
-  type QrSyncControllerReviewState,
   type QrSyncControllerState,
 } from './controller-types';
-import type {
-  QrSyncConnectionStatusChangedEvent,
-  QrSyncImportPlan,
-  QrSyncImportReview,
-  QrSyncPhase,
-  QrSyncSyncErrorEvent,
-  QrSyncSyncReadyEvent,
-  QrSyncOtpDisplayGrantEvent,
-  QrSyncServiceEvent,
-} from './types';
+import type { QrSyncError, QrSyncPhase, QrSyncServiceEvent } from './types';
 import { QrSyncSession } from './services/qr-sync-session';
 import { parseQrSyncConnectionRequest } from './services/qr-sync-connection-request';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
@@ -25,50 +13,12 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncServiceEventTypes,
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
 
 const SYNC_OFFER_DEADLINE_MS = 5 * 60 * 1000;
-
-const isConnectionStatusChangedEvent = (
-  event: QrSyncServiceEvent,
-): event is QrSyncConnectionStatusChangedEvent =>
-  event.type === 'connection-status-changed';
-
-const isOtpDisplayGrantEvent = (
-  event: QrSyncServiceEvent,
-): event is QrSyncOtpDisplayGrantEvent => event.type === 'otp-display-grant';
-
-const isSyncReadyEvent = (
-  event: QrSyncServiceEvent,
-): event is QrSyncSyncReadyEvent => event.type === QrSyncActionTypes.SYNC_READY;
-
-const isSyncErrorEvent = (
-  event: QrSyncServiceEvent,
-): event is QrSyncSyncErrorEvent => event.type === QrSyncActionTypes.SYNC_ERROR;
-
-const toControllerReviewState = (
-  review: QrSyncImportReview,
-): QrSyncControllerReviewState => {
-  const entries: QrSyncControllerReviewItemState[] = review.entries.map(
-    (entry) => ({
-      ...entry,
-      accountName: entry.accountName ?? null,
-    }),
-  );
-
-  return {
-    deadline: review.deadline,
-    entries,
-    summary: {
-      entryCount: review.summary.entryCount,
-      mnemonicCount: review.summary.mnemonicCount,
-      privateKeyCount: review.summary.privateKeyCount,
-      hasPrimaryMnemonic: review.summary.hasPrimaryMnemonic,
-    },
-  };
-};
 
 const metadata: StateMetadata<QrSyncControllerState> = {
   phase: {
@@ -81,12 +31,6 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     persist: false,
     includeInDebugSnapshot: true,
     includeInStateLogs: true,
-    usedInUi: true,
-  },
-  review: {
-    persist: false,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
     usedInUi: true,
   },
   otp: {
@@ -112,7 +56,6 @@ const metadata: StateMetadata<QrSyncControllerState> = {
 export const defaultQrSyncControllerState: QrSyncControllerState = {
   phase: QrSyncPhases.IDLE,
   connectionStatus: 'disconnected',
-  review: null,
   otp: null,
   error: null,
   importPlan: null,
@@ -121,8 +64,9 @@ export const defaultQrSyncControllerState: QrSyncControllerState = {
 /**
  * Controller that owns serialized QR sync state and coordinates runtime helpers.
  *
- * Runtime-only objects such as `QrSyncSession` and secret-bearing import plans
- * are intentionally kept out of controller state.
+ * Runtime-only objects such as `QrSyncSession` are intentionally kept out of
+ * controller state. `importPlan` holds secret material and is excluded from
+ * debug snapshots and state logs.
  */
 export class QrSyncController extends BaseController<
   typeof QR_SYNC_CONTROLLER_NAME,
@@ -225,9 +169,10 @@ export class QrSyncController extends BaseController<
       return;
     }
 
-    if ('importPlan' in routedMessage && routedMessage.importPlan) {
+    const { importPlan } = routedMessage;
+    if (importPlan) {
       this.update((state) => {
-        state.importPlan = routedMessage.importPlan as QrSyncImportPlan;
+        state.importPlan = importPlan;
       });
     }
 
@@ -243,57 +188,56 @@ export class QrSyncController extends BaseController<
   };
 
   private readonly handleSessionServiceEvent = (event: QrSyncServiceEvent) => {
-    if (isConnectionStatusChangedEvent(event)) {
-      this.update((state) => {
-        state.connectionStatus = event.data.status;
-      });
+    switch (event.type) {
+      case QrSyncServiceEventTypes.CONNECTION_STATUS_CHANGED: {
+        this.update((state) => {
+          state.connectionStatus = event.data.status;
+        });
 
-      if (
-        event.data.status === 'connected' &&
-        this.state.phase === QrSyncPhases.DISPLAYING_OTP
-      ) {
-        this.onHandshakeAcknowledged();
+        if (
+          event.data.status === 'connected' &&
+          this.state.phase === QrSyncPhases.DISPLAYING_OTP
+        ) {
+          this.onHandshakeAcknowledged();
+        }
+        break;
+      }
+      case QrSyncActionTypes.OTP_DISPLAY_GRANT: {
+        this.update((state) => {
+          state.phase = QrSyncPhases.DISPLAYING_OTP;
+          state.otp = event.data;
+          state.error = null;
+        });
+        break;
+      }
+      case QrSyncActionTypes.SYNC_READY: {
+        this.update((state) => {
+          state.phase = QrSyncPhases.REVIEWING_IMPORT;
+          state.error = null;
+        });
+        break;
+      }
+      case QrSyncActionTypes.SYNC_COMPLETED: {
+        this.update((state) => {
+          state.phase = QrSyncPhases.COMPLETED;
+          state.otp = null;
+          state.error = null;
+        });
+        this.destroySession().catch(() => undefined);
+        break;
+      }
+      case QrSyncActionTypes.SYNC_CANCEL: {
+        this.clearControllerState();
+        this.destroySession().catch(() => undefined);
+        break;
+      }
+      case QrSyncActionTypes.SYNC_ERROR: {
+        this.terminateWithError(event.data);
+        break;
       }
 
-      return;
-    }
-
-    if (isOtpDisplayGrantEvent(event)) {
-      this.update((state) => {
-        state.phase = QrSyncPhases.DISPLAYING_OTP;
-        state.otp = event.data;
-        state.error = null;
-      });
-      return;
-    }
-
-    if (isSyncReadyEvent(event)) {
-      this.update((state) => {
-        state.phase = QrSyncPhases.REVIEWING_IMPORT;
-        state.review = toControllerReviewState(event.data);
-        state.error = null;
-      });
-      return;
-    }
-
-    if (event.type === QrSyncActionTypes.SYNC_COMPLETED) {
-      this.update((state) => {
-        state.phase = QrSyncPhases.COMPLETED;
-        state.otp = null;
-        state.error = null;
-      });
-      this.destroySession().catch(() => undefined);
-      return;
-    }
-
-    if (event.type === QrSyncActionTypes.SYNC_CANCEL) {
-      this.clearControllerState();
-      this.destroySession().catch(() => undefined);
-      return;
-    }
-
-    if (isSyncErrorEvent(event)) {
-      this.terminateWithError(event.data);
+      default:
+      // no-op
     }
   };
 
@@ -345,7 +289,7 @@ export class QrSyncController extends BaseController<
     });
   }
 
-  private terminateWithError(error: QrSyncControllerErrorState): void {
+  private terminateWithError(error: QrSyncError): void {
     this.notifyPeerAndEndSession(QrSyncActionTypes.SYNC_ERROR, error).catch(
       () => undefined,
     );
@@ -355,7 +299,7 @@ export class QrSyncController extends BaseController<
     wireType:
       | typeof QrSyncActionTypes.SYNC_CANCEL
       | typeof QrSyncActionTypes.SYNC_ERROR,
-    error?: QrSyncControllerErrorState,
+    error?: QrSyncError,
   ): Promise<void> {
     const session = this.session;
 
@@ -413,14 +357,13 @@ export class QrSyncController extends BaseController<
     this.update((state) => {
       state.phase = defaultQrSyncControllerState.phase;
       state.connectionStatus = defaultQrSyncControllerState.connectionStatus;
-      state.review = null;
       state.otp = null;
       state.error = null;
       state.importPlan = null;
     });
   }
 
-  private toQrSyncError(error: unknown): QrSyncControllerErrorState {
+  private toQrSyncError(error: unknown): QrSyncError {
     const message = error instanceof Error ? error.message : String(error);
 
     return {

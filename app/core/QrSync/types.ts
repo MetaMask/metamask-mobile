@@ -4,6 +4,7 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncServiceEventTypes,
 } from './constants';
 
 /** Mobile-local lifecycle state for one QR sync session. */
@@ -38,15 +39,6 @@ export interface QrSyncSecretMetadata {
   isPrimary?: boolean;
 }
 
-/** Sanitized account candidate shown in a sync offer review. */
-export interface QrSyncAccountCandidate {
-  id: string;
-  address: string;
-  name?: string;
-  type: SyncDataType;
-  metadata?: QrSyncSecretMetadata;
-}
-
 /** Mobile-generated offer sent to the extension for selection/review. */
 export interface QrSyncOffer {
   sessionId?: string;
@@ -69,11 +61,12 @@ export type QrSyncErrorCode =
   | 'UNKNOWN';
 
 /** Structured QR sync error surfaced to services and UI bridges. */
-export interface QrSyncError {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncError = {
   code: QrSyncErrorCode;
   message: string;
   retryable: boolean;
-}
+};
 
 /**
  * The data payload for the sync action.
@@ -108,45 +101,28 @@ export interface QrSyncConnectionRequest {
   sessionRequest: SessionRequest;
 }
 
-/** One normalized import entry used by mobile import orchestration. */
+/** One normalized import entry without secret material. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncImportPlanEntry = {
+export type QrSyncImportEntry = {
   index: number;
-  value: string;
   type: SyncDataType;
-  accountName?: string;
+  accountName: string | null;
   hiddenIndexes: number[];
   isPrimary: boolean;
 };
 
+/** One normalized import entry used by mobile import orchestration. */
+export type QrSyncImportPlanEntry = QrSyncImportEntry & {
+  value: string;
+};
+
 /** Validated import plan used by the mobile import service. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncImportPlan = {
-  deadline: number;
-  entries: QrSyncImportPlanEntry[];
-  primaryMnemonic?: QrSyncImportPlanEntry;
-  mnemonicEntries: QrSyncImportPlanEntry[];
-  privateKeyEntries: QrSyncImportPlanEntry[];
-};
+export type QrSyncImportPlan = QrSyncImportPlanEntry[];
 
-/** Review-safe import entry with secret material removed for UI use. */
-export type QrSyncImportReviewItem = Omit<QrSyncImportPlanEntry, 'value'>;
-
-/** Aggregate counts shown alongside the import review UI. */
-export interface QrSyncImportReviewSummary {
-  entryCount: number;
-  mnemonicCount: number;
-  privateKeyCount: number;
-  hasPrimaryMnemonic: boolean;
-}
-
-/** Sanitized review model emitted to UI before import execution begins. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncImportReview = {
-  deadline: number;
-  entries: QrSyncImportReviewItem[];
-  summary: QrSyncImportReviewSummary;
-};
+/** Strips secret values from an import plan for UI-safe review. */
+export const stripQrSyncImportSecrets = (
+  plan: QrSyncImportPlan,
+): QrSyncImportEntry[] => plan.map(({ value: _value, ...entry }) => entry);
 
 /** Wire message used to bootstrap a QR sync session. */
 export type QrSyncInitSyncSessionMessage = QrSyncMessage & {
@@ -197,32 +173,15 @@ export type QrSyncWireMessage =
   | QrSyncSyncErrorMessage;
 
 /** OTP details emitted when the protocol allows mobile to display the code. */
-export interface QrSyncOtpDisplay {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncOtpDisplay = {
   otp: string;
   deadline: number;
-}
-
-/** Minimal controller state suitable for Redux or another UI state bridge. */
-export interface QrSyncState {
-  phase: QrSyncPhase;
-  connectionStatus: QrSyncConnectionStatus;
-  review?: QrSyncImportReview;
-  otp?: QrSyncOtpDisplay;
-  error?: QrSyncError;
-}
-
-/** Service event emitted when the mobile session phase changes. */
-export interface QrSyncPhaseChangedEvent {
-  type: 'phase-changed';
-  data: {
-    phase: QrSyncPhase;
-    previousPhase: QrSyncPhase;
-  };
-}
+};
 
 /** Service event emitted when transport connectivity changes. */
 export interface QrSyncConnectionStatusChangedEvent {
-  type: 'connection-status-changed';
+  type: typeof QrSyncServiceEventTypes.CONNECTION_STATUS_CHANGED;
   data: {
     status: QrSyncConnectionStatus;
     previousStatus: QrSyncConnectionStatus;
@@ -235,10 +194,9 @@ export interface QrSyncOtpDisplayGrantEvent {
   data: QrSyncOtpDisplay;
 }
 
-/** Service event emitted when UI should review a normalized import payload. */
+/** Service event emitted when a validated import plan is ready for execution. */
 export interface QrSyncSyncReadyEvent {
   type: typeof QrSyncActionTypes.SYNC_READY;
-  data: QrSyncImportReview;
 }
 
 /** Service event emitted when the QR sync flow finishes successfully. */
@@ -264,7 +222,6 @@ export interface QrSyncSyncErrorEvent {
  * peer-to-peer protocol messages exchanged over the encrypted MWP session.
  */
 export type QrSyncServiceEvent =
-  | QrSyncPhaseChangedEvent
   | QrSyncConnectionStatusChangedEvent
   | QrSyncOtpDisplayGrantEvent
   | QrSyncSyncReadyEvent
