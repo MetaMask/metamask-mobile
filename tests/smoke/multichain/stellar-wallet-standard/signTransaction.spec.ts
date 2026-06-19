@@ -24,7 +24,9 @@ describe(
           await StellarTestDapp.loadExampleXdr();
           await StellarTestDapp.signTransaction();
           await StellarTestDapp.confirmTransaction();
-          await StellarTestDapp.verifySignedTransactionMatches(/^[A-Za-z0-9+/=]+$/);
+          await StellarTestDapp.verifySignedTransactionMatches(
+            /^[A-Za-z0-9+/=]+$/,
+          );
         } finally {
           await device.enableSynchronization();
         }

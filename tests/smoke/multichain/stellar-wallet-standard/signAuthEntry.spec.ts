@@ -25,7 +25,9 @@ describe(
           await StellarTestDapp.fillAuthEntry(exampleAuthEntryXdr);
           await StellarTestDapp.signAuthEntry();
           await StellarTestDapp.confirmSignAuthEntry();
-          await StellarTestDapp.verifySignedAuthEntryMatches(/^[A-Za-z0-9+/=]+$/);
+          await StellarTestDapp.verifySignedAuthEntryMatches(
+            /^[A-Za-z0-9+/=]+$/,
+          );
         } finally {
           await device.enableSynchronization();
         }

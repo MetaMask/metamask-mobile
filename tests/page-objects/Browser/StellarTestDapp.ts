@@ -59,9 +59,12 @@ class StellarTestDapp {
   }
 
   get signTransactionButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.signTransaction.signTransaction, {
-      tag: 'button',
-    });
+    return getTestElement(
+      dataTestIds.testPage.signTransaction.signTransaction,
+      {
+        tag: 'button',
+      },
+    );
   }
 
   get signAuthEntryButtonSelector(): WebElement {
@@ -129,8 +132,9 @@ class StellarTestDapp {
   async waitForWalletOption(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
+        const walletOption = await this.metaMaskWalletOptionSelector;
         // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-        await (expect(await this.metaMaskWalletOptionSelector) as any).toExist();
+        await (expect(walletOption) as any).toExist();
       },
       {
         timeout: BASE_DEFAULTS.timeout,
