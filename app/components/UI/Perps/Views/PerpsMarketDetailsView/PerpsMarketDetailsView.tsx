@@ -417,6 +417,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const lastCandle = candleData.candles.at(-1);
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
   }, [candleData]);
+  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
+    number | undefined
+  >(undefined);
+  const syncedChartCurrentPrice =
+    isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
+      ? advancedChartCurrentPrice
+      : chartCurrentPrice;
+
+  useEffect(() => {
+    setAdvancedChartCurrentPrice(undefined);
+  }, [isAdvancedChartEnabled, market?.symbol, selectedCandlePeriod]);
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -505,10 +516,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   );
 
   // Compute TP/SL lines for the chart based on existing position
-  // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
+  // Use the active chart candle close so the header and current price line stay in sync.
   const tpslLines = useMemo(() => {
     const chartPriceStr =
-      chartCurrentPrice > 0 ? chartCurrentPrice.toString() : undefined;
+      syncedChartCurrentPrice > 0
+        ? syncedChartCurrentPrice.toString()
+        : undefined;
 
     if (existingPosition) {
       return {
@@ -522,7 +535,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     // Even without position, show current price line on chart
     return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
-  }, [existingPosition, chartCurrentPrice]);
+  }, [existingPosition, syncedChartCurrentPrice]);
 
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation
@@ -1266,7 +1279,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     >
       <PerpsMarketInlineHeader
         market={market}
-        currentPrice={chartCurrentPrice}
+        currentPrice={syncedChartCurrentPrice}
         onBackPress={handleBackPress}
         onFullscreenPress={handleFullscreenChartOpen}
         onFavoritePress={handleWatchlistPress}
@@ -1318,8 +1331,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   tpslLines={tpslLines}
                   positionSize={existingPosition?.size}
                   onCrosshairDataChange={setOhlcData}
+                  onLatestPriceChange={setAdvancedChartCurrentPrice}
                   fallbackCandleData={candleData}
                   fallbackFetchMoreHistory={fetchMoreHistory}
+                  paginationDuration={TimeDuration.YearToDate}
                 />
               ) : hasHistoricalData ? (
                 <TradingViewChart

@@ -19,7 +19,7 @@ import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
 } from '../../selectors/featureFlags';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import { TimeDuration, type PerpsMarketData } from '@metamask/perps-controller';
 
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
@@ -1502,6 +1502,47 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(1);
       expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(2);
+    });
+
+    it('passes YearToDate pagination to advanced chart and uses its latest price for the header', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId, getAllByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const advancedChart = getByTestId('mock-perps-advanced-chart');
+      expect(advancedChart.props.paginationDuration).toBe(
+        TimeDuration.YearToDate,
+      );
+
+      act(() => {
+        advancedChart.props.onLatestPriceChange(47000);
+      });
+
+      await waitFor(() => {
+        expect(getAllByText('$47,000').length).toBeGreaterThan(0);
+      });
     });
 
     it('refreshes candle data when position tab is active', async () => {

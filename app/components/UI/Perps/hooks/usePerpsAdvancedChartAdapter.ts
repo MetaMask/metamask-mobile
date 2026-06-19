@@ -61,11 +61,13 @@ export interface UsePerpsAdvancedChartAdapterOptions {
   symbol: string;
   interval: CandlePeriod;
   visibleCandleCount: number;
+  paginationDuration?: TimeDuration;
 }
 
 export interface UsePerpsAdvancedChartAdapterResult {
   ohlcvData: OHLCVBar[];
   realtimeBar: OHLCVBar | undefined;
+  latestBar: OHLCVBar | undefined;
   ohlcvSeriesKey: string;
   visibleFromMs: number | undefined;
   visibleToMs: number | undefined;
@@ -87,6 +89,7 @@ export function usePerpsAdvancedChartAdapter({
   symbol,
   interval,
   visibleCandleCount,
+  paginationDuration = TimeDuration.OneWeek,
 }: UsePerpsAdvancedChartAdapterOptions): UsePerpsAdvancedChartAdapterResult {
   const stream = usePerpsStream();
 
@@ -197,7 +200,7 @@ export function usePerpsAdvancedChartAdapter({
         await stream.candles.fetchHistoricalCandles(
           symbol,
           interval,
-          TimeDuration.OneWeek,
+          paginationDuration,
         );
         // fetchHistoricalCandles notifies subscribers synchronously before resolving,
         // so latestCandleDataRef.current is up to date after the await.
@@ -225,12 +228,15 @@ export function usePerpsAdvancedChartAdapter({
         };
       }
     },
-    [symbol, interval, stream],
+    [symbol, interval, paginationDuration, stream],
   );
+
+  const latestBar = realtimeBar ?? ohlcvData[ohlcvData.length - 1];
 
   return {
     ohlcvData,
     realtimeBar,
+    latestBar,
     ohlcvSeriesKey,
     visibleFromMs,
     visibleToMs,

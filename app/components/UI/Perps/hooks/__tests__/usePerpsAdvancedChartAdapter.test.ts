@@ -1,5 +1,9 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+} from '@metamask/perps-controller';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import type { FetchOlderBarsRequest } from '../../../Charts/AdvancedChart/AdvancedChart.types';
 import {
@@ -126,12 +130,15 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
   const SYMBOL = 'BTC';
   const INTERVAL = CandlePeriod.OneHour;
 
-  const renderAdapter = () =>
+  const renderAdapter = (
+    overrides: Partial<Parameters<typeof usePerpsAdvancedChartAdapter>[0]> = {},
+  ) =>
     renderHook(() =>
       usePerpsAdvancedChartAdapter({
         symbol: SYMBOL,
         interval: INTERVAL,
         visibleCandleCount: 45,
+        ...overrides,
       }),
     );
 
@@ -371,7 +378,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
       SYMBOL,
       INTERVAL,
-      '1w',
+      TimeDuration.OneWeek,
     );
     expect(response).toEqual({
       requestId: 'older-1',
@@ -382,6 +389,27 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       ],
       noData: false,
     });
+  });
+
+  it('uses the configured duration when fetching older bars', async () => {
+    const { result } = renderAdapter({
+      paginationDuration: TimeDuration.YearToDate,
+    });
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000), candle(2000), candle(3000)],
+      });
+    });
+    await result.current.handleFetchOlderBarsRequest(fetchOlderRequest());
+
+    expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
+      SYMBOL,
+      INTERVAL,
+      TimeDuration.YearToDate,
+    );
   });
 
   it('returns noData when handleFetchOlderBarsRequest finds no older bars', async () => {

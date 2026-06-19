@@ -218,6 +218,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 candleData={candleData}
                 height={Math.max(chartHeight - ohlcvHeight, 100)}
                 tpslLines={tpslLines}
+                symbol={symbol}
                 visibleCandleCount={
                   visibleCandleCount ??
                   PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN

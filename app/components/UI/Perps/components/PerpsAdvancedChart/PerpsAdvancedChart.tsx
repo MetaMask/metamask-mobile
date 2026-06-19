@@ -5,7 +5,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+} from '@metamask/perps-controller';
 import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
 import {
   ChartType,
@@ -42,12 +46,15 @@ export interface PerpsAdvancedChartProps {
   /** Signed position size string; used to derive long/short side for position lines. */
   positionSize?: string;
   onCrosshairDataChange?: (data: OhlcData | null) => void;
+  onLatestPriceChange?: (price: number | undefined) => void;
   onError?: (error: string) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
   /** Fallback candle data for the Lightweight chart if AdvancedChart fails this mount. */
   fallbackCandleData: CandleData | null;
   /** Fallback fetch-more-history for the Lightweight chart fallback. */
   fallbackFetchMoreHistory?: () => void;
+  /** Duration used for RN-backed older-bar pagination. */
+  paginationDuration?: TimeDuration;
 }
 
 /**
@@ -159,20 +166,28 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   tpslLines,
   positionSize,
   onCrosshairDataChange,
+  onLatestPriceChange,
   onError,
   onSkeletonHidden,
   fallbackCandleData,
   fallbackFetchMoreHistory,
+  paginationDuration,
 }) => {
   const {
     ohlcvData,
     realtimeBar,
+    latestBar,
     ohlcvSeriesKey,
     visibleFromMs,
     visibleToMs,
     isLoading,
     handleFetchOlderBarsRequest,
-  } = usePerpsAdvancedChartAdapter({ symbol, interval, visibleCandleCount });
+  } = usePerpsAdvancedChartAdapter({
+    symbol,
+    interval,
+    visibleCandleCount,
+    paginationDuration,
+  });
 
   // Per-mount error fallback: once errored, stay on Lightweight until unmount.
   const [hasFailed, setHasFailed] = useState(false);
@@ -190,6 +205,14 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   );
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
+
+  useEffect(() => {
+    onLatestPriceChange?.(
+      latestBar && Number.isFinite(latestBar.close)
+        ? latestBar.close
+        : undefined,
+    );
+  }, [latestBar, onLatestPriceChange]);
 
   // ---- Crosshair + haptics ----
 
@@ -350,6 +373,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         height={height}
         visibleCandleCount={visibleCandleCount}
         tpslLines={tpslLines}
+        symbol={symbol}
         onNeedMoreHistory={fallbackFetchMoreHistory}
         onOhlcDataChange={onCrosshairDataChange}
         showOverlay={false}
