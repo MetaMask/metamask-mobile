@@ -121,6 +121,17 @@ async function handleDapps(
           }),
         );
         break;
+      case DappVariants.BITCOIN_TEST_DAPP:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BITCOIN_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
+          }),
+        );
+        break;
       case DappVariants.STELLAR_TEST_DAPP:
         dappServer.push(
           new DappServer({

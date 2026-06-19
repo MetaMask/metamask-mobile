@@ -12,6 +12,15 @@ import { useTransactionDetails } from '../../../../Views/confirmations/hooks/act
 import { otherControllersMock } from '../../../../Views/confirmations/__mocks__/controllers/other-controllers-mock';
 import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import { MoneySentDetails } from './MoneySentDetails';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: jest.fn(),
+}));
+
+const mockedSelectBlockexplorerFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+);
 
 jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
   ...jest.requireActual('../../../../../util/analytics/externalLinkTracking'),
@@ -19,6 +28,8 @@ jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
 }));
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
+// Mirrors the host sheet: closes first, then runs the deferred navigation.
+const mockCloseSheet = jest.fn((navigate: () => void) => navigate());
 
 jest.mock(
   '../../../../Views/confirmations/hooks/activity/useTransactionDetails',
@@ -162,13 +173,19 @@ function render(overrides: Partial<TransactionMeta> = {}) {
       ...overrides,
     } as TransactionMeta,
   });
-  return renderWithProvider(<MoneySentDetails />, {
-    state: merge({}, otherControllersMock),
-  });
+  return renderWithProvider(
+    <MoneySentDetails onCloseSheet={mockCloseSheet} />,
+    {
+      state: merge({}, otherControllersMock),
+    },
+  );
 }
 
 describe('MoneySentDetails', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedSelectBlockexplorerFlag.mockReturnValue(true);
+  });
 
   it('renders the hero with the negative mUSD amount', () => {
     const { getByTestId, getByText } = render();
@@ -220,9 +237,12 @@ describe('MoneySentDetails', () => {
     expect(getByText('$34.54')).toBeOnTheScreen();
   });
 
-  it('navigates to the block explorer when the button is pressed', () => {
+  it('closes the sheet before navigating to the block explorer when the button is pressed', () => {
     const { getByText } = render();
     fireEvent.press(getByText('View on block explorer'));
+    // The sheet must dismiss first — navigating while its transparent modal is
+    // still presented leaves the WebView behind it and strands the overlay.
+    expect(mockCloseSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       'Webview',
       expect.objectContaining({ screen: 'SimpleWebview' }),
@@ -241,5 +261,13 @@ describe('MoneySentDetails', () => {
       metamaskPay: undefined,
     });
     expect(queryByText('Total amount')).toBeNull();
+  });
+
+  it('hides the block explorer button when moneyEnableActivityDetailsBlockexplorerLink flag is off', () => {
+    mockedSelectBlockexplorerFlag.mockReturnValue(false);
+
+    const { queryByText } = render();
+
+    expect(queryByText('View on block explorer')).toBeNull();
   });
 });

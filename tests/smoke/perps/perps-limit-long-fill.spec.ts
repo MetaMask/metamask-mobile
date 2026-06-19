@@ -39,7 +39,6 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
               type: 'erc20',
             },
           ])
-          .withPopularNetworks()
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
