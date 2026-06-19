@@ -23,6 +23,7 @@ describe('PlaywrightUtilities.launchApp', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    process.env.CI = 'true';
     executeMock.mockResolvedValue(undefined);
     terminateAppMock.mockResolvedValue(undefined);
     globalThis.driver = {
@@ -33,6 +34,7 @@ describe('PlaywrightUtilities.launchApp', () => {
 
   afterEach(() => {
     delete globalThis.driver;
+    delete process.env.CI;
     jest.useRealTimers();
     jest.clearAllMocks();
   });
@@ -145,5 +147,41 @@ describe('PlaywrightUtilities.launchApp', () => {
     expect(processArguments).not.toEqual(
       expect.arrayContaining(['-stop', 'false', '-wait', 'false']),
     );
+  });
+
+  it('launches local Android debug builds via Expo dev-client deep link', async () => {
+    process.env.CI = 'false';
+    const execSyncMock = jest.spyOn(
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('child_process'),
+      'execSync',
+    );
+    execSyncMock.mockImplementation(() => Buffer.from(''));
+
+    const launchPromise = PlaywrightUtilities.launchApp(androidDevice);
+    await jest.advanceTimersByTimeAsync(2500);
+    await launchPromise;
+
+    expect(execSyncMock).toHaveBeenCalledWith(
+      'adb -s emulator-5554 reverse tcp:8081 tcp:8081',
+      expect.objectContaining({ stdio: 'ignore' }),
+    );
+    expect(executeMock).toHaveBeenCalledWith(
+      'mobile: startActivity',
+      expect.objectContaining({
+        component: 'io.metamask/io.metamask.MainActivity',
+        action: 'android.intent.action.MAIN',
+        categories: ['android.intent.category.LAUNCHER'],
+      }),
+    );
+    expect(executeMock).toHaveBeenCalledWith(
+      'mobile: deepLink',
+      expect.objectContaining({
+        package: 'io.metamask',
+        url: expect.stringContaining('expo-metamask://expo-development-client'),
+      }),
+    );
+
+    execSyncMock.mockRestore();
   });
 });

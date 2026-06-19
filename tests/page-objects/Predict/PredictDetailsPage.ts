@@ -195,16 +195,22 @@ class PredictDetailsPage {
   }
 
   private getKeypadDigitButton(digit: string): EncapsulatedElementType {
+    const testID =
+      digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
     return encapsulated({
       detox: () => Matchers.getElementByText(digit),
-      appium: () => PlaywrightMatchers.getElementByText(digit),
+      appium: () =>
+        PlaywrightMatchers.getElementById(testID, { exact: true }),
     });
   }
 
   private getDoneButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText('Done'),
-      appium: () => PlaywrightMatchers.getElementByText('Done'),
+      appium: () =>
+        PlaywrightMatchers.getElementByText('Done', false, {
+          lastElement: true,
+        }),
     });
   }
 
@@ -235,8 +241,33 @@ class PredictDetailsPage {
   }
 
   async tapBackButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.backButton, {
-      description: 'Back button',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(this.backButton, {
+          description: 'Back button',
+          timeout: 30_000,
+        });
+      },
+      appium: async () => {
+        try {
+          await Assertions.expectElementToBeVisible(this.backButton, {
+            description: 'Market details back button',
+            timeout: 30_000,
+          });
+          await UnifiedGestures.waitAndTap(this.backButton, {
+            description: 'Back button',
+            timeout: 30_000,
+          });
+        } catch {
+          const driver = globalThis.driver;
+          if (!driver) {
+            throw new Error(
+              'WebDriver session not available for Android back navigation',
+            );
+          }
+          await driver.back();
+        }
+      },
     });
   }
 
@@ -320,8 +351,18 @@ class PredictDetailsPage {
         });
       },
       appium: async () => {
+        await Assertions.expectElementToBeVisible(this.placeBetButton, {
+          description: 'Place bet button before submitting order',
+          timeout: 30_000,
+        });
         await UnifiedGestures.waitAndTap(this.placeBetButton, {
           description: 'Place bet button',
+          delay: 1000,
+          waitForInteractive: true,
+        });
+        await Assertions.expectElementToBeVisible(this.container, {
+          description: 'Market details screen after order submission',
+          timeout: 60_000,
         });
       },
     });

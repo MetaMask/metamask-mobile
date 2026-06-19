@@ -1,4 +1,5 @@
 import {
+  Assertions,
   Matchers,
   PlaywrightMatchers,
   UnifiedGestures,
@@ -211,28 +212,57 @@ class PredictMarketList {
     category: CategoryTab = 'trending',
     cardIndex: number = 1,
   ): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getMarketCard(category, cardIndex), {
-      description: `Predict market card ${cardIndex} in ${category} category`,
+    const card = this.getMarketCard(category, cardIndex);
+    const listContainer = encapsulated({
+      detox: () =>
+        Matchers.getElementByID(getPredictFeedSelector.marketList(category)),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          getPredictFeedSelector.marketList(category),
+          { exact: true },
+        ),
     });
+
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Assertions.expectElementToBeVisible(card, { timeout: 3000 });
+        } catch {
+          await UnifiedGestures.scrollToElement(card, listContainer, {
+            description: `Predict market card ${cardIndex} in ${category}`,
+            direction: 'down',
+          });
+          await Assertions.expectElementToBeVisible(card, { timeout: 10_000 });
+        }
+        await UnifiedGestures.waitAndTap(card, {
+          description: `Predict market card ${cardIndex} in ${category} category`,
+          timeout: 15_000,
+        });
+      },
+      {
+        timeout: 60_000,
+        description: `Tap predict market card ${cardIndex} in ${category}`,
+      },
+    );
   }
 
   async tapCategoryTab(category: CategoryTab): Promise<void> {
-    const firstTab = encapsulated({
-      detox: () => Matchers.getElementByID(getPredictFeedSelector.tab(0)),
-      appium: () =>
-        PlaywrightMatchers.getElementById(getPredictFeedSelector.tab(0)),
-    });
     const tab = this.getCategoryTab(category);
     await Utilities.executeWithRetry(
       async () => {
-        if (!(await Utilities.isElementVisible(tab, 1000))) {
-          await UnifiedGestures.swipe(firstTab, 'left', {
-            description: `Swipe tabs to reveal ${category}`,
-            speed: 'slow',
-            percentage: 0.5,
-          });
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          try {
+            await Assertions.expectElementToBeVisible(tab, { timeout: 1000 });
+            return;
+          } catch {
+            await UnifiedGestures.swipe(this.categoryTabs, 'left', {
+              description: `Swipe tabs to reveal ${category} (attempt ${attempt + 1})`,
+              speed: 'slow',
+              percentage: 0.5,
+            });
+          }
         }
-        await Utilities.waitForElementToBeVisible(tab, 2000);
+        await Assertions.expectElementToBeVisible(tab, { timeout: 2000 });
       },
       {
         timeout: 15000,
@@ -242,6 +272,10 @@ class PredictMarketList {
     await UnifiedGestures.waitAndTap(tab, {
       description: `${category} category tab`,
       checkStability: true,
+    });
+    await Assertions.expectElementToBeVisible(this.getMarketCard(category, 1), {
+      timeout: 60_000,
+      description: `${category} feed first market card loaded`,
     });
   }
 

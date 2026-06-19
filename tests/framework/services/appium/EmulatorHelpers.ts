@@ -449,6 +449,36 @@ export async function isAndroidEmulatorRunning(): Promise<boolean> {
 }
 
 /**
+ * Ensures an Android emulator is booted before Appium session creation.
+ * Prefers `preferredSerial` or `ANDROID_DEVICE_UDID` so tests attach to a
+ * specific adb serial instead of whichever emulator matches the AVD name.
+ */
+export async function ensureAndroidEmulatorReady(
+  avdName: string,
+  preferredSerial?: string,
+): Promise<string> {
+  const serial =
+    preferredSerial?.trim() || process.env.ANDROID_DEVICE_UDID?.trim();
+  if (serial) {
+    const devices = await listAdbDevices();
+    const device = devices.find(
+      (entry) => entry.serial === serial && entry.state === 'device',
+    );
+    if (device) {
+      logger.info(
+        `Using configured Android emulator ${serial} — skipping AVD name lookup.`,
+      );
+      await waitForEmulatorBoot(serial);
+      return serial;
+    }
+    logger.warn(
+      `Configured Android serial ${serial} not found in adb devices — falling back to AVD "${avdName}".`,
+    );
+  }
+  return startAndroidEmulator(avdName);
+}
+
+/**
  * Start the Android emulator and wait for it to fully boot.
  * If the requested AVD is already running and booted, this is a no-op.
  * @returns adb serial for the booted emulator (e.g. emulator-5554)

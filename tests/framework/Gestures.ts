@@ -15,6 +15,7 @@ import { sleep } from '../../app/util/testUtils';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
+import type { ScrollContainer } from './GestureStrategy.ts';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -588,7 +589,7 @@ export default class Gestures {
    */
   static async scrollToElement(
     targetElement: DetoxElement | EncapsulatedElementType,
-    scrollableContainer: ScrollContainer,
+    scrollableContainer?: ScrollContainer,
     options: ScrollOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {

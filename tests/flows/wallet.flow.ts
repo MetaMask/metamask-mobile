@@ -36,7 +36,7 @@ import ManualBackupStep1View from '../page-objects/Onboarding/ManualBackupStep1V
 import NetworkListModal from '../page-objects/Network/NetworkListModal';
 import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
-import { waitForAppReady } from './general.flow';
+import { dismissAndroidSystemOverlaysPlaywright, dismissDeveloperMenuPlaywright, waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import PlaywrightUtilities from '../framework/PlaywrightUtilities';
@@ -515,6 +515,31 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
+  const dismissPostLoginModals = async (): Promise<void> => {
+    await PlaywrightUtilities.wait(2000);
+    await dismissPushNotificationExistingUserSheet();
+    await dismissExperienceEnhancerModal();
+  };
+
+  await dismissAndroidSystemOverlaysPlaywright();
+  await waitForAppReady();
+  await dismissDeveloperMenuPlaywright();
+  await dismissAndroidSystemOverlaysPlaywright();
+
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(WalletView.container),
+      {
+        description: 'Wallet already visible — skip password unlock',
+        timeout: 5000,
+      },
+    );
+    await dismissPostLoginModals();
+    return;
+  } catch {
+    // Login screen expected — continue below.
+  }
+
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.container),
     {
@@ -535,9 +560,7 @@ export const loginToAppPlaywright = async (
   await LoginView.enterPassword(password ?? '');
   await LoginView.tapLoginButton();
 
-  await PlaywrightUtilities.wait(5000);
-  await dismissPushNotificationExistingUserSheet();
-  await dismissExperienceEnhancerModal();
+  await dismissPostLoginModals();
 };
 
 /**

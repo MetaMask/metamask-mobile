@@ -72,10 +72,13 @@ export default class PlaywrightAssertions {
         const t0 = Date.now();
         const exists = await el.unwrap().isExisting();
         if (exists) {
-          if (isOverheadTrackingActive()) {
-            await this.probeOverhead(el);
+          const displayed = await el.isVisible();
+          if (displayed) {
+            if (isOverheadTrackingActive()) {
+              addOverhead(Date.now() - t0);
+            }
+            return;
           }
-          return;
         }
       } catch {
         // element not ready yet
@@ -264,7 +267,8 @@ export default class PlaywrightAssertions {
     } catch (error) {
       if (
         error instanceof Error &&
-        error.message.includes('No elements found for XPath')
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('No elements found'))
       ) {
         return;
       }

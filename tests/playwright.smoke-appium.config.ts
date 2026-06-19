@@ -1,16 +1,28 @@
 import dotenv from 'dotenv';
+import os from 'node:os';
+import path from 'node:path';
+
 dotenv.config({ path: '.e2e.env' });
 
 import { Platform, ProviderName } from './framework/types';
 import { defineConfig } from './framework/config';
 
-// Requires HAS_TEST_OVERRIDES=true baked in at Metro bundle time so the app
-// activates ReadOnlyNetworkStore and fetches fixture state from /state.json.
-// Build with: CONFIGURATION=Debug yarn build:android:main:e2e
-// (or add HAS_TEST_OVERRIDES=true + METAMASK_ENVIRONMENT=e2e to .js.env and
-//  run CONFIGURATION=Debug yarn build:android:main:e2e)
+// Local e2e debug APK (io.metamask). Override with ANDROID_APK_PATH in .e2e.env.
+// Debug builds load JS from Metro — start Metro before running tests.
 const DEFAULT_ANDROID_APK =
   'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk';
+
+const resolveAndroidApkPath = (): string => {
+  const repoRoot = path.resolve(__dirname, '..');
+  const raw = process.env.ANDROID_APK_PATH?.trim();
+  const candidate = raw || DEFAULT_ANDROID_APK;
+  const expanded = candidate
+    .replace(/\$HOME/g, os.homedir())
+    .replace(/^~(?=\/)/, os.homedir());
+  return path.isAbsolute(expanded)
+    ? expanded
+    : path.resolve(repoRoot, expanded);
+};
 const DEFAULT_IOS_APP =
   'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app';
 
@@ -20,13 +32,14 @@ const DEFAULT_IOS_APP =
  * Runs Appium smoke specs from tests/smoke-appium. Tags live in describe titles
  * via tags.js (same convention as Detox); --grep uses the tag id (e.g. SmokeAccounts).
  *
- * IMPORTANT: Requires a debug build with HAS_TEST_OVERRIDES=true so the app
- * fetches fixture state from /state.json on launch. Build with:
- * CONFIGURATION=Debug yarn build:android:main:e2e (Android)
- * CONFIGURATION=Debug yarn build:ios:main:e2e (iOS)
+ * IMPORTANT: Requires an e2e build with HAS_TEST_OVERRIDES=true so the app
+ * fetches fixture state from /state.json on launch.
+ *
+ * Default Android APK: android/app/build/outputs/apk/prod/debug/app-prod-debug.apk
+ * (debug e2e build — requires Metro running on WATCHER_PORT / METRO_PORT_E2E, default 8081).
  *
  * Environment variables (all optional — defaults shown):
- * - ANDROID_APK_PATH — path to the APK (default: prod debug APK)
+ * - ANDROID_APK_PATH — path to the APK (default: prod debug e2e APK in android/app/build/...)
  * - IOS_APP_PATH — path to the .app (default: Debug-iphonesimulator/MetaMask.app)
  * - ANDROID_AVD_NAME — AVD name (default: 'Pixel_5_Pro_API_34')
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
@@ -39,6 +52,9 @@ const DEFAULT_IOS_APP =
  * yarn appium-smoke:ios
  */
 const suiteName = process.env.APPIUM_SMOKE_SUITE_NAME?.trim();
+const perTestTimeoutMs = process.env.E2E_WAIT_TIMEOUT_MS
+  ? 5 * 60 * 1000
+  : 15 * 60 * 1000;
 const htmlReportDir = suiteName
   ? `./test-reports/appium-smoke-report/${suiteName}`
   : './test-reports/appium-smoke-report';
@@ -51,7 +67,7 @@ export default defineConfig({
   testDir: './smoke-appium',
   fullyParallel: false,
   // Per-test timeout: cold WDA build on CI can take up to 10 min plus test time.
-  timeout: 15 * 60 * 1000,
+  timeout: perTestTimeoutMs,
   retries: process.env.CI === 'true' ? 1 : 0,
   reporter: [
     ['html', { open: 'never', outputFolder: htmlReportDir }],
@@ -76,11 +92,14 @@ export default defineConfig({
         device: {
           provider: ProviderName.EMULATOR,
           name: process.env.ANDROID_AVD_NAME || 'Pixel_5_Pro_API_34',
+          ...(process.env.ANDROID_DEVICE_UDID?.trim()
+            ? { udid: process.env.ANDROID_DEVICE_UDID.trim() }
+            : {}),
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: process.env.ANDROID_APK_PATH || DEFAULT_ANDROID_APK,
+          buildPath: resolveAndroidApkPath(),
         },
       },
     },

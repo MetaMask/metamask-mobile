@@ -16,6 +16,7 @@ import {
 } from './reinstallLocalBuildFromPath';
 import {
   startAndroidEmulator,
+  ensureAndroidEmulatorReady,
   ensureIosSimulatorReady,
   getIosSimulatorUdid,
 } from '../../appium/EmulatorHelpers';
@@ -153,14 +154,18 @@ export class EmulatorProvider extends BaseServiceProvider {
     }
 
     if (this.project.use.platform === Platform.ANDROID) {
-      const avdName = (this.project.use.device as EmulatorConfig).name;
-      if (!avdName) {
+      const emulatorDevice = this.project.use.device as EmulatorConfig;
+      const avdName = emulatorDevice.name;
+      if (!avdName && !emulatorDevice.udid) {
         throw new Error(
-          'Android device boot requires `use.device.name` (AVD name) in the project config.',
+          'Android device boot requires `use.device.name` (AVD name) or `use.device.udid` (adb serial) in the project config.',
         );
       }
-      const serial = await startAndroidEmulator(avdName);
-      (this.project.use.device as EmulatorConfig).udid = serial;
+      const serial = await ensureAndroidEmulatorReady(
+        avdName ?? '',
+        emulatorDevice.udid,
+      );
+      emulatorDevice.udid = serial;
     } else if (this.project.use.platform === Platform.IOS) {
       const deviceName = this.project.use.device?.name;
       if (!deviceName) {

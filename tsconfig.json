@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
-    "lib": ["es2017"],
+    "lib": [
+      "es2017"
+    ],
     "allowJs": true,
     "jsx": "react-native",
     "noEmit": true,
@@ -13,7 +15,9 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "images/*": ["./app/images/*"],
+      "images/*": [
+        "./app/images/*"
+      ],
       "@keystonehq/ur-decoder": [
         "app/declarations/@keystonehq/ur-decoder.d.ts"
       ],
@@ -32,7 +36,6 @@
       "@metamask/json-rpc-engine/v2": [
         "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
       ],
-      // TODO: Remove these once we use `Node16` module resolution.
       "@metamask/keyring-api/v2": [
         "node_modules/@metamask/keyring-api/dist/v2/index.d.cts"
       ],
@@ -81,5 +84,6 @@
     "jest.config.js",
     "app/core/InpageBridgeWeb3.js",
     "scripts/inpage-bridge/dist"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }
