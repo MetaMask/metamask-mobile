@@ -1,6 +1,11 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import Engine from '../../../../../../core/Engine';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../../../../../UI/Predict/constants/eventNames';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -47,8 +52,27 @@ export function PredictClaimFooter({
 
   const hasNoPositions = !address || !wonPositions?.length;
 
+  const hasTrackedNoPositions = useRef(false);
+
   useEffect(() => {
     if (hasNoPositions) {
+      // Resolution-lag is the dominant claim failure mode (PRED-963). Track it
+      // explicitly so it is measurable on PREDICT_TRADE_TRANSACTION rather than
+      // surfacing only as a confirmation rejection. Guard against double-fire.
+      if (!hasTrackedNoPositions.current) {
+        hasTrackedNoPositions.current = true;
+        Engine.context.PredictController?.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: {
+            transactionType:
+              PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+            entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+          },
+          failureReason:
+            PredictEventValues.CLAIM_FAILURE_REASON.PENDING_RESOLUTION,
+        });
+      }
+
       onError(new Error('Tried to claim but no positions were won'));
     }
   }, [hasNoPositions, onError]);

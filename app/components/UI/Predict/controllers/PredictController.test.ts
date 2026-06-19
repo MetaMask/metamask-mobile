@@ -4186,6 +4186,40 @@ describe('PredictController', () => {
       });
     });
 
+    it('tracks a user_rejected mm_predict_claim failure when signing is cancelled', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockRejectedValue(new Error('User denied transaction signature'));
+        await controller.getPositions({ claimable: true });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // Act
+        const result = await controller.claimWithConfirmation({
+          analyticsProperties: {
+            entryPoint: 'predict_market_details',
+          },
+        });
+
+        // Assert
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find((arg) => arg?.properties?.status === 'failed');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.failure_reason).toBe('user_rejected');
+        expect(event.properties.entry_point).toBe('predict_market_details');
+      });
+    });
+
     it('clears pendingClaims on claim error', async () => {
       // Arrange
       const signerAddress = '0x1234567890123456789012345678901234567890';
@@ -6046,6 +6080,127 @@ describe('PredictController', () => {
           selectedClaimablePositions,
         );
         expect(controller.state.claimablePositions[senderAddress]).toEqual([]);
+      });
+    });
+
+    const findPredictTradeEvent = (status: string) =>
+      (analytics.trackEvent as jest.Mock).mock.calls
+        .map((call) => call[0])
+        .find((arg) => arg?.properties?.status === status);
+
+    it('tracks a succeeded mm_predict_claim transaction with stashed attribution when the claim confirms', () => {
+      withController(({ controller, messenger }) => {
+        const claimablePositions = [
+          createMockPosition({
+            id: 'won-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 75,
+            marketId: 'market-xyz',
+            title: 'Will it rain?',
+          }),
+        ];
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        // Seed the stash the same way claimWithConfirmation does, so we can
+        // verify the terminal handler emits the stashed attribution.
+        (
+          controller as unknown as {
+            pendingClaimAnalytics: Record<string, unknown>;
+          }
+        ).pendingClaimAnalytics = {
+          [accountAddress.toLowerCase()]: {
+            entryPoint: 'predict_market_details',
+            transactionType: 'mm_predict_claim',
+            marketId: 'market-xyz',
+            marketTitle: 'Will it rain?',
+            claimablePositionsCount: 1,
+          },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const event = findPredictTradeEvent('succeeded');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.entry_point).toBe('predict_market_details');
+        expect(event.properties.market_id).toBe('market-xyz');
+        expect(event.properties.market_title).toBe('Will it rain?');
+        expect(event.sensitiveProperties.amount_usd).toBe(75);
+      });
+    });
+
+    it('tracks a failed mm_predict_claim transaction with a mapped failure_reason', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.failed,
+          }),
+          error: { message: 'insufficient funds for gas' },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const event = findPredictTradeEvent('failed');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.failure_reason).toBe('insufficient_gas');
+      });
+    });
+
+    it('tracks a failed mm_predict_claim transaction with user_rejected when rejected', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.rejected,
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const event = findPredictTradeEvent('failed');
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe('user_rejected');
       });
     });
 
