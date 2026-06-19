@@ -13,6 +13,7 @@ import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -48,11 +49,11 @@ jest.mock(
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn((state) => state.evmConfigs),
   selectProviderType: jest.fn((state) => state.providerType),
+  selectAllConfiguredEvmChainIds: jest.fn((state) => state.enabledEvm),
 }));
 
-jest.mock('../../../selectors/networkEnablementController', () => ({
-  selectEVMEnabledNetworks: jest.fn((state) => state.enabledEvm),
-  selectNonEVMEnabledNetworks: jest.fn((state) => state.enabledNonEvm),
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  selectAllConfiguredNonEvmChainIds: jest.fn((state) => state.enabledNonEvm),
 }));
 
 jest.mock('../../../selectors/transactionController', () => ({
@@ -171,6 +172,17 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    createEventBuilder: jest.fn(),
+    trackEvent: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+
 jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
   const ReactActual = jest.requireActual('react');
   const PriceChartContext = {
@@ -221,17 +233,17 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     onPress,
     title,
   }: {
-    item: { data: { hash?: string } };
+    item: { hash?: string };
     onPress: (item: unknown) => void;
     title?: string;
   }) => {
     const { Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
       <TouchableOpacity
-        testID={`row-${item.data.hash ?? 'no-hash'}`}
+        testID={`row-${item.hash ?? 'no-hash'}`}
         onPress={() => onPress(item)}
       >
-        <Text>{title ?? item.data.hash}</Text>
+        <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
     );
   },
@@ -340,6 +352,7 @@ jest.mock('../../../util/networks', () => ({
     title: 'Configured Explorer',
     url: 'https://configured.explorer/address/0xevm',
   })),
+  getBlockExplorerName: jest.fn(() => 'Configured'),
 }));
 
 jest.mock('./helpers/adapters', () => ({
@@ -360,7 +373,8 @@ jest.mock('./helpers/transformations', () => {
         chainId: tx.chain,
         status: 'success',
         timestamp: 2,
-        data: { hash: tx.id },
+        hash: tx.id,
+        data: {},
         raw: { type: 'keyringTransaction', data: tx },
       })),
     ),
@@ -398,15 +412,14 @@ const selectorValues = {
 };
 
 const confirmedItem = {
-  type: 'send',
+  type: 'contractInteraction',
   chainId: 'eip155:1',
   status: 'success',
   timestamp: 3,
+  hash: '0xconfirmed',
   data: {
-    hash: '0xconfirmed',
     from: '0xevm',
     to: '0xto',
-    token: { symbol: 'ETH' },
   },
   raw: {
     type: 'apiEvmTransaction',
@@ -415,11 +428,12 @@ const confirmedItem = {
 };
 
 const localPendingItem = {
-  type: 'send',
+  type: 'approveSpendingCap',
   chainId: 'eip155:1',
   status: 'pending',
   timestamp: 4,
-  data: { hash: '0xlocal' },
+  hash: '0xlocal',
+  data: {},
   raw: {
     type: 'localTransaction',
     data: {
@@ -518,6 +532,14 @@ describe('ActivityList', () => {
       },
       screen: 'SimpleWebview',
     });
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'activity_tab',
+        url: 'https://configured.explorer/address/0xevm',
+      }),
+    );
   });
 
   it('navigates to transaction details when a confirmed row is pressed', () => {

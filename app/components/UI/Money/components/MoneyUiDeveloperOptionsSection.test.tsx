@@ -5,6 +5,13 @@ import { UserActionType } from '../../../../actions/user/types';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 const mockDispatch = jest.fn();
 const mockUseSelector = jest.fn();
 

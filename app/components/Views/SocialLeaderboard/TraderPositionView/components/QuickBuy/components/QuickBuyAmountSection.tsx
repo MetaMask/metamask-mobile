@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, TextInput } from 'react-native';
+import { TextInput } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -7,17 +8,12 @@ import {
   TextColor,
   FontWeight,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
-  IconColor,
-  IconSize,
-  Spinner,
 } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
-
-const styles = StyleSheet.create({
-  amountText: { fontSize: 48, lineHeight: 52 },
-});
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -56,6 +52,8 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   sourceCryptoAmount,
   sourceSymbol,
 }) => {
+  const tw = useTailwind();
+
   const cryptoAmountLabel = estimatedReceiveAmount
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
@@ -86,7 +84,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       testID="quick-buy-amount-area"
     >
       <Text
-        style={styles.amountText}
+        variant={TextVariant.DisplayMd}
         fontWeight={FontWeight.Bold}
         color={TextColor.TextDefault}
       >
@@ -94,16 +92,31 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       </Text>
 
       {isQuoteLoading ? (
-        <Spinner
-          color={IconColor.IconDefault}
-          spinnerIconProps={{ size: IconSize.Sm }}
-          testID="quick-buy-amount-loading-spinner"
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          testID="quick-buy-amount-loading"
+        >
+          <Skeleton
+            width={88}
+            height={16}
+            style={tw.style('rounded-md')}
+            testID="quick-buy-amount-loading-skeleton"
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID="quick-buy-amount-loading-symbol"
+          >
+            {destSymbol}
+          </Text>
+        </Box>
       ) : (
         <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
+          variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
         >
           {secondaryLabel}
         </Text>
