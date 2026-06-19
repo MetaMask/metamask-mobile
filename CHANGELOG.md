@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add TDP origin from explore search (#31165)
 - Add result count instrumentation to explore search: (#31155)
 - chore: in development, show deposit and withdraw errors in money account (#30670)
+- Added swap CTAs on native token page ARC mapping. (#31819)                                                                        
+- Added VIP tag in referral code input at onboarding. (#31530)                                                                      
+- Expanded pressable region to make selecting token easier in batch sell. (#31673)
 
 ### Changed
 
@@ -52,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: nightly build external distributed (#30887)
 - Bump assets controller v8.1.0 (#30836)
 - Remove explore search V1 (#30787)
+- Standardized Perps homepage section layout. (#31243)                                                                              
+- Added feature flag for watchlist. (#31581)
 
 ### Fixed
 
@@ -63,6 +68,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed QuickBuy success/failed toast not appearing for same-chain Solana swaps (#31415)
 - Fixed the Money Account "Add money" sheet offering fiat deposits in regions without a native on-ramp provider — the deposit option is now shown as "Coming soon" where unavailable, preventing a stuck buy flow. (#31209)
 - Fixed QuickBuy showing networks the user hasn't enabled and labeling some networks as "Unknown network". (#31092)
+- Fixed Telegram OAuth login on Android 16. (#31780)                                                                                
+- Fixed STX status for the source token chain in batch sell. (#31836)                                                               
+- Fixed STX always being disabled for non-Ethereum networks. (#31822)                                                               
+- Fixed deeplinks not navigating when app unlocks. (#31717)                                                                         
+- Fixed spacing between top movers segment control and pills. (#31769)                                                                                                                      
+- Fixed batch sell sliders to update token amount and percent live. (#31759)                                                        
+- Fixed Predict geo-block overlay missing ES and IN countries. (#31721)                                                                                                                                 
+- Fixed list item component regression. (#31646)                                                                                    
+- Fixed Predict chart content cut off on iPhone 17 Pro. (#31505)                                                                    
+- Fixed Predict scoreboard score cutoff for wide scores. (#31555)                                                                   
+- Fixed extra paddings below checklist on wallet. (#31647)                                                                          
+- Fixed problematic dismissable ref. (#31658)                                                                                       
+- Fixed batch sell submit not working. (#31727)                                                                                     
+- Fixed incorrect Predict bet submission labels and icons for moneyline markets. (#31648) 
+
+## [7.81.2]
+
+### Changed
+
+- Enhanced PredictMarketRowItem with endAccessory prop and removed NBA champion discovery references. (#31923)
+
+### Fixed
+
+- Fixed JS-thread FPS collapse on market details with live prices. (#31801)                                                         
+- Fixed odds prices stale on feed cards and event page during live markets. (#31922)                                                
+- Fixed extended sports outcome grouping, spread ordering, and live pricing. (#31852) 
 
 ## [7.81.1]                                                                                                 
                                                                                                               
