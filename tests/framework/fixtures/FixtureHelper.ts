@@ -697,7 +697,7 @@ export async function withFixtures(
           await deviceCommands.clearAppData();
         }
 
-        const appStateRequest = fixtureServer.waitForNextStateRequest(90_000);
+        const appStateRequest = fixtureServer.waitForNextStateRequest();
         try {
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
