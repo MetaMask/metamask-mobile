@@ -29,13 +29,13 @@ const QuickBuyAmountScreen: React.FC = () => {
   }
 
   return (
-    <Box twClassName="flex-1">
+    <>
       <QuickBuyToolbar />
       <Box testID="quick-buy-amount-container">
         <QuickBuyAmount />
       </Box>
       <QuickBuyActionFooter />
-    </Box>
+    </>
   );
 };
 
