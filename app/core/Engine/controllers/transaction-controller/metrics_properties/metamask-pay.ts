@@ -2,10 +2,14 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { TransactionMetricsBuilder } from '../types';
+import { TransactionMetrics, TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
+import {
+  getMetaMaskPayFiatChainTarget,
+  normalizeMetaMaskPayPaymentMethod,
+} from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
 import {
   TransactionPayBridgeQuote,
   TransactionPayQuote,
@@ -39,10 +43,16 @@ const USE_CASE_MAP: [TransactionType[], string][] = [
   [[TransactionType.moneyAccountWithdraw], 'money_account_withdraw'],
 ];
 
+const UI_PAYMENT_METHOD_PROPERTIES = [
+  'mm_pay_payment_method_available',
+  'mm_pay_payment_method_presented',
+] as const;
+
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   eventType,
   transactionMeta,
   allTransactions,
+  getUIMetrics,
   getState,
 }) => {
   const properties: JsonMap = {};
@@ -84,6 +94,10 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   }
 
   addPayTypeProperties(properties, parentTransaction, getState());
+  addParentPaymentMethodUIMetrics(
+    properties,
+    getUIMetrics(parentTransaction.id),
+  );
 
   const relatedTransactionIds = parentTransaction.requiredTransactionIds ?? [];
 
@@ -257,7 +271,7 @@ function addPayTypeProperties(
 
   if (selectedPaymentMethodId) {
     properties.mm_pay_payment_method_selected =
-      normalizePaymentMethodId(selectedPaymentMethodId);
+      normalizeMetaMaskPayPaymentMethod(selectedPaymentMethodId);
 
     if (fiatPayment?.rampsQuote) {
       const providerCode = extractFiatProviderCode(
@@ -276,8 +290,13 @@ function addPayTypeProperties(
       }
     }
 
-    if (fiatPayment?.caipAssetId) {
-      properties.mm_pay_fiat_chain_target = fiatPayment.caipAssetId;
+    const fiatChainTarget = getMetaMaskPayFiatChainTarget({
+      caipAssetId: fiatPayment?.caipAssetId,
+      chainId: fiatPayment?.rampsQuote?.quote.cryptoTranslation?.chainId,
+    });
+
+    if (fiatChainTarget) {
+      properties.mm_pay_fiat_chain_target = fiatChainTarget;
     }
   }
 }
@@ -292,18 +311,17 @@ function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
   return token?.symbol;
 }
 
-/**
- * Normalizes a Ramps payment method ID to a snake_case analytics value.
- *
- * Handles both canonical path form (e.g. `/payments/debit-credit-card`)
- * and bare type form (e.g. `debit-credit-card`), returning the same
- * snake_case result in both cases (e.g. `debit_credit_card`).
- */
-function normalizePaymentMethodId(id: string): string {
-  const parts = id.split('/').filter(Boolean);
-  const raw = parts[parts.length - 1] ?? id;
+function addParentPaymentMethodUIMetrics(
+  properties: JsonMap,
+  parentMetrics: TransactionMetrics | undefined,
+) {
+  for (const property of UI_PAYMENT_METHOD_PROPERTIES) {
+    const value = parentMetrics?.properties?.[property];
 
-  return raw.replace(/-/g, '_');
+    if (value !== undefined) {
+      properties[property] = value;
+    }
+  }
 }
 
 /**

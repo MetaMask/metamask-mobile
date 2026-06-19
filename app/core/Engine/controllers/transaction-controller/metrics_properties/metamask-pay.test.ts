@@ -857,8 +857,12 @@ describe('Metamask Pay Metrics', () => {
     it.each([
       ['/payments/debit-credit-card', 'debit_credit_card'],
       ['/payments/bank-transfer', 'bank_transfer'],
+      ['/payments/sepa-bank-transfer', 'bank_transfer'],
+      ['/payments/instant-bank-transfer', 'bank_transfer'],
       ['/payments/apple-pay', 'apple_pay'],
       ['/payments/google-pay', 'google_pay'],
+      ['/payments/revolut-pay', 'rev_pay'],
+      ['/payments/rev-pay', 'rev_pay'],
       ['debit-credit-card', 'debit_credit_card'],
     ])(
       'normalizes %s to %s',
@@ -1009,13 +1013,46 @@ describe('Metamask Pay Metrics', () => {
       });
     });
 
-    it('extracts mm_pay_fiat_chain_target from caipAssetId', () => {
+    it('extracts mm_pay_fiat_chain_target from cryptoTranslation.chainId', () => {
       const result = getMetaMaskPayProperties(request);
 
       expect(result).toStrictEqual({
         properties: expect.objectContaining({
-          mm_pay_fiat_chain_target:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          mm_pay_fiat_chain_target: '0x1',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('falls back to mm_pay_fiat_chain_target from caipAssetId', () => {
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': merge({}, FIAT_TXDATA, {
+                  fiatPayment: {
+                    rampsQuote: {
+                      quote: {
+                        cryptoTranslation: null,
+                      },
+                    },
+                    caipAssetId:
+                      'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+                  },
+                }),
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_fiat_chain_target: '0x89',
         }),
         sensitiveProperties: {},
       });
@@ -1093,8 +1130,52 @@ describe('Metamask Pay Metrics', () => {
           mm_pay_payment_method_selected: 'debit_credit_card',
           mm_pay_fiat_provider: 'transak-native',
           mm_pay_fiat_token_target: 'USDC',
-          mm_pay_fiat_chain_target:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          mm_pay_fiat_chain_target: '0x1',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('propagates parent UI payment method metrics to non-PAY child transaction', () => {
+      request.transactionMeta.type = TransactionType.bridge;
+      request.transactionMeta.metamaskPay = undefined;
+
+      request.allTransactions = [
+        {
+          id: 'parent-1',
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: { chainId: '0x1', tokenAddress: '0xA0b8' },
+          requiredTransactionIds: ['child-1'],
+        } as unknown as TransactionMeta,
+        request.transactionMeta,
+      ];
+
+      request.getUIMetrics = jest.fn().mockReturnValue({
+        properties: {
+          mm_pay_payment_method_available: ['crypto', 'debit_credit_card'],
+          mm_pay_payment_method_presented: 'debit_credit_card',
+        },
+        sensitiveProperties: {},
+      });
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: { 'parent-1': FIAT_TXDATA },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_payment_method_available: ['crypto', 'debit_credit_card'],
+          mm_pay_payment_method_presented: 'debit_credit_card',
+          mm_pay_payment_method_selected: 'debit_credit_card',
         }),
         sensitiveProperties: {},
       });

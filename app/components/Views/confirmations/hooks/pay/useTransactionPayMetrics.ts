@@ -21,8 +21,9 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { useAccountTokens } from '../send/useAccountTokens';
 import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
-import { usePayWithSections } from './usePayWithSections';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
+import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
+import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -42,10 +43,11 @@ export function useTransactionPayMetrics() {
   const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens, hasTokens } =
+    useTransactionPayAvailableTokens();
 
   const presentedPaymentMethodRef = useRef<string | null>(null);
-  const { sections } = usePayWithSections();
+  const fiatPaymentActions = useFiatPaymentHighlightedActions();
   const selectedFiatMethod = useTransactionPaySelectedFiatPaymentMethod();
 
   const transactionId = transactionMeta?.id ?? '';
@@ -68,16 +70,32 @@ export function useTransactionPayMetrics() {
     [tokens],
   );
 
-  const availableSectionIds = useMemo(
-    () => sections.map((s) => s.id.replace(/-/g, '_')),
-    [sections],
-  );
+  const availablePaymentMethods = useMemo(() => {
+    const methods = new Set<string>();
 
-  const currentPaymentMethodSelection = selectedFiatMethod
-    ? selectedFiatMethod.paymentType.replace(/-/g, '_')
-    : 'crypto';
+    if (hasTokens) {
+      methods.add('crypto');
+    }
 
-  if (payToken && presentedPaymentMethodRef.current === null) {
+    for (const action of fiatPaymentActions) {
+      const method = normalizeMetaMaskPayPaymentMethod(action.paymentType);
+
+      if (method) {
+        methods.add(method);
+      }
+    }
+
+    return [...methods];
+  }, [fiatPaymentActions, hasTokens]);
+
+  const currentPaymentMethodSelection =
+    normalizeMetaMaskPayPaymentMethod(selectedFiatMethod?.paymentType) ??
+    (payToken ? 'crypto' : null);
+
+  if (
+    currentPaymentMethodSelection &&
+    presentedPaymentMethodRef.current === null
+  ) {
     presentedPaymentMethodRef.current = currentPaymentMethodSelection;
   }
 
@@ -117,9 +135,14 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_section_recipient_switch_count = recipient.switchCount;
 
     properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
-    properties.mm_pay_payment_methods_available = availableSectionIds;
-    properties.mm_pay_payment_method_presented =
-      presentedPaymentMethodRef.current;
+  }
+
+  if (availablePaymentMethods.length > 0) {
+    properties.mm_pay_payment_method_available = availablePaymentMethods;
+  }
+
+  if (presentedPaymentMethodRef.current) {
+    properties.mm_pay_payment_method_presented = presentedPaymentMethodRef.current;
   }
 
   if (
