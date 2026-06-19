@@ -188,7 +188,6 @@ class FixtureBuilder {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
-      '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;

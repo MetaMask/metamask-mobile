@@ -391,7 +391,6 @@ export interface RootStackParamList extends ParamListBase {
   RootModalFlow: RootModalFlowParams | NestedNavigationParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
-  WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
