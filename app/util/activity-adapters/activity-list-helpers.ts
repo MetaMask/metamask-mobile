@@ -4,7 +4,7 @@ import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
 } from './adapters/environment';
-import type { ActivityListItem } from './types';
+import type { ActivityListItem, TokenAmount } from './types';
 
 const hidePlusSignActivityTypes = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
@@ -51,21 +51,27 @@ export const formatActivityListDateHeader = (timestamp: number) => {
   }).format(date);
 };
 
+const getTokenActivityValue = (token: TokenAmount) => {
+  const amount = token.isUnlimitedApproval
+    ? strings('confirm.unlimited')
+    : (token.amount ?? '');
+
+  return `${amount} ${token.symbol}`.trim();
+};
+
 export const getActivityValue = (item: ActivityListItem) => {
   const { data } = item;
 
   if ('token' in data && data.token?.symbol) {
-    return `${data.token.amount ?? ''} ${data.token.symbol}`.trim();
+    return getTokenActivityValue(data.token);
   }
 
   if ('destinationToken' in data && data.destinationToken?.symbol) {
-    return `${data.destinationToken.amount ?? ''} ${
-      data.destinationToken.symbol
-    }`.trim();
+    return getTokenActivityValue(data.destinationToken);
   }
 
   if ('sourceToken' in data && data.sourceToken?.symbol) {
-    return `${data.sourceToken.amount ?? ''} ${data.sourceToken.symbol}`.trim();
+    return getTokenActivityValue(data.sourceToken);
   }
 
   return undefined;

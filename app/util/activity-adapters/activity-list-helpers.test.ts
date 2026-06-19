@@ -158,6 +158,22 @@ describe('activity list helpers', () => {
     expect(getActivityValue(makeItem({ data: {} }))).toBeUndefined();
   });
 
+  it('extracts unlimited approval display value from token metadata', () => {
+    const item = makeItem({
+      data: {
+        token: {
+          amount: '115792089237316195423570985.639935',
+          direction: 'out',
+          isUnlimitedApproval: true,
+          symbol: 'USDT',
+        },
+      },
+      type: 'approveSpendingCap',
+    });
+
+    expect(getActivityValue(item)).toBe('confirm.unlimited USDT');
+  });
+
   it('extracts from and to addresses when present', () => {
     expect(
       getActivityFromTo(
