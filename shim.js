@@ -200,23 +200,6 @@ if (typeof global.MessageEvent === 'undefined') {
     require('react-native/src/private/webapis/html/events/MessageEvent').default;
 }
 
-// @metamask/post-message-stream expects MessageEvent.prototype.source at module load.
-// RN's MessageEvent has origin/data but not source — define a no-op getter before Snaps init.
-if (typeof global.MessageEvent !== 'undefined') {
-  const sourceDescriptor = Object.getOwnPropertyDescriptor(
-    global.MessageEvent.prototype,
-    'source',
-  );
-  if (!sourceDescriptor?.get) {
-    Object.defineProperty(global.MessageEvent.prototype, 'source', {
-      get() {
-        return undefined;
-      },
-      configurable: true,
-    });
-  }
-}
-
 class AbortError extends Error {
   constructor(message) {
     super(message);
