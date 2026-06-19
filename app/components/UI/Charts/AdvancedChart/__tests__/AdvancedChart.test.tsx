@@ -299,6 +299,45 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('responds with noData when FETCH_OLDER_BARS_REQUEST has no RN handler', () => {
+    const request = {
+      requestId: 'older-without-handler',
+      seriesGeneration: 3,
+      symbol: 'BTC',
+      resolution: '60',
+      fromSec: 1000,
+      toSec: 2000,
+      countBack: 50,
+      oldestLoadedTimeMs: 1_700_000_000_000,
+    };
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'FETCH_OLDER_BARS_REQUEST',
+            payload: request,
+          }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FETCH_OLDER_BARS_RESPONSE',
+        payload: {
+          requestId: request.requestId,
+          seriesGeneration: request.seriesGeneration,
+          bars: [],
+          noData: true,
+          error: 'missing_onFetchOlderBarsRequest',
+        },
+      }),
+    );
+  });
+
   it('does not send stale data when ohlcvSeriesKey changes; waits for fresh data', () => {
     const staleBars: OHLCVBar[] = [
       { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },

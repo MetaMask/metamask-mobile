@@ -52,4 +52,15 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toContain('resolveAllPendingOlderBarsNoData();');
     expect(html).toContain('resolvePendingOlderBarsNoData(pending);');
   });
+
+  it('deduplicates RN-backed older bars before prepending them', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('var existingTimes = new Set();');
+    expect(html).toContain('existingTimes.add(window.ohlcvData[j].time);');
+    expect(html).toContain(
+      'bar.time < pending.oldestAtDefer && !existingTimes.has(bar.time)',
+    );
+    expect(html).toContain('existingTimes.add(bar.time);');
+  });
 });
