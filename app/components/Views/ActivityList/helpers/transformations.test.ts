@@ -147,8 +147,10 @@ describe('ActivityList transformations', () => {
         valueTransfers: [
           {
             amount: '1',
+            contractAddress: '',
             decimal: 6,
             from: otherAddress,
+            name: 'USD Coin',
             symbol: 'USDC',
             to: address,
             transferType: 'ERC20',
