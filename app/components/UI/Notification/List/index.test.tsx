@@ -255,7 +255,7 @@ describe('useNotificationOnClick', () => {
   });
 
   it('opens external URL via Linking when CTA link is not a metamask universal link', async () => {
-    const mockOpenURL = jest.spyOn(Linking, 'openURL').mockResolvedValue();
+    const mockOpenURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     const mocks = arrangeMocks();
     const hook = renderHook(() =>
       useNotificationOnClick({ navigation: mocks.mockNavigation }),
