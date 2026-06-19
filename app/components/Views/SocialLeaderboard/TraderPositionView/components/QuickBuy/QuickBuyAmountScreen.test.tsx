@@ -17,8 +17,7 @@ jest.mock('./components/QuickBuyToolbar', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactMock.createElement(View, { testID: 'mock-toolbar' }),
+    default: () => ReactMock.createElement(View, { testID: 'mock-toolbar' }),
   };
 });
 
@@ -27,8 +26,7 @@ jest.mock('./QuickBuyAmount', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactMock.createElement(View, { testID: 'mock-amount' }),
+    default: () => ReactMock.createElement(View, { testID: 'mock-amount' }),
   };
 });
 
@@ -37,8 +35,7 @@ jest.mock('./components/QuickBuyActionFooter', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactMock.createElement(View, { testID: 'mock-footer' }),
+    default: () => ReactMock.createElement(View, { testID: 'mock-footer' }),
   };
 });
 
