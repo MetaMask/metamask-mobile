@@ -1,20 +1,13 @@
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 
-import { QrSyncActionTypes, QrSyncMessageVersion } from './constants';
+import {
+  QrSyncActionTypes,
+  QrSyncMessageVersion,
+  QrSyncPhases,
+} from './constants';
 
 /** Mobile-local lifecycle state for one QR sync session. */
-export type QrSyncPhase =
-  | 'idle'
-  | 'initializing'
-  | 'waiting-for-connection'
-  | 'waiting-for-otp-grant'
-  | 'displaying-otp'
-  | 'waiting-for-sync-ready'
-  | 'reviewing-import'
-  | 'importing'
-  | 'completed'
-  | 'cancelled'
-  | 'failed';
+export type QrSyncPhase = (typeof QrSyncPhases)[keyof typeof QrSyncPhases];
 
 /** Transport-level connection state for the encrypted MWP session. */
 export type QrSyncConnectionStatus =
@@ -116,23 +109,25 @@ export interface QrSyncConnectionRequest {
 }
 
 /** One normalized import entry used by mobile import orchestration. */
-export interface QrSyncImportPlanEntry {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncImportPlanEntry = {
   index: number;
   value: string;
   type: SyncDataType;
   accountName?: string;
   hiddenIndexes: number[];
   isPrimary: boolean;
-}
+};
 
 /** Validated import plan used by the mobile import service. */
-export interface QrSyncImportPlan {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncImportPlan = {
   deadline: number;
   entries: QrSyncImportPlanEntry[];
   primaryMnemonic?: QrSyncImportPlanEntry;
   mnemonicEntries: QrSyncImportPlanEntry[];
   privateKeyEntries: QrSyncImportPlanEntry[];
-}
+};
 
 /** Review-safe import entry with secret material removed for UI use. */
 export type QrSyncImportReviewItem = Omit<QrSyncImportPlanEntry, 'value'>;
@@ -146,11 +141,12 @@ export interface QrSyncImportReviewSummary {
 }
 
 /** Sanitized review model emitted to UI before import execution begins. */
-export interface QrSyncImportReview {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncImportReview = {
   deadline: number;
   entries: QrSyncImportReviewItem[];
   summary: QrSyncImportReviewSummary;
-}
+};
 
 /** Wire message used to bootstrap a QR sync session. */
 export type QrSyncInitSyncSessionMessage = QrSyncMessage & {

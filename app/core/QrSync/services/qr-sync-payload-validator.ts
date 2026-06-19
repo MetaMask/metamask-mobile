@@ -1,3 +1,4 @@
+import { base64ToBytes, bytesToString } from '@metamask/utils';
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import {
   QrSyncData,
@@ -12,8 +13,13 @@ import {
   SyncDataType,
 } from '../types';
 
-interface QrSyncValidationSuccessResult { valid: true }
-interface QrSyncValidationErrorResult { valid: false; error: QrSyncError }
+interface QrSyncValidationSuccessResult {
+  valid: true;
+}
+interface QrSyncValidationErrorResult {
+  valid: false;
+  error: QrSyncError;
+}
 type QrSyncValidationResult =
   | QrSyncValidationSuccessResult
   | QrSyncValidationErrorResult;
@@ -200,7 +206,18 @@ export function normalizeQrSyncData(data: QrSyncData): {
   plan: QrSyncImportPlan;
   review: QrSyncImportReview;
 } {
-  const entries = data.data.map(normalizeQrSyncDataEntry);
+  const entries = data.data.map((entry, index) => {
+    const valueBytes = base64ToBytes(entry.value);
+    const value = bytesToString(valueBytes);
+    return {
+      index,
+      value,
+      type: entry.type,
+      accountName: entry.metadata?.accountName,
+      hiddenIndexes: entry.metadata?.hiddenIndexes ?? [],
+      isPrimary: entry.metadata?.isPrimary === true,
+    };
+  });
   const mnemonicEntries = entries.filter((entry) => entry.type === 'MNEMONIC');
   const privateKeyEntries = entries.filter(
     (entry) => entry.type === 'PRIVATE_KEY',

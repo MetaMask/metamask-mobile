@@ -1,5 +1,4 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import {
   QR_SYNC_CONTROLLER_NAME,
@@ -13,7 +12,6 @@ import type {
   QrSyncConnectionStatusChangedEvent,
   QrSyncImportPlan,
   QrSyncImportReview,
-  QrSyncOffer,
   QrSyncPhaseChangedEvent,
   QrSyncPhase,
   QrSyncSyncErrorEvent,
@@ -27,6 +25,7 @@ import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
+  QrSyncPhases,
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
@@ -91,8 +90,8 @@ const metadata: StateMetadata<QrSyncControllerState> = {
   },
   review: {
     persist: false,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
     usedInUi: true,
   },
   otp: {
@@ -107,14 +106,21 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
+  importPlan: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
 };
 
 export const defaultQrSyncControllerState: QrSyncControllerState = {
-  phase: 'idle',
+  phase: QrSyncPhases.IDLE,
   connectionStatus: 'disconnected',
   review: null,
   otp: null,
   error: null,
+  importPlan: null,
 };
 
 /**
@@ -133,71 +139,6 @@ export class QrSyncController extends BaseController<
   private readonly relayUrl: string;
 
   private session: QrSyncSession | null = null;
-
-  private currentImportPlan: QrSyncImportPlan | null = null;
-
-  private readonly handleSessionMessage = (message: unknown) => {
-    const routedMessage = routeIncomingQrSyncMessage(message);
-
-    if ('importPlan' in routedMessage && routedMessage.importPlan) {
-      this.setImportPlan(routedMessage.importPlan);
-    }
-
-    this.handleSessionServiceEvent(routedMessage.event);
-  };
-
-  private readonly handleSessionServiceEvent = (event: QrSyncServiceEvent) => {
-    if (isConnectionStatusChangedEvent(event)) {
-      this.update((state) => {
-        state.connectionStatus = event.data.status;
-        if (event.data.status === 'connected' && state.phase !== 'completed') {
-          state.phase = 'waiting-for-sync-ready';
-        }
-      });
-      return;
-    }
-
-    if (isOtpDisplayGrantEvent(event)) {
-      this.update((state) => {
-        state.phase = 'displaying-otp';
-        state.otp = event.data;
-        state.error = null;
-      });
-      return;
-    }
-
-    if (isSyncReadyEvent(event)) {
-      this.update((state) => {
-        state.phase = 'reviewing-import';
-        state.review = toControllerReviewState(event.data);
-        state.error = null;
-      });
-      return;
-    }
-
-    if (event.type === 'sync-completed') {
-      this.update((state) => {
-        state.phase = 'completed';
-        state.otp = null;
-        state.error = null;
-      });
-      return;
-    }
-
-    if (isSyncErrorEvent(event)) {
-      this.update((state) => {
-        state.phase = 'failed';
-        state.error = event.data;
-      });
-      return;
-    }
-
-    if (isPhaseChangedEvent(event)) {
-      this.update((state) => {
-        state.phase = event.data.phase;
-      });
-    }
-  };
 
   constructor({
     messenger,
@@ -231,23 +172,6 @@ export class QrSyncController extends BaseController<
     });
   }
 
-  /** Stores the active import plan outside controller state because it contains secrets. */
-  public setImportPlan(plan: QrSyncImportPlan | null): void {
-    this.currentImportPlan = plan;
-  }
-
-  /** Returns the current secret-bearing import plan for internal orchestration use only. */
-  public getImportPlan(): QrSyncImportPlan | null {
-    return this.currentImportPlan;
-  }
-
-  /** Updates the review model exposed to UI. */
-  public setReview(review: QrSyncControllerReviewState | null): void {
-    this.update((state) => {
-      state.review = review;
-    });
-  }
-
   /**
    * Primary mobile entrypoint for QR sync.
    *
@@ -257,7 +181,7 @@ export class QrSyncController extends BaseController<
    */
   public async handleScannedQrPayload(scannedQrData: string): Promise<void> {
     this.resetQrSyncState();
-    this.setPhase('initializing');
+    this.setPhase(QrSyncPhases.INITIALIZING);
 
     try {
       const connectionRequest = parseQrSyncConnectionRequest(scannedQrData);
@@ -270,7 +194,6 @@ export class QrSyncController extends BaseController<
       });
 
       this.attachSession(session);
-      this.setPhase('waiting-for-otp-grant');
       await session.connect(sessionRequest);
       await this.sendSyncOffer(session);
     } catch (error) {
@@ -300,21 +223,100 @@ export class QrSyncController extends BaseController<
 
   /** Clears UI state and secret-bearing runtime state for a fresh QR sync flow. */
   public resetQrSyncState(): void {
-    this.currentImportPlan = null;
-
     this.update((state) => {
       state.phase = defaultQrSyncControllerState.phase;
       state.connectionStatus = defaultQrSyncControllerState.connectionStatus;
       state.review = null;
       state.otp = null;
       state.error = null;
+      state.importPlan = null;
     });
   }
+
+  private readonly handleSessionMessage = (message: unknown) => {
+    const routedMessage = routeIncomingQrSyncMessage(message);
+
+    if (!routedMessage) {
+      return;
+    }
+
+    if ('importPlan' in routedMessage && routedMessage.importPlan) {
+      this.update((state) => {
+        state.importPlan = routedMessage.importPlan as QrSyncImportPlan;
+      });
+    }
+
+    this.handleSessionServiceEvent(routedMessage.event);
+
+    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+      if (!this.session) {
+        throw new Error('Session not found');
+      }
+
+      this.sendSyncCompleted(this.session);
+    }
+  };
+
+  private readonly handleSessionServiceEvent = (event: QrSyncServiceEvent) => {
+    if (isConnectionStatusChangedEvent(event)) {
+      this.update((state) => {
+        state.connectionStatus = event.data.status;
+        if (
+          event.data.status === 'connected' &&
+          state.phase !== QrSyncPhases.COMPLETED
+        ) {
+          state.phase = QrSyncPhases.WAITING_FOR_SYNC_READY;
+        }
+      });
+      return;
+    }
+
+    if (isOtpDisplayGrantEvent(event)) {
+      this.update((state) => {
+        state.phase = QrSyncPhases.DISPLAYING_OTP;
+        state.otp = event.data;
+        state.error = null;
+      });
+      return;
+    }
+
+    if (isSyncReadyEvent(event)) {
+      this.update((state) => {
+        state.phase = QrSyncPhases.REVIEWING_IMPORT;
+        state.review = toControllerReviewState(event.data);
+        state.error = null;
+      });
+      return;
+    }
+
+    if (event.type === 'sync-completed') {
+      this.update((state) => {
+        state.phase = QrSyncPhases.COMPLETED;
+        state.otp = null;
+        state.error = null;
+      });
+      return;
+    }
+
+    if (isSyncErrorEvent(event)) {
+      this.update((state) => {
+        state.phase = QrSyncPhases.FAILED;
+        state.error = event.data;
+      });
+      return;
+    }
+
+    if (isPhaseChangedEvent(event)) {
+      this.update((state) => {
+        state.phase = event.data.phase;
+      });
+    }
+  };
 
   private async sendSyncOffer(session: QrSyncSession): Promise<void> {
     this.update((state) => {
       state.otp = null;
-      state.phase = 'waiting-for-sync-ready';
+      state.phase = QrSyncPhases.WAITING_FOR_SYNC_READY;
     });
 
     await session.send({
@@ -327,9 +329,16 @@ export class QrSyncController extends BaseController<
     });
   }
 
+  private async sendSyncCompleted(session: QrSyncSession): Promise<void> {
+    await session.send({
+      type: QrSyncActionTypes.SYNC_COMPLETED,
+      version: QrSyncMessageVersion.V1,
+    });
+  }
+
   private setRuntimeError(error: QrSyncControllerErrorState): void {
     this.update((state) => {
-      state.phase = 'failed';
+      state.phase = QrSyncPhases.FAILED;
       state.error = error;
     });
   }

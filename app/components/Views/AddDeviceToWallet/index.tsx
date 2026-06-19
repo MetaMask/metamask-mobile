@@ -26,6 +26,7 @@ import {
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
+import { QrSyncPhases } from '../../../core/QrSync/constants';
 
 const Points = ({
   number,
@@ -84,7 +85,7 @@ const AddDeviceToWallet = () => {
     if (
       deviceAdded ||
       hasOpenedVerificationSheetRef.current ||
-      qrSyncState?.phase !== 'displaying-otp' ||
+      qrSyncState?.phase !== QrSyncPhases.DISPLAYING_OTP ||
       !qrSyncState?.otp?.otp
     ) {
       return;

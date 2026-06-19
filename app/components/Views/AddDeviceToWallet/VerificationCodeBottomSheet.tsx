@@ -16,6 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import type { RootState } from '../../../reducers';
+import { QrSyncPhases } from '../../../core/QrSync/constants';
 
 const VerificationCodeBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -29,9 +30,6 @@ const VerificationCodeBottomSheet = () => {
 
   const closeSheet = useCallback(() => {
     navigation.goBack();
-    setTimeout(() => {
-      navigation.goBack();
-    }, 100);
   }, [navigation]);
 
   const goBack = useCallback(() => {
@@ -44,15 +42,21 @@ const VerificationCodeBottomSheet = () => {
       hasDisplayedOtpRef.current = true;
     }
 
-    if (
+    const shouldAutoClose =
       hasDisplayedOtpRef.current &&
       !hasAutoClosedRef.current &&
-      (phase !== 'displaying-otp' || !otp)
-    ) {
+      (phase !== QrSyncPhases.DISPLAYING_OTP || !otp);
+
+    if (shouldAutoClose) {
       hasAutoClosedRef.current = true;
+
+      if (phase === QrSyncPhases.WAITING_FOR_SYNC_READY) {
+        DeviceEventEmitter.emit('addDeviceVerificationDone');
+      }
+
       closeSheet();
     }
-  }, [closeSheet, otp, phase]);
+  }, [closeSheet, goBack, otp, phase]);
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={goBack}>

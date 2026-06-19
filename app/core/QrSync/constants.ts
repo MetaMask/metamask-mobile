@@ -5,6 +5,27 @@ export enum QrSyncMessageVersion {
   V1 = '1.0.0',
 }
 
+/**
+ * Mobile-local lifecycle phases for one QR sync session.
+ *
+ * Each phase maps to a distinct UI moment in the add-device flow:
+ * - idle → no active session
+ * - initializing → validating QR payload and opening the MWP session
+ * - displaying-otp → verification bottom sheet is shown
+ * - waiting-for-sync-ready → OTP step done; waiting for extension sync-ready after sending sync-offer
+ * - reviewing-import → import payload received; onboarding import screen
+ * - completed / failed → terminal outcomes
+ */
+export const QrSyncPhases = {
+  IDLE: 'idle',
+  INITIALIZING: 'initializing',
+  DISPLAYING_OTP: 'displaying-otp',
+  WAITING_FOR_SYNC_READY: 'waiting-for-sync-ready',
+  REVIEWING_IMPORT: 'reviewing-import',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+} as const;
+
 export const QrSyncActionTypes = {
   /**
    * Init Sync Session

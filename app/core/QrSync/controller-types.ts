@@ -7,6 +7,7 @@ import type { Messenger } from '@metamask/messenger';
 import type {
   QrSyncConnectionStatus,
   QrSyncErrorCode,
+  QrSyncImportPlan,
   QrSyncPhase,
   SyncDataType,
 } from './types';
@@ -14,50 +15,57 @@ import type {
 export const QR_SYNC_CONTROLLER_NAME = 'QrSyncController';
 
 /** JSON-safe error shape stored in controller state. */
-export interface QrSyncControllerErrorState {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerErrorState = {
   code: QrSyncErrorCode;
   message: string;
   retryable: boolean;
-}
+};
 
 /** JSON-safe OTP display shape stored in controller state. */
-export interface QrSyncControllerOtpState {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type QrSyncControllerOtpState = {
   otp: string;
   deadline: number;
-}
+};
 
 /** JSON-safe review entry exposed to UI from controller state. */
-export interface QrSyncControllerReviewItemState {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerReviewItemState = {
   index: number;
   type: SyncDataType;
   accountName: string | null;
   hiddenIndexes: number[];
   isPrimary: boolean;
-}
+};
 
 /** JSON-safe aggregate review summary exposed to UI from controller state. */
-export interface QrSyncControllerReviewSummaryState {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerReviewSummaryState = {
   entryCount: number;
   mnemonicCount: number;
   privateKeyCount: number;
   hasPrimaryMnemonic: boolean;
-}
+};
 
 /** JSON-safe sanitized review model stored in controller state. */
-export interface QrSyncControllerReviewState {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerReviewState = {
   deadline: number;
   entries: QrSyncControllerReviewItemState[];
   summary: QrSyncControllerReviewSummaryState;
-}
+};
 
 /** Serializable UI-safe state owned by the QR sync controller. */
-export interface QrSyncControllerState {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerState = {
   phase: QrSyncPhase;
   connectionStatus: QrSyncConnectionStatus;
   review: QrSyncControllerReviewState | null;
+  importPlan: QrSyncImportPlan | null;
   otp: QrSyncControllerOtpState | null;
   error: QrSyncControllerErrorState | null;
-}
+};
 
 /** Controller-local actions exposed by the QR sync controller namespace. */
 export type QrSyncControllerActions = ControllerGetStateAction<

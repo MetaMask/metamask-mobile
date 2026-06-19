@@ -44,7 +44,7 @@ const toInvalidPayloadEvent = (message: string) =>
 export function routeIncomingQrSyncMessage(
   rawMessage: unknown,
   currentTimestamp = Date.now(),
-): QrSyncRoutedMessageResult {
+): QrSyncRoutedMessageResult | undefined {
   if (!isRecord(rawMessage)) {
     return toInvalidPayloadEvent(
       'QR sync message does not match the expected envelope structure.',
@@ -106,6 +106,9 @@ export function routeIncomingQrSyncMessage(
           data: message.data,
         },
       };
+
+    case QrSyncActionTypes.INIT_SYNC_SESSION:
+      return undefined;
 
     default:
       return toInvalidPayloadEvent(

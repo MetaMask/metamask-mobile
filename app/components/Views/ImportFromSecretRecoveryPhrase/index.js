@@ -101,7 +101,10 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
+import {
+  selectAddDeviceSyncEnabled,
+  selectQrSyncPrimaryMnemonic,
+} from '../../../selectors/featureFlagController/addDeviceSync';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -118,6 +121,8 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const isQrSyncImport = Boolean(route.params?.qrSyncImport);
+  const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -167,6 +172,13 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
+
+  useEffect(() => {
+    if (qrSyncPrimaryMnemonic) {
+      setSeedPhrase(qrSyncPrimaryMnemonic.split(SPACE_CHAR));
+      setCurrentStep(1);
+    }
+  }, [isQrSyncImport, qrSyncPrimaryMnemonic]);
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
@@ -232,7 +244,7 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 
   const onBackPress = () => {
-    if (currentStep === 0) {
+    if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
       navigation.goBack();
     } else {
       animateToStep(currentStep - 1);
