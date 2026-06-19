@@ -669,8 +669,13 @@ describe('ResetPassword', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        component.getByText(strings('reset_password.checkbox_forgot_password')),
-      ).toBeOnTheScreen();
+        component.getByTestId(ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID),
+      ).toHaveTextContent(strings('reset_password.checkbox_forgot_password'), {
+        exact: false,
+      });
+      expect(
+        component.queryByText(strings('reset_password.i_understand')),
+      ).toBeNull();
     });
   });
 
