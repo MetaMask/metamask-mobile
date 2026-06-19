@@ -3,10 +3,17 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import type { ActivityListItem, Status } from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
+import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingActions';
 import { strings } from '../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../util/networks';
+import { hasGasFeeTokenSelected } from '../../Views/confirmations/utils/transaction';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
@@ -1083,6 +1090,156 @@ describe('ActivityListItemRow — pending rows', () => {
     expect(getByTestId('activity-subtitle-0xdef').props.children).toBe(
       'From: 0xfrom...',
     );
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pending row actions — speed-up/cancel and hardware signing gates
+// ---------------------------------------------------------------------------
+
+type PendingActionsProps = React.ComponentProps<
+  typeof ActivityListItemRowPendingActions
+>;
+
+const pendingActionStyles = {
+  pendingActions: {},
+  actionContainerStyle: {},
+  speedupActionContainerStyle: {},
+  actionStyle: {},
+} as PendingActionsProps['styles'];
+
+const makePendingActionTx = (
+  overrides: Partial<TransactionMeta & { isSmartTransaction?: boolean }> = {},
+) =>
+  ({
+    id: 'tx-1',
+    status: TransactionStatus.submitted,
+    type: TransactionType.simpleSend,
+    ...overrides,
+  }) as unknown as TransactionMeta;
+
+const makePendingActionProps = (
+  overrides: Partial<PendingActionsProps> = {},
+): PendingActionsProps => ({
+  tx: makePendingActionTx(),
+  styles: pendingActionStyles,
+  isQRHardwareAccount: false,
+  isLedgerAccount: false,
+  onSpeedUpAction: jest.fn(),
+  onCancelAction: jest.fn(),
+  signQRTransaction: jest.fn(),
+  signLedgerTransaction: jest.fn(),
+  cancelUnsignedQRTransaction: jest.fn(),
+  ...overrides,
+});
+
+describe('ActivityListItemRowPendingActions', () => {
+  const mockHasGasFeeTokenSelected = jest.mocked(hasGasFeeTokenSelected);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasGasFeeTokenSelected.mockReturnValue(false);
+  });
+
+  it('renders speed-up and cancel actions for submitted transactions', () => {
+    const props = makePendingActionProps();
+    const { getByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    fireEvent.press(getByText(strings('transaction.speedup')));
+    fireEvent.press(getByText(strings('transaction.cancel')));
+
+    expect(props.onSpeedUpAction).toHaveBeenCalledWith(true, props.tx);
+    expect(props.onCancelAction).toHaveBeenCalledWith(true, props.tx);
+  });
+
+  it('renders normal actions for approved software-account transactions', () => {
+    const props = makePendingActionProps({
+      tx: makePendingActionTx({ status: TransactionStatus.approved }),
+    });
+    const { getByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    expect(getByText(strings('transaction.speedup'))).toBeOnTheScreen();
+    expect(getByText(strings('transaction.cancel'))).toBeOnTheScreen();
+  });
+
+  it('renders QR signing and QR cancel actions for approved QR hardware transactions', () => {
+    const props = makePendingActionProps({
+      isQRHardwareAccount: true,
+      tx: makePendingActionTx({ status: TransactionStatus.approved }),
+    });
+    const { getByText, queryByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+
+    fireEvent.press(getByText(strings('transaction.sign_with_keystone')));
+    fireEvent.press(getByText(strings('transaction.cancel')));
+
+    expect(props.signQRTransaction).toHaveBeenCalledWith(props.tx);
+    expect(props.cancelUnsignedQRTransaction).toHaveBeenCalledWith(props.tx);
+  });
+
+  it('renders Ledger signing action for approved Ledger transactions', () => {
+    const props = makePendingActionProps({
+      isLedgerAccount: true,
+      tx: makePendingActionTx({
+        id: 'ledger-tx',
+        status: TransactionStatus.approved,
+      }),
+    });
+    const { getByText, queryByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+
+    fireEvent.press(getByText(strings('transaction.sign_with_ledger')));
+
+    expect(props.signLedgerTransaction).toHaveBeenCalledWith({
+      id: 'ledger-tx',
+    });
+  });
+
+  it.each([
+    ['smart transaction', makePendingActionTx({ isSmartTransaction: true })],
+    [
+      'bridge transaction',
+      makePendingActionTx({ type: TransactionType.bridge }),
+    ],
+    [
+      'unapproved transaction',
+      makePendingActionTx({ status: TransactionStatus.unapproved }),
+    ],
+  ])('renders nothing for %s', (_description, tx) => {
+    const { queryByText } = render(
+      <ActivityListItemRowPendingActions
+        {...makePendingActionProps({
+          tx,
+        })}
+      />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+    expect(queryByText(strings('transaction.sign_with_keystone'))).toBeNull();
+    expect(queryByText(strings('transaction.sign_with_ledger'))).toBeNull();
+  });
+
+  it('renders nothing when a gas fee token is selected', () => {
+    mockHasGasFeeTokenSelected.mockReturnValue(true);
+
+    const { queryByText } = render(
+      <ActivityListItemRowPendingActions {...makePendingActionProps()} />,
+    );
+
     expect(queryByText(strings('transaction.speedup'))).toBeNull();
     expect(queryByText(strings('transaction.cancel'))).toBeNull();
   });
