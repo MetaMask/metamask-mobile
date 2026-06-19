@@ -4,6 +4,7 @@ import { render, act, waitFor } from '@testing-library/react-native';
 import PredictGameChart from './PredictGameChart';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   PredictMarket,
   PredictMarketStatus,
@@ -16,6 +17,7 @@ import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock the hooks
 jest.mock('../../hooks/usePredictPriceHistory');
 jest.mock('../../hooks/useLiveMarketPrices');
+jest.mock('../../hooks/usePredictGame');
 
 // Mock PredictGameChartContent to capture props
 jest.mock('./PredictGameChartContent', () => {
@@ -56,6 +58,9 @@ jest.mock('./PredictGameChartContent', () => {
 
 const mockUsePredictPriceHistory = usePredictPriceHistory as jest.Mock;
 const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const createMockPriceHistory = (
   tokenIndex: number,
@@ -146,6 +151,12 @@ describe('PredictGameChart Wrapper', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-15T12:00:00.000Z'));
+
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
 
     mockUsePredictPriceHistory.mockReturnValue({
       priceHistories: [],
@@ -1154,6 +1165,26 @@ describe('PredictGameChart Wrapper', () => {
       expect(getByTestId('content-timeframe').children[0]).toBe('max');
       expect(getByTestId('content-disabled-selector').children[0]).toBe('true');
       expect(queryByTestId('timeframe-trigger')).toBeNull();
+    });
+
+    it('uses the cached game status for the default timeframe', () => {
+      mockUsePredictGame.mockReturnValue({
+        game: {
+          ...mockBaseGame,
+          status: 'ended' as PredictGameStatus,
+          startTime: '2024-01-15T10:00:00Z',
+          endTime: '2024-01-15T13:00:00Z',
+        },
+        isConnected: false,
+        lastUpdateTime: null,
+      });
+
+      const { getByTestId } = render(
+        <PredictGameChart market={defaultMarket} testID="chart" />,
+      );
+
+      expect(getByTestId('content-timeframe').children[0]).toBe('max');
+      expect(getByTestId('content-disabled-selector').children[0]).toBe('true');
     });
 
     it('uses startTs/endTs for ended games instead of interval', () => {
