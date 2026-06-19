@@ -14,17 +14,13 @@ export const PRICE_ALERTS_SUPPORTED_CHAINS_QUERY_KEY = [
   'supportedChains',
 ] as const;
 
-export interface SupportedChainsResponse {
-  chains: string[];
-}
-
 async function fetchSupportedChainsData(): Promise<string[]> {
   const response = await fetchSupportedChains();
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-  const body = (await response.json()) as SupportedChainsResponse;
-  return body.chains;
+  const body = (await response.json()) as string[];
+  return body;
 }
 
 /**
