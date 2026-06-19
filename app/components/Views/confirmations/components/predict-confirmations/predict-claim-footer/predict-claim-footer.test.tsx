@@ -45,17 +45,17 @@ function render({
   );
 }
 
-const mockTrackPredictOrderEvent = jest.fn();
+const mockTrackClaimResolutionLagFailure = jest.fn();
 
 describe('PredictClaimFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (
       Engine.context as unknown as {
-        PredictController: { trackPredictOrderEvent: jest.Mock };
+        PredictController: { trackClaimResolutionLagFailure: jest.Mock };
       }
     ).PredictController = {
-      trackPredictOrderEvent: mockTrackPredictOrderEvent,
+      trackClaimResolutionLagFailure: mockTrackClaimResolutionLagFailure,
     };
   });
 
@@ -127,7 +127,7 @@ describe('PredictClaimFooter', () => {
     });
   });
 
-  it('tracks a failed pending_resolution claim event when there are no won positions', async () => {
+  it('routes the no-won-positions guard through the controller resolution-lag failure', async () => {
     // Arrange - state with transaction from an address with no claimable positions
     const state = merge(
       {},
@@ -154,15 +154,11 @@ describe('PredictClaimFooter', () => {
       state,
     });
 
-    // Assert - the Sentry 5JA7 guard is now measurable on the claim event
+    // Assert - the Sentry 5JA7 guard is routed through the controller so it
+    // shares the per-attempt idempotency guard (single terminal event).
     await waitFor(() => {
-      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
-        status: 'failed',
-        analyticsProperties: {
-          transactionType: 'mm_predict_claim',
-          entryPoint: 'background',
-        },
-        failureReason: 'pending_resolution',
+      expect(mockTrackClaimResolutionLagFailure).toHaveBeenCalledWith({
+        address: '0xunknown',
       });
     });
   });

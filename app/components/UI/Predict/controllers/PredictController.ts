@@ -472,6 +472,15 @@ export class PredictController extends BaseController<
     [address: string]: PredictTradeAnalyticsProperties;
   } = {};
 
+  /**
+   * Tracks which addresses have already emitted a terminal claim
+   * `PREDICT_TRADE_TRANSACTION` event for the current claim attempt, keyed by
+   * lowercased address. Reset on each claim initiation so the terminal event
+   * fires exactly once per attempt regardless of how many sources (footer
+   * guard, repeated transaction-status updates) try to emit it.
+   */
+  private claimTerminalEmitted = new Set<string>();
+
   private readonly traceable: TraceableController = {
     update: (updater) => this.update(updater),
     getErrorContext: (method, extra) => this.getErrorContext(method, extra),
@@ -1794,6 +1803,8 @@ export class PredictController extends BaseController<
           analyticsContext,
           claimablePositions,
         );
+      // New attempt: allow the terminal event to fire exactly once.
+      this.claimTerminalEmitted.delete(signer.address.toLowerCase());
 
       // Set pending claim placeholder before preparing the transaction
       this.update((state) => {
@@ -1893,6 +1904,7 @@ export class PredictController extends BaseController<
           analyticsProperties: claimAnalytics,
           failureReason: PredictEventValues.CLAIM_FAILURE_REASON.USER_REJECTED,
         });
+        this.claimTerminalEmitted.add(signer.address.toLowerCase());
         delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
 
         // ignore error, as the user cancelled the tx
@@ -1983,6 +1995,10 @@ export class PredictController extends BaseController<
    * Fires the terminal claim `PREDICT_TRADE_TRANSACTION` event
    * (`succeeded`/`failed`) using the stashed analytics context and the claim
    * amount captured before claimable positions are cleared.
+   *
+   * Idempotent per attempt: if a terminal event was already emitted for this
+   * address (e.g. by the footer resolution-lag guard, or a repeated terminal
+   * `transactionStatusUpdated`), this is a no-op aside from clearing the stash.
    */
   private trackClaimTransactionOutcome({
     status,
@@ -1996,6 +2012,12 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
   }): void {
     const normalizedAddress = address.toLowerCase();
+
+    if (this.claimTerminalEmitted.has(normalizedAddress)) {
+      delete this.pendingClaimAnalytics[normalizedAddress];
+      return;
+    }
+
     const analyticsProperties =
       this.pendingClaimAnalytics[normalizedAddress] ??
       this.buildClaimAnalyticsProperties();
@@ -2019,6 +2041,42 @@ export class PredictController extends BaseController<
       });
     }
 
+    this.claimTerminalEmitted.add(normalizedAddress);
+    delete this.pendingClaimAnalytics[normalizedAddress];
+  }
+
+  /**
+   * Emits a terminal `failed`/`pending_resolution` claim event for the
+   * resolution-lag (no-positions-won) guard surfaced on the claim confirmation
+   * footer (Sentry 5JA7). Participates in the same per-attempt idempotency guard
+   * as {@link trackClaimTransactionOutcome}, so the eventual transaction
+   * `rejected` status update does not emit a duplicate (mislabeled
+   * `user_rejected`) terminal event.
+   */
+  public trackClaimResolutionLagFailure({
+    address,
+  }: {
+    address?: string;
+  }): void {
+    const normalizedAddress = (
+      address ?? this.getSigner().address
+    ).toLowerCase();
+
+    if (this.claimTerminalEmitted.has(normalizedAddress)) {
+      return;
+    }
+
+    const analyticsProperties =
+      this.pendingClaimAnalytics[normalizedAddress] ??
+      this.buildClaimAnalyticsProperties();
+
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.FAILED,
+      analyticsProperties,
+      failureReason: PredictEventValues.CLAIM_FAILURE_REASON.PENDING_RESOLUTION,
+    });
+
+    this.claimTerminalEmitted.add(normalizedAddress);
     delete this.pendingClaimAnalytics[normalizedAddress];
   }
 

@@ -6204,6 +6204,77 @@ describe('PredictController', () => {
       });
     });
 
+    it('emits the terminal claim event only once when confirmed fires repeatedly', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const succeededEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'succeeded');
+        expect(succeededEvents).toHaveLength(1);
+      });
+    });
+
+    it('does not emit a duplicate terminal event after the resolution-lag guard fired', () => {
+      withController(({ controller, messenger }) => {
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // Footer 5JA7 guard fires first.
+        controller.trackClaimResolutionLagFailure({ address: accountAddress });
+
+        // The confirmation rejection arrives afterwards.
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.rejected,
+        });
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const failedEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'failed');
+        expect(failedEvents).toHaveLength(1);
+        expect(failedEvents[0].properties.failure_reason).toBe(
+          'pending_resolution',
+        );
+        expect(findPredictTradeEvent('succeeded')).toBeUndefined();
+      });
+    });
+
     it('publishes event for predict withdraw transaction with failed status', () => {
       withController(({ messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
