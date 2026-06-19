@@ -54,6 +54,7 @@ import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
+import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -185,6 +186,11 @@ const TokenDetails: React.FC<{
   }, [token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+
+  const isPriceAlertsChainSupported = useIsPriceAlertsChainSupported(
+    caip19AssetId,
+    { enabled: isPriceAlertsFeatureEnabled },
+  );
 
   const {
     securityData,
@@ -364,7 +370,10 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
         onPriceAlertPress={
-          isPriceAlertsFeatureEnabled && currentPrice > 0 && caip19AssetId
+          isPriceAlertsFeatureEnabled &&
+          isPriceAlertsChainSupported &&
+          currentPrice > 0 &&
+          caip19AssetId
             ? handlePriceAlertPress
             : undefined
         }

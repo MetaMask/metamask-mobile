@@ -244,6 +244,20 @@ jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
   selectPriceAlertsEnabled: jest.fn(() => false),
 }));
 
+const mockUseIsPriceAlertsChainSupported = jest.fn<
+  boolean,
+  [string | null | undefined, { enabled?: boolean }?]
+>(() => true);
+jest.mock(
+  '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported',
+  () => ({
+    useIsPriceAlertsChainSupported: (
+      assetId: string | null | undefined,
+      options?: { enabled?: boolean },
+    ) => mockUseIsPriceAlertsChainSupported(assetId, options),
+  }),
+);
+
 jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampNativeTokenSupported: jest.fn(() => true),
   isNetworkRampSupported: jest.fn(() => true),
@@ -345,6 +359,7 @@ describe('TokenDetails', () => {
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
+    mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -779,6 +794,21 @@ describe('TokenDetails', () => {
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         chainId: undefined,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('passes undefined onPriceAlertPress when the chain is not supported for price alerts', () => {
+      enablePriceAlerts();
+      mockUseIsPriceAlertsChainSupported.mockReturnValue(false);
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 100,
       });
 
       render(<TokenDetails />);
