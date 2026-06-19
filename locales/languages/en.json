@@ -7061,7 +7061,7 @@
       "title": "How it works",
       "description_prefix": "Add mUSD and earn up to",
       "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime.",
-      "description_no_apy": "Add mUSD and earn APY (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_no_apy": "Add mUSD and earn APY. Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
