@@ -1,13 +1,12 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
-import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import {
   isTokenBlocked,
   getBlockedTokensForTransactionType,
 } from '../../../Views/confirmations/utils/transaction-pay';
-import { isSubsidizedRoute } from '../../../Views/confirmations/utils/relayFixedSpread';
-import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import { isSubsidizedSource } from '../../../Views/confirmations/utils/relayFixedSpread';
 import {
   selectMetaMaskPayTokensFlags,
   selectRelayFixedSpread,
@@ -18,16 +17,6 @@ import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 
 const isEvmToken = (token: AssetType) =>
   Boolean(token.accountType?.includes('eip155'));
-
-/**
- * Money deposits ALWAYS convert TO Monad mUSD. The no-fee tag must match a
- * subsidized route whose TARGET is Monad mUSD — NOT merely a token that is a
- * subsidized source on some other route (e.g. a withdraw mUSD->USDC route).
- */
-const MONAD_MUSD_TARGET = {
-  address: MUSD_TOKEN_ADDRESS,
-  chainId: CHAIN_IDS.MONAD,
-};
 
 /**
  * Returns tokens the user holds that are eligible for Money account deposits
@@ -43,9 +32,10 @@ const MONAD_MUSD_TARGET = {
  *
  * Sort: fiat balance descending.
  *
- * isNoFeeToken: true only when the token has a subsidized route whose target
- * is Monad mUSD (i.e. the deposit destination). Source-only matching is
- * intentionally avoided — see MONAD_MUSD_TARGET above.
+ * isNoFeeToken: true when the token is a subsidized source in the Relay
+ * fixed-spread config. Relay sponsors the gas, which is paid on the source
+ * token's chain, so the tag is keyed to the source — matching the token
+ * picker (usePayWithNoFeeToken / useMoneyNoFeeTokens) so both surfaces agree.
  */
 export const useMoneyEarnableTokens = () => {
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
@@ -65,14 +55,10 @@ export const useMoneyEarnableTokens = () => {
   const isNoFeeToken = useCallback(
     (token: AssetType) =>
       Boolean(token.chainId) &&
-      isSubsidizedRoute(
-        relayFixedSpread,
-        {
-          address: token.address,
-          chainId: safeFormatChainIdToHex(token.chainId as string),
-        },
-        MONAD_MUSD_TARGET,
-      ),
+      isSubsidizedSource(relayFixedSpread, {
+        address: token.address,
+        chainId: safeFormatChainIdToHex(token.chainId as string),
+      }),
     [relayFixedSpread],
   );
 

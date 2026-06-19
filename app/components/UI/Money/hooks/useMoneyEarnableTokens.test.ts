@@ -66,6 +66,21 @@ const RELAY_CONFIG_WITH_MUSD_SOURCE_DEPOSIT: RelayFixedSpreadConfig = {
   ],
 };
 
+/**
+ * Withdraw route: Monad mUSD -> eth USDC. mUSD is a subsidized source here
+ * even though the target is NOT Monad mUSD — Relay still sponsors the gas.
+ */
+const RELAY_CONFIG_WITH_MUSD_WITHDRAW_ROUTE: RelayFixedSpreadConfig = {
+  routes: [
+    {
+      sourceChain: CHAIN_IDS.MONAD,
+      sourceToken: MUSD_TOKEN_ADDRESS, // Monad mUSD
+      targetChain: '0x1',
+      targetToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // eth USDC
+    },
+  ],
+};
+
 const EMPTY_RELAY_CONFIG: RelayFixedSpreadConfig = { routes: [] };
 
 const makeToken = (overrides: Partial<AssetType> = {}): AssetType =>
@@ -293,8 +308,8 @@ describe('useMoneyEarnableTokens', () => {
     });
   });
 
-  describe('isNoFeeToken — directional Monad mUSD route match', () => {
-    it('returns true for a token with a subsidized route TO Monad mUSD', () => {
+  describe('isNoFeeToken — subsidized source match (Relay gas sponsorship)', () => {
+    it('returns true for a token that is a subsidized deposit source', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
         if (selector === selectRelayFixedSpread)
@@ -328,6 +343,27 @@ describe('useMoneyEarnableTokens', () => {
       const { result } = renderHook(() => useMoneyEarnableTokens());
 
       expect(result.current.isNoFeeToken(ethMusd)).toBe(true);
+    });
+
+    it('returns true for mUSD on Monad when it is a subsidized source on a non-mUSD route (withdraw)', () => {
+      const monadMusd = makeToken({
+        address: MUSD_TOKEN_ADDRESS,
+        symbol: 'mUSD',
+        chainId: CHAIN_IDS.MONAD,
+        fiat: { balance: 500, currency: 'usd', conversionRate: 1 },
+      });
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
+        if (selector === selectRelayFixedSpread)
+          return RELAY_CONFIG_WITH_MUSD_WITHDRAW_ROUTE;
+        if (selector === selectMoneyDepositMinBalance) return 0.01;
+        return undefined;
+      });
+      mockUseAccountTokens.mockReturnValue([monadMusd]);
+
+      const { result } = renderHook(() => useMoneyEarnableTokens());
+
+      expect(result.current.isNoFeeToken(monadMusd)).toBe(true);
     });
 
     it('returns false when the relay config has no routes', () => {
