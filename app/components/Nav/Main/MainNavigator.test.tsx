@@ -80,6 +80,11 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
     mockSelectMarketInsightsPerpsEnabled(state),
 }));
 
+jest.mock('../../UI/Money/Views/MoneyFirstTimeDepositView', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
@@ -91,6 +96,12 @@ const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
+}));
+
+const mockSelectIsMoneyAccountGeoEligible = jest.fn().mockReturnValue(true);
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: (state: unknown) =>
+    mockSelectIsMoneyAccountGeoEligible(state),
 }));
 
 describe('MainNavigator', () => {
@@ -393,8 +404,8 @@ describe('MainNavigator', () => {
         component: { name: string };
         options?: {
           headerShown?: boolean;
-          animationEnabled?: boolean;
-          cardStyleInterpolator?: unknown;
+          animation?: string;
+          contentStyle?: unknown;
         };
       }
       return container.root.children
@@ -845,8 +856,8 @@ describe('MainNavigator', () => {
         component: { name: string };
         options?: {
           headerShown?: boolean;
-          animationEnabled?: boolean;
-          cardStyleInterpolator?: unknown;
+          animation?: string;
+          contentStyle?: unknown;
         };
       }
       return container.root.children
@@ -990,8 +1001,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes StakeScreens route', () => {
@@ -1076,8 +1086,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes Asset screen', () => {
@@ -1190,8 +1199,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1206,8 +1214,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
   });
 

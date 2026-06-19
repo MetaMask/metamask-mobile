@@ -54,6 +54,7 @@ export enum ACTIONS {
   NFT = 'nft',
   AGENTIC_CLI = 'agentic-cli',
   ON_RAMP = 'on-ramp',
+  MONEY = 'money',
 }
 
 export const PREFIXES = {
@@ -94,5 +95,6 @@ export const PREFIXES = {
   [ACTIONS.NFT]: '',
   [ACTIONS.AGENTIC_CLI]: '',
   [ACTIONS.ON_RAMP]: '',
+  [ACTIONS.MONEY]: '',
   METAMASK: 'metamask://',
 };

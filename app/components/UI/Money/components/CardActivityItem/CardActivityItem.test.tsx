@@ -4,6 +4,15 @@ import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import CardActivityItem from './CardActivityItem';
 import type { CardTransaction } from '../../types/moneyActivity';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsFlag: jest.fn(),
+}));
+
+const mockedSelectActivityDetailsFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsFlag,
+);
 
 // Selectors are stubbed to plain getters and useSelector just invokes them, so
 // the component's currency/rate wiring runs without a full redux store.
@@ -44,14 +53,21 @@ const card: CardTransaction = {
 
 interface CapturedRowProps {
   id: string;
-  isFailed: boolean;
   chainId: string;
   onPress?: (id: string) => void;
-  display: { icon: IconName; primaryAmount: string; fiatAmount: string };
+  display: {
+    icon: IconName;
+    primaryAmount: string;
+    fiatAmount: string;
+    status: string;
+  };
 }
 
 describe('CardActivityItem', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedSelectActivityDetailsFlag.mockReturnValue(true);
+  });
 
   it('feeds a card display (Card icon, outgoing amount) into the row view', () => {
     // Act
@@ -61,8 +77,8 @@ describe('CardActivityItem', () => {
     expect(mockRowView).toHaveBeenCalledTimes(1);
     const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
     expect(props.id).toBe(card.hash);
-    expect(props.isFailed).toBe(false);
     expect(props.chainId).toBe('0x8f');
+    expect(props.display.status).toBe('confirmed');
     expect(props.display.icon).toBe(IconName.Card);
     expect(props.display.primaryAmount).toBe('-5.38 mUSD');
     expect(props.display.fiatAmount).toContain('5.38');
@@ -77,9 +93,17 @@ describe('CardActivityItem', () => {
     props.onPress?.(card.hash);
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyModals', {
-      screen: 'MoneyCardTransactionDetailsSheet',
-      params: { card },
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      card,
     });
+  });
+
+  it('passes undefined onPress when moneyEnableActivityDetails flag is off', () => {
+    mockedSelectActivityDetailsFlag.mockReturnValue(false);
+
+    render(<CardActivityItem card={card} />);
+
+    const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
+    expect(props.onPress).toBeUndefined();
   });
 });
