@@ -27,7 +27,6 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import useRegions from '../../hooks/useRegions';
 
 const CODE_LENGTH = 6;
 
@@ -36,7 +35,9 @@ const ConfirmEmail = () => {
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
-  const { getRegionByCode } = useRegions();
+  const [unexpectedVerifyError, setUnexpectedVerifyError] = useState<
+    string | null
+  >(null);
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
@@ -48,8 +49,6 @@ const ConfirmEmail = () => {
     password: string;
     countryKey: string;
   }>();
-
-  const selectedCountry = getRegionByCode(countryKey);
 
   const {
     sendEmailVerification,
@@ -69,6 +68,7 @@ const ConfirmEmail = () => {
   const handleConfirmCodeChange = useCallback(
     (text: string) => {
       resetVerifyEmailVerification();
+      setUnexpectedVerifyError(null);
       // Filter to only allow numeric input and limit to CODE_LENGTH digits
       const cleanedText = text.replace(/\D/g, '').slice(0, CODE_LENGTH);
       setConfirmCode(cleanedText);
@@ -116,7 +116,7 @@ const ConfirmEmail = () => {
 
   const handleContinue = useCallback(async () => {
     if (
-      !selectedCountry ||
+      !countryKey ||
       !email ||
       !password ||
       !confirmCode ||
@@ -125,6 +125,7 @@ const ConfirmEmail = () => {
       return;
     }
     try {
+      setUnexpectedVerifyError(null);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
@@ -137,7 +138,7 @@ const ConfirmEmail = () => {
         password,
         verificationCode: confirmCode,
         contactVerificationId,
-        countryOfResidence: selectedCountry?.key || '',
+        countryOfResidence: countryKey,
         allowMarketing: true,
         allowSms: true,
       });
@@ -176,6 +177,10 @@ const ConfirmEmail = () => {
           },
         });
         dispatch(resetOnboardingState());
+      } else {
+        setUnexpectedVerifyError(
+          strings('card.card_authentication.errors.unknown_error'),
+        );
       }
     } catch (error) {
       if (
@@ -195,7 +200,6 @@ const ConfirmEmail = () => {
     email,
     navigation,
     password,
-    selectedCountry,
     verifyEmailVerification,
     trackEvent,
     createEventBuilder,
@@ -216,7 +220,7 @@ const ConfirmEmail = () => {
     if (
       confirmCode.length === CODE_LENGTH &&
       latestValueSubmitted !== confirmCode &&
-      selectedCountry &&
+      countryKey &&
       email &&
       password &&
       contactVerificationId
@@ -231,13 +235,16 @@ const ConfirmEmail = () => {
     handleContinue,
     latestValueSubmitted,
     password,
-    selectedCountry,
+    countryKey,
   ]);
+
+  const verifyErrorMessage = verifyError ?? unexpectedVerifyError;
+  const hasVerifyError = verifyIsError || Boolean(unexpectedVerifyError);
 
   const isDisabled =
     verifyLoading ||
     verifyIsError ||
-    !selectedCountry ||
+    !countryKey ||
     !email ||
     !password ||
     !confirmCode ||
@@ -257,17 +264,17 @@ const ConfirmEmail = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.confirm_email.code_label',
           )}
-          isError={verifyIsError}
+          isError={hasVerifyError}
           testID="confirm-email-code-field"
           autoFocus
         />
-        {verifyIsError && (
+        {hasVerifyError && verifyErrorMessage && (
           <Text
             testID="confirm-email-error-text"
             variant={TextVariant.BodySm}
             twClassName="text-error-default"
           >
-            {verifyError}
+            {verifyErrorMessage}
           </Text>
         )}
       </Box>
@@ -295,7 +302,7 @@ const ConfirmEmail = () => {
                 disabled={
                   resendCooldown > 0 ||
                   !email ||
-                  !selectedCountry ||
+                  !countryKey ||
                   emailVerificationIsLoading
                 }
               >

@@ -24,8 +24,8 @@ export const dashboardKeys = {
       caipChainId,
       decimals,
     ] as const,
-  registrationSettings: () =>
-    [...dashboardKeys.all(), 'registrationSettings'] as const,
+  registrationSettings: (location: string) =>
+    [...dashboardKeys.all(), 'registrationSettings', location] as const,
   registrationStatus: (onboardingId: string) =>
     [...dashboardKeys.all(), 'registrationStatus', onboardingId] as const,
   consentSet: (onboardingId: string) =>

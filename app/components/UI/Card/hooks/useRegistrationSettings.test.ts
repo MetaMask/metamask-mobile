@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import useRegistrationSettings from './useRegistrationSettings';
 import { CardSDK } from '../sdk/CardSDK';
@@ -6,6 +7,12 @@ import { CardSDK } from '../sdk/CardSDK';
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const mockRefetch = jest.fn();
 let mockQueryFn: (() => Promise<unknown>) | undefined;
@@ -49,6 +56,8 @@ describe('useRegistrationSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockUseSelector.mockReturnValue('international');
+
     mockQueryReturn = {
       data: undefined,
       isFetching: false,
@@ -79,8 +88,50 @@ describe('useRegistrationSettings', () => {
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: ['card', 'dashboard', 'registrationSettings'],
+          queryKey: [
+            'card',
+            'dashboard',
+            'registrationSettings',
+            'international',
+          ],
           staleTime: 5 * 60 * 1000,
+        }),
+      );
+    });
+
+    it('uses card location in query key when user location is us', () => {
+      const { useQuery: mockUseQuery } = jest.requireMock(
+        '@tanstack/react-query',
+      );
+
+      mockUseSelector.mockReturnValue('us');
+
+      renderHook(() => useRegistrationSettings());
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['card', 'dashboard', 'registrationSettings', 'us'],
+        }),
+      );
+    });
+
+    it('defaults to international query key when card location is unset', () => {
+      const { useQuery: mockUseQuery } = jest.requireMock(
+        '@tanstack/react-query',
+      );
+
+      mockUseSelector.mockReturnValue(null);
+
+      renderHook(() => useRegistrationSettings());
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'card',
+            'dashboard',
+            'registrationSettings',
+            'international',
+          ],
         }),
       );
     });

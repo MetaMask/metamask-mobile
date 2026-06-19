@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmEmail from './ConfirmEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import useRegions from '../../hooks/useRegions';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -381,11 +380,6 @@ jest.mock('../../hooks/useEmailVerificationSend', () => ({
   default: () => mockUseEmailVerificationSend(),
 }));
 
-jest.mock('../../hooks/useRegions', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 // Mock SDK
 jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(() => ({
@@ -455,13 +449,6 @@ describe('ConfirmEmail Component', () => {
       email: 'test@example.com',
       password: 'testPassword123',
       countryKey: 'US',
-    });
-
-    (useRegions as jest.Mock).mockReturnValue({
-      getRegionByCode: (code: string) =>
-        code === 'US'
-          ? { key: 'US', name: 'United States', emoji: '🇺🇸' }
-          : null,
     });
 
     // Set up useAnalytics mock
@@ -1265,6 +1252,104 @@ describe('ConfirmEmail Component', () => {
         Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
         { countryKey: 'US' },
       );
+    });
+  });
+
+  describe('Country key progression', () => {
+    it('allows verification using countryKey without registration settings lookup', async () => {
+      const store = createTestStore();
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: 'new-onboarding-123',
+        hasAccount: false,
+      });
+
+      mockUseParams.mockReturnValue({
+        email: 'test@example.com',
+        password: 'testPassword123',
+        countryKey: 'NL',
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockVerifyEmailVerification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          countryOfResidence: 'NL',
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'NL' },
+      );
+    });
+
+    it('enables continue when countryKey is present even if region lookup would fail', () => {
+      mockUseParams.mockReturnValue({
+        email: 'test@example.com',
+        password: 'testPassword123',
+        countryKey: 'NL',
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+      fireEvent.changeText(codeFieldInput, '123456');
+
+      const button = getByTestId('confirm-email-continue-button');
+      expect(button).not.toBeDisabled();
+    });
+  });
+
+  describe('Unexpected verify response', () => {
+    it('shows an error when verify succeeds without onboardingId or hasAccount', async () => {
+      const store = createTestStore();
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: null,
+        hasAccount: false,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(getByTestId('confirm-email-error-text')).toBeTruthy();
     });
   });
 });
