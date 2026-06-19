@@ -37,8 +37,8 @@ const MONAD_MUSD_TARGET = {
  * tagged no-fee explicitly.
  */
 const isMonadMusd = (address: string, chainId: string) =>
-  chainId.toLowerCase() === MONAD_MUSD_TARGET.chainId.toLowerCase() &&
-  address.toLowerCase() === MONAD_MUSD_TARGET.address.toLowerCase();
+  chainId?.toLowerCase() === MONAD_MUSD_TARGET.chainId.toLowerCase() &&
+  address?.toLowerCase() === MONAD_MUSD_TARGET.address.toLowerCase();
 
 /**
  * Returns tokens the user holds that are eligible for Money account deposits
