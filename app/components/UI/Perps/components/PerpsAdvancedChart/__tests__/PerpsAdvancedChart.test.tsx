@@ -148,6 +148,7 @@ describe('PerpsAdvancedChart', () => {
         high: 2,
         low: 0.5,
         close: 1.5,
+        volume: 100,
       });
       props.onCrosshairMove?.({
         time: 1000,
@@ -155,6 +156,7 @@ describe('PerpsAdvancedChart', () => {
         high: 2,
         low: 0.5,
         close: 1.5,
+        volume: 100,
       });
       props.onCrosshairMove?.({
         time: 1000,
@@ -162,6 +164,15 @@ describe('PerpsAdvancedChart', () => {
         high: 2,
         low: 0.5,
         close: 1.6,
+        volume: 100,
+      });
+      props.onCrosshairMove?.({
+        time: 1000,
+        open: 1,
+        high: 2,
+        low: 0.5,
+        close: 1.6,
+        volume: 125,
       });
     });
 
@@ -171,8 +182,9 @@ describe('PerpsAdvancedChart', () => {
       high: '2',
       low: '0.5',
       close: '1.6',
+      volume: '125',
     });
-    expect(playImpact).toHaveBeenCalledTimes(2);
+    expect(playImpact).toHaveBeenCalledTimes(3);
   });
 
   it('passes null crosshair data through to the parent', () => {

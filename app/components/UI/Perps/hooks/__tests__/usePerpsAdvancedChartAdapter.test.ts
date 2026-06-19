@@ -280,6 +280,38 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     });
   });
 
+  it('emits realtimeBar when only the latest candle volume changes', () => {
+    const { result } = renderAdapter();
+    const updated = { ...candle(1000), volume: '750' };
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+    });
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [updated],
+      });
+    });
+
+    expect(result.current.ohlcvData).toEqual([
+      { time: 1000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+    ]);
+    expect(result.current.realtimeBar).toEqual({
+      time: 1000,
+      open: 100,
+      high: 110,
+      low: 90,
+      close: 105,
+      volume: 750,
+    });
+  });
+
   it('skips realtimeBar when the latest candle has not changed', () => {
     const { result } = renderAdapter();
     const first = candle(1000);

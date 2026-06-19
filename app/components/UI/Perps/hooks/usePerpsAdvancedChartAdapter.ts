@@ -150,7 +150,8 @@ export function usePerpsAdvancedChartAdapter({
           lastBar.time !== prev.time ||
           lastBar.close !== prev.close ||
           lastBar.high !== prev.high ||
-          lastBar.low !== prev.low
+          lastBar.low !== prev.low ||
+          lastBar.volume !== prev.volume
         ) {
           // Tick update: only the last candle changed — emit realtimeBar only.
           // Do NOT update ohlcvData; that would cause a full WebView data replacement.
