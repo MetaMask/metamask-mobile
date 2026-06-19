@@ -644,6 +644,12 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderTradeDetailBottomSheetSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    ).toBeNull();
 
     await waitFor(() => {
       const chartProps =

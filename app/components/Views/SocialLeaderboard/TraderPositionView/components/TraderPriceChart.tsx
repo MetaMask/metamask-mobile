@@ -98,7 +98,6 @@ const TraderPriceChart = ({
       (m) => m.transactionHash === highlightedTradeHash,
     );
     if (marker) {
-      setPositionX(marker.index);
       onChartIndexChange(marker.index);
     }
   }, [highlightedTradeHash, markers, onChartIndexChange]);
@@ -225,6 +224,17 @@ const TraderPriceChart = ({
 
   const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
     if (positionX < 0) return null;
+    // Trade-row highlight uses the marker ring only; skip the scrub tooltip so
+    // its always-green chart color doesn't clash with sell markers.
+    if (
+      highlightedTradeHash &&
+      markers.some(
+        (m) =>
+          m.transactionHash === highlightedTradeHash && m.index === positionX,
+      )
+    ) {
+      return null;
+    }
     const lineHeight =
       typeof svgHeight === 'number' && svgHeight > 0 ? svgHeight : chartHeight;
     return (
@@ -326,7 +336,6 @@ const TraderPriceChart = ({
                   fill="none"
                   stroke={fillColor}
                   strokeWidth={HIGHLIGHTED_TRADE_MARKER_RING_WIDTH}
-                  opacity={0.45}
                 />
               ) : null}
               <Circle

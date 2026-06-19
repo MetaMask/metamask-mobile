@@ -450,42 +450,35 @@ const TraderPositionView = () => {
             />
           </ScrollView>
 
-          {selectedTrade ? (
-            <TraderTradeDetailBottomSheet
-              isVisible
-              trade={selectedTrade}
-              tokenSymbol={symbol}
-              chain={resolvedPosition?.chain ?? ''}
-              tokenAddress={resolvedPosition?.tokenAddress ?? ''}
-              onClose={handleTradeDetailClose}
-            />
-          ) : null}
-
           {isPerp ? (
-            <Box twClassName="px-4 py-3">
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handlePerpActionPress}
-                testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
-              >
-                {strings('social_leaderboard.trader_position.trade')}
-              </Button>
-            </Box>
-          ) : (
-            <>
+            !selectedTrade ? (
               <Box twClassName="px-4 py-3">
                 <Button
                   variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
                   isFullWidth
-                  onPress={handleBuyPress}
-                  testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+                  onPress={handlePerpActionPress}
+                  testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
                 >
-                  {strings('social_leaderboard.trader_position.buy')}
+                  {strings('social_leaderboard.trader_position.trade')}
                 </Button>
               </Box>
+            ) : null
+          ) : (
+            <>
+              {!selectedTrade ? (
+                <Box twClassName="px-4 py-3">
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    isFullWidth
+                    onPress={handleBuyPress}
+                    testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+                  >
+                    {strings('social_leaderboard.trader_position.buy')}
+                  </Button>
+                </Box>
+              ) : null}
 
               <TraderPositionQuickBuy
                 isVisible={isQuickBuyVisible}
@@ -500,6 +493,17 @@ const TraderPositionView = () => {
               />
             </>
           )}
+
+          {selectedTrade ? (
+            <TraderTradeDetailBottomSheet
+              isVisible
+              trade={selectedTrade}
+              tokenSymbol={symbol}
+              chain={resolvedPosition?.chain ?? ''}
+              tokenAddress={resolvedPosition?.tokenAddress ?? ''}
+              onClose={handleTradeDetailClose}
+            />
+          ) : null}
         </>
       )}
     </SafeAreaView>
