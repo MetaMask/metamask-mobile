@@ -5,6 +5,7 @@ import {
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
+import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
 import type { RootState } from '../../reducers';
 
 jest.mock('../../core/Engine', () => ({
@@ -43,6 +44,7 @@ const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
 const mockLogLog = Logger.log as jest.Mock;
+const mockWhenReady = whenMoneyAccountUpgradeReady as jest.Mock;
 
 const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 const OTHER_ADDRESS = '0x2222222222222222222222222222222222222222' as const;
@@ -92,7 +94,7 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('catches rejected upgradeAccount promises and logs', async () => {
+  it('catches rejected upgradeAccount promises and reports to Sentry with a feature tag', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     const error = new Error('boom');
     mockUpgradeAccount.mockRejectedValueOnce(error);
@@ -100,7 +102,40 @@ describe('upgradeMoneyAccount', () => {
     upgradeMoneyAccount()(dispatch, getState, undefined);
     await flushPromises();
 
-    expect(mockLogError).toHaveBeenCalledWith(error, expect.any(String));
+    expect(mockLogError).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        tags: expect.objectContaining({ feature: 'money-account-upgrade' }),
+      }),
+    );
+  });
+
+  it('tags the failing step when the controller throws a MoneyAccountUpgradeStepError', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const error = Object.assign(
+      new Error(
+        'Money Account upgrade failed at step "eip-7702-authorization": nope',
+      ),
+      { name: 'MoneyAccountUpgradeStepError', step: 'eip-7702-authorization' },
+    );
+    mockUpgradeAccount.mockRejectedValueOnce(error);
+
+    upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogError).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        tags: {
+          feature: 'money-account-upgrade',
+          step: 'eip-7702-authorization',
+        },
+        context: {
+          name: 'money_account_upgrade',
+          data: { phase: 'upgrade', step: 'eip-7702-authorization' },
+        },
+      }),
+    );
   });
 
   it('wraps non-Error rejections', async () => {
@@ -112,7 +147,25 @@ describe('upgradeMoneyAccount', () => {
 
     expect(mockLogError).toHaveBeenCalledWith(
       expect.any(Error),
-      expect.any(String),
+      expect.objectContaining({
+        tags: expect.objectContaining({ feature: 'money-account-upgrade' }),
+      }),
+    );
+  });
+
+  it('skips quietly (no Sentry error) when the controller is not ready', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    mockWhenReady.mockRejectedValueOnce(new Error('bootstrap not scheduled'));
+
+    upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockUpgradeAccount).not.toHaveBeenCalled();
+    expect(mockLogError).not.toHaveBeenCalled();
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade controller not ready; skipping',
+      expect.objectContaining({ address: ADDRESS }),
     );
   });
 
