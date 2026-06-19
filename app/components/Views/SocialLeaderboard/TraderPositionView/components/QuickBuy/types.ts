@@ -10,6 +10,17 @@ export interface QuickBuyTarget {
   tokenSymbol: string;
   tokenName: string;
   chain: CaipChainId;
+  /**
+   * Token decimals when the host already holds the fully-resolved token
+   * (e.g. the asset-details page). When provided, `useQuickBuySetup` builds
+   * the destination token directly — mirroring how the Swap UI seeds its
+   * dest token from the asset page — instead of re-fetching metadata. This
+   * is required for chains whose addresses the metadata lookup can't
+   * validate (e.g. TRC-20 assets on Tron).
+   */
+  tokenDecimals?: number;
+  /** Token icon URL from the host. Only used together with `tokenDecimals`. */
+  tokenImage?: string;
 }
 
 export type QuickBuyTradeMode = 'buy' | 'sell';

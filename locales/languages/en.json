@@ -1133,6 +1133,7 @@
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "token_unavailable": "This token is not available for Quick Buy right now",
       "quote_details_title": "Quote details",
       "select_quote_title": "Select quote",
       "rate": "Rate",

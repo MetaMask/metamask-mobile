@@ -172,6 +172,7 @@ const buildHookResult = (
   destToken: undefined,
   isSetupLoading: false,
   isUnsupportedChain: false,
+  isDestTokenUnavailable: false,
   sourceToken: undefined,
   sourceChainId: '0x1',
   sourceTokenOptions: [],
@@ -418,6 +419,33 @@ describe('QuickBuyRoot', () => {
 
     expect(
       screen.getByText('social_leaderboard.quick_buy.unsupported_chain'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('mock-amount-section')).not.toBeOnTheScreen();
+  });
+
+  it('shows token unavailable message without amount flow when the dest token cannot be resolved', () => {
+    // Arrange — setup settled on a supported chain but no dest token resolved
+    // (e.g. metadata lookup returned nothing for the asset).
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildHookResult({ isDestTokenUnavailable: true }),
+    );
+
+    // Act
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    // Assert
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.token_unavailable'),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('mock-amount-section')).not.toBeOnTheScreen();
   });

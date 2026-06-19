@@ -17,6 +17,7 @@ import {
   formatAddressToCaipReference,
   formatChainIdToHex,
   isNonEvmChainId,
+  isTronChainId,
 } from '@metamask/bridge-controller';
 import { TokenRwaData } from '@metamask/assets-controllers';
 
@@ -54,6 +55,10 @@ export const toAssetId = (
     return address;
   } else if (chainId === MultichainNetwork.Solana) {
     return CaipAssetTypeStruct.create(`${chainId}/token:${address}`);
+  } else if (isTronChainId(chainId)) {
+    // TRC-20 assets (base58 address) — matches the bridge-controller's
+    // `formatAddressToAssetId` encoding for Tron.
+    return CaipAssetTypeStruct.create(`${chainId}/trc20:${address}`);
   }
   // EVM assets
   if (!isStrictHexString(address)) {
