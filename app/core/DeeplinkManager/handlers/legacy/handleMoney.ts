@@ -2,6 +2,7 @@ import { selectIsMoneyAccountGeoEligible } from '../../../../components/UI/Money
 import { selectMoneyEnableMoneyAccountFlag } from '../../../../components/UI/Money/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
@@ -17,6 +18,8 @@ export const handleMoney = () => {
     const isMoneyAccountGeoEligible = selectIsMoneyAccountGeoEligible(state);
     const isMoneyAccountEnabled = selectMoneyEnableMoneyAccountFlag(state);
     const hasSeenMoneyOnboarding = selectMoneyOnboardingSeen(state);
+    const isOnboardingEnabled =
+      selectMoneyOnboardingStepperAnimationEnabled(state);
 
     if (!isMoneyAccountEnabled) {
       handleDeepLinkModalDisplay({
@@ -35,7 +38,7 @@ export const handleMoney = () => {
       return;
     }
 
-    if (!hasSeenMoneyOnboarding) {
+    if (!hasSeenMoneyOnboarding && isOnboardingEnabled) {
       NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
       return;
     }
