@@ -31,7 +31,7 @@ const QuickBuyAmountScreen: React.FC = () => {
   return (
     <>
       <QuickBuyToolbar />
-      <Box testID="quick-buy-amount-container">
+      <Box twClassName="shrink" testID="quick-buy-amount-container">
         <QuickBuyAmount />
       </Box>
       <QuickBuyActionFooter />
