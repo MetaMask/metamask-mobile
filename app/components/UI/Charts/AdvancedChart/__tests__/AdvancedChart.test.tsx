@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
-import { TOKEN_DETAILS_LEGEND_OVERLAY } from '../indicatorColors';
+import { getTokenDetailsLegendOverlay } from '../indicatorColors';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   ChartType,
   resolveLineChromeOptions,
@@ -968,7 +969,7 @@ describe('AdvancedChart', () => {
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         indicators={['RSI', 'MACD']}
-        legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
+        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
         onSkeletonHidden={onSkeletonHidden}
       />,
     );
@@ -1040,7 +1041,7 @@ describe('AdvancedChart', () => {
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         indicators={[]}
-        legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
+        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
         onSkeletonHidden={onSkeletonHidden}
       />,
     );
@@ -1064,7 +1065,7 @@ describe('AdvancedChart', () => {
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         indicators={['RSI']}
-        legendOverlay={TOKEN_DETAILS_LEGEND_OVERLAY}
+        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
         onSkeletonHidden={onSkeletonHidden}
       />,
     );

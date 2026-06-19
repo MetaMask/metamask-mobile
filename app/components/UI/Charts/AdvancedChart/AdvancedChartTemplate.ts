@@ -6,7 +6,7 @@ import {
   resolveLineChromeOptions,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
-import { INDICATOR_COLORS_FOR_WEBVIEW } from './indicatorColors';
+import { getIndicatorColorsForWebview } from './indicatorColors';
 
 /**
  * CDN base URL for the TradingView charting library assets.
@@ -46,6 +46,20 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
+const hexToRgba = (hex: string, alpha: number): string => {
+  const clean = stripHexAlpha(hex).replace('#', '');
+  if (clean.length !== 6) {
+    return `rgba(0, 0, 0, ${alpha})`;
+  }
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
+    return `rgba(0, 0, 0, ${alpha})`;
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const getChartSuccessColor = (theme: Theme): string =>
   theme.themeAppearance === AppThemeKey.light
     ? LIGHT_MODE_SUCCESS_GREEN
@@ -77,8 +91,10 @@ window.CONFIG = {
   libraryUrl: '${libraryUrl}',
   theme: {
     backgroundColor: '${theme.colors.background.default}',
+    legendPillBackground: '${hexToRgba(theme.colors.background.default, 0.75)}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
     textColor: '${stripHexAlpha(theme.colors.text.muted)}',
+    textAlternativeColor: '${stripHexAlpha(theme.colors.text.alternative)}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
     errorColor: '${errorColor}',
@@ -96,7 +112,7 @@ window.CONFIG = {
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
-  indicatorColors: ${JSON.stringify(INDICATOR_COLORS_FOR_WEBVIEW)}
+  indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;
 };

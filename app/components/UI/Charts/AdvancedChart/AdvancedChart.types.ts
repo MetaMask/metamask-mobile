@@ -542,6 +542,10 @@ export interface LegendIndicatorConfig {
   plots: LegendPlotConfig[];
   isMA?: boolean;
   useIndex?: boolean;
+  /** Render all plots in a single pill (e.g. BB(20,2) U:… M:… L:…). */
+  combineInOnePill?: boolean;
+  /** Leading title when combineInOnePill is true (e.g. BB(20,2)). */
+  title?: string;
 }
 
 export interface LegendOverlayConfig {

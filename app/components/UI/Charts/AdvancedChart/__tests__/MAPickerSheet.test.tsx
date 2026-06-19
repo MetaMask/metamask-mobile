@@ -2,7 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import MAPickerSheet from '../MAPickerSheet';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { MA_OPTIONS } from '../indicatorColors';
+import { getMAOptions } from '../indicatorColors';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 const mockGoBack = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
@@ -127,7 +128,7 @@ describe('MAPickerSheet', () => {
     const { getByText, getByLabelText } = render(<MAPickerSheet />);
 
     expect(getByText('Moving average')).toBeOnTheScreen();
-    MA_OPTIONS.forEach(({ label }) => {
+    getMAOptions(AppThemeKey.dark).forEach(({ label }) => {
       expect(getByLabelText(label)).toBeOnTheScreen();
     });
   });

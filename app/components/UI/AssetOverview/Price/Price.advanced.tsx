@@ -45,7 +45,7 @@ import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
-import { TOKEN_DETAILS_LEGEND_OVERLAY } from '../../Charts/AdvancedChart/indicatorColors';
+import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -729,6 +729,14 @@ const PriceAdvanced = ({
     return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
   }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
 
+  const tokenDetailsLegendOverlay = useMemo(
+    () =>
+      isTechnicalIndicatorsEnabled
+        ? getTokenDetailsLegendOverlay(themeAppearance)
+        : undefined,
+    [isTechnicalIndicatorsEnabled, themeAppearance],
+  );
+
   // Dynamic ambient color for price diff text only - changes during crosshair hover
   const ambientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
@@ -1004,11 +1012,7 @@ const PriceAdvanced = ({
               errorColorOverride={
                 initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
               }
-              legendOverlay={
-                isTechnicalIndicatorsEnabled
-                  ? TOKEN_DETAILS_LEGEND_OVERLAY
-                  : undefined
-              }
+              legendOverlay={tokenDetailsLegendOverlay}
             />
           )}
         </View>

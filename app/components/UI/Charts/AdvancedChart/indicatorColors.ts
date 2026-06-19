@@ -1,3 +1,4 @@
+import { AppThemeKey } from '../../../../util/theme/models';
 import type {
   LegendIndicatorConfig,
   LegendOverlayConfig,
@@ -5,8 +6,7 @@ import type {
 
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 
-// ── Moving Average colors ──────────────────────────────────────────────
-export const MA_INDICATOR_COLORS = {
+export const MA_INDICATOR_COLORS_DARK = {
   MA5: '#8B8BF5',
   MA10: '#FF6B9D',
   MA20: '#F5A623',
@@ -14,7 +14,82 @@ export const MA_INDICATOR_COLORS = {
   MA200: '#5CC9F5',
 } as const;
 
-export const MA_LENGTHS: Record<keyof typeof MA_INDICATOR_COLORS, number> = {
+/** Darker / higher-contrast variants for light chart backgrounds. */
+export const MA_INDICATOR_COLORS_LIGHT = {
+  MA5: '#4F46E5',
+  MA10: '#DB2777',
+  MA20: '#D97706',
+  MA50: '#16A34A',
+  MA200: '#0284C7',
+} as const;
+
+export const MACD_COLORS_DARK = {
+  macd: '#5C8FFF',
+  signal: '#FF6D00',
+  histogramPositive: '#26A69A',
+  histogramNegative: '#EF5350',
+} as const;
+
+export const MACD_COLORS_LIGHT = {
+  macd: '#2563EB',
+  signal: '#EA580C',
+  histogramPositive: '#059669',
+  histogramNegative: '#DC2626',
+} as const;
+
+export const RSI_COLORS_DARK = {
+  plot: '#E91E90',
+} as const;
+
+export const RSI_COLORS_LIGHT = {
+  plot: '#BE185D',
+} as const;
+
+export const BOL_COLORS_DARK = {
+  upper: '#E040FB',
+  basis: '#E040FB',
+  lower: '#E040FB',
+} as const;
+
+export const BOL_COLORS_LIGHT = {
+  upper: '#7C3AED',
+  basis: '#7C3AED',
+  lower: '#7C3AED',
+} as const;
+
+/* eslint-enable @metamask/design-tokens/color-no-hex */
+
+export type ChartThemeAppearance = AppThemeKey.light | AppThemeKey.dark;
+
+export type MAIndicatorKey = keyof typeof MA_INDICATOR_COLORS_DARK;
+
+export interface IndicatorColorSet {
+  MA: Record<MAIndicatorKey, string>;
+  MACD: Record<keyof typeof MACD_COLORS_DARK, string>;
+  RSI: Record<keyof typeof RSI_COLORS_DARK, string>;
+  BOL: Record<keyof typeof BOL_COLORS_DARK, string>;
+}
+
+const INDICATOR_COLOR_SETS: Record<ChartThemeAppearance, IndicatorColorSet> = {
+  [AppThemeKey.dark]: {
+    MA: { ...MA_INDICATOR_COLORS_DARK },
+    MACD: { ...MACD_COLORS_DARK },
+    RSI: { ...RSI_COLORS_DARK },
+    BOL: { ...BOL_COLORS_DARK },
+  },
+  [AppThemeKey.light]: {
+    MA: { ...MA_INDICATOR_COLORS_LIGHT },
+    MACD: { ...MACD_COLORS_LIGHT },
+    RSI: { ...RSI_COLORS_LIGHT },
+    BOL: { ...BOL_COLORS_LIGHT },
+  },
+};
+
+export const getIndicatorColorSet = (
+  themeAppearance: ChartThemeAppearance = AppThemeKey.dark,
+): IndicatorColorSet => INDICATOR_COLOR_SETS[themeAppearance];
+
+export const MA_LENGTHS: Record<MAIndicatorKey, number> = {
   MA5: 5,
   MA10: 10,
   MA20: 20,
@@ -22,42 +97,21 @@ export const MA_LENGTHS: Record<keyof typeof MA_INDICATOR_COLORS, number> = {
   MA200: 200,
 };
 
-// ── MACD colors ────────────────────────────────────────────────────────
-export const MACD_COLORS = {
-  macd: '#5C8FFF',
-  signal: '#FF6D00',
-  histogramPositive: '#26A69A',
-  histogramNegative: '#EF5350',
-} as const;
+export const getMAOptions = (
+  themeAppearance: ChartThemeAppearance = AppThemeKey.dark,
+) => {
+  const maColors = getIndicatorColorSet(themeAppearance).MA;
+  return (Object.keys(maColors) as MAIndicatorKey[]).map((key) => ({
+    label: key,
+    color: maColors[key],
+  }));
+};
 
-// ── RSI colors ─────────────────────────────────────────────────────────
-export const RSI_COLORS = {
-  plot: '#E91E90',
-} as const;
-
-// ── Bollinger Bands colors ─────────────────────────────────────────────
-export const BOL_COLORS = {
-  upper: '#E040FB',
-  basis: '#E040FB',
-  lower: '#E040FB',
-} as const;
-
-/* eslint-enable @metamask/design-tokens/color-no-hex */
-
-// ── Derived: MA picker options (used by MAPickerSheet) ─────────────────
-export const MA_OPTIONS = (
-  Object.keys(MA_INDICATOR_COLORS) as (keyof typeof MA_INDICATOR_COLORS)[]
-).map((key) => ({
-  label: key,
-  color: MA_INDICATOR_COLORS[key],
-}));
-
-// ── Derived: Legend overlay config (used by Price.advanced.tsx) ─────────
-const MA_LEGEND_ENTRIES: Record<string, LegendIndicatorConfig> =
-  Object.fromEntries(
-    (
-      Object.keys(MA_INDICATOR_COLORS) as (keyof typeof MA_INDICATOR_COLORS)[]
-    ).map((key) => [
+export const buildIndicatorLegendConfig = (
+  colors: IndicatorColorSet,
+): Record<string, LegendIndicatorConfig> => {
+  const maLegendEntries = Object.fromEntries(
+    (Object.keys(colors.MA) as MAIndicatorKey[]).map((key) => [
       key,
       {
         isMA: true,
@@ -66,54 +120,63 @@ const MA_LEGEND_ENTRIES: Record<string, LegendIndicatorConfig> =
           {
             tvTitle: 'Plot',
             label: `MA(${MA_LENGTHS[key]})`,
-            color: MA_INDICATOR_COLORS[key],
+            color: colors.MA[key],
           },
         ],
       },
     ]),
   );
 
-export const INDICATOR_LEGEND_CONFIG: Record<string, LegendIndicatorConfig> = {
-  MACD: {
-    plots: [
-      { tvTitle: 'MACD', label: 'MACD(12,26)', color: MACD_COLORS.macd },
-      { tvTitle: 'Signal', label: 'Signal', color: MACD_COLORS.signal },
-      {
-        tvTitle: 'Histogram',
-        label: 'Hist',
-        color: MACD_COLORS.histogramPositive,
-      },
-    ],
-    useIndex: true,
-  },
-  RSI: {
-    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: RSI_COLORS.plot }],
-    useIndex: true,
-  },
-  BOL: {
-    plots: [
-      { tvTitle: 'Upper', label: 'BB(20,2)', color: BOL_COLORS.upper },
-      { tvTitle: 'Median', label: 'M', color: BOL_COLORS.basis },
-      { tvTitle: 'Lower', label: 'L', color: BOL_COLORS.lower },
-    ],
-    useIndex: true,
-  },
-  Volume: {
-    plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
-    useIndex: true,
-  },
-  ...MA_LEGEND_ENTRIES,
+  return {
+    MACD: {
+      plots: [
+        { tvTitle: 'MACD', label: 'MACD(12,26)', color: colors.MACD.macd },
+        { tvTitle: 'Signal', label: 'Signal', color: colors.MACD.signal },
+        {
+          tvTitle: 'Histogram',
+          label: 'Hist',
+          color: colors.MACD.histogramPositive,
+        },
+      ],
+      useIndex: true,
+    },
+    RSI: {
+      plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: colors.RSI.plot }],
+      useIndex: true,
+    },
+    BOL: {
+      combineInOnePill: true,
+      title: 'BB(20,2)',
+      plots: [
+        { tvTitle: 'Upper', label: 'U:', color: colors.BOL.upper },
+        { tvTitle: 'Median', label: 'M:', color: colors.BOL.basis },
+        { tvTitle: 'Lower', label: 'L:', color: colors.BOL.lower },
+      ],
+      useIndex: true,
+    },
+    Volume: {
+      plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
+      useIndex: true,
+    },
+    ...maLegendEntries,
+  };
 };
 
-export const TOKEN_DETAILS_LEGEND_OVERLAY: LegendOverlayConfig = {
+export const getTokenDetailsLegendOverlay = (
+  themeAppearance: ChartThemeAppearance = AppThemeKey.dark,
+): LegendOverlayConfig => ({
   enabled: true,
-  config: INDICATOR_LEGEND_CONFIG,
-};
+  config: buildIndicatorLegendConfig(getIndicatorColorSet(themeAppearance)),
+});
 
-// ── Serialisable payload injected into the WebView via CONFIG ──────────
-export const INDICATOR_COLORS_FOR_WEBVIEW = {
-  MA: MA_INDICATOR_COLORS,
-  MACD: MACD_COLORS,
-  RSI: RSI_COLORS,
-  BOL: BOL_COLORS,
+export const getIndicatorColorsForWebview = (
+  themeAppearance: ChartThemeAppearance = AppThemeKey.dark,
+) => {
+  const colors = getIndicatorColorSet(themeAppearance);
+  return {
+    MA: colors.MA,
+    MACD: colors.MACD,
+    RSI: colors.RSI,
+    BOL: colors.BOL,
+  };
 };

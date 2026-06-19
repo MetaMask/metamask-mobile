@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -23,7 +23,8 @@ import {
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { MA_OPTIONS } from './indicatorColors';
+import { useTheme } from '../../../../util/theme';
+import { getMAOptions } from './indicatorColors';
 
 export interface MAPickerSheetParams {
   selectedMAs?: string[];
@@ -40,6 +41,11 @@ const MAPickerSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
+  const maOptions = useMemo(
+    () => getMAOptions(themeAppearance),
+    [themeAppearance],
+  );
   const { selectedMAs, onDone } = useParams<MAPickerSheetParams>();
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(selectedMAs ?? []),
@@ -76,7 +82,7 @@ const MAPickerSheet = () => {
         {strings('asset_overview.ma_picker_title')}
       </BottomSheetHeader>
       <Box>
-        {MA_OPTIONS.map(({ label, color }) => {
+        {maOptions.map(({ label, color }) => {
           const isSelected = selected.has(label);
           return (
             <Pressable

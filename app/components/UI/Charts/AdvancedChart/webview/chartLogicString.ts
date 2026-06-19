@@ -15,7 +15,7 @@ export default `/**
  *
  * CONFIG is injected before this script runs and contains:
  * - libraryUrl: string
- * - theme: { backgroundColor, borderColor, textColor, successColor, errorColor, primaryColor }
+ * - theme: { backgroundColor, legendPillBackground, borderColor, textColor, textAlternativeColor, successColor, errorColor, primaryColor }
  * - lineChrome: { hideTimeScale, useCustomLineEndMarker, useCustomDashedLastPriceLine,
  *   useCustomPriceLabels }
  *   Single source of truth; \`SET_LINE_CHROME\` replaces it. Missing keys in old HTML fall back in
@@ -31,6 +31,8 @@ window.ohlcvData = [];
 window.currentSymbol = 'ASSET';
 window.activeStudies = new Map();
 window.maStudies = new Map();
+/** name → studyId, insertion order = legend pill order (Maps preserve add order). */
+window.legendStudyOrder = new Map();
 window.positionShapeIds = [];
 window.isChartReady = false;
 window.pendingMessages = [];
@@ -529,6 +531,7 @@ function handleSetOHLCVData(payload) {
       window.isChartReady = false;
       window.activeStudies = new Map();
       window.maStudies = new Map();
+      window.legendStudyOrder = new Map();
       window.volumeStudyId = null;
       window.volumeIsOverlay = null;
       window.lastPriceShapeId = null;
@@ -683,9 +686,10 @@ function handleAddIndicator(payload) {
 
     promise
       .then(function (studyId) {
+        window.legendStudyOrder.set(indicatorName, studyId);
         window.activeStudies.set(indicatorName, studyId);
         subscribeStudyDataLoaded(studyId, function () {
-          scheduleStudyLegendRefresh();
+          refreshStudyLegendFromExport();
           sendToReactNative('INDICATOR_ADDED', {
             name: indicatorName,
             id: String(studyId),
@@ -717,7 +721,8 @@ function handleRemoveIndicator(payload) {
     let chart = window.chartWidget.activeChart();
     chart.removeEntity(studyId);
     window.activeStudies.delete(indicatorName);
-    scheduleStudyLegendRefresh();
+    window.legendStudyOrder.delete(indicatorName);
+    refreshStudyLegendFromExport();
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
@@ -755,6 +760,7 @@ function handleSetMAVisibility(payload) {
       try {
         chart.removeEntity(studyId);
         window.maStudies.delete(name);
+        window.legendStudyOrder.delete(name);
         sendToReactNative('INDICATOR_REMOVED', { name: name });
       } catch (e) {}
     }
@@ -778,6 +784,7 @@ function handleSetMAVisibility(payload) {
         },
       )
       .then(function (studyId) {
+        window.legendStudyOrder.set(name, studyId);
         window.maStudies.set(name, studyId);
         maCallbacks.push(function () {
           subscribeStudyDataLoaded(studyId, function () {
@@ -798,13 +805,13 @@ function handleSetMAVisibility(payload) {
 
   if (promises.length > 0) {
     Promise.all(promises).then(function () {
-      scheduleStudyLegendRefresh();
+      refreshStudyLegendFromExport();
       for (const cb of maCallbacks) {
         cb();
       }
     });
   } else {
-    scheduleStudyLegendRefresh();
+    refreshStudyLegendFromExport();
   }
 }
 
@@ -1176,11 +1183,11 @@ function hideCustomCrosshairLabels() {
  * \`.price-axis-container\` (smallest \`top\` = main chart price scale). Same as where the plot
  * ends; scale legend text starts inside this column, not on the plot side.
  */
-function getMainPriceAxisLeftRelativeToOverlay(overlay) {
-  if (!overlay || !overlay.getBoundingClientRect) {
+function getMainPriceAxisLeftRelativeTo(el) {
+  if (!el || !el.getBoundingClientRect) {
     return null;
   }
-  let orect = overlay.getBoundingClientRect();
+  let orect = el.getBoundingClientRect();
   let bestLeft = null;
   let bestTop = Infinity;
   eachChartDocument(function (doc) {
@@ -1200,7 +1207,7 @@ function getMainPriceAxisLeftRelativeToOverlay(overlay) {
   if (bestLeft === null || isNaN(bestLeft)) {
     return null;
   }
-  let maxW = overlay.clientWidth;
+  let maxW = el.clientWidth;
   if (maxW <= 0) {
     return null;
   }
@@ -1224,7 +1231,7 @@ function positionPricePillAtPlotPriceBoundary(el, overlay, yPx) {
     el.style.transform = 'translateY(-50%)';
     return;
   }
-  let boundaryLeft = getMainPriceAxisLeftRelativeToOverlay(overlay);
+  let boundaryLeft = getMainPriceAxisLeftRelativeTo(overlay);
   if (boundaryLeft !== null && !isNaN(boundaryLeft) && boundaryLeft >= 0) {
     let w = el.offsetWidth;
     if (!w || w <= 0) {
@@ -1654,10 +1661,13 @@ function subscribeLastCloseLabelUpdates() {
     });
   } catch (e) {}
   try {
-    window.chartWidget.subscribe(
-      'panes_height_changed',
-      tickIfCustomPriceLabels,
-    );
+    window.chartWidget.subscribe('panes_height_changed', function () {
+      tickIfCustomPriceLabels();
+      const legend = document.getElementById('study-legend-overlay');
+      if (legend) {
+        updateLegendOverlayLayout();
+      }
+    });
   } catch (e) {}
   try {
     window.chartWidget
@@ -3389,14 +3399,16 @@ const INDICATOR_LEGEND_CONFIG = {
     useIndex: true,
   },
   BOL: {
+    combineInOnePill: true,
+    title: 'BB(20,2)',
     plots: [
       {
         tvTitle: 'Upper',
-        label: 'BB(20,2)',
+        label: 'U:',
         color: _bolColors.upper || '#E040FB',
       },
-      { tvTitle: 'Median', label: 'M', color: _bolColors.basis || '#E040FB' },
-      { tvTitle: 'Lower', label: 'L', color: _bolColors.lower || '#E040FB' },
+      { tvTitle: 'Median', label: 'M:', color: _bolColors.basis || '#E040FB' },
+      { tvTitle: 'Lower', label: 'L:', color: _bolColors.lower || '#E040FB' },
     ],
     useIndex: true,
   },
@@ -3431,6 +3443,8 @@ const INDICATOR_LEGEND_CONFIG = {
   },
 };
 
+const LEGEND_OVERLAY_LEFT_PX = 8;
+
 function createStudyLegendOverlay() {
   const existing = document.getElementById('study-legend-overlay');
   if (existing) existing.parentNode.removeChild(existing);
@@ -3443,10 +3457,117 @@ function createStudyLegendOverlay() {
   const div = document.createElement('div');
   div.id = 'study-legend-overlay';
   div.style.cssText =
-    'position:absolute;top:4px;left:8px;z-index:5;pointer-events:none;' +
-    'font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;line-height:16px;';
+    'position:absolute;top:21px;left:' +
+    LEGEND_OVERLAY_LEFT_PX +
+    'px;z-index:5;pointer-events:none;' +
+    'display:flex;flex-wrap:wrap;align-items:flex-start;column-gap:8px;row-gap:2px;';
   container.style.position = 'relative';
   container.appendChild(div);
+}
+
+function buildOrderedStudyDataList(byStudy, entityValues) {
+  const list = [];
+  window.legendStudyOrder.forEach(function (studyId, name) {
+    const sid = String(studyId);
+    if (byStudy && byStudy[sid]) {
+      list.push({ name: name, values: byStudy[sid] });
+    } else if (entityValues) {
+      const ev = entityValues[sid];
+      if (ev && ev.values) {
+        list.push({ name: name, values: ev.values });
+      }
+    }
+  });
+  return list;
+}
+
+function updateLegendOverlayLayout() {
+  const overlay = document.getElementById('study-legend-overlay');
+  const container = document.getElementById('tv_chart_container');
+  if (!overlay || !container) {
+    return;
+  }
+  const scaleGap = 4;
+  const boundaryLeft = getMainPriceAxisLeftRelativeTo(container);
+  if (
+    boundaryLeft !== null &&
+    boundaryLeft > LEGEND_OVERLAY_LEFT_PX + scaleGap
+  ) {
+    overlay.style.maxWidth =
+      boundaryLeft - LEGEND_OVERLAY_LEFT_PX - scaleGap + 'px';
+  } else {
+    overlay.style.maxWidth = 'calc(100% - 56px)';
+  }
+}
+
+function getLegendAltColor(theme) {
+  return theme.textAlternativeColor || theme.textColor || '#858898';
+}
+
+function getLegendPillStyle() {
+  const theme = window.CONFIG?.theme || {};
+  const bg =
+    theme.legendPillBackground || theme.backgroundColor || 'rgba(19,20,22,0.75)';
+  return (
+    'display:inline-flex;align-items:center;box-sizing:border-box;' +
+    'font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;' +
+    'font-size:10px;font-weight:500;line-height:1;' +
+    'background:' +
+    bg +
+    ';padding:1px 6px;border-radius:2px;'
+  );
+}
+
+function wrapLegendPill(innerHtml, textColor) {
+  let style = getLegendPillStyle();
+  if (textColor) {
+    style += 'color:' + textColor + ';';
+  }
+  return '<span style="' + style + '">' + innerHtml + '</span>';
+}
+
+function formatLegendPill(prefixColor, prefix, value, altColor) {
+  return wrapLegendPill(
+    '<span style="color:' +
+      prefixColor +
+      '">' +
+      prefix +
+      '</span><span style="color:' +
+      altColor +
+      '">' +
+      value +
+      '</span>',
+  );
+}
+
+function isEmptyLegendValue(val) {
+  return !val || val === '' || val === 'n/a' || val === '∅';
+}
+
+function resolveLegendConfig(indicatorName) {
+  const dynamicConfig = getLegendConfig();
+  return dynamicConfig[indicatorName] || INDICATOR_LEGEND_CONFIG[indicatorName];
+}
+
+function plotLegendValue(cfg, plotCfg, plotIndex, values) {
+  if (cfg.useIndex && plotIndex < values.length) {
+    return values[plotIndex].value;
+  }
+  for (const value of values) {
+    if (value.title === plotCfg.tvTitle) {
+      return value.value;
+    }
+  }
+  return '';
+}
+
+function renderLegendOverlay(studyDataList) {
+  const overlay = document.getElementById('study-legend-overlay');
+  if (!overlay) {
+    return;
+  }
+  overlay.innerHTML = buildLegendHTML(studyDataList);
+  updateLegendOverlayLayout();
 }
 
 function collectStudyIdMap() {
@@ -3464,74 +3585,59 @@ function collectStudyIdMap() {
 }
 
 function buildLegendHTML(studyDataList) {
-  let html = '';
-  let maSpans = '';
+  let pills = [];
+  const theme = window.CONFIG?.theme || {};
+  const altColor = getLegendAltColor(theme);
 
   for (const entry of studyDataList) {
     const indicatorName = entry.name;
     const values = entry.values;
-
-    const dynamicConfig = getLegendConfig();
-    const cfg =
-      dynamicConfig[indicatorName] || INDICATOR_LEGEND_CONFIG[indicatorName];
+    const cfg = resolveLegendConfig(indicatorName);
     if (!cfg) continue;
 
     if (cfg.isMA) {
       const maPlot = cfg.plots[0];
-      let maVal = cfg.useIndex && values.length > 0 ? values[0].value : '';
-      if (!maVal) {
-        for (const value of values) {
-          if (value.title === maPlot.tvTitle) {
-            maVal = value.value;
-            break;
-          }
-        }
-      }
-      if (maVal && maVal !== 'n/a' && maVal !== '∅') {
-        if (maSpans) maSpans += '<span style="margin-left:8px"></span>';
-        maSpans +=
+      const maVal = plotLegendValue(cfg, maPlot, 0, values);
+      if (isEmptyLegendValue(maVal)) continue;
+      pills.push(wrapLegendPill(maPlot.label + ' ' + maVal, maPlot.color));
+      continue;
+    }
+
+    if (cfg.combineInOnePill) {
+      const labelColor = cfg.plots[0].color || theme.successColor;
+      const title = cfg.title || cfg.plots[0].label;
+      let inner = '<span style="color:' + labelColor + '">' + title + '</span>';
+      let hasValues = false;
+      for (const [p, plotCfg] of cfg.plots.entries()) {
+        const val = plotLegendValue(cfg, plotCfg, p, values);
+        if (isEmptyLegendValue(val)) continue;
+        hasValues = true;
+        inner +=
           '<span style="color:' +
-          maPlot.color +
+          labelColor +
+          '">&nbsp;' +
+          plotCfg.label +
+          '</span><span style="color:' +
+          altColor +
           '">' +
-          maPlot.label +
-          ' ' +
-          maVal +
+          val +
           '</span>';
+      }
+      if (hasValues) {
+        pills.push(wrapLegendPill(inner));
       }
       continue;
     }
 
-    let spans = '';
     for (const [p, plotCfg] of cfg.plots.entries()) {
-      let plotVal = '';
-      if (cfg.useIndex && p < values.length) {
-        plotVal = values[p].value;
-      } else {
-        for (const value of values) {
-          if (value.title === plotCfg.tvTitle) {
-            plotVal = value.value;
-            break;
-          }
-        }
-      }
-      if (!plotVal || plotVal === 'n/a' || plotVal === '∅') continue;
-      const color =
-        plotCfg.color || window.CONFIG.theme.successColor || '#26A69A';
-      if (spans) spans += '<span style="margin-left:8px"></span>';
-      spans +=
-        '<span style="color:' +
-        color +
-        '">' +
-        plotCfg.label +
-        ' ' +
-        plotVal +
-        '</span>';
+      const val = plotLegendValue(cfg, plotCfg, p, values);
+      if (isEmptyLegendValue(val)) continue;
+      const color = plotCfg.color || theme.successColor || '#26A69A';
+      pills.push(formatLegendPill(color, plotCfg.label + ' ', val, altColor));
     }
-    if (spans) html += '<div>' + spans + '</div>';
   }
 
-  if (maSpans) html = '<div>' + maSpans + '</div>' + html;
-  return html;
+  return pills.join('');
 }
 
 function updateStudyLegendFromEntityValues(entityValues) {
@@ -3543,41 +3649,58 @@ function updateStudyLegendFromEntityValues(entityValues) {
     return;
   }
 
-  const studyIdMap = collectStudyIdMap();
-  const studyDataList = [];
-
-  for (const sid of Object.keys(entityValues)) {
-    if (sid === '_seriesId') continue;
-    const name = studyIdMap[sid];
-    if (!name) continue;
-    const ev = entityValues[sid];
-    if (!ev || !ev.values) continue;
-    studyDataList.push({ name: name, values: ev.values });
-  }
-
-  overlay.innerHTML = buildLegendHTML(studyDataList);
+  renderLegendOverlay(buildOrderedStudyDataList(null, entityValues));
 }
 
-/**
- * Subscribes to study data loaded event with single RAF for rendering completion.
- *
- * Uses single requestAnimationFrame to wait for the next browser paint cycle before notifying React Native.
- * This ensures the indicator is rendered before we notify the React Native layer.
- *
- * @param {string} studyId - The TradingView study ID
- * @param {function} onDataLoadedCallback - Called after indicator is ready
- */
-function subscribeStudyDataLoaded(studyId, onDataLoadedCallback) {
-  if (!onDataLoadedCallback) return;
-
+function waitForChartRenderCompletion(callback) {
   requestAnimationFrame(function () {
-    onDataLoadedCallback();
+    requestAnimationFrame(function () {
+      callback();
+    });
   });
 }
 
-function scheduleStudyLegendRefresh() {
-  if (!isLegendOverlayEnabled()) return;
-  refreshStudyLegendFromExport();
+/**
+ * Waits for TradingView study data before legend refresh / INDICATOR_ADDED.
+ * A single RAF is not enough on cold load — exportData is often empty until onDataLoaded fires.
+ */
+function subscribeStudyDataLoaded(studyId, onDataLoadedCallback) {
+  function runWhenReady() {
+    if (onDataLoadedCallback) {
+      waitForChartRenderCompletion(onDataLoadedCallback);
+    } else {
+      waitForChartRenderCompletion(refreshStudyLegendFromExport);
+    }
+  }
+
+  try {
+    const chart = window.chartWidget.activeChart();
+    const study = chart.getStudyById(studyId);
+    if (study && study.onDataLoaded) {
+      study.onDataLoaded().subscribe(null, runWhenReady, true);
+    } else {
+      runWhenReady();
+    }
+  } catch (e) {
+    runWhenReady();
+  }
+}
+
+function legendOverlayHasContent() {
+  const overlay = document.getElementById('study-legend-overlay');
+  return !!(overlay && overlay.innerHTML.trim().length > 0);
+}
+
+function notifyLegendRenderedWhenReady(force) {
+  waitForChartRenderCompletion(function () {
+    if (
+      force ||
+      window.legendStudyOrder.size === 0 ||
+      legendOverlayHasContent()
+    ) {
+      sendToReactNative('LEGEND_RENDERED', {});
+    }
+  });
 }
 
 function formatLegendValue(num) {
@@ -3594,18 +3717,25 @@ function formatLegendValue(num) {
 
 let _legendExportGeneration = 0;
 let _legendRetryCount = 0;
-const MAX_LEGEND_RETRIES = 5;
+const MAX_LEGEND_RETRIES = 10;
 const LEGEND_RETRY_DELAY_MS = 100;
 const LEGEND_RENDER_TIMEOUT_MS = 3000;
 let _legendTimeoutId = null;
 
 function refreshStudyLegendFromExport() {
+  if (!isLegendOverlayEnabled()) return;
   if (!window.chartWidget || !window.isChartReady) return;
   const overlay = document.getElementById('study-legend-overlay');
   if (!overlay) return;
 
   const chart = window.chartWidget.activeChart();
   const studyIdMap = collectStudyIdMap();
+  for (const sid of Object.keys(studyIdMap)) {
+    const name = studyIdMap[sid];
+    if (name && !window.legendStudyOrder.has(name)) {
+      window.legendStudyOrder.set(name, sid);
+    }
+  }
   const studyIds = Object.keys(studyIdMap);
 
   if (studyIds.length === 0) {
@@ -3662,31 +3792,21 @@ function refreshStudyLegendFromExport() {
           });
         }
 
-        const studyDataList = [];
-        for (const studyKey of Object.keys(byStudy)) {
-          const name = studyIdMap[studyKey];
-          if (!name) continue;
-          studyDataList.push({ name: name, values: byStudy[studyKey] });
-        }
+        const studyDataList = buildOrderedStudyDataList(byStudy, null);
 
-        const hasEmpty = hasEmptyStudyValues(studyDataList);
-        if (hasEmpty && _legendRetryCount < MAX_LEGEND_RETRIES) {
+        if (
+          hasEmptyStudyValues(studyDataList) &&
+          _legendRetryCount < MAX_LEGEND_RETRIES
+        ) {
           scheduleRetryIfNeeded(gen);
           return;
         }
 
         _legendRetryCount = 0;
-        overlay.innerHTML = buildLegendHTML(studyDataList);
+        renderLegendOverlay(studyDataList);
 
-        // Clear timeout on success
         clearLegendTimeout();
-
-        // Wait for browser to paint the legend DOM before reporting completion
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            sendToReactNative('LEGEND_RENDERED', {});
-          });
-        });
+        notifyLegendRenderedWhenReady();
       })
       .catch(function (err) {
         scheduleRetryIfNeeded(gen);
@@ -3698,11 +3818,11 @@ function refreshStudyLegendFromExport() {
 
 function hasEmptyStudyValues(studyDataList) {
   for (const { name, values } of studyDataList) {
-    const cfg = INDICATOR_LEGEND_CONFIG[name];
+    const cfg = resolveLegendConfig(name);
     if (!cfg) continue;
 
     for (const { value: val } of values) {
-      if (!val || val === '' || val === 'n/a' || val === '∅') {
+      if (isEmptyLegendValue(val)) {
         return true;
       }
     }
@@ -3716,6 +3836,10 @@ function startLegendTimeout(gen) {
     if (gen !== _legendExportGeneration) return;
     _legendRetryCount = 0;
     clearLegendTimeout();
+    if (window.legendStudyOrder.size > 0 && !legendOverlayHasContent()) {
+      refreshStudyLegendFromExport();
+    }
+    notifyLegendRenderedWhenReady(true);
   }, LEGEND_RENDER_TIMEOUT_MS);
 }
 
@@ -3730,20 +3854,7 @@ function scheduleRetryIfNeeded(gen) {
   if (_legendRetryCount >= MAX_LEGEND_RETRIES) {
     _legendRetryCount = 0;
     clearLegendTimeout();
-    const overlay = document.getElementById('study-legend-overlay');
-    if (overlay) {
-      const studyIdMap = collectStudyIdMap();
-      const fallbackList = Object.values(studyIdMap).map(function (studyName) {
-        return { name: studyName, values: [] };
-      });
-      overlay.innerHTML = buildLegendHTML(fallbackList);
-    }
-    // RN keeps the skeleton until LEGEND_RENDERED; notify after fallback so it cannot block forever.
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        sendToReactNative('LEGEND_RENDERED', {});
-      });
-    });
+    notifyLegendRenderedWhenReady(true);
     return;
   }
   _legendRetryCount++;
@@ -3812,6 +3923,7 @@ function createVolumeStudy(useOverlay) {
 
     promise
       .then(function (studyId) {
+        window.legendStudyOrder.set('Volume', studyId);
         window.volumeStudyId = studyId;
         subscribeStudyDataLoaded(studyId);
         try {
@@ -3833,7 +3945,6 @@ function createVolumeStudy(useOverlay) {
           }
         } catch (e) {}
         updateCandleVolumeScaleColumnVisibility();
-        scheduleStudyLegendRefresh();
         try {
           requestAnimationFrame(function () {
             requestAnimationFrame(updateCandleVolumeScaleColumnVisibility);
@@ -3858,9 +3969,10 @@ function handleToggleVolume(payload) {
       } catch (e) {}
       window.volumeStudyId = null;
     }
+    window.legendStudyOrder.delete('Volume');
     window.volumeIsOverlay = null;
     updateCandleVolumeScaleColumnVisibility();
-    scheduleStudyLegendRefresh();
+    refreshStudyLegendFromExport();
     return;
   }
 
@@ -4524,6 +4636,7 @@ function initChart() {
       if (isLegendOverlayEnabled()) {
         createStudyLegendOverlay();
         injectHideLegendButtonsCSS();
+        requestAnimationFrame(updateLegendOverlayLayout);
       }
 
       sendToReactNative('CHART_READY', {});
@@ -4693,7 +4806,7 @@ function initChart() {
             window.ohlcvBarShownAt = 0;
             window.ohlcvDismissUntil = Date.now() + 800;
             hideCustomCrosshairLabels();
-            scheduleStudyLegendRefresh();
+            refreshStudyLegendFromExport();
             setTimeout(function () {
               window.__mmTooltipChartInteractSent = false;
               sendToReactNative('CROSSHAIR_MOVE', { data: null });
