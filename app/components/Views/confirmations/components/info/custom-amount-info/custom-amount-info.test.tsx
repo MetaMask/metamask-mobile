@@ -24,9 +24,10 @@ import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransact
 import { AssetType } from '../../../types/token';
 import {
   useTransactionPayFiatPayment,
-  useTransactionPayRequiredTokens,
   useIsTransactionPayLoading,
+  useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { strings } from '../../../../../../../locales/i18n';
@@ -225,6 +226,10 @@ describe('CustomAmountInfo', () => {
     useTransactionPayRequiredTokens,
   );
 
+  const useTransactionPayPrimaryRequiredTokenMock = jest.mocked(
+    useTransactionPayPrimaryRequiredToken,
+  );
+
   const useTransactionPayAvailableTokensMock = jest.mocked(
     useTransactionPayAvailableTokens,
   );
@@ -345,6 +350,9 @@ describe('CustomAmountInfo', () => {
       hasTokens: true,
     });
     useTransactionPayRequiredTokensMock.mockReturnValue([REQUIRED_TOKEN_MOCK]);
+    useTransactionPayPrimaryRequiredTokenMock.mockReturnValue(
+      REQUIRED_TOKEN_MOCK,
+    );
     useConfirmActionsMock.mockReturnValue({
       onConfirm: jest.fn(),
       onReject: jest.fn(),
@@ -385,7 +393,7 @@ describe('CustomAmountInfo', () => {
 
   describe('awaiting required token', () => {
     it('renders the skeleton when pay is enabled but no primary required token is resolved', () => {
-      useTransactionPayRequiredTokensMock.mockReturnValue([]);
+      useTransactionPayPrimaryRequiredTokenMock.mockReturnValue(undefined);
 
       const { getByTestId, queryByTestId, queryByText } = render({
         disablePay: false,
@@ -405,6 +413,7 @@ describe('CustomAmountInfo', () => {
           skipIfBalance: true,
         },
       ]);
+      useTransactionPayPrimaryRequiredTokenMock.mockReturnValue(undefined);
 
       const { getByTestId, queryByTestId } = render({ disablePay: false });
 
@@ -413,18 +422,22 @@ describe('CustomAmountInfo', () => {
     });
 
     it('does not render the skeleton when pay is disabled and no primary required token is resolved', () => {
-      useTransactionPayRequiredTokensMock.mockReturnValue([]);
+      useTransactionPayPrimaryRequiredTokenMock.mockReturnValue(undefined);
 
       const { getByTestId, queryByTestId } = render({ disablePay: true });
 
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toBeOnTheScreen();
+      expect(
+        getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK),
+      ).toBeOnTheScreen();
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
     });
 
     it('renders the full UI once a primary required token is resolved', () => {
       const { getByTestId, queryByTestId } = render({ disablePay: false });
 
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toBeOnTheScreen();
+      expect(
+        getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK),
+      ).toBeOnTheScreen();
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
     });
   });

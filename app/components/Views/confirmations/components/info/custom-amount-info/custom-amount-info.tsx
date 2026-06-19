@@ -34,6 +34,7 @@ import {
 import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
+  useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
@@ -147,10 +148,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
-    const requiredTokens = useTransactionPayRequiredTokens();
-    const primaryRequiredToken = requiredTokens.find(
-      (token) => !token.skipIfBalance,
-    );
+    const primaryRequiredToken = useTransactionPayPrimaryRequiredToken();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();

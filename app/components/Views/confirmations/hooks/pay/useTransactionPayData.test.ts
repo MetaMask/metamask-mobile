@@ -17,6 +17,7 @@ import {
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
   useTransactionPayFiatPayment,
+  useTransactionPayPrimaryRequiredToken,
 } from './useTransactionPayData';
 import { cloneDeep, merge } from 'lodash';
 import {
@@ -99,6 +100,31 @@ describe('useTransactionPayData', () => {
       renderHookWithProvider(useTransactionPayRequiredTokens, { state }).result
         .current,
     ).toStrictEqual([REQUIRED_TOKEN_MOCK]);
+  });
+
+  it('returns the primary required token', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayPrimaryRequiredToken, { state })
+        .result.current,
+    ).toStrictEqual(REQUIRED_TOKEN_MOCK);
+  });
+
+  it('ignores skipIfBalance required tokens for the primary required token', () => {
+    const updatedState = cloneDeep(state);
+    updatedState.engine.backgroundState.TransactionPayController.transactionData[
+      transactionIdMock
+    ].tokens = [
+      {
+        ...REQUIRED_TOKEN_MOCK,
+        skipIfBalance: true,
+      },
+    ];
+
+    expect(
+      renderHookWithProvider(useTransactionPayPrimaryRequiredToken, {
+        state: updatedState,
+      }).result.current,
+    ).toBeUndefined();
   });
 
   it('returns source amounts', () => {
