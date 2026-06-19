@@ -167,13 +167,13 @@ async function processAndHandleNotification(
     const notification = processNotification(notificationData);
     logPushEvent(
       'FCM_FOREGROUND_PROCESSING',
-      `Foreground notification parsed: ${notification.id}`,
-      { id: notification.id, type: (notification as { type?: string }).type },
+      `Foreground notification parsed: ${notification?.id}`,
+      { id: notification?.id, type: (notification as { type?: string })?.type },
     );
     await handler(notification);
     logPushEvent(
       'FCM_FOREGROUND_DISPLAYED',
-      `Notification displayed: ${notification.id}`,
+      `Notification displayed: ${notification?.id}`,
     );
   } catch (error) {
     logPushEvent('FCM_FOREGROUND_ERROR', 'processAndHandleNotification threw', {
