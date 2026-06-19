@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { CandlePeriod } from '@metamask/perps-controller';
+import { CandlePeriod, TimeDuration } from '@metamask/perps-controller';
 import {
   default as PerpsAdvancedChart,
   mapTpslToPositionLines,
@@ -68,6 +68,7 @@ jest.mock('react-native-performance', () => ({
 const mockAdapterResult = {
   ohlcvData: [],
   realtimeBar: undefined,
+  latestBar: undefined,
   ohlcvSeriesKey: 'BTC|1h',
   visibleFromMs: undefined,
   visibleToMs: undefined,
@@ -110,6 +111,38 @@ describe('PerpsAdvancedChart', () => {
         volumeErrorColorOverride: volumeColors.error,
       }),
     );
+  });
+
+  it('passes pagination duration into the adapter', () => {
+    renderChart({ paginationDuration: TimeDuration.YearToDate });
+
+    expect(mockUsePerpsAdvancedChartAdapter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        visibleCandleCount: 100,
+        paginationDuration: TimeDuration.YearToDate,
+      }),
+    );
+  });
+
+  it('notifies the parent when the latest adapter close changes', () => {
+    const onLatestPriceChange = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      latestBar: {
+        time: 1000,
+        open: 42000,
+        high: 42100,
+        low: 41900,
+        close: 42050,
+        volume: 100,
+      },
+    });
+
+    renderChart({ onLatestPriceChange });
+
+    expect(onLatestPriceChange).toHaveBeenCalledWith(42050);
   });
 
   it('passes mapped position lines to AdvancedChart', () => {
@@ -304,6 +337,7 @@ describe('PerpsAdvancedChart', () => {
         height: 240,
         visibleCandleCount: 100,
         tpslLines,
+        symbol: 'BTC',
         onNeedMoreHistory: fallbackFetchMoreHistory,
         onOhlcDataChange: onCrosshairDataChange,
         showOverlay: false,
