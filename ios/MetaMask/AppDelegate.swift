@@ -55,7 +55,7 @@ class AppDelegate: ExpoAppDelegate {
 
     window = UIWindow(frame: UIScreen.main.bounds)
     window?.makeKeyAndVisible()
-
+  
     if FirebaseApp.app() == nil {
       FirebaseApp.configure()
     }
@@ -65,6 +65,34 @@ class AppDelegate: ExpoAppDelegate {
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
+
+    // Register startup prefetch URLs so NitroAutoPrefetcher fires them on THIS launch,
+    // including the very first cold launch before JS has run prefetchOnAppStart().
+    // Entries are deduped by key; JS-side calls will overwrite these with the correct
+    // runtime values on subsequent launches.
+    // NitroBootstrap.mm fires prefetchOnStart via UIApplicationDidFinishLaunchingNotification,
+    // which is posted after this method returns — so registerPrefetch here is always
+    // picked up before the queue executes.
+    let bundleId = Bundle.main.bundleIdentifier ?? ""
+    let distribution = bundleId.contains("flask") ? "flask" : "main"
+    #if !DEBUG
+    // Only register feature flags in release builds where environment=production is
+    // guaranteed. Debug builds may use a different environment; JS seeds the correct
+    // URL after its first run.
+    NitroAutoPrefetcher.registerPrefetch(
+      withUrl: "https://client-config.api.cx.metamask.io/v1/flags" +
+        "?client=mobile&distribution=\(distribution)&environment=production",
+      prefetchKey: "feature-flags",
+      headers: [:])
+    #endif
+    NitroAutoPrefetcher.registerPrefetch(
+      withUrl: "https://phishing-detection.api.cx.metamask.io/v1/stalelist",
+      prefetchKey: "phishing-stalelist",
+      headers: [:])
+    NitroAutoPrefetcher.registerPrefetch(
+      withUrl: "https://client-side-detection.api.cx.metamask.io/v1/request-blocklist",
+      prefetchKey: "phishing-c2-blocklist",
+      headers: [:])
 
     // Setup Braze
     if let brazeApiKey = Bundle.main.object(forInfoDictionaryKey: "braze_api_key") as? String,

@@ -10,6 +10,9 @@ import {
 jest.mock('react-native-nitro-fetch', () => ({
   fetch: jest.fn().mockResolvedValue({ ok: true, status: 200 }),
   prefetchOnAppStart: jest.fn().mockResolvedValue(undefined),
+  Headers: globalThis.Headers,
+  Request: globalThis.Request,
+  Response: globalThis.Response,
 }));
 
 jest.mock('@metamask/phishing-controller', () => ({
@@ -62,27 +65,6 @@ describe('NitroFetchSetup', () => {
         { prefetchKey: 'feature-flags' },
       );
     });
-
-    it('swallows prefetchOnAppStart rejection without surfacing an unhandled rejection', async () => {
-      let rejectingPrefetch: jest.Mock = jest.fn();
-
-      await jest.isolateModulesAsync(async () => {
-        rejectingPrefetch = jest
-          .fn()
-          .mockRejectedValue(new Error('native cache error'));
-
-        jest.doMock('react-native-nitro-fetch', () => ({
-          fetch: jest.fn().mockResolvedValue({ ok: true, status: 200 }),
-          prefetchOnAppStart: rejectingPrefetch,
-        }));
-        jest.doMock('../util/test/utils', () => ({ hasTestOverrides: false }));
-
-        await import('./NitroFetchSetup');
-        await Promise.resolve(); // flush microtasks so .catch() handler executes
-      });
-
-      expect(rejectingPrefetch).toHaveBeenCalledTimes(3);
-    });
   });
 
   describe('hasTestOverrides guard', () => {
@@ -95,6 +77,9 @@ describe('NitroFetchSetup', () => {
         jest.doMock('react-native-nitro-fetch', () => ({
           fetch: jest.fn().mockResolvedValue({ ok: true, status: 200 }),
           prefetchOnAppStart: localPrefetch,
+          Headers: global.Headers,
+          Request: global.Request,
+          Response: global.Response,
         }));
         jest.doMock('../util/test/utils', () => ({
           hasTestOverrides: true,

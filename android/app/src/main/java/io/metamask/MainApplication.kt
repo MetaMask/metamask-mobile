@@ -93,9 +93,40 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
         // Fire prefetchOnAppStart queue before JS loads (Android requires explicit call;
         // iOS is auto-bootstrapped via NitroBootstrap.mm +load).
+        //
+        // registerPrefetch() writes URLs to SharedPreferences so prefetchOnStart() fires
+        // them on THIS launch — including the very first cold launch (fresh install) before
+        // JS has had a chance to call prefetchOnAppStart(). Entries are deduped by key, so
+        // JS-side calls overwrite these defaults with the correct runtime values on
+        // subsequent launches.
         try {
+            val distribution = if (BuildConfig.FLAVOR == "flask") "flask" else "main"
+            if (!BuildConfig.DEBUG) {
+                // Only register feature flags in release builds where
+                // METAMASK_ENVIRONMENT=production is guaranteed. Debug builds may use a
+                // different environment; JS will seed the correct URL after its first run.
+                AutoPrefetcher.registerPrefetch(
+                    this,
+                    "https://client-config.api.cx.metamask.io/v1/flags" +
+                        "?client=mobile&distribution=$distribution&environment=production",
+                    "feature-flags",
+                    emptyMap(),
+                )
+            }
+            AutoPrefetcher.registerPrefetch(
+                this,
+                "https://phishing-detection.api.cx.metamask.io/v1/stalelist",
+                "phishing-stalelist",
+                emptyMap(),
+            )
+            AutoPrefetcher.registerPrefetch(
+                this,
+                "https://client-side-detection.api.cx.metamask.io/v1/request-blocklist",
+                "phishing-c2-blocklist",
+                emptyMap(),
+            )
             AutoPrefetcher.prefetchOnStart(this)
-        } catch (e: Exception) {
+        } catch (_: Throwable) {
             // Non-fatal: prefetch is a cold-start optimisation. If it fails (e.g. fresh
             // install, missing native queue, or early init race) the app continues normally
             // and requests are served by the standard fetch path.

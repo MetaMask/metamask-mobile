@@ -8,12 +8,21 @@
  * automatically for registered URLs so upstream controllers that use
  * global.fetch need no changes.
  *
+ * Note: prefetchOnAppStart() only seeds the queue for the NEXT cold launch —
+ * JS must run once before the native side knows what to prefetch. First-launch
+ * (fresh install) prefetching is handled by native-side registerPrefetch()
+ * calls in MainApplication.kt (Android) and AppDelegate.swift (iOS), which
+ * write the same URLs into the persistent queue before JS boots.
+ *
  * https://fetch.margelo.com — "Prefetching for the next app launch"
  *
  */
 import {
   fetch as nitroFetch,
   prefetchOnAppStart,
+  Headers,
+  Request,
+  Response,
 } from 'react-native-nitro-fetch';
 import { hasTestOverrides } from '../util/test/utils';
 import { ClientType } from '@metamask/remote-feature-flag-controller';
@@ -99,6 +108,9 @@ function installProductionNitroFetch(): void {
   //   - import `fetch` from 'expo/fetch' directly (see bridge-controller-init.ts)
   global.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
     nitroFetch(input, withPrefetchKey(input, init));
+  globalThis.Headers = Headers as unknown as typeof globalThis.Headers;
+  globalThis.Request = Request as unknown as typeof globalThis.Request;
+  globalThis.Response = Response as unknown as typeof globalThis.Response;
 
   for (const { url, key } of STARTUP_PREFETCHES) {
     // Non-fatal: a registration failure means the cache is cold on next launch,
