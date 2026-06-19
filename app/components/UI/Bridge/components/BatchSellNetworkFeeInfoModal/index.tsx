@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import {
   BottomSheet,
@@ -18,7 +18,7 @@ import { BatchSellNetworkFeeInfoModalParams } from './BatchSellNetworkFeeInfoMod
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellNetworkFeeInfoModal() {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellNetworkFeeInfoModalParams>();
   const handleBack = sourceModal
     ? () => navigation.replace(sourceModal.screen, sourceModal.params)

@@ -18,7 +18,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -107,7 +107,7 @@ const viewStyles = StyleSheet.create({
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<
