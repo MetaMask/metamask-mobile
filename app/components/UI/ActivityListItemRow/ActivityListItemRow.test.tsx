@@ -837,6 +837,27 @@ describe('ActivityListItemRow — amount display', () => {
     expect(getByText('+1 UNKNOWN')).toBeOnTheScreen();
     expect(queryByText('+$1')).toBeNull();
   });
+
+  it('does not render destination fiat as the source line for source-less swaps', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      destinationToken: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+1 mUSD')).toBeOnTheScreen();
+    expect(queryByText('+$1')).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

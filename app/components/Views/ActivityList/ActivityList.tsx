@@ -85,6 +85,7 @@ import {
 } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { getIntlDateTimeFormatter } from '../../../util/intl';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -135,7 +136,7 @@ const formatDateHeader = (timestamp: number) => {
     return strings('perps.yesterday');
   }
 
-  return new Intl.DateTimeFormat('en-US', {
+  return getIntlDateTimeFormatter('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
