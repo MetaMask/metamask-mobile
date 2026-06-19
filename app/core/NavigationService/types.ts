@@ -1,8 +1,5 @@
-import type {
-  ParamListBase,
-  NavigationProp,
-  NavigationState,
-} from '@react-navigation/native';
+import type { ParamListBase, NavigationState } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
 
 // ============================================================================
@@ -766,7 +763,7 @@ declare global {
  * Uses ReactNavigation.RootParamList to match the global declaration.
  */
 export type AppNavigationProp = Omit<
-  NavigationProp<ReactNavigation.RootParamList>,
+  NativeStackNavigationProp<ReactNavigation.RootParamList>,
   'getState'
 > & {
   getState(): NavigationState<ReactNavigation.RootParamList> | undefined;

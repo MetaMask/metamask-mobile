@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { type StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Accelerometer } from 'expo-sensors';
 import Rive, {
   AutoBind,
@@ -115,8 +115,7 @@ function gForceToParallax(gForce: number): number {
 }
 
 const MoneyFirstTimeDepositView = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { trackScreenViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_FIRST_TIME_DEPOSIT,

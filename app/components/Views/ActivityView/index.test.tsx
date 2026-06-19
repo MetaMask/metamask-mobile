@@ -3,7 +3,7 @@ import ActivityView from '.';
 import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
@@ -103,7 +103,7 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   return { TabsList };
 });
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const mockNavigation = {
   navigate: jest.fn(),
