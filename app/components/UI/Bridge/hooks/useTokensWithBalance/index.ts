@@ -36,6 +36,8 @@ import { getTokenIconUrl } from '../../utils';
 import { toHex } from '@metamask/controller-utils';
 import {
   formatAddressToAssetId,
+  getNativeAssetForChainId,
+  isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { isTradableToken } from '../../utils/isTradableToken';
@@ -205,11 +207,29 @@ export const useTokensWithBalance: ({
       return [...acc, chainId as Hex];
     }, [] as Hex[]);
 
-    const allEvmAccountTokens = (
+    const rawEvmAccountTokens = (
       Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
     )
       .filter((token) => evmChainIds.includes(token.chainId as Hex))
       .filter((token) => !token.isStaked);
+
+    // Bridge-controller is the source of truth for native-asset decimals (e.g.
+    // Arc's native gas asset is USDC at 6 decimals, not the 18 some chains
+    // assume). TokensController may have stale/incorrect decimals cached for
+    // native addresses; correct it here BEFORE any balance math runs, so the
+    // computed balance string and the decimals field never diverge.
+    const allEvmAccountTokens = rawEvmAccountTokens.map((token) => {
+      const chainId = token.chainId as Hex | CaipChainId;
+      if (!isNativeAddress(token.address)) {
+        return token;
+      }
+      try {
+        const bridgeNative = getNativeAssetForChainId(chainId);
+        return { ...token, decimals: bridgeNative.decimals };
+      } catch {
+        return token;
+      }
+    });
 
     const allNonEvmAccountTokens = Object.values(nonEvmTokens)
       .flat()
@@ -268,7 +288,7 @@ export const useTokensWithBalance: ({
         return {
           address: normalizeTokenAddress(token.address, chainId),
           name: token.name,
-          decimals: token.decimals,
+          decimals: token.decimals, // already corrected upstream for native addresses
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
           chainId,
           image: tokenImage,

@@ -5,12 +5,12 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
-import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { BigNumber } from 'bignumber.js';
 import { isNumberValue } from '../../../../../util/number/bigint';
+import { parseUnitsSafe } from '../../utils/parseUnitSafe';
 
 interface Props {
   quote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -56,7 +56,7 @@ export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
       : null;
 
   const atomicGasFee = effectiveGasFee
-    ? ethers.utils.parseUnits(effectiveGasFee, sourceChainNativeAsset?.decimals)
+    ? parseUnitsSafe(effectiveGasFee, sourceChainNativeAsset?.decimals)
     : null;
 
   return gasTokenBalance?.atomicBalance && atomicGasFee
