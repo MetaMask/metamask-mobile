@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { parseCardTransactions } from '../utils/accountsApi';
-import { useMoneyAccountCardTransactions } from './useMoneyAccountCardTransactions';
+import { parseAccountsApiActivity } from '../utils/accountsApi';
+import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
-import type { CardTransaction } from '../types/moneyActivity';
+import type { AccountsApiActivity } from '../types/moneyActivity';
 
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
@@ -29,7 +29,7 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 jest.mock('../utils/accountsApi', () => ({
-  parseCardTransactions: jest.fn(),
+  parseAccountsApiActivity: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -37,7 +37,7 @@ const mockUseQuery = jest.mocked(useQuery);
 const mockGetQueryOptions = jest.mocked(
   apiClient.accounts.getV1AccountTransactionsQueryOptions,
 );
-const mockParse = jest.mocked(parseCardTransactions);
+const mockParse = jest.mocked(parseAccountsApiActivity);
 
 const ADDR_A = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const QUERY_OPTIONS_MOCK = {
@@ -45,13 +45,14 @@ const QUERY_OPTIONS_MOCK = {
   queryFn: jest.fn(),
 };
 
-const CARD: CardTransaction = {
+const CARD: AccountsApiActivity = {
+  kind: 'card',
   hash: '0xabc',
   time: 1,
   chainId: '0x8f',
   token: { address: '0xtoken', symbol: 'mUSD', decimals: 6 },
   amount: '5381986',
-  to: '0xdef',
+  paidTo: '0xdef',
 };
 
 function setupSelectors(
@@ -89,9 +90,9 @@ beforeEach(() => {
   mockParse.mockReturnValue([]);
 });
 
-describe('useMoneyAccountCardTransactions', () => {
+describe('useMoneyAccountApiActivity', () => {
   it('composes query options from the checksummed money address on Monad', () => {
-    renderHook(() => useMoneyAccountCardTransactions());
+    renderHook(() => useMoneyAccountApiActivity());
 
     expect(mockGetQueryOptions).toHaveBeenCalledWith(ADDR_A, {
       chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
@@ -100,7 +101,7 @@ describe('useMoneyAccountCardTransactions', () => {
   });
 
   it('delegates to useQuery with select, enabled, staleTime and retry', () => {
-    renderHook(() => useMoneyAccountCardTransactions());
+    renderHook(() => useMoneyAccountApiActivity());
 
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -116,7 +117,7 @@ describe('useMoneyAccountCardTransactions', () => {
   it('disables the query and sends an empty address when there is no money account', () => {
     setupSelectors({ account: undefined });
 
-    renderHook(() => useMoneyAccountCardTransactions());
+    renderHook(() => useMoneyAccountApiActivity());
 
     expect(mockGetQueryOptions).toHaveBeenCalledWith('', expect.anything());
     expect(mockUseQuery).toHaveBeenCalledWith(
@@ -128,9 +129,9 @@ describe('useMoneyAccountCardTransactions', () => {
     const refetch = jest.fn();
     mockQueryResult({ data: [CARD], refetch });
 
-    const { result } = renderHook(() => useMoneyAccountCardTransactions());
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
 
-    expect(result.current.cardTransactions).toEqual([CARD]);
+    expect(result.current.activity).toEqual([CARD]);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(false);
     result.current.refetch();
@@ -140,27 +141,27 @@ describe('useMoneyAccountCardTransactions', () => {
   it('reports loading only on the initial fetch and shows no rows', () => {
     mockQueryResult({ isInitialLoading: true });
 
-    const { result } = renderHook(() => useMoneyAccountCardTransactions());
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
 
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.cardTransactions).toEqual([]);
+    expect(result.current.activity).toEqual([]);
   });
 
   it('surfaces an error and shows no rows when the query fails', () => {
     mockQueryResult({ isError: true });
 
-    const { result } = renderHook(() => useMoneyAccountCardTransactions());
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
 
     expect(result.current.error).toBe(true);
-    expect(result.current.cardTransactions).toEqual([]);
+    expect(result.current.activity).toEqual([]);
   });
 
-  it('parses the cached response through parseCardTransactions', () => {
+  it('parses the cached response through parseAccountsApiActivity', () => {
     mockParse.mockReturnValue([CARD]);
 
-    renderHook(() => useMoneyAccountCardTransactions());
+    renderHook(() => useMoneyAccountApiActivity());
     const { select } = mockUseQuery.mock.calls[0][0] as unknown as {
-      select: (response: unknown) => CardTransaction[];
+      select: (response: unknown) => AccountsApiActivity[];
     };
     const parsed = select({ data: ['raw'] });
 
