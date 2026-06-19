@@ -136,6 +136,14 @@ const AddDeviceToWallet = () => {
     [submitQrPayload],
   );
 
+  const onMwpDeeplinkScanned = useCallback(
+    (deeplink: string) => {
+      navigation.goBack();
+      submitQrPayload(deeplink).catch(() => undefined);
+    },
+    [navigation, submitQrPayload],
+  );
+
   const openQRScanner = useCallback(() => {
     navigation.navigate(
       ...createQRScannerNavDetails({
@@ -143,9 +151,10 @@ const AddDeviceToWallet = () => {
         disableTabber: true,
         origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
         onScanSuccess,
+        onMwpDeeplinkScanned,
       }),
     );
-  }, [navigation, onScanSuccess]);
+  }, [navigation, onMwpDeeplinkScanned, onScanSuccess]);
 
   const handleManualQrSubmit = useCallback(async () => {
     if (!manualQrPayload.trim()) {

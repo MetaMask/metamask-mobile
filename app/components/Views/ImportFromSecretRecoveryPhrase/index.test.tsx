@@ -183,7 +183,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
       expect(
         getByText(
-          strings('import_from_seed.enter_your_secret_recovery_phrase'),
+          new RegExp(
+            strings('import_from_seed.enter_your_secret_recovery_phrase'),
+          ),
         ),
       ).toBeOnTheScreen();
     });
