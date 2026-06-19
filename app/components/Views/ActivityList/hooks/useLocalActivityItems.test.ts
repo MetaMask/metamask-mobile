@@ -125,11 +125,11 @@ describe('useLocalActivityItems', () => {
 
     expect(result.current).toHaveLength(2);
     expect(result.current[0]).toMatchObject({
-      data: { hash: '0xnonce1' },
+      hash: '0xnonce1',
       isEarliestNonce: true,
     });
     expect(result.current[1]).toMatchObject({
-      data: { hash: '0xnonce2retry' },
+      hash: '0xnonce2retry',
       isEarliestNonce: false,
     });
   });
@@ -192,7 +192,7 @@ describe('useLocalActivityItems', () => {
     const { result } = renderHook(() => useLocalActivityItems());
 
     expect(result.current[0]).toMatchObject({
-      data: { hash: '0xbridge' },
+      hash: '0xbridge',
       status: 'success',
     });
     expect(result.current[1]).toMatchObject({
