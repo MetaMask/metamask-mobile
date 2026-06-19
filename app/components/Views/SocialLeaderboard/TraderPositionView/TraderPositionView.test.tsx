@@ -619,7 +619,7 @@ describe('TraderPositionView', () => {
     expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
   });
 
-  it('opens the trade detail sheet and highlights the chart when a trade is pressed', async () => {
+  it('highlights the chart when a trade is pressed', async () => {
     const now = Date.now();
 
     mockRouteParams.position = {
@@ -642,14 +642,11 @@ describe('TraderPositionView', () => {
 
     expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     expect(
-      screen.getByTestId(TraderTradeDetailBottomSheetSelectorsIDs.CONTAINER),
+      screen.queryByTestId(TraderTradeDetailBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
-    ).toBeNull();
 
     await waitFor(() => {
       const chartProps =

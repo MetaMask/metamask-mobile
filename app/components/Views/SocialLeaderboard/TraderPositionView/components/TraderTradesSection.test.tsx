@@ -5,6 +5,8 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TraderTradesSection from './TraderTradesSection';
+import { TraderTradesSectionSelectorsIDs } from './TraderTradesSection.testIds';
+import { RefreshControl } from 'react-native';
 
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   intent: 'enter',
@@ -68,5 +70,22 @@ describe('TraderTradesSection', () => {
     fireEvent.press(screen.getByTestId('trade-row-0xpress-pressable'));
 
     expect(onTradePress).toHaveBeenCalledWith(trade);
+  });
+
+  it('wraps trade rows in a scroll view when scrollable is true', () => {
+    renderWithProvider(
+      <TraderTradesSection
+        scrollable
+        trades={[makeTrade()]}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={jest.fn()} />
+        }
+      />,
+    );
+
+    expect(
+      screen.getByTestId(TraderTradesSectionSelectorsIDs.SCROLL_VIEW),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Trades')).toBeOnTheScreen();
   });
 });

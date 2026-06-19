@@ -7,7 +7,6 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
@@ -65,6 +64,7 @@ import {
   TransactionDetailLocation,
 } from '../../../../core/Analytics/events/transactions';
 import { SocialLeaderboardEventValues } from '../analytics';
+import { TRADE_DETAIL_BOTTOM_SHEET_ENABLED } from './features/tradeDetailFeatureFlags';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -308,7 +308,9 @@ const TraderPositionView = () => {
       playImpact(ImpactMoment.PrimaryCTA);
       setActiveTimePeriod(findTimePeriodForTrade(trade.timestamp));
       setHighlightedTradeHash(trade.transactionHash);
-      setSelectedTrade(trade);
+      if (TRADE_DETAIL_BOTTOM_SHEET_ENABLED) {
+        setSelectedTrade(trade);
+      }
 
       const caipChainId = resolvedPosition
         ? chainNameToId(resolvedPosition.chain)
@@ -396,17 +398,7 @@ const TraderPositionView = () => {
         <TraderPositionFallback traderId={traderId} traderName={traderName} />
       ) : (
         <>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
-              />
-            }
-          >
+          <Box twClassName="flex-1 min-h-0">
             <TraderTokenInfoRow
               symbol={symbol}
               position={resolvedPosition}
@@ -444,15 +436,23 @@ const TraderPositionView = () => {
             />
 
             <TraderTradesSection
+              scrollable
               trades={allTrades}
               traderImageUrl={traderImageUrl}
               traderAddress={traderAddress}
               onTradePress={handleTradePress}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+                />
+              }
             />
-          </ScrollView>
+          </Box>
 
           {isPerp ? (
-            !selectedTrade ? (
+            !TRADE_DETAIL_BOTTOM_SHEET_ENABLED || !selectedTrade ? (
               <Box twClassName="px-4 py-3">
                 <Button
                   variant={ButtonVariant.Primary}
@@ -467,7 +467,7 @@ const TraderPositionView = () => {
             ) : null
           ) : (
             <>
-              {!selectedTrade ? (
+              {!TRADE_DETAIL_BOTTOM_SHEET_ENABLED || !selectedTrade ? (
                 <Box twClassName="px-4 py-3">
                   <Button
                     variant={ButtonVariant.Primary}
@@ -498,7 +498,7 @@ const TraderPositionView = () => {
       )}
       </SafeAreaView>
 
-      {selectedTrade ? (
+      {TRADE_DETAIL_BOTTOM_SHEET_ENABLED && selectedTrade ? (
         <TraderTradeDetailBottomSheet
           isVisible
           trade={selectedTrade}
