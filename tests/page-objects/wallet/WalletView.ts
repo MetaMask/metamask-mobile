@@ -1104,8 +1104,6 @@ class WalletView {
           PredictMarketDetailsSelectorsIDs.SCREEN,
         );
         const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(30_000);
-        // Short probe while scrolling — full timeout only after a confirmed tap.
-        const marketDetailsProbeTimeoutMs = 8_000;
 
         if (
           await this.tapIfAlreadyVisible(
@@ -1134,16 +1132,6 @@ class WalletView {
                   await Assertions.expectElementToBeVisible(target, {
                     timeout: 2000,
                   });
-                  await UnifiedGestures.waitAndTap(target, {
-                    description,
-                    timeout: 30_000,
-                  });
-                  await Assertions.expectElementToBeVisible(marketDetailsScreen, {
-                    timeout: marketDetailsProbeTimeoutMs,
-                    description:
-                      'Predict market details screen after position tap (scroll probe)',
-                  });
-                  return;
                 } catch {
                   await driver.execute('mobile: scrollGesture', {
                     left: 50,
@@ -1153,7 +1141,19 @@ class WalletView {
                     direction,
                     percent: 0.55,
                   });
+                  continue;
                 }
+
+                await UnifiedGestures.waitAndTap(target, {
+                  description,
+                  timeout: 30_000,
+                });
+                await Assertions.expectElementToBeVisible(marketDetailsScreen, {
+                  timeout: predictNavigationTimeoutMs,
+                  description:
+                    'Predict market details screen after position tap',
+                });
+                return;
               }
             }
             await Assertions.expectElementToBeVisible(target, { timeout: 5000 });

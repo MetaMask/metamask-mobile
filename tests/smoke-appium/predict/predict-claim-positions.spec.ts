@@ -29,7 +29,7 @@ import {
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response.js';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response.js';
-import Utilities, { sleep } from '../../framework/Utilities.js';
+import Utilities from '../../framework/Utilities.js';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage.js';
 import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
@@ -210,8 +210,18 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           // positions query will refetch when market details re-enables it.
           await POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(mockServer);
 
-          // Allow homepage positions to settle after mock swap before re-opening details.
-          await sleep(6_000);
+          await Utilities.executeWithRetry(
+            async () => {
+              await Assertions.expectTextDisplayed(positions.Won, {
+                description:
+                  'Winning position listed on wallet before opening details',
+              });
+            },
+            {
+              timeout: resolveE2EWaitTimeoutMs(30_000),
+              description: 'Winning position visible on wallet homepage',
+            },
+          );
 
           await WalletView.scrollAndTapPredictionsPosition(
             positions.Won,
