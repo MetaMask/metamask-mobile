@@ -110,8 +110,7 @@ export default function migrate(versionedState: unknown) {
         // if the user is in "popular networks" mode (>1 enabled), auto-enable
         // Arc; otherwise add it as disabled so single-network users are not
         // disrupted.
-        (eip155NetworkMap as Record<string, boolean>)[ARC_CHAIN_ID] =
-          enabledCount > 1;
+        Object.assign(eip155NetworkMap, { [ARC_CHAIN_ID]: enabledCount > 1 });
       }
     }
 
