@@ -210,14 +210,11 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('does not render the empty or new-user container', () => {
+    it('does not render the empty container', () => {
       const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(
         queryByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
@@ -347,14 +344,6 @@ describe('MoneyBalanceCard', () => {
       mockSelectMoneyOnboardingSeen.mockReturnValue(false);
     });
 
-    it('renders the new-user container testID', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
-      ).toBeOnTheScreen();
-    });
-
     it('renders the Add button', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -378,14 +367,6 @@ describe('MoneyBalanceCard', () => {
           queryByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
         ).not.toBeOnTheScreen();
       });
-
-      it('still renders the new-user container', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        expect(
-          getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
-        ).toBeOnTheScreen();
-      });
     });
 
     describe('when the wallet-home onboarding stepper is displayed', () => {
@@ -404,14 +385,6 @@ describe('MoneyBalanceCard', () => {
         expect(
           queryByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
         ).not.toBeOnTheScreen();
-      });
-
-      it('still renders the new-user container', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        expect(
-          getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
-        ).toBeOnTheScreen();
       });
     });
   });

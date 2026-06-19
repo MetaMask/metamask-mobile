@@ -100,8 +100,6 @@ const MoneyBalanceCard = () => {
     !isUnavailable &&
     totalFiatRaw === '0';
 
-  const isNewUser = isEmpty && !hasSeenMoneyOnboarding && isOnboardingEnabled;
-
   const balanceText = totalFiatFormatted ?? '';
 
   const buttonLabelKey = 'money.balance_card.add';
@@ -120,9 +118,7 @@ const MoneyBalanceCard = () => {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    containerTestId = isNewUser
-      ? MoneyBalanceCardTestIds.NEW_USER_CONTAINER
-      : MoneyBalanceCardTestIds.EMPTY_CONTAINER;
+    containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
