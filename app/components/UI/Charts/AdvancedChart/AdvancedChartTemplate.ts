@@ -46,20 +46,6 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
-const hexToRgba = (hex: string, alpha: number): string => {
-  const clean = stripHexAlpha(hex).replace('#', '');
-  if (clean.length !== 6) {
-    return `rgba(0, 0, 0, ${alpha})`;
-  }
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
-    return `rgba(0, 0, 0, ${alpha})`;
-  }
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
 const getChartSuccessColor = (theme: Theme): string =>
   theme.themeAppearance === AppThemeKey.light
     ? LIGHT_MODE_SUCCESS_GREEN
@@ -91,7 +77,6 @@ window.CONFIG = {
   libraryUrl: '${libraryUrl}',
   theme: {
     backgroundColor: '${theme.colors.background.default}',
-    legendPillBackground: '${hexToRgba(theme.colors.background.default, 0.75)}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
     textColor: '${stripHexAlpha(theme.colors.text.muted)}',
     textAlternativeColor: '${stripHexAlpha(theme.colors.text.alternative)}',
@@ -153,6 +138,7 @@ export const createAdvancedChartTemplate = (
             height: 100%;
             overflow: hidden;
             background: ${theme.colors.background.default};
+            --chart-background: ${stripHexAlpha(theme.colors.background.default)};
             position: relative;
         }
         /*
@@ -265,6 +251,21 @@ export const createAdvancedChartTemplate = (
          */
         #crosshair-price-label {
             z-index: 60;
+        }
+        /*
+         * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
+         */
+        .legend-pill {
+            display: inline-flex;
+            align-items: center;
+            box-sizing: border-box;
+            font-family: Geist, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 1;
+            padding: 1px 6px;
+            border-radius: 2px;
+            background: color-mix(in srgb, var(--chart-background) 75%, transparent);
         }
         /*
          * Full-screen loading state until the chart is ready; centered message, above all chart UI.

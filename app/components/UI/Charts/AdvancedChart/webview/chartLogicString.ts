@@ -15,7 +15,7 @@ export default `/**
  *
  * CONFIG is injected before this script runs and contains:
  * - libraryUrl: string
- * - theme: { backgroundColor, legendPillBackground, borderColor, textColor, textAlternativeColor, successColor, errorColor, primaryColor }
+ * - theme: { backgroundColor, borderColor, textColor, textAlternativeColor, successColor, errorColor, primaryColor }
  * - lineChrome: { hideTimeScale, useCustomLineEndMarker, useCustomDashedLastPriceLine,
  *   useCustomPriceLabels }
  *   Single source of truth; \`SET_LINE_CHROME\` replaces it. Missing keys in old HTML fall back in
@@ -688,13 +688,8 @@ function handleAddIndicator(payload) {
       .then(function (studyId) {
         window.legendStudyOrder.set(indicatorName, studyId);
         window.activeStudies.set(indicatorName, studyId);
-        subscribeStudyDataLoaded(studyId, function () {
-          refreshStudyLegendFromExport();
-          sendToReactNative('INDICATOR_ADDED', {
-            name: indicatorName,
-            id: String(studyId),
-          });
-        });
+        subscribeStudyDataLoaded(studyId, refreshStudyLegendFromExport);
+        notifyIndicatorAdded(indicatorName, studyId);
       })
       .catch(function (error) {
         sendToReactNative('ERROR', {
@@ -767,7 +762,6 @@ function handleSetMAVisibility(payload) {
   });
 
   const promises = [];
-  const maCallbacks = [];
 
   for (const name of visible) {
     if (!isOwnStringKey(name) || !MA_LENGTHS[name]) continue;
@@ -786,14 +780,8 @@ function handleSetMAVisibility(payload) {
       .then(function (studyId) {
         window.legendStudyOrder.set(name, studyId);
         window.maStudies.set(name, studyId);
-        maCallbacks.push(function () {
-          subscribeStudyDataLoaded(studyId, function () {
-            sendToReactNative('INDICATOR_ADDED', {
-              name: name,
-              id: String(studyId),
-            });
-          });
-        });
+        subscribeStudyDataLoaded(studyId, refreshStudyLegendFromExport);
+        notifyIndicatorAdded(name, studyId);
       })
       .catch(function (err) {
         sendToReactNative('ERROR', {
@@ -804,12 +792,7 @@ function handleSetMAVisibility(payload) {
   }
 
   if (promises.length > 0) {
-    Promise.all(promises).then(function () {
-      refreshStudyLegendFromExport();
-      for (const cb of maCallbacks) {
-        cb();
-      }
-    });
+    Promise.all(promises).then(refreshStudyLegendFromExport);
   } else {
     refreshStudyLegendFromExport();
   }
@@ -3504,26 +3487,14 @@ function getLegendAltColor(theme) {
   return theme.textAlternativeColor || theme.textColor || '#858898';
 }
 
-function getLegendPillStyle() {
-  const theme = window.CONFIG?.theme || {};
-  const bg =
-    theme.legendPillBackground || theme.backgroundColor || 'rgba(19,20,22,0.75)';
-  return (
-    'display:inline-flex;align-items:center;box-sizing:border-box;' +
-    'font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;' +
-    'font-size:10px;font-weight:500;line-height:1;' +
-    'background:' +
-    bg +
-    ';padding:1px 6px;border-radius:2px;'
-  );
+function getLegendPillStyle(textColor) {
+  return textColor ? 'color:' + textColor + ';' : '';
 }
 
 function wrapLegendPill(innerHtml, textColor) {
-  let style = getLegendPillStyle();
-  if (textColor) {
-    style += 'color:' + textColor + ';';
-  }
-  return '<span style="' + style + '">' + innerHtml + '</span>';
+  const style = getLegendPillStyle(textColor);
+  const styleAttr = style ? ' style="' + style + '"' : '';
+  return '<span class="legend-pill"' + styleAttr + '>' + innerHtml + '</span>';
 }
 
 function formatLegendPill(prefixColor, prefix, value, altColor) {
@@ -3660,9 +3631,17 @@ function waitForChartRenderCompletion(callback) {
   });
 }
 
+function notifyIndicatorAdded(name, studyId) {
+  waitForChartRenderCompletion(function () {
+    sendToReactNative('INDICATOR_ADDED', {
+      name: name,
+      id: String(studyId),
+    });
+  });
+}
+
 /**
- * Waits for TradingView study data before legend refresh / INDICATOR_ADDED.
- * A single RAF is not enough on cold load — exportData is often empty until onDataLoaded fires.
+ * Waits for TradingView study data before legend export (exportData is empty until onDataLoaded).
  */
 function subscribeStudyDataLoaded(studyId, onDataLoadedCallback) {
   function runWhenReady() {
@@ -3691,15 +3670,9 @@ function legendOverlayHasContent() {
   return !!(overlay && overlay.innerHTML.trim().length > 0);
 }
 
-function notifyLegendRenderedWhenReady(force) {
+function notifyLegendRendered() {
   waitForChartRenderCompletion(function () {
-    if (
-      force ||
-      window.legendStudyOrder.size === 0 ||
-      legendOverlayHasContent()
-    ) {
-      sendToReactNative('LEGEND_RENDERED', {});
-    }
+    sendToReactNative('LEGEND_RENDERED', {});
   });
 }
 
@@ -3806,7 +3779,7 @@ function refreshStudyLegendFromExport() {
         renderLegendOverlay(studyDataList);
 
         clearLegendTimeout();
-        notifyLegendRenderedWhenReady();
+        notifyLegendRendered();
       })
       .catch(function (err) {
         scheduleRetryIfNeeded(gen);
@@ -3839,7 +3812,7 @@ function startLegendTimeout(gen) {
     if (window.legendStudyOrder.size > 0 && !legendOverlayHasContent()) {
       refreshStudyLegendFromExport();
     }
-    notifyLegendRenderedWhenReady(true);
+    notifyLegendRendered();
   }, LEGEND_RENDER_TIMEOUT_MS);
 }
 
@@ -3854,7 +3827,7 @@ function scheduleRetryIfNeeded(gen) {
   if (_legendRetryCount >= MAX_LEGEND_RETRIES) {
     _legendRetryCount = 0;
     clearLegendTimeout();
-    notifyLegendRenderedWhenReady(true);
+    notifyLegendRendered();
     return;
   }
   _legendRetryCount++;
