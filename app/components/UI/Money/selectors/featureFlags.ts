@@ -14,6 +14,8 @@ import {
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { MONEY_NO_FEE_TOKENS_FALLBACK } from '../utils/depositFaqTokens';
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
+import { parseNonNegativeFinite } from '../utils/number';
+import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
 
 /**
  * Selects whether the Money activity detail view is enabled.
@@ -121,22 +123,28 @@ const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 export const selectMoneyDepositMinBalance = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): number => {
-    const localRaw = process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE;
-    const local =
-      localRaw === undefined ? undefined : Number.parseFloat(localRaw);
-
-    const remoteRaw = remoteFeatureFlags?.earnMoneyDepositMinAssetBalance;
-    const remote =
-      typeof remoteRaw === 'number'
-        ? remoteRaw
-        : typeof remoteRaw === 'string'
-          ? Number.parseFloat(remoteRaw)
-          : undefined;
-
-    const remoteValue = Number.isFinite(remote) ? remote : undefined;
-    const localValue = Number.isFinite(local) ? local : undefined;
+    const localValue = parseNonNegativeFinite(
+      process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE,
+    );
+    const remoteValue = parseNonNegativeFinite(
+      remoteFeatureFlags?.earnMoneyDepositMinAssetBalance,
+    );
 
     return remoteValue ?? localValue ?? FALLBACK_MONEY_DEPOSIT_MIN_BALANCE;
+  },
+);
+
+export const selectMoneyVaultApyRemoteConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): MoneyVaultApyRemoteConfig => {
+    const raw = remoteFeatureFlags?.earnMoneyVaultApyControl as
+      | Record<string, unknown>
+      | undefined;
+
+    const vaultApyFallback = parseNonNegativeFinite(raw?.vaultApyFallback);
+    const vaultApyOverride = parseNonNegativeFinite(raw?.vaultApyOverride);
+
+    return { vaultApyFallback, vaultApyOverride };
   },
 );
 

@@ -5,28 +5,29 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectIsMoneyAccountDelegatedForCard } from '../../../../selectors/cardController';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
-import type { CardTransaction } from '../types/moneyActivity';
-import { parseCardTransactions } from '../utils/accountsApi';
+import type { AccountsApiActivity } from '../types/moneyActivity';
+import { parseAccountsApiActivity } from '../utils/accountsApi';
 
-export interface UseMoneyAccountCardTransactionsResult {
-  cardTransactions: CardTransaction[];
+export interface UseMoneyAccountApiActivityResult {
+  activity: AccountsApiActivity[];
   isLoading: boolean;
   error: boolean;
   refetch: () => void;
 }
 
-const EMPTY: CardTransaction[] = [];
+const EMPTY: AccountsApiActivity[] = [];
 
 /**
- * Card payments for the primary Money account, sourced from the Accounts API via
- * the shared {@link apiClient} (same client/auth path as the unified activity
- * list). Requests the latest page only; React Query handles caching, dedup and
+ * Off-device MetaMask Card activity (spends and cashback) for the primary Money
+ * account, sourced from the Accounts API via the shared {@link apiClient} (same
+ * client/auth path as the unified activity list). Both kinds arrive in one
+ * response — `parseAccountsApiActivity` splits them by type — so a single query
+ * backs the whole list. React Query handles caching, dedup and
  * stale-while-revalidate refetching.
  */
-export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactionsResult {
+export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
@@ -36,10 +37,10 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
     { chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS, sortDirection: 'DESC' },
   );
 
-  // Parse at the boundary: the cache holds raw rows, the view gets CardTransactions.
+  // Parse at the boundary: the cache holds raw rows, the view gets activity.
   const select = useMemo(
     () => (response: V1AccountTransactionsResponse) =>
-      parseCardTransactions(response, moneyAddress),
+      parseAccountsApiActivity(response, moneyAddress),
     [moneyAddress],
   );
 
@@ -54,11 +55,11 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
   } as unknown as UseQueryOptions<
     V1AccountTransactionsResponse,
     Error,
-    CardTransaction[]
+    AccountsApiActivity[]
   >);
 
   return {
-    cardTransactions: query.data ?? EMPTY,
+    activity: query.data ?? EMPTY,
     // `isInitialLoading` (not `isLoading`) so a disabled query never reports
     // loading and a background refetch doesn't flash the spinner.
     isLoading: query.isInitialLoading,
