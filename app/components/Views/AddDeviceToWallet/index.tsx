@@ -18,11 +18,13 @@ import { Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import {
   createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
 } from '../QRTabSwitcher';
+/* eslint-enable import-x/no-restricted-paths */
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
 import {
