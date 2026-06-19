@@ -516,9 +516,11 @@ describe('TraderPositionView', () => {
         });
       });
 
-      it('disables the Trade button as Unsupported market when no xyz market exists', () => {
+      it('disables the Trade button as Unsupported market when the loaded market list lacks the xyz market', () => {
+        // A populated set that does not include the target is a definitive
+        // "no such market" — only then do we disable.
         mockUseTradablePerpsMarketSymbols.mockReturnValue({
-          tradableSymbols: new Set<string>(),
+          tradableSymbols: new Set(['BTC', 'ETH', 'xyz:OTHER']),
           isLoading: false,
         });
         mockRouteParams.position = {
@@ -544,6 +546,37 @@ describe('TraderPositionView', () => {
         mockUseTradablePerpsMarketSymbols.mockReturnValue({
           tradableSymbols: new Set<string>(),
           isLoading: true,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.queryByText('Unsupported market')).toBeNull();
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
+
+      it('stays optimistic when the market set is empty even with isLoading false (fetch in flight / empty cache)', () => {
+        // usePerpsMarkets can report isLoading:false with an empty list while a
+        // fetch is still in flight; an empty set must not lock the button into
+        // a false "Unsupported market".
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set<string>(),
+          isLoading: false,
         });
         mockRouteParams.position = {
           ...makeDefaultPosition(),
