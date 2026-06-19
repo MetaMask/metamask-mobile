@@ -23,6 +23,7 @@ import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOption
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { STEPPER_IDS } from '../hooks/useOnboardingStep';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 
 export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -31,6 +32,9 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const navigation = useNavigation();
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const isOnboardingEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const moneyAccountAddress = primaryMoneyAccount?.address;
 
@@ -57,6 +61,13 @@ export const MoneyUiDeveloperOptionsSection = () => {
       <Box>
         <Text variant={TextVariant.HeadingLg} style={styles.heading}>
           {'Money UI'}
+        </Text>
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+        >
+          {`Onboarding enabled: ${String(isOnboardingEnabled)}`}
         </Text>
         <Text
           color={TextColor.TextAlternative}

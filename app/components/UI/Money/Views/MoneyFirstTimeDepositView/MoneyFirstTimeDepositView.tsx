@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, PixelRatio, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Accelerometer } from 'expo-sensors';
@@ -310,7 +310,8 @@ const MoneyFirstTimeDepositView = () => {
       source={MoneyFirstTimeDepositAnimationWithParallaxV2}
       artboardName={RIVE_ARTBOARD_NAME}
       dataBinding={AutoBind(true)}
-      fit={Fit.FitWidth}
+      fit={Fit.Layout}
+      layoutScaleFactor={PixelRatio.get()}
       onError={handleError}
       testID={MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION}
     />
