@@ -400,9 +400,14 @@ const SHARE_DECIMALS_SCALAR = BigInt(1_000_000);
 /**
  * Converts a USD asset amount (6 decimals) to vault shares given a pre-fetched rate.
  * Pure arithmetic — no I/O, safe to call directly inside workflows.
+ *
+ * Uses ceiling division so the contract's `mulDivDown(shares × rate / ONE_SHARE)`
+ * always produces `assetsOut >= minimumAssets`. Floor division caused a double-
+ * truncation bug where `assetsOut` could land 1 unit below `minimumAssets`,
+ * reverting with `MinimumAssetsNotMet`.
  */
 export function getSharesForWithdrawal(amount: bigint, rate: bigint): bigint {
-  return (amount * SHARE_DECIMALS_SCALAR) / rate;
+  return (amount * SHARE_DECIMALS_SCALAR + rate - 1n) / rate;
 }
 
 function buildWithdrawData(
@@ -464,11 +469,16 @@ export async function buildMoneyAccountWithdrawBatch({
           amount,
           await getVaultRate({ accountantAddress, provider }),
         );
-  // No slippage on minimumAssets — the exact amount is needed for the
-  // subsequent transfer. If the rate moves down between encoding and
-  // execution, the batch reverts atomically and the user retries with a
-  // fresh quote; we accept that over partial-fill fragility.
-  const minimumAssets = amount;
+  // Allow 1-unit slippage on minimumAssets as defense-in-depth against
+  // rounding: the contract's mulDivDown can truncate assetsOut by up to
+  // 1 unit relative to the requested amount. This tolerance is safe
+  // because ceiling division in getSharesForWithdrawal already guarantees
+  // assetsOut >= amount; the 1-unit slack here is a second line of
+  // defense, not a standalone fix. The subsequent ERC-20 transfer uses
+  // the original `amount`, so the tolerance does not affect how much the
+  // user receives — it only prevents a spurious revert from the teller's
+  // MinimumAssetsNotMet check.
+  const minimumAssets = amount > 0n ? amount - 1n : 0n;
   const withdrawData = buildWithdrawData(
     musdAddress,
     shareAmount,

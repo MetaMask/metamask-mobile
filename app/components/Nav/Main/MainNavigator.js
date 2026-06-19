@@ -168,7 +168,7 @@ import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
-import { CardTransactionDetails } from '../../Views/confirmations/components/activity/card-transaction-details/card-transaction-details';
+import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
@@ -1258,7 +1258,7 @@ const MainNavigator = () => {
           />
           <NativeStack.Screen
             name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
-            component={CardTransactionDetails}
+            component={MoneyApiActivityDetailsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
