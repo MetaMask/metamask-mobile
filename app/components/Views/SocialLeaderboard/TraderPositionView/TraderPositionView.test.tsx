@@ -420,6 +420,17 @@ describe('TraderPositionView', () => {
       expect(screen.getByText('10x')).toBeOnTheScreen();
       expect(screen.getByText('SHORT')).toBeOnTheScreen();
     });
+
+    it('does not render the copy token address button for a perp position', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      // Perps have no on-chain token address, so copy is not offered.
+      expect(
+        screen.queryByTestId(
+          TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('forwards the filtered trades to the chart component', async () => {

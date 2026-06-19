@@ -156,7 +156,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit({ autoSelectFiatPayment: true });
+    startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleMoveMusd = useCallback(() => {

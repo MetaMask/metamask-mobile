@@ -28,9 +28,8 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectMoneyNoFeeTokens } from '../../selectors/featureFlags';
+import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
 import {
-  resolveNoFeeTokens,
   formatNoFeeTokenBullets,
   formatBaseStablecoins,
 } from '../../utils/depositFaqTokens';
@@ -131,7 +130,7 @@ const MoneyHowItWorksView = () => {
   const { colors: themeColors } = useTheme();
   const { apyPercent } = useMoneyAccountBalance();
 
-  const noFeeTokens = resolveNoFeeTokens(useSelector(selectMoneyNoFeeTokens));
+  const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
   const stablecoins = formatBaseStablecoins(noFeeTokens);
 

@@ -72,4 +72,7 @@ export function BatchSellQuoteDetailsModal() {
   );
 }
 
-export { BatchSellQuoteDetails };
+export {
+  BatchSellQuoteDetails,
+  TotalReceivedSummaryRow,
+} from './BatchSellQuoteDetails';

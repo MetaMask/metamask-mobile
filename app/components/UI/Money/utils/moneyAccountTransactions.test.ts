@@ -412,6 +412,41 @@ describe('moneyAccountTransactions', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('uses recipientOverride as recipient when provided', async () => {
+      const overrideAddress =
+        '0x1111111111111111111111111111111111111111' as Hex;
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+        overrideAddress,
+      );
+
+      expect(result).toHaveLength(2);
+      const encodedOverride = overrideAddress
+        .toLowerCase()
+        .replace('0x', '')
+        .padStart(64, '0');
+      expect(result[1].transactionData.toLowerCase()).toContain(
+        encodedOverride,
+      );
+    });
+
+    it('falls back to selectEvmAddress when recipientOverride is undefined', async () => {
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result).toHaveLength(2);
+      const encodedRecipient = MOCK_RECIPIENT.toLowerCase()
+        .replace('0x', '')
+        .padStart(64, '0');
+      expect(result[1].transactionData.toLowerCase()).toContain(
+        encodedRecipient,
+      );
+    });
   });
 
   describe('buildMoneyAccountWithdrawBatch', () => {
