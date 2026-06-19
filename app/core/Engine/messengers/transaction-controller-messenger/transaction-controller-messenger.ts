@@ -199,6 +199,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:updateTransaction',
       'TransactionPayController:getAmountData',
       'TransactionPayController:getDelegationTransaction',
+      'TransactionPayController:getFiatOptions',
       'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
