@@ -14,14 +14,12 @@ import { AssetsContractControllerMessenger } from '@metamask/assets-controllers'
  * @returns The AssetsContractControllerMessenger.
  */
 export function getAssetsContractControllerMessenger(
-  rootMessenger: RootMessenger,
-): AssetsContractControllerMessenger {
-  const messenger = new Messenger<
-    'AssetsContractController',
+  rootMessenger: RootMessenger<
     MessengerActions<AssetsContractControllerMessenger>,
-    MessengerEvents<AssetsContractControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AssetsContractControllerMessenger>
+  >,
+): AssetsContractControllerMessenger {
+  const messenger: AssetsContractControllerMessenger = new Messenger({
     namespace: 'AssetsContractController',
     parent: rootMessenger,
   });
