@@ -179,6 +179,10 @@ jobs:
           else
             git add app/constants/ota.ts
             git commit -m "chore: set OTA_VERSION to v${SEMVER} for OTA hotfix (${BRANCH})"
+            # Runway may push commits to this branch concurrently (it cherry-picks on OTA
+            # trigger), so rebase our commit onto the latest remote tip before pushing to
+            # avoid a non-fast-forward rejection.
+            git pull --rebase origin "$BRANCH"
             git push origin "$BRANCH"
           fi
 
@@ -210,6 +214,9 @@ jobs:
           set -euo pipefail
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
+          # Re-sync with the remote tip before the changelog tooling commits and pushes,
+          # since Runway may have pushed to this branch concurrently.
+          git pull --rebase origin "release/${{ inputs.semver-version }}-ota"
           corepack enable
           yarn install --immutable
           bash .github/scripts/run-update-release-changelog-mobile.sh \

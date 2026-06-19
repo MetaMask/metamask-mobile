@@ -195,6 +195,8 @@ enum EVENT_NAME {
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
   REHYDRATION_COMPLETED = 'Rehydration Completed',
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
+  SEEDLESS_ONBOARDING_MIGRATION_COMPLETED = 'Seedless Onboarding Migration Completed',
+  SEEDLESS_ONBOARDING_MIGRATION_FAILED = 'Seedless Onboarding Migration Failed',
   PASSWORD_OUTDATED_MODAL_VIEWED = 'Password Outdated Modal Viewed',
   PASSWORD_CHANGED = 'Password Changed',
   FORGOT_PASSWORD_CLICKED = 'Forgot Password Clicked',
@@ -418,6 +420,9 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  SWAPBRIDGE_STATUS_MODAL_VIEWED = 'Unified SwapBridge Status Modal Viewed',
+  SWAPBRIDGE_STATUS_MODAL_DISMISSED = 'Unified SwapBridge Status Modal Dismissed',
+  SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED = 'Unified SwapBridge Status Modal Button Clicked',
   /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
   ASSET_VIEWED = 'Asset Viewed',
 
@@ -1040,6 +1045,12 @@ const events = {
   REHYDRATION_COMPLETED: generateOpt(EVENT_NAME.REHYDRATION_COMPLETED),
   REHYDRATION_PASSWORD_FAILED: generateOpt(
     EVENT_NAME.REHYDRATION_PASSWORD_FAILED,
+  ),
+  SEEDLESS_ONBOARDING_MIGRATION_COMPLETED: generateOpt(
+    EVENT_NAME.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+  ),
+  SEEDLESS_ONBOARDING_MIGRATION_FAILED: generateOpt(
+    EVENT_NAME.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
   ),
   PASSWORD_OUTDATED_MODAL_VIEWED: generateOpt(
     EVENT_NAME.PASSWORD_OUTDATED_MODAL_VIEWED,
@@ -1688,6 +1699,15 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  SWAPBRIDGE_STATUS_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_VIEWED,
+  ),
+  SWAPBRIDGE_STATUS_MODAL_DISMISSED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_DISMISSED,
+  ),
+  SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED,
+  ),
   ASSET_VIEWED: generateOpt(EVENT_NAME.ASSET_VIEWED),
 
   // RPC Failover

@@ -6,6 +6,10 @@ import {
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { isMusdToken } from '../../Earn/constants/musd';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from './moneyTransactionGuards';
 import type {
   MoneyActivityTitleKey,
   MoneyActivityTransactionMeta,
@@ -36,7 +40,8 @@ export type MoneyActivityKind =
   | 'received'
   | 'converted'
   | 'sent'
-  | 'card';
+  | 'card'
+  | 'cashback';
 
 const TITLE_KEY_TO_KIND: Record<MoneyActivityTitleKey, MoneyActivityKind> = {
   deposited: 'deposited',
@@ -78,6 +83,15 @@ export function classifyMoneyActivity(tx: TransactionMeta): MoneyActivityKind {
     return TITLE_KEY_TO_KIND[moneyActivityTitleKey] ?? 'received';
   }
 
+  // Perps/Predict ↔ Money transfers (matched via the mUSD pay token). Withdraw
+  // into the Money account reads as a deposit; deposit out of it reads as sent.
+  if (isPerpsPredictMoneyWithdraw(tx)) {
+    return 'deposited';
+  }
+  if (isPerpsPredictMoneyDeposit(tx)) {
+    return 'sent';
+  }
+
   const type = resolveMoneyTransactionType(tx);
   if (!type) {
     return 'deposited';
@@ -109,6 +123,7 @@ const KIND_LABEL_KEY: Record<MoneyActivityKind, string> = {
   converted: 'money.transaction.converted',
   sent: 'money.transaction.sent',
   card: 'money.transaction.card_transaction',
+  cashback: 'money.transaction.cashback',
 };
 
 // Present-tense labels for in-flight rows (e.g. "Depositing"). If there's
@@ -152,6 +167,7 @@ export function moneyActivityKindToIcon(kind: MoneyActivityKind): IconName {
     case 'sent':
       return IconName.Arrow2UpRight;
     case 'card':
+    case 'cashback':
       return IconName.Card;
     default:
       return IconName.Arrow2Down;

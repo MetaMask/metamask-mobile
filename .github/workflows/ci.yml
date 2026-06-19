@@ -264,6 +264,7 @@ jobs:
           - audit:ci
           - test:depcheck
           - test:tgz-check
+          - constraints
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1184,55 +1185,50 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  appium-smoke-gate:
-    name: 'Appium Smoke Gate'
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    needs: [smart-e2e-selection]
-    outputs:
-      enabled: ${{ steps.gate.outputs.enabled }}
-    steps:
-      - name: Checkout (Namespace)
-        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
-      - name: Checkout
-        uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        with:
-          sparse-checkout: |
-            scripts/e2e/appium-smoke-tags.mjs
-
-      - name: Evaluate whether Appium smoke should run
-        id: gate
-        env:
-          SELECTED_TAGS: >-
-            ${{
-              (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
-               needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-              '["ALL"]'
-            }}
-        run: |
-          enabled=$(node scripts/e2e/appium-smoke-tags.mjs "$SELECTED_TAGS")
-          echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
-
-  # Android Appium smoke (PR CI). iOS: run-appium-smoke-tests-ios-scheduled.yml.
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
     if: >-
       ${{
         !cancelled() &&
-        needs.appium-smoke-gate.outputs.enabled == 'true' &&
         needs.build-android-apks.result == 'success'
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-    needs: [build-android-apks, smart-e2e-selection, appium-smoke-gate]
+    needs: [build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
       # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
+      runner_provider: current
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  appium-smoke-tests-ios:
+    name: 'Appium Smoke Tests (iOS)'
+    if: >-
+      ${{
+        !cancelled() &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' || github.event_name == 'schedule') &&
+        needs.ios-tests-ready.result == 'success'
+      }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+    needs: [ios-tests-ready, smart-e2e-selection]
+    uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
       runner_provider: current
       selected_tags: >-
         ${{
@@ -1399,7 +1395,7 @@ jobs:
           if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
             echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
           else
-            PROJECT_KEY="metamask-mobile"
+            PROJECT_KEY="MetaMask_metamask-mobile"
             PR_NUMBER="${{ github.event.pull_request.number }}"
             SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
 
@@ -1496,6 +1492,8 @@ jobs:
       - build-ios-apps
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
+      - appium-smoke-tests-android
+      - appium-smoke-tests-ios
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1516,7 +1514,7 @@ jobs:
         with:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
-          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios)$'
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android|appium-smoke-tests-ios)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 

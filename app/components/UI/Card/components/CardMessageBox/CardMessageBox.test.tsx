@@ -29,6 +29,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need at least one approved funding source on Linea before redeeming cashback.',
       'card.cashback_screen.funding_required.confirm_button_label':
         'Set up funding',
+      'card.cashback_screen.money_account_required.title':
+        'Set up Money Account',
+      'card.cashback_screen.money_account_required.description':
+        'You need a linked Money Account before redeeming cashback.',
+      'card.cashback_screen.money_account_required.confirm_button_label':
+        'Set up Money Account',
     };
     return mockStrings[key] || key;
   }),
@@ -220,6 +226,33 @@ describe('CardMessageBox', () => {
     });
   });
 
+  describe('CashbackMoneyAccountRequired warning', () => {
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackMoneyAccountRequired}
+        />
+      ));
+
+      expect(getByText('Set up Money Account')).toBeOnTheScreen();
+      expect(
+        getByText('You need a linked Money Account before redeeming cashback.'),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the Money Account setup button is pressed', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackMoneyAccountRequired}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('common behaviors', () => {
     it('renders dismiss button when onDismiss is provided', () => {
       const { getByTestId } = renderWithProvider(() => (
@@ -273,6 +306,7 @@ describe('CardMessageBox', () => {
         CardMessageBoxType.CardProvisioning,
         CardMessageBoxType.AuthPrompt,
         CardMessageBoxType.CashbackFundingRequired,
+        CardMessageBoxType.CashbackMoneyAccountRequired,
       ];
 
       allMessageTypes.forEach((messageType) => {

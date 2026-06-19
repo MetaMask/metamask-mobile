@@ -211,7 +211,6 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
     stages: [],
   })),
   selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({

@@ -78,6 +78,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       realtimeBar,
       ohlcvPagination,
       indicators = [],
+      selectedMAs = [],
       positionLines,
       chartType,
       showVolume = false,
@@ -97,6 +98,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
+      legendOverlay,
+      currentPriceLineColorOverride,
     },
     ref,
   ) => {
@@ -119,6 +122,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
+    const [appliedIndicatorCount, setAppliedIndicatorCount] = useState(0);
+    const [legendRendered, setLegendRendered] = useState(false);
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
@@ -130,28 +135,52 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const tradingViewOpenInterceptRef = useRef(0);
     const skeletonHiddenReportedRef = useRef(false);
 
-    const htmlContent = useMemo(
-      () =>
-        createAdvancedChartTemplate(theme, {
-          enableDrawingTools,
-          disabledFeatures,
-          lineChrome,
-          lineColorOverride,
-          successColorOverride,
-          errorColorOverride,
-        }),
-      [
-        theme,
+    // Track the color overrides baked into the current HTML template so the
+    // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
+    // Refs are updated synchronously inside the useMemo below (not in a post-render
+    // effect) so the snapshot is always in sync with what was actually baked, even
+    // when multiple deps change in the same render cycle.
+    const initialLineColorRef = useRef(lineColorOverride);
+    const initialSuccessColorRef = useRef(successColorOverride);
+    const initialErrorColorRef = useRef(errorColorOverride);
+    const themeColorsSentRef = useRef(false);
+
+    const htmlContent = useMemo(() => {
+      // Snapshot current prop values at the moment the template is created.
+      // This must happen inside useMemo (not in a separate effect) so the refs
+      // reflect what is actually baked, preventing a stale-color race where a
+      // simultaneous non-color dep change causes the SET_THEME_COLORS effect to
+      // see "colors already match" and skip a needed hot-swap.
+      initialLineColorRef.current = lineColorOverride;
+      initialSuccessColorRef.current = successColorOverride;
+      initialErrorColorRef.current = errorColorOverride;
+      return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
-      ],
-    );
+        currentPriceLineColorOverride,
+        legendOverlay,
+      });
+      // lineColorOverride/successColorOverride/errorColorOverride intentionally excluded —
+      // color changes hot-swap via SET_THEME_COLORS without rebuilding the WebView.
+      // currentPriceLineColorOverride is a direct dep: it is theme-derived and changes
+      // only with theme, so the initial-ref indirection would introduce a stale-color race.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+      theme,
+      enableDrawingTools,
+      disabledFeatures,
+      lineChrome,
+      currentPriceLineColorOverride,
+      legendOverlay,
+    ]);
 
-    // Reset all chart state when the WebView reloads due to htmlContent changes
+    // Reset all chart state when the WebView reloads due to htmlContent changes.
+    // Color refs are intentionally omitted here — they are snapshotted synchronously
+    // inside the useMemo above.
     useEffect(() => {
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
@@ -159,11 +188,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       webViewLoadedRef.current = false;
       setWebViewError(null);
       activeIndicatorsRef.current.clear();
+      setAppliedIndicatorCount(0);
+      setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
+      themeColorsSentRef.current = false;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -210,6 +242,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           ? prevOhlcvDataRef.current
           : null;
       activeIndicatorsRef.current.clear();
+      setAppliedIndicatorCount(0);
+      setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
     }, [ohlcvSeriesKey, clearLayoutSettleTimeout]);
@@ -314,7 +348,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         let raw;
         try {
           raw = JSON.parse(event.nativeEvent.data);
-        } catch {
+        } catch (err) {
           return;
         }
 
@@ -324,6 +358,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         switch (message.type) {
           case 'CHART_READY':
             activeIndicatorsRef.current.clear();
+            setAppliedIndicatorCount(0);
+            setLegendRendered(false);
             prevPositionLinesRef.current = undefined;
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
@@ -340,10 +376,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
           case 'INDICATOR_ADDED':
             activeIndicatorsRef.current.add(message.payload.name);
+            setAppliedIndicatorCount(activeIndicatorsRef.current.size);
             break;
 
           case 'INDICATOR_REMOVED':
             activeIndicatorsRef.current.delete(message.payload.name);
+            setAppliedIndicatorCount(activeIndicatorsRef.current.size);
+            break;
+
+          case 'LEGEND_RENDERED':
+            setLegendRendered(true);
             break;
 
           case 'CROSSHAIR_MOVE':
@@ -550,6 +592,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [indicators, chartReadyCount, addIndicator, removeIndicator]);
 
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+
+      postMessage({
+        type: 'SET_MA_VISIBILITY',
+        payload: { visible: selectedMAs },
+      });
+    }, [selectedMAs, chartReadyCount, postMessage]);
+
     // Sync positionLines prop
     useEffect(() => {
       if (chartReadyCount === 0) return;
@@ -588,21 +639,99 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [lineChrome, chartReadyCount, postMessage]);
 
-    const showSkeleton = isLoading || !isChartReady || layoutSettling;
+    // Hot-swap chart colors via postMessage whenever overrides change.
+    // Gates on webViewLoaded (not chartReady) so messages sent during chart
+    // init get queued in pendingMessages and drained inside onChartReady —
+    // before the first overlay paint — eliminating stale-color flashes.
+    // Skips only the very first invocation (mount) when colors already match
+    // the HTML template; all subsequent changes always send.
+    useEffect(() => {
+      if (!webViewLoaded) return;
+      if (!themeColorsSentRef.current) {
+        // First run after webViewLoaded: skip only if colors still match template
+        const colorsMatch =
+          lineColorOverride === initialLineColorRef.current &&
+          successColorOverride === initialSuccessColorRef.current &&
+          errorColorOverride === initialErrorColorRef.current;
+        themeColorsSentRef.current = true;
+        if (colorsMatch) return;
+      }
+      const effectiveSuccessColor =
+        successColorOverride ?? theme.colors.success.default;
+      const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
+      const effectiveErrorColor =
+        errorColorOverride ?? theme.colors.error.default;
+      postMessage({
+        type: 'SET_THEME_COLORS',
+        payload: {
+          lineColor: effectiveLineColor,
+          successColor: effectiveSuccessColor,
+          errorColor: effectiveErrorColor,
+        },
+      });
+    }, [
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
+      webViewLoaded,
+      postMessage,
+      theme.colors.success.default,
+      theme.colors.error.default,
+    ]);
+
+    // On first paint, wait for indicators/legend before hiding skeleton. After the chart
+    // has been revealed once, keep it visible while users toggle indicators live.
+    const expectedIndicators = useMemo(
+      () => new Set([...indicators, ...selectedMAs]),
+      [indicators, selectedMAs],
+    );
+    const awaitingInitialIndicatorPaint = !skeletonHiddenReportedRef.current;
+    const waitingForIndicators =
+      awaitingInitialIndicatorPaint &&
+      isChartReady &&
+      expectedIndicators.size > 0 &&
+      activeIndicatorsRef.current.size < expectedIndicators.size;
+
+    const waitingForLegend =
+      awaitingInitialIndicatorPaint &&
+      isChartReady &&
+      legendOverlay?.enabled &&
+      expectedIndicators.size > 0 &&
+      !legendRendered;
+
+    const showSkeleton =
+      isLoading ||
+      !isChartReady ||
+      layoutSettling ||
+      waitingForIndicators ||
+      waitingForLegend;
 
     useEffect(() => {
-      if (webViewError) {
-        return;
+      if (webViewError) return;
+      if (!onSkeletonHidden) return;
+      if (isLoading || !isChartReady || layoutSettling) return;
+
+      if (!skeletonHiddenReportedRef.current) {
+        // If we expect indicators, wait for all of them to be painted
+        if (
+          expectedIndicators.size > 0 &&
+          activeIndicatorsRef.current.size < expectedIndicators.size
+        ) {
+          return;
+        }
+
+        // If legend overlay is enabled and we have indicators, wait for it to render
+        if (
+          legendOverlay?.enabled &&
+          expectedIndicators.size > 0 &&
+          !legendRendered
+        ) {
+          return;
+        }
       }
-      if (!onSkeletonHidden) {
-        return;
-      }
-      if (isLoading || !isChartReady || layoutSettling) {
-        return;
-      }
-      if (skeletonHiddenReportedRef.current) {
-        return;
-      }
+
+      // Hide skeleton
+      if (skeletonHiddenReportedRef.current) return;
       skeletonHiddenReportedRef.current = true;
       onSkeletonHidden();
     }, [
@@ -611,6 +740,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       layoutSettling,
       webViewError,
       onSkeletonHidden,
+      expectedIndicators,
+      appliedIndicatorCount,
+      legendOverlay,
+      legendRendered,
     ]);
 
     // ---- Render ----

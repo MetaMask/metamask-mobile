@@ -56,7 +56,7 @@ const fixtureProfile = {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'dutchiono',
+    name: 'trader1',
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
