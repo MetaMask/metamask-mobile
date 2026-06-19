@@ -2,24 +2,37 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { Hex } from '@metamask/utils';
 import { CardTransactionDetails } from './card-transaction-details';
-import type { CardTransaction } from '../../../../../UI/Money/types/moneyActivity';
+import type { AccountsApiActivity } from '../../../../../UI/Money/types/moneyActivity';
 
-const card: CardTransaction = {
+const token = {
+  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
+  symbol: 'mUSD',
+  decimals: 6,
+};
+
+const card: AccountsApiActivity = {
+  kind: 'card',
   hash: '0x2b45bda071d8feff265c541e251a5e035e5f55270f8ad288dcd80f6740793847' as Hex,
   time: 1780574031000,
   chainId: '0x8f' as Hex,
-  token: {
-    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
-    symbol: 'mUSD',
-    decimals: 6,
-  },
+  token,
   amount: '5381986',
-  to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
+  paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
+};
+
+const cashback: AccountsApiActivity = {
+  kind: 'cashback',
+  hash: '0xback' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f' as Hex,
+  token,
+  amount: '300000',
+  receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-let mockRouteParams: { card?: CardTransaction } | undefined;
+let mockRouteParams: { activity?: AccountsApiActivity } | undefined;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useRoute: () => ({
@@ -40,6 +53,15 @@ jest.mock('../../../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: () => ({
     address: '0xd663e49775d776300aa45ac2a51f0431bb459282',
   }),
+}));
+
+jest.mock('../../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: () => 'usd',
+  selectCurrencyRates: () => ({}),
+}));
+
+jest.mock('../../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: () => true,
 }));
 
 jest.mock('../../../hooks/useNetworkInfo', () => ({
@@ -91,6 +113,15 @@ jest.mock(
   '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
   () => () => null,
 );
+jest.mock('../../../../../UI/Name/Name', () => {
+  const { Text: RNText } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ value }: { value: string }) => (
+      <RNText testID="counterparty-name">{value}</RNText>
+    ),
+  };
+});
 jest.mock(
   '../../../../../../component-library/components/Buttons/Button',
   () => {
@@ -132,40 +163,75 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 describe('CardTransactionDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { card };
+    mockRouteParams = { activity: card };
   });
 
-  it('renders the header title', () => {
-    const { getByTestId } = render(<CardTransactionDetails />);
-    expect(getByTestId('header-title')).toHaveTextContent(
-      'money.card_details.title',
-    );
+  describe('card spend', () => {
+    it('renders the card title', () => {
+      const { getByTestId } = render(<CardTransactionDetails />);
+      expect(getByTestId('header-title')).toHaveTextContent(
+        'money.api_activity_details.card_title',
+      );
+    });
+
+    it('renders the spent amount with a minus sign formatted to 2 decimals', () => {
+      const { getByText } = render(<CardTransactionDetails />);
+      expect(getByText(/-5\.38 mUSD/)).toBeTruthy();
+    });
+
+    it('renders the "You spent" label', () => {
+      const { getByText } = render(<CardTransactionDetails />);
+      expect(getByText('money.api_activity_details.you_spent')).toBeTruthy();
+    });
+
+    it('renders the "To" row with the "Money account" label', () => {
+      const { getByText } = render(<CardTransactionDetails />);
+      expect(getByText('transaction_details.label.to')).toBeTruthy();
+      expect(getByText('transaction_details.label.money_account')).toBeTruthy();
+    });
   });
 
-  it('renders the spent amount formatted to 2 decimals', () => {
+  describe('cashback', () => {
+    beforeEach(() => {
+      mockRouteParams = { activity: cashback };
+    });
+
+    it('renders the cashback title', () => {
+      const { getByTestId } = render(<CardTransactionDetails />);
+      expect(getByTestId('header-title')).toHaveTextContent(
+        'money.api_activity_details.cashback_title',
+      );
+    });
+
+    it('renders the earned amount with a plus sign', () => {
+      const { getByText } = render(<CardTransactionDetails />);
+      expect(getByText(/\+0\.30 mUSD/)).toBeTruthy();
+    });
+
+    it('renders the "You earned" label', () => {
+      const { getByText } = render(<CardTransactionDetails />);
+      expect(getByText('money.api_activity_details.you_earned')).toBeTruthy();
+    });
+
+    it('renders the "Received from" row with the sender', () => {
+      const { getByText, getByTestId } = render(<CardTransactionDetails />);
+      expect(
+        getByText('money.api_activity_details.received_from'),
+      ).toBeTruthy();
+      expect(getByTestId('counterparty-name')).toHaveTextContent(
+        cashback.receivedFrom,
+      );
+    });
+  });
+
+  it('renders status as Completed', () => {
     const { getByText } = render(<CardTransactionDetails />);
-    expect(getByText(/-5\.38 mUSD/)).toBeTruthy();
-  });
-
-  it('renders the "You spent" label', () => {
-    const { getByText } = render(<CardTransactionDetails />);
-    expect(getByText('money.card_details.you_spent')).toBeTruthy();
-  });
-
-  it('renders status as Completed in green', () => {
-    const { getByText } = render(<CardTransactionDetails />);
-    expect(getByText('money.card_details.completed')).toBeTruthy();
+    expect(getByText('money.api_activity_details.completed')).toBeTruthy();
   });
 
   it('renders the network row', () => {
     const { getByText } = render(<CardTransactionDetails />);
     expect(getByText('Monad')).toBeTruthy();
-  });
-
-  it('renders "To" row with "Money account" label', () => {
-    const { getByText } = render(<CardTransactionDetails />);
-    expect(getByText('transaction_details.label.to')).toBeTruthy();
-    expect(getByText('transaction_details.label.money_account')).toBeTruthy();
   });
 
   it('navigates back when back button is pressed', () => {
@@ -195,7 +261,7 @@ describe('CardTransactionDetails', () => {
     );
   });
 
-  it('pops back and renders nothing when reached without a card param', () => {
+  it('pops back and renders nothing when reached without an activity param', () => {
     mockRouteParams = undefined;
 
     const { toJSON } = render(<CardTransactionDetails />);

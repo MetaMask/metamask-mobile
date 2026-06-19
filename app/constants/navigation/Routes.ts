@@ -477,7 +477,6 @@ const Routes = {
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
       TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
       GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
-      API_ACTIVITY_DETAILS_SHEET: 'MoneyApiActivityDetailsSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

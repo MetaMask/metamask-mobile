@@ -17,7 +17,6 @@ import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
 import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
-import MoneyApiActivityDetailsSheet from '../components/MoneyApiActivityDetailsSheet/MoneyApiActivityDetailsSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
@@ -130,11 +129,6 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
       component={MoneyGeoBlockSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.API_ACTIVITY_DETAILS_SHEET}
-      component={MoneyApiActivityDetailsSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

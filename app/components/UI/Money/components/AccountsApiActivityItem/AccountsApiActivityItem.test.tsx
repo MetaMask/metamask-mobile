@@ -105,14 +105,23 @@ describe('AccountsApiActivityItem', () => {
     expect(props.display.primaryAmount).toBe('+0.30 mUSD');
   });
 
-  it('navigates to the API activity details sheet with the activity on press', () => {
+  it('navigates to the full-screen activity details with the activity on press', () => {
     render(<AccountsApiActivityItem activity={card} />);
 
     lastRowProps().onPress?.(card.hash);
 
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyModals', {
-      screen: 'MoneyApiActivityDetailsSheet',
-      params: { activity: card },
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      activity: card,
+    });
+  });
+
+  it('navigates to the full-screen activity details for cashback too', () => {
+    render(<AccountsApiActivityItem activity={cashback} />);
+
+    lastRowProps().onPress?.(cashback.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      activity: cashback,
     });
   });
 

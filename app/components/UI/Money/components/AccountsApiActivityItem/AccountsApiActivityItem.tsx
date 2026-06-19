@@ -38,10 +38,7 @@ const AccountsApiActivityItem = ({
   );
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.API_ACTIVITY_DETAILS_SHEET,
-      params: { activity },
-    });
+    navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, { activity });
   }, [navigation, activity]);
 
   return (
