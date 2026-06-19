@@ -67,8 +67,8 @@ const RELAY_CONFIG_WITH_MUSD_SOURCE_DEPOSIT: RelayFixedSpreadConfig = {
 };
 
 /**
- * Withdraw route: Monad mUSD -> eth USDC. mUSD is a subsidized source here
- * even though the target is NOT Monad mUSD — Relay still sponsors the gas.
+ * Withdraw route: Monad mUSD -> eth USDC. Monad mUSD appears only as a source
+ * (no route INTO Monad mUSD), so the directional match alone would not tag it.
  */
 const RELAY_CONFIG_WITH_MUSD_WITHDRAW_ROUTE: RelayFixedSpreadConfig = {
   routes: [
@@ -77,6 +77,22 @@ const RELAY_CONFIG_WITH_MUSD_WITHDRAW_ROUTE: RelayFixedSpreadConfig = {
       sourceToken: MUSD_TOKEN_ADDRESS, // Monad mUSD
       targetChain: '0x1',
       targetToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // eth USDC
+    },
+  ],
+};
+
+/**
+ * Deposit route into a NON-Monad mUSD: Linea USDC -> Linea mUSD. Linea USDC is
+ * a subsidized source, but its target is Linea mUSD, not Monad mUSD — so a
+ * Money deposit (which always targets Monad mUSD) is not subsidized.
+ */
+const RELAY_CONFIG_WITH_NON_MONAD_DEPOSIT: RelayFixedSpreadConfig = {
+  routes: [
+    {
+      sourceChain: '0xe708',
+      sourceToken: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff', // Linea USDC
+      targetChain: '0xe708',
+      targetToken: MUSD_TOKEN_ADDRESS, // Linea mUSD
     },
   ],
 };
@@ -308,8 +324,8 @@ describe('useMoneyEarnableTokens', () => {
     });
   });
 
-  describe('isNoFeeToken — subsidized source match (Relay gas sponsorship)', () => {
-    it('returns true for a token that is a subsidized deposit source', () => {
+  describe('isNoFeeToken — directional Monad mUSD route match', () => {
+    it('returns true for a token with a subsidized route TO Monad mUSD', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
         if (selector === selectRelayFixedSpread)
@@ -345,7 +361,7 @@ describe('useMoneyEarnableTokens', () => {
       expect(result.current.isNoFeeToken(ethMusd)).toBe(true);
     });
 
-    it('returns true for mUSD on Monad when it is a subsidized source on a non-mUSD route (withdraw)', () => {
+    it('returns true for Monad mUSD even though the flag has no Monad mUSD -> Monad mUSD route', () => {
       const monadMusd = makeToken({
         address: MUSD_TOKEN_ADDRESS,
         symbol: 'mUSD',
@@ -364,6 +380,27 @@ describe('useMoneyEarnableTokens', () => {
       const { result } = renderHook(() => useMoneyEarnableTokens());
 
       expect(result.current.isNoFeeToken(monadMusd)).toBe(true);
+    });
+
+    it('returns false for a subsidized source whose route target is NOT Monad mUSD', () => {
+      const lineaUsdc = makeToken({
+        address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+        symbol: 'USDC',
+        chainId: '0xe708',
+        fiat: { balance: 500, currency: 'usd', conversionRate: 1 },
+      });
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
+        if (selector === selectRelayFixedSpread)
+          return RELAY_CONFIG_WITH_NON_MONAD_DEPOSIT;
+        if (selector === selectMoneyDepositMinBalance) return 0.01;
+        return undefined;
+      });
+      mockUseAccountTokens.mockReturnValue([lineaUsdc]);
+
+      const { result } = renderHook(() => useMoneyEarnableTokens());
+
+      expect(result.current.isNoFeeToken(lineaUsdc)).toBe(false);
     });
 
     it('returns false when the relay config has no routes', () => {
