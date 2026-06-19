@@ -1,6 +1,8 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import {
+  getActivityFromTo,
+  getActivityValue,
   mapLocalTransaction,
   type ActivityListItem,
   type TransactionGroup,
@@ -10,33 +12,7 @@ export type TransactionWithImportTime = TransactionMeta & {
   insertImportTime?: boolean;
 };
 
-export const getActivityValue = (item: ActivityListItem) => {
-  const { data } = item;
-
-  if ('token' in data && data.token?.symbol) {
-    return `${data.token.amount ?? ''} ${data.token.symbol}`.trim();
-  }
-
-  if ('destinationToken' in data && data.destinationToken?.symbol) {
-    return `${data.destinationToken.amount ?? ''} ${
-      data.destinationToken.symbol
-    }`.trim();
-  }
-
-  if ('sourceToken' in data && data.sourceToken?.symbol) {
-    return `${data.sourceToken.amount ?? ''} ${data.sourceToken.symbol}`.trim();
-  }
-
-  return undefined;
-};
-
-export const getActivityFromTo = (item: ActivityListItem) => {
-  const { data } = item;
-  if ('from' in data || 'to' in data) {
-    return { from: data.from, to: data.to };
-  }
-  return {};
-};
+export { getActivityFromTo, getActivityValue };
 
 export const mapTransactionToActivityItem = ({
   transaction: tx,

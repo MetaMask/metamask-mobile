@@ -35,6 +35,7 @@ import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMulticha
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import {
+  getGroupedActivityListItemKey,
   groupActivityListItems,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
@@ -295,24 +296,7 @@ const MultichainTransactionsView = ({
     }
 
     if ('type' in item && item.type === 'item') {
-      const raw = item.item.raw;
-      if (raw?.type === 'keyringTransaction' && raw.data.id) {
-        return `keyring-transaction-${raw.data.id}`;
-      }
-
-      if (raw?.type === 'localTransaction') {
-        const txId =
-          raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
-        if (txId) {
-          return `local-transaction-${txId}`;
-        }
-      }
-
-      if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
-        return `api-evm-transaction-${item.item.hash}`;
-      }
-
-      return `${item.item.type}-${item.item.hash ?? item.item.timestamp}-${index}`;
+      return getGroupedActivityListItemKey(item, index);
     }
 
     return item.id;

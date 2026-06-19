@@ -84,7 +84,10 @@ import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal
 import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
-import { groupActivityListItems } from '../../../util/activity-adapters';
+import {
+  getGroupedActivityListItemKey,
+  groupActivityListItems,
+} from '../../../util/activity-adapters';
 import { mapTransactionToActivityItem } from './AssetDetailsActivityListItem.utils';
 
 const createStyles = (colors) =>
@@ -520,35 +523,6 @@ class Transactions extends PureComponent {
 
   keyExtractor = (item) => item.id.toString();
 
-  groupedActivityKeyExtractor = (item, index) => {
-    if (item.type === 'pending-header') {
-      return 'pending-header';
-    }
-
-    if (item.type === 'date-header') {
-      return `date-header-${item.date}`;
-    }
-
-    const raw = item.item.raw;
-    if (raw?.type === 'localTransaction') {
-      const txId =
-        raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
-      if (txId) {
-        return `local-transaction-${txId}`;
-      }
-    }
-
-    if (raw?.type === 'keyringTransaction' && raw.data.id) {
-      return `keyring-transaction-${raw.data.id}`;
-    }
-
-    if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
-      return `api-evm-transaction-${item.item.hash}`;
-    }
-
-    return `${item.item.type}-${item.item.hash ?? item.item.timestamp}-${index}`;
-  };
-
   onSpeedUpAction = (speedUpAction, tx) => {
     if (!speedUpAction) {
       this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
@@ -979,7 +953,7 @@ class Transactions extends PureComponent {
               extraData={this.state}
               keyExtractor={
                 shouldUseActivityRedesign
-                  ? this.groupedActivityKeyExtractor
+                  ? getGroupedActivityListItemKey
                   : this.keyExtractor
               }
               refreshControl={

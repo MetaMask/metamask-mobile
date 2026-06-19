@@ -10,6 +10,7 @@ import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
+import { resolveActivityListItemTitle } from '../ActivityListItemRow/ActivityListItemRow';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -99,6 +100,46 @@ describe('AssetDetailsActivityListItem', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.MODAL.ROOT_MODAL_FLOW,
       { screen: Routes.SHEET.IMPORT_WALLET_TIP },
+    );
+  });
+
+  it('opens transaction details when activity row is pressed', () => {
+    const navigation = createNavigation();
+    const onSpeedUpAction = jest.fn();
+    const onCancelAction = jest.fn();
+    const transaction = createTransaction();
+
+    const { getByTestId, queryByTestId } = render(
+      <AssetDetailsActivityListItem
+        transaction={transaction}
+        index={0}
+        assetSymbol="ETH"
+        chainId="0x1"
+        navigation={navigation}
+        onSpeedUpAction={onSpeedUpAction}
+        onCancelAction={onCancelAction}
+      />,
+    );
+
+    fireEvent.press(getByTestId('activity-list-item-row'));
+
+    expect(
+      queryByTestId('activity-list-account-import-time-row'),
+    ).not.toBeOnTheScreen();
+    expect(resolveActivityListItemTitle).toHaveBeenCalled();
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.objectContaining({
+        screen: Routes.SHEET.TRANSACTION_DETAILS,
+        params: expect.objectContaining({
+          tx: expect.objectContaining({ id: 'tx-1' }),
+          transactionElement: expect.objectContaining({
+            actionKey: 'Send ETH',
+          }),
+          showSpeedUpModal: expect.any(Function),
+          showCancelModal: expect.any(Function),
+        }),
+      }),
     );
   });
 });

@@ -69,6 +69,10 @@ import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { type ActivityListItem } from './types';
 import {
+  formatActivityListDateHeader,
+  getActivityFromTo,
+  getActivityValue,
+  getGroupedActivityListItemKey,
   groupActivityListItems,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
@@ -85,7 +89,6 @@ import {
 } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
-import { getIntlDateTimeFormatter } from '../../../util/intl';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -97,51 +100,10 @@ const updateIncomingTransactions = () =>
     }
   ).updateIncomingTransactions();
 
-const generateKey = (item: ActivityListItem): string => {
-  const hash = item.hash;
-  if (hash) {
-    return `${item.chainId}:${hash}`;
-  }
-  return `${item.chainId}:${item.timestamp}:${item.type}`;
-};
-
-const generateGroupedKey = (item: GroupedActivityListItem): string => {
-  if (item.type === 'pending-header') {
-    return 'pending-header';
-  }
-
-  if (item.type === 'date-header') {
-    return `date-header-${item.date}`;
-  }
-
-  return generateKey(item.item);
-};
-
-const isSameLocalDay = (date: Date, otherDate: Date) =>
-  date.getFullYear() === otherDate.getFullYear() &&
-  date.getMonth() === otherDate.getMonth() &&
-  date.getDate() === otherDate.getDate();
-
-const formatDateHeader = (timestamp: number) => {
-  const date = new Date(timestamp);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
-  if (isSameLocalDay(date, today)) {
-    return strings('perps.today');
-  }
-
-  if (isSameLocalDay(date, yesterday)) {
-    return strings('perps.yesterday');
-  }
-
-  return getIntlDateTimeFormatter('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
-};
+const generateGroupedKey = (
+  item: GroupedActivityListItem,
+  index = 0,
+): string => getGroupedActivityListItemKey(item, index);
 
 const noop = () => undefined;
 
@@ -150,34 +112,6 @@ const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const prefix = strings('transactions.view_full_history_on');
 
   return blockExplorerName ? `${prefix} ${blockExplorerName}` : prefix;
-};
-
-const getActivityValue = (item: ActivityListItem) => {
-  const { data } = item;
-
-  if ('token' in data && data.token?.symbol) {
-    return `${data.token.amount ?? ''} ${data.token.symbol}`.trim();
-  }
-
-  if ('destinationToken' in data && data.destinationToken?.symbol) {
-    return `${data.destinationToken.amount ?? ''} ${
-      data.destinationToken.symbol
-    }`.trim();
-  }
-
-  if ('sourceToken' in data && data.sourceToken?.symbol) {
-    return `${data.sourceToken.amount ?? ''} ${data.sourceToken.symbol}`.trim();
-  }
-
-  return undefined;
-};
-
-const getActivityFromTo = (item: ActivityListItem) => {
-  const { data } = item;
-  return {
-    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
-    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
-  };
 };
 
 interface ActivityListProps {
@@ -846,7 +780,7 @@ const ActivityList = ({
     if (groupedItem.type === 'date-header') {
       return (
         <ListItem.Date style={styles.dateHeader}>
-          {formatDateHeader(groupedItem.date)}
+          {formatActivityListDateHeader(groupedItem.date)}
         </ListItem.Date>
       );
     }

@@ -1,4 +1,5 @@
 import type { CaipAssetType } from '@metamask/utils';
+import { strings } from '../../../locales/i18n';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
@@ -23,6 +24,93 @@ export type GroupedActivityListItem =
 export function shouldShowPlusSign(activityType: ActivityListItem['type']) {
   return !hidePlusSignActivityTypes.has(activityType);
 }
+
+export const isSameLocalDay = (date: Date, otherDate: Date) =>
+  date.getFullYear() === otherDate.getFullYear() &&
+  date.getMonth() === otherDate.getMonth() &&
+  date.getDate() === otherDate.getDate();
+
+export const formatActivityListDateHeader = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  if (isSameLocalDay(date, today)) {
+    return strings('perps.today');
+  }
+
+  if (isSameLocalDay(date, yesterday)) {
+    return strings('perps.yesterday');
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+};
+
+export const getActivityValue = (item: ActivityListItem) => {
+  const { data } = item;
+
+  if ('token' in data && data.token?.symbol) {
+    return `${data.token.amount ?? ''} ${data.token.symbol}`.trim();
+  }
+
+  if ('destinationToken' in data && data.destinationToken?.symbol) {
+    return `${data.destinationToken.amount ?? ''} ${
+      data.destinationToken.symbol
+    }`.trim();
+  }
+
+  if ('sourceToken' in data && data.sourceToken?.symbol) {
+    return `${data.sourceToken.amount ?? ''} ${data.sourceToken.symbol}`.trim();
+  }
+
+  return undefined;
+};
+
+export const getActivityFromTo = (item: ActivityListItem) => {
+  const { data } = item;
+
+  return {
+    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
+    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
+  };
+};
+
+export const getGroupedActivityListItemKey = (
+  item: GroupedActivityListItem,
+  index: number,
+) => {
+  if (item.type === 'pending-header') {
+    return 'pending-header';
+  }
+
+  if (item.type === 'date-header') {
+    return `date-header-${item.date}`;
+  }
+
+  const raw = item.item.raw;
+  if (raw?.type === 'localTransaction') {
+    const txId =
+      raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
+    if (txId) {
+      return `local-transaction-${txId}`;
+    }
+  }
+
+  if (raw?.type === 'keyringTransaction' && raw.data.id) {
+    return `keyring-transaction-${raw.data.id}`;
+  }
+
+  if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
+    return `api-evm-transaction-${item.item.hash}`;
+  }
+
+  return `${item.item.type}-${item.item.hash ?? item.item.timestamp}-${index}`;
+};
 
 export function activityMatchesAssetId(
   item: ActivityListItem,
