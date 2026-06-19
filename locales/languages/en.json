@@ -1103,6 +1103,7 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
+      "unsupported_market": "Unsupported market",
       "bought": "Bought",
       "sold": "Sold",
       "no_trades": "No trades yet",
