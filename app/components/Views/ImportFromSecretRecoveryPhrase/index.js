@@ -101,10 +101,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import {
-  selectAddDeviceSyncEnabled,
-  selectQrSyncPrimaryMnemonic,
-} from '../../../selectors/featureFlagController/addDeviceSync';
+import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
+import { selectQrSyncPrimaryMnemonic } from '../../../selectors/qrSyncController';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 

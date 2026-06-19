@@ -18,9 +18,15 @@ export enum QrSyncMessageVersion {
  */
 export const QrSyncPhases = {
   IDLE: 'idle',
+  /** Validating QR payload and opening the wallet-client connection. */
   INITIALIZING: 'initializing',
+  /** OTP is available; verification bottom sheet should be shown. */
   DISPLAYING_OTP: 'displaying-otp',
-  WAITING_FOR_SYNC_READY: 'waiting-for-sync-ready',
+  /** Extension handshake acknowledged (OTP verified); sync-offer is sent next. */
+  CONNECTED: 'connected',
+  /** Sync-offer sent; waiting for sync-ready from the extension. */
+  AWAITING_SYNC_READY: 'awaiting-sync-ready',
+  /** Import payload received; navigate to onboarding import. */
   REVIEWING_IMPORT: 'reviewing-import',
   COMPLETED: 'completed',
   FAILED: 'failed',
@@ -76,6 +82,15 @@ export const QrSyncActionTypes = {
    * @type {string}
    */
   SYNC_COMPLETED: 'sync-completed',
+
+  /**
+   * Sync Cancel
+   *
+   * Sent when a participant explicitly cancels an in-progress sync session.
+   *
+   * @type {string}
+   */
+  SYNC_CANCEL: 'sync-cancel',
 
   /**
    * Sync Error

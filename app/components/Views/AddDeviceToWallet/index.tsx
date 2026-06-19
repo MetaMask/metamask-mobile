@@ -14,11 +14,10 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
-import { DeviceEventEmitter, Image } from 'react-native';
+import { Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import type { RootState } from '../../../reducers';
 import {
   createQRScannerNavDetails,
   QRTabSwitcherScreens,
@@ -26,7 +25,13 @@ import {
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
-import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  selectQrSyncError,
+  selectQrSyncIsBusy,
+  selectQrSyncIsSessionActive,
+  selectQrSyncPresentation,
+  selectQrSyncShouldShowOtpSheet,
+} from '../../../selectors/qrSyncController';
 
 const Points = ({
   number,
@@ -57,22 +62,21 @@ const Points = ({
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const [deviceAdded, setDeviceAdded] = useState(false);
   const [manualQrPayload, setManualQrPayload] = useState('');
-  const [isSubmittingManualPayload, setIsSubmittingManualPayload] =
-    useState(false);
   const hasOpenedVerificationSheetRef = useRef(false);
-  const qrSyncState = useSelector(
-    (state: RootState) => state.engine.backgroundState.QrSyncController,
-  );
+  const presentation = useSelector(selectQrSyncPresentation);
+  const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const isBusy = useSelector(selectQrSyncIsBusy);
+  const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const error = useSelector(selectQrSyncError);
 
-  useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(
-      'addDeviceVerificationDone',
-      () => setDeviceAdded(true),
-    );
-    return () => subscription.remove();
-  }, []);
+  const handleBack = useCallback(() => {
+    if (isSessionActive) {
+      Engine.context.QrSyncController.cancelSession();
+    }
+
+    navigation.goBack();
+  }, [isSessionActive, navigation]);
 
   const showVerificationSheet = useCallback(() => {
     (navigation.navigate as (route: string, params: object) => void)(
@@ -82,26 +86,20 @@ const AddDeviceToWallet = () => {
   }, [navigation]);
 
   useEffect(() => {
-    if (
-      deviceAdded ||
-      hasOpenedVerificationSheetRef.current ||
-      qrSyncState?.phase !== QrSyncPhases.DISPLAYING_OTP ||
-      !qrSyncState?.otp?.otp
-    ) {
+    if (!shouldShowOtpSheet) {
+      hasOpenedVerificationSheetRef.current = false;
+      return;
+    }
+
+    if (hasOpenedVerificationSheetRef.current) {
       return;
     }
 
     hasOpenedVerificationSheetRef.current = true;
     showVerificationSheet();
-  }, [
-    deviceAdded,
-    qrSyncState?.otp?.otp,
-    qrSyncState?.phase,
-    showVerificationSheet,
-  ]);
+  }, [shouldShowOtpSheet, showVerificationSheet]);
 
   const submitQrPayload = useCallback(async (qrPayload: string) => {
-    hasOpenedVerificationSheetRef.current = false;
     await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
   }, []);
 
@@ -130,14 +128,10 @@ const AddDeviceToWallet = () => {
       return;
     }
 
-    setIsSubmittingManualPayload(true);
-
     try {
       await submitQrPayload(manualQrPayload);
     } catch {
-      // Error state is already handled by the controller and reflected in Redux state.
-    } finally {
-      setIsSubmittingManualPayload(false);
+      // Error state is handled by the controller.
     }
   }, [manualQrPayload, submitQrPayload]);
 
@@ -145,13 +139,13 @@ const AddDeviceToWallet = () => {
     handleManualQrSubmit().catch(() => undefined);
   }, [handleManualQrSubmit]);
 
-  if (deviceAdded) {
+  if (presentation === 'device-linked') {
     return <DeviceAdded />;
   }
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard onBack={() => navigation.goBack()} />
+      <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
           source={addDeviceToWalletImage}
@@ -197,7 +191,12 @@ const AddDeviceToWallet = () => {
         </Box>
 
         <Box twClassName="mt-auto gap-4">
-          <Button twClassName="w-full" onPress={openQRScanner}>
+          <Button
+            twClassName="w-full"
+            onPress={openQRScanner}
+            isDisabled={isBusy}
+            isLoading={isBusy}
+          >
             {strings('app_settings.add_device.scan_qr_code_button')}
           </Button>
 
@@ -222,7 +221,7 @@ const AddDeviceToWallet = () => {
               value={manualQrPayload}
               onChangeText={setManualQrPayload}
               placeholder="Paste QR payload"
-              isDisabled={isSubmittingManualPayload}
+              isDisabled={isBusy}
               inputProps={{
                 autoCapitalize: 'none',
                 autoCorrect: false,
@@ -230,16 +229,16 @@ const AddDeviceToWallet = () => {
                 returnKeyType: 'done',
               }}
             />
-            {qrSyncState?.error?.message ? (
+            {presentation === 'error' && error?.message ? (
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {qrSyncState?.error?.message}
+                {error.message}
               </Text>
             ) : null}
             <Button
               twClassName="w-full"
               onPress={triggerManualQrSubmit}
-              isDisabled={!manualQrPayload.trim() || isSubmittingManualPayload}
-              isLoading={isSubmittingManualPayload}
+              isDisabled={!manualQrPayload.trim() || isBusy}
+              isLoading={isBusy}
             >
               Submit QR data
             </Button>

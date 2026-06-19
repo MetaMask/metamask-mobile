@@ -175,6 +175,11 @@ export type QrSyncSyncCompletedMessage = QrSyncMessage & {
   type: typeof QrSyncActionTypes.SYNC_COMPLETED;
 };
 
+/** Wire message that marks explicit cancellation of the QR sync flow. */
+export type QrSyncSyncCancelMessage = QrSyncMessage & {
+  type: typeof QrSyncActionTypes.SYNC_CANCEL;
+};
+
 /** Wire message that carries a protocol/runtime error between peers. */
 export type QrSyncSyncErrorMessage = QrSyncMessage<QrSyncError> & {
   type: typeof QrSyncActionTypes.SYNC_ERROR;
@@ -188,6 +193,7 @@ export type QrSyncWireMessage =
   | QrSyncSyncOfferMessage
   | QrSyncSyncReadyMessage
   | QrSyncSyncCompletedMessage
+  | QrSyncSyncCancelMessage
   | QrSyncSyncErrorMessage;
 
 /** OTP details emitted when the protocol allows mobile to display the code. */
@@ -240,6 +246,11 @@ export interface QrSyncSyncCompletedEvent {
   type: typeof QrSyncActionTypes.SYNC_COMPLETED;
 }
 
+/** Service event emitted when the QR sync flow is cancelled by a peer. */
+export interface QrSyncSyncCancelledEvent {
+  type: typeof QrSyncActionTypes.SYNC_CANCEL;
+}
+
 /** Service event emitted when the QR sync flow fails or is rejected. */
 export interface QrSyncSyncErrorEvent {
   type: typeof QrSyncActionTypes.SYNC_ERROR;
@@ -258,4 +269,5 @@ export type QrSyncServiceEvent =
   | QrSyncOtpDisplayGrantEvent
   | QrSyncSyncReadyEvent
   | QrSyncSyncCompletedEvent
+  | QrSyncSyncCancelledEvent
   | QrSyncSyncErrorEvent;

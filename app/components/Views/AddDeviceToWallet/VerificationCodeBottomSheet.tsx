@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { DeviceEventEmitter } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -15,52 +14,31 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import type { RootState } from '../../../reducers';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  selectQrSyncOtp,
+  selectQrSyncPhase,
+} from '../../../selectors/qrSyncController';
 
 const VerificationCodeBottomSheet = () => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const bottomSheetRef = React.useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const hasDisplayedOtpRef = useRef(false);
-  const hasAutoClosedRef = useRef(false);
-  const { otp, phase } = useSelector((state: RootState) => ({
-    otp: state.engine.backgroundState.QrSyncController.otp?.otp ?? '',
-    phase: state.engine.backgroundState.QrSyncController.phase,
-  }));
+  const phase = useSelector(selectQrSyncPhase);
+  const otp = useSelector(selectQrSyncOtp) ?? '';
 
   const closeSheet = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const goBack = useCallback(() => {
-    DeviceEventEmitter.emit('addDeviceVerificationDone');
-    closeSheet();
-  }, [closeSheet]);
-
   useEffect(() => {
-    if (otp) {
-      hasDisplayedOtpRef.current = true;
-    }
-
-    const shouldAutoClose =
-      hasDisplayedOtpRef.current &&
-      !hasAutoClosedRef.current &&
-      (phase !== QrSyncPhases.DISPLAYING_OTP || !otp);
-
-    if (shouldAutoClose) {
-      hasAutoClosedRef.current = true;
-
-      if (phase === QrSyncPhases.WAITING_FOR_SYNC_READY) {
-        DeviceEventEmitter.emit('addDeviceVerificationDone');
-      }
-
+    if (phase !== QrSyncPhases.DISPLAYING_OTP) {
       closeSheet();
     }
-  }, [closeSheet, goBack, otp, phase]);
+  }, [closeSheet, phase]);
 
   return (
-    <BottomSheet ref={bottomSheetRef} goBack={goBack}>
-      <BottomSheetHeader onClose={goBack}>
+    <BottomSheet ref={bottomSheetRef} goBack={closeSheet}>
+      <BottomSheetHeader onClose={closeSheet}>
         {strings('app_settings.add_device.enter_code_on_extension')}
       </BottomSheetHeader>
       <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
@@ -79,7 +57,7 @@ const VerificationCodeBottomSheet = () => {
         >
           {otp}
         </Text>
-        <Button twClassName="w-full" onPress={goBack}>
+        <Button twClassName="w-full" onPress={closeSheet}>
           {strings('app_settings.add_device.done')}
         </Button>
       </Box>

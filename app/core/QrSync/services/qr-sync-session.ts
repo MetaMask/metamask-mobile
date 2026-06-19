@@ -56,6 +56,7 @@ export class QrSyncSession extends EventEmitter {
     });
 
     this.client.on('connected', () => {
+      // Wallet-client `connected` fires after the extension verifies OTP (handshake_ack).
       this.emitConnectionStatus('connected');
     });
 

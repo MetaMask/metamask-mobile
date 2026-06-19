@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -9,41 +9,51 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
+import Engine from '../../../core/Engine';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  selectQrSyncIsSessionActive,
+  selectQrSyncPhase,
+} from '../../../selectors/qrSyncController';
 
 const DeviceAdded = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const hasNavigatedToCreatePasswordRef = useRef(false);
-  const qrSyncState = useSelector(
-    (state: RootState) => state.engine.backgroundState.QrSyncController,
-  );
+  const hasNavigatedToImportRef = useRef(false);
+  const phase = useSelector(selectQrSyncPhase);
+  const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+
+  const handleBack = useCallback(() => {
+    if (isSessionActive) {
+      Engine.context.QrSyncController.cancelSession();
+    }
+
+    navigation.goBack();
+  }, [isSessionActive, navigation]);
 
   useEffect(() => {
     if (
-      hasNavigatedToCreatePasswordRef.current ||
-      qrSyncState?.phase !== QrSyncPhases.REVIEWING_IMPORT ||
-      !qrSyncState?.review
+      phase !== QrSyncPhases.REVIEWING_IMPORT ||
+      hasNavigatedToImportRef.current
     ) {
       return;
     }
 
-    hasNavigatedToCreatePasswordRef.current = true;
+    hasNavigatedToImportRef.current = true;
 
     navigation.navigate(Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, {
       initialStep: 1,
       qrSyncImport: true,
     });
-  }, [navigation, qrSyncState?.phase, qrSyncState?.review]);
+  }, [navigation, phase]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard onBack={() => navigation.goBack()} />
+      <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 px-4 justify-center items-center">
         <Text
           variant={TextVariant.HeadingLg}

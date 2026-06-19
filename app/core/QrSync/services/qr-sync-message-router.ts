@@ -94,6 +94,14 @@ export function routeIncomingQrSyncMessage(
         },
       };
 
+    case QrSyncActionTypes.SYNC_CANCEL:
+      return {
+        handled: true,
+        event: {
+          type: QrSyncActionTypes.SYNC_CANCEL,
+        },
+      };
+
     case QrSyncActionTypes.SYNC_ERROR:
       if (!isQrSyncErrorPayload(message.data)) {
         return toInvalidPayloadEvent('QR sync error payload is malformed.');

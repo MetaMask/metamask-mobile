@@ -12,7 +12,6 @@ import type {
   QrSyncConnectionStatusChangedEvent,
   QrSyncImportPlan,
   QrSyncImportReview,
-  QrSyncPhaseChangedEvent,
   QrSyncPhase,
   QrSyncSyncErrorEvent,
   QrSyncSyncReadyEvent,
@@ -48,10 +47,6 @@ const isSyncReadyEvent = (
 const isSyncErrorEvent = (
   event: QrSyncServiceEvent,
 ): event is QrSyncSyncErrorEvent => event.type === QrSyncActionTypes.SYNC_ERROR;
-
-const isPhaseChangedEvent = (
-  event: QrSyncServiceEvent,
-): event is QrSyncPhaseChangedEvent => event.type === 'phase-changed';
 
 const toControllerReviewState = (
   review: QrSyncImportReview,
@@ -165,13 +160,6 @@ export class QrSyncController extends BaseController<
     this.relayUrl = relayUrl;
   }
 
-  /** Sets a controller-local phase without requiring a runtime session event. */
-  public setPhase(phase: QrSyncPhase): void {
-    this.update((state) => {
-      state.phase = phase;
-    });
-  }
-
   /**
    * Primary mobile entrypoint for QR sync.
    *
@@ -180,8 +168,10 @@ export class QrSyncController extends BaseController<
    * connection handshake.
    */
   public async handleScannedQrPayload(scannedQrData: string): Promise<void> {
-    this.resetQrSyncState();
-    this.setPhase(QrSyncPhases.INITIALIZING);
+    // Destroy any existing session before starting a new one.
+    await this.destroySession();
+    this.clearControllerState();
+    this.transitionTo(QrSyncPhases.INITIALIZING);
 
     try {
       const connectionRequest = parseQrSyncConnectionRequest(scannedQrData);
@@ -197,40 +187,35 @@ export class QrSyncController extends BaseController<
       await session.connect(sessionRequest);
       await this.sendSyncOffer(session);
     } catch (error) {
-      this.detachSession();
-      this.setRuntimeError(this.toQrSyncError(error));
+      this.terminateWithError(this.toQrSyncError(error));
     }
+  }
+
+  /**
+   * Terminates an in-progress session and notifies the extension.
+   * No-op when the session is already idle, completed, or failed.
+   */
+  public cancelSession(): void {
+    if (this.session === null) {
+      return;
+    }
+
+    this.notifyPeerAndEndSession(QrSyncActionTypes.SYNC_CANCEL).catch(
+      () => undefined,
+    );
   }
 
   /** Attaches a runtime QR sync session helper to this controller. */
   public attachSession(session: QrSyncSession): void {
-    this.detachSession();
+    if (this.session !== null) {
+      throw new Error(
+        'QrSyncController.attachSession called while a session already exists',
+      );
+    }
+
     this.session = session;
     this.session.on('serviceEvent', this.handleSessionServiceEvent);
     this.session.on('message', this.handleSessionMessage);
-  }
-
-  /** Detaches the current runtime QR sync session helper, if any. */
-  public detachSession(): void {
-    if (!this.session) {
-      return;
-    }
-
-    this.session.off('serviceEvent', this.handleSessionServiceEvent);
-    this.session.off('message', this.handleSessionMessage);
-    this.session = null;
-  }
-
-  /** Clears UI state and secret-bearing runtime state for a fresh QR sync flow. */
-  public resetQrSyncState(): void {
-    this.update((state) => {
-      state.phase = defaultQrSyncControllerState.phase;
-      state.connectionStatus = defaultQrSyncControllerState.connectionStatus;
-      state.review = null;
-      state.otp = null;
-      state.error = null;
-      state.importPlan = null;
-    });
   }
 
   private readonly handleSessionMessage = (message: unknown) => {
@@ -253,7 +238,7 @@ export class QrSyncController extends BaseController<
         throw new Error('Session not found');
       }
 
-      this.sendSyncCompleted(this.session);
+      this.sendSyncCompleted(this.session).catch(() => undefined);
     }
   };
 
@@ -261,13 +246,15 @@ export class QrSyncController extends BaseController<
     if (isConnectionStatusChangedEvent(event)) {
       this.update((state) => {
         state.connectionStatus = event.data.status;
-        if (
-          event.data.status === 'connected' &&
-          state.phase !== QrSyncPhases.COMPLETED
-        ) {
-          state.phase = QrSyncPhases.WAITING_FOR_SYNC_READY;
-        }
       });
+
+      if (
+        event.data.status === 'connected' &&
+        this.state.phase === QrSyncPhases.DISPLAYING_OTP
+      ) {
+        this.onHandshakeAcknowledged();
+      }
+
       return;
     }
 
@@ -289,36 +276,40 @@ export class QrSyncController extends BaseController<
       return;
     }
 
-    if (event.type === 'sync-completed') {
+    if (event.type === QrSyncActionTypes.SYNC_COMPLETED) {
       this.update((state) => {
         state.phase = QrSyncPhases.COMPLETED;
         state.otp = null;
         state.error = null;
       });
+      this.destroySession().catch(() => undefined);
+      return;
+    }
+
+    if (event.type === QrSyncActionTypes.SYNC_CANCEL) {
+      this.clearControllerState();
+      this.destroySession().catch(() => undefined);
       return;
     }
 
     if (isSyncErrorEvent(event)) {
-      this.update((state) => {
-        state.phase = QrSyncPhases.FAILED;
-        state.error = event.data;
-      });
-      return;
-    }
-
-    if (isPhaseChangedEvent(event)) {
-      this.update((state) => {
-        state.phase = event.data.phase;
-      });
+      this.terminateWithError(event.data);
     }
   };
 
-  private async sendSyncOffer(session: QrSyncSession): Promise<void> {
-    this.update((state) => {
-      state.otp = null;
-      state.phase = QrSyncPhases.WAITING_FOR_SYNC_READY;
-    });
+  private onHandshakeAcknowledged(): void {
+    this.transitionTo(QrSyncPhases.CONNECTED);
 
+    if (!this.session) {
+      return;
+    }
+
+    this.sendSyncOffer(this.session).catch((error) => {
+      this.terminateWithError(this.toQrSyncError(error));
+    });
+  }
+
+  private async sendSyncOffer(session: QrSyncSession): Promise<void> {
     await session.send({
       type: QrSyncActionTypes.SYNC_OFFER,
       version: QrSyncMessageVersion.V1,
@@ -327,6 +318,11 @@ export class QrSyncController extends BaseController<
         deadline: Date.now() + SYNC_OFFER_DEADLINE_MS,
       },
     });
+
+    this.update((state) => {
+      state.otp = null;
+      state.phase = QrSyncPhases.AWAITING_SYNC_READY;
+    });
   }
 
   private async sendSyncCompleted(session: QrSyncSession): Promise<void> {
@@ -334,12 +330,93 @@ export class QrSyncController extends BaseController<
       type: QrSyncActionTypes.SYNC_COMPLETED,
       version: QrSyncMessageVersion.V1,
     });
+
+    this.update((state) => {
+      state.phase = QrSyncPhases.COMPLETED;
+      state.otp = null;
+      state.error = null;
+    });
+    await this.destroySession();
   }
 
-  private setRuntimeError(error: QrSyncControllerErrorState): void {
+  private transitionTo(phase: QrSyncPhase): void {
     this.update((state) => {
-      state.phase = QrSyncPhases.FAILED;
-      state.error = error;
+      state.phase = phase;
+    });
+  }
+
+  private terminateWithError(error: QrSyncControllerErrorState): void {
+    this.notifyPeerAndEndSession(QrSyncActionTypes.SYNC_ERROR, error).catch(
+      () => undefined,
+    );
+  }
+
+  private async notifyPeerAndEndSession(
+    wireType:
+      | typeof QrSyncActionTypes.SYNC_CANCEL
+      | typeof QrSyncActionTypes.SYNC_ERROR,
+    error?: QrSyncControllerErrorState,
+  ): Promise<void> {
+    const session = this.session;
+
+    if (session) {
+      try {
+        if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
+          await session.send({
+            type: QrSyncActionTypes.SYNC_ERROR,
+            version: QrSyncMessageVersion.V1,
+            data: error,
+          });
+        } else {
+          await session.send({
+            type: QrSyncActionTypes.SYNC_CANCEL,
+            version: QrSyncMessageVersion.V1,
+          });
+        }
+      } catch {
+        // Best-effort peer notification; still terminate locally.
+      }
+    }
+
+    await this.destroySession();
+
+    if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
+      this.update((state) => {
+        state.phase = QrSyncPhases.FAILED;
+        state.error = error;
+      });
+      return;
+    }
+
+    this.clearControllerState();
+  }
+
+  private async destroySession(): Promise<void> {
+    if (!this.session) {
+      return;
+    }
+
+    this.session.off('serviceEvent', this.handleSessionServiceEvent);
+    this.session.off('message', this.handleSessionMessage);
+
+    const session = this.session;
+    this.session = null;
+
+    try {
+      await session.disconnect();
+    } catch {
+      // Best-effort teardown.
+    }
+  }
+
+  private clearControllerState(): void {
+    this.update((state) => {
+      state.phase = defaultQrSyncControllerState.phase;
+      state.connectionStatus = defaultQrSyncControllerState.connectionStatus;
+      state.review = null;
+      state.otp = null;
+      state.error = null;
+      state.importPlan = null;
     });
   }
 
