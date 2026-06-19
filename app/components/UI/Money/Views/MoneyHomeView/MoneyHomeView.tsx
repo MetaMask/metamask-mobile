@@ -36,7 +36,6 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -140,7 +139,6 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -165,6 +163,7 @@ const MoneyHomeView = () => {
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
     isLinking,
+    hasMoneyAccountRequirements,
   } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
@@ -272,13 +271,15 @@ const MoneyHomeView = () => {
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: 'money.musd_row.add',
       component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-      redirect_target: hasMusdBalance
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : SCREEN_NAMES.RAMP_BUY,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    routeAddMoney();
-  }, [hasMusdBalance, routeAddMoney, trackButtonClicked]);
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyHomeView] Failed to initiate deposit from mUSD row',
+      }),
+    );
+  }, [initiateDeposit, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
@@ -561,11 +562,11 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
   } else if (isCardAuthenticated || isCardholder) {
-    metamaskCardMode = 'link';
+    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
   } else {
     metamaskCardMode = 'upsell';
   }
@@ -690,23 +691,27 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyMetaMaskCard
-          mode={metamaskCardMode}
-          onGetNowPress={navigateToCardHome}
-          onHeaderPress={handleCardHeaderPress}
-          onLinkPress={handleLinkCardPress}
-          onManagePress={navigateToCardHome}
-          showMetalCard={hasMetalCard}
-          isLinkDisabled={isLinking}
-          cardBalance={cardBalance}
-          apy={apyPercent}
-          analyticsScreen={CardScreens.MONEY_HOME}
-          analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
-          analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-          analyticsCardState={cardState}
-          analyticsReady={isCardAnalyticsReady}
-        />
-        <Divider />
+        {metamaskCardMode && (
+          <>
+            <MoneyMetaMaskCard
+              mode={metamaskCardMode}
+              onGetNowPress={navigateToCardHome}
+              onHeaderPress={handleCardHeaderPress}
+              onLinkPress={handleLinkCardPress}
+              onManagePress={navigateToCardHome}
+              showMetalCard={hasMetalCard}
+              isLinkDisabled={isLinking}
+              cardBalance={cardBalance}
+              apy={apyPercent}
+              analyticsScreen={CardScreens.MONEY_HOME}
+              analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+              analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+              analyticsCardState={cardState}
+              analyticsReady={isCardAnalyticsReady}
+            />
+            <Divider />
+          </>
+        )}
         {isFunded && (
           <>
             <MoneyCondensedInfoCards

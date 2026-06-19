@@ -225,7 +225,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed order type bottom sheet dismissal incorrectly closing the order screen (#30561)
 - Refactored the Money onboarding stepper; created generic StepperCard and SegmentedProgressBar component (#30226)
 
-
 ### Changed
 
 - Updated the Sei native token icon to Sei's maroon token mark. (#31038)
