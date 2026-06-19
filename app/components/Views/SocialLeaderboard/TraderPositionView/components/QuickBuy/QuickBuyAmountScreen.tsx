@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
@@ -30,17 +29,13 @@ const QuickBuyAmountScreen: React.FC = () => {
   }
 
   return (
-    <>
+    <Box twClassName="flex-1">
       <QuickBuyToolbar />
-      <Box
-        twClassName="flex-1"
-        justifyContent={BoxJustifyContent.Center}
-        testID="quick-buy-amount-container"
-      >
+      <Box testID="quick-buy-amount-container">
         <QuickBuyAmount />
       </Box>
       <QuickBuyActionFooter />
-    </>
+    </Box>
   );
 };
 
