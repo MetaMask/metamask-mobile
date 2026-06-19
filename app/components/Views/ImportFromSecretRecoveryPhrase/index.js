@@ -627,20 +627,18 @@ const ImportFromSecretRecoveryPhrase = ({
                       </>
                     )}
                   </Text>
-                  {!isAddDeviceSyncEnabled && (
-                    <TouchableOpacity
-                      onPress={showWhatIsSeedPhrase}
-                      testID={
-                        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
-                      }
-                    >
-                      <Icon
-                        name={IconName.Info}
-                        size={IconSize.Md}
-                        color={colors.icon.alternative}
-                      />
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity
+                    onPress={showWhatIsSeedPhrase}
+                    testID={
+                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                    }
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Md}
+                      color={colors.icon.alternative}
+                    />
+                  </TouchableOpacity>
                 </Box>
                 <SrpInputGrid
                   ref={srpInputGridRef}

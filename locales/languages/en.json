@@ -4012,6 +4012,7 @@
       },
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
+      "verification_code_pending": "Generating verification code…",
       "done": "Done",
       "device_added": "Device added"
     }
