@@ -1,4 +1,4 @@
-e# Appium Smoke Tests — Android
+# Appium Smoke Tests — Android
 #
 # Fans out one reusable job per Appium smoke tag. Add a matching job below.
 # Invoked from ci.yml when build-android-apks succeeds (PR + main).
