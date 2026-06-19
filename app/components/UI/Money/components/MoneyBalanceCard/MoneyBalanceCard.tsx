@@ -26,7 +26,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
-import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
@@ -64,7 +64,7 @@ const MoneyBalanceCard = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
-    selectWalletHomeOnboardingFlowVisible,
+    selectShouldShowWalletHomeOnboardingSteps,
   );
 
   const {

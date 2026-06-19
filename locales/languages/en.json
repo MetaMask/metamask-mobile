@@ -1046,7 +1046,9 @@
     "top_traders_view": {
       "title": "Weekly Top Traders",
       "chain_filter": {
-        "all": "All"
+        "all": "All",
+        "tokens": "Tokens",
+        "perps": "Perps"
       }
     },
     "notification_preferences": {
@@ -1101,6 +1103,7 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
+      "unsupported_market": "Unsupported market",
       "bought": "Bought",
       "sold": "Sold",
       "no_trades": "No trades yet",
@@ -7154,9 +7157,12 @@
       "in_progress_body": "This may take a few minutes.",
       "deposit_in_progress_title_convert": "Converting crypto",
       "deposit_in_progress_title_add_musd": "Adding funds",
+      "deposit_in_progress_title_card": "Depositing",
+      "deposit_in_progress_body_card": "Card orders may take a few minutes.",
       "success_title": "Transaction complete",
       "deposit_success_title_convert": "Conversion complete",
       "deposit_success_title_add_musd": "Funds added",
+      "deposit_success_title_card": "Deposit complete",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",
       "withdraw_in_progress_title": "Transfer in progress",
@@ -7166,6 +7172,7 @@
       "withdraw_fallback_destination": "your account",
       "deposit_failed_title_convert": "Conversion failed",
       "deposit_failed_title_add_musd": "Failed to add funds",
+      "deposit_failed_title_card": "Deposit failed",
       "deposit_failed_body_convert": "Unable to convert. Try again.",
       "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
       "withdraw_failed_title": "Transfer failed",
@@ -7277,6 +7284,11 @@
       "faq_a9": "Opening a Money Account and holding mUSD does not require identity verification. However, certain MetaMask features—including MetaMask Card and Ramps—require KYC (Know Your Customer) verification as required by applicable regulations. These checks are carried out by the third-party providers that operate these regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
       "faq_q10": "Which countries is MetaMask Money Account available in?",
       "faq_a10": "MetaMask Money Account is available globally except in the following regions: the UK, and countries on the USA sanctions list."
+    },
+    "geo_block": {
+      "title": "Money account unavailable",
+      "description": "Money account isn't available in your location due to local restrictions or sanctions.",
+      "button": "Got it"
     }
   },
   "stake": {
@@ -7770,6 +7782,7 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "batch_sell_transaction_label": "Batch sell",
     "batch_sell_select_title": "Select up to 5 tokens",
     "batch_sell_select_subtitle": "All tokens need to be on the same network.",
     "batch_sell_empty_state_title": "No tokens. No problem.",
@@ -7783,7 +7796,7 @@
     "batch_sell_review_title": "Batch Sell Review",
     "batch_sell_select_stablecoin": "Select a stablecoin",
     "batch_sell_total_received": "Total received",
-    "batch_sell_minimum_received": "Minimum received",
+    "batch_sell_minimum_received": "Min. received:",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
     "batch_sell_no_quote_available": "No quote available",
     "batch_sell_high_price_impact": "High price impact",
@@ -9526,6 +9539,15 @@
       "money_account_withdraw": "Transfer from Money Account",
       "money_account_sent": "Sent {{symbol}}",
       "money_account_received": "Received",
+      "deposited_musd": "Deposited mUSD",
+      "depositing_musd": "Depositing mUSD",
+      "deposit_failed": "Deposit failed",
+      "sent": "Sent",
+      "sending_musd": "Sending mUSD",
+      "send_failed": "Send failed",
+      "converted_to_musd": "Converted to mUSD",
+      "converting_to_musd": "Converting to mUSD",
+      "conversion_failed": "Conversion failed",
       "default": "Transaction details"
     },
     "label": {
@@ -9533,6 +9555,7 @@
       "provider_fee": "Provider fee",
       "network_fee": "Network fee",
       "transaction_fee": "Transaction fee",
+      "transaction_fees": "Transaction fees",
       "paid_with": "Paid with",
       "receive_token": "Receive token",
       "retry_button": "Try again",
@@ -9545,6 +9568,7 @@
       "order_id": "Order ID",
       "network": "Network",
       "you_sent": "You sent",
+      "you_received": "You received",
       "token_received": "Token received",
       "money_account": "Money account",
       "perps_account": "Perps Account 1",

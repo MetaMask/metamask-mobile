@@ -18,6 +18,7 @@ export interface SupportedChainsResponse {
   chains: string[];
 }
 
+
 async function fetchSupportedChainsData(): Promise<string[]> {
   const response = await fetchSupportedChains();
   if (!response.ok) {

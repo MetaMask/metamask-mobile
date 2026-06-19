@@ -464,6 +464,7 @@ const Routes = {
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
+    CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -476,6 +477,7 @@ const Routes = {
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
       TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
       CARD_TRANSACTION_DETAILS_SHEET: 'MoneyCardTransactionDetailsSheet',
+      GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
