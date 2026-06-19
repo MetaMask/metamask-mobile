@@ -49,6 +49,8 @@ const TRADE_MARKER_INNER_RADIUS = 5;
 const TRADE_MARKER_BORDER_WIDTH = 2;
 const TRADE_MARKER_RADIUS =
   TRADE_MARKER_INNER_RADIUS + TRADE_MARKER_BORDER_WIDTH / 2;
+const HIGHLIGHTED_TRADE_MARKER_RADIUS = TRADE_MARKER_RADIUS + 3;
+const HIGHLIGHTED_TRADE_MARKER_RING_WIDTH = 2;
 
 interface TraderPriceChartProps {
   prices: TokenPrice[];
@@ -57,6 +59,8 @@ interface TraderPriceChartProps {
   onChartIndexChange: (index: number) => void;
   /** Trade markers to render as buy/sell dots on the chart line. */
   trades?: readonly Trade[];
+  /** When set, enlarges the matching marker and pins the scrub tooltip. */
+  highlightedTradeHash?: string | null;
   chartHeight?: number;
 }
 
@@ -65,6 +69,7 @@ const TraderPriceChart = ({
   isLoading,
   onChartIndexChange,
   trades,
+  highlightedTradeHash,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
 }: TraderPriceChartProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -79,6 +84,24 @@ const TraderPriceChart = ({
   useEffect(() => {
     setPositionX(-1);
   }, [prices]);
+
+  const markers = useMemo(
+    () => mapTradesToMarkers(trades, prices),
+    [trades, prices],
+  );
+
+  useEffect(() => {
+    if (!highlightedTradeHash) {
+      return;
+    }
+    const marker = markers.find(
+      (m) => m.transactionHash === highlightedTradeHash,
+    );
+    if (marker) {
+      setPositionX(marker.index);
+      onChartIndexChange(marker.index);
+    }
+  }, [highlightedTradeHash, markers, onChartIndexChange]);
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
@@ -230,11 +253,6 @@ const TraderPriceChart = ({
 
   // ── Trade markers (computed before EndDot so suppressEndDot is available) ──
 
-  const markers = useMemo(
-    () => mapTradesToMarkers(trades, prices),
-    [trades, prices],
-  );
-
   // Suppress the end-dot when a trade marker already covers the tail of the
   // chart line (within 2 price indices). This surfaces very-recent trades that
   // would otherwise be hidden behind the end-dot (e.g. same-hour buys/sells on
@@ -286,25 +304,41 @@ const TraderPriceChart = ({
           const cy = y(priceList[m.index]);
           if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
           const isBuy = m.intent === 'enter';
-          // Inner disk uses the same green/red as the rest of the UI; the
-          // ring matches the chart background so the marker reads as a
-          // punched-through dot on the line. background.default adapts to
-          // light/dark automatically.
+          const isHighlighted = m.transactionHash === highlightedTradeHash;
+          const markerRadius = isHighlighted
+            ? HIGHLIGHTED_TRADE_MARKER_RADIUS
+            : TRADE_MARKER_RADIUS;
+          const fillColor = isBuy
+            ? theme.colors.success.default
+            : theme.colors.error.default;
           return (
-            <Circle
-              key={m.transactionHash}
-              testID={`trade-marker-${m.transactionHash}`}
-              cx={cx}
-              cy={cy}
-              r={TRADE_MARKER_RADIUS}
-              fill={
-                isBuy
-                  ? theme.colors.success.default
-                  : theme.colors.error.default
-              }
-              stroke={theme.colors.background.default}
-              strokeWidth={TRADE_MARKER_BORDER_WIDTH}
-            />
+            <G key={m.transactionHash}>
+              {isHighlighted ? (
+                <Circle
+                  testID={`trade-marker-highlight-ring-${m.transactionHash}`}
+                  cx={cx}
+                  cy={cy}
+                  r={
+                    markerRadius +
+                    HIGHLIGHTED_TRADE_MARKER_RING_WIDTH +
+                    TRADE_MARKER_BORDER_WIDTH
+                  }
+                  fill="none"
+                  stroke={fillColor}
+                  strokeWidth={HIGHLIGHTED_TRADE_MARKER_RING_WIDTH}
+                  opacity={0.45}
+                />
+              ) : null}
+              <Circle
+                testID={`trade-marker-${m.transactionHash}`}
+                cx={cx}
+                cy={cy}
+                r={markerRadius}
+                fill={fillColor}
+                stroke={theme.colors.background.default}
+                strokeWidth={TRADE_MARKER_BORDER_WIDTH}
+              />
+            </G>
           );
         })}
       </G>

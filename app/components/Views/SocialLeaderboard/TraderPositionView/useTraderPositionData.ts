@@ -23,8 +23,11 @@ import Logger from '../../../../util/Logger';
 // Constants
 // ---------------------------------------------------------------------------
 
-const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
-type TimePeriod = (typeof TIME_PERIODS)[number];
+import {
+  PERIOD_DURATION_MS,
+  TIME_PERIODS,
+  type TimePeriod,
+} from './utils/chartTimePeriods';
 
 const PERIOD_TO_API: Record<TimePeriod, string> = {
   '1H': '1d',
@@ -32,14 +35,6 @@ const PERIOD_TO_API: Record<TimePeriod, string> = {
   '1W': '7d',
   '1M': '1m',
   All: '3y',
-};
-
-const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
-  '1H': 60 * 60 * 1000,
-  '1D': 24 * 60 * 60 * 1000,
-  '1W': 7 * 24 * 60 * 60 * 1000,
-  '1M': 30 * 24 * 60 * 60 * 1000,
-  All: 3 * 365 * 24 * 60 * 60 * 1000,
 };
 
 /**
@@ -126,8 +121,8 @@ export interface TraderPositionData {
   timePeriods: readonly TimePeriod[];
 }
 
-export type { TimePeriod };
-export { TIME_PERIODS };
+export type { TimePeriod } from './utils/chartTimePeriods';
+export { TIME_PERIODS } from './utils/chartTimePeriods';
 
 export function useTraderPositionData(
   positionParam: Position | undefined,

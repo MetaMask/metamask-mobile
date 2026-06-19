@@ -271,6 +271,23 @@ describe('TraderPriceChart', () => {
       triggerChartLayout(result.getByTestId);
       expect(result.queryByTestId('trade-marker-0xloading')).toBeNull();
     });
+
+    it('renders a highlight ring for the highlighted trade marker', () => {
+      const prices = makePrices(10);
+      const trade = makeTrade({ transactionHash: '0xhighlight' });
+      const result = render(
+        <TraderPriceChart
+          {...defaultProps}
+          prices={prices}
+          trades={[trade]}
+          highlightedTradeHash="0xhighlight"
+        />,
+      );
+      triggerChartLayout(result.getByTestId);
+      expect(
+        result.getByTestId('trade-marker-highlight-ring-0xhighlight'),
+      ).toBeOnTheScreen();
+    });
   });
 
   // ── PriceChartProvider integration ────────────────────────────────────────

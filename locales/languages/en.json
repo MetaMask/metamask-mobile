@@ -1115,7 +1115,12 @@
       "long": "Long",
       "short": "Short",
       "opened": "Opened",
-      "closed_action": "Closed"
+      "closed_action": "Closed",
+      "trade_detail_title": "Trade details",
+      "trade_detail_date": "Date",
+      "trade_detail_amount": "Amount",
+      "trade_detail_token": "Token",
+      "trade_detail_tx_hash": "Transaction"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",

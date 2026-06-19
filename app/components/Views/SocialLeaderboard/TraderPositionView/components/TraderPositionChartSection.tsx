@@ -11,6 +11,7 @@ export interface TraderPositionChartSectionProps {
   isPricesLoading: boolean;
   onChartIndexChange: (index: number) => void;
   trades: readonly Trade[];
+  highlightedTradeHash?: string | null;
 }
 
 const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
@@ -19,6 +20,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   isPricesLoading,
   onChartIndexChange,
   trades,
+  highlightedTradeHash,
 }) => (
   <PriceChartProvider>
     <Box twClassName="mx-4 my-3">
@@ -28,6 +30,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
         isLoading={isPricesLoading}
         onChartIndexChange={onChartIndexChange}
         trades={trades}
+        highlightedTradeHash={highlightedTradeHash}
       />
     </Box>
   </PriceChartProvider>

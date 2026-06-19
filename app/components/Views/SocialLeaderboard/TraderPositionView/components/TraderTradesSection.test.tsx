@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import type { Trade } from '@metamask/social-controllers';
@@ -55,5 +55,18 @@ describe('TraderTradesSection', () => {
 
     expect(screen.queryByText('Bought')).toBeNull();
     expect(screen.queryByText('Sold')).toBeNull();
+  });
+
+  it('calls onTradePress when a trade row is pressed', () => {
+    const onTradePress = jest.fn();
+    const trade = makeTrade({ transactionHash: '0xpress' });
+
+    renderWithProvider(
+      <TraderTradesSection trades={[trade]} onTradePress={onTradePress} />,
+    );
+
+    fireEvent.press(screen.getByTestId('trade-row-0xpress-pressable'));
+
+    expect(onTradePress).toHaveBeenCalledWith(trade);
   });
 });

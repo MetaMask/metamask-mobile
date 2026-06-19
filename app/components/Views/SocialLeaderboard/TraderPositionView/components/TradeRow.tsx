@@ -1,4 +1,5 @@
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -7,12 +8,16 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
-import { strings } from '../../../../../../locales/i18n';
 import { formatUsd, formatTradeDate } from '../../utils/formatters';
 import PerpBadges from '../../components/PerpBadges';
 import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
+import { getTradeActionLabel } from '../utils/getTradeActionLabel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
@@ -22,32 +27,27 @@ export interface TradeRowProps {
   trade: Trade;
   traderImageUrl?: string;
   traderAddress?: string;
+  onPress?: (trade: Trade) => void;
 }
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
   traderImageUrl,
   traderAddress,
+  onPress,
 }) => {
   const isEntry = trade.intent === 'enter';
   const isPerp = isPerpTrade(trade);
   const perpDirection = getPerpTradeDirection(trade);
+  const actionLabel = getTradeActionLabel(trade);
+  const testID = `trade-row-${trade.transactionHash}`;
 
-  // Perp fills read as "opened"/"closed" (vs spot "bought"/"sold").
-  const actionLabel = isPerp
-    ? isEntry
-      ? strings('social_leaderboard.trader_position.opened')
-      : strings('social_leaderboard.trader_position.closed_action')
-    : isEntry
-      ? strings('social_leaderboard.trader_position.bought')
-      : strings('social_leaderboard.trader_position.sold');
-
-  return (
+  const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="px-4 py-3"
-      testID={`trade-row-${trade.transactionHash}`}
+      testID={testID}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -93,7 +93,11 @@ const TradeRow: React.FC<TradeRowProps> = ({
         </Box>
       </Box>
 
-      <Box alignItems={BoxAlignItems.End}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -103,9 +107,31 @@ const TradeRow: React.FC<TradeRowProps> = ({
             isEntry ? Math.abs(trade.usdCost) : -Math.abs(trade.usdCost),
           )}
         </Text>
+        {onPress ? (
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        ) : null}
       </Box>
     </Box>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={() => onPress(trade)}
+        testID={`${testID}-pressable`}
+        accessibilityRole="button"
+        accessibilityLabel={`${actionLabel}, ${formatTradeDate(trade.timestamp)}`}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default TradeRow;

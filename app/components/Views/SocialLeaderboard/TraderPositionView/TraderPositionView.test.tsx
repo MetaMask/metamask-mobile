@@ -4,6 +4,7 @@ import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
+import { TraderTradeDetailBottomSheetSelectorsIDs } from './components/TraderTradeDetailBottomSheet';
 import type { Position, Trade } from '@metamask/social-controllers';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
@@ -145,6 +146,14 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
   );
   return { useAnalytics: () => createMockUseAnalyticsHook() };
 });
+
+jest.mock('../../../UI/Rewards/hooks/useTransactionExplorer', () => ({
+  __esModule: true,
+  default: () => ({
+    name: 'Etherscan',
+    url: 'https://etherscan.io/tx/0xabc',
+  }),
+}));
 
 jest.mock('../../../UI/AssetOverview/PriceChart', () => {
   const { View } = jest.requireActual('react-native');
@@ -608,6 +617,41 @@ describe('TraderPositionView', () => {
     });
     expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
     expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
+  });
+
+  it('opens the trade detail sheet and highlights the chart when a trade is pressed', async () => {
+    const now = Date.now();
+
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      trades: [
+        {
+          intent: 'exit',
+          direction: 'sell',
+          tokenAmount: 500,
+          usdCost: 1581.19,
+          timestamp: now - 2 * 24 * 60 * 60 * 1000,
+          transactionHash: '0xolder',
+        },
+      ],
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(screen.getByTestId('trade-row-0xolder-pressable'));
+
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    expect(
+      screen.getByTestId(TraderTradeDetailBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+
+    await waitFor(() => {
+      const chartProps =
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
+      expect(chartProps?.highlightedTradeHash).toBe('0xolder');
+    });
   });
 
   it('refetches position and profile on pull-to-refresh', async () => {

@@ -53,9 +53,18 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
-import { isPerpPosition } from '../utils/perp';
+import { isPerpPosition, isPerpTrade } from '../utils/perp';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { Trade } from '@metamask/social-controllers';
+import TraderTradeDetailBottomSheet from './components/TraderTradeDetailBottomSheet';
+import { findTimePeriodForTrade } from './utils/chartTimePeriods';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../core/Analytics/events/transactions';
+import { SocialLeaderboardEventValues } from '../analytics';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -77,9 +86,14 @@ const TraderPositionView = () => {
     notificationSubtype,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
+  const [highlightedTradeHash, setHighlightedTradeHash] = useState<
+    string | null
+  >(null);
   const buyClickedRef = useRef(false);
 
   // Position resolution: always fetch by id when we have one so pull-to-refresh
@@ -289,6 +303,53 @@ const TraderPositionView = () => {
     // TODO: update displayed price on scrub.
   }, []);
 
+  const handleTradePress = useCallback(
+    (trade: Trade) => {
+      playImpact(ImpactMoment.PrimaryCTA);
+      setActiveTimePeriod(findTimePeriodForTrade(trade.timestamp));
+      setHighlightedTradeHash(trade.transactionHash);
+      setSelectedTrade(trade);
+
+      const caipChainId = resolvedPosition
+        ? chainNameToId(resolvedPosition.chain)
+        : undefined;
+      const traderTradeType =
+        trade.intent === 'enter'
+          ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY
+          : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL;
+
+      trackEvent(
+        createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+          .addProperties({
+            transaction_type: isPerpTrade(trade)
+              ? `social_perp_${traderTradeType}`
+              : `social_spot_${traderTradeType}`,
+            transaction_status: 'confirmed',
+            location: TransactionDetailLocation.AssetDetails,
+            ...(caipChainId && {
+              chain_id_source: caipChainId,
+              chain_id_destination: caipChainId,
+            }),
+            [SocialLeaderboardEventProperties.TX_HASH]: trade.transactionHash,
+            [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]:
+              traderTradeType,
+          })
+          .build(),
+      );
+    },
+    [
+      createEventBuilder,
+      resolvedPosition,
+      setActiveTimePeriod,
+      trackEvent,
+    ],
+  );
+
+  const handleTradeDetailClose = useCallback(() => {
+    setSelectedTrade(null);
+    setHighlightedTradeHash(null);
+  }, []);
+
   // Perp positions surface Long/Short CTAs instead of Buy. Hyperliquid has no
   // long/short preselect param on the market page (direction only exists on the
   // funded trade-entry flow), so both CTAs land the user on that market's Perps
@@ -364,6 +425,7 @@ const TraderPositionView = () => {
               isPricesLoading={isPricesLoading}
               onChartIndexChange={handleChartIndexChange}
               trades={chartTrades}
+              highlightedTradeHash={highlightedTradeHash}
             />
 
             <TraderTimePeriodSelector
@@ -384,8 +446,20 @@ const TraderPositionView = () => {
               trades={allTrades}
               traderImageUrl={traderImageUrl}
               traderAddress={traderAddress}
+              onTradePress={handleTradePress}
             />
           </ScrollView>
+
+          {selectedTrade ? (
+            <TraderTradeDetailBottomSheet
+              isVisible
+              trade={selectedTrade}
+              tokenSymbol={symbol}
+              chain={resolvedPosition?.chain ?? ''}
+              tokenAddress={resolvedPosition?.tokenAddress ?? ''}
+              onClose={handleTradeDetailClose}
+            />
+          ) : null}
 
           {isPerp ? (
             <Box twClassName="px-4 py-3">

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'expo-image';
 import { AvatarAccount } from '@metamask/design-system-react-native';
@@ -53,5 +53,15 @@ describe('TradeRow', () => {
 
     expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
     expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+  });
+
+  it('calls onPress when the row is pressed', () => {
+    const onPress = jest.fn();
+
+    renderWithProvider(<TradeRow trade={baseTrade} onPress={onPress} />);
+
+    fireEvent.press(screen.getByTestId('trade-row-0xabc-pressable'));
+
+    expect(onPress).toHaveBeenCalledWith(baseTrade);
   });
 });
