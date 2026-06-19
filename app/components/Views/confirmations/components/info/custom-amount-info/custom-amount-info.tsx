@@ -75,6 +75,7 @@ import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
+import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
@@ -134,6 +135,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
+
+    // TRAM-3623 headless ramps funnel. The adapter owns screen-viewed tracking
+    // and derives ramp_surface from the tx type, so non-money flows stay inert.
+    const { trackAmountCommitted, trackContinue } =
+      useFiatFunnelMetricsAdapter();
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
@@ -208,6 +214,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         } else {
           await updateTokenAmount();
         }
+        // Amount committed (pre-quote) funnel event; only fires once the amount
+        // has been successfully applied above (no-op for non-money flows).
+        trackAmountCommitted();
       } catch (error) {
         Logger.error(
           error as Error,
@@ -223,6 +232,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
+      trackAmountCommitted,
       transactionId,
       updateTokenAmount,
     ]);
@@ -333,6 +343,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={disableConfirm || isAccountSelectionNeeded}
+              onContinue={trackContinue}
             />
           )}
         </Box>
@@ -419,7 +430,12 @@ function BuySection() {
 function ConfirmButton({
   alertTitle,
   disableConfirm,
-}: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
+  onContinue,
+}: Readonly<{
+  alertTitle: string | undefined;
+  disableConfirm?: boolean;
+  onContinue?: () => void;
+}>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
@@ -435,13 +451,15 @@ function ConfirmButton({
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
+    // Continue / Add Funds CTA funnel event; no-op for non-money flows.
+    onContinue?.();
     try {
       await onConfirm();
     } catch (error) {
       setIsConfirmationSubmitting(false);
       throw error;
     }
-  }, [onConfirm, setIsConfirmationSubmitting]);
+  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
 
   return (
     <Button
