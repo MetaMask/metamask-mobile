@@ -22,6 +22,7 @@ import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
 } from '../../../../core/redux/slices/card';
+import { selectIsMoneyAccountGeoEligible } from '../../Money/selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
 import { resolveMoneyAccountCardToken } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import Routes from '../../../../constants/navigation/Routes';
@@ -158,7 +159,7 @@ const buildSelectors = (
   overrides: {
     primaryMoneyAccount?: { address: string } | undefined;
     vaultConfig?: { chainId?: string } | undefined;
-    isMoneyAccountEnabled?: boolean;
+    isMoneyAccountVisible?: boolean;
     isCardAuthenticated?: boolean;
     isCardVerified?: boolean;
     isCardholder?: boolean;
@@ -175,7 +176,7 @@ const buildSelectors = (
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
   vaultConfig: { chainId: '0x8f' },
-  isMoneyAccountEnabled: true,
+  isMoneyAccountVisible: true,
   isCardAuthenticated: true,
   isCardVerified: true,
   isCardholder: false,
@@ -217,7 +218,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return state.primaryMoneyAccount;
     if (selector === selectMoneyAccountVaultConfig) return state.vaultConfig;
     if (selector === selectMoneyEnableMoneyAccountFlag)
-      return state.isMoneyAccountEnabled;
+      return state.isMoneyAccountVisible;
+    if (selector === selectIsMoneyAccountGeoEligible) return true;
     if (selector === selectIsCardAuthenticated)
       return state.isCardAuthenticated;
     if (selector === selectIsCardVerified) return state.isCardVerified;
@@ -319,7 +321,7 @@ describe('useMoneyAccountCardLinkage', () => {
     });
 
     it('reports canLink=false when the feature flag is off', () => {
-      applySelectorMocks(buildSelectors({ isMoneyAccountEnabled: false }));
+      applySelectorMocks(buildSelectors({ isMoneyAccountVisible: false }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
     });

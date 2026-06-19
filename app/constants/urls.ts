@@ -59,17 +59,16 @@ export const REWARDS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto
 
 // Builds the priority-support help-center URL for VIP users. Includes a fixed
 // `priority=vip` tag so the support-side automation can fast-path the request to a
-// human, plus the user's account address so that automation can verify enrollment via
-// the existing support API (GET /support/subscriptions/check?account=, which keys off
-// the account address and returns tier/subscription status).
+// human, plus the user's wallet address so that automation can verify enrollment via
+// the existing support API (GET /support/subscriptions/check?account=).
 // NOTE: `priority=vip` is a placeholder value pending support/Intercom confirmation;
-// `account` matches the support endpoint's query-param name.
+// `address` matches the help-center URL param name expected by support automation.
 export const buildVipPrioritySupportUrl = (
   account: string,
   baseUrl: string = METAMASK_SUPPORT_URL,
 ) => {
   const separator = baseUrl.includes('?') ? '&' : '?';
-  return `${baseUrl}${separator}priority=vip&account=${encodeURIComponent(account)}`;
+  return `${baseUrl}${separator}priority=vip&address=${encodeURIComponent(account)}`;
 };
 
 // Perps

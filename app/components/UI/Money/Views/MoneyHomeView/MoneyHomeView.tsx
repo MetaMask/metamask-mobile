@@ -33,7 +33,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
@@ -51,6 +51,8 @@ import {
   selectHasMetalCard,
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -139,7 +141,7 @@ const MoneyHomeView = () => {
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
@@ -160,6 +162,12 @@ const MoneyHomeView = () => {
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const hasMetalCard = useSelector(selectHasMetalCard);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
   const {
     startLinkFlow,
     isCardAuthenticated,
@@ -170,6 +178,17 @@ const MoneyHomeView = () => {
     hasMoneyAccountBaseRequirements,
     isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
+
+  const metamaskCardMode = deriveMoneyMetaMaskCardMode({
+    isCardLinkedToMoneyAccount,
+    isCardholder,
+    isCardAuthenticated,
+    isCardVerified,
+    isResidencyBlocked,
+    isMoneyAccountVisible,
+    hasMoneyAccountBaseRequirements,
+    hasMoneyAccountRequirements,
+  });
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -315,11 +334,14 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const navigateToCardHome = useCallback(() => {
+    const isUpsell = metamaskCardMode === 'upsell';
+
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
     });
-  }, [navigation]);
+  }, [navigation, metamaskCardMode]);
 
   const handleCardHeaderPress = useCallback(() => {
     trackSurfaceClicked({
@@ -580,16 +602,6 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  const metamaskCardMode = deriveMoneyMetaMaskCardMode({
-    isCardLinkedToMoneyAccount,
-    isCardholder,
-    isCardAuthenticated,
-    isCardVerified,
-    isResidencyBlocked,
-    hasMoneyAccountBaseRequirements,
-    hasMoneyAccountRequirements,
-  });
-
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
   const cardState = deriveCardState({
@@ -648,29 +660,27 @@ const MoneyHomeView = () => {
     contentSections.push({
       key: 'how-it-works',
       node: (
-        <MoneyHowItWorks
-          apy={apyPercent}
-          onHeaderPress={() =>
-            handleHowItWorksPress({
-              componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
-            })
-          }
-          isLoading={vaultApyQuery.isLoading}
-        />
-      ),
-    });
-    contentSections.push({
-      key: 'musd-row',
-      node: (
-        <MoneyMusdTokenRow
-          onPress={() =>
-            handleMusdRowPress({
-              componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-            })
-          }
-          onAddPress={handleMusdRowAddPress}
-          balance={musdFiatFormatted}
-        />
+        <>
+          <MoneyHowItWorks
+            apy={apyPercent}
+            onHeaderPress={() =>
+              handleHowItWorksPress({
+                componentName:
+                  COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
+              })
+            }
+            isLoading={vaultApyQuery.isLoading}
+          />
+          <MoneyMusdTokenRow
+            onPress={() =>
+              handleMusdRowPress({
+                componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+              })
+            }
+            onAddPress={handleMusdRowAddPress}
+            balance={musdFiatFormatted}
+          />
+        </>
       ),
     });
   }

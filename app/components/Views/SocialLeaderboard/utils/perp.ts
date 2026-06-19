@@ -1,4 +1,8 @@
 import type { Position, Trade } from '@metamask/social-controllers';
+import {
+  getPerpsDexFromSymbol,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 
 /**
  * Chain name the social API uses for Hyperliquid perps. Hyperliquid is
@@ -6,6 +10,49 @@ import type { Position, Trade } from '@metamask/social-controllers';
  * explicit `perpPositionType` marker is absent.
  */
 export const HYPERLIQUID_CHAIN_NAME = 'hyperliquid';
+
+/**
+ * The only HIP-3 DEX we support trading on. HIP-3 perp symbols are namespaced
+ * by their provider DEX (`xyz:SPCX`, `cash:SPCX`, `kv:…`); we route every
+ * tradable market through the `xyz` provider.
+ */
+export const XYZ_DEX = 'xyz';
+
+export interface SupportedXyzPerpMarket {
+  /**
+   * Perp market symbol the Trade CTA should open. For `xyz` and non-HIP-3
+   * markets this is the original symbol; for other HIP-3 providers it is the
+   * equivalent `xyz:<asset>` symbol.
+   */
+  targetSymbol: string;
+  /**
+   * True when support is conditional on `targetSymbol` actually existing in the
+   * tradable market list (i.e. the position came from a non-`xyz` HIP-3
+   * provider). `xyz` and non-HIP-3 markets link directly and need no check.
+   */
+  requiresXyzMarketCheck: boolean;
+}
+
+/**
+ * Resolves which `xyz` perp market a position's symbol maps to.
+ *
+ * We only support `xyz` HIP-3 markets. Non-HIP-3 symbols (e.g. `BTC`) and
+ * symbols already on the `xyz` provider link directly. Symbols from any other
+ * HIP-3 provider (`cash:SPCX`, `kv:…`) are remapped to their `xyz` equivalent
+ * (`xyz:SPCX`); the caller must confirm that market exists before linking.
+ */
+export function getSupportedXyzPerpMarketSymbol(
+  symbol: string,
+): SupportedXyzPerpMarket {
+  const dex = getPerpsDexFromSymbol(symbol);
+  if (dex === null || dex.toLowerCase() === XYZ_DEX) {
+    return { targetSymbol: symbol, requiresXyzMarketCheck: false };
+  }
+  return {
+    targetSymbol: `${XYZ_DEX}:${getPerpsDisplaySymbol(symbol)}`,
+    requiresXyzMarketCheck: true,
+  };
+}
 
 export type PerpDirection = 'long' | 'short';
 

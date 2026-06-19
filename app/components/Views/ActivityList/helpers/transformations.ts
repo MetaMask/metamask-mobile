@@ -46,14 +46,12 @@ function isIncomingTokenTransfer(
   address: string,
   transaction: V1TransactionByHashResponse,
 ) {
-  const normalizedAddress = address.toLowerCase();
   return (
-    transaction.valueTransfers?.some(
-      (transfer) =>
-        Boolean(transfer.contractAddress) &&
-        transfer.to?.toLowerCase() === normalizedAddress &&
-        transfer.from?.toLowerCase() !== normalizedAddress,
-    ) ?? false
+    (transaction.valueTransfers?.some(
+      (transfer) => transfer.to?.toLowerCase() === address,
+    ) ??
+      false) &&
+    transaction.from?.toLowerCase() !== address
   );
 }
 
@@ -97,12 +95,13 @@ export function shouldSkipTransaction(
   const rawFrom = transaction.from?.toLowerCase();
   const rawTo = transaction.to?.toLowerCase();
   const hash = transaction.hash?.toLowerCase();
+  const hasTopLevelAddressMatch = rawFrom === address || rawTo === address;
 
   if (hash && excludedTxHashes?.has(hash)) {
     return true;
   }
 
-  if (rawFrom !== address && rawTo !== address) {
+  if (!hasTopLevelAddressMatch) {
     return true;
   }
 
@@ -120,11 +119,10 @@ export function shouldSkipTransaction(
     return true;
   }
 
-  if (isIncomingTokenTransfer(address, transaction)) {
-    return true;
-  }
-
-  return rawFrom !== address && isIncomingNativeTransfer(address, transaction);
+  return (
+    isIncomingTokenTransfer(address, transaction) ||
+    (rawFrom !== address && isIncomingNativeTransfer(address, transaction))
+  );
 }
 
 function transformApiTransactions(

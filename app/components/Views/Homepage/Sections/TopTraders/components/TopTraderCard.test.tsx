@@ -25,13 +25,12 @@ describe('TopTraderCard', () => {
     jest.clearAllMocks();
   });
 
-  it('renders username and 7D PnL', () => {
+  it('renders username and PnL', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
-    expect(screen.getByText(/7D/)).toBeOnTheScreen();
   });
 
   it('does not display ROI percentage on the card', () => {

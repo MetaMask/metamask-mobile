@@ -71,7 +71,7 @@ const STARTUP_PREFETCHES = [
 function getUrl(input: RequestInfo | URL): string {
   if (typeof input === 'string') return input;
   if (input instanceof URL) return input.href;
-  return (input as Request).url;
+  return (input as Request).url ?? '';
 }
 
 /**
@@ -108,9 +108,14 @@ function installProductionNitroFetch(): void {
   //   - import `fetch` from 'expo/fetch' directly (see bridge-controller-init.ts)
   global.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
     nitroFetch(input, withPrefetchKey(input, init));
-  globalThis.Headers = Headers as unknown as typeof globalThis.Headers;
-  globalThis.Request = Request as unknown as typeof globalThis.Request;
-  globalThis.Response = Response as unknown as typeof globalThis.Response;
+  const _g = globalThis as unknown as {
+    Headers: typeof Headers;
+    Request: typeof Request;
+    Response: typeof Response;
+  };
+  _g.Headers = Headers;
+  _g.Request = Request;
+  _g.Response = Response;
 
   for (const { url, key } of STARTUP_PREFETCHES) {
     // Non-fatal: a registration failure means the cache is cold on next launch,
