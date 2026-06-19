@@ -23,13 +23,11 @@ const AVATAR_SIZE = 40;
 
 export interface ProfileHeaderProps {
   profile: TraderProfile;
-  followerCount: number;
   twitterHandle?: string | null;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
-  followerCount,
   twitterHandle,
 }) => {
   const handleTwitterPress = useCallback(() => {
@@ -84,18 +82,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </Pressable>
           ) : null}
         </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {strings(
-            followerCount === 1
-              ? 'social_leaderboard.trader_profile.followers_count'
-              : 'social_leaderboard.trader_profile.followers_count_plural',
-            { count: followerCount },
-          )}
-        </Text>
       </Box>
     </Box>
   );

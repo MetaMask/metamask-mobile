@@ -63,6 +63,8 @@ const styles = StyleSheet.create({
 
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
+  /** Optional callback fired when the section header is pressed, before navigation. */
+  onHeaderPress?: () => void;
   /** When true, the parent Explore feed supplies the section header. */
   hideHeader?: boolean;
   /** Optional pre-fetched feed state (avoids duplicate requests in Explore). */
@@ -72,7 +74,7 @@ interface WhatsHappeningSectionProps {
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ source, hideHeader = false, feed }, ref) => {
+>(({ source, onHeaderPress, hideHeader = false, feed }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -100,8 +102,9 @@ const WhatsHappeningSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
+    onHeaderPress?.();
     navigateToDetail(0);
-  }, [navigateToDetail]);
+  }, [onHeaderPress, navigateToDetail]);
 
   const handleCardPress = useCallback(
     (index: number) => {
