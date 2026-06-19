@@ -98,11 +98,16 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
   const MockSelector = ({
     onSelect,
     onChartTypeToggle,
+    isChartLoading,
   }: {
     onSelect: (r: string) => void;
     onChartTypeToggle?: () => void;
+    isChartLoading?: boolean;
   }) => (
-    <View testID="mock-time-range-selector">
+    <View
+      testID="mock-time-range-selector"
+      accessibilityState={{ busy: isChartLoading }}
+    >
       <Pressable testID="select-1W" onPress={() => onSelect('1W')} />
       <Pressable testID="select-1D" onPress={() => onSelect('1D')} />
       {onChartTypeToggle && (
@@ -847,6 +852,35 @@ describe('PriceAdvanced', () => {
           }),
         }),
       );
+    });
+
+    it('falls back to legacy when TradingView init fails while OHLCV data is available', () => {
+      // AdvancedChart renders from useOHLCVChart (ohlcvData), not `prices`.
+      // CDN/library failure is the common case: OHLCV succeeded, WebView init did not.
+      expect(mockUseOHLCVChart).toBeDefined();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      act(() => {
+        advancedChart.props.onInitFailed?.(
+          'Failed to load TradingView library',
+        );
+      });
+
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    });
+
+    it('keeps TimeRangeSelector loading until advanced chart is revealed', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const timeRangeSelector = getByTestId('mock-time-range-selector');
+
+      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(true);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
     });
 
     it('starts time range visibility trace when time range changes', () => {

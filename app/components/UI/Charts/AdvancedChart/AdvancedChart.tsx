@@ -87,6 +87,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartReady,
       onSkeletonHidden,
       onError,
+      onInitFailed,
       onCrosshairMove,
       onChartInteracted,
       onChartTradingViewClicked,
@@ -387,10 +388,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           }
 
           case 'ERROR':
-            if (!isChartReady && webViewLoadedRef.current) {
-              setWebViewError(message.payload.message);
+            if (!isChartReady) {
+              if (onInitFailed) {
+                onInitFailed(message.payload.message);
+              } else {
+                setWebViewError(message.payload.message);
+                onError?.(message.payload.message);
+              }
+            } else {
+              onError?.(message.payload.message);
             }
-            onError?.(message.payload.message);
             break;
 
           case 'DEBUG':
@@ -410,6 +417,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         clearLayoutSettleTimeout,
         onChartReady,
         onError,
+        onInitFailed,
         onCrosshairMove,
         onChartInteracted,
         handleTradingViewOpen,
@@ -419,10 +427,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const handleWebViewError = useCallback(
       (syntheticEvent: { nativeEvent: { description: string } }) => {
         const { description } = syntheticEvent.nativeEvent;
+        if (!isChartReady && onInitFailed) {
+          onInitFailed(description);
+          return;
+        }
         setWebViewError(description);
         onError?.(description);
       },
-      [onError],
+      [isChartReady, onInitFailed, onError],
     );
 
     const handleLoadEnd = useCallback(() => {

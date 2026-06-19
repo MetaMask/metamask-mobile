@@ -129,6 +129,7 @@ export interface PriceAdvancedProps {
   /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
   comparePrice: number;
   isLoading: boolean;
+  /** From parent (`Price`); forwarded to {@link PriceLegacy} on fallback only — AdvancedChart uses OHLCV. */
   prices?: TokenPrice[];
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
@@ -158,6 +159,8 @@ const PriceAdvanced = ({
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
+  /** `null` = WebView init pending; `false` = chart ready; `true` = init failed → legacy fallback. */
+  const [chartInitFailed, setChartInitFailed] = useState<boolean | null>(null);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -272,6 +275,7 @@ const PriceAdvanced = ({
   } | null>(null);
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    setChartInitFailed(false);
     const open = activeVisibilityTraceRef.current;
     if (!open) {
       return;
@@ -297,6 +301,27 @@ const PriceAdvanced = ({
     });
     activeVisibilityTraceRef.current = null;
   }, []);
+
+  const handleAdvancedChartInitFailed = useCallback((error: string) => {
+    setChartInitFailed(true);
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+      data: {
+        errorMessage: error.slice(0, 200),
+        chartInitFailed: true,
+      },
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    setChartInitFailed(null);
+  }, [ohlcvSeriesKey]);
 
   const {
     ohlcvData,
@@ -456,7 +481,10 @@ const PriceAdvanced = ({
 
   const shouldFallbackToLegacy =
     !chartLoading &&
-    (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+    (ohlcvData.length < CHART_DATA_THRESHOLD ||
+      hasEmptyData ||
+      chartError ||
+      chartInitFailed === true);
 
   useLayoutEffect(() => {
     if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
@@ -680,6 +708,7 @@ const PriceAdvanced = ({
               onChartTradingViewClicked={handleChartTradingViewClicked}
               onSkeletonHidden={handleAdvancedChartSkeletonHidden}
               onError={handleAdvancedChartError}
+              onInitFailed={handleAdvancedChartInitFailed}
               lineColorOverride={initialAmbientColor}
               successColorOverride={
                 initialAmbientColor ? ambientSuccessGreen : undefined
@@ -695,7 +724,7 @@ const PriceAdvanced = ({
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
-            isChartLoading={chartLoading}
+            isChartLoading={chartLoading || chartInitFailed === null}
             selected={timeRange}
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
