@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Unzureichende Gelder",
-      "message": "Sie haben nicht genügend %{nativeCurrency} auf Ihrem Konto, um die Netzwerkgebühren zu bezahlen.",
-      "buy_action": "%{nativeCurrency} kaufen"
+      "message": "Sie haben nicht genügend {{nativeCurrency}} auf Ihrem Konto, um die Netzwerkgebühren zu bezahlen.",
+      "buy_action": "{{nativeCurrency}} kaufen"
     },
     "signed_or_submitted": {
       "title": "Transaktion läuft",
@@ -142,7 +142,7 @@
       "message": "Die Empfängeradresse unterstützt womöglich keine direkten Token-Übertragungen, was zu Geldverlusten führen kann. Fahren Sie nur fort, wenn Sie sicher sind, dass dieser Contract Ihre Übertragung empfangen kann."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Dieses spezifische Netzwerk erfordert, dass Sie eine Reserve von %{minBalance} %{nativeTokenSymbol} auf Ihrem Konto aufrechterhalten.",
+      "message": "Dieses spezifische Netzwerk erfordert, dass Sie eine Reserve von {{minBalance}} {{nativeTokenSymbol}} auf Ihrem Konto aufrechterhalten.",
       "title": "Reservesaldo ist erforderlich"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "Passwort vergessen?",
     "cant_proceed": "Sie können nicht fortfahren, bevor Sie das Wort „Delete“ eingeben. Mit dieser Aktion entscheiden Sie sich dazu, Ihr aktuelles Wallet zu löschen.",
     "invalid_password": "Das Passwort ist falsch. Versuchen Sie es erneut.",
-    "type_delete": "Geben Sie zur Bestätigung „%{erase}“ ein",
+    "type_delete": "Geben Sie zur Bestätigung „{{erase}}“ ein",
     "erase_my": "Ja, Wallet zurücksetzen",
     "cancel": "Abbrechen",
     "are_you_sure": "Sind Sie sicher?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "Ihre Order konnte leider nicht storniert werden. Bitte versuchen Sie es erneut."
     },
     "webview_modal": {
-      "error": "Webview hat einen Fehler erhalten: %{code}"
+      "error": "Webview hat einen Fehler erhalten: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "Die Einzahlung von {{currency}} ist fehlgeschlagen! Bitte versuchen Sie es erneut und entschuldigen Sie die Unannehmlichkeiten!",
@@ -3566,13 +3566,13 @@
     "general_heading": "Allgemeines",
     "privacy_heading": "Datenschutz",
     "failed_to_fetch_chain_id": "Chain-ID konnte nicht abgerufen werden. Ist Ihre RPC-URL korrekt?",
-    "endpoint_returned_different_chain_id": "Der Endpunkt hat eine andere Chain-ID angegeben: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "Der Endpunkt hat eine andere Chain-ID angegeben: {{chainIdReturned}}",
     "chain_id_required": "Die Chain-ID wird benötigt. Sie muss mit der Chain-ID übereinstimmen, die vom Netzwerk zurückgesendet wird. Sie können eine Dezimalzahl oder eine mit „0x“ beginnende Hexadezimalzahl eingeben.",
     "invalid_hex_number": "Ungültige Hexadezimalzahl.",
     "invalid_hex_number_leading_zeros": "Ungültige Hexadezimalzahl. Entfernen Sie Nullen am Anfang.",
     "invalid_number": "Ungültige Zahl. Geben Sie eine Dezimalzahl oder eine mit „0x“ beginnende Hexadezimalzahl ein.",
     "invalid_number_leading_zeros": "Ungültige Zahl. Entfernen Sie Nullen am Anfang.",
-    "invalid_number_range": "Ungültige Zahl. Geben Sie eine Zahl zwischen 1 und %{maxSafeChainId} ein",
+    "invalid_number_range": "Ungültige Zahl. Geben Sie eine Zahl zwischen 1 und {{maxSafeChainId}} ein",
     "hide_zero_balance_tokens_title": "Tokens ohne Guthaben verbergen",
     "hide_zero_balance_tokens_desc": "Vermeiden Sie, dass Token ohne Guthaben in Ihrer Token-Liste angezeigt werden.",
     "haptic_feedback_title": "Haptisches Feedback",
@@ -4446,8 +4446,8 @@
     "confusable_msg": "Wir haben ein verwirrendes Zeichen im ENS-Namen festgestellt. Überprüfen Sie den ENS-Namen, um möglichen Betrug zu vermeiden.",
     "similar_to": "ist ähnlich wie",
     "contains_zero_width": "enthält breitenloses Zeichen",
-    "dapp_suggested_gas": "Diese Gas-Gebühr wurde von %{origin} vorgeschlagen. Es wird eine Legacy-Gas-Schätzung verwendet, die ungenau sein könnte. Die Bearbeitung dieser Gas-Gebühr könnte jedoch ein Problem mit Ihrer Transaktion verursachen. Bitte kontaktieren Sie %{origin}, falls Sie irgendwelche Probleme haben.",
-    "dapp_suggested_eip1559_gas": "Diese Gas-Gebühr wurde von %{origin} vorgeschlagen. Diese zu überschreiben könnte ein Problem mit Ihrer Transaktion verursachen. Bitte kontaktieren Sie %{origin}, falls Sie Fragen haben.",
+    "dapp_suggested_gas": "Diese Gas-Gebühr wurde von {{origin}} vorgeschlagen. Es wird eine Legacy-Gas-Schätzung verwendet, die ungenau sein könnte. Die Bearbeitung dieser Gas-Gebühr könnte jedoch ein Problem mit Ihrer Transaktion verursachen. Bitte kontaktieren Sie {{origin}}, falls Sie irgendwelche Probleme haben.",
+    "dapp_suggested_eip1559_gas": "Diese Gas-Gebühr wurde von {{origin}} vorgeschlagen. Diese zu überschreiben könnte ein Problem mit Ihrer Transaktion verursachen. Bitte kontaktieren Sie {{origin}}, falls Sie Fragen haben.",
     "address_invalid": "Empfängeradresse ist ungültig.",
     "ens_not_found": "Für diesen Namen wurde noch keine Adresse festgelegt.",
     "unknown_qr_code": "Ungültiger QR-Code. Bitte erneut versuchen.",
@@ -6218,7 +6218,7 @@
     }
   },
   "invalid_network": {
-    "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n%{network} \n muss erneut eingegeben werden.",
+    "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n{{network}} \n muss erneut eingegeben werden.",
     "message": "Um Sie vor bösartigen oder fehlerhaften Netzwerkanbietern zu schützen, sind Chain-IDs nun für alle benutzerdefinierten Netzwerke erforderlich.",
     "hint": "Hier finden Sie die Chain-IDs der beliebtesten Netzwerke:",
     "edit_network_button": "Netzwerk bearbeiten",
@@ -6250,7 +6250,7 @@
     "cancel": "Stornieren",
     "approve": "Genehmigen",
     "unrecognized_chain": "Dieses benutzerdefinierte Netzwerk wird nicht erkannt",
-    "invalid_chain": "Die %{rpcUrl} für diese Chain-ID stimmt nicht mit dem chainid.network-Eintrag überein",
+    "invalid_chain": "Die {{rpcUrl}} für diese Chain-ID stimmt nicht mit dem chainid.network-Eintrag überein",
     "alert_recommend": "Wir empfehlen Ihnen,",
     "alert_verify": "die Chain-ID zu verifizieren",
     "warning_subtext_new": {

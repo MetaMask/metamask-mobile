@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Hindi sapat ang pondo",
-      "message": "Wala kang sapat na %{nativeCurrency} sa iyong account para bayaran ang mga bayarin sa network.",
-      "buy_action": "Bumili ng %{nativeCurrency}"
+      "message": "Wala kang sapat na {{nativeCurrency}} sa iyong account para bayaran ang mga bayarin sa network.",
+      "buy_action": "Bumili ng {{nativeCurrency}}"
     },
     "signed_or_submitted": {
       "title": "Isinasagawa ang transaksyon",
@@ -142,7 +142,7 @@
       "message": "Maaaring hindi sinusuportahan ng address ng tatanggap ang direktang mga paglilipat ng token, na maaaring magresulta sa pagkalugi ng pondo. Magpatuloy lamang kung tiyak ka na matatanggap ng kontratang ito ang paglilipat mo."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Kailangan ng partikular na network na ito na magpanatili ng reserba ng %{minBalance} %{nativeTokenSymbol} sa iyong account.",
+      "message": "Kailangan ng partikular na network na ito na magpanatili ng reserba ng {{minBalance}} {{nativeTokenSymbol}} sa iyong account.",
       "title": "Kinakailangan ng reserbang balanse"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "Nakalimutan ang password?",
     "cant_proceed": "Hindi ka makakapagpatuloy hanggang sa i-type mo ang salitang ‘Tanggalin’. Kapag ginawa ang aksyong ito, nangangahulugan ito ng pag-opt in para burahin ang iyong kasalukuyang wallet.",
     "invalid_password": "Mali ang password, subukan muli.",
-    "type_delete": "I-type ang ‘%{erase}’ para kumpirmahin",
+    "type_delete": "I-type ang ‘{{erase}}’ para kumpirmahin",
     "erase_my": "Oo, i-reset ang wallet",
     "cancel": "Kanselahin",
     "are_you_sure": "Sigurado ka ba?",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "Hindi namin makansela ang iyong order. Subukang muli."
     },
     "webview_modal": {
-      "error": "Nakatanggap ng error ang Webview: %{code}"
+      "error": "Nakatanggap ng error ang Webview: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "Bigo ang pagdedeposito ng {{currency}}! Pakisubukan muli, pasensya na sa abala!",
@@ -3566,13 +3566,13 @@
     "general_heading": "Pangkalahatan",
     "privacy_heading": "Pagkapribado",
     "failed_to_fetch_chain_id": "Hindi makuha ang ID ng chain. Tama ba ang URL ng iyong RPC?",
-    "endpoint_returned_different_chain_id": "Nagbalik ang endpoint ng ibang ID ng chain: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "Nagbalik ang endpoint ng ibang ID ng chain: {{chainIdReturned}}",
     "chain_id_required": "Kinakailangan ang ID ng chain. Dapat itong tumugma sa ID ng chain na ibinalik ng network. Puwede kang maglagay ng decimal o '0x'-prefixed hexadecimal number.",
     "invalid_hex_number": "Di-wastong hexadecimal number.",
     "invalid_hex_number_leading_zeros": "Di-wastong hexadecimal number. Alisin ang anumang zero sa unahan.",
     "invalid_number": "Di-wastong numero. Maglagay ng decimal o '0x'-prefixed hexadecimal number.",
     "invalid_number_leading_zeros": "Di-wastong numero. Alisin ang anumang zero sa unahan.",
-    "invalid_number_range": "Di-wastong numero. Maglagay ng numero sa pagitan ng 1 at %{maxSafeChainId}",
+    "invalid_number_range": "Di-wastong numero. Maglagay ng numero sa pagitan ng 1 at {{maxSafeChainId}}",
     "hide_zero_balance_tokens_title": "Itago ang mga token na walang balanse",
     "hide_zero_balance_tokens_desc": "Pigilan ang mga token na walang balanse na lumabas sa iyong listahan ng token.",
     "haptic_feedback_title": "Haptic feedback",
@@ -4446,8 +4446,8 @@
     "confusable_msg": "May na-detect kaming nakakalitong character sa ENS name. Tingnan ang ENS name para maiwasan ang potensyal na panloloko.",
     "similar_to": "ay katulad ng",
     "contains_zero_width": "naglalaman ng zero na lapad ng karakter",
-    "dapp_suggested_gas": "Ang bayad sa gas na ito ay iminungkahi ng %{origin}. Gumagamit ito ng legacy na pagtatantya ng gas na maaaring hindi tumpak. Gayunpaman, maaaring magdulot ng problema sa iyong transaksyon ang pag-edit sa bayad sa gas na ito. Mangyaring makipag-ugnayan sa %{origin} kung mayroon kang mga katanungan.",
-    "dapp_suggested_eip1559_gas": "Ang bayad sa gas na ito ay iminungkahi ng %{origin}. Ang pag-override nito ay maaaring magdulot ng problema sa iyong transaksyon. Mangyaring makipag-ugnayan sa %{origin} kung mayroon kang mga katanungan.",
+    "dapp_suggested_gas": "Ang bayad sa gas na ito ay iminungkahi ng {{origin}}. Gumagamit ito ng legacy na pagtatantya ng gas na maaaring hindi tumpak. Gayunpaman, maaaring magdulot ng problema sa iyong transaksyon ang pag-edit sa bayad sa gas na ito. Mangyaring makipag-ugnayan sa {{origin}} kung mayroon kang mga katanungan.",
+    "dapp_suggested_eip1559_gas": "Ang bayad sa gas na ito ay iminungkahi ng {{origin}}. Ang pag-override nito ay maaaring magdulot ng problema sa iyong transaksyon. Mangyaring makipag-ugnayan sa {{origin}} kung mayroon kang mga katanungan.",
     "address_invalid": "Di-wastong address ng tatanggap.",
     "ens_not_found": "Walang address ang naitakda para sa pangalang ito.",
     "unknown_qr_code": "Di-wastong QR code. Mangyaring subukang muli.",
@@ -6218,7 +6218,7 @@
     }
   },
   "invalid_network": {
-    "title": "Ang ID ng chain para sa custom na network na \n %{network}.",
+    "title": "Ang ID ng chain para sa custom na network na \n {{network}}.",
     "message": "Para maprotektahan ka sa mga mapaminsala o palyadong network provider, kinakailangan na ngayon ang mga ID ng chain para sa lahat ng custom na network.",
     "hint": "Makikita mo ang mga ID ng chain ng mga pinakasikat na network sa ",
     "edit_network_button": "I-edit ang network",
@@ -6250,7 +6250,7 @@
     "cancel": "Kanselahin",
     "approve": "Aprubahan",
     "unrecognized_chain": "Hindi kilala ang custom network na ito",
-    "invalid_chain": "Ang %{rpcUrl} para sa ID ng Chain na ito ay hindi tumutugma sa chainid.network listing",
+    "invalid_chain": "Ang {{rpcUrl}} para sa ID ng Chain na ito ay hindi tumutugma sa chainid.network listing",
     "alert_recommend": "Inirerekomenda namin sa iyo na",
     "alert_verify": "i-verify ang ID ng chain",
     "warning_subtext_new": {
