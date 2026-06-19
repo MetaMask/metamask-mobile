@@ -36,7 +36,6 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -140,7 +139,6 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -158,19 +156,15 @@ const MoneyHomeView = () => {
   );
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { startLinkFlow, hasMoneyAccountRequirements } =
-    useMoneyAccountCardLinkage();
-  const geolocation = useSelector(getDetectedGeolocation);
-  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
-
-  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
-    stepperId: STEPPER_IDS.MONEY,
-    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
-  });
-
-  const homeState = getMoneyHomeState(allTransactions.length);
-  const isMilestone = homeState === 'milestone' || homeState === 'filled';
-  const isCardholderWithMilestone = isMilestone && isCardholder;
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const hasMetalCard = useSelector(selectHasMetalCard);
+  const {
+    startLinkFlow,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+    isLinking,
+    hasMoneyAccountRequirements,
+  } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -277,13 +271,15 @@ const MoneyHomeView = () => {
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: 'money.musd_row.add',
       component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-      redirect_target: hasMusdBalance
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : SCREEN_NAMES.RAMP_BUY,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    routeAddMoney();
-  }, [hasMusdBalance, routeAddMoney, trackButtonClicked]);
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyHomeView] Failed to initiate deposit from mUSD row',
+      }),
+    );
+  }, [initiateDeposit, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
@@ -567,9 +563,9 @@ const MoneyHomeView = () => {
   );
 
   let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
-  if (isCardholderWithMilestone && isUS) {
+  if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardholderWithMilestone) {
+  } else if (isCardAuthenticated || isCardholder) {
     metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
   } else {
     metamaskCardMode = 'upsell';
@@ -699,18 +695,24 @@ const MoneyHomeView = () => {
           <>
             <MoneyMetaMaskCard
               mode={metamaskCardMode}
-              onGetNowPress={handleCardPress}
-              onHeaderPress={handleCardPress}
+              onGetNowPress={navigateToCardHome}
+              onHeaderPress={handleCardHeaderPress}
               onLinkPress={handleLinkCardPress}
-              onManagePress={handleCardPress}
-              showMetalCard={isUS}
+              onManagePress={navigateToCardHome}
+              showMetalCard={hasMetalCard}
+              isLinkDisabled={isLinking}
               cardBalance={cardBalance}
               apy={apyPercent}
+              analyticsScreen={CardScreens.MONEY_HOME}
+              analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+              analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+              analyticsCardState={cardState}
+              analyticsReady={isCardAnalyticsReady}
             />
             <Divider />
           </>
         )}
-        {isMilestone && (
+        {isFunded && (
           <>
             <MoneyCondensedInfoCards
               onHowItWorksPress={() =>
