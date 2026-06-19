@@ -606,4 +606,5 @@ export interface CashbackWithdrawEstimationResponse {
   wei: string;
   eth: string;
   price: string;
+  network: string;
 }
