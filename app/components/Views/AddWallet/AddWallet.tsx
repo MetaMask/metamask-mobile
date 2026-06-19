@@ -107,9 +107,13 @@ const AddWallet = () => {
   );
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-default`} edges={['top', 'bottom']}>
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={tw`flex-1 bg-default`}
+    >
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
         <HeaderStandard
+          includesTopInset
           backButtonProps={{
             accessibilityLabel: strings('navigation.back'),
             onPress: handleBack,

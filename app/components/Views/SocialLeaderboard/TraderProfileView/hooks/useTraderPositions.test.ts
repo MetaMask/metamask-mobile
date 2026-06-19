@@ -99,7 +99,7 @@ describe('useTraderPositions', () => {
         expect.objectContaining({
           queryKey: [
             'SocialService:fetchOpenPositions',
-            { addressOrId: 'trader-1' },
+            { addressOrId: 'trader-1', limit: 100 },
           ],
         }),
       );
@@ -108,7 +108,7 @@ describe('useTraderPositions', () => {
         expect.objectContaining({
           queryKey: [
             'SocialService:fetchClosedPositions',
-            { addressOrId: 'trader-1' },
+            { addressOrId: 'trader-1', sort: 'latest', limit: 100 },
           ],
         }),
       );

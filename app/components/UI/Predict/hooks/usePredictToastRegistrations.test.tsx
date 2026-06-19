@@ -5,6 +5,7 @@ import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../../selectors/networkController';
 
@@ -90,6 +91,10 @@ jest.mock('../../../../store', () => ({
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactionMetadataById: jest.fn(() => undefined),
+}));
+
+jest.mock('../../Money/utils/moneyTransactionGuards', () => ({
+  isPerpsPredictMoneyDeposit: jest.fn(() => false),
 }));
 
 jest.mock('../../../../selectors/tokensController', () => ({
@@ -296,6 +301,60 @@ describe('usePredictToastRegistrations', () => {
 
       expect(showToast).not.toHaveBeenCalled();
       expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it.each(['approved', 'confirmed', 'failed'])(
+      'does not show toast on %s status when funded from the Money account',
+      (status) => {
+        (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue(
+          { id: 'tx-money' },
+        );
+        (isPerpsPredictMoneyDeposit as unknown as jest.Mock).mockReturnValue(
+          true,
+        );
+
+        const handler = getHandler();
+
+        handler(
+          {
+            type: 'deposit',
+            status,
+            transactionId: 'tx-money',
+            senderAddress: selectedAddress,
+            amount: 100,
+          },
+          showToast,
+        );
+
+        expect(showToast).not.toHaveBeenCalled();
+      },
+    );
+
+    it('still shows pending toast for a non-money deposit', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-normal',
+      });
+      (isPerpsPredictMoneyDeposit as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-normal',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+        }),
+      );
     });
   });
 

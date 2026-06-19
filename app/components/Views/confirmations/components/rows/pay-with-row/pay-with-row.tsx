@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
@@ -51,6 +51,7 @@ import {
   PayWithOption,
 } from '../../confirm/confirm-component';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
@@ -68,13 +69,28 @@ export function PayWithRow({
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
   const { payWithOption } = useParams<ConfirmationParams>({});
+  const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
+
+  // Once the controller has set a paymentOverride (even if later cleared by the
+  // user switching away), Redux is the source of truth and the flag-based
+  // default no longer applies.
+  const overrideApplied = useRef(false);
+  if (paymentOverride !== undefined) {
+    overrideApplied.current = true;
+  }
 
   // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
   if (payWithOption === PayWithOption.MoneyAccount) {
     return null;
   }
 
+  // Explicit selection via controller — always honor it.
   if (paymentOverride === PaymentOverride.MoneyAccount) {
+    return <PayWithRowMoneyAccount />;
+  }
+
+  // Flag-based default — step aside when results are ready so user can change.
+  if (isDefaultMoneyAccount && !overrideApplied.current && !isResultReady) {
     return <PayWithRowMoneyAccount />;
   }
 

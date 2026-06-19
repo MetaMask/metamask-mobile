@@ -10,6 +10,8 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardVerificationStatus,
+  selectIsCardVerified,
   selectHasMetalCard,
   selectCardPrimaryToken,
   selectCardAvailableTokens,
@@ -18,6 +20,9 @@ import {
   selectCardHasApprovedLineaFunding,
   selectCardLineaUsdcToken,
   selectIsMoneyAccountDelegatedForCard,
+  selectCardCountryOfResidence,
+  selectCardResidencyRegion,
+  selectIsCardResidencyBlocked,
 } from './cardController';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
@@ -69,8 +74,27 @@ const makeVedaDelegationSettings = () => ({
   _links: { self: '/v1/delegation/chain/config' },
 });
 
+const MONAD_VEDA_FEATURE_FLAG = {
+  chains: {
+    'eip155:143': {
+      enabled: true,
+      tokens: [
+        {
+          address: VEDA_ADDRESS,
+          symbol: 'veda',
+          decimals: 6,
+          enabled: true,
+          name: 'Veda',
+        },
+      ],
+    },
+  },
+};
+
 const createMockRootState = (
   overrides: Partial<CardControllerState> = {},
+  cardFeatureFlag?: unknown,
+  extraRemoteFlags?: Record<string, unknown>,
 ): RootState =>
   ({
     engine: {
@@ -86,6 +110,18 @@ const createMockRootState = (
           moneyAccountCardLinkInProgress: false,
           ...overrides,
         },
+        ...(cardFeatureFlag !== undefined || extraRemoteFlags !== undefined
+          ? {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  ...(cardFeatureFlag !== undefined
+                    ? { cardFeature: cardFeatureFlag }
+                    : {}),
+                  ...extraRemoteFlags,
+                },
+              },
+            }
+          : {}),
       },
     },
   }) as unknown as RootState;
@@ -347,6 +383,62 @@ describe('selectCardHomeData', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeData(state)).toBeNull();
+  });
+});
+
+describe('selectCardVerificationStatus', () => {
+  it('returns null when cardHomeData is missing', () => {
+    const state = createMockRootState();
+    expect(selectCardVerificationStatus(state)).toBeNull();
+  });
+
+  it('returns null when account is missing', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardVerificationStatus(state)).toBeNull();
+  });
+
+  it('returns the account verification status when present', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        account: { verificationStatus: 'PENDING' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardVerificationStatus(state)).toBe('PENDING');
+  });
+});
+
+describe('selectIsCardVerified', () => {
+  it('returns true only when verification status is VERIFIED', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardVerified(state)).toBe(true);
+  });
+
+  it.each(['PENDING', 'UNVERIFIED', 'REJECTED', null] as const)(
+    'returns false when verification status is %s',
+    (verificationStatus) => {
+      const state = createMockRootState({
+        cardHomeData: {
+          account: verificationStatus ? { verificationStatus } : null,
+        } as unknown as CardControllerState['cardHomeData'],
+      });
+      expect(selectIsCardVerified(state)).toBe(false);
+    },
+  );
+
+  it('returns false when cardHomeData is missing even if user is a cardholder', () => {
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:1:0xabc'],
+      cardHomeData: null,
+    });
+    expect(selectIsCardVerified(state)).toBe(false);
   });
 });
 
@@ -727,6 +819,78 @@ describe('selectCardAvailableTokens', () => {
       expect(tokensB[0]?.walletAddress).toBe(WALLET_B);
     });
 
+    it('drops a placeholder whose token is not in the cardFeature allowlist', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const homeData = {
+        ...mockCardHomeData,
+        fundingAssets: [],
+        delegationSettings: {
+          networks: [
+            {
+              network: 'linea',
+              environment: 'production',
+              chainId: '59144',
+              delegationContract: '0xdeleg000000000000000000000000000000000004',
+              tokens: {
+                FOO: {
+                  address: '0xfoo0000000000000000000000000000000000099',
+                  symbol: 'FOO',
+                  decimals: 18,
+                },
+              },
+            },
+          ],
+          count: 1,
+          _links: { self: '/v1/delegation/chain/config' },
+        },
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      });
+      expect(selectCardAvailableTokens(state)).toStrictEqual([]);
+    });
+
+    it('drops the veda placeholder when veda is not allowlisted on monad', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const homeData = {
+        ...mockCardHomeData,
+        fundingAssets: [],
+        delegationSettings: makeVedaDelegationSettings(),
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      });
+      expect(selectCardAvailableTokens(state)).toStrictEqual([]);
+    });
+
+    it('keeps the veda placeholder as mUSD when monad+veda is allowlisted in cardFeature', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const homeData = {
+        ...mockCardHomeData,
+        fundingAssets: [],
+        delegationSettings: makeVedaDelegationSettings(),
+      } as unknown as CardHomeData;
+      const state = createMockRootState(
+        {
+          cardHomeData:
+            homeData as unknown as CardControllerState['cardHomeData'],
+        },
+        MONAD_VEDA_FEATURE_FLAG,
+      );
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(1);
+      expect(tokens[0].displaySymbol).toBe('mUSD');
+      expect(tokens[0].isMoneyAccountEntry).toBe(true);
+    });
+
     it('suppresses the placeholder when the current wallet already has a real entry for the same token+chain', () => {
       mockSelectSelectedInternalAccountByScope.mockReturnValue(
         jest.fn().mockReturnValue({ address: WALLET_A }),
@@ -878,10 +1042,13 @@ describe('selectCardAvailableTokens', () => {
       mockSelectSelectedInternalAccountByScope.mockReturnValue(
         jest.fn().mockReturnValue({ address: WALLET_A } as InternalAccount),
       );
-      const state = createMockRootState({
-        cardHomeData:
-          cardHomeDataWithVeda as unknown as CardControllerState['cardHomeData'],
-      });
+      const state = createMockRootState(
+        {
+          cardHomeData:
+            cardHomeDataWithVeda as unknown as CardControllerState['cardHomeData'],
+        },
+        MONAD_VEDA_FEATURE_FLAG,
+      );
       const tokens = selectCardAvailableTokens(state);
       const placeholder = tokens.find(
         (t) => t.fundingStatus === FundingStatus.NotEnabled,
@@ -1276,5 +1443,255 @@ describe('selectIsMoneyAccountDelegatedForCard', () => {
     });
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
+  });
+});
+
+describe('selectCardCountryOfResidence', () => {
+  it('returns null when cardHomeData is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectCardCountryOfResidence(state)).toBeNull();
+  });
+
+  it('returns null when account is null', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardCountryOfResidence(state)).toBeNull();
+  });
+
+  it('returns countryOfResidence from account', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        account: {
+          verificationStatus: 'VERIFIED',
+          provisioningEligible: false,
+          holderName: 'Test User',
+          shippingAddress: null,
+          countryOfResidence: 'GB',
+          usState: null,
+        },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardCountryOfResidence(state)).toBe('GB');
+  });
+});
+
+describe('selectCardResidencyRegion', () => {
+  it('returns US-{STATE} for US cardholders with a known state', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        account: {
+          verificationStatus: 'VERIFIED',
+          provisioningEligible: false,
+          holderName: 'Test User',
+          shippingAddress: null,
+          countryOfResidence: 'US',
+          usState: 'CA',
+        },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardResidencyRegion(state)).toBe('US-CA');
+  });
+});
+
+describe('selectIsCardResidencyBlocked', () => {
+  const moneyBlockedFlags = (blockedRegions: string[]) => ({
+    moneyAccountGeoBlockedCountries: { blockedRegions },
+  });
+
+  it('returns false when countryOfResidence is null (fail-open)', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardResidencyBlocked(state)).toBe(false);
+  });
+
+  it('returns true when countryOfResidence is GB and GB is blocked', () => {
+    const state = createMockRootState(
+      {
+        cardHomeData: {
+          ...mockCardHomeData,
+          account: {
+            verificationStatus: 'VERIFIED',
+            provisioningEligible: false,
+            holderName: 'Test User',
+            shippingAddress: null,
+            countryOfResidence: 'GB',
+            usState: null,
+          },
+        } as unknown as CardControllerState['cardHomeData'],
+      },
+      undefined,
+      moneyBlockedFlags(['GB']),
+    );
+    expect(selectIsCardResidencyBlocked(state)).toBe(true);
+  });
+
+  it('returns false when countryOfResidence is not in blocked set', () => {
+    const state = createMockRootState(
+      {
+        cardHomeData: {
+          ...mockCardHomeData,
+          account: {
+            verificationStatus: 'VERIFIED',
+            provisioningEligible: false,
+            holderName: 'Test User',
+            shippingAddress: null,
+            countryOfResidence: 'US',
+            usState: 'NY',
+          },
+        } as unknown as CardControllerState['cardHomeData'],
+      },
+      undefined,
+      moneyBlockedFlags(['GB']),
+    );
+    expect(selectIsCardResidencyBlocked(state)).toBe(false);
+  });
+
+  it('returns true when US-CA is blocked and cardholder is in California', () => {
+    const state = createMockRootState(
+      {
+        cardHomeData: {
+          ...mockCardHomeData,
+          account: {
+            verificationStatus: 'VERIFIED',
+            provisioningEligible: false,
+            holderName: 'Test User',
+            shippingAddress: null,
+            countryOfResidence: 'US',
+            usState: 'CA',
+          },
+        } as unknown as CardControllerState['cardHomeData'],
+      },
+      undefined,
+      moneyBlockedFlags(['US-CA']),
+    );
+    expect(selectIsCardResidencyBlocked(state)).toBe(true);
+  });
+
+  it('returns false when only US-CA is blocked and cardholder is in New York', () => {
+    const state = createMockRootState(
+      {
+        cardHomeData: {
+          ...mockCardHomeData,
+          account: {
+            verificationStatus: 'VERIFIED',
+            provisioningEligible: false,
+            holderName: 'Test User',
+            shippingAddress: null,
+            countryOfResidence: 'US',
+            usState: 'NY',
+          },
+        } as unknown as CardControllerState['cardHomeData'],
+      },
+      undefined,
+      moneyBlockedFlags(['US-CA']),
+    );
+    expect(selectIsCardResidencyBlocked(state)).toBe(false);
+  });
+
+  it('returns true when entire US is blocked', () => {
+    const state = createMockRootState(
+      {
+        cardHomeData: {
+          ...mockCardHomeData,
+          account: {
+            verificationStatus: 'VERIFIED',
+            provisioningEligible: false,
+            holderName: 'Test User',
+            shippingAddress: null,
+            countryOfResidence: 'US',
+            usState: 'NY',
+          },
+        } as unknown as CardControllerState['cardHomeData'],
+      },
+      undefined,
+      moneyBlockedFlags(['US']),
+    );
+    expect(selectIsCardResidencyBlocked(state)).toBe(true);
+  });
+});
+
+describe('selectCardAvailableTokens residency blocking', () => {
+  const WALLET_A = '0xwalletA000000000000000000000000000000001';
+  const moneyBlockedFlags = (blockedRegions: string[]) => ({
+    moneyAccountGeoBlockedCountries: { blockedRegions },
+  });
+
+  it('suppresses Money Account placeholder entries when residency is blocked', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({ address: WALLET_A }),
+    );
+    const homeData = {
+      ...mockCardHomeData,
+      fundingAssets: [],
+      delegationSettings: makeVedaDelegationSettings(),
+      account: {
+        verificationStatus: 'VERIFIED',
+        provisioningEligible: false,
+        holderName: 'Test User',
+        shippingAddress: null,
+        countryOfResidence: 'GB',
+        usState: null,
+      },
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      MONAD_VEDA_FEATURE_FLAG,
+      moneyBlockedFlags(['GB']),
+    );
+    expect(selectCardAvailableTokens(state)).toStrictEqual([]);
+  });
+
+  it('keeps active Money Account funding rows when residency is blocked', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({ address: WALLET_A }),
+    );
+    const homeData = {
+      ...mockCardHomeData,
+      fundingAssets: [
+        {
+          symbol: 'veda',
+          name: 'Veda',
+          address: VEDA_ADDRESS,
+          walletAddress: WALLET_A,
+          decimals: 6,
+          chainId: VEDA_CAIP,
+          spendableBalance: '10',
+          spendingCap: '100',
+          priority: 1,
+          status: FundingAssetStatus.Active,
+          delegationContract: VEDA_DELEGATION_CONTRACT,
+        },
+      ],
+      delegationSettings: makeVedaDelegationSettings(),
+      account: {
+        verificationStatus: 'VERIFIED',
+        provisioningEligible: false,
+        holderName: 'Test User',
+        shippingAddress: null,
+        countryOfResidence: 'GB',
+        usState: null,
+      },
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      MONAD_VEDA_FEATURE_FLAG,
+      moneyBlockedFlags(['GB']),
+    );
+    const tokens = selectCardAvailableTokens(state);
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0].isMoneyAccountEntry).toBe(true);
+    expect(tokens[0].fundingStatus).toBe(FundingStatus.Enabled);
   });
 });

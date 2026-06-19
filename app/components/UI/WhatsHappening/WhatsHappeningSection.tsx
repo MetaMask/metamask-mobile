@@ -14,8 +14,9 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TextVariant } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../component-library/components-temp/SectionHeader';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
+import SectionHeader from '../../Views/TrendingView/components/SectionHeader';
+import TempSectionHeader from '../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../Views/Homepage/components/ErrorState';
 import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
@@ -27,9 +28,14 @@ import {
   MAX_ITEMS_DISPLAYED,
   WhatsHappeningInteractionType,
   WhatsHappeningView,
+  WhatsHappeningSource,
   type WhatsHappeningSourceValue,
 } from './constants';
-import { useWhatsHappening } from './hooks';
+import {
+  useWhatsHappening,
+  isWhatsHappeningSectionVisible,
+  type UseWhatsHappeningResult,
+} from './hooks';
 import type { WhatsHappeningItem } from './types';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
@@ -57,12 +63,18 @@ const styles = StyleSheet.create({
 
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
+  /** Optional callback fired when the section header is pressed, before navigation. */
+  onHeaderPress?: () => void;
+  /** When true, the parent Explore feed supplies the section header. */
+  hideHeader?: boolean;
+  /** Optional pre-fetched feed state (avoids duplicate requests in Explore). */
+  feed?: UseWhatsHappeningResult;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ source }, ref) => {
+>(({ source, onHeaderPress, hideHeader = false, feed }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -70,8 +82,10 @@ const WhatsHappeningSection = forwardRef<
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('whats_happening.title');
 
-  const { items, isLoading, error, refresh } =
-    useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const internalFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED, {
+    enabled: feed === undefined,
+  });
+  const { items, isLoading, error, refresh } = feed ?? internalFeed;
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -88,8 +102,9 @@ const WhatsHappeningSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
+    onHeaderPress?.();
     navigateToDetail(0);
-  }, [navigateToDetail]);
+  }, [onHeaderPress, navigateToDetail]);
 
   const handleCardPress = useCallback(
     (index: number) => {
@@ -125,67 +140,80 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
-  if (hasError) {
-    return (
-      <View style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAll}
-          testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-        />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
-      </View>
-    );
+  const useExploreLayout =
+    hideHeader && source === WhatsHappeningSource.Explore;
+
+  const header = hideHeader ? null : (
+    <TempSectionHeader
+      title={title}
+      onPress={handleViewAll}
+      testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+    />
+  );
+
+  const carouselContent = hasError ? (
+    <ErrorState
+      title={strings('homepage.error.unable_to_load', {
+        section: title.toLowerCase(),
+      })}
+      onRetry={refresh}
+    />
+  ) : (
+    <PerpsStreamProvider>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+        snapToOffsets={SNAP_OFFSETS}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        testID={WhatsHappeningSelectorsIDs.CAROUSEL}
+      >
+        {isLoading ? (
+          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
+        ) : (
+          <>
+            {items.map((item: WhatsHappeningItem, index: number) => (
+              <WhatsHappeningCard
+                key={item.id}
+                item={item}
+                cardIndex={index}
+                source={source}
+                onPress={() => handleCardPress(index)}
+              />
+            ))}
+            <ViewMoreCard
+              onPress={handleViewAll}
+              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
+              textVariant={TextVariant.BodyLg}
+            />
+          </>
+        )}
+      </ScrollView>
+    </PerpsStreamProvider>
+  );
+
+  if (!isWhatsHappeningSectionVisible({ isLoading, items, error })) {
+    return null;
   }
 
-  if (!isLoading && items.length === 0) {
-    return null;
+  if (useExploreLayout) {
+    return (
+      <Box>
+        <SectionHeader
+          title={title}
+          onViewAll={handleViewAll}
+          testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+        />
+        <Box twClassName="-mx-4">{carouselContent}</Box>
+      </Box>
+    );
   }
 
   return (
     <View style={styles.sectionGap}>
-      <SectionHeader
-        title={title}
-        onPress={handleViewAll}
-        testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-      />
-      <PerpsStreamProvider>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-          snapToOffsets={SNAP_OFFSETS}
-          decelerationRate="fast"
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          testID={WhatsHappeningSelectorsIDs.CAROUSEL}
-        >
-          {isLoading ? (
-            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
-          ) : (
-            <>
-              {items.map((item: WhatsHappeningItem, index: number) => (
-                <WhatsHappeningCard
-                  key={item.id}
-                  item={item}
-                  cardIndex={index}
-                  source={source}
-                  onPress={() => handleCardPress(index)}
-                />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAll}
-                twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-                textVariant={TextVariant.BodyLg}
-              />
-            </>
-          )}
-        </ScrollView>
-      </PerpsStreamProvider>
+      {header}
+      {carouselContent}
     </View>
   );
 });

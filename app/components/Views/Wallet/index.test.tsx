@@ -72,18 +72,19 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   ),
 }));
 
-let mockWalletHomeOnboardingStepsEnabled = false;
 jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => false),
-  selectWalletHomeOnboardingStepsEnabled: jest.fn(
-    () => mockWalletHomeOnboardingStepsEnabled,
-  ),
 }));
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
+}));
+
+const mockMoneyAccountGeoEligible = true;
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -107,15 +108,48 @@ jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
 
 // Control discovery tabs AB test variant per test (default control so existing tests are unaffected)
 let mockDiscoveryTabsVariantName = 'control';
+let mockDiscoveryPillsVariantName = 'control';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
-  useABTest: jest.fn(() => ({
-    variantName: mockDiscoveryTabsVariantName,
-    variant: {
-      discoveryTabsEnabled: mockDiscoveryTabsVariantName === 'treatment',
-    },
-  })),
+  useABTest: jest.fn((flagKey: string) => {
+    if (flagKey === 'homeTMCU926AbtestDiscoveryPills') {
+      const isGrayIcons = mockDiscoveryPillsVariantName === 'grayIcons';
+      const isColorIcons = mockDiscoveryPillsVariantName === 'colorIcons';
+      const showPills = isGrayIcons || isColorIcons;
+
+      return {
+        variantName: mockDiscoveryPillsVariantName,
+        variant: {
+          showPills,
+          iconStyle: isGrayIcons ? 'gray' : isColorIcons ? 'color' : null,
+        },
+        isActive: showPills,
+      };
+    }
+
+    return {
+      variantName: mockDiscoveryTabsVariantName,
+      variant: {
+        discoveryTabsEnabled: mockDiscoveryTabsVariantName === 'treatment',
+      },
+      isActive: mockDiscoveryTabsVariantName === 'treatment',
+    };
+  }),
 }));
+
+const mockHomepageDiscoveryPills = jest.fn();
+jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    HomepageDiscoveryPills: (props: { iconStyle: string }) => {
+      mockHomepageDiscoveryPills(props);
+      return React.createElement(View, {
+        testID: 'homepage-discovery-pills-mock',
+      });
+    },
+  };
+});
 
 // Track HomepageDiscoveryTabs renders
 const mockHomepageDiscoveryTabs = jest.fn();
@@ -579,7 +613,7 @@ function mockInitialStateWithRemoteFeatureFlags(
   };
 }
 
-/** Eligible + remote FF on + not suppressed — AccountGroupBalance and Wallet both show the checklist and hide main actions. */
+/** Eligible + not suppressed — AccountGroupBalance and Wallet both show the checklist and hide main actions. */
 const mockStateWalletHomePostOnboardingActive = {
   ...mockInitialState,
   onboarding: {
@@ -589,23 +623,6 @@ const mockStateWalletHomePostOnboardingActive = {
     walletHomeOnboardingSteps: {
       suppressedReason: null,
       stepIndex: 0,
-    },
-  },
-  engine: {
-    ...mockInitialState.engine,
-    backgroundState: {
-      ...mockInitialState.engine.backgroundState,
-      RemoteFeatureFlagController: {
-        ...mockInitialState.engine.backgroundState.RemoteFeatureFlagController,
-        remoteFeatureFlags: {
-          ...mockInitialState.engine.backgroundState.RemoteFeatureFlagController
-            .remoteFeatureFlags,
-          walletHomeOnboardingSteps: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
-      },
     },
   },
 };
@@ -1323,7 +1340,6 @@ describe('Wallet post-onboarding checklist coordination', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockWalletHomeOnboardingStepsEnabled = true;
     accountGroupBalanceMock.mockImplementation(
       RealAccountGroupBalance as (...args: unknown[]) => unknown,
     );
@@ -1336,7 +1352,6 @@ describe('Wallet post-onboarding checklist coordination', () => {
 
   afterEach(() => {
     accountGroupBalanceMock.mockImplementation(() => null);
-    mockWalletHomeOnboardingStepsEnabled = false;
   });
 
   it('does not mount main action buttons while wallet-home post-onboarding is active', () => {
@@ -1687,6 +1702,90 @@ describe('HomepageDiscoveryTabs AB test', () => {
     // HomepageDiscoveryTabs must not render; the legacy Homepage mock renders instead
     expect(mockHomepageDiscoveryTabs).not.toHaveBeenCalled();
     expect(capturedContext).toBeDefined();
+  });
+});
+
+describe('HomepageDiscoveryPills AB test', () => {
+  let mockNavigation: NavigationProp<ParamListBase>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDiscoveryTabsVariantName = 'control';
+    mockDiscoveryPillsVariantName = 'control';
+    mockHomepageDiscoveryPills.mockClear();
+
+    mockNavigation = {
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+      dangerouslyGetParent: jest.fn(() => ({
+        dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+        addListener: jest.fn(() => jest.fn()),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => undefined),
+        })),
+      })),
+    } as unknown as NavigationProp<ParamListBase>;
+
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockDiscoveryTabsVariantName = 'control';
+    mockDiscoveryPillsVariantName = 'control';
+    jest.clearAllMocks();
+  });
+
+  it('renders discovery pills on legacy homepage when grayIcons variant is active', () => {
+    mockDiscoveryPillsVariantName = 'grayIcons';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageDiscoveryPills).toHaveBeenCalledWith(
+      expect.objectContaining({ iconStyle: 'gray' }),
+    );
+  });
+
+  it('does not render discovery pills when control variant is active', () => {
+    mockDiscoveryPillsVariantName = 'control';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageDiscoveryPills).not.toHaveBeenCalled();
+  });
+
+  it('does not render discovery pills when discovery tabs treatment is active', () => {
+    mockDiscoveryPillsVariantName = 'grayIcons';
+    mockDiscoveryTabsVariantName = 'treatment';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageDiscoveryPills).not.toHaveBeenCalled();
   });
 });
 

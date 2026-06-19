@@ -13,6 +13,8 @@ import {
 } from '../../types';
 import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -79,9 +81,18 @@ jest.mock('../../contexts', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useLiveGameUpdates', () => ({
-  useLiveGameUpdates: () => ({ gameUpdate: null }),
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
+
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
 }));
+const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
 
 jest.mock('../../constants/sportLeagueConfigs', () => ({
   getLeagueConfig: () => ({}),
@@ -106,6 +117,24 @@ const initialState = {
     backgroundState,
   },
 };
+
+const stateWithSportCardLivePricesEnabled = (enabled: boolean) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        ...backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+          predictSportCardLivePrices: {
+            enabled,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+});
 
 const createMockOutcome = (
   tokens: PredictOutcomeToken[],
@@ -184,6 +213,12 @@ const createMockSportMarket = (
 describe('FeaturedCarouselSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   it('renders league name and live indicator for ongoing games', () => {
@@ -209,6 +244,35 @@ describe('FeaturedCarouselSportCard', () => {
     expect(getAllByTestId('predict-sport-team-logo')).toHaveLength(2);
     expect(getByText('2')).toBeOnTheScreen();
     expect(getByText('1')).toBeOnTheScreen();
+  });
+
+  it('renders cached game state from usePredictGame', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        status: 'scheduled',
+        elapsed: null,
+        score: null,
+      }),
+    });
+    mockUsePredictGame.mockReturnValue({
+      game: createMockGame({
+        status: 'ongoing',
+        elapsed: '75',
+        period: '2H',
+        score: { away: 3, home: 4, raw: '3-4' },
+      }),
+      isConnected: true,
+      lastUpdateTime: 1,
+    });
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Live 75')).toBeOnTheScreen();
+    expect(getByText('4')).toBeOnTheScreen();
+    expect(getByText('3')).toBeOnTheScreen();
   });
 
   it('renders team names', () => {
@@ -257,7 +321,9 @@ describe('FeaturedCarouselSportCard', () => {
       { state: initialState },
     );
 
-    expect(getByText(strings('predict.outcome_draw'))).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 20%`),
+    ).toBeOnTheScreen();
   });
 
   it.each(['nba', 'nfl'] as const)(
@@ -412,6 +478,62 @@ describe('FeaturedCarouselSportCard', () => {
       expect.objectContaining({
         outcomeToken: expect.objectContaining({ title: 'Celtics' }),
       }),
+    );
+  });
+
+  it('renders live best ask prices when available', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk:
+        tokenId === 'home-token'
+          ? 0.75
+          : tokenId === 'draw-token'
+            ? 0.18
+            : 0.25,
+    }));
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('$133.33')).toBeOnTheScreen();
+    expect(getByText('$400.00')).toBeOnTheScreen();
+    expect(getByText('75%')).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 18%`),
+    ).toBeOnTheScreen();
+    expect(getByText('25%')).toBeOnTheScreen();
+  });
+
+  it('renders static prices and disables live subscriptions when the flag is off', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk: 0.99,
+    }));
+    const market = createMockSportMarket();
+
+    const { getByText, queryByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: stateWithSportCardLivePricesEnabled(false) },
+    );
+
+    expect(getByText('$166.67')).toBeOnTheScreen();
+    expect(getByText('$250.00')).toBeOnTheScreen();
+    expect(getByText('60%')).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 20%`),
+    ).toBeOnTheScreen();
+    expect(getByText('40%')).toBeOnTheScreen();
+    expect(queryByText('99%')).not.toBeOnTheScreen();
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['home-token', 'draw-token', 'away-token'],
+      { enabled: false },
     );
   });
 });
