@@ -146,7 +146,7 @@ const TopTradersSection = forwardRef<
     enabled: isEnabled && !showError,
   });
 
-  const showSkeletons = isLoading && !hasTraders;
+  const showSkeletons = isInFlight && !hasTraders;
   const showViewMore = hasTraders;
   const isEmpty = !isInFlight && !hasError && !hasTraders;
 
