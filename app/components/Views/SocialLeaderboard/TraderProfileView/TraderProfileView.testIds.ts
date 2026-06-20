@@ -3,6 +3,7 @@ export const TraderProfileViewSelectorsIDs = {
   BACK_BUTTON: 'trader-profile-back-button',
   NOTIFICATION_BUTTON: 'trader-profile-notification-button',
   HEADER: 'trader-profile-header',
+  HEADER_COMPACT_IDENTITY: 'trader-profile-header-compact-identity',
   PROFILE_HEADER: 'trader-profile-profile-header',
   TITLE_SECTION_WRAPPER: 'trader-profile-title-section-wrapper',
   COMPACT_STATS: 'trader-profile-compact-stats',

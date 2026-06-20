@@ -360,7 +360,9 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
     expect(
       within(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+        screen.getByTestId(
+          TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY,
+        ),
       ).getByText('trader1'),
     ).toBeOnTheScreen();
   });

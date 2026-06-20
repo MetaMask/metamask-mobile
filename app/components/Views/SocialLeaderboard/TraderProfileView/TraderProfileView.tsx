@@ -61,6 +61,7 @@ import {
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
+import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TopTradersNotificationsSetupBottomSheet, {
   type TopTradersNotificationsSetupBottomSheetRef,
 } from './components/TopTradersNotificationsSetupBottomSheet';
@@ -348,8 +349,17 @@ const TraderProfileView = () => {
       <HeaderStandardAnimated
         scrollY={scrollYShared}
         titleSectionHeight={titleSectionHeightSv}
-        title={headerTitle}
-        titleProps={{ numberOfLines: 1 }}
+        title={
+          headerTitle && profile ? (
+            <TraderHeaderIdentity
+              traderName={headerTitle}
+              traderImageUrl={profile.profile.imageUrl}
+              traderAddress={profile.profile.address}
+              variant="compact"
+              testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
+            />
+          ) : undefined
+        }
         subtitle={
           headlineStats ? (
             <TraderProfileCompactStats stats={headlineStats} />
