@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AnimationDuration } from '@metamask/design-tokens';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import Animated, {
   type SharedValue,
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
@@ -88,6 +90,17 @@ const TraderPositionAnimatedHeader: React.FC<
     ],
   }));
 
+  const [isTokenHeaderActive, setIsTokenHeaderActive] = useState(false);
+
+  useAnimatedReaction(
+    () => compactTokenProgress.value >= 0.5,
+    (isActive, previousIsActive) => {
+      if (isActive !== previousIsActive) {
+        runOnJS(setIsTokenHeaderActive)(isActive);
+      }
+    },
+  );
+
   return (
     <HeaderStandard
       onBack={onBack}
@@ -99,7 +112,10 @@ const TraderPositionAnimatedHeader: React.FC<
       twClassName="bg-default"
     >
       <View style={styles.centerSlot}>
-        <Animated.View style={[styles.layer, traderLayerStyle]}>
+        <Animated.View
+          style={[styles.layer, traderLayerStyle]}
+          pointerEvents={isTokenHeaderActive ? 'none' : 'auto'}
+        >
           <TraderHeaderIdentity
             traderName={traderName}
             traderImageUrl={traderImageUrl}
@@ -109,7 +125,10 @@ const TraderPositionAnimatedHeader: React.FC<
             testID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
           />
         </Animated.View>
-        <Animated.View style={[styles.layer, tokenLayerStyle]}>
+        <Animated.View
+          style={[styles.layer, tokenLayerStyle]}
+          pointerEvents={isTokenHeaderActive ? 'auto' : 'none'}
+        >
           <TraderPositionCompactTokenStats
             symbol={symbol}
             pricePercentChange={pricePercentChange}
