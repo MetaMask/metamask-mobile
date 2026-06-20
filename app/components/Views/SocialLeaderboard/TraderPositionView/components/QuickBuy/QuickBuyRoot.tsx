@@ -14,6 +14,7 @@ import React, {
 import type { LayoutChangeEvent } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
@@ -89,6 +90,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   children,
 }) => {
   const tw = useTailwind();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
@@ -174,6 +176,17 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     [lockedHeight],
   );
 
+  // The BottomSheetDialog always reserves a bottom safe-area inset. Keep it as
+  // breathing room only on screens that pin a CTA to the bottom; on the
+  // scroll-only screens (quote details / select quote / pay with / receive)
+  // that inset is dead space. Rather than shrink those screens (which would
+  // cause a parasite layout shift between screens), grow the content into the
+  // inset and offset it with a matching negative margin: the net layout
+  // contribution stays `lockedHeight`, so the sheet keeps a constant height
+  // across every screen while the content fills the safe-area gap.
+  const hasBottomCta =
+    activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
+
   return (
     <BottomSheetDialog
       ref={bottomSheetRef}
@@ -193,7 +206,16 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           <Box
             testID="quick-buy-content-container"
             onLayout={handleContentLayout}
-            style={lockedHeight !== null ? { height: lockedHeight } : undefined}
+            style={{
+              ...(lockedHeight !== null
+                ? {
+                    height: hasBottomCta
+                      ? lockedHeight
+                      : lockedHeight + bottomInset,
+                  }
+                : {}),
+              ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
+            }}
           >
             <Animated.View
               key={activeScreen}
