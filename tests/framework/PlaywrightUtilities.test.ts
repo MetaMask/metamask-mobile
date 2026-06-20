@@ -152,7 +152,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   it('launches local Android debug builds via Expo dev-client deep link', async () => {
     process.env.CI = 'false';
     const execSyncMock = jest.spyOn(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-nodejs-modules
       require('child_process'),
       'execSync',
     );
