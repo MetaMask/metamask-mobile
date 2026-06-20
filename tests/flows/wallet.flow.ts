@@ -39,7 +39,7 @@ import ToastModal from '../page-objects/wallet/ToastModal';
 import { dismissAndroidSystemOverlaysPlaywright, dismissDeveloperMenuPlaywright, waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
-import { resolveE2EWaitTimeoutMs } from '../framework/Constants.js';
+import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import PlaywrightUtilities, {
   withImplicitWait,
 } from '../framework/PlaywrightUtilities';
