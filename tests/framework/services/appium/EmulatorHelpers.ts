@@ -6,7 +6,7 @@ import { createLogger } from '../../logger.ts';
 
 const logger = createLogger({ name: 'EmulatorHelpers' });
 
-const ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
+const DEFAULT_ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
 const ANDROID_BOOT_POLL_INTERVAL_MS = 2000;
 const ANDROID_CI_INITIAL_SETTLE_MS = 30_000;
 const ANDROID_ANR_DISMISS_INTERVAL_MS = 3000;
@@ -55,6 +55,18 @@ function execAsync(cmd: string): Promise<{ stdout: string; stderr: string }> {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resolveAndroidBootTimeoutMs(): number {
+  const raw = process.env.ANDROID_BOOT_TIMEOUT_MS?.trim();
+  if (!raw) {
+    return DEFAULT_ANDROID_BOOT_TIMEOUT_MS;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_ANDROID_BOOT_TIMEOUT_MS;
+  }
+  return parsed;
 }
 
 function parseAdbDevices(stdout: string): AdbDevice[] {
@@ -121,6 +133,17 @@ export function shouldWaitForOfflineEmulator(
   resolvedAvdName: string | undefined,
 ): boolean {
   return resolvedAvdName === requestedAvdName;
+}
+
+/**
+ * During cold boot `adb emu avd name` can fail while the device is still offline.
+ * Wait on a lone starting emulator instead of spawning a duplicate (CI uses `-read-only`).
+ */
+export function shouldWaitForUnidentifiedOfflineEmulator(options: {
+  isCI: boolean;
+  offlineOrAuthorizingCount: number;
+}): boolean {
+  return options.isCI && options.offlineOrAuthorizingCount === 1;
 }
 
 interface TapPoint {
@@ -400,7 +423,8 @@ async function stabilizeAndroidEmulatorAfterBoot(
 async function waitForEmulatorBoot(serial: string): Promise<void> {
   await execAsync(`adb -s ${serial} wait-for-device`);
 
-  const deadline = Date.now() + ANDROID_BOOT_TIMEOUT_MS;
+  const bootTimeoutMs = resolveAndroidBootTimeoutMs();
+  const deadline = Date.now() + bootTimeoutMs;
   let booted = false;
 
   while (Date.now() < deadline) {
@@ -424,7 +448,7 @@ async function waitForEmulatorBoot(serial: string): Promise<void> {
 
   if (!booted) {
     throw new Error(
-      `Android emulator ${serial} did not complete booting within ${ANDROID_BOOT_TIMEOUT_MS / 1000}s.`,
+      `Android emulator ${serial} did not complete booting within ${bootTimeoutMs / 1000}s.`,
     );
   }
 
@@ -453,6 +477,29 @@ export async function isAndroidEmulatorRunning(): Promise<boolean> {
  * Prefers `preferredSerial` or `ANDROID_DEVICE_UDID` so tests attach to a
  * specific adb serial instead of whichever emulator matches the AVD name.
  */
+async function killAndroidEmulatorsForAvd(avdName: string): Promise<void> {
+  const devices = await listAdbDevices();
+  for (const device of devices) {
+    if (!device.serial.startsWith('emulator-')) {
+      continue;
+    }
+    let resolvedAvdName: string | undefined;
+    try {
+      resolvedAvdName = await getEmulatorAvdName(device.serial);
+    } catch {
+      resolvedAvdName = undefined;
+    }
+    if (resolvedAvdName && resolvedAvdName !== avdName) {
+      continue;
+    }
+    logger.warn(
+      `Stopping Android emulator ${device.serial}${resolvedAvdName ? ` (${resolvedAvdName})` : ''} before restarting "${avdName}".`,
+    );
+    await execAsync(`adb -s ${device.serial} emu kill`).catch(() => undefined);
+  }
+  await sleep(2000);
+}
+
 export async function ensureAndroidEmulatorReady(
   avdName: string,
   preferredSerial?: string,
@@ -461,19 +508,28 @@ export async function ensureAndroidEmulatorReady(
     preferredSerial?.trim() || process.env.ANDROID_DEVICE_UDID?.trim();
   if (serial) {
     const devices = await listAdbDevices();
-    const device = devices.find(
-      (entry) => entry.serial === serial && entry.state === 'device',
-    );
-    if (device) {
+    const device = devices.find((entry) => entry.serial === serial);
+    if (device?.state === 'device') {
       logger.info(
         `Using configured Android emulator ${serial} — skipping AVD name lookup.`,
       );
       await waitForEmulatorBoot(serial);
       return serial;
     }
+    if (
+      device &&
+      (device.state === 'offline' || device.state === 'authorizing')
+    ) {
+      logger.info(
+        `Configured Android emulator ${serial} is ${device.state} — waiting for boot instead of spawning a duplicate.`,
+      );
+      await waitForEmulatorBoot(serial);
+      return serial;
+    }
     logger.warn(
-      `Configured Android serial ${serial} not found in adb devices — falling back to AVD "${avdName}".`,
+      `Configured Android serial ${serial} not found in adb devices — restarting emulator for AVD "${avdName}".`,
     );
+    await killAndroidEmulatorsForAvd(avdName);
   }
   return startAndroidEmulator(avdName);
 }
@@ -513,6 +569,22 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
     if (shouldWaitForOfflineEmulator(avdName, offlineAvdName)) {
       logger.info(
         `Waiting for Android emulator ${offlineEmulator.serial} (${offlineAvdName}) to finish booting instead of spawning a duplicate.`,
+      );
+      await waitForEmulatorBoot(offlineEmulator.serial);
+      return offlineEmulator.serial;
+    }
+    if (
+      offlineAvdName === undefined &&
+      shouldWaitForUnidentifiedOfflineEmulator({
+        isCI: process.env.CI === 'true',
+        offlineOrAuthorizingCount: devices.filter(
+          (entry) =>
+            entry.state === 'offline' || entry.state === 'authorizing',
+        ).length,
+      })
+    ) {
+      logger.info(
+        `Waiting for unidentified offline emulator ${offlineEmulator.serial} — likely "${avdName}" still booting.`,
       );
       await waitForEmulatorBoot(offlineEmulator.serial);
       return offlineEmulator.serial;
@@ -583,7 +655,8 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   emulatorProcess.unref();
 
   logger.info('Waiting for Android emulator to appear in adb...');
-  const deadline = Date.now() + ANDROID_BOOT_TIMEOUT_MS;
+  const bootTimeoutMs = resolveAndroidBootTimeoutMs();
+  const deadline = Date.now() + bootTimeoutMs;
   let serial: string | undefined;
 
   while (Date.now() < deadline) {
@@ -600,7 +673,7 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
 
   if (!serial) {
     throw new Error(
-      `Android emulator for AVD "${avdName}" did not appear in adb within ${ANDROID_BOOT_TIMEOUT_MS / 1000}s.`,
+      `Android emulator for AVD "${avdName}" did not appear in adb within ${bootTimeoutMs / 1000}s.`,
     );
   }
 
