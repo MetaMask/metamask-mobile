@@ -139,6 +139,17 @@ export class EmulatorProvider extends BaseServiceProvider {
   }
 
   /**
+   * Persist adb serial across Playwright tests and retries in the same worker.
+   */
+  private persistAndroidEmulatorSerial(
+    serial: string,
+    emulatorDevice: EmulatorConfig,
+  ): void {
+    emulatorDevice.udid = serial;
+    process.env.ANDROID_DEVICE_UDID = serial;
+  }
+
+  /**
    * Boot the configured device (emulator/simulator) if it is not already
    * running. Controlled by the SKIP_DEVICE_BOOT env var:
    *
@@ -166,7 +177,7 @@ export class EmulatorProvider extends BaseServiceProvider {
         avdName ?? '',
         emulatorDevice.udid,
       );
-      emulatorDevice.udid = serial;
+      this.persistAndroidEmulatorSerial(serial, emulatorDevice);
     } else if (this.project.use.platform === Platform.IOS) {
       const deviceName = this.project.use.device?.name;
       if (!deviceName) {
@@ -259,7 +270,7 @@ export class EmulatorProvider extends BaseServiceProvider {
         emulatorDevice.name ?? '',
         emulatorDevice.udid,
       );
-      emulatorDevice.udid = serial;
+      this.persistAndroidEmulatorSerial(serial, emulatorDevice);
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
         setAndroidSerialEnv: true,
       });

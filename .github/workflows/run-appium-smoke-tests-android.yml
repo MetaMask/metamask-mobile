@@ -111,7 +111,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -119,7 +119,7 @@ jobs:
       platform: android
       test_suite_tag: SmokePredictions
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       test-timeout-minutes: 60
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
