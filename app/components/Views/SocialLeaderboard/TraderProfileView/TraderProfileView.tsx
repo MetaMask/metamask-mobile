@@ -381,25 +381,25 @@ const TraderProfileView = () => {
           </Box>
         ) : (
           <>
-            {isLoading || !profile ? (
+            {isLoading && !profile ? (
               <ProfileHeaderSkeleton />
-            ) : (
+            ) : profile ? (
               <ProfileHeader
                 profile={profile.profile}
                 twitterHandle={profile.socialHandles?.twitter}
               />
-            )}
+            ) : null}
 
-            {isLoading || !profile || !headlineStats ? (
+            {isLoading && !profile ? (
               <StatsRowSkeleton />
-            ) : (
+            ) : profile && headlineStats ? (
               <StatsRow
                 stats={headlineStats}
                 holdTimeMinutes={profile.stats.medianHoldMinutes}
               />
-            )}
+            ) : null}
 
-            {!isLoading && profile && (
+            {profile && (
               <>
                 <Box twClassName="px-4 pt-3 pb-1">
                   <Button
@@ -446,7 +446,7 @@ const TraderProfileView = () => {
                       testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
                     />
                   </Box>
-                  {!isLoadingPositions && positions.length > 0 && (
+                  {positions.length > 0 && (
                     <SortButton
                       label={strings(SORT_LABEL_KEYS[currentSortKey])}
                       onPress={handleSortPress}
@@ -455,7 +455,7 @@ const TraderProfileView = () => {
                   )}
                 </Box>
 
-                {isLoadingPositions ? (
+                {isLoadingPositions && positions.length === 0 ? (
                   POSITION_SKELETON_KEYS.map((key) => (
                     <PositionRowSkeleton key={key} />
                   ))

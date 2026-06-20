@@ -231,7 +231,7 @@ describe('TopTradersSection', () => {
   it('renders skeletons instead of error state while a retry is in flight', () => {
     mockUseTopTraders.mockReturnValue({
       traders: [],
-      isLoading: false,
+      isLoading: true,
       isFetching: true,
       error: 'Network error',
       refresh: mockRefetch,
