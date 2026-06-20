@@ -123,6 +123,11 @@ export async function resolveAndroidAdbUdidForDevice(
 
   const promise = (async () => {
     try {
+      const envUdid = process.env.ANDROID_DEVICE_UDID?.trim();
+      if (!device.udid && envUdid) {
+        return envUdid;
+      }
+
       if (device.udid) {
         const udid = device.udid;
         if (device.name) {

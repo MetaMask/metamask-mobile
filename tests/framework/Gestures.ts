@@ -15,7 +15,6 @@ import { sleep } from '../../app/util/testUtils';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
-import type { ScrollContainer } from './GestureStrategy.ts';
 
 const logger = createLogger({ name: 'Gestures' });
 

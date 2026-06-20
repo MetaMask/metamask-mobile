@@ -26,13 +26,14 @@ import PredictBalance from '../../page-objects/Predict/PredictBalance.js';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
-import { loginForPredictTests } from './helpers/predict-helpers.js';
+import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   // Polygon predict withdraw publishes via EIP-7702 transaction relay, not Infura eth_sendRawTransaction.
   await POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS(mockServer);
   await POLYMARKET_POLYGON_RELAY_POLLING_MOCKS(mockServer);
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,

@@ -1,9 +1,5 @@
 import { createLogger, LogLevel } from '../../../framework/logger.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
-import Assertions from '../../../framework/Assertions.js';
-import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 
 const logger = createLogger({
   name: 'PredictHelpers',
@@ -17,6 +13,18 @@ export const PORTUGAL_LOCATION = {
   lat: 41.1318702,
   lon: -7.798836,
 };
+
+/**
+ * Disables the Perps homepage section for predict smoke tests.
+ * With homepageSectionsV1 enabled, an uninitialized Perps stream crashes wallet home
+ * (`PERPS_EVENT_VALUE.SECTION_NAME.BALANCE` / `usePerpsLivePositions`).
+ */
+export const remoteFeatureFlagPerpsDisabledForPredictSmoke = () => ({
+  perpsPerpTradingEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+});
 
 export class PredictHelpers {
   /**
@@ -44,13 +52,8 @@ export class PredictHelpers {
 
 /**
  * Logs into the app and waits for the wallet screen (Appium smoke tests).
+ * Mirrors Detox `loginToApp()` — wallet wait is handled by `loginToAppPlaywright`.
  */
 export async function loginForPredictTests(): Promise<void> {
   await loginToAppPlaywright({ scenarioType: 'e2e' });
-  await PredictHelpers.setPortugalLocation();
-  await TabBarComponent.tapWallet();
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet should be visible after login',
-    timeout: resolveE2EWaitTimeoutMs(15_000),
-  });
 }

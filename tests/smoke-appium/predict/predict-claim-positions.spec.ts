@@ -34,8 +34,9 @@ import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage.js';
 import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
 import {
-  PredictHelpers,
   loginForPredictTests,
+  PredictHelpers,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import {
@@ -63,6 +64,7 @@ Test Scenario: Claim winning positions
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),
@@ -128,6 +130,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           currentDeviceDetails,
         },
         async ({ mockServer }) => {
+          await PredictHelpers.setPortugalLocation();
           await loginForPredictTests();
 
           await WalletView.tapClaimButton();
@@ -184,6 +187,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           currentDeviceDetails,
         },
         async ({ mockServer }) => {
+          await PredictHelpers.setPortugalLocation();
           await loginForPredictTests();
 
           await WalletView.scrollAndTapPredictionsPosition(
@@ -202,7 +206,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           await Assertions.expectElementToBeVisible(WalletView.container, {
             description: 'Wallet after leaving open position market details',
-            timeout: resolveE2EWaitTimeoutMs(30_000),
+            timeout: resolveE2EWaitTimeoutMs(20_000),
           });
 
           // Switch mock so winning positions return redeemable: true.
@@ -218,7 +222,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
               });
             },
             {
-              timeout: resolveE2EWaitTimeoutMs(30_000),
+              timeout: resolveE2EWaitTimeoutMs(20_000),
               description: 'Winning position visible on wallet homepage',
             },
           );
@@ -232,7 +236,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
             PredictDetailsPage.container,
             {
               description: 'Winning position details page should be visible',
-              timeout: resolveE2EWaitTimeoutMs(30_000),
+              timeout: resolveE2EWaitTimeoutMs(20_000),
             },
           );
 

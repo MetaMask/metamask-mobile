@@ -20,10 +20,11 @@ import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailabl
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectations/predict-geo-restriction.analytics.js';
-import { loginForPredictTests } from './helpers/predict-helpers.js';
+import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
 
 const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,

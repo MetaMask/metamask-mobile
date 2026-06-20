@@ -20,7 +20,7 @@ import {
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import { predictOpenPositionAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-open-position.analytics.js';
-import { loginForPredictTests } from './helpers/predict-helpers.js';
+import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
 import { CELTICS_NETS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 
 /*
@@ -43,6 +43,7 @@ const positionDetails = {
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.

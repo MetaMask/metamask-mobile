@@ -22,7 +22,7 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails.js';
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics.js';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
-import { loginForPredictTests } from './helpers/predict-helpers.js';
+import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 
 /*
@@ -41,6 +41,7 @@ const positionDetails = {
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
@@ -81,7 +82,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
             SPURS_PELICANS_POSITION_ID,
           );
           await Assertions.expectElementToBeVisible(PredictDetailsPage.container, {
-            timeout: resolveE2EWaitTimeoutMs(30_000),
+            timeout: resolveE2EWaitTimeoutMs(20_000),
             description: 'Predict market details screen should be visible',
           });
           await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);

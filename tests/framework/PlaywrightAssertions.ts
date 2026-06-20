@@ -6,6 +6,7 @@ import PlaywrightGestures from './PlaywrightGestures.ts';
 import {
   addOverhead,
   isOverheadTrackingActive,
+  withImplicitWait,
 } from './PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
@@ -59,6 +60,10 @@ export default class PlaywrightAssertions {
    * - After detection a {@link probeOverhead} call measures the pure
    * per-command cost and registers it for subtraction.
    */
+  private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
+  /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
+  private static readonly POLL_IMPLICIT_WAIT_MS = 300;
+
   private static async pollUntilVisible(
     el: PlaywrightElement,
     timeout: number,
@@ -66,7 +71,7 @@ export default class PlaywrightAssertions {
     const interval = 300;
     const start = Date.now();
     let attempt = 0;
-    while (Date.now() - start < timeout) {
+    while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
       const remaining = timeout - (Date.now() - start);
       if (remaining <= 0) {
         break;
@@ -74,7 +79,10 @@ export default class PlaywrightAssertions {
       try {
         attempt++;
         const t0 = Date.now();
-        const exists = await el.unwrap().isExisting();
+        const exists = await withImplicitWait(
+          this.POLL_IMPLICIT_WAIT_MS,
+          () => el.unwrap().isExisting(),
+        );
         if (exists) {
           const displayed = await el.isVisible();
           if (displayed) {

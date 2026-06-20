@@ -8,6 +8,7 @@ import {
   asPlaywrightElement,
 } from './EncapsulatedElement.ts';
 import type { ScrollContainer } from './types.ts';
+import { getDriver } from './PlaywrightUtilities.ts';
 
 export type { ScrollContainer, ScrollViewMatcher } from './types.ts';
 
