@@ -76,25 +76,6 @@ const Root = () => {
       }
       initializationInFlight.current = true;
 
-      const devPreviewTarget = params?.devPreviewTarget;
-
-      if (devPreviewTarget) {
-        hasCheckedToken.current = true;
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: devPreviewTarget.screen,
-              params: {
-                ...(devPreviewTarget.params ?? {}),
-                animationEnabled: false,
-              },
-            },
-          ],
-        });
-        return;
-      }
-
       try {
         // 3. Default until vault / SDK hydration succeeds.
         let isAuthenticatedFromToken = false;
@@ -173,7 +154,6 @@ const Root = () => {
     initialRoute,
     params?.shouldRouteImmediately,
     params?.amount,
-    params?.devPreviewTarget,
   ]);
 
   return (

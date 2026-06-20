@@ -207,10 +207,12 @@ const Settings = () => {
             />
           )
         }
-        <SettingsDrawer
-          title={strings('app_settings.developer_options.title')}
-          onPress={onPressDeveloperOptions}
-        />
+        {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+          <SettingsDrawer
+            title={strings('app_settings.developer_options.title')}
+            onPress={onPressDeveloperOptions}
+          />
+        )}
         {process.env.METAMASK_ENVIRONMENT !== 'production' && (
           <SettingsDrawer
             title={strings('app_settings.feature_flag_override.title')}
