@@ -248,7 +248,16 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
+    # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
+    # an Appium-only tag like SmokeAccounts). Non-empty tags still trigger this workflow.
+    if: >-
+      ${{
+        !cancelled() &&
+        (
+          contains(toJSON(needs), '"result":"success"') ||
+          contains(toJSON(needs), '"result":"failure"')
+        )
+      }}
     needs:
       - swap-android-smoke
       - stake-android-smoke
