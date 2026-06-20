@@ -9,7 +9,10 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage.js
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import { remoteFeatureFlagPredictEnabled, remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
+import {
+  remoteFeatureFlagPredictEnabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_GEO_BLOCKED_MOCKS,
@@ -20,7 +23,10 @@ import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailabl
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectations/predict-geo-restriction.analytics.js';
-import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
+import {
+  loginForPredictTests,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
+} from './helpers/predict-helpers.js';
 
 const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -54,10 +60,13 @@ appiumTest.describe(SmokePredictions('Predictions - Geo Restriction'), () => {
           await loginForPredictTests();
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
-          await Assertions.expectElementToBeVisible(PredictMarketList.container, {
-            description:
-              'Predict market list container is visible before feed action',
-          });
+          await Assertions.expectElementToBeVisible(
+            PredictMarketList.container,
+            {
+              description:
+                'Predict market list container is visible before feed action',
+            },
+          );
 
           await PredictMarketList.tapCategoryTab('new');
           await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);

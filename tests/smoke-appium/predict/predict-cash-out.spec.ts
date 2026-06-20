@@ -6,7 +6,10 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage.js
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
 import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
-import { remoteFeatureFlagPredictEnabled, remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
+import {
+  remoteFeatureFlagPredictEnabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -22,7 +25,10 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails.js';
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics.js';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
-import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
+import {
+  loginForPredictTests,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
+} from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 
 /*
@@ -81,16 +87,21 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
             positionDetails.name,
             SPURS_PELICANS_POSITION_ID,
           );
-          await Assertions.expectElementToBeVisible(PredictDetailsPage.container, {
-            timeout: resolveE2EWaitTimeoutMs(20_000),
-            description: 'Predict market details screen should be visible',
-          });
+          await Assertions.expectElementToBeVisible(
+            PredictDetailsPage.container,
+            {
+              timeout: resolveE2EWaitTimeoutMs(20_000),
+              description: 'Predict market details screen should be visible',
+            },
+          );
           await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
           await PredictDetailsPage.tapGameCashOutButton(
             SPURS_PELICANS_POSITION_ID,
           );
-          await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
+          await Assertions.expectElementToBeVisible(
+            PredictCashOutPage.container,
+          );
 
           await Assertions.expectElementToBeVisible(
             PredictCashOutPage.cashOutButton,

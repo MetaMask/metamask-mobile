@@ -477,9 +477,7 @@ class PlaywrightUtilities {
       } catch {
         // Metro not ready yet.
       }
-      await new Promise((resolve) =>
-        setTimeout(resolve, METRO_STATUS_POLL_MS),
-      );
+      await new Promise((resolve) => setTimeout(resolve, METRO_STATUS_POLL_MS));
     }
 
     if (Date.now() >= deadline) {
@@ -545,7 +543,9 @@ class PlaywrightUtilities {
       setTimeout(resolve, ANDROID_PRE_LAUNCH_SETTLE_MS),
     );
 
-    logger.debug(`Launching Android debug app ${pkg}/${activity} with fixture extras`);
+    logger.debug(
+      `Launching Android debug app ${pkg}/${activity} with fixture extras`,
+    );
     await drv.execute('mobile: startActivity', {
       component: `${pkg}/${activity}`,
       action: 'android.intent.action.MAIN',

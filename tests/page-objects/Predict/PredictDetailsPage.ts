@@ -196,12 +196,10 @@ class PredictDetailsPage {
   }
 
   private getKeypadDigitButton(digit: string): EncapsulatedElementType {
-    const testID =
-      digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+    const testID = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
     return encapsulated({
       detox: () => Matchers.getElementByText(digit),
-      appium: () =>
-        PlaywrightMatchers.getElementById(testID, { exact: true }),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
     });
   }
 

@@ -14,7 +14,10 @@ import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import { encapsulated, EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 

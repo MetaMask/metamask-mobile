@@ -578,8 +578,7 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
       shouldWaitForUnidentifiedOfflineEmulator({
         isCI: process.env.CI === 'true',
         offlineOrAuthorizingCount: devices.filter(
-          (entry) =>
-            entry.state === 'offline' || entry.state === 'authorizing',
+          (entry) => entry.state === 'offline' || entry.state === 'authorizing',
         ).length,
       })
     ) {

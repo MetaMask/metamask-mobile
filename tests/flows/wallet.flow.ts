@@ -36,7 +36,11 @@ import ManualBackupStep1View from '../page-objects/Onboarding/ManualBackupStep1V
 import NetworkListModal from '../page-objects/Network/NetworkListModal';
 import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
-import { dismissAndroidSystemOverlaysPlaywright, dismissDeveloperMenuPlaywright, waitForAppReady } from './general.flow';
+import {
+  dismissAndroidSystemOverlaysPlaywright,
+  dismissDeveloperMenuPlaywright,
+  waitForAppReady,
+} from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';

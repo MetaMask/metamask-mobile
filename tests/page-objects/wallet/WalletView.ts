@@ -111,11 +111,15 @@ class WalletView {
           elemDescription: `Scroll to ${description}`,
         });
         if (overshootSwipe) {
-          await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
-            percentage: overshootSwipe.percentage ?? 0.15,
-            speed: 'slow',
-            elemDescription: `Overshoot swipe for ${description}`,
-          });
+          await Gestures.swipe(
+            this.walletScrollView,
+            overshootSwipe.direction,
+            {
+              percentage: overshootSwipe.percentage ?? 0.15,
+              speed: 'slow',
+              elemDescription: `Overshoot swipe for ${description}`,
+            },
+          );
         }
         await Gestures.waitAndTap(target, {
           elemDescription: description,
@@ -133,11 +137,15 @@ class WalletView {
           maxScrolls: 20,
         });
         if (overshootSwipe) {
-          await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
-            percentage: overshootSwipe.percentage ?? 0.15,
-            speed: 'slow',
-            elemDescription: `Overshoot swipe for ${description}`,
-          });
+          await Gestures.swipe(
+            this.walletScrollView,
+            overshootSwipe.direction,
+            {
+              percentage: overshootSwipe.percentage ?? 0.15,
+              speed: 'slow',
+              elemDescription: `Overshoot swipe for ${description}`,
+            },
+          );
         }
         await PlaywrightGestures.waitAndTap(el, { timeout: 30_000 });
       },
@@ -1105,12 +1113,7 @@ class WalletView {
         );
         const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(30_000);
 
-        if (
-          await this.tapIfAlreadyVisible(
-            target,
-            description,
-          )
-        ) {
+        if (await this.tapIfAlreadyVisible(target, description)) {
           await Assertions.expectElementToBeVisible(marketDetailsScreen, {
             timeout: predictNavigationTimeoutMs,
             description: 'Predict market details screen after position tap',
@@ -1156,7 +1159,9 @@ class WalletView {
                 return;
               }
             }
-            await Assertions.expectElementToBeVisible(target, { timeout: 5000 });
+            await Assertions.expectElementToBeVisible(target, {
+              timeout: 5000,
+            });
             await UnifiedGestures.waitAndTap(target, {
               description,
               timeout: 30_000,

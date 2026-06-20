@@ -20,7 +20,10 @@ import {
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import { predictOpenPositionAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-open-position.analytics.js';
-import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
+import {
+  loginForPredictTests,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
+} from './helpers/predict-helpers.js';
 import { CELTICS_NETS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 
 /*
@@ -87,9 +90,12 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
 
           await WalletView.scrollAndTapPredictionsSection();
 
-          await Assertions.expectElementToBeVisible(PredictMarketList.container, {
-            description: 'Predict market list container should be visible',
-          });
+          await Assertions.expectElementToBeVisible(
+            PredictMarketList.container,
+            {
+              description: 'Predict market list container should be visible',
+            },
+          );
 
           await PredictMarketList.tapCategoryTab(positionDetails.category);
           await PredictMarketList.tapMarketCard(
@@ -126,7 +132,10 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           verify that when the cache expires and a balance refresh request
           is made, it successfully returns the updated balance.
          */
-          await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+          await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(
+            mockServer,
+            'open-position',
+          );
 
           await PredictDetailsPage.tapBackButton();
           await WalletView.scrollAndTapPredictionsSection();

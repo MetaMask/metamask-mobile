@@ -79,9 +79,8 @@ export default class PlaywrightAssertions {
       try {
         attempt++;
         const t0 = Date.now();
-        const exists = await withImplicitWait(
-          this.POLL_IMPLICIT_WAIT_MS,
-          () => el.unwrap().isExisting(),
+        const exists = await withImplicitWait(this.POLL_IMPLICIT_WAIT_MS, () =>
+          el.unwrap().isExisting(),
         );
         if (exists) {
           const displayed = await el.isVisible();

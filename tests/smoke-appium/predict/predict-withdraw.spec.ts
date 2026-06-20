@@ -26,7 +26,10 @@ import PredictBalance from '../../page-objects/Predict/PredictBalance.js';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
-import { loginForPredictTests, remoteFeatureFlagPerpsDisabledForPredictSmoke } from './helpers/predict-helpers.js';
+import {
+  loginForPredictTests,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
+} from './helpers/predict-helpers.js';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   // Polygon predict withdraw publishes via EIP-7702 transaction relay, not Infura eth_sendRawTransaction.
@@ -85,9 +88,12 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
 
-          await Assertions.expectElementToBeVisible(PredictMarketList.container, {
-            description: 'Predict market list container should be visible',
-          });
+          await Assertions.expectElementToBeVisible(
+            PredictMarketList.container,
+            {
+              description: 'Predict market list container should be visible',
+            },
+          );
           await PredictBalance.expectBalanceCardVisible();
           await PredictBalance.tapWithdraw();
 
@@ -95,10 +101,13 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
           await TransactionPayConfirmation.tapKeyboardContinueButton();
           await FooterActions.tapConfirmButton();
 
-          await Assertions.expectElementToBeVisible(PredictMarketList.container, {
-            description:
-              'Predict market list should be visible after withdraw confirmation',
-          });
+          await Assertions.expectElementToBeVisible(
+            PredictMarketList.container,
+            {
+              description:
+                'Predict market list should be visible after withdraw confirmation',
+            },
+          );
         },
       );
     },
