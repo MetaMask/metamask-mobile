@@ -5,6 +5,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { KycStatus } from '../../constants';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
+import { strings } from '../../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -106,9 +107,12 @@ describe('KycProcessing Component', () => {
     expect(screen.getByText('Hang tight...')).toBeOnTheScreen();
   });
 
-  it('calls setOptions when the component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(KycProcessing);
-    expect(mockSetNavigationOptions).toHaveBeenCalled();
+    expect(
+      screen.getByText(strings('deposit.kyc_processing.navbar_title')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('renders error state with error heading', () => {

@@ -63,9 +63,12 @@ describe('AdditionalVerification Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls setOptions when the component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(AdditionalVerification);
-    expect(mockSetNavigationOptions).toHaveBeenCalled();
+    expect(
+      screen.getAllByText(strings('deposit.additional_verification.title'))[0],
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('calls navigateToKycWebview when continue button is pressed', () => {
