@@ -7,6 +7,7 @@ import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
+import { strings } from '../../../../../../../locales/i18n';
 
 const mockTrackEvent = jest.fn();
 
@@ -176,14 +177,13 @@ describe('EnterAddress Component', () => {
     });
   });
 
-  it('calls setOptions with header function when the component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(EnterAddress);
 
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        header: expect.any(Function),
-      }),
-    );
+    expect(
+      screen.getByText(strings('deposit.enter_address.navbar_title')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('disables the continue button when loading is true', async () => {

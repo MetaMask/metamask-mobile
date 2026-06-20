@@ -5,6 +5,7 @@ import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -90,9 +91,12 @@ describe('EnterEmail Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls setOptions when the component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(EnterEmail);
-    expect(mockSetNavigationOptions).toHaveBeenCalled();
+    expect(
+      screen.getByText(strings('deposit.enter_email.navbar_title')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('renders loading state with disabled button', async () => {
