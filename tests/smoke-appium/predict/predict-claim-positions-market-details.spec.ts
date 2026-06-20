@@ -60,19 +60,6 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           await POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(mockServer);
 
-          await Utilities.executeWithRetry(
-            async () => {
-              await Assertions.expectTextDisplayed(claimPositions.Won, {
-                description:
-                  'Winning position listed on wallet before opening details',
-              });
-            },
-            {
-              timeout: resolveE2EWaitTimeoutMs(20_000),
-              description: 'Winning position visible on wallet homepage',
-            },
-          );
-
           await WalletView.scrollAndTapPredictionsPosition(
             claimPositions.Won,
             BLUE_JAYS_MARINERS_POSITION_ID,

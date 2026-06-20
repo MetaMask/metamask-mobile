@@ -45,16 +45,6 @@ class WalletView {
     return WalletViewSelectorsIDs.WALLET_SCROLL_VIEW;
   }
 
-  /** Detox scroll container matcher; Appium uses the wallet ScrollView element. */
-  private get walletScrollContainer():
-    | Promise<Detox.NativeMatcher>
-    | EncapsulatedElementType
-    | undefined {
-    return FrameworkDetector.isAppium()
-      ? this.walletScrollView
-      : this.walletScrollViewIdentifier;
-  }
-
   /** Wallet ScrollView as element (for gestures like swipe). */
   get walletScrollView(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
@@ -70,7 +60,7 @@ class WalletView {
 
     try {
       await PlaywrightAssertions.expectElementToBeVisible(
-        target as EncapsulatedElementType,
+        asPlaywrightElement(target),
         { timeout: 2000, description },
       );
       await Gestures.waitAndTap(target, {

@@ -213,22 +213,14 @@ class PredictMarketList {
     cardIndex: number = 1,
   ): Promise<void> {
     const card = this.getMarketCard(category, cardIndex);
-    const listContainer = encapsulated({
-      detox: () =>
-        Matchers.getElementByID(getPredictFeedSelector.marketList(category)),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          getPredictFeedSelector.marketList(category),
-          { exact: true },
-        ),
-    });
+    const listContainerId = getPredictFeedSelector.marketList(category);
 
     await Utilities.executeWithRetry(
       async () => {
         try {
           await Assertions.expectElementToBeVisible(card, { timeout: 3000 });
         } catch {
-          await UnifiedGestures.scrollToElement(card, listContainer, {
+          await UnifiedGestures.scrollToElement(card, listContainerId, {
             description: `Predict market card ${cardIndex} in ${category}`,
             direction: 'down',
           });

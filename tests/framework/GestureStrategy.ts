@@ -506,16 +506,6 @@ export class AppiumGestureStrategy implements GestureStrategy {
     });
   }
 
-  private isEncapsulatedScrollView(
-    scrollView: ScrollContainer | undefined,
-  ): scrollView is EncapsulatedElementType {
-    return (
-      scrollView !== undefined &&
-      typeof scrollView !== 'string' &&
-      !(scrollView instanceof Promise)
-    );
-  }
-
   /**
    * Scroll to an element
    * @param target - The element to scroll to

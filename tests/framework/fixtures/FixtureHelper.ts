@@ -19,6 +19,8 @@ import Utilities, { sleep } from '../Utilities';
 import {
   dismissAndroidSystemOverlaysPlaywright,
   dismissDevScreens,
+  dismissDeveloperMenuPlaywright,
+  dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
@@ -578,6 +580,7 @@ export async function withFixtures(
     ResourceType.ACCOUNT_ACTIVITY_WS,
   );
   let testError: Error | null = null;
+  let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
 
   try {
     // Step 1: Start local nodes (Anvil/Ganache)
@@ -705,7 +708,7 @@ export async function withFixtures(
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
-          if (process.env.CI !== 'true' && !FrameworkDetector.isAppium()) {
+          if (process.env.CI !== 'true') {
             didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
             await Promise.all([
               appStateRequest,
@@ -748,7 +751,10 @@ export async function withFixtures(
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();
       } else if (FrameworkDetector.isAppium()) {
-        await dismissAndroidSystemOverlaysPlaywright();
+        if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
+          await dismissDevelopmentServerPickerPlaywright();
+        }
+        await dismissDeveloperMenuPlaywright();
       }
     }
 
