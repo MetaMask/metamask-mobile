@@ -353,6 +353,8 @@ export interface RootStackParamList extends ParamListBase {
   DepositConfigurationModal: undefined;
   DepositErrorDetailsModal: undefined;
 
+  DevDepositStackPreview: undefined;
+
   // Hardware wallet routes
   ConnectHardwareWalletFlow: undefined;
   SelectHardwareWallet: undefined;

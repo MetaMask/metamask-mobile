@@ -12,7 +12,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
 import { strings } from '../../../../../../../locales/i18n';
 import Text, {
@@ -221,21 +221,13 @@ const BankDetails = () => {
   const iban = getFieldValue('IBAN');
   const bic = getFieldValue('BIC');
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: hasDepositOrderField(order?.data, 'paymentMethod')
-              ? order.data.paymentMethod?.shortName
-              : '',
-          }),
-        },
-        theme,
-      ),
-    );
+  const headerTitle = strings('deposit.bank_details.navbar_title', {
+    paymentMethod: hasDepositOrderField(order?.data, 'paymentMethod')
+      ? order.data.paymentMethod?.shortName
+      : '',
+  });
 
+  useEffect(() => {
     endTrace({
       name: TraceName.LoadDepositExperience,
       data: {
@@ -256,7 +248,7 @@ const BankDetails = () => {
         destination: Routes.DEPOSIT.BANK_DETAILS,
       },
     });
-  }, [navigation, theme, order?.data]);
+  }, [order?.data]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
@@ -345,20 +337,30 @@ const BankDetails = () => {
     setShowBankInfo(!showBankInfo);
   }, [showBankInfo]);
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <ScreenLayout>
-      <ScrollView
-        testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={isRefreshing}
-            onRefresh={handleOnRefresh}
-          />
-        }
-      >
-        <ScreenLayout.Body>
+      <ScreenLayout.Body>
+        <HeaderStandard
+          title={headerTitle}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
+        <ScrollView
+          testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={isRefreshing}
+              onRefresh={handleOnRefresh}
+            />
+          }
+        >
           <ScreenLayout.Content style={styles.content}>
             <View style={styles.mainSection}>
               <Text variant={TextVariant.HeadingMD}>
@@ -470,8 +472,8 @@ const BankDetails = () => {
               <Loader size="large" color={theme.colors.primary.default} />
             )}
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScrollView>
+        </ScrollView>
+      </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>

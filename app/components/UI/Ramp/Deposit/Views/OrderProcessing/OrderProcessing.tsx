@@ -10,7 +10,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
@@ -39,6 +39,14 @@ const OrderProcessing = () => {
   const { orderId } = useParams<OrderProcessingParams>();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
+  const headerTitle =
+    order?.state === FIAT_ORDER_STATES.COMPLETED
+      ? strings('deposit.order_processing.success_title')
+      : order?.state === FIAT_ORDER_STATES.CANCELLED ||
+          order?.state === FIAT_ORDER_STATES.FAILED
+        ? strings('deposit.order_processing.error_title')
+        : strings('deposit.order_processing.title');
+
   const handleMainAction = useCallback(() => {
     if (
       order?.state === FIAT_ORDER_STATES.CANCELLED ||
@@ -55,19 +63,9 @@ const OrderProcessing = () => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
-  useEffect(() => {
-    const title =
-      order?.state === FIAT_ORDER_STATES.COMPLETED
-        ? strings('deposit.order_processing.success_title')
-        : order?.state === FIAT_ORDER_STATES.CANCELLED ||
-            order?.state === FIAT_ORDER_STATES.FAILED
-          ? strings('deposit.order_processing.error_title')
-          : strings('deposit.order_processing.title');
-
-    navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title }, theme),
-    );
-  }, [navigation, theme, order?.state]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
@@ -78,7 +76,15 @@ const OrderProcessing = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <Loader size="large" color={theme.colors.primary.default} />
+        <ScreenLayout.Body>
+          <HeaderStandard
+            title={headerTitle}
+            onBack={handleBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
+          <Loader size="large" color={theme.colors.primary.default} />
+        </ScreenLayout.Body>
       </ScreenLayout>
     );
   }
@@ -86,6 +92,12 @@ const OrderProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={headerTitle}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content style={styles.content}>
           <DepositOrderContent order={order} />
         </ScreenLayout.Content>

@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
 import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './AdditionalVerification.styles.ts';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
-import { useNavigation } from '@react-navigation/native';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
   ButtonSize,
@@ -39,29 +39,29 @@ const AdditionalVerification = () => {
   const { quote, kycUrl, workFlowRunId } =
     useParams<AdditionalVerificationParams>();
 
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const { navigateToKycWebview } = useDepositRouting({
     screenLocation: 'AdditionalVerification Screen',
   });
 
-  React.useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.additional_verification.title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
-
   const handleContinuePress = useCallback(() => {
     navigateToKycWebview({ quote, kycUrl, workFlowRunId });
   }, [navigateToKycWebview, quote, kycUrl, workFlowRunId]);
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.additional_verification.title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <Image
             source={additionalVerificationImage}

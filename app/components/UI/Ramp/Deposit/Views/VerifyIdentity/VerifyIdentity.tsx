@@ -10,7 +10,7 @@ import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
 import PoweredByTransak from '../../components/PoweredByTransak';
@@ -37,7 +37,7 @@ export const createVerifyIdentityNavDetails = createNavigationDetails(
 const VerifyIdentity = () => {
   const navigation = useNavigation();
 
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const { selectedRegion } = useDepositSDK();
 
@@ -46,14 +46,6 @@ const VerifyIdentity = () => {
   }, [navigation]);
 
   useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.verify_identity.navbar_title') },
-        theme,
-      ),
-    );
-
     endTrace({
       name: TraceName.DepositContinueFlow,
       data: {
@@ -67,7 +59,7 @@ const VerifyIdentity = () => {
         destination: Routes.DEPOSIT.VERIFY_IDENTITY,
       },
     });
-  }, [navigation, theme]);
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     navigateToEnterEmail();
@@ -89,9 +81,19 @@ const VerifyIdentity = () => {
     );
   }, [selectedRegion?.isoCode]);
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.verify_identity.navbar_title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <ScreenLayout.Content grow>
             <Image

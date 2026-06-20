@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -6,7 +6,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './EnterAddress.styles';
 import {
@@ -57,7 +57,7 @@ export interface AddressFormData {
 
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
@@ -170,16 +170,6 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.enter_address.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
-
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
 
@@ -223,9 +213,19 @@ const EnterAddress = (): JSX.Element => {
     trackEvent,
   ]);
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.enter_address.navbar_title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}

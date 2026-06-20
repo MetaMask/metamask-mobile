@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import OtpCode from './OtpCode';
+import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -89,12 +90,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Enter six-digit code',
-  }),
-}));
-
 jest.mock('../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../util/trace'),
   trace: jest.fn(),
@@ -132,13 +127,12 @@ describe('OtpCode Screen', () => {
     expect(screen.getByText('Resend it')).toBeOnTheScreen();
   });
 
-  it('calls setOptions when the component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(OtpCode);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Enter six-digit code',
-      }),
-    );
+    expect(
+      screen.getByText(strings('deposit.otp_code.navbar_title')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('shows error message when API call fails', async () => {

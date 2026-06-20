@@ -6,7 +6,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
 import {
@@ -70,7 +70,7 @@ export interface BasicInfoFormData {
 
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = useParams<BasicInfoParams>();
   const { selectedRegion, logoutFromProvider } = useDepositSDK();
@@ -167,14 +167,6 @@ const BasicInfo = (): JSX.Element => {
   });
 
   useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.basic_info.navbar_title') },
-        theme,
-      ),
-    );
-
     endTrace({
       name: TraceName.DepositContinueFlow,
       data: {
@@ -188,7 +180,7 @@ const BasicInfo = (): JSX.Element => {
         destination: Routes.DEPOSIT.BASIC_INFO,
       },
     });
-  }, [navigation, theme]);
+  }, []);
 
   // clear ssn field on mount
   useEffect(() => {
@@ -325,9 +317,19 @@ const BasicInfo = (): JSX.Element => {
     navigation.navigate(...createSsnInfoModalNavigationDetails());
   }, [navigation]);
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.basic_info.navbar_title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}

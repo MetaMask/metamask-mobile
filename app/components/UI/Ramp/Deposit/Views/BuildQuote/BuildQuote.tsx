@@ -59,7 +59,11 @@ import { createConfigurationModalNavigationDetails } from '../Modals/Configurati
 import { useFormatters } from '../../../../../hooks/useFormatters';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import {
+  HeaderStandard,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
+import { NavbarSelectorsIDs } from '../../../../Navbar/Navbar.testIds';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
@@ -165,23 +169,13 @@ const BuildQuote = () => {
     tokens: cryptoCurrencies,
   });
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.buildQuote.title'),
-          showConfiguration: true,
-          onConfigurationPress: () => {
-            navigation.navigate(
-              ...createConfigurationModalNavigationDetails({}),
-            );
-          },
-        },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleConfigurationPress = useCallback(() => {
+    navigation.navigate(...createConfigurationModalNavigationDetails({}));
+  }, [navigation]);
 
   useEffect(() => {
     endTrace({
@@ -514,6 +508,19 @@ const BuildQuote = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.buildQuote.title')}
+          onBack={handleBackPress}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          endButtonIconProps={[
+            {
+              iconName: DesignSystemIconName.Setting,
+              onPress: handleConfigurationPress,
+              testID: NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON,
+            },
+          ]}
+          includesTopInset
+        />
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.selectionRow}>
             <AccountSelector isEvmOnly={false} />

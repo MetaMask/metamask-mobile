@@ -89,6 +89,9 @@ const Routes = {
       ERROR_DETAILS: 'DepositErrorDetailsModal',
     },
   },
+  DEV: {
+    DEPOSIT_STACK_PREVIEW: 'DevDepositStackPreview',
+  },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
     SELECT_DEVICE: 'SelectHardwareWallet',

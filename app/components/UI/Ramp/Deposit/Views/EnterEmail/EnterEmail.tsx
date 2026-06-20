@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import Text, {
   TextVariant,
@@ -14,7 +14,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import TextField from '../../../../../../component-library/components/Form/TextField';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
@@ -46,16 +46,6 @@ const EnterEmail = () => {
   const { styles, theme } = useStyles(styleSheet, {});
 
   const trackEvent = useAnalytics();
-
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.enter_email.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
 
   const [, submitEmail] = useDepositSdkMethod(
     { method: 'sendUserOtp', onMount: false, throws: true },
@@ -110,9 +100,19 @@ const EnterEmail = () => {
     }
   }, [email, navigation, submitEmail, trackEvent, redirectToRootAfterAuth]);
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.enter_email.navbar_title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
           <View style={styles.contentContainer}>

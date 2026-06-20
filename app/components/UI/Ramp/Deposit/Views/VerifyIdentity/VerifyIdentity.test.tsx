@@ -29,12 +29,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Verify your identity',
-  }),
-}));
-
 const mockUseDepositSDK = jest.fn().mockReturnValue({
   selectedRegion: { isoCode: 'US' },
 });
@@ -81,13 +75,12 @@ describe('VerifyIdentity Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls setOptions when the component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(VerifyIdentity);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Verify your identity',
-      }),
-    );
+    expect(
+      screen.getByText(strings('deposit.verify_identity.navbar_title')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('navigates to EnterEmail when "Agree and continue" button is pressed', async () => {

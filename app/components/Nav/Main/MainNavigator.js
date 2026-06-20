@@ -30,6 +30,7 @@ import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
+import DevDepositStackPreview from '../../Views/Settings/DeveloperOptions/DevDepositStackPreview';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
@@ -531,12 +532,10 @@ const SettingsFlow = () => {
         component={ExperimentalSettings}
       />
       <NativeStack.Screen name="CompanySettings" component={AppInformation} />
-      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
-        <NativeStack.Screen
-          name={Routes.SETTINGS.DEVELOPER_OPTIONS}
-          component={DeveloperOptions}
-        />
-      )}
+      <NativeStack.Screen
+        name={Routes.SETTINGS.DEVELOPER_OPTIONS}
+        component={DeveloperOptions}
+      />
       <NativeStack.Screen name="ContactsSettings" component={Contacts} />
       <NativeStack.Screen name="ContactForm" component={ContactForm} />
       <NativeStack.Screen
@@ -1175,6 +1174,11 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
       <NativeStack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
+      <NativeStack.Screen
+        name={Routes.DEV.DEPOSIT_STACK_PREVIEW}
+        component={DevDepositStackPreview}
+        options={slideFromRightNativeOptions}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}

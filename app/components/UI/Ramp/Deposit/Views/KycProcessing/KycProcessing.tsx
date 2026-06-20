@@ -11,7 +11,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -68,15 +68,11 @@ const KycProcessing = () => {
     stopPolling,
   } = useUserDetailsPolling(10000, false, 0);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.kyc_processing.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const headerTitle = strings('deposit.kyc_processing.navbar_title');
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   useEffect(() => {
     if (kycForms?.formsRequired.length === 0) {
@@ -125,6 +121,12 @@ const KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderStandard
+            title={headerTitle}
+            onBack={handleBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
@@ -163,6 +165,12 @@ const KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderStandard
+            title={headerTitle}
+            onBack={handleBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
@@ -203,6 +211,12 @@ const KycProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={headerTitle}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={3} />
           <View style={styles.container}>

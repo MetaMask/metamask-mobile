@@ -21,7 +21,7 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { useDepositSDK } from '../../sdk';
@@ -91,16 +91,6 @@ const OtpCode = () => {
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [resetAttemptCount, setResetAttemptCount] = useState(0);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.otp_code.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
 
   const [value, setValue] = useState('');
 
@@ -269,9 +259,19 @@ const OtpCode = () => {
     setValue: handleValueChange,
   });
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.otp_code.navbar_title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
           <Text variant={TextVariant.HeadingLG} style={styles.title}>
