@@ -324,7 +324,6 @@ jobs:
       - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
-          # Need the merge commit's first parent (main at merge target) for the bundle baseline.
           fetch-depth: 2
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -361,10 +360,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Baseline is the latest successful ci/ios-js-bundle-size status on the PR merge
-          # target: the first parent of refs/pull/N/merge (current tip of the base branch,
-          # e.g. main). github.event.pull_request.base.sha can lag behind that tip when the
-          # PR branch has not been rebased, which would charge the PR for main-only growth.
+          # Baseline is the latest successful ci/ios-js-bundle-size status on the merge-base
+          # of the checked-out ref (refs/pull/N/merge) and the PR base branch (e.g. main).
+          # github.event.pull_request.base.sha can lag behind that point when the PR branch
+          # has not been rebased, which would charge the PR for main-only growth.
           append_job_summary() {
             if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
               cat >> "$GITHUB_STEP_SUMMARY"
@@ -379,35 +378,36 @@ jobs:
           BASE_REF='${{ github.event.pull_request.base.ref }}'
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
-          if ! MERGE_TARGET_SHA="$(git rev-parse HEAD^1 2>/dev/null)"; then
-            echo "::warning::Could not resolve merge target via HEAD^1; skipping iOS JS bundle delta check."
+          git fetch origin "${BASE_REF}" --depth=1
+          if ! MERGE_BASE_SHA="$(git merge-base "origin/${BASE_REF}" HEAD)"; then
+            echo "::warning::Could not resolve merge-base between HEAD and origin/${BASE_REF}; skipping iOS JS bundle delta check."
             append_job_summary <<EOF
           ### iOS JS bundle size (PR)
 
-          **Result:** skipped — checkout is not a merge commit with a resolvable first parent.
+          **Result:** skipped — \`git merge-base origin/${BASE_REF} HEAD\` failed.
 
           | | MiB |
           |---|--:|
           | Current bundle | ${CURRENT_MB} |
 
-          Baseline would be read from the latest successful \`ci/ios-js-bundle-size\` status on \`${BASE_REF}\` at merge target (first parent of \`refs/pull/N/merge\`).
+          Baseline would be read from the latest successful \`ci/ios-js-bundle-size\` status on the merge-base of HEAD and \`${BASE_REF}\`.
           EOF
             exit 0
           fi
 
-          echo "Merge target (${BASE_REF} at refs/pull/N/merge): ${MERGE_TARGET_SHA}"
+          echo "Merge-base (origin/${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
           if ! STATUSES_JSON="$(
             curl -fsS \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/${MERGE_TARGET_SHA}/status"
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/${MERGE_BASE_SHA}/status"
           )"; then
-            echo "::warning::Failed to fetch commit statuses for merge target ${MERGE_TARGET_SHA}; skipping iOS JS bundle delta check."
+            echo "::warning::Failed to fetch commit statuses for merge-base ${MERGE_BASE_SHA}; skipping iOS JS bundle delta check."
             append_job_summary <<EOF
           ### iOS JS bundle size (PR)
 
-          **Result:** skipped — could not load [combined status](${REPO_URL}/commit/${MERGE_TARGET_SHA}) for merge target \`${MERGE_TARGET_SHA}\` (\`${BASE_REF}\`).
+          **Result:** skipped — could not load [combined status](${REPO_URL}/commit/${MERGE_BASE_SHA}) for merge-base \`${MERGE_BASE_SHA}\` (\`${BASE_REF}\`).
 
           | | MiB |
           |---|--:|
@@ -430,13 +430,13 @@ jobs:
           _bundle_desc_re='^[[:space:]]*([0-9]+(\.[0-9]*)?)[[:space:]]*;?[[:space:]]*$'
           if [[ "$DESC" =~ $_bundle_desc_re ]]; then
             BASELINE_MB="${BASH_REMATCH[1]}"
-            echo "Baseline from merge target status: ${BASELINE_MB} MB"
+            echo "Baseline from merge-base status: ${BASELINE_MB} MB"
           else
-            echo "::warning::No successful ci/ios-js-bundle-size status (or unrecognized description) on merge target ${MERGE_TARGET_SHA}; skipping iOS JS bundle delta check."
+            echo "::warning::No successful ci/ios-js-bundle-size status (or unrecognized description) on merge-base ${MERGE_BASE_SHA}; skipping iOS JS bundle delta check."
             append_job_summary <<EOF
           ### iOS JS bundle size (PR)
 
-          **Result:** skipped — no parseable \`ci/ios-js-bundle-size\` success status on merge target [\`${MERGE_TARGET_SHA}\`](${REPO_URL}/commit/${MERGE_TARGET_SHA}) (\`${BASE_REF}\`).
+          **Result:** skipped — no parseable \`ci/ios-js-bundle-size\` success status on merge-base [\`${MERGE_BASE_SHA}\`](${REPO_URL}/commit/${MERGE_BASE_SHA}) (\`${BASE_REF}\`).
 
           | | MiB |
           |---|--:|
@@ -470,11 +470,11 @@ jobs:
             append_job_summary <<EOF
           ### iOS JS bundle size (PR)
 
-          **Result:** failed — delta is more than 1 MiB above the status baseline on merge target [\`${MERGE_TARGET_SHA}\`](${REPO_URL}/commit/${MERGE_TARGET_SHA}) (\`${BASE_REF}\`).
+          **Result:** failed — delta is more than 1 MiB above the status baseline on merge-base [\`${MERGE_BASE_SHA}\`](${REPO_URL}/commit/${MERGE_BASE_SHA}) (\`${BASE_REF}\`).
 
           | | MiB |
           |---|--:|
-          | Merge target (\`${BASE_REF}\`) | [\`${MERGE_TARGET_SHA}\`](${REPO_URL}/commit/${MERGE_TARGET_SHA}) |
+          | Merge-base (\`${BASE_REF}\` × HEAD) | [\`${MERGE_BASE_SHA}\`](${REPO_URL}/commit/${MERGE_BASE_SHA}) |
           | Baseline (from status) | ${BASELINE_MB} |
           | Current bundle | ${CURRENT_MB} |
           | Delta (current - baseline) | ${DELTA_MB} |
@@ -490,12 +490,12 @@ jobs:
 
           | | MiB |
           |---|--:|
-          | Merge target (\`${BASE_REF}\`) | [\`${MERGE_TARGET_SHA}\`](${REPO_URL}/commit/${MERGE_TARGET_SHA}) |
+          | Merge-base (\`${BASE_REF}\` × HEAD) | [\`${MERGE_BASE_SHA}\`](${REPO_URL}/commit/${MERGE_BASE_SHA}) |
           | Baseline (from \`ci/ios-js-bundle-size\` status) | ${BASELINE_MB} |
           | Current bundle | ${CURRENT_MB} |
           | Delta (current - baseline) | ${DELTA_MB} |
 
-          Fail threshold: more than 1 MiB above baseline. Baseline is the bundle size posted by CI to the merge target commit (first parent of \`refs/pull/N/merge\`), not \`github.event.pull_request.base.sha\`.
+          Fail threshold: more than 1 MiB above baseline. Baseline is the bundle size posted by CI to \`git merge-base origin/${BASE_REF} HEAD\`, not \`github.event.pull_request.base.sha\`.
 
           EOF
 
