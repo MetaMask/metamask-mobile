@@ -5,6 +5,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage.js';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
 import { POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks.js';
 import Utilities from '../../framework/Utilities.js';
 import {
@@ -100,7 +102,8 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           await verifyResolvedPositionsRemoved();
 
-          await WalletView.scrollAndTapPredictionsSection('up');
+          await TabBarComponent.tapActions();
+          await WalletActionsBottomSheet.tapPredictButton();
           await Assertions.expectTextDisplayed('$48.16');
         },
       );
