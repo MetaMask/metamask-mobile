@@ -19,8 +19,11 @@ import {
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { hasTransactionType } from '../../utils/transaction';
-import Logger from '../../../../../util/Logger';
+import { prefixError } from '../../../../../util/transactions/error-prefix';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+
+const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
+const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
 
 type MoneyAccountAmountUpdater = (
   transactionMeta: TransactionMeta,
@@ -38,7 +41,7 @@ export function useUpdateTransactionPayAmount() {
     async (
       amountHuman: string,
       updater: MoneyAccountAmountUpdater,
-      preparationErrorMessage: string,
+      errorPrefix: string,
       recipientOverride?: Hex,
     ) => {
       if (!transactionMeta) {
@@ -53,19 +56,22 @@ export function useUpdateTransactionPayAmount() {
           recipientOverride,
         );
       } catch (error) {
-        Logger.error(error as Error, preparationErrorMessage);
-        throw error;
+        throw prefixError(error, errorPrefix);
       }
 
-      await Promise.all(
-        updates.map(({ nestedTransactionIndex, transactionData }) =>
-          updateAtomicBatchData({
-            transactionId: transactionMeta.id,
-            transactionIndex: nestedTransactionIndex,
-            transactionData,
-          }),
-        ),
-      );
+      try {
+        await Promise.all(
+          updates.map(({ nestedTransactionIndex, transactionData }) =>
+            updateAtomicBatchData({
+              transactionId: transactionMeta.id,
+              transactionIndex: nestedTransactionIndex,
+              transactionData,
+            }),
+          ),
+        );
+      } catch (error) {
+        throw prefixError(error, errorPrefix);
+      }
     },
     [transactionMeta],
   );
@@ -89,7 +95,7 @@ export function useUpdateTransactionPayAmount() {
         await applyMoneyAccountAmountUpdates(
           amountHuman,
           updateMoneyAccountDepositTokenAmount,
-          'Failed to prepare Money Account deposit amount update',
+          DEPOSIT_ERROR_PREFIX,
         );
         return;
       }
@@ -102,7 +108,7 @@ export function useUpdateTransactionPayAmount() {
         await applyMoneyAccountAmountUpdates(
           amountHuman,
           updateMoneyAccountWithdrawTokenAmount,
-          'Failed to prepare Money Account withdraw amount update',
+          WITHDRAW_ERROR_PREFIX,
           accountOverride,
         );
         return;
@@ -147,10 +153,6 @@ function syncMoneyAccountDepositRequiredAssets(
       'Money Account deposit: sync requiredAssets amount',
     );
   } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to sync Money Account deposit requiredAssets amount',
-    );
-    throw error;
+    throw prefixError(error, DEPOSIT_ERROR_PREFIX);
   }
 }

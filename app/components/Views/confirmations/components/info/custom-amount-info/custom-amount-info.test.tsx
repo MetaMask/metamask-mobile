@@ -44,7 +44,7 @@ import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
-import Logger from '../../../../../../util/Logger';
+
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -78,7 +78,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
-jest.mock('../../../../../../util/Logger');
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -593,9 +593,6 @@ describe('CustomAmountInfo', () => {
     const error = new Error('update failed');
     const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
     const mockOnAmountSubmit = jest.fn();
-    const loggerErrorMock = jest.mocked(Logger.error);
-    loggerErrorMock.mockClear();
-
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '123.45',
       amountHuman: '0',
@@ -626,10 +623,6 @@ describe('CustomAmountInfo', () => {
     );
     // Keyboard stays open: Done button still present
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
-    expect(loggerErrorMock).toHaveBeenCalledWith(
-      error,
-      expect.stringContaining('Failed to apply custom amount on Done press'),
-    );
   });
 
   it('renders PayAccountSelector when supportAccountSelection is true', () => {
@@ -957,7 +950,6 @@ describe('CustomAmountInfo', () => {
     it('does not fire RAMPS_ORDER_PROPOSED and shows toast when applying the amount throws on Done', async () => {
       setMoneyFlow();
       const error = new Error('update failed');
-      const loggerErrorMock = jest.mocked(Logger.error);
       useTransactionCustomAmountMock.mockReturnValue({
         ...useTransactionCustomAmountMock(),
         updateTokenAmount: jest.fn().mockRejectedValue(error),
@@ -974,10 +966,6 @@ describe('CustomAmountInfo', () => {
       // The Done handler's catch shows a toast and returns early without committing.
       expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toBeUndefined();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(loggerErrorMock).toHaveBeenCalledWith(
-        error,
-        expect.stringContaining('Failed to apply custom amount on Done press'),
-      );
     });
 
     // Regression guard for FIX 2 (no double emission). Renders the REAL money

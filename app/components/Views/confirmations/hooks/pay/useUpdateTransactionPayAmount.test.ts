@@ -18,7 +18,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import Logger from '../../../../../util/Logger';
+
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
@@ -27,7 +27,7 @@ jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../../../UI/Money/utils/moneyAccountTransactions');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../transactions/useTransactionAccountOverride');
-jest.mock('../../../../../util/Logger');
+
 jest.mock('./useTransactionPayData');
 
 const moneyAccountDepositMeta: Partial<TransactionMeta> = {
@@ -81,8 +81,6 @@ describe('useUpdateTransactionPayAmount', () => {
     useTransactionPayRequiredTokens,
   );
   const updateTokenAmountMock = jest.fn();
-  const loggerErrorMock = jest.mocked(Logger.error);
-
   beforeEach(() => {
     jest.resetAllMocks();
     updateAtomicBatchDataMock.mockResolvedValue('0x0');
@@ -204,10 +202,6 @@ describe('useUpdateTransactionPayAmount', () => {
     ).rejects.toThrow('rpc failure');
 
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-    expect(loggerErrorMock).toHaveBeenCalledWith(
-      error,
-      expect.stringContaining('Failed to prepare Money Account deposit'),
-    );
   });
 
   it('calls updateAtomicBatchData for each update returned from updateMoneyAccountWithdrawTokenAmount', async () => {
@@ -285,10 +279,6 @@ describe('useUpdateTransactionPayAmount', () => {
     ).rejects.toThrow('withdraw rpc failure');
 
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-    expect(loggerErrorMock).toHaveBeenCalledWith(
-      error,
-      expect.stringContaining('Failed to prepare Money Account withdraw'),
-    );
   });
 
   describe('syncMoneyAccountDepositRequiredAssets', () => {
@@ -414,11 +404,6 @@ describe('useUpdateTransactionPayAmount', () => {
       await expect(
         result.current.updateTransactionPayAmount('1'),
       ).rejects.toThrow('updateTransaction failed');
-
-      expect(loggerErrorMock).toHaveBeenCalledWith(
-        error,
-        'Failed to sync Money Account deposit requiredAssets amount',
-      );
     });
 
     it('still applies money account deposit updates after syncing requiredAssets', async () => {

@@ -71,9 +71,9 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
-import { getTransactionUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
+import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { prefixError } from '../../../../../../util/transactions/error-prefix';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
@@ -85,6 +85,8 @@ import { useTransactionAccountOverride } from '../../../hooks/transactions/useTr
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
+
+const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
@@ -208,39 +210,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const handleDone = useCallback(async () => {
       try {
+        await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
-          if (isMoneyAccountDeposit) {
-            // Update calldata first; only commit the fiat payment amount after
-            // success so Pay config does not reflect an amount whose calldata
-            // update failed.
-            await updateTokenAmount();
-            Engine.context.TransactionPayController.updateFiatPayment({
-              transactionId,
-              callback: (fp) => {
-                fp.amountFiat = amountFiat;
-              },
-            });
-          } else {
-            Engine.context.TransactionPayController.updateFiatPayment({
-              transactionId,
-              callback: (fp) => {
-                fp.amountFiat = amountFiat;
-              },
-            });
-          }
-        } else {
-          await updateTokenAmount();
+          Engine.context.TransactionPayController.updateFiatPayment({
+            transactionId,
+            callback: (fp) => {
+              fp.amountFiat = amountFiat;
+            },
+          });
         }
         // Amount committed (pre-quote) funnel event; only fires once the amount
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
       } catch (error) {
-        Logger.error(
-          error as Error,
-          'Failed to apply custom amount on Done press',
-        );
+        const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
         toastRef?.current?.showToast(
-          getTransactionUpdateErrorToastOptions(error),
+          getAmountUpdateErrorToastOptions(prefixed, () =>
+            toastRef?.current?.closeToast(),
+          ),
         );
         // Keep keyboard visible so the user can retry; do not advance the flow.
         return;
@@ -250,7 +237,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
-      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       toastRef,

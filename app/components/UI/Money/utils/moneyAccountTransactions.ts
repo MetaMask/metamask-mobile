@@ -87,13 +87,17 @@ async function getExpectedDepositShares({
   provider: ethers.providers.Provider;
 }): Promise<bigint> {
   const lensContract = new ethers.Contract(lensAddress, LENS_ABI, provider);
-  const shares = await lensContract.previewDeposit(
-    musdAddress,
-    amount.toString(),
-    boringVault,
-    accountantAddress,
-  );
-  return BigInt(shares.toString());
+  try {
+    const shares = await lensContract.previewDeposit(
+      musdAddress,
+      amount.toString(),
+      boringVault,
+      accountantAddress,
+    );
+    return BigInt(shares.toString());
+  } catch {
+    throw new Error('Failed to preview deposit shares');
+  }
 }
 
 function buildApproveData(boringVault: string, amount: bigint): Hex {
@@ -391,8 +395,12 @@ async function getVaultRate({
     ACCOUNTANT_ABI,
     provider,
   );
-  const rate = await accountant.getRate();
-  return BigInt(rate.toString());
+  try {
+    const rate = await accountant.getRate();
+    return BigInt(rate.toString());
+  } catch {
+    throw new Error('Failed to fetch vault rate');
+  }
 }
 
 const SHARE_DECIMALS_SCALAR = BigInt(1_000_000);
