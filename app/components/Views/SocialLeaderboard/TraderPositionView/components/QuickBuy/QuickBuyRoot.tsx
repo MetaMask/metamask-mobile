@@ -1,6 +1,5 @@
 import {
   BottomSheetDialog,
-  BottomSheetOverlay,
   type BottomSheetDialogRef,
   Box,
 } from '@metamask/design-system-react-native';
@@ -148,57 +147,46 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   );
 
   return (
-    <>
-      <BottomSheetOverlay
-        onPress={
-          !isSubmittingTx
-            ? () => bottomSheetRef.current?.onCloseDialog()
-            : undefined
-        }
-      />
-      <BottomSheetDialog
-        ref={bottomSheetRef}
-        isInteractable={!isSubmittingTx}
-        onClose={onClose}
-        twClassName={surfaceClass}
-      >
-        {isContentReady ? (
-          <QuickBuyProvider
-            target={target}
-            onClose={requestClose}
-            features={features}
-            analyticsContext={analyticsContext}
-            activeScreen={activeScreen}
-            setActiveScreen={navigateToScreen}
+    <BottomSheetDialog
+      ref={bottomSheetRef}
+      isInteractable={!isSubmittingTx}
+      onClose={onClose}
+      twClassName={surfaceClass}
+    >
+      {isContentReady ? (
+        <QuickBuyProvider
+          target={target}
+          onClose={requestClose}
+          features={features}
+          analyticsContext={analyticsContext}
+          activeScreen={activeScreen}
+          setActiveScreen={navigateToScreen}
+        >
+          <Box
+            testID="quick-buy-content-container"
+            onLayout={handleContentLayout}
+            style={lockedHeight !== null ? { height: lockedHeight } : undefined}
           >
-            <Box
-              testID="quick-buy-content-container"
-              onLayout={handleContentLayout}
-              style={
-                lockedHeight !== null ? { height: lockedHeight } : undefined
-              }
+            <Animated.View
+              key={activeScreen}
+              entering={hasNavigated ? entering : undefined}
+              exiting={isClosing ? undefined : exiting}
+              style={lockedHeight !== null ? tw.style('flex-1') : undefined}
             >
-              <Animated.View
-                key={activeScreen}
-                entering={hasNavigated ? entering : undefined}
-                exiting={isClosing ? undefined : exiting}
-                style={lockedHeight !== null ? tw.style('flex-1') : undefined}
-              >
-                {renderActiveScreen(activeScreen, children)}
-              </Animated.View>
-            </Box>
-          </QuickBuyProvider>
-        ) : (
-          <AnimatedScrollView
-            style={tw.style('shrink')}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <QuickBuyBottomSheetSkeleton />
-          </AnimatedScrollView>
-        )}
-      </BottomSheetDialog>
-    </>
+              {renderActiveScreen(activeScreen, children)}
+            </Animated.View>
+          </Box>
+        </QuickBuyProvider>
+      ) : (
+        <AnimatedScrollView
+          style={tw.style('shrink')}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <QuickBuyBottomSheetSkeleton />
+        </AnimatedScrollView>
+      )}
+    </BottomSheetDialog>
   );
 };
 
