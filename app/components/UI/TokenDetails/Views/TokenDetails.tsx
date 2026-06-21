@@ -166,6 +166,7 @@ const TokenDetails: React.FC<{
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
@@ -197,13 +198,31 @@ const TokenDetails: React.FC<{
     const url = caip19AssetId
       ? `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`
       : undefined;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SHARED)
+        .addProperties({
+          chain_id: token.chainId,
+          token_symbol: token.symbol,
+          token_address: token.address,
+        })
+        .build(),
+    );
+
     // iOS renders `url` as a rich link preview; Android needs it in `message`
     Share.share(
       Platform.OS === 'ios'
         ? { message: token.symbol, url }
         : { message: url ?? token.symbol },
     );
-  }, [caip19AssetId, token.symbol]);
+  }, [
+    caip19AssetId,
+    createEventBuilder,
+    token.address,
+    token.chainId,
+    token.symbol,
+    trackEvent,
+  ]);
 
   const {
     securityData,

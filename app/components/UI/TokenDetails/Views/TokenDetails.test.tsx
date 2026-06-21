@@ -840,6 +840,16 @@ describe('TokenDetails', () => {
       jest.restoreAllMocks();
     });
 
+    const invokeSharePress = async () => {
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
+      const { onSharePress } = (lastCall?.[0] ?? {}) as {
+        onSharePress: () => void;
+      };
+      await act(async () => {
+        onSharePress();
+      });
+    };
+
     it('always passes onSharePress to the header', () => {
       render(<TokenDetails />);
 
@@ -850,15 +860,7 @@ describe('TokenDetails', () => {
 
     it('calls Share.share with an encoded CAIP-19 URL when onSharePress is invoked', async () => {
       render(<TokenDetails />);
-
-      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
-      const { onSharePress } = (lastCall?.[0] ?? {}) as {
-        onSharePress: () => void;
-      };
-
-      await act(async () => {
-        onSharePress();
-      });
+      await invokeSharePress();
 
       expect(Share.share).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -871,23 +873,30 @@ describe('TokenDetails', () => {
 
     it('does not include unencoded colons or slashes in the query param', async () => {
       render(<TokenDetails />);
-
-      const lastCall2 = mockTokenDetailsInlineHeader.mock.calls.at(-1);
-      const { onSharePress } = (lastCall2?.[0] ?? {}) as {
-        onSharePress: () => void;
-      };
-
-      await act(async () => {
-        onSharePress();
-      });
+      await invokeSharePress();
 
       const [{ url }] = (Share.share as jest.Mock).mock.calls[0];
       const assetId = new URL(url as string).searchParams.get('assetId') ?? '';
-      // The raw assetId should round-trip through decodeURIComponent cleanly
-      expect(decodeURIComponent(encodeURIComponent(assetId))).toBe(assetId);
-      // And the raw URL must not contain unencoded colons after the scheme
       const queryString = (url as string).split('?')[1] ?? '';
+      expect(decodeURIComponent(encodeURIComponent(assetId))).toBe(assetId);
       expect(queryString).not.toContain(':');
+    });
+
+    it('fires TOKEN_DETAILS_SHARED with chain_id, token_symbol and token_address', async () => {
+      render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_DETAILS_SHARED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chain_id: '0x1',
+          token_symbol: 'DAI',
+          token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
