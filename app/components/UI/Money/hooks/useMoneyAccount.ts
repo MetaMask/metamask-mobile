@@ -92,6 +92,7 @@ export function useMoneyAccountDeposit() {
       }
 
       const networkClientId = resolveNetworkClientId(chainIdHex);
+      const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
       const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
       depositIntentByBatchId.set(batchId.toLowerCase(), intent);
@@ -123,6 +124,7 @@ export function useMoneyAccountDeposit() {
           disableHook: true,
           disableSequential: true,
           from: primaryMoneyAccount.address as Hex,
+          isGasFeeSponsored,
           isInternal: true,
           networkClientId,
           origin: ORIGIN_METAMASK,
@@ -133,7 +135,7 @@ export function useMoneyAccountDeposit() {
               standard: 'erc20',
             },
           ],
-          skipInitialGasEstimate: true,
+          skipInitialGasEstimate: isGasFeeSponsored,
           transactions: [approveTx, depositTx],
         });
       } catch (error) {
