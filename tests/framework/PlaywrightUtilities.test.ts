@@ -149,9 +149,7 @@ describe('PlaywrightUtilities.launchApp', () => {
     );
   });
 
-  it(
-    'launches local Android debug builds via Expo dev-client deep link',
-    async () => {
+  it('launches local Android debug builds via Expo dev-client deep link', async () => {
     jest.useRealTimers();
     process.env.CI = 'false';
     const execSyncMock = jest.spyOn(
@@ -210,7 +208,5 @@ describe('PlaywrightUtilities.launchApp', () => {
       execSyncMock.mockRestore();
       jest.useFakeTimers();
     }
-  },
-    10_000,
-  );
+  }, 10_000);
 });
