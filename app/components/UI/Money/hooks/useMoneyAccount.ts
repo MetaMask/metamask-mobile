@@ -120,13 +120,12 @@ export function useMoneyAccountDeposit() {
         // so `from` must be the money account and `networkClientId` its chain.
         await addTransactionBatch({
           batchId,
-          from: primaryMoneyAccount.address as Hex,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          isInternal: true,
           disableHook: true,
           disableSequential: true,
-          transactions: [approveTx, depositTx],
+          from: primaryMoneyAccount.address as Hex,
+          isInternal: true,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
           requiredAssets: [
             {
               address: getMoneyAccountDepositAssetAddress(chainIdHex),
@@ -134,6 +133,8 @@ export function useMoneyAccountDeposit() {
               standard: 'erc20',
             },
           ],
+          skipInitialGasEstimate: true,
+          transactions: [approveTx, depositTx],
         });
       } catch (error) {
         depositIntentByBatchId.delete(batchId.toLowerCase());
@@ -178,6 +179,7 @@ export function useMoneyAccountWithdrawal() {
     }
 
     const networkClientId = resolveNetworkClientId(chainIdHex);
+    const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
     // Placeholder amount — MM Pay re-encodes both calls via
     // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
@@ -199,13 +201,14 @@ export function useMoneyAccountWithdrawal() {
 
     try {
       await addTransactionBatch({
-        from: primaryMoneyAccount.address as Hex,
-        networkClientId,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
         disableHook: true,
         disableSequential: true,
-        isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
+        from: primaryMoneyAccount.address as Hex,
+        isGasFeeSponsored,
+        isInternal: true,
+        networkClientId,
+        origin: ORIGIN_METAMASK,
+        skipInitialGasEstimate: isGasFeeSponsored,
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {
