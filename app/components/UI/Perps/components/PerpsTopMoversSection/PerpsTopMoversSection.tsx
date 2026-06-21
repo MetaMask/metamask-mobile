@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -17,15 +17,18 @@ import {
   type PerpsMarketData,
   type SortDirection,
   PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import { PerpsPillItem } from '../PerpsPillItem';
 import { usePerpsTopMovers } from '../../hooks/usePerpsTopMovers';
 import { usePerpsNavigation } from '../../hooks';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { selectPerpsTopMoversEnabledFlag } from '../../selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -83,32 +86,49 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
   transactionActiveAbTests,
 }) => {
   const perpsNavigation = usePerpsNavigation();
+  const { track } = usePerpsEventTracking();
   const [direction, setDirection] = useState<SortDirection>('desc');
   const { data, isLoading } = usePerpsTopMovers({ direction });
 
-  if (!isLoading && data.length === 0) {
-    return null;
-  }
+  // Pills navigate to asset_details — use source=perps_home + direction-aware
+  // source_section so analysts can distinguish gainers from losers.
+  const pillSourceSection =
+    direction === 'desc'
+      ? PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS
+      : PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS;
 
-  const handleViewAll = () => {
+  const handleViewAll = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.TOP_MOVERS,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    });
     perpsNavigation.navigateToMarketList({
       defaultSortOptionId: 'priceChange',
       defaultSortDirection: direction,
       source,
       ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
     });
-  };
+  }, [track, perpsNavigation, direction, source, transactionActiveAbTests]);
 
   const renderPill = (item: PerpsMarketData) => {
     const feedItem: PerpsFeedItem = { market: item, isWatchlisted: false };
     return (
       <PerpsPillItem
         item={feedItem}
-        marketDetailsSource={source}
+        marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+        marketDetailsSourceSection={pillSourceSection}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   };
+
+  if (!isLoading && data.length === 0) {
+    return null;
+  }
 
   return (
     <Box

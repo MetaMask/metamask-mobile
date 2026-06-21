@@ -2114,6 +2114,93 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  confirmations_relay_fixed_spread: {
+    name: 'confirmations_relay_fixed_spread',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      chains: {
+        eth: '0x1',
+        linea: '0xe708',
+        monad: '0x8f',
+        arbitrum: '0xa4b1',
+        base: '0x2105',
+        bsc: '0x38',
+      },
+      tokens: {
+        musd: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+
+        eth_usdc: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        eth_ausdc: '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c',
+        eth_usdt: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        eth_ausdt: '0x23878914efe38d27c4d67ab83ed1b93a74d4086a',
+        eth_dai: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        eth_adai: '0x018008bfb33d285247a21d44e50697654f754e63',
+
+        linea_usdc: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+        linea_ausdc: '0x374d7860c4f2f604de0191298dd393703cce84f3',
+
+        monad_usdc: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+
+        arbitrum_usdc: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+        arbitrum_ausdcn: '0x724dc807b04555b71ed48a6896b6f41593b8c637',
+
+        base_usdc: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+        base_ausdc: '0x4e65fe4dba92790696d040ac24aa414708f5c0ab',
+
+        bsc_usdc: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+        bsc_ausdc: '0x00901a076785e0906d1028c7d6372d247bec7d61',
+        bsc_ausdt: '0xa9251ca9de909cb71783723713b21e4233fbf1b1',
+        bsc_usdt: '0x55d398326f99059ff775485246999027b3197955',
+      },
+      routes: [
+        ['eth', 'eth_usdc', 'eth', 'musd'],
+        ['eth', 'eth_ausdc', 'eth', 'musd'],
+        ['eth', 'musd', 'eth', 'eth_usdc'],
+        ['eth', 'eth_usdt', 'eth', 'musd'],
+        ['eth', 'eth_ausdt', 'eth', 'musd'],
+        ['eth', 'musd', 'eth', 'eth_usdt'],
+        ['eth', 'eth_dai', 'eth', 'musd'],
+        ['eth', 'eth_adai', 'eth', 'musd'],
+        ['eth', 'musd', 'eth', 'eth_dai'],
+
+        ['linea', 'linea_usdc', 'linea', 'musd'],
+        ['linea', 'linea_ausdc', 'linea', 'musd'],
+        ['linea', 'musd', 'linea', 'linea_usdc'],
+
+        ['monad', 'monad_usdc', 'monad', 'musd'],
+        ['monad', 'musd', 'monad', 'monad_usdc'],
+
+        ['arbitrum', 'arbitrum_usdc', 'monad', 'musd'],
+        ['arbitrum', 'arbitrum_ausdcn', 'monad', 'musd'],
+        ['base', 'base_usdc', 'monad', 'musd'],
+        ['base', 'base_ausdc', 'monad', 'musd'],
+        ['bsc', 'bsc_usdc', 'monad', 'musd'],
+        ['bsc', 'bsc_ausdc', 'monad', 'musd'],
+        ['bsc', 'bsc_ausdt', 'monad', 'musd'],
+        ['bsc', 'bsc_usdt', 'monad', 'musd'],
+        ['eth', 'eth_usdc', 'monad', 'musd'],
+        ['eth', 'eth_ausdc', 'monad', 'musd'],
+        ['eth', 'eth_usdt', 'monad', 'musd'],
+        ['eth', 'eth_ausdt', 'monad', 'musd'],
+        ['eth', 'eth_dai', 'monad', 'musd'],
+        ['eth', 'eth_adai', 'monad', 'musd'],
+        ['eth', 'musd', 'monad', 'musd'],
+        ['linea', 'musd', 'monad', 'musd'],
+
+        ['linea', 'musd', 'eth', 'eth_usdc'],
+        ['linea', 'musd', 'eth', 'musd'],
+        ['monad', 'musd', 'eth', 'musd'],
+
+        ['eth', 'eth_usdc', 'linea', 'musd'],
+        ['eth', 'eth_ausdc', 'linea', 'musd'],
+        ['eth', 'musd', 'linea', 'musd'],
+        ['monad', 'musd', 'linea', 'musd'],
+      ],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   confirmations_transactions: {
     name: 'confirmations_transactions',
     type: FeatureFlagType.Remote,
@@ -3143,6 +3230,25 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyFirstTimeDepositAnimationEnabled: {
+    name: 'earnMoneyFirstTimeDepositAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyVaultApyControl: {
+    name: 'earnMoneyVaultApyControl',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      vaultApyFallback: 0.04,
+      vaultApyOverride: 0.04,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyHubEnabled: {
     name: 'earnMoneyHubEnabled',
     type: FeatureFlagType.Remote,
@@ -3151,27 +3257,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.74.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMoneyPaymentTokensBlocklist: {
-    name: 'earnMoneyPaymentTokensBlocklist',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      '0x1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDT', 'aDAI'],
-      '0x2105': ['USDC'],
-      '0x38': ['USDC', 'USDT'],
-      '0xa4b1': ['USDC'],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMoneyTokensSortMode: {
-    name: 'earnMoneyTokensSortMode',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: 'noFeePriority',
     status: FeatureFlagStatus.Active,
   },
 
@@ -3435,29 +3520,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU610AbtestWalletHomePostOnboardingSteps: {
-    name: 'homeTMCU610AbtestWalletHomePostOnboardingSteps',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-      {
-        name: 'postOnboardingSteps',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   legacyIosGoogleConfigEnabled: {
     name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
@@ -3540,6 +3602,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableActivityDetails: {
+    name: 'moneyEnableActivityDetails',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableActivityDetailsBlockexplorerLink: {
+    name: 'moneyEnableActivityDetailsBlockexplorerLink',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
     status: FeatureFlagStatus.Active,
   },
 
@@ -3905,17 +3983,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.65.0',
       variant: 'list',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  predictHomepageDiscoveryNbaChampionEnabled: {
-    name: 'predictHomepageDiscoveryNbaChampionEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '7.77.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4405,6 +4472,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenDetailsTechnicalIndicators: {
+    name: 'tokenDetailsTechnicalIndicators',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '7.83.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenDetailsOhlcvWsIntegration: {
     name: 'tokenDetailsOhlcvWsIntegration',
     type: FeatureFlagType.Remote,
@@ -4793,6 +4871,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   homeTMCU725AbtestHomepagePerpsPillsEmptyState: {
     name: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU926AbtestDiscoveryPills: {
+    name: 'homeTMCU926AbtestDiscoveryPills',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
@@ -5312,6 +5400,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictSportCardLivePrices: {
+    name: 'predictSportCardLivePrices',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.81.0',
+      enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   smartTransactionsAllowedRpcHosts: {
     name: 'smartTransactionsAllowedRpcHosts',
     type: FeatureFlagType.Remote,
@@ -5430,17 +5529,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  tokenDetailsTechnicalIndicators: {
-    name: 'tokenDetailsTechnicalIndicators',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.83.0',
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 };

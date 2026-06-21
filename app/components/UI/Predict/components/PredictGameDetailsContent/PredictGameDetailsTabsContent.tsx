@@ -9,6 +9,7 @@ import type {
   PredictPosition,
 } from '../../types';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import PredictPicks from '../PredictPicks/PredictPicks';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import PredictGameOutcomesTab from './PredictGameOutcomesTab';
@@ -39,6 +40,7 @@ const PredictGameDetailsTabsContent = memo(
     activeChipKey,
     onBetPress,
   }: PredictGameDetailsTabsContentProps) => {
+    const { game } = usePredictGame(market, { live: false });
     const handleBuyPress = useCallback(
       (_outcome: PredictOutcome, token: PredictOutcomeToken) => {
         onBetPress(token);
@@ -72,7 +74,7 @@ const PredictGameDetailsTabsContent = memo(
       return (
         <PredictGameOutcomesTab
           groupMap={groupMap}
-          game={market.game}
+          game={game}
           activeChipKey={activeChipKey}
           onBuyPress={handleBuyPress}
         />
@@ -99,7 +101,7 @@ const PredictGameDetailsTabsContent = memo(
         {currentKey === 'outcomes' && (
           <PredictGameOutcomesTab
             groupMap={groupMap}
-            game={market.game}
+            game={game}
             activeChipKey={activeChipKey}
             onBuyPress={handleBuyPress}
           />

@@ -126,6 +126,17 @@ describe('UnifiedGestures', () => {
         undefined,
       );
     });
+
+    it('forwards hideKeyboard option to strategy.typeText', async () => {
+      await UnifiedGestures.typeText(encapsulatedElem, 'hello', {
+        hideKeyboard: false,
+      });
+      expect(mockStrategy.typeText).toHaveBeenCalledWith(
+        encapsulatedElem,
+        'hello',
+        { hideKeyboard: false },
+      );
+    });
   });
 
   describe('replaceText', () => {

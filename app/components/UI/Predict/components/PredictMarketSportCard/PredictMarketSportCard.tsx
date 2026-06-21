@@ -16,6 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -24,7 +25,8 @@ import {
 } from '../../constants/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import {
@@ -42,6 +44,8 @@ import {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
+import { isValidPrice } from '../../utils/prices';
+import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -210,15 +214,17 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
+  const livePricesEnabled = useSelector(
+    selectPredictSportCardLivePricesEnabledFlag,
+  );
 
-  const game = market.game as PredictMarketGame | undefined;
-  const { gameUpdate } = useLiveGameUpdates(game?.id ?? null);
+  const { game } = usePredictGame(market, { live: true });
   // Mirror the canonical "game over" definition (terminal status, a full-time
   // period, or a stamped endTime) so buy buttons disappear exactly when the
   // scoreboard reads "Final" and the market becomes eligible for hiding.
   const gameEnded = isGameEnded({
-    status: gameUpdate?.status ?? game?.status,
-    period: gameUpdate?.period ?? game?.period,
+    status: game?.status,
+    period: game?.period,
     endTime: game?.endTime,
   });
 
@@ -294,6 +300,25 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     market.status === PredictMarketStatus.OPEN &&
     !gameEnded &&
     buttonItems.length > 0;
+  const tokenIds = useMemo(
+    () => buttonItems.map((item) => item.token.id),
+    [buttonItems],
+  );
+  const { getPrice } = useLiveMarketPrices(tokenIds, {
+    enabled: showBuyButtons && livePricesEnabled,
+  });
+
+  const getDisplayPrice = useCallback(
+    (token: PredictOutcomeToken): number => {
+      if (!livePricesEnabled) {
+        return token.price;
+      }
+
+      const liveBestAsk = getPrice(token.id)?.bestAsk;
+      return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+    },
+    [getPrice, livePricesEnabled],
+  );
 
   const getButtonTextColorClass = (item: SportOutcomeButtonItem): string => {
     if (item.teamColor) return 'text-white';
@@ -352,7 +377,6 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           <PredictSportScoreboard
             game={game}
             compact={isCompact}
-            gameUpdate={gameUpdate}
             testID={testID ? `${testID}-scoreboard` : undefined}
           />
 
@@ -366,7 +390,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
-                    twClassName={`${isCompact ? 'p-0' : ''}`}
+                    twClassName={isCompact ? 'p-0' : 'px-1'}
+                    contentWrapperProps={{ twClassName: 'w-full' }}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}
                     testID={
@@ -376,12 +401,16 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                     <Text
                       variant={TextVariant.BodySm}
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                      ellipsizeMode="clip"
                       style={tw.style(
-                        'font-medium text-center',
+                        'font-medium text-center flex-1',
                         getButtonTextColorClass(item),
                       )}
                     >
-                      {item.label.toUpperCase()} {formatCents(item.token.price)}
+                      {item.label.toUpperCase()}{' '}
+                      {formatCents(getDisplayPrice(item.token))}
                     </Text>
                   </Button>
                 </Box>

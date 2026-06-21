@@ -1,4 +1,5 @@
 import {
+  CHAIN_IDS,
   type TransactionMeta,
   TransactionStatus,
   TransactionType,
@@ -81,6 +82,46 @@ describe('classifyMoneyActivity', () => {
       expect(classifyMoneyActivity(makeTx({ type }))).toBe('sent');
     },
   );
+
+  const MUSD_ON_MONAD = {
+    tokenAddress: MUSD_TOKEN_ADDRESS,
+    chainId: CHAIN_IDS.MONAD,
+  };
+
+  it.each([
+    TransactionType.perpsDeposit,
+    TransactionType.perpsDepositAndOrder,
+    TransactionType.predictDeposit,
+    TransactionType.predictDepositAndOrder,
+  ])(
+    'classifies a money-funded %s as sent (outflow to the service)',
+    (type) => {
+      expect(
+        classifyMoneyActivity(makeTx({ type, metamaskPay: MUSD_ON_MONAD })),
+      ).toBe('sent');
+    },
+  );
+
+  it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+    'classifies an mUSD %s as deposited (inflow into the Money account)',
+    (type) => {
+      const tx = makeTx({
+        type: TransactionType.batch,
+        nestedTransactions: [{ type }],
+        metamaskPay: MUSD_ON_MONAD,
+      });
+      expect(classifyMoneyActivity(tx)).toBe('deposited');
+    },
+  );
+
+  it('does not treat a non-mUSD perps deposit as a Money outflow', () => {
+    const tx = makeTx({
+      type: TransactionType.perpsDeposit,
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+    });
+    // Falls through to the default branch rather than the 'sent' early return.
+    expect(classifyMoneyActivity(tx)).toBe('received');
+  });
 
   it('resolves the nested type for an EIP-7702 batch crypto deposit', () => {
     const tx = makeTx({

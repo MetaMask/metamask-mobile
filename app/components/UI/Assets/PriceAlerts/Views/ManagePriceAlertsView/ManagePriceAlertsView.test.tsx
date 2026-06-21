@@ -202,6 +202,21 @@ describe('ManagePriceAlertsView', () => {
       expect(screen.getByText('Reaches $0.0₁₃105')).toBeOnTheScreen();
     });
 
+    it('preserves full precision for sub-cent thresholds', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-a', threshold: 0.00181069 }),
+          makeAlert({ id: 'alert-b', threshold: 0.00182069 }),
+        ]),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Reaches $0.00181069')).toBeOnTheScreen();
+      expect(screen.getByText('Reaches $0.00182069')).toBeOnTheScreen();
+    });
+
     it('shows "Recurring" for recurring alerts and "Once" for one-shot alerts', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
@@ -283,7 +298,40 @@ describe('ManagePriceAlertsView', () => {
       );
     });
 
-    it('removes the row optimistically when delete is pressed', async () => {
+    it('shows a spinner in place of the delete button while the request is in-flight', async () => {
+      let resolveDelete!: (value: unknown) => void;
+      mockDeleteAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveDelete = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_SPINNER_PREFIX}-alert-1`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      ).toBeNull();
+
+      await act(async () => {
+        resolveDelete(makeOkResponse(204));
+      });
+    });
+
+    it('removes the row after a successful delete', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -369,7 +417,7 @@ describe('ManagePriceAlertsView', () => {
       expect(mockReplace).not.toHaveBeenCalled();
     });
 
-    it('restores the row when deleteAlert returns a non-ok response', async () => {
+    it('restores the row and delete button when deleteAlert returns a non-ok response', async () => {
       mockDeleteAlert.mockResolvedValueOnce(makeErrorResponse(500));
       mockFetchAlerts
         .mockResolvedValueOnce(
@@ -401,6 +449,46 @@ describe('ManagePriceAlertsView', () => {
           ),
         ).toBeOnTheScreen();
       });
+
+      // Spinner should be gone and delete button restored after failure
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('ignores a second press on the delete button while the first request is in-flight', async () => {
+      let resolveDelete!: (value: unknown) => void;
+      mockDeleteAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveDelete = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      // Button is replaced by spinner — a second press is impossible
+      expect(
+        screen.queryByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      ).toBeNull();
+
+      expect(mockDeleteAlert).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveDelete(makeOkResponse(204));
+      });
     });
   });
 
@@ -427,6 +515,66 @@ describe('ManagePriceAlertsView', () => {
         expect(mockUpdateAlert).toHaveBeenCalledWith('alert-1', {
           active: false,
         });
+      });
+    });
+
+    it('disables the switch while the update request is in-flight', async () => {
+      let resolveUpdate!: (value: unknown) => void;
+      mockUpdateAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveUpdate = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      expect(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+      ).toHaveProp('disabled', true);
+
+      await act(async () => {
+        resolveUpdate(makeOkResponse(200));
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+          ),
+        ).toHaveProp('disabled', false);
+      });
+    });
+
+    it('re-enables the switch after a failed update', async () => {
+      mockUpdateAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+          ),
+        ).toHaveProp('disabled', false);
       });
     });
 

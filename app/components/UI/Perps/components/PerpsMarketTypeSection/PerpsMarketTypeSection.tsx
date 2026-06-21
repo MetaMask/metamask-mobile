@@ -29,6 +29,8 @@ export interface PerpsMarketTypeSectionProps {
   isLoading?: boolean;
   /** Analytics source identifying the parent screen (e.g., 'perps_home') */
   source?: string;
+  /** Sub-section of the parent screen that triggered navigation (e.g., 'crypto'). */
+  source_section?: string;
   /** Bound onto market-list/details routes for downstream transaction attribution. */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Test ID for component */
@@ -54,6 +56,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   sortBy = 'volume',
   isLoading,
   source,
+  source_section,
   transactionActiveAbTests,
   testID,
   style,
@@ -81,13 +84,14 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
         params: {
           market,
           source,
+          ...(source_section && { source_section }),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
         },
       });
     },
-    [navigation, source, transactionActiveAbTests],
+    [navigation, source, source_section, transactionActiveAbTests],
   );
 
   if (!isLoading && markets.length === 0) {

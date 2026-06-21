@@ -1,12 +1,12 @@
 import {
   formatPerpsFiat,
   formatPercentage,
-  formatTransactionDate,
 } from '../../../UI/Perps/utils/formatUtils';
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
 } from '../../../../util/number';
+import { toDateFormat } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
 
 const EM_DASH = '\u2014';
@@ -31,6 +31,28 @@ export function formatSignedUsd(value: number | null | undefined): string {
   if (value === 0) return formatPerpsFiat(0, { stripTrailingZeros: false });
   const sign = value > 0 ? '+' : '-';
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+/**
+ * Signed USD with the full (non-abbreviated) number, thousands separators and
+ * no fractional digits. Used for the profile 30D P&L headline
+ * (e.g. `+$82,610,666`). Zero renders without a sign.
+ */
+export function formatSignedFullUsdNoDecimals(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  if (value === 0) {
+    return formatPerpsFiat(0, { minimumDecimals: 0, maximumDecimals: 0 });
+  }
+  const sign = value > 0 ? '+' : '-';
+  return (
+    sign +
+    formatPerpsFiat(Math.abs(value), {
+      minimumDecimals: 0,
+      maximumDecimals: 0,
+    })
+  );
 }
 
 // Ordered largest → smallest. Walk down and promote when rounding pushes a
@@ -66,7 +88,7 @@ function shortenAbsCurrency(abs: number): string {
 
 /**
  * Signed USD with K/M/B/T abbreviation for ≥$1K values. Used for compact
- * PnL displays like the 30D Return headline (`+$117.2K`, `+$1.2M`, `-$500`).
+ * PnL displays like the 7D Return headline (`+$117.2K`, `+$1.2M`, `-$500`).
  */
 export function formatSignedAbbreviatedUsd(
   value: number | null | undefined,
@@ -104,8 +126,10 @@ export function formatPercent(value: number | null | undefined): string {
 
 /**
  * Trade timestamps from the social API may be seconds or milliseconds.
+ * Delegates to the shared `toDateFormat` so we render the same short
+ * convention used by the activity list (e.g. `Jun 16 at 11:38 am`).
  */
 export function formatTradeDate(timestamp: number): string {
   const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;
-  return formatTransactionDate(ms);
+  return toDateFormat(ms);
 }

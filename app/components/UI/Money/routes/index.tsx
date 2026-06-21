@@ -17,10 +17,10 @@ import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
 import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
-import MoneyCardTransactionDetailsSheet from '../components/MoneyCardTransactionDetailsSheet/MoneyCardTransactionDetailsSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
 
 const Stack = createNativeStackNavigator();
 const ModalStack = createNativeStackNavigator();
@@ -127,8 +127,8 @@ const MoneyModalStack = () => (
       options={{ headerShown: false }}
     />
     <ModalStack.Screen
-      name={Routes.MONEY.MODALS.CARD_TRANSACTION_DETAILS_SHEET}
-      component={MoneyCardTransactionDetailsSheet}
+      name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
+      component={MoneyGeoBlockSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

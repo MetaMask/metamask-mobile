@@ -10,6 +10,7 @@ import {
   selectNetworkConfigurations,
   selectNetworkClientId,
   selectIsAllNetworks,
+  selectAllPopularNetworkConfigurations,
   selectNetworkConfigurationByChainId,
   selectNativeCurrencyByChainId,
   selectCustomNetworkConfigurationsByCaipChainId,
@@ -140,6 +141,100 @@ describe('networkSelectors', () => {
         },
       }),
     ).toBe(false);
+  });
+
+  describe('selectAllPopularNetworkConfigurations', () => {
+    const networkConfigurationsByChainId = {
+      '0x1': {
+        chainId: '0x1',
+        nativeCurrency: 'ETH',
+        name: 'Ethereum Mainnet',
+        rpcEndpoints: [
+          {
+            networkClientId: 'infura-mainnet',
+            type: 'infura',
+            url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+          },
+        ],
+        blockExplorerUrls: ['https://etherscan.io'],
+      },
+      '0x89': {
+        chainId: '0x89',
+        nativeCurrency: 'MATIC',
+        name: 'Polygon',
+        rpcEndpoints: [
+          {
+            networkClientId: 'custom-network',
+            type: 'custom',
+            url: 'https://polygon-rpc.com',
+          },
+        ],
+        blockExplorerUrls: ['https://polygonscan.com'],
+      },
+    };
+
+    const tokenNetworkFilter = { '0x1': true, '0x89': true };
+
+    const buildStateWithPopularNetworks = (
+      selectedNetworkClientId: string,
+      configs = networkConfigurationsByChainId,
+    ): RootState =>
+      ({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+              selectedNetworkClientId,
+              networkConfigurationsByChainId: configs,
+            },
+            PreferencesController: {
+              tokenNetworkFilter,
+            },
+          },
+        },
+      }) as unknown as RootState;
+
+    it('returns the same reference on repeated calls with identical state', () => {
+      const state = buildStateWithPopularNetworks('custom-network');
+
+      const result1 = selectAllPopularNetworkConfigurations(state);
+      const result2 = selectAllPopularNetworkConfigurations(state);
+
+      expect(result1).toBe(result2);
+      expect(selectAllPopularNetworkConfigurations.recomputations()).toBe(1);
+    });
+
+    it('returns the same reference when popular network content is unchanged', () => {
+      const stateA = buildStateWithPopularNetworks('client-a');
+      const stateB = buildStateWithPopularNetworks('client-b', {
+        ...networkConfigurationsByChainId,
+      });
+
+      selectAllPopularNetworkConfigurations.clearCache();
+
+      const resultA = selectAllPopularNetworkConfigurations(stateA);
+      const resultB = selectAllPopularNetworkConfigurations(stateB);
+
+      expect(resultA).toBe(resultB);
+    });
+
+    it('does not recompute selectIsAllNetworks when popular network content is unchanged', () => {
+      const stateA = buildStateWithPopularNetworks('client-a');
+      const stateB = buildStateWithPopularNetworks('client-b', {
+        ...networkConfigurationsByChainId,
+      });
+
+      const recomputationsBefore = selectIsAllNetworks.recomputations();
+      selectIsAllNetworks(stateA);
+      selectIsAllNetworks(stateB);
+
+      expect(selectIsAllNetworks.recomputations() - recomputationsBefore).toBe(
+        1,
+      );
+    });
   });
 
   it('selectNetworkConfigurationByChainId should return the network configuration for a given chainId', () => {
