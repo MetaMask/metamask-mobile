@@ -2,12 +2,7 @@ import { Box } from '@metamask/design-system-react-native';
 import BottomSheetDialog from '../../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog';
 import type { BottomSheetDialogRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog.types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';

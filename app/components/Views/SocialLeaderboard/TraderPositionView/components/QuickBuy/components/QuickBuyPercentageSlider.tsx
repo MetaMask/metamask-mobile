@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AccessibilityActionEvent, LayoutChangeEvent, View } from 'react-native';
 import {
-  Gesture,
-  GestureDetector,
-} from 'react-native-gesture-handler';
+  AccessibilityActionEvent,
+  LayoutChangeEvent,
+  View,
+} from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
