@@ -1,4 +1,11 @@
-import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
+import React, {
+  ReactNode,
+  memo,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -65,6 +72,8 @@ import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import { getTransactionUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
@@ -161,6 +170,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
+    const { toastRef } = useContext(ToastContext);
+
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -198,18 +209,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const handleDone = useCallback(async () => {
       try {
         if (selectedFiatPaymentMethodId && transactionId) {
-          Engine.context.TransactionPayController.updateFiatPayment({
-            transactionId,
-            callback: (fp) => {
-              fp.amountFiat = amountFiat;
-            },
-          });
-
-          // Fiat deposits need nested calldata (approve + deposit) populated
-          // with approximate amounts now so the transaction is valid at submit
-          // time. Core will re-encode with exact amounts after settlement.
           if (isMoneyAccountDeposit) {
+            // Update calldata first; only commit the fiat payment amount after
+            // success so Pay config does not reflect an amount whose calldata
+            // update failed.
             await updateTokenAmount();
+            Engine.context.TransactionPayController.updateFiatPayment({
+              transactionId,
+              callback: (fp) => {
+                fp.amountFiat = amountFiat;
+              },
+            });
+          } else {
+            Engine.context.TransactionPayController.updateFiatPayment({
+              transactionId,
+              callback: (fp) => {
+                fp.amountFiat = amountFiat;
+              },
+            });
           }
         } else {
           await updateTokenAmount();
@@ -222,16 +239,21 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           error as Error,
           'Failed to apply custom amount on Done press',
         );
-      } finally {
-        EngineService.flushState();
-        setIsKeyboardVisible(false);
-        onAmountSubmit?.();
+        toastRef?.current?.showToast(
+          getTransactionUpdateErrorToastOptions(error),
+        );
+        // Keep keyboard visible so the user can retry; do not advance the flow.
+        return;
       }
+      EngineService.flushState();
+      setIsKeyboardVisible(false);
+      onAmountSubmit?.();
     }, [
       amountFiat,
       isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
+      toastRef,
       trackAmountCommitted,
       transactionId,
       updateTokenAmount,

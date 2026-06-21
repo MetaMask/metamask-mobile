@@ -45,34 +45,27 @@ export function useUpdateTransactionPayAmount() {
         return;
       }
 
+      let updates: UpdateTransactionPayAmountCall[];
       try {
-        const updates = await updater(
+        updates = await updater(
           transactionMeta,
           amountHuman,
           recipientOverride,
         );
-
-        const results = await Promise.allSettled(
-          updates.map(({ nestedTransactionIndex, transactionData }) =>
-            updateAtomicBatchData({
-              transactionId: transactionMeta.id,
-              transactionIndex: nestedTransactionIndex,
-              transactionData,
-            }),
-          ),
-        );
-
-        for (const result of results) {
-          if (result.status === 'rejected') {
-            Logger.error(
-              result.reason as Error,
-              'Failed to update transaction pay amount in nested transaction',
-            );
-          }
-        }
       } catch (error) {
         Logger.error(error as Error, preparationErrorMessage);
+        throw error;
       }
+
+      await Promise.all(
+        updates.map(({ nestedTransactionIndex, transactionData }) =>
+          updateAtomicBatchData({
+            transactionId: transactionMeta.id,
+            transactionIndex: nestedTransactionIndex,
+            transactionData,
+          }),
+        ),
+      );
     },
     [transactionMeta],
   );
@@ -158,5 +151,6 @@ function syncMoneyAccountDepositRequiredAssets(
       error as Error,
       'Failed to sync Money Account deposit requiredAssets amount',
     );
+    throw error;
   }
 }

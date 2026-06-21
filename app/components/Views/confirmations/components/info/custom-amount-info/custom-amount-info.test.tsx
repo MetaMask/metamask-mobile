@@ -1,5 +1,6 @@
 import React, { act } from 'react';
 import { merge, noop } from 'lodash';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   CustomAmountInfo,
@@ -177,32 +178,42 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
+
 function render(
   props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
 ) {
-  return renderWithProvider(<CustomAmountInfo {...props} />, {
-    state: merge(
-      {},
-      simpleSendTransactionControllerMock,
-      transactionApprovalControllerMock,
-      otherControllersMock,
-      {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  type:
-                    props.transactionType ||
-                    TransactionType.contractInteraction,
-                },
-              ],
+  return renderWithProvider(
+    <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+      <CustomAmountInfo {...props} />
+    </ToastContext.Provider>,
+    {
+      state: merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        otherControllersMock,
+        {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    type:
+                      props.transactionType ||
+                      TransactionType.contractInteraction,
+                  },
+                ],
+              },
             },
           },
         },
-      },
-    ),
-  });
+      ),
+    },
+  );
 }
 
 describe('CustomAmountInfo', () => {
@@ -261,6 +272,7 @@ describe('CustomAmountInfo', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockShowToast.mockReset();
 
     mockUseRampsUserRegion.mockReturnValue({
       userRegion: { regionCode: 'us-ca' },
@@ -577,7 +589,7 @@ describe('CustomAmountInfo', () => {
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
-  it('still runs UI cleanup and logs the error when updateTokenAmount rejects on Done', async () => {
+  it('shows toast, keeps keyboard open, and skips onAmountSubmit when updateTokenAmount rejects on Done', async () => {
     const error = new Error('update failed');
     const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
     const mockOnAmountSubmit = jest.fn();
@@ -596,14 +608,24 @@ describe('CustomAmountInfo', () => {
       updateTokenAmount: updateTokenAmountMock,
     });
 
-    const { getByText } = render({ onAmountSubmit: mockOnAmountSubmit });
+    const { getByText, queryByText } = render({
+      onAmountSubmit: mockOnAmountSubmit,
+    });
 
     await act(async () => {
       fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
+    // onAmountSubmit must NOT be called — keep keyboard visible for retry
+    expect(mockOnAmountSubmit).not.toHaveBeenCalled();
+    // Toast must be shown with the transaction-update title
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({ labelOptions: expect.any(Array) }),
+    );
+    // Keyboard stays open: Done button still present
+    expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
     expect(loggerErrorMock).toHaveBeenCalledWith(
       error,
       expect.stringContaining('Failed to apply custom amount on Done press'),
@@ -932,7 +954,7 @@ describe('CustomAmountInfo', () => {
       );
     });
 
-    it('does not fire RAMPS_ORDER_PROPOSED when applying the amount throws on Done', async () => {
+    it('does not fire RAMPS_ORDER_PROPOSED and shows toast when applying the amount throws on Done', async () => {
       setMoneyFlow();
       const error = new Error('update failed');
       const loggerErrorMock = jest.mocked(Logger.error);
@@ -949,8 +971,9 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText(strings('confirm.edit_amount_done')));
       });
 
-      // The Done handler's catch suppresses the commit but logs the error.
+      // The Done handler's catch shows a toast and returns early without committing.
       expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toBeUndefined();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(loggerErrorMock).toHaveBeenCalledWith(
         error,
         expect.stringContaining('Failed to apply custom amount on Done press'),
