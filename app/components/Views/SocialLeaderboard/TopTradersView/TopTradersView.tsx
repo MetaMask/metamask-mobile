@@ -58,12 +58,11 @@ import {
 import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
   ALL_CHAINS,
   PERP_CHAINS,
   SPOT_CHAINS,
-} from '../../Homepage/Sections/TopTraders/constants';
+} from '../../shared/top-traders-constants';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';

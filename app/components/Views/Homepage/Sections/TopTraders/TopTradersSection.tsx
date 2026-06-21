@@ -29,7 +29,7 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
-import { ALL_CHAINS } from './constants';
+import { ALL_CHAINS } from '../../../shared/top-traders-constants';
 import { useTopTraders } from './hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
