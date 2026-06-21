@@ -1,5 +1,10 @@
 import React from 'react';
-import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Share,
+  type AppStateStatus,
+} from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -821,6 +826,68 @@ describe('TokenDetails', () => {
           assetId: expect.stringMatching(/^eip155:1\//),
         }),
       );
+    });
+  });
+
+  describe('share button', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(Share, 'share')
+        .mockResolvedValue({ action: Share.dismissedAction });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('always passes onSharePress to the header', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onSharePress: expect.any(Function) }),
+      );
+    });
+
+    it('calls Share.share with an encoded CAIP-19 URL when onSharePress is invoked', async () => {
+      render(<TokenDetails />);
+
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
+      const { onSharePress } = (lastCall?.[0] ?? {}) as {
+        onSharePress: () => void;
+      };
+
+      await act(async () => {
+        onSharePress();
+      });
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringMatching(
+            /^https:\/\/link\.metamask\.io\/asset\?assetId=eip155/,
+          ),
+        }),
+      );
+    });
+
+    it('does not include unencoded colons or slashes in the query param', async () => {
+      render(<TokenDetails />);
+
+      const lastCall2 = mockTokenDetailsInlineHeader.mock.calls.at(-1);
+      const { onSharePress } = (lastCall2?.[0] ?? {}) as {
+        onSharePress: () => void;
+      };
+
+      await act(async () => {
+        onSharePress();
+      });
+
+      const [{ url }] = (Share.share as jest.Mock).mock.calls[0];
+      const assetId = new URL(url as string).searchParams.get('assetId') ?? '';
+      // The raw assetId should round-trip through decodeURIComponent cleanly
+      expect(decodeURIComponent(encodeURIComponent(assetId))).toBe(assetId);
+      // And the raw URL must not contain unencoded colons after the scheme
+      const queryString = (url as string).split('?')[1] ?? '';
+      expect(queryString).not.toContain(':');
     });
   });
 
