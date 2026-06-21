@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -31,6 +32,11 @@ import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -93,6 +99,10 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
   const tokens = useTokensFeed({ refresh });
   const cryptoPredictions = usePredictionsFeed({
     variant: 'crypto',
@@ -117,6 +127,7 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             item_clicked: item.assetId,
           })
         }
+        onQuickTrade={setQuickTradeToken}
       />
     ),
     [],
@@ -125,53 +136,67 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showTokens = tokens.isLoading || tokens.data.length > 0;
 
   return (
-    <ExploreScroll
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
-    >
-      {showTokens && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.trending_tokens')}
-            onViewAll={() =>
-              navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
-            }
-            testID="section-header-view-all-tokens"
-            tabName="Crypto"
-            sectionName="tokens_trending"
-          />
-          <CardList<TrendingAsset>
-            data={tokens.data}
-            isLoading={tokens.isLoading}
-            renderItem={renderTokenItem}
-            Skeleton={TrendingTokensSkeleton}
-            idPrefix="tokens"
-          />
-        </Box>
-      )}
+    <View style={styles.container}>
+      <ExploreScroll
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
+      >
+        {showTokens && (
+          <Box>
+            <SectionHeader
+              title={strings('trending.trending_tokens')}
+              onViewAll={() =>
+                navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
+              }
+              testID="section-header-view-all-tokens"
+              tabName="Crypto"
+              sectionName="tokens_trending"
+            />
+            <CardList<TrendingAsset>
+              data={tokens.data}
+              isLoading={tokens.isLoading}
+              renderItem={renderTokenItem}
+              Skeleton={TrendingTokensSkeleton}
+              idPrefix="tokens"
+            />
+          </Box>
+        )}
 
-      {isPerpsEnabled && (
-        <PerpsSectionProvider>
-          <CryptoPerpsBlock
-            refresh={refresh}
-            onViewAll={(sortOptionId) =>
-              navigateToPerpsMarketList(perpsNavigation, 'crypto', sortOptionId)
-            }
-          />
-        </PerpsSectionProvider>
-      )}
+        {isPerpsEnabled && (
+          <PerpsSectionProvider>
+            <CryptoPerpsBlock
+              refresh={refresh}
+              onViewAll={(sortOptionId) =>
+                navigateToPerpsMarketList(
+                  perpsNavigation,
+                  'crypto',
+                  sortOptionId,
+                )
+              }
+            />
+          </PerpsSectionProvider>
+        )}
 
-      <PredictionsCarouselSection
-        feed={cryptoPredictions}
-        tabName="Crypto"
-        sectionName="predictions_crypto"
-        title={strings('trending.predictions')}
-        testIdPrefix="predict-crypto-market-row-item"
-        idPrefix="crypto_predictions"
-        onViewAll={() => navigateToExplorePredictionsList(navigation, 'crypto')}
+        <PredictionsCarouselSection
+          feed={cryptoPredictions}
+          tabName="Crypto"
+          sectionName="predictions_crypto"
+          title={strings('trending.predictions')}
+          testIdPrefix="predict-crypto-market-row-item"
+          idPrefix="crypto_predictions"
+          onViewAll={() =>
+            navigateToExplorePredictionsList(navigation, 'crypto')
+          }
+        />
+      </ExploreScroll>
+
+      <TrendingQuickBuy
+        token={quickTradeToken}
+        onClose={() => setQuickTradeToken(null)}
+        source="explore_crypto"
       />
-    </ExploreScroll>
+    </View>
   );
 };
 

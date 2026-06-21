@@ -8,16 +8,20 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   useSocialLeaderboardAnalytics,
   SocialLeaderboardEventProperties,
+  type QuickBuySheetSource,
 } from '../../../../Views/SocialLeaderboard/analytics';
 
-interface TrendingQuickBuyProps {
+export interface TrendingQuickBuyProps {
   token: TrendingAsset | null;
   onClose: () => void;
+  /** Analytics surface identifier. Defaults to `'explore_search'`. */
+  source?: QuickBuySheetSource;
 }
 
 const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
   token,
   onClose,
+  source = 'explore_search',
 }) => {
   const { track } = useSocialLeaderboardAnalytics();
   const prevTokenRef = useRef<TrendingAsset | null>(null);
@@ -41,7 +45,7 @@ const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
   useEffect(() => {
     if (token && !prevTokenRef.current) {
       track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
-        [SocialLeaderboardEventProperties.SOURCE]: 'explore_search',
+        [SocialLeaderboardEventProperties.SOURCE]: source,
         [SocialLeaderboardEventProperties.CAIP19]: token.assetId,
         ...(typeof token.marketCap === 'number'
           ? { [SocialLeaderboardEventProperties.MARKET_CAP]: token.marketCap }
@@ -49,7 +53,7 @@ const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
       });
     }
     prevTokenRef.current = token;
-  }, [token, track]);
+  }, [token, track, source]);
 
   return (
     <QuickBuy.Root
@@ -57,7 +61,7 @@ const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
       target={target}
       onClose={onClose}
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
-      analyticsContext={{ source: 'explore_search' }}
+      analyticsContext={{ source }}
     />
   );
 };

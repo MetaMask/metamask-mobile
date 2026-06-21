@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import TrendingQuickBuy from '../../components/TrendingQuickBuy/TrendingQuickBuy';
 import { View, RefreshControl } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -43,6 +44,7 @@ export interface TrendingTokensDataProps {
   theme: Theme;
   onLoadMore?: () => void;
   isLoadingMore?: boolean;
+  onQuickTrade?: (token: TrendingAsset) => void;
 
   search: {
     searchResults: TrendingAsset[];
@@ -62,6 +64,7 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     theme,
     onLoadMore,
     isLoadingMore,
+    onQuickTrade,
   } = props;
 
   const tw = useTailwind();
@@ -95,6 +98,7 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
         filterContext={filterContext}
         onLoadMore={onLoadMore}
         isLoadingMore={isLoadingMore}
+        onQuickTrade={onQuickTrade}
         refreshControl={
           <RefreshControl
             colors={[theme.colors.primary.default]}
@@ -110,6 +114,9 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 
 const TrendingTokensFullView = () => {
   const sessionManager = TrendingFeedSessionManager.getInstance();
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
   const { params } =
     useRoute<
       RouteProp<{ TrendingTokensFullView: TrendingTokensFullViewParams }>
@@ -257,6 +264,14 @@ const TrendingTokensFullView = () => {
           onClose={() => setShowTimeBottomSheet(false)}
           onTimeSelect={handleTimeSelect}
           selectedTime={filters.selectedTimeOption}
+        />
+      }
+      onQuickTrade={setQuickTradeToken}
+      quickBuyNode={
+        <TrendingQuickBuy
+          token={quickTradeToken}
+          onClose={() => setQuickTradeToken(null)}
+          source="explore_trending"
         />
       }
     />

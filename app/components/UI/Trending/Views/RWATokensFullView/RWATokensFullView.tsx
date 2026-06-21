@@ -1,4 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import type { TrendingAsset } from '@metamask/assets-controllers';
+import TrendingQuickBuy from '../../components/TrendingQuickBuy/TrendingQuickBuy';
 import { strings } from '../../../../../../locales/i18n';
 import {
   PriceChangeOption,
@@ -10,6 +12,9 @@ import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListP
 import { RWA_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 const RWATokensFullView = () => {
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
   const filters = useTokenListFilters({
     timeOption: TimeOption.TwentyFourHours,
   });
@@ -53,6 +58,14 @@ const RWATokensFullView = () => {
       allowedNetworks={RWA_NETWORKS_LIST}
       onLoadMore={loadMore}
       isLoadingMore={isLoadingMore}
+      onQuickTrade={setQuickTradeToken}
+      quickBuyNode={
+        <TrendingQuickBuy
+          token={quickTradeToken}
+          onClose={() => setQuickTradeToken(null)}
+          source="explore_stocks"
+        />
+      }
     />
   );
 };

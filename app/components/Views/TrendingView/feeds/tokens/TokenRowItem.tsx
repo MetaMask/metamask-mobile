@@ -25,6 +25,7 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
   index,
   tokenDetailsSource,
   onCardPress,
+  onQuickTrade,
 }) => (
   <TrendingTokenRowItem
     token={token}
@@ -32,6 +33,7 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
     filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
     tokenDetailsSource={tokenDetailsSource}
     onCardPress={onCardPress}
+    onQuickTrade={onQuickTrade}
   />
 );
 

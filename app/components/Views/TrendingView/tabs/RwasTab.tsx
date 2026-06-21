@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -34,6 +35,11 @@ import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -102,6 +108,10 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
   const stocks = useStocksFeed({
     refresh,
@@ -126,6 +136,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             item_clicked: item.assetId,
           })
         }
+        onQuickTrade={setQuickTradeToken}
       />
     ),
     [],
@@ -134,56 +145,64 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
   return (
-    <ExploreScroll
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
-    >
-      <PredictionsCarouselSection
-        feed={politics}
-        tabName="RWAs"
-        sectionName="predictions_politics"
-        title={strings('trending.predictions')}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-        idPrefix="politics_predictions"
-        onViewAll={() =>
-          navigateToExplorePredictionsList(appNavigation, 'politics')
-        }
-        isEnabled={isPredictEnabled}
+    <View style={styles.container}>
+      <ExploreScroll
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+      >
+        <PredictionsCarouselSection
+          feed={politics}
+          tabName="RWAs"
+          sectionName="predictions_politics"
+          title={strings('trending.predictions')}
+          testIdPrefix="predict-rwa-politics-market-row-item"
+          idPrefix="politics_predictions"
+          onViewAll={() =>
+            navigateToExplorePredictionsList(appNavigation, 'politics')
+          }
+          isEnabled={isPredictEnabled}
+        />
+
+        {showStocks && (
+          <Box>
+            <SectionHeader
+              title={strings('trending.stocks')}
+              onViewAll={() =>
+                appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
+              }
+              testID="section-header-view-all-stocks"
+              tabName="RWAs"
+              sectionName="stocks"
+            />
+            <CardList<TrendingAsset>
+              data={stocks.data}
+              isLoading={stocks.isLoading}
+              renderItem={renderStockItem}
+              Skeleton={TrendingTokensSkeleton}
+              idPrefix="stocks"
+            />
+          </Box>
+        )}
+
+        {isPerpsEnabled && (
+          <PerpsSectionProvider>
+            <RwaPerpsBlock
+              refresh={refresh}
+              onViewAll={(filter, sortOptionId) =>
+                navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
+              }
+            />
+          </PerpsSectionProvider>
+        )}
+      </ExploreScroll>
+
+      <TrendingQuickBuy
+        token={quickTradeToken}
+        onClose={() => setQuickTradeToken(null)}
+        source="explore_rwas"
       />
-
-      {showStocks && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.stocks')}
-            onViewAll={() =>
-              appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
-            }
-            testID="section-header-view-all-stocks"
-            tabName="RWAs"
-            sectionName="stocks"
-          />
-          <CardList<TrendingAsset>
-            data={stocks.data}
-            isLoading={stocks.isLoading}
-            renderItem={renderStockItem}
-            Skeleton={TrendingTokensSkeleton}
-            idPrefix="stocks"
-          />
-        </Box>
-      )}
-
-      {isPerpsEnabled && (
-        <PerpsSectionProvider>
-          <RwaPerpsBlock
-            refresh={refresh}
-            onViewAll={(filter, sortOptionId) =>
-              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
-            }
-          />
-        </PerpsSectionProvider>
-      )}
-    </ExploreScroll>
+    </View>
   );
 };
 

@@ -45,4 +45,15 @@ export const EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping
       EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_COMPLETED,
       EVENT_NAME.SOCIAL_QUICK_BUY_DISMISSED,
     ],
+    // This A/B test applies to all Explore surfaces
+    injectWhenPropertiesMatch: {
+      source: [
+        'explore_search',
+        'explore_crypto',
+        'explore_now',
+        'explore_rwas',
+        'explore_trending',
+        'explore_stocks',
+      ] as const,
+    },
   };

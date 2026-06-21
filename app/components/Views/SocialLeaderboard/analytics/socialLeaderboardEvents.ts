@@ -87,7 +87,12 @@ export type SocialLeaderboardSource =
   | 'asset_details'
   | 'market_insights'
   | 'security_trust'
-  | 'explore_search';
+  | 'explore_search'
+  | 'explore_crypto'
+  | 'explore_now'
+  | 'explore_rwas'
+  | 'explore_trending'
+  | 'explore_stocks';
 
 export type LeaderboardScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -123,4 +128,9 @@ export type QuickBuySheetSource = Extract<
   | 'market_insights'
   | 'security_trust'
   | 'explore_search'
+  | 'explore_crypto'
+  | 'explore_now'
+  | 'explore_rwas'
+  | 'explore_trending'
+  | 'explore_stocks'
 >;
