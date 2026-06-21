@@ -1876,4 +1876,15 @@ describe('TrendingTokenRowItem', () => {
       });
     });
   });
+
+  describe('memoization', () => {
+    it('is wrapped in React.memo to avoid re-renders in hot lists', () => {
+      // React.memo components expose the `react.memo` symbol on `$$typeof`.
+      // This guards against accidentally dropping the memo wrapper, which
+      // would re-render every row on each parent (price feed) update.
+      expect(
+        (TrendingTokenRowItem as unknown as { $$typeof?: symbol }).$$typeof,
+      ).toBe(Symbol.for('react.memo'));
+    });
+  });
 });

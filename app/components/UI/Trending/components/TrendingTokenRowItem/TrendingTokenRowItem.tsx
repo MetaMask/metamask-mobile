@@ -293,4 +293,6 @@ const TrendingTokenRowItem = ({
   );
 };
 
-export default TrendingTokenRowItem;
+TrendingTokenRowItem.displayName = 'TrendingTokenRowItem';
+
+export default React.memo(TrendingTokenRowItem);

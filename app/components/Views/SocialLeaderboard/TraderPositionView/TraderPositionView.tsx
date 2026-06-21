@@ -48,12 +48,17 @@ import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
   SocialLeaderboardEventProperties,
-  SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
+import { isPerpPosition } from '../utils/perp';
+import PerpsTradeButton from './components/PerpsTradeButton';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 const TraderPositionView = () => {
@@ -72,6 +77,8 @@ const TraderPositionView = () => {
     position: positionParam,
     positionId,
     source: sourceParam,
+    isClosed: isClosedParam,
+    notificationSubtype,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
 
@@ -105,10 +112,15 @@ const TraderPositionView = () => {
   const traderAddress =
     traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
 
-  const positionData = useTraderPositionData(resolvedPosition, tokenSymbol);
+  const positionData = useTraderPositionData(
+    resolvedPosition,
+    tokenSymbol,
+    isClosedParam,
+  );
   const {
     symbol,
     marketCap,
+    currentPrice,
     historicalPrices,
     priceDiff,
     isPricesLoading,
@@ -217,8 +229,17 @@ const TraderPositionView = () => {
     track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED, {
       ...followTradingTokenContext,
       [SocialLeaderboardEventProperties.SOURCE]: followTradingTokenSource,
+      ...(notificationSubtype !== undefined && {
+        [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
+          notificationSubtype,
+      }),
     });
-  }, [followTradingTokenContext, followTradingTokenSource, track]);
+  }, [
+    followTradingTokenContext,
+    followTradingTokenSource,
+    notificationSubtype,
+    track,
+  ]);
 
   // Keep a stable ref to the latest context so the dismissed-cleanup effect
   // can read the current value without listing it as a dependency.
@@ -261,24 +282,8 @@ const TraderPositionView = () => {
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_BUY_CLICKED,
         followTradingTokenContext,
       );
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
-        ...followTradingTokenContext,
-        [SocialLeaderboardEventProperties.MARKET_CAP]:
-          typeof marketCap === 'number' ? marketCap : undefined,
-        [SocialLeaderboardEventProperties.SOURCE]: quickBuySource,
-        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: isClosed
-          ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL
-          : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
-      });
     }
-  }, [
-    resolvedPosition,
-    followTradingTokenContext,
-    marketCap,
-    quickBuySource,
-    isClosed,
-    track,
-  ]);
+  }, [resolvedPosition, followTradingTokenContext, track]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -287,6 +292,33 @@ const TraderPositionView = () => {
   const handleChartIndexChange = useCallback((_index: number) => {
     // TODO: update displayed price on scrub.
   }, []);
+
+  // Perp positions surface Long/Short CTAs instead of Buy. Hyperliquid has no
+  // long/short preselect param on the market page (direction only exists on the
+  // funded trade-entry flow), so both CTAs land the user on that market's Perps
+  // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
+  // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
+  const isPerp = resolvedPosition ? isPerpPosition(resolvedPosition) : false;
+
+  // The xyz/HIP-3 resolution + existence check lives in PerpsTradeButton (it
+  // owns the market-data subscription); here we just navigate to whichever
+  // `xyz` market it resolved. A minimal { symbol, name } market is enough —
+  // PerpsMarketDetailsView enriches it from usePerpsMarkets (same pattern as
+  // PerpsPositionTransactionView).
+  const handlePerpTrade = useCallback(
+    (targetSymbol: string) => {
+      playImpact(ImpactMoment.PrimaryCTA);
+      const market = {
+        symbol: targetSymbol,
+        name: getPerpsDisplaySymbol(targetSymbol),
+      } as PerpsMarketData;
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market, source: 'social_leaderboard' },
+      });
+    },
+    [navigation],
+  );
 
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
@@ -301,6 +333,7 @@ const TraderPositionView = () => {
       <TraderPositionHeader
         traderName={traderName}
         traderImageUrl={traderImageUrl}
+        traderAddress={traderAddress}
         onBack={handleBack}
         onTraderPress={handleTraderPress}
         backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
@@ -328,6 +361,7 @@ const TraderPositionView = () => {
               symbol={symbol}
               position={resolvedPosition}
               marketCap={marketCap}
+              currentPrice={currentPrice}
               pricePercentChange={pricePercentChange}
               activeTimePeriodLabel={activeTimePeriod}
               onCopyTokenAddress={handleCopyTokenAddress}
@@ -360,31 +394,44 @@ const TraderPositionView = () => {
 
             <TraderTradesSection
               trades={allTrades}
-              traderName={traderName}
               traderImageUrl={traderImageUrl}
+              traderAddress={traderAddress}
             />
           </ScrollView>
 
-          <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleBuyPress}
-              testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-            >
-              {strings('social_leaderboard.trader_position.buy')}
-            </Button>
-          </Box>
+          {isPerp && resolvedPosition ? (
+            <PerpsTradeButton
+              symbol={resolvedPosition.tokenSymbol}
+              onTrade={handlePerpTrade}
+              testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+            />
+          ) : (
+            <>
+              <Box twClassName="px-4 py-3">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('social_leaderboard.trader_position.buy')}
+                </Button>
+              </Box>
 
-          <TraderPositionQuickBuy
-            isVisible={isQuickBuyVisible}
-            position={resolvedPosition ?? null}
-            onClose={handleQuickBuyClose}
-            traderAddress={traderAddress}
-            marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-            source={quickBuySource}
-          />
+              <TraderPositionQuickBuy
+                isVisible={isQuickBuyVisible}
+                position={resolvedPosition ?? null}
+                onClose={handleQuickBuyClose}
+                traderAddress={traderAddress}
+                marketCap={
+                  typeof marketCap === 'number' ? marketCap : undefined
+                }
+                source={quickBuySource}
+                isTraderPositionClosed={isClosed}
+              />
+            </>
+          )}
         </>
       )}
     </SafeAreaView>

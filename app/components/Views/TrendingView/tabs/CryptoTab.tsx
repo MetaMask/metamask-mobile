@@ -1,8 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
@@ -27,6 +26,9 @@ import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarousel
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -56,7 +58,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box>
+    <>
       <SectionHeader
         title={strings('trending.crypto_perps_section')}
         onViewAll={() => onViewAll(perps.defaultSortOptionId)}
@@ -71,6 +73,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
           <PerpsTileRowItem
             item={item}
             testIdPrefix="crypto-tab-perps-market-tile-card"
+            sourceSection="perps_crypto"
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',
@@ -89,11 +92,15 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
         testID="explore-crypto_perps-carousel"
         viewMoreTestID="crypto_perps-view-more-card"
       />
-    </Box>
+    </>
   );
 };
 
-const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const CryptoTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -107,6 +114,11 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const cryptoPredictions = usePredictionsFeed({
     variant: 'crypto',
     refresh,
+  });
+  const cryptoPerps = usePerpsFeed({
+    variant: 'crypto',
+    refresh,
+    withTileExtras: true,
   });
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
@@ -134,16 +146,20 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   );
 
   const showTokens = tokens.isLoading || tokens.data.length > 0;
+  const showCryptoPerps =
+    isPerpsEnabled && (cryptoPerps.isLoading || cryptoPerps.data.length > 0);
+  const showPredictions =
+    cryptoPredictions.isLoading || cryptoPredictions.data.length > 0;
 
-  return (
-    <View style={styles.container}>
-      <ExploreScroll
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
-      >
-        {showTokens && (
-          <Box>
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
+
+    if (showTokens) {
+      items.push({
+        key: 'tokens',
+        isVerticalList: true,
+        content: (
+          <>
             <SectionHeader
               title={strings('trending.trending_tokens')}
               onViewAll={() =>
@@ -160,35 +176,66 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
               Skeleton={TrendingTokensSkeleton}
               idPrefix="tokens"
             />
-          </Box>
-        )}
+          </>
+        ),
+      });
+    }
 
-        {isPerpsEnabled && (
-          <PerpsSectionProvider>
-            <CryptoPerpsBlock
-              refresh={refresh}
-              onViewAll={(sortOptionId) =>
-                navigateToPerpsMarketList(
-                  perpsNavigation,
-                  'crypto',
-                  sortOptionId,
-                )
-              }
-            />
-          </PerpsSectionProvider>
-        )}
+    if (showCryptoPerps) {
+      items.push({
+        key: 'crypto_perps',
+        content: (
+          <CryptoPerpsBlock
+            refresh={refresh}
+            onViewAll={(sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, 'crypto', sortOptionId)
+            }
+          />
+        ),
+      });
+    }
 
-        <PredictionsCarouselSection
-          feed={cryptoPredictions}
-          tabName="Crypto"
-          sectionName="predictions_crypto"
-          title={strings('trending.predictions')}
-          testIdPrefix="predict-crypto-market-row-item"
-          idPrefix="crypto_predictions"
-          onViewAll={() =>
-            navigateToExplorePredictionsList(navigation, 'crypto')
-          }
-        />
+    if (showPredictions) {
+      items.push({
+        key: 'predictions',
+        content: (
+          <PredictionsCarouselSection
+            feed={cryptoPredictions}
+            tabName="Crypto"
+            sectionName="predictions_crypto"
+            title={strings('trending.predictions')}
+            testIdPrefix="predict-crypto-market-row-item"
+            idPrefix="crypto_predictions"
+            onViewAll={() =>
+              navigateToExplorePredictionsList(navigation, 'crypto')
+            }
+          />
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showTokens,
+    showCryptoPerps,
+    showPredictions,
+    navigation,
+    tokens.data,
+    tokens.isLoading,
+    renderTokenItem,
+    refresh,
+    perpsNavigation,
+    cryptoPredictions,
+  ]);
+
+  return (
+    <View style={styles.container}>
+      <ExploreScroll
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
+      >
+        <ExploreSectionList sections={sections} />
       </ExploreScroll>
 
       <TrendingQuickBuy
@@ -199,5 +246,11 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     </View>
   );
 };
+
+const CryptoTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <CryptoTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default CryptoTab;

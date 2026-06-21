@@ -58,29 +58,31 @@ import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 
 const KEYPAD_EMPTY = '0';
 const MIN_KEYPAD_DECIMALS = 2;
-/** Fractional offset that yields 6 significant figures via toFixed. */
+const MAX_KEYPAD_DECIMALS = 15;
 const SIG_FIGS_FRACTIONAL_OFFSET = 5;
 
 /**
  * Max fractional digits the keypad should allow for a given USD price.
  * Mirrors the precision used by {@link toKeypadString} so manual entry and
  * quick-percentage pills stay consistent (e.g. sub-cent SHIB prices).
+ * Capped at {@link MAX_KEYPAD_DECIMALS} to prevent excessively long inputs.
  */
 const getKeypadDecimalPlaces = (price: number): number => {
   if (!Number.isFinite(price) || price <= 0) {
     return MIN_KEYPAD_DECIMALS;
   }
-
   const exponent = Math.floor(Math.log10(price));
-  return exponent >= 0
-    ? Math.max(MIN_KEYPAD_DECIMALS, SIG_FIGS_FRACTIONAL_OFFSET - exponent)
-    : Math.abs(exponent) + SIG_FIGS_FRACTIONAL_OFFSET;
+  const places =
+    exponent >= 0
+      ? Math.max(MIN_KEYPAD_DECIMALS, SIG_FIGS_FRACTIONAL_OFFSET - exponent)
+      : Math.abs(exponent) + SIG_FIGS_FRACTIONAL_OFFSET;
+  return Math.min(places, MAX_KEYPAD_DECIMALS);
 };
 
 /**
  * Converts a computed price into a plain decimal string suitable for the keypad.
  * Always preserves 6 significant figures and never produces scientific notation.
- * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.0000000000000105".
+ * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.000000000000011".
  */
 const toKeypadString = (price: number): string => {
   if (!Number.isFinite(price) || price <= 0) return KEYPAD_EMPTY;
@@ -104,7 +106,7 @@ const viewStyles = StyleSheet.create({
 
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const { colors, brandColors } = useTheme();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const route =
@@ -386,7 +388,7 @@ const CreatePriceAlertView: React.FC = () => {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={colors.background.default}
+                  thumbColor={brandColors.white}
                   ios_backgroundColor={colors.border.muted}
                   testID={CreatePriceAlertTestIds.RECURRING_TOGGLE}
                 />
@@ -427,10 +429,13 @@ const CreatePriceAlertView: React.FC = () => {
                 </Box>
               )}
 
+              {/* "price_alert" is intentionally not in the Keypad CURRENCIES map —
+                  unknown codes fall through to the decimals-aware branch in useCurrency,
+                  which is the only path that actually enforces the decimals cap. */}
               <KeypadComponent
                 value={targetAmount}
                 onChange={handleKeypadChange}
-                currency="native"
+                currency="price_alert"
                 decimals={keypadDecimals}
               />
             </View>

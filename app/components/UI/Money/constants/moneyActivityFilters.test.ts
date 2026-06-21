@@ -15,6 +15,8 @@ import {
 
 const MOCK_CHAIN: Hex = CHAIN_IDS.MONAD;
 const OTHER_ERC20: Hex = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+// A MetaMask Pay token of mUSD on Monad marks a Perps/Predict ↔ Money transfer.
+const MUSD_ON_MONAD = { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: MOCK_CHAIN };
 
 function tx(overrides: Partial<TransactionMeta>): TransactionMeta {
   return {
@@ -103,6 +105,31 @@ describe('moneyActivityFilters', () => {
         ),
       ).toBe(false);
     });
+
+    it('returns true for a Perps/Predict withdraw landing in the Money account (inflow)', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.batch,
+            nestedTransactions: [
+              { type: TransactionType.predictWithdraw } as TransactionMeta,
+            ],
+            metamaskPay: MUSD_ON_MONAD,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for a Perps/Predict deposit (outflow, not a deposit into Money)', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.perpsDeposit,
+            metamaskPay: MUSD_ON_MONAD,
+          }),
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('isMoneyActivityTransfer', () => {
@@ -144,6 +171,31 @@ describe('moneyActivityFilters', () => {
           tx({
             type: TransactionType.tokenMethodTransfer,
             transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true for a Perps/Predict deposit funded from the Money account (outflow)', () => {
+      expect(
+        isMoneyActivityTransfer(
+          tx({
+            type: TransactionType.perpsDeposit,
+            metamaskPay: MUSD_ON_MONAD,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for a Perps/Predict withdraw (inflow, bucketed as a deposit)', () => {
+      expect(
+        isMoneyActivityTransfer(
+          tx({
+            type: TransactionType.batch,
+            nestedTransactions: [
+              { type: TransactionType.predictWithdraw } as TransactionMeta,
+            ],
+            metamaskPay: MUSD_ON_MONAD,
           }),
         ),
       ).toBe(false);
