@@ -38,45 +38,45 @@ jest.mock('../../../analytics', () => {
   };
 });
 
-// Captures the onOpenDialog callback registered by QuickBuyRootInner.
+// Captures the onOpen callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
 
-// Render children directly so inner component content is visible
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactMock = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
 
-  return {
-    ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
-      (
-        {
-          children,
-          onClose,
-        }: {
-          children: unknown;
-          onClose?: () => void;
-        },
-        ref: unknown,
-      ) => {
-        ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
-            storedOnOpenCallback = cb;
+    return {
+      __esModule: true,
+      default: ReactMock.forwardRef(
+        (
+          {
+            children,
+            onOpen,
+          }: {
+            children: unknown;
+            onOpen?: () => void;
           },
-          onCloseDialog: (cb?: () => void) => cb?.(),
-        }));
-        return ReactMock.createElement(
-          View,
-          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
-          children,
-        );
-      },
-    ),
-  };
-});
+          ref: unknown,
+        ) => {
+          storedOnOpenCallback = onOpen;
+          ReactMock.useImperativeHandle(ref, () => ({
+            onOpenDialog: (cb?: () => void) => cb?.(),
+            onCloseDialog: (cb?: () => void) => cb?.(),
+          }));
+          return ReactMock.createElement(
+            View,
+            { testID: 'mock-bottom-sheet-dialog' },
+            children,
+          );
+        },
+      ),
+    };
+  },
+);
 
 // Mock sub-components so their own dep trees don't pollute these tests
 jest.mock('./components/QuickBuyToolbar', () => {

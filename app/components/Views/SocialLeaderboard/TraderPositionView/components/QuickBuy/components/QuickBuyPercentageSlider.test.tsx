@@ -24,6 +24,8 @@ jest.mock('react-native-gesture-handler', () => {
       }),
       Pan: () => {
         const panBuilder = {
+          activeOffsetX: () => panBuilder,
+          failOffsetY: () => panBuilder,
           onStart: (cb: () => void) => {
             panOnStart = cb;
             return panBuilder;

@@ -1,12 +1,9 @@
-import {
-  BottomSheetDialog,
-  type BottomSheetDialogRef,
-  Box,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+import BottomSheetDialog from '../../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog';
+import type { BottomSheetDialogRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog.types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -37,12 +34,16 @@ import type {
   QuickBuyScreen,
   QuickBuyTarget,
 } from './types';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import {
   makeScreenTransitions,
   SCREEN_DEPTH,
   type ScreenDirection,
 } from './transitions';
+
+/** Activate sheet drag after a small downward move so the pan tracks the finger. */
+const QUICK_BUY_SHEET_PAN_PROPS = {
+  activeOffsetY: [5, 9999] as [number, number],
+};
 
 export type { QuickBuyRootProps } from './types';
 
@@ -98,7 +99,6 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // with the sheet instead of running its horizontal screen-exit transition.
   const [isClosing, setIsClosing] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const surfaceClass = useElevatedSurface();
 
   const directionSV = useSharedValue<ScreenDirection>(1);
   // Suppresses the enter animation on the initial screen when the sheet opens;
@@ -141,11 +141,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     });
   }, [analyticsContext, target.tokenSymbol, track]);
 
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenDialog(() => {
-      setIsContentReady(true);
-      trackSheetViewed();
-    });
+  const handleSheetOpen = useCallback(() => {
+    setIsContentReady(true);
+    trackSheetViewed();
   }, [trackSheetViewed]);
 
   // Animate the sheet down (then run the parent's onClose) and flag the content
@@ -179,7 +177,8 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       ref={bottomSheetRef}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
-      twClassName={surfaceClass}
+      onOpen={handleSheetOpen}
+      panGestureHandlerProps={QUICK_BUY_SHEET_PAN_PROPS}
     >
       {isContentReady ? (
         <QuickBuyProvider

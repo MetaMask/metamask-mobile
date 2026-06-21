@@ -37,39 +37,40 @@ jest.mock('../../../analytics', () => {
 let storedOnOpenCallback: (() => void) | undefined;
 const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactMock = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
 
-  return {
-    ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
-      (
-        {
-          children,
-          onClose,
-        }: {
-          children: unknown;
-          onClose?: () => void;
-        },
-        ref: unknown,
-      ) => {
-        ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
-            storedOnOpenCallback = cb;
+    return {
+      __esModule: true,
+      default: ReactMock.forwardRef(
+        (
+          {
+            children,
+            onOpen,
+          }: {
+            children: unknown;
+            onOpen?: () => void;
           },
-          onCloseDialog: mockOnCloseDialog,
-        }));
-        return ReactMock.createElement(
-          View,
-          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
-          children,
-        );
-      },
-    ),
-  };
-});
+          ref: unknown,
+        ) => {
+          storedOnOpenCallback = onOpen;
+          ReactMock.useImperativeHandle(ref, () => ({
+            onOpenDialog: (cb?: () => void) => cb?.(),
+            onCloseDialog: mockOnCloseDialog,
+          }));
+          return ReactMock.createElement(
+            View,
+            { testID: 'mock-bottom-sheet-dialog' },
+            children,
+          );
+        },
+      ),
+    };
+  },
+);
 
 // Render Animated.View as a plain host View that forwards layout-animation props
 // (entering/exiting) so the suppression of the exit transition is observable.

@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AccessibilityActionEvent, LayoutChangeEvent } from 'react-native';
+import { AccessibilityActionEvent, LayoutChangeEvent, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
-  GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -158,6 +157,8 @@ export function QuickBuyPercentageSlider({
       runOnJS(commitFromPosition)(event.x, sliderWidth.value);
     }),
     Gesture.Pan()
+      .activeOffsetX([-5, 5])
+      .failOffsetY([-10, 10])
       .onStart(() => {
         // Pick up — fire the grip haptic the moment the drag is recognized.
         runOnJS(handleGrip)();
@@ -189,7 +190,7 @@ export function QuickBuyPercentageSlider({
   );
 
   return (
-    <GestureHandlerRootView
+    <View
       testID={testID}
       accessibilityRole="adjustable"
       accessibilityState={{ disabled }}
@@ -235,6 +236,6 @@ export function QuickBuyPercentageSlider({
           />
         </Animated.View>
       </GestureDetector>
-    </GestureHandlerRootView>
+    </View>
   );
 }
