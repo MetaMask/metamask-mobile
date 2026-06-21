@@ -1,11 +1,11 @@
-// Chains surfaced in the spot leaderboard ("All" tab + per-chain tabs).
+// Chains surfaced in the social leaderboard.
 //
-// Hyperliquid is intentionally excluded: omitting `chains` from the leaderboard
-// request causes Clicker to combine PnL across all four chains, where perps
-// activity dwarfs spot PnL and dominates the rankings (top global traders are
-// almost entirely hyperliquid). The perps surface is planned as its own tab in
-// a future ticket.
-//
-// Shared between TopTradersView (the "All" tab), TopTradersSection (homepage
-// carousel).
+// SPOT_CHAINS: token-only rankings (TopTradersView "Tokens" tab).
+// ALL_CHAINS: combined spot + perps rankings (TopTradersView "All" tab and the
+// homepage carousel).
+// PERP_CHAINS: perps-only rankings (TopTradersView "Perps" tab).
 export const SPOT_CHAINS: string[] = ['base', 'solana', 'ethereum'];
+
+export const ALL_CHAINS: string[] = [...SPOT_CHAINS, 'hyperliquid'];
+
+export const PERP_CHAINS: string[] = ['hyperliquid'];

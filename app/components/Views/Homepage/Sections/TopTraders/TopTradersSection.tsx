@@ -29,7 +29,7 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
-import { SPOT_CHAINS } from './constants';
+import { ALL_CHAINS } from './constants';
 import { useTopTraders } from './hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -72,11 +72,11 @@ const TopTradersSection = forwardRef<
     toggleFollow,
   } = useTopTraders({
     limit: HOME_TRADER_FETCH_LIMIT,
-    chains: SPOT_CHAINS,
+    chains: ALL_CHAINS,
     enabled: isEnabled,
   });
 
-  // Trimming the shared fetch to the display count here; preserves the broader "All" fetch.
+  // Trimming the shared fetch to the display count here; matches TopTradersView "All".
   const traders = useMemo(
     () => allTraders.slice(0, HOME_TRADER_DISPLAY_COUNT),
     [allTraders],
