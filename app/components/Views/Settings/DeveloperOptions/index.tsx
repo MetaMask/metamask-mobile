@@ -28,6 +28,8 @@ import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDev
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
+import { RewardsDeveloperOptionsSection } from '../../../UI/Rewards/components/RewardsDeveloperOptionsSection';
+import { NavigationStackPreviewDeveloperOptionsSection } from './NavigationStackPreviewDeveloperOptionsSection';
 import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
@@ -74,6 +76,8 @@ const DeveloperOptions = () => {
             })}
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
+        <RewardsDeveloperOptionsSection />
+        <NavigationStackPreviewDeveloperOptionsSection />
         <SentryTest />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

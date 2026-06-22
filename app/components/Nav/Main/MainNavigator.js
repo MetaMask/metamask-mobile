@@ -30,6 +30,7 @@ import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
+import DevDepositStackPreview from '../../Views/Settings/DeveloperOptions/DevDepositStackPreview';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
@@ -57,7 +58,7 @@ import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
+import { selectIsRewardsVersionBlocked, selectDevForceOnboardingPreview } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -318,7 +319,10 @@ const TransactionsHome = () => {
 const RewardsHome = () => {
   const { colors } = useTheme();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const devForceOnboardingPreview = useSelector(selectDevForceOnboardingPreview);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
+  const showRewardsDashboard =
+    Boolean(subscriptionId) && !devForceOnboardingPreview;
   // Fetch client version requirements at the Rewards tab entry point, before the
   // onboarding/dashboard branch below. Both opted-in and onboarding users mount
   // RewardsHome, so gating here ensures version-blocked clients always see the
@@ -348,7 +352,7 @@ const RewardsHome = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      {subscriptionId ? (
+      {showRewardsDashboard ? (
         <NativeStack.Screen
           name={Routes.REWARDS_DASHBOARD}
           component={RewardsDashboard}
@@ -1175,6 +1179,10 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
       <NativeStack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
+      <NativeStack.Screen
+        name={Routes.DEV.DEPOSIT_STACK_PREVIEW}
+        component={DevDepositStackPreview}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}

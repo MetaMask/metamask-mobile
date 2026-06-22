@@ -447,3 +447,6 @@ export const selectPredictThePitchPrizePoolLoading = (state: RootState) =>
 
 export const selectPredictThePitchPrizePoolError = (state: RootState) =>
   state.rewards.predictThePitchPrizePoolError;
+
+export const selectDevForceOnboardingPreview = (state: RootState): boolean =>
+  state.rewards.devForceOnboardingPreview;

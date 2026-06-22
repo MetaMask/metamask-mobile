@@ -19,6 +19,7 @@ import KycProcessing from '../Views/KycProcessing';
 import OrderProcessing from '../Views/OrderProcessing';
 import BankDetails from '../Views/BankDetails';
 import AdditionalVerification from '../Views/AdditionalVerification';
+import DepositOrderDetails from '../Views/DepositOrderDetails/DepositOrderDetails';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
@@ -122,6 +123,11 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.DEPOSIT.ORDER_PROCESSING}
         component={OrderProcessing}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.ORDER_DETAILS}
+        component={DepositOrderDetails}
         options={getAnimationOptions}
       />
       <Stack.Screen

@@ -7,6 +7,9 @@ const Routes = {
   ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
+  DEV: {
+    DEPOSIT_STACK_PREVIEW: 'DevDepositStackPreview',
+  },
   RAMP: {
     ID: 'Ramp',
     BUY: 'RampBuy',

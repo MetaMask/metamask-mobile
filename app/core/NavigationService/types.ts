@@ -454,6 +454,7 @@ export interface RootStackParamList extends ParamListBase {
   ResetPassword: undefined;
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
+  DevDepositStackPreview: undefined;
   ExperimentalSettings: undefined;
   NotificationsSettings: undefined;
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;

@@ -26,6 +26,7 @@ import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { processFiatOrder } from '../../../index';
+import { DEV_PREVIEW_ORDER_ID } from '../../dev/depositStackPreviewConfig';
 
 interface DepositOrderDetailsParams {
   orderId: string;
@@ -38,11 +39,12 @@ export const createDepositOrderDetailsNavDetails =
 
 const DepositOrderDetails = () => {
   const params = useParams<DepositOrderDetailsParams>();
+  const isDevPreviewOrder = params.orderId === DEV_PREVIEW_ORDER_ID;
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
   const [isLoading, setIsLoading] = useState(
-    order?.state === FIAT_ORDER_STATES.CREATED,
+    !isDevPreviewOrder && order?.state === FIAT_ORDER_STATES.CREATED,
   );
   const [error, setError] = useState<string | null>(null);
   const { colors } = useTheme();
@@ -101,14 +103,16 @@ const DepositOrderDetails = () => {
   );
 
   useEffect(() => {
-    if (order?.state === FIAT_ORDER_STATES.CREATED) {
-      handleOnRefresh();
+    if (isDevPreviewOrder || order?.state !== FIAT_ORDER_STATES.CREATED) {
+      return;
     }
+    handleOnRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useInterval(() => handleOnRefresh({ fromInterval: true }), {
     delay:
+      !isDevPreviewOrder &&
       !isLoading &&
       !isRefreshingInterval &&
       order &&

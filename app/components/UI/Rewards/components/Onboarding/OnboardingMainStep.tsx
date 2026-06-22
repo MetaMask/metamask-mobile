@@ -16,6 +16,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { setCandidateSubscriptionId } from '../../../../../actions/rewards';
+import {
+  setGeoRewardsMetadata,
+  setGeoRewardsMetadataError,
+} from '../../../../../reducers/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import step1Img from '../../../../../images/rewards/rewards-onboarding-step1.png';
 import {
@@ -24,6 +28,7 @@ import {
   selectCandidateSubscriptionId,
   selectOptinAllowedForGeoError,
   selectOnboardingReferralCode,
+  selectDevForceOnboardingPreview,
 } from '../../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
@@ -46,6 +51,11 @@ import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
 import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
 import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
+const DEV_GEO_METADATA = {
+  geoLocation: 'DEV',
+  optinAllowedForGeo: true,
+} as const;
+
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -64,6 +74,8 @@ const OnboardingMainStep: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
+  const devForceOnboardingPreview = useSelector(selectDevForceOnboardingPreview);
+  const isDevOnboardingPreview = devForceOnboardingPreview;
 
   // Opt-in hook
   const { optin, optinError, optinLoading } = useOptin();
@@ -106,6 +118,26 @@ const OnboardingMainStep: React.FC = () => {
   useEffect(() => {
     storageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true');
   }, []);
+
+  useEffect(() => {
+    if (!isDevOnboardingPreview) {
+      return;
+    }
+
+    dispatch(setGeoRewardsMetadata(DEV_GEO_METADATA));
+    dispatch(setGeoRewardsMetadataError(false));
+
+    if (
+      candidateSubscriptionId === 'pending' ||
+      candidateSubscriptionId === 'error'
+    ) {
+      dispatch(setCandidateSubscriptionId(null));
+    }
+  }, [
+    isDevOnboardingPreview,
+    candidateSubscriptionId,
+    dispatch,
+  ]);
 
   // Analytics
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -234,7 +266,7 @@ const OnboardingMainStep: React.FC = () => {
   // Auto-redirect + analytics tracking
   useFocusEffect(
     useCallback(() => {
-      if (subscriptionId) {
+      if (subscriptionId && !isDevOnboardingPreview) {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
       } else if (!hasTrackedOnboardingStart.current) {
         trackEvent(
@@ -244,13 +276,17 @@ const OnboardingMainStep: React.FC = () => {
         );
         hasTrackedOnboardingStart.current = true;
       }
-    }, [subscriptionId, navigation, trackEvent, createEventBuilder]),
+    }, [subscriptionId, isDevOnboardingPreview, navigation, trackEvent, createEventBuilder]),
   );
 
   // Show auth error modal on focus
   useFocusEffect(
     useCallback(() => {
-      if (candidateSubscriptionIdError && !subscriptionId) {
+      if (
+        candidateSubscriptionIdError &&
+        !subscriptionId &&
+        !isDevOnboardingPreview
+      ) {
         showRetryErrorModal(
           'rewards.onboarding.auth_fail_title',
           'rewards.onboarding.auth_fail_description',
@@ -262,13 +298,17 @@ const OnboardingMainStep: React.FC = () => {
     }, [
       candidateSubscriptionIdError,
       subscriptionId,
+      isDevOnboardingPreview,
       showRetryErrorModal,
       dispatch,
     ]),
   );
 
   // Loading gate: show skeleton while auth or subscription is resolving
-  if (candidateSubscriptionIdLoading || !!subscriptionId) {
+  if (
+    !isDevOnboardingPreview &&
+    (candidateSubscriptionIdLoading || !!subscriptionId)
+  ) {
     return <Skeleton width="100%" height="100%" />;
   }
 

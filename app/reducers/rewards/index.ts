@@ -116,6 +116,9 @@ export interface RewardsState {
   hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
 
+  /** Dev-only: force Rewards tab to show onboarding even when opted in. */
+  devForceOnboardingPreview: boolean;
+
   // Points Boost state
   activeBoosts: PointsBoostDto[] | null;
   activeBoostsLoading: boolean;
@@ -274,6 +277,7 @@ export const initialState: RewardsState = {
   optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
   hideCurrentAccountNotOptedInBanner: [],
+  devForceOnboardingPreview: true,
 
   activeBoosts: null,
   activeBoostsLoading: false,
@@ -508,6 +512,10 @@ const rewardsSlice = createSlice({
       state.onboardingReferralCode = null;
     },
 
+    setDevForceOnboardingPreview: (state, action: PayloadAction<boolean>) => {
+      state.devForceOnboardingPreview = action.payload;
+    },
+
     setOnboardingReferralCode: (
       state,
       action: PayloadAction<string | null>,
@@ -545,6 +553,7 @@ const rewardsSlice = createSlice({
           hideCurrentAccountNotOptedInBanner:
             state.hideCurrentAccountNotOptedInBanner,
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
+          devForceOnboardingPreview: state.devForceOnboardingPreview,
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
           vipSplashAccepted: state.vipSplashAccepted,
@@ -1200,6 +1209,7 @@ export const {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setDevForceOnboardingPreview,
   setOnboardingReferralCode,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
