@@ -33,6 +33,8 @@ import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
 
 const INITIAL_ACCOUNTS_TO_SHOW = 2;
+const REFERRAL_INPUT_SCROLL_VIEW_POSITION = 0.2;
+const REFERRAL_INPUT_SCROLL_DELAY_MS = 100;
 
 // Separate component for progress section to prevent header remounting on progress updates
 interface AccountProgressSectionProps {
@@ -171,12 +173,6 @@ const RewardSettingsAccountGroupList: React.FC<
     new Set(),
   );
 
-  const handleReferralInputFocus = useCallback(() => {
-    setTimeout(() => {
-      flashListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-  }, []);
-
   // Move all expensive operations to parent component
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
@@ -238,6 +234,76 @@ const RewardSettingsAccountGroupList: React.FC<
       return newSet;
     });
   }, []);
+
+  // Flatten data for FlatList with collapse/expand support
+  const flattenedData =
+    useMemo((): RewardSettingsAccountGroupListFlatListItem[] => {
+      const items: RewardSettingsAccountGroupListFlatListItem[] = [];
+
+      byWallet.forEach((walletItem) => {
+        const walletId =
+          walletItem.wallet?.id?.replace('keyring:', '') || 'unknown';
+        const isExpanded = expandedWallets.has(walletId);
+        const totalGroups = walletItem.groups.length;
+        const hasMoreThanInitial = totalGroups > INITIAL_ACCOUNTS_TO_SHOW;
+
+        // Add wallet header
+        items.push({
+          type: 'wallet',
+          walletItem,
+        });
+
+        // Add account groups (limited if not expanded)
+        const groupsToShow = isExpanded
+          ? walletItem.groups
+          : walletItem.groups.slice(0, INITIAL_ACCOUNTS_TO_SHOW);
+
+        groupsToShow.forEach((accountGroup) => {
+          items.push({
+            type: 'accountGroup',
+            accountGroup,
+            allAddresses: allAddresses?.[accountGroup.id] || [],
+          });
+        });
+
+        // Add "Show more/less" button if there are more than initial accounts
+        if (hasMoreThanInitial) {
+          items.push({
+            type: 'showMore',
+            walletId,
+            remainingCount: totalGroups - INITIAL_ACCOUNTS_TO_SHOW,
+            isExpanded,
+          });
+        }
+      });
+
+      items.push({ type: 'referredByCode' });
+      if (onRequestOptOut) {
+        items.push({ type: 'optOut' });
+      }
+      items.push({ type: 'environmentToggle' });
+
+      return items;
+    }, [byWallet, allAddresses, expandedWallets, onRequestOptOut]);
+
+  const referralSectionIndex = useMemo(
+    () => flattenedData.findIndex((item) => item.type === 'referredByCode'),
+    [flattenedData],
+  );
+
+  const handleReferralInputFocus = useCallback(() => {
+    if (referralSectionIndex < 0) {
+      return;
+    }
+
+    setTimeout(() => {
+      flashListRef.current?.scrollToIndex({
+        index: referralSectionIndex,
+        viewPosition: REFERRAL_INPUT_SCROLL_VIEW_POSITION,
+        animated: true,
+      });
+    }, REFERRAL_INPUT_SCROLL_DELAY_MS);
+  }, [referralSectionIndex]);
 
   const renderFlatListItem: ListRenderItem<RewardSettingsAccountGroupListFlatListItem> =
     useCallback(
@@ -310,11 +376,27 @@ const RewardSettingsAccountGroupList: React.FC<
               </ButtonBase>
             );
           }
+          case 'referredByCode':
+            return (
+              <ReferredByCodeSection onInputFocus={handleReferralInputFocus} />
+            );
+          case 'optOut':
+            return onRequestOptOut ? (
+              <OptOutSection onErasePress={onRequestOptOut} />
+            ) : null;
+          case 'environmentToggle':
+            return <RewardsEnvironmentToggle />;
           default:
             return null;
         }
       },
-      [avatarAccountType, toggleWalletExpanded, tw],
+      [
+        avatarAccountType,
+        handleReferralInputFocus,
+        onRequestOptOut,
+        toggleWalletExpanded,
+        tw,
+      ],
     );
 
   const getItemType = useCallback(
@@ -336,6 +418,18 @@ const RewardSettingsAccountGroupList: React.FC<
 
       if (item.type === 'showMore' && item.walletId) {
         return `showMore-${item.walletId}`;
+      }
+
+      if (item.type === 'referredByCode') {
+        return 'referredByCode';
+      }
+
+      if (item.type === 'optOut') {
+        return 'optOut';
+      }
+
+      if (item.type === 'environmentToggle') {
+        return 'environmentToggle';
       }
 
       return `item-${index}`;
@@ -366,61 +460,16 @@ const RewardSettingsAccountGroupList: React.FC<
     [linkedAccounts, totalAccounts, isLoadingOptInSummary],
   );
 
-  const ListFooterComponent = useCallback(
+  const SettingsFooterSections = useCallback(
     () => (
       <Box twClassName="gap-4">
-        <ReferredByCodeSection onInputFocus={handleReferralInputFocus} />
+        <ReferredByCodeSection />
         {onRequestOptOut && <OptOutSection onErasePress={onRequestOptOut} />}
         <RewardsEnvironmentToggle />
       </Box>
     ),
-    [handleReferralInputFocus, onRequestOptOut],
+    [onRequestOptOut],
   );
-
-  // Flatten data for FlatList with collapse/expand support
-  const flattenedData =
-    useMemo((): RewardSettingsAccountGroupListFlatListItem[] => {
-      const items: RewardSettingsAccountGroupListFlatListItem[] = [];
-
-      byWallet.forEach((walletItem) => {
-        const walletId =
-          walletItem.wallet?.id?.replace('keyring:', '') || 'unknown';
-        const isExpanded = expandedWallets.has(walletId);
-        const totalGroups = walletItem.groups.length;
-        const hasMoreThanInitial = totalGroups > INITIAL_ACCOUNTS_TO_SHOW;
-
-        // Add wallet header
-        items.push({
-          type: 'wallet',
-          walletItem,
-        });
-
-        // Add account groups (limited if not expanded)
-        const groupsToShow = isExpanded
-          ? walletItem.groups
-          : walletItem.groups.slice(0, INITIAL_ACCOUNTS_TO_SHOW);
-
-        groupsToShow.forEach((accountGroup) => {
-          items.push({
-            type: 'accountGroup',
-            accountGroup,
-            allAddresses: allAddresses?.[accountGroup.id] || [],
-          });
-        });
-
-        // Add "Show more/less" button if there are more than initial accounts
-        if (hasMoreThanInitial) {
-          items.push({
-            type: 'showMore',
-            walletId,
-            remainingCount: totalGroups - INITIAL_ACCOUNTS_TO_SHOW,
-            isExpanded,
-          });
-        }
-      });
-
-      return items;
-    }, [byWallet, allAddresses, expandedWallets]);
 
   if (isLoadingOptInSummary) {
     return (
@@ -444,7 +493,7 @@ const RewardSettingsAccountGroupList: React.FC<
           ))}
         </Box>
 
-        <ListFooterComponent />
+        <SettingsFooterSections />
       </Box>
     );
   }
@@ -472,7 +521,7 @@ const RewardSettingsAccountGroupList: React.FC<
           />
         </Box>
 
-        <ListFooterComponent />
+        <SettingsFooterSections />
       </Box>
     );
   }
@@ -487,7 +536,6 @@ const RewardSettingsAccountGroupList: React.FC<
       keyExtractor={keyExtractor}
       getItemType={getItemType}
       ListHeaderComponent={ListHeaderComponent}
-      ListFooterComponent={ListFooterComponent}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       keyboardShouldPersistTaps="handled"
