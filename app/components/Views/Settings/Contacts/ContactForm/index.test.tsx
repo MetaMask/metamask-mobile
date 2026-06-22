@@ -295,12 +295,14 @@ describe('ContactForm', () => {
                   name: 'Deleted Network Contact',
                   chainId: '0x2a',
                   memo: 'Saved on a deleted network',
+                  isEns: false,
                 },
               },
             },
           },
-        },
+        } as EngineState,
       },
+      user: initialState.user,
     };
 
     const { findByText } = renderContactForm(
