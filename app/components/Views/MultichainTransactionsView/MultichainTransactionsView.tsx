@@ -250,7 +250,7 @@ const MultichainTransactionsView = ({
     index: number;
   }) => {
     if (item.type === 'pending-header') {
-      return <ActivityListDateHeader label={strings('transactions.pending')} />;
+      return <ActivityListDateHeader label={strings('transaction.pending')} />;
     }
 
     if (item.type === 'date-header') {

@@ -24,11 +24,11 @@ describe('ActivityListDateHeader', () => {
 
   it('renders provided label without formatting timestamp', () => {
     const { getByTestId } = render(
-      <ActivityListDateHeader label="transactions.pending" timestamp={0} />,
+      <ActivityListDateHeader label="transaction.pending" timestamp={0} />,
     );
 
     expect(getByTestId('activity-list-date-header')).toHaveTextContent(
-      'transactions.pending',
+      'transaction.pending',
     );
   });
 
