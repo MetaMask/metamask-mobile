@@ -283,8 +283,9 @@ class NotificationsService {
         logPushEvent('NOTIFEE_CHANNEL_NOT_FOUND', `No channel config found for: "${channelId}"`);
       }
       logPushEvent('NOTIFEE_DISPLAY_CALLED', `displayNotification called: "${title}"`, { channelId, id });
+      const notifId = id ?? `notif-${Date.now()}`;
       await notifee.displayNotification({
-        ...(id !== undefined && { id }),
+        id: notifId,
         title,
         body,
         // Notifee can only store and handle data strings
@@ -297,7 +298,7 @@ class NotificationsService {
             id: pressActionId,
             launchActivity: LAUNCH_ACTIVITY,
           },
-          ...(id !== undefined && { tag: id }),
+          tag: notifId,
         },
         ios: {
           launchImageName: 'Default',
