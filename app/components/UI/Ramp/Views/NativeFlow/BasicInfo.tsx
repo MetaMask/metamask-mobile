@@ -259,7 +259,7 @@ const V2BasicInfo = (): JSX.Element => {
   const enterEmailParamsForLogout = useMemo(
     () => ({
       ...(headlessSessionId ? { headlessSessionId } : {}),
-      amount: quote?.fiatAmount != null ? String(quote.fiatAmount) : undefined,
+      amount: quote?.fiatAmount == null ? undefined : String(quote.fiatAmount),
       // TransakBuyQuote uses plain strings for fiatCurrency / cryptoCurrency
       // (not `{ symbol }` / `{ assetId }` objects).
       currency: quote?.fiatCurrency,
