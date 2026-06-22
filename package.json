@@ -215,7 +215,7 @@
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
     "@metamask/transaction-controller": "68.1.0",
     "@metamask/keyring-controller": "^26.0.0",
-    "@metamask/accounts-controller": "^39.0.0"
+    "@metamask/accounts-controller": "^39.0.2"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -235,7 +235,7 @@
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.4",
     "@metamask/account-tree-controller": "^7.5.0",
-    "@metamask/accounts-controller": "^39.0.0",
+    "@metamask/accounts-controller": "^39.0.2",
     "@metamask/address-book-controller": "^7.1.2",
     "@metamask/ai-controllers": "^0.7.0",
     "@metamask/analytics-controller": "^1.0.0",
@@ -351,7 +351,7 @@
     "@metamask/transaction-pay-controller": "^23.13.0",
     "@metamask/tron-wallet-snap": "^1.27.0",
     "@metamask/utils": "^11.11.0",
-    "@metamask/wallet": "^3.0.0",
+    "@metamask/wallet": "^4.0.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.32.2",
