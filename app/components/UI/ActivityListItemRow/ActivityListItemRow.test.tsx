@@ -19,6 +19,7 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
@@ -149,6 +150,8 @@ jest.mock('../../../util/networks', () => ({
 
 jest.mock('../../../util/address', () => ({
   renderShortAddress: jest.fn((address: string) => `${address.slice(0, 6)}...`),
+  safeToChecksumAddress: jest.requireActual('../../../util/address')
+    .safeToChecksumAddress,
 }));
 
 jest.mock('../../../component-library/components/Badges/BadgeWrapper', () => {
@@ -1239,6 +1242,48 @@ describe('ActivityListItemRow — amount display', () => {
 
     expect(getByText('+1 mUSD')).toBeOnTheScreen();
     expect(queryByText('+$1')).toBeNull();
+  });
+});
+
+describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => {
+  const mockContractExchangeRates = jest.mocked(
+    selectContractExchangeRatesByChainId,
+  );
+  const USDC_LOWER = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  const USDC_CHECKSUM = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+
+  const ratesFor = (address: string) =>
+    ({ [address]: { price: 0.0004 } }) as ReturnType<
+      typeof selectContractExchangeRatesByChainId
+    >;
+
+  // This mock uses a persistent return value (clearAllMocks does not reset it),
+  // so restore the suite default (lowercased mUSD key) after each test.
+  afterEach(() => {
+    mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
+  });
+
+  it('renders fiat for an ERC-20 when market data is keyed by a checksummed address', () => {
+    // Production keys marketData by checksummed addresses while the lookup
+    // address is lowercased (CAIP asset references). The fiat line must still
+    // resolve. Regression guard for the missing-ERC-20-fiat bug.
+    mockContractExchangeRates.mockReturnValue(ratesFor(USDC_CHECKSUM));
+
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'USDC',
+        assetId: `eip155:1/erc20:${USDC_LOWER}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('+1 USDC')).toBeOnTheScreen();
+    expect(getByText('+$1')).toBeOnTheScreen();
   });
 });
 

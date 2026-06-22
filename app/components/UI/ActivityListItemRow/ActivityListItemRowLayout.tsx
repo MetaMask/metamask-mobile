@@ -128,7 +128,7 @@ export function ActivityListItemRowLayout({
         style={styles.listItem}
         testID={`transaction-item-${index ?? 0}`}
         title={titleNode}
-        verticalAlignment="top"
+        accessoryGap={4}
       />
       {footer}
     </View>
