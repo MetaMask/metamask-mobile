@@ -3,9 +3,15 @@
  * and prewarms the MetaMask backend gateway connection on cold start.
  *
  * NitroWebSocket runs on native C++ (libwebsockets + mbedTLS) with no JS-bridge
- * overhead. The adapter below provides a complete W3C-compatible interface so
- * ALL call styles work — .onX property assignment AND addEventListener — with
- * no changes required in any consuming code.
+ * overhead. The adapter below provides a W3C-compatible interface so the call
+ * styles used across this codebase all work with no changes in consuming code:
+ * - .onX property assignment — app code, @metamask/core-backend, Polymarket.
+ * - addEventListener / removeEventListener with { once } and { signal } — @metamask/snaps-controllers, @nktkas/rews.
+ * - dispatchEvent — @nktkas/rews (Perps / Hyperliquid transport).
+ *
+ * Install + prewarm are guarded by hasTestOverrides: under E2E, shim.js owns
+ * global.WebSocket (it routes production wss:// URLs to local mock servers), so
+ * this module must NOT overwrite that wrapper.
  *
  * https://fetch.margelo.com — "WebSockets"
  */
@@ -15,6 +21,9 @@ import {
   type WebSocketMessageEvent as NitroMessageEvent,
   type WebSocketCloseEvent as NitroCloseEvent,
 } from 'react-native-nitro-websockets';
+import { hasTestOverrides } from '../util/test/utils';
+
+const GATEWAY_URL = 'wss://gateway.api.cx.metamask.io/v1';
 
 type BinaryType = 'arraybuffer' | 'blob';
 
@@ -26,25 +35,43 @@ const READY_STATE_MAP: Record<string, number> = {
   CLOSED: 3,
 };
 
-type OpenListener = () => void;
-type MessageListener = (e: { data: string | ArrayBuffer }) => void;
-type CloseListener = (e: NitroCloseEvent) => void;
-type ErrorListener = (error: string) => void;
-type AnyListener =
-  | OpenListener
-  | MessageListener
-  | CloseListener
-  | ErrorListener;
+// W3C-shaped event objects dispatched to listeners. These are intentionally
+// plain objects (not RN Event instances): the adapter owns dispatchEvent and
+// never does an `instanceof Event` check, so consumers — including @nktkas/rews
+// which dispatches its own CloseEvent onto the socket — interoperate by reading
+// fields (type/data/code/reason/wasClean), not by identity.
+interface WsEvent {
+  type: string;
+}
+interface WsMessageEvent extends WsEvent {
+  type: 'message';
+  data: string | ArrayBuffer;
+}
+interface WsCloseEvent extends WsEvent {
+  type: 'close';
+  code: number;
+  reason: string;
+  wasClean: boolean;
+}
+interface WsErrorEvent extends WsEvent {
+  type: 'error';
+  message: string;
+}
+type WsAnyEvent = WsEvent | WsMessageEvent | WsCloseEvent | WsErrorEvent;
+
+type WsListener = (event: WsAnyEvent) => void;
+type EventType = 'open' | 'message' | 'close' | 'error';
+
+type ListenerOptions = boolean | { once?: boolean; signal?: AbortSignal };
 
 /**
- * Full W3C-compatible adapter over NitroWebSocket.
+ * W3C-compatible adapter over NitroWebSocket.
  *
- * Bridges two API styles that co-exist in this codebase:
- * - .onX property assignment  (used by app code and @metamask/core-backend)
- * - addEventListener / removeEventListener  (used by @metamask/snaps-controllers)
- *
- * Both styles dispatch through the same internal event loop wired once in the
- * constructor, so they compose correctly when mixed on the same socket.
+ * Bridges the API styles that co-exist in this codebase and implements a
+ * minimal EventTarget (addEventListener with { once }/{ signal }, removeEventListener,
+ * dispatchEvent) so @nktkas/rews' reconnect/timeout paths work. Both .onX and
+ * addEventListener listeners are dispatched from a single internal event loop
+ * wired once in the constructor, so they compose correctly when mixed.
  */
 class NitroWebSocketAdapter {
   static readonly CONNECTING = 0;
@@ -60,19 +87,24 @@ class NitroWebSocketAdapter {
 
   private readonly _ws: NitroWebSocket;
 
-  // Multi-listener sets backing addEventListener / removeEventListener
-  private readonly _listeners = {
-    open: new Set<OpenListener>(),
-    message: new Set<MessageListener>(),
-    close: new Set<CloseListener>(),
-    error: new Set<ErrorListener>(),
+  // Registered listeners keyed by identity so removeEventListener and dedup are
+  // O(1); the meta records { once } so a one-shot listener removes itself after
+  // firing.
+  private readonly _listeners: Record<
+    EventType,
+    Map<WsListener, { once: boolean }>
+  > = {
+    open: new Map(),
+    message: new Map(),
+    close: new Map(),
+    error: new Map(),
   };
 
   // .onX property handlers (stored separately so they compose with _listeners)
-  private _onopen: OpenListener | null = null;
-  private _onmessage: MessageListener | null = null;
-  private _onclose: CloseListener | null = null;
-  private _onerror: ErrorListener | null = null;
+  private _onopen: WsListener | null = null;
+  private _onmessage: WsListener | null = null;
+  private _onclose: WsListener | null = null;
+  private _onerror: WsListener | null = null;
 
   // Accepted but not acted on — stored so downstream code that reads it back
   // gets a consistent value. NitroWebSocket always returns ArrayBuffer for
@@ -86,27 +118,31 @@ class NitroWebSocketAdapter {
   ) {
     this._ws = new NitroWebSocket(url, protocols, headers);
 
-    // Wire a single internal handler per event type. Both .onX and
-    // addEventListener listeners are dispatched from here.
+    // Each native callback builds a W3C-shaped event and routes it through
+    // dispatchEvent, which invokes the matching .onX handler AND every
+    // addEventListener listener.
     this._ws.onopen = () => {
-      this._onopen?.();
-      this._listeners.open.forEach((fn) => fn());
+      this.dispatchEvent({ type: 'open' });
     };
 
     this._ws.onmessage = (e: NitroMessageEvent) => {
-      const event = { data: e.isBinary ? (e.binaryData ?? e.data) : e.data };
-      this._onmessage?.(event);
-      this._listeners.message.forEach((fn) => fn(event));
+      this.dispatchEvent({
+        type: 'message',
+        data: e.isBinary ? (e.binaryData ?? e.data) : e.data,
+      });
     };
 
     this._ws.onclose = (e: NitroCloseEvent) => {
-      this._onclose?.(e);
-      this._listeners.close.forEach((fn) => fn(e));
+      this.dispatchEvent({
+        type: 'close',
+        code: e.code,
+        reason: e.reason,
+        wasClean: e.wasClean,
+      });
     };
 
     this._ws.onerror = (error: string) => {
-      this._onerror?.(error);
-      this._listeners.error.forEach((fn) => fn(error));
+      this.dispatchEvent({ type: 'error', message: error });
     };
   }
 
@@ -134,56 +170,106 @@ class NitroWebSocketAdapter {
 
   // ── .onX property handlers ────────────────────────────────────────────────
 
-  get onopen(): OpenListener | null {
+  get onopen(): WsListener | null {
     return this._onopen;
   }
-  set onopen(handler: OpenListener | null) {
+  set onopen(handler: WsListener | null) {
     this._onopen = handler;
   }
 
-  get onmessage(): MessageListener | null {
+  get onmessage(): WsListener | null {
     return this._onmessage;
   }
-  set onmessage(handler: MessageListener | null) {
+  set onmessage(handler: WsListener | null) {
     this._onmessage = handler;
   }
 
-  get onclose(): CloseListener | null {
+  get onclose(): WsListener | null {
     return this._onclose;
   }
-  set onclose(handler: CloseListener | null) {
+  set onclose(handler: WsListener | null) {
     this._onclose = handler;
   }
 
-  get onerror(): ErrorListener | null {
+  get onerror(): WsListener | null {
     return this._onerror;
   }
-  set onerror(handler: ErrorListener | null) {
+  set onerror(handler: WsListener | null) {
     this._onerror = handler;
   }
 
-  // ── addEventListener / removeEventListener ────────────────────────────────
+  // ── EventTarget ───────────────────────────────────────────────────────────
 
-  addEventListener(type: 'open', listener: OpenListener): void;
-  addEventListener(type: 'message', listener: MessageListener): void;
-  addEventListener(type: 'close', listener: CloseListener): void;
-  addEventListener(type: 'error', listener: ErrorListener): void;
-  addEventListener(type: string, listener: AnyListener): void {
-    const set = this._listeners[type as keyof typeof this._listeners] as
-      | Set<AnyListener>
-      | undefined;
-    set?.add(listener);
+  addEventListener(
+    type: EventType,
+    listener: WsListener,
+    options?: ListenerOptions,
+  ): void {
+    const map = this._listeners[type];
+    if (!map) return;
+
+    const once =
+      typeof options === 'object' && options !== null && !!options.once;
+    const signal =
+      typeof options === 'object' && options !== null
+        ? options.signal
+        : undefined;
+
+    // Already-aborted signal: never register (matches DOM semantics).
+    if (signal?.aborted) return;
+
+    // Dedup by listener identity (matches addEventListener's no-op on repeats).
+    if (map.has(listener)) return;
+    map.set(listener, { once });
+
+    // { signal }: remove the listener when the signal aborts. @nktkas/rews
+    // relies on this to tear down its open/message/close/error listeners.
+    signal?.addEventListener('abort', () => map.delete(listener), {
+      once: true,
+    });
   }
 
-  removeEventListener(type: 'open', listener: OpenListener): void;
-  removeEventListener(type: 'message', listener: MessageListener): void;
-  removeEventListener(type: 'close', listener: CloseListener): void;
-  removeEventListener(type: 'error', listener: ErrorListener): void;
-  removeEventListener(type: string, listener: AnyListener): void {
-    const set = this._listeners[type as keyof typeof this._listeners] as
-      | Set<AnyListener>
-      | undefined;
-    set?.delete(listener);
+  removeEventListener(type: EventType, listener: WsListener): void {
+    this._listeners[type]?.delete(listener);
+  }
+
+  /**
+   * Dispatches an event to the matching .onX handler and all registered
+   * listeners. Used internally by the native callbacks and externally by
+   * @nktkas/rews (which dispatches a synthetic CloseEvent on connect timeout /
+   * close-during-connecting). Returns true (no event is cancelable here).
+   */
+  dispatchEvent(event: WsAnyEvent): boolean {
+    const type = event.type as EventType;
+
+    const onHandler = this._onHandlerFor(type);
+    onHandler?.(event);
+
+    const map = this._listeners[type];
+    if (map) {
+      // Snapshot first: a listener may add/remove listeners during dispatch.
+      for (const [listener, meta] of [...map]) {
+        if (meta.once) map.delete(listener);
+        listener(event);
+      }
+    }
+
+    return true;
+  }
+
+  private _onHandlerFor(type: EventType): WsListener | null {
+    switch (type) {
+      case 'open':
+        return this._onopen;
+      case 'message':
+        return this._onmessage;
+      case 'close':
+        return this._onclose;
+      case 'error':
+        return this._onerror;
+      default:
+        return null;
+    }
   }
 
   // ── methods ───────────────────────────────────────────────────────────────
@@ -197,10 +283,29 @@ class NitroWebSocketAdapter {
   }
 }
 
-global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
+/**
+ * Installs the Nitro WebSocket adapter as global.WebSocket and prewarms the
+ * MetaMask backend gateway. Skipped under E2E (hasTestOverrides) so shim.js's
+ * mock-routing WebSocket wrapper stays in place.
+ */
+export function installProductionNitroWebSocket(): void {
+  global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
 
-// Persist the MetaMask backend gateway URL for native prewarm on every subsequent
-// cold start. Android fires stored URLs via NitroWebSocketAutoPrewarmer.prewarmOnStart
-// (MainApplication.kt); iOS is auto-bootstrapped via the Nitro +load hook.
-// Polymarket channels are on-demand and not prewarmed.
-prewarmOnAppStart('wss://gateway.api.cx.metamask.io/v1');
+  // Persist the MetaMask backend gateway URL for native prewarm on every
+  // subsequent cold start. Android fires stored URLs via
+  // NitroWebSocketAutoPrewarmer.prewarmOnStart (MainApplication.kt); iOS is
+  // auto-bootstrapped via the Nitro +load hook. Polymarket channels are
+  // on-demand and not prewarmed.
+  try {
+    prewarmOnAppStart(GATEWAY_URL);
+  } catch {
+    // Non-fatal: a prewarm failure means a cold connection on next use, not a
+    // broken socket — never let it break app boot.
+  }
+}
+
+if (!hasTestOverrides) {
+  installProductionNitroWebSocket();
+}
+
+export { NitroWebSocketAdapter };
