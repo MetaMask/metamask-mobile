@@ -12,7 +12,7 @@ import {
 } from './network-controller/messenger-action-handlers';
 import { Hex } from '@metamask/utils';
 import { buildAndTrackEvent } from '../utils/analytics';
-import { ChainId } from '@metamask/controller-utils';
+import { ChainId, toHex } from '@metamask/controller-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -38,14 +38,23 @@ export const networkControllerInit: MessengerClientInitFunction<
       [ChainId.mainnet]: getFailoverUrlsForInfuraNetwork('ethereum-mainnet'),
       [ChainId['linea-mainnet']]:
         getFailoverUrlsForInfuraNetwork('linea-mainnet'),
-      [ChainId['base-mainnet']]:
-        getFailoverUrlsForInfuraNetwork('base-mainnet'),
       [ChainId['arbitrum-mainnet']]:
         getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
+      [ChainId['avalanche-mainnet']]:
+        getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
       [ChainId['optimism-mainnet']]:
         getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
       [ChainId['polygon-mainnet']]:
         getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
+      [ChainId['base-mainnet']]:
+        getFailoverUrlsForInfuraNetwork('base-mainnet'),
+      [ChainId['bsc-mainnet']]: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
+      [ChainId['sei-mainnet']]: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
+      [ChainId['monad-mainnet']]:
+        getFailoverUrlsForInfuraNetwork('monad-mainnet'),
+      // HyperEVM and Arc are not part of the `ChainId` enum.
+      [toHex(999)]: getFailoverUrlsForInfuraNetwork('hyperevm-mainnet'),
+      [toHex(5042)]: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
     },
   });
 
