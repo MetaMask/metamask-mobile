@@ -704,6 +704,15 @@ export interface AdvancedChartProps {
    * Ignored when `showVolume` is false.
    */
   volumeOverlay?: boolean;
+  /**
+   * Hide TradingView's pane separator. Intended for Perps' two-pane price/volume layout;
+   * leave unset for Token Details so indicator panes keep their native drawer chrome.
+   */
+  hidePaneSeparator?: boolean;
+  /**
+   * Override TradingView grid line color. Defaults to transparent to preserve Token Details.
+   */
+  gridLineColorOverride?: string;
   /** Enable left-side drawing toolbar */
   enableDrawingTools?: boolean;
   /**

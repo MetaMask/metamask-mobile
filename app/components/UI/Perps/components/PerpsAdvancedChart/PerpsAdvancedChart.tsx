@@ -391,6 +391,8 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       chartType={ChartType.Candles}
       showVolume
       volumeOverlay={false}
+      hidePaneSeparator
+      gridLineColorOverride={colors.border.muted}
       isLoading={isLoading}
       positionLines={positionLines}
       positionLineColors={positionLineColors}

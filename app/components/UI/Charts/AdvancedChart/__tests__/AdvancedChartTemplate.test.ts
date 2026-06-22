@@ -30,6 +30,43 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toContain(`background: ${LIGHT_MODE_SUCCESS_GREEN};`);
   });
 
+  it('keeps pane separators visible by default', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('hidePaneSeparator: false');
+  });
+
+  it('can opt in to hiding pane separators', () => {
+    const html = createAdvancedChartTemplate(mockTheme, {
+      hidePaneSeparator: true,
+    });
+
+    expect(html).toContain('hidePaneSeparator: true');
+  });
+
+  it('keeps grid lines transparent by default', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain("gridLineColor: 'transparent'");
+  });
+
+  it('can opt in to visible grid lines', () => {
+    const gridLineColor = 'rgb(18, 52, 86)';
+    const html = createAdvancedChartTemplate(mockTheme, {
+      gridLineColorOverride: gridLineColor,
+    });
+
+    expect(html).toContain(`gridLineColor: '${gridLineColor}'`);
+  });
+
+  it('preserves alpha for grid line colors', () => {
+    const html = createAdvancedChartTemplate(mockTheme, {
+      gridLineColorOverride: '#ffffff1a',
+    });
+
+    expect(html).toContain("gridLineColor: 'rgba(255, 255, 255, 0.102)'");
+  });
+
   it('uses Map APIs for RN-backed pending older-bar callbacks', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 

@@ -93,6 +93,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       chartType,
       showVolume = false,
       volumeOverlay = false,
+      hidePaneSeparator = false,
+      gridLineColorOverride,
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
@@ -206,6 +208,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         disabledFeatures,
         lineChrome,
         useSubscriptPriceFormat,
+        hidePaneSeparator,
+        gridLineColorOverride,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
@@ -226,6 +230,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       useSubscriptPriceFormat,
       labelStyleOverrides,
+      hidePaneSeparator,
+      gridLineColorOverride,
       legendOverlay,
     ]);
 
