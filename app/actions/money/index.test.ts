@@ -110,11 +110,16 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('tags the failing step when the controller throws a MoneyAccountUpgradeStepError', async () => {
+  it('tags the failing step and preserves the underlying cause message for Sentry', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    // `MoneyAccountUpgradeStepError.message` embeds the underlying step error's
+    // message, which is what `Logger.error` forwards to Sentry's
+    // `captureException`. Asserting on it guards against the thunk dropping the
+    // original message (e.g. by re-wrapping in a generic Error).
+    const causeMessage = 'eth_getTransactionCount returned a non-hex value';
     const error = Object.assign(
       new Error(
-        'Money Account upgrade failed at step "eip-7702-authorization": nope',
+        `Money Account upgrade failed at step "eip-7702-authorization": ${causeMessage}`,
       ),
       { name: 'MoneyAccountUpgradeStepError', step: 'eip-7702-authorization' },
     );
@@ -124,7 +129,9 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(
-      error,
+      expect.objectContaining({
+        message: expect.stringContaining(causeMessage),
+      }),
       expect.objectContaining({
         tags: {
           feature: 'money-account-upgrade',
@@ -136,6 +143,9 @@ describe('upgradeMoneyAccount', () => {
         },
       }),
     );
+    // The error is forwarded unchanged (not re-wrapped), so its identity and
+    // step survive too.
+    expect(mockLogError.mock.calls[0][0]).toBe(error);
   });
 
   it('wraps non-Error rejections', async () => {
