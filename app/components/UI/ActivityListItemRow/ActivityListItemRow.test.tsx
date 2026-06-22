@@ -14,6 +14,11 @@ import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingA
 import { strings } from '../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../util/networks';
 import { hasGasFeeTokenSelected } from '../../Views/confirmations/utils/transaction';
+import {
+  selectConversionRateByChainId,
+  selectCurrentCurrency,
+  selectUSDConversionRateByChainId,
+} from '../../../selectors/currencyRateController';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
@@ -1090,6 +1095,78 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
       '+2.5B USDC',
     );
+  });
+});
+
+describe('ActivityListItemRow — display currency conversion', () => {
+  const mockCurrency = jest.mocked(selectCurrentCurrency);
+  const mockConversionRate = jest.mocked(selectConversionRateByChainId);
+  const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
+
+  // These selector mocks use persistent return values (clearAllMocks does not
+  // reset them), so restore the suite-wide defaults (USD, equal rates) after
+  // each test to keep overrides from leaking.
+  afterEach(() => {
+    mockCurrency.mockReturnValue('usd');
+    mockConversionRate.mockReturnValue(2500);
+    mockUsdConversionRate.mockReturnValue(2500);
+  });
+
+  const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
+    ({
+      type: 'perpsPaidFundingFees',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash,
+      data: {
+        token: { amount, symbol: 'USD', direction: 'out' },
+        sourceToken: { symbol: 'BTC', direction: 'out' },
+      },
+    }) as unknown as ActivityListItem;
+
+  it('converts a USD-denominated amount into the user display currency', () => {
+    // Native→EUR 2300, Native→USD 2500 → USD→display factor 0.92.
+    mockCurrency.mockReturnValue('eur');
+    mockConversionRate.mockReturnValue(2300);
+    mockUsdConversionRate.mockReturnValue(2500);
+
+    const { getByTestId } = render(
+      <ActivityListItemRow
+        item={makeFundingFee('0xeurfunding', '1')}
+        index={0}
+      />,
+    );
+
+    const primary = getByTestId('activity-primary-amount-0xeurfunding').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    // 1 USD × (2300 / 2500) = 0.92 in the user's currency, not the raw $1.
+    expect(primary).toContain('0.92');
+    expect(primary).not.toContain('$');
+  });
+
+  it('omits the domain fiat for a non-USD user when rates are unavailable', () => {
+    // No rates to convert with: rather than mislabel a USD figure with another
+    // currency's symbol, the domain fiat is dropped and the row falls back to
+    // the raw token amount.
+    mockCurrency.mockReturnValue('eur');
+    mockConversionRate.mockReturnValue(undefined);
+    mockUsdConversionRate.mockReturnValue(undefined);
+
+    const { getByTestId } = render(
+      <ActivityListItemRow
+        item={makeFundingFee('0xnorate', '0.0006')}
+        index={0}
+      />,
+    );
+
+    const primary = getByTestId('activity-primary-amount-0xnorate').props
+      .children as string;
+    expect(primary).not.toContain('$');
+    expect(primary).not.toContain('€');
+    expect(primary).toContain('0.0006');
+    expect(primary).toContain('USD');
   });
 });
 

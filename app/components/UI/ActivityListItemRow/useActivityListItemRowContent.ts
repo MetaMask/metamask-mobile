@@ -950,7 +950,16 @@ function resolveFiatAmount({
   return applyDisplaySign(fiatAmount, signPrefix);
 }
 
-function resolveUsdDenominatedFiat({
+/**
+ * Renders a USD-denominated amount (Perps/Predict positions, funding, and funds
+ * balances are tracked in USD) in the user's display currency.
+ *
+ * `FromUsdAmount` describes the input: the value is converted to
+ * `currentCurrency` whenever the rates are available. When they aren't, we can
+ * only safely show the raw USD figure to a USD user — labeling a USD number with
+ * another currency's symbol would be wrong — so in that case we omit it.
+ */
+function resolveFiatFromUsdAmount({
   token,
   conversionRate,
   usdConversionRate,
@@ -966,37 +975,46 @@ function resolveUsdDenominatedFiat({
   const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
   if (!token || humanAmount === undefined) return undefined;
 
+  const usdAmount = Number.parseFloat(humanAmount);
   const signPrefix = getDisplaySignPrefix(token.direction, { showPlus: true });
 
-  if (precise) {
-    const fiat = addCurrencySymbol(
-      Number.parseFloat(humanAmount),
-      (currentCurrency ?? 'usd') as Parameters<typeof addCurrencySymbol>[1],
-      true,
-      true,
-    );
-    return fiat ? applyDisplaySign(fiat, signPrefix) : undefined;
+  const hasRates = Boolean(conversionRate && usdConversionRate);
+  const isUsdDisplay =
+    !currentCurrency || currentCurrency.toLowerCase() === 'usd';
+  // Without rates we can't convert; only a USD display currency is safe to show.
+  if (!hasRates && !isUsdDisplay) {
+    return undefined;
   }
 
-  if (conversionRate && usdConversionRate) {
-    const fiat = renderFiat(
-      balanceToFiatNumber(
-        Number.parseFloat(humanAmount),
-        conversionRate,
-        1 / usdConversionRate,
-      ),
-      currentCurrency as Parameters<typeof renderFiat>[1],
-      2,
-    );
-    return fiat ? applyDisplaySign(fiat, signPrefix) : undefined;
-  }
+  const displayCurrencyCode = hasRates ? (currentCurrency ?? 'usd') : 'usd';
+  // USD → display currency factor (1 when we have no rates, i.e. USD display).
+  const conversionFactor =
+    conversionRate && usdConversionRate
+      ? conversionRate / usdConversionRate
+      : 1;
 
-  const usdFiat = renderFiat(
-    Number.parseFloat(humanAmount),
-    'usd' as Parameters<typeof renderFiat>[1],
-    2,
-  );
-  return usdFiat ? applyDisplaySign(usdFiat, signPrefix) : undefined;
+  // Funding fees can be sub-cent, so the precise path keeps full precision via
+  // subscript notation (addCurrencySymbol) instead of flooring + rounding to 2dp.
+  const fiat = precise
+    ? addCurrencySymbol(
+        usdAmount * conversionFactor,
+        displayCurrencyCode as Parameters<typeof addCurrencySymbol>[1],
+        true,
+        true,
+      )
+    : renderFiat(
+        conversionRate && usdConversionRate
+          ? balanceToFiatNumber(
+              usdAmount,
+              conversionRate,
+              1 / usdConversionRate,
+            )
+          : usdAmount,
+        displayCurrencyCode as Parameters<typeof renderFiat>[1],
+        2,
+      );
+
+  return fiat ? applyDisplaySign(fiat, signPrefix) : undefined;
 }
 
 function fundsTokenSecondaryAmount(
@@ -1053,7 +1071,7 @@ export function useActivityListItemRowContent(
     isPerpsFunding ||
     isPredictTradeKind(item.type);
   const domainFiatAmount = isUsdDenominated
-    ? resolveUsdDenominatedFiat({
+    ? resolveFiatFromUsdAmount({
         token: primaryToken,
         conversionRate,
         usdConversionRate,
@@ -1089,8 +1107,6 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  // Perps/Predict rows are USD-denominated; everything else uses the token
-  // amount with main's fiat fallback chain.
   const primaryAmount =
     domainFiatAmount ?? resolveAmount(primaryToken, item.type);
   const secondaryAmount = domainFiatAmount

@@ -433,11 +433,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           if (nonce !== undefined && nonce !== null && from) {
             const matchedByNonce = allConfirmedForConfiguredChains.some(
               (confirmed) => {
-                // parse nonce from confirmed item if available
                 const confirmedRaw = confirmed.raw;
                 if (confirmedRaw?.type !== 'apiEvmTransaction') return false;
                 const confirmedApiTx = confirmedRaw.data;
-                // hexChainId from caip: eip155:1 → 0x1
                 const hexChainId = confirmed.chainId.split(':')[1]
                   ? `0x${parseInt(confirmed.chainId.split(':')[1], 10).toString(16)}`
                   : '';
@@ -1032,7 +1030,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       if (groupedItem.type === 'pending-header') {
         return (
           <ListItem.Date style={styles.dateHeader}>
-            {strings('transactions.pending')}
+            {strings('transaction.pending')}
           </ListItem.Date>
         );
       }
