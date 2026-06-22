@@ -12,6 +12,11 @@ export const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
       paddingTop: 10,
     },
+    importTextContainer: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 4,
+    },
     importText: {
       color: colors.text.alternative,
       fontSize: 14,

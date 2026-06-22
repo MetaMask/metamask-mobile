@@ -223,7 +223,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     );
   };
 
-  return { ListItem };
+  const Icon = ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+
+  return {
+    Icon,
+    IconColor: { IconAlternative: 'icon-alternative' },
+    IconName: { Clock: 'Clock' },
+    IconSize: { Sm: '16' },
+    ListItem,
+  };
 });
 
 jest.mock('../StyledButton', () => {
@@ -256,20 +265,6 @@ jest.mock('../Money/components/PendingSpinner/PendingSpinner', () => {
   const { View } = jest.requireActual('react-native');
   return ({ testID }: { testID?: string }) =>
     ReactActual.createElement(View, { testID });
-});
-
-jest.mock('../../../component-library/components/Icons/Icon', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const Icon = ({ testID }: { testID?: string }) =>
-    ReactActual.createElement(View, { testID });
-  return {
-    __esModule: true,
-    default: Icon,
-    IconColor: { Alternative: 'alternative', Default: 'default' },
-    IconName: { Pending: 'Pending' },
-    IconSize: { Sm: '16' },
-  };
 });
 
 jest.mock('../../Views/confirmations/utils/transaction', () => ({

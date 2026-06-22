@@ -1,6 +1,11 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import FAIcon from 'react-native-vector-icons/FontAwesome';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -34,10 +39,16 @@ export const ActivityListAccountImportTimeRow = ({
         style={styles.rowBody}
         testID="activity-list-account-import-time-row"
       >
-        <Text style={styles.importText}>
-          {`${strings('transactions.import_wallet_row')} `}
-          <FAIcon name="info-circle" />
-        </Text>
+        <View style={styles.importTextContainer}>
+          <Text style={styles.importText}>
+            {strings('transactions.import_wallet_row')}
+          </Text>
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </View>
         <ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
       </TouchableOpacity>
     </View>
