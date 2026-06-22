@@ -71,6 +71,31 @@ describe('TokenDetailsInlineHeader', () => {
 
       expect(queryByTestId('token-price-alert-button')).toBeNull();
     });
+
+    it('renders share button and calls onSharePress when pressed', () => {
+      const mockOnSharePress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          onSharePress={mockOnSharePress}
+          useAmbientColor={false}
+        />,
+      );
+
+      fireEvent.press(getByTestId('share-button'));
+      expect(mockOnSharePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render the share button when onSharePress is undefined', () => {
+      const { queryByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          useAmbientColor={false}
+        />,
+      );
+
+      expect(queryByTestId('share-button')).toBeNull();
+    });
   });
 
   describe('treatment group (useAmbientColor=true)', () => {
@@ -139,6 +164,34 @@ describe('TokenDetailsInlineHeader', () => {
       // shouldShowButton is false when useAmbientColor=true and iconColor is undefined,
       // so the price alert button must not be rendered even if the handler is provided
       expect(queryByTestId('token-price-alert-button')).toBeNull();
+    });
+
+    it('renders share button when iconColor is provided and onSharePress is set', () => {
+      const mockOnSharePress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          onSharePress={mockOnSharePress}
+          iconColor={LIGHT_MODE_SUCCESS_GREEN}
+          useAmbientColor
+        />,
+      );
+
+      fireEvent.press(getByTestId('share-button'));
+      expect(mockOnSharePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render the share button when iconColor is undefined', () => {
+      const mockOnSharePress = jest.fn();
+      const { queryByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          onSharePress={mockOnSharePress}
+          useAmbientColor
+        />,
+      );
+
+      expect(queryByTestId('share-button')).toBeNull();
     });
   });
 });
