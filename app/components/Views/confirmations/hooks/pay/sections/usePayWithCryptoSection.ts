@@ -124,7 +124,14 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     TransactionType.predictDeposit,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const isMoneyWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const shouldShowNoFeeTokens = !isWithdraw;
+  // Per-row no-fee tags also show for Money withdrawals (the dedicated no-fee
+  // suggestion row stays gated on shouldShowNoFeeTokens — it suggests a token
+  // to pay with, which has no meaning when choosing a token to receive).
+  const showNoFeeRowTags = shouldShowNoFeeTokens || isMoneyWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
     clearPaymentOverride();
@@ -229,7 +236,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         isMatchingPayToken(selectedToken, preferredToken);
 
       const preferredIsNoFee =
-        shouldShowNoFeeTokens &&
+        showNoFeeRowTags &&
         isNoFeeToken(preferredToken.address, preferredToken.chainId);
 
       tokenRows.push({
@@ -280,7 +287,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           selectedTokenDisplay.chainId,
         ),
         isNoFee:
-          shouldShowNoFeeTokens &&
+          showNoFeeRowTags &&
           isNoFeeToken(
             selectedTokenDisplay.address,
             selectedTokenDisplay.chainId,
@@ -378,5 +385,6 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectedTokenBalance,
     selectedTokenDisplay,
     shouldShowNoFeeTokens,
+    showNoFeeRowTags,
   ]);
 }

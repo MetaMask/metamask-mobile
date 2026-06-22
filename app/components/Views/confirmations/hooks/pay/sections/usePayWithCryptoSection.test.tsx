@@ -1120,6 +1120,40 @@ describe('usePayWithCryptoSection', () => {
       ).toBe(false);
     });
 
+    it('shows no-fee tags on token rows but keeps the suggestion row suppressed for Money withdrawals', () => {
+      const noFeeTokenMock = {
+        address: '0xnoFee' as Hex,
+        chainId: '0x1' as Hex,
+        symbol: 'USDT',
+        balanceUsd: '10',
+      };
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: noFeeTokenMock,
+        isNoFeeToken: jest
+          .fn()
+          .mockImplementation(
+            (address, chainId) =>
+              address === TOKEN_MOCK.address && chainId === TOKEN_MOCK.chainId,
+          ),
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountWithdraw,
+        txParams: {},
+      } as never);
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      // Dedicated "pay-with" no-fee suggestion row stays suppressed on withdraw.
+      expect(
+        result.current?.rows.find((row) => row.id === 'crypto-no-fee-token'),
+      ).toBeUndefined();
+      // The destination token row still shows its no-fee tag.
+      expect(
+        result.current?.rows.find((row) => row.id === 'crypto-preferred-token'),
+      ).toEqual(expect.objectContaining({ isNoFee: true }));
+    });
+
     it('sets isNoFee on preferred token when it is a no-fee token', () => {
       const isNoFeeTokenMock = jest
         .fn()
