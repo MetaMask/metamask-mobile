@@ -10,6 +10,7 @@ import {
 import {
   PredictBalanceSelectorsIDs,
   PredictBalanceSelectorsText,
+  PredictFeedSelectorsIDs,
   PredictMarketListSelectorsIDs,
   getPredictFeedSelector,
   getPredictMarketListSelector,
@@ -52,13 +53,11 @@ class PredictMarketList {
 
   get categoryTabs(): EncapsulatedElementType {
     return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(PredictMarketListSelectorsIDs.CATEGORY_TABS),
+      detox: () => Matchers.getElementByID(PredictFeedSelectorsIDs.TABS),
       appium: () =>
-        PlaywrightMatchers.getElementById(
-          PredictMarketListSelectorsIDs.CATEGORY_TABS,
-          { exact: true },
-        ),
+        PlaywrightMatchers.getElementById(PredictFeedSelectorsIDs.TABS, {
+          exact: true,
+        }),
     });
   }
 
@@ -240,30 +239,45 @@ class PredictMarketList {
 
   async tapCategoryTab(category: CategoryTab): Promise<void> {
     const tab = this.getCategoryTab(category);
+    const tabsScrollContainer = PredictFeedSelectorsIDs.TABS;
+
     await Utilities.executeWithRetry(
       async () => {
-        for (let attempt = 0; attempt < 4; attempt += 1) {
+        for (let attempt = 0; attempt < 6; attempt += 1) {
           try {
             await Assertions.expectElementToBeVisible(tab, { timeout: 1000 });
             return;
           } catch {
-            await UnifiedGestures.swipe(this.categoryTabs, 'left', {
-              description: `Swipe tabs to reveal ${category} (attempt ${attempt + 1})`,
-              speed: 'slow',
-              percentage: 0.5,
+            await UnifiedGestures.scrollToElement(tab, tabsScrollContainer, {
+              description: `Scroll to reveal ${category} category tab (attempt ${attempt + 1})`,
+              direction: 'right',
+              scrollAmount: 150,
             });
           }
         }
-        await Assertions.expectElementToBeVisible(tab, { timeout: 2000 });
+
+        try {
+          await Assertions.expectElementToBeVisible(tab, { timeout: 1000 });
+          return;
+        } catch {
+          await UnifiedGestures.swipe(this.categoryTabs, 'left', {
+            description: `Swipe tabs to reveal ${category} category tab`,
+            speed: 'slow',
+            percentage: 0.75,
+          });
+        }
+
+        await Assertions.expectElementToBeVisible(tab, { timeout: 3000 });
       },
       {
-        timeout: 15000,
+        timeout: 30_000,
         description: `Scroll to ${category} category tab`,
       },
     );
     await UnifiedGestures.waitAndTap(tab, {
       description: `${category} category tab`,
       checkStability: true,
+      timeout: 15_000,
     });
     await Assertions.expectElementToBeVisible(this.getMarketCard(category, 1), {
       timeout: 60_000,
