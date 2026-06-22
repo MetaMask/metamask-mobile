@@ -1,5 +1,4 @@
 import SDKConnectV2 from '../../../core/SDKConnectV2';
-import { tryParseExtensionAccountSyncConnectionRequest } from '../../../core/ExtensionAccountSync/extensionAccountSyncConnectionRequest';
 import { classifyAddDeviceScanContent } from './addDeviceScannerUtils';
 
 jest.mock('../../../core/SDKConnectV2', () => ({
@@ -9,76 +8,59 @@ jest.mock('../../../core/SDKConnectV2', () => ({
   },
 }));
 
-jest.mock(
-  '../../../core/ExtensionAccountSync/extensionAccountSyncConnectionRequest',
-  () => ({
-    tryParseExtensionAccountSyncConnectionRequest: jest.fn(),
-  }),
-);
-
-jest.mock('../../../core/SDKConnectV2/utils/parseMwpConnectDeeplink', () => ({
-  parseMwpConnectPayload: jest.fn(),
-}));
-
 const mockIsMwpDeeplink = jest.mocked(SDKConnectV2.isMwpDeeplink);
-const mockTryParse = jest.mocked(tryParseExtensionAccountSyncConnectionRequest);
-const { parseMwpConnectPayload } = jest.requireMock(
-  '../../../core/SDKConnectV2/utils/parseMwpConnectDeeplink',
-);
-const mockParseMwpConnectPayload = jest.mocked(parseMwpConnectPayload);
+
+const validSessionRequest = () => ({
+  id: '550e8400-e29b-41d4-a716-446655440000',
+  publicKeyB64: Buffer.alloc(33, 1).toString('base64'),
+  channel: 'handshake:550e8400-e29b-41d4-a716-446655440001',
+  mode: 'untrusted',
+  expiresAt: Date.now() + 60_000,
+});
+
+const buildAddDeviceQrDeeplink = (payload: unknown) => {
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+    'base64',
+  );
+  return `metamask://connect/mwp?p=${encodeURIComponent(encodedPayload)}`;
+};
 
 describe('classifyAddDeviceScanContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsMwpDeeplink.mockImplementation(
+      (url: unknown): url is string =>
+        typeof url === 'string' && url.startsWith('metamask://connect/mwp'),
+    );
   });
 
   it('returns invalid for non-MWP content', () => {
-    mockIsMwpDeeplink.mockReturnValue(false);
-
     expect(classifyAddDeviceScanContent('hello')).toBe('invalid');
   });
 
-  it('returns valid for a parseable extension account sync deeplink', () => {
-    mockIsMwpDeeplink.mockReturnValue(true);
-    mockTryParse.mockReturnValue({} as never);
+  it('returns valid for a base64 session request MWP deeplink', () => {
+    const deeplink = buildAddDeviceQrDeeplink(validSessionRequest());
 
-    expect(classifyAddDeviceScanContent('metamask://connect/mwp?p=abc')).toBe(
-      'valid',
-    );
+    expect(classifyAddDeviceScanContent(deeplink)).toBe('valid');
   });
 
   it('returns expired when sessionRequest expiresAt is in the past', () => {
-    mockIsMwpDeeplink.mockReturnValue(true);
-    mockTryParse.mockReturnValue(null);
-    mockParseMwpConnectPayload.mockReturnValue({
-      sessionRequest: { expiresAt: Date.now() - 1_000 },
+    const deeplink = buildAddDeviceQrDeeplink({
+      ...validSessionRequest(),
+      expiresAt: Date.now() - 1_000,
     });
 
-    expect(classifyAddDeviceScanContent('metamask://connect/mwp?p=abc')).toBe(
-      'expired',
-    );
+    expect(classifyAddDeviceScanContent(deeplink)).toBe('expired');
   });
 
-  it('returns invalid for MWP payloads that are not extension account sync', () => {
-    mockIsMwpDeeplink.mockReturnValue(true);
-    mockTryParse.mockReturnValue(null);
-    mockParseMwpConnectPayload.mockReturnValue({
-      sessionRequest: { expiresAt: Date.now() + 60_000 },
-    });
-
-    expect(classifyAddDeviceScanContent('metamask://connect/mwp?p=abc')).toBe(
-      'invalid',
-    );
+  it('returns invalid for MWP deeplinks with non-base64 p values', () => {
+    expect(
+      classifyAddDeviceScanContent('metamask://connect/mwp?p=not-base64-json'),
+    ).toBe('invalid');
   });
 
   it('returns invalid when MWP payload parsing throws', () => {
-    mockIsMwpDeeplink.mockReturnValue(true);
-    mockTryParse.mockReturnValue(null);
-    mockParseMwpConnectPayload.mockImplementation(() => {
-      throw new Error('parse failed');
-    });
-
-    expect(classifyAddDeviceScanContent('metamask://connect/mwp?p=abc')).toBe(
+    expect(classifyAddDeviceScanContent('metamask://connect/mwp')).toBe(
       'invalid',
     );
   });

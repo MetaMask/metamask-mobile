@@ -25,6 +25,9 @@ import {
 /* eslint-enable import-x/no-restricted-paths */
 import DeviceAdded from './DeviceAdded';
 
+/** Temporary mock OTP for bottom-sheet UI testing until QrSyncController is integrated. */
+const ADD_DEVICE_MOCK_VERIFICATION_CODE = '469192';
+
 const noopScanSuccess = (_data: ScanSuccess, _content?: string) => undefined;
 
 const Points = ({
@@ -71,6 +74,9 @@ const AddDeviceToWallet = () => {
       navigation.goBack();
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+        params: __DEV__
+          ? { verificationCode: ADD_DEVICE_MOCK_VERIFICATION_CODE }
+          : undefined,
       });
     },
     [navigation],

@@ -62,25 +62,33 @@ describe('AddDeviceToWallet', () => {
   });
 
   it('navigates to verification sheet after valid MWP deeplink scan', () => {
-    const { getByText } = renderWithProvider(<AddDeviceToWallet />);
+    const originalDev = global.__DEV__;
+    global.__DEV__ = true;
 
-    fireEvent.press(
-      getByText(strings('app_settings.add_device.scan_qr_code_button')),
-    );
+    try {
+      const { getByText } = renderWithProvider(<AddDeviceToWallet />);
 
-    const scannerParams = mockCreateQRScannerNavDetails.mock.calls[0][0] as {
-      onMwpDeeplinkScanned: (url: string) => void;
-    };
+      fireEvent.press(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      );
 
-    scannerParams.onMwpDeeplinkScanned('metamask://connect/mwp?p=abc');
+      const scannerParams = mockCreateQRScannerNavDetails.mock.calls[0][0] as {
+        onMwpDeeplinkScanned: (url: string) => void;
+      };
 
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      expect.objectContaining({
-        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-      }),
-    );
+      scannerParams.onMwpDeeplinkScanned('metamask://connect/mwp?p=abc');
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+          params: { verificationCode: '469192' },
+        }),
+      );
+    } finally {
+      global.__DEV__ = originalDev;
+    }
   });
 
   it('shows device added screen after verification completes', () => {
