@@ -16,6 +16,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   PASSWORD_GUIDE_URL,
   RESET_PASSWORD_GUIDE_URL,
+  RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
@@ -39,6 +40,7 @@ import {
 } from '@react-navigation/native';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
+import { PASSCODE_DISABLED } from '../../../constants/storage';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -303,6 +305,31 @@ const getWarningModalPrimaryButton = () => {
   const navMock = NavigationService.navigation.navigate as jest.Mock;
   const warningCall = navMock.mock.calls[0];
   return warningCall[1].params.onPrimaryButtonPress;
+};
+
+const getWarningModalLearnMoreOnPress = (): (() => void) => {
+  const navMock = NavigationService.navigation.navigate as jest.Mock;
+  const modalCall = navMock.mock.calls.find(
+    (call) =>
+      call[1]?.params?.title ===
+      strings('reset_password.warning_password_change_title'),
+  );
+  const description = modalCall?.[1].params.description as React.ReactElement<{
+    children: React.ReactNode;
+  }>;
+  const children = React.Children.toArray(description.props.children);
+  const learnMoreChild = children.find((child) => {
+    if (!React.isValidElement<{ onPress?: () => void }>(child)) {
+      return false;
+    }
+    return typeof child.props.onPress === 'function';
+  }) as React.ReactElement<{ onPress: () => void }> | undefined;
+  if (!learnMoreChild) {
+    throw new Error(
+      'Learn more onPress not found in warning modal description',
+    );
+  }
+  return learnMoreChild.props.onPress;
 };
 
 describe('ResetPassword', () => {
@@ -717,6 +744,36 @@ describe('ResetPassword', () => {
         },
       });
     });
+
+    it('opens social-login support URL from seedless warning modal learn more', async () => {
+      const component = await navigateToResetForm();
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            params: expect.objectContaining({
+              description: expect.anything(),
+            }),
+          }),
+        );
+      });
+
+      const learnMoreOnPress = getWarningModalLearnMoreOnPress();
+      await act(async () => {
+        learnMoreOnPress();
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: RESET_PASSWORD_SOCIAL_LOGIN_URL,
+          title: 'support.metamask.io',
+        },
+      });
+    });
   });
 
   describe('submit and password change', () => {
@@ -877,6 +934,27 @@ describe('ResetPassword', () => {
         Routes.SETTINGS.SECURITY_SETTINGS,
       );
     });
+
+    it('clears loading state without navigating on generic vault recreation error', async () => {
+      jest
+        .mocked(recreateVaultsWithNewPassword)
+        .mockRejectedValueOnce(new Error('Unexpected network failure'));
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(recreateVaultsWithNewPassword).toHaveBeenCalled();
+      });
+
+      expect(
+        component.queryByText(strings('reset_password.changing_password')),
+      ).toBeNull();
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.SETTINGS.SECURITY_SETTINGS,
+      );
+    });
   });
 
   describe('biometry initialization', () => {
@@ -907,6 +985,29 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
+    });
+
+    it('sets biometry type for device authentication', async () => {
+      jest.spyOn(Authentication, 'getType').mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        availableBiometryType: undefined,
+      });
+
+      const mockStorageWrapper = jest.mocked(StorageWrapper);
+      mockStorageWrapper.getItem.mockImplementation((key) => {
+        if (key === PASSCODE_DISABLED) return Promise.resolve(null);
+        return Promise.resolve(null);
+      });
+
+      const component = await navigateToResetForm();
+
+      expect(Authentication.getType).toHaveBeenCalled();
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        PASSCODE_DISABLED,
+      );
+      expect(
+        component.getByTestId('login-with-biometric-switch'),
+      ).toBeOnTheScreen();
     });
 
     it('sets biometry type and triggers reauthentication when biometrics available', async () => {
