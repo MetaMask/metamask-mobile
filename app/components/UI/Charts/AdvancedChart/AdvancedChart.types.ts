@@ -88,6 +88,23 @@ export interface PositionLines {
 }
 
 /**
+ * A point marker rendered on the chart at an exact `(time, price)` using the
+ * Drawing API circle icon. Used to surface trade entries/exits (e.g. Social
+ * Trading open/close circles). `intent` selects the color: `'enter'` → success
+ * (green), `'exit'` → error (red).
+ */
+export interface TradeMarker {
+  /** Unix timestamp in **milliseconds** (matches OHLCVBar.time). */
+  time: number;
+  /** Price the marker is anchored to on the Y axis. */
+  price: number;
+  /** `'enter'` = buy/open (green); `'exit'` = sell/close (red). */
+  intent: 'enter' | 'exit';
+  /** Stable id used as the React key and to track the created shape entity. */
+  id: string;
+}
+
+/**
  * Crosshair OHLC data forwarded from the WebView when the user
  * scrubs over the chart. Mirrors the Perps OhlcData contract.
  */
@@ -176,6 +193,7 @@ export type RNToWebViewMessageType =
   | 'SET_CHART_TYPE'
   | 'SET_LINE_CHROME'
   | 'SET_POSITION_LINES'
+  | 'SET_TRADE_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
   | 'SET_THEME_COLORS';
@@ -233,6 +251,11 @@ export interface SetPositionLinesPayload {
   position: PositionLines | null;
 }
 
+export interface SetTradeMarkersPayload {
+  /** Markers to render. Empty array (or null) clears all existing markers. */
+  markers: TradeMarker[] | null;
+}
+
 export interface RealtimeUpdatePayload {
   bar: OHLCVBar;
 }
@@ -258,6 +281,7 @@ export type RNToWebViewMessage =
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
+  | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
   | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload };
@@ -432,6 +456,12 @@ export interface AdvancedChartProps {
   indicators?: IndicatorType[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
+  /**
+   * Trade markers (open/close circles) to overlay at exact `(time, price)`
+   * points — e.g. Social Trading entries/exits. Set to undefined or an empty
+   * array to clear. Synced declaratively via useEffect.
+   */
+  tradeMarkers?: TradeMarker[];
 
   /** Initial chart type */
   chartType?: ChartType;

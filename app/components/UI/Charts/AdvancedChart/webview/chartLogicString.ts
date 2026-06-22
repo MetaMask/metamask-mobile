@@ -30,6 +30,7 @@ window.ohlcvData = [];
 window.currentSymbol = 'ASSET';
 window.activeStudies = new Map();
 window.positionShapeIds = [];
+window.tradeMarkerShapeIds = [];
 window.isChartReady = false;
 window.pendingMessages = [];
 window.libraryLoaded = false;
@@ -247,6 +248,9 @@ function handleMessage(event) {
         break;
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
+        break;
+      case 'SET_TRADE_MARKERS':
+        handleSetTradeMarkers(message.payload);
         break;
       case 'REALTIME_UPDATE':
         handleRealtimeUpdate(message.payload);
@@ -514,6 +518,7 @@ function handleSetOHLCVData(payload) {
       window.lineEndDotShapeId = null;
       window.lineLastPriceShapeId = null;
       window.positionShapeIds = [];
+      window.tradeMarkerShapeIds = [];
       window.realtimeCallbacks = {};
       window.currentChartType = 2;
       initChart();
@@ -2194,6 +2199,97 @@ function handleSetPositionLines(payload) {
 }
 
 // ============================================
+// Trade markers (open/close circles via SET_TRADE_MARKERS)
+// ============================================
+
+/** Circle glyph (FontAwesome fa-circle), same icon used for the line-end dot. */
+var TRADE_MARKER_ICON = 0xf111;
+var TRADE_MARKER_SIZE = 14;
+
+function clearTradeMarkers() {
+  if (!window.chartWidget || !window.isChartReady) return;
+
+  try {
+    var chart = window.chartWidget.activeChart();
+    for (var i = 0; i < window.tradeMarkerShapeIds.length; i++) {
+      try {
+        chart.removeEntity(window.tradeMarkerShapeIds[i]);
+      } catch (e) {
+        // Shape may already be removed
+      }
+    }
+    window.tradeMarkerShapeIds = [];
+  } catch (error) {
+    sendToReactNative('ERROR', {
+      message: 'Failed to clear trade markers: ' + error.message,
+    });
+  }
+}
+
+function handleSetTradeMarkers(payload) {
+  if (!window.chartWidget || !window.isChartReady) return;
+
+  // Always clear existing markers first so an update replaces, not stacks.
+  clearTradeMarkers();
+
+  // null or empty markers means "clear only".
+  if (!payload || !payload.markers || !payload.markers.length) return;
+
+  var markers = payload.markers;
+  var theme = window.CONFIG.theme;
+
+  try {
+    var chart = window.chartWidget.activeChart();
+
+    for (var i = 0; i < markers.length; i++) {
+      (function (marker) {
+        if (!marker || !isFinite(marker.time) || !isFinite(marker.price)) {
+          return;
+        }
+        // RN sends marker.time in ms (matches OHLCVBar.time); the Drawing API
+        // anchors shapes by Unix seconds, so convert here. marker.price is the
+        // close-price line value at the trade time (RN snaps it onto the line),
+        // so the circle sits on the line instead of at the raw fill price.
+        var timeSec = Math.floor(marker.time / 1000);
+        var color =
+          marker.intent === 'exit' ? theme.errorColor : theme.successColor;
+
+        chart
+          .createShape(
+            { time: timeSec, price: marker.price },
+            {
+              // Drawings API: icon + fixed size (matches the line-end dot).
+              // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/Drawings-Overrides/
+              shape: 'icon',
+              icon: TRADE_MARKER_ICON,
+              lock: true,
+              overrides: {
+                color: color,
+                size: TRADE_MARKER_SIZE,
+              },
+              disableSelection: true,
+              disableSave: true,
+              disableUndo: true,
+              showInObjectsTree: false,
+              zOrder: 'top',
+            },
+          )
+          .then(function (entityId) {
+            if (entityId) {
+              window.tradeMarkerShapeIds.push(entityId);
+            }
+          })
+          .catch(function () {});
+      })(markers[i]);
+    }
+  } catch (error) {
+    sendToReactNative('ERROR', {
+      message: 'Failed to add trade markers: ' + error.message,
+    });
+  }
+}
+
+// ============================================
 // Last close: green dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
 // same styles as crosshair labels in AdvancedChartTemplate)
 // ============================================
@@ -3046,9 +3142,18 @@ function removeLineEndDot() {
   window.lineEndDotShapeId = null;
 }
 
+/** True when \`id\` belongs to a trade marker (open/close circle), which must survive icon sweeps. */
+function isTradeMarkerShapeId(id) {
+  return (
+    !!window.tradeMarkerShapeIds &&
+    window.tradeMarkerShapeIds.indexOf(id) !== -1
+  );
+}
+
 /**
  * Removes Drawing API \`icon\` shapes on the active chart. Line mode only uses icons for the end
  * dot; stale async \`createShape\` calls can leave orphans with no \`lineEndDotShapeId\` reference.
+ * Trade markers are also \`icon\` shapes, so they are explicitly preserved by id.
  */
 function sweepOrphanLineChartIconShapes() {
   if (
@@ -3067,6 +3172,9 @@ function sweepOrphanLineChartIconShapes() {
     for (var i = 0; i < shapes.length; i++) {
       var name = String(shapes[i].name || '');
       if (!/icon/i.test(name)) {
+        continue;
+      }
+      if (isTradeMarkerShapeId(shapes[i].id)) {
         continue;
       }
       try {
@@ -3092,7 +3200,7 @@ function ensureNoLineChartEndIcons() {
     if (!shapes || !shapes.length) return;
     for (var i = 0; i < shapes.length; i++) {
       var name = String(shapes[i].name || '');
-      if (/icon/i.test(name)) {
+      if (/icon/i.test(name) && !isTradeMarkerShapeId(shapes[i].id)) {
         try {
           chart.removeEntity(shapes[i].id);
         } catch (err) {}

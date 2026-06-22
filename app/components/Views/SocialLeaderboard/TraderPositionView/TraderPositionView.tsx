@@ -131,7 +131,6 @@ const TraderPositionView = () => {
     pnlPercent,
     isPnlPositive,
     allTrades,
-    chartTrades,
     activeTimePeriod,
     setActiveTimePeriod,
     timePeriods,
@@ -290,8 +289,18 @@ const TraderPositionView = () => {
   }, []);
 
   const handleChartIndexChange = useCallback((_index: number) => {
-    // TODO: update displayed price on scrub.
+    // Legacy (perp) chart scrub: price readout not wired for the SVG chart.
   }, []);
+
+  // Crosshair % change reported by the spot AdvancedChart while scrubbing.
+  // Overrides the header percent until the crosshair leaves the chart.
+  const [scrubPercent, setScrubPercent] = useState<number | null>(null);
+  // Reset the scrub override whenever the time period changes so a stale
+  // percent from a previous range never lingers in the header.
+  useEffect(() => {
+    setScrubPercent(null);
+  }, [activeTimePeriod]);
+  const displayPercentChange = scrubPercent ?? pricePercentChange;
 
   // Perp positions surface Long/Short CTAs instead of Buy. Hyperliquid has no
   // long/short preselect param on the market page (direction only exists on the
@@ -299,6 +308,17 @@ const TraderPositionView = () => {
   // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
   // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
   const isPerp = resolvedPosition ? isPerpPosition(resolvedPosition) : false;
+
+  // CAIP-19 asset id for the spot chart. Resolves only for non-perp positions on
+  // a supported chain; when undefined the chart section uses the legacy SVG
+  // chart (perps have no CAIP id and feed prices from the Hyperliquid candle
+  // feed instead).
+  const chartAssetId = useMemo(() => {
+    if (!resolvedPosition || isPerp) return undefined;
+    const caipChainId = chainNameToId(resolvedPosition.chain);
+    if (!caipChainId) return undefined;
+    return toAssetId(resolvedPosition.tokenAddress, caipChainId);
+  }, [resolvedPosition, isPerp]);
 
   // The xyz/HIP-3 resolution + existence check lives in PerpsTradeButton (it
   // owns the market-data subscription); here we just navigate to whichever
@@ -362,7 +382,7 @@ const TraderPositionView = () => {
               position={resolvedPosition}
               marketCap={marketCap}
               currentPrice={currentPrice}
-              pricePercentChange={pricePercentChange}
+              pricePercentChange={displayPercentChange}
               activeTimePeriodLabel={activeTimePeriod}
               onCopyTokenAddress={handleCopyTokenAddress}
               copyTokenAddressTestID={
@@ -375,7 +395,10 @@ const TraderPositionView = () => {
               priceDiff={priceDiff}
               isPricesLoading={isPricesLoading}
               onChartIndexChange={handleChartIndexChange}
-              trades={chartTrades}
+              trades={allTrades}
+              assetId={chartAssetId}
+              activeTimePeriod={activeTimePeriod}
+              onScrubPercentChange={setScrubPercent}
             />
 
             <TraderTimePeriodSelector

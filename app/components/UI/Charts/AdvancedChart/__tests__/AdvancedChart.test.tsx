@@ -7,6 +7,7 @@ import {
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
+  type TradeMarker,
 } from '../AdvancedChart.types';
 
 const mockInAppBrowserOpen = jest.fn();
@@ -758,6 +759,67 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'SET_POSITION_LINES',
         payload: { position: null },
+      }),
+    );
+  });
+
+  it('sends SET_TRADE_MARKERS when tradeMarkers prop changes', () => {
+    const markers: TradeMarker[] = [
+      { time: 1000000, price: 11, intent: 'enter', id: '0xabc' },
+      { time: 1000300, price: 12, intent: 'exit', id: '0xdef' },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} tradeMarkers={markers} />);
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_TRADE_MARKERS',
+        payload: { markers },
+      }),
+    );
+  });
+
+  it('sends SET_TRADE_MARKERS with null when tradeMarkers cleared', () => {
+    const markers: TradeMarker[] = [
+      { time: 1000000, price: 11, intent: 'enter', id: '0xabc' },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} tradeMarkers={markers} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} tradeMarkers={undefined} />);
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_TRADE_MARKERS',
+        payload: { markers: null },
       }),
     );
   });
