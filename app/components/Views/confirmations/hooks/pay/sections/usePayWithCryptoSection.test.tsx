@@ -1091,7 +1091,7 @@ describe('usePayWithCryptoSection', () => {
       expect(noFeeRow).toBeUndefined();
     });
 
-    it('does not render no-fee row or tags in withdraw flows', () => {
+    it('renders no-fee row and tags whatever usePayWithNoFeeToken reports', () => {
       const noFeeTokenMock = {
         address: '0xnoFee' as Hex,
         chainId: '0x1' as Hex,
@@ -1103,21 +1103,16 @@ describe('usePayWithCryptoSection', () => {
         isNoFeeToken: jest.fn().mockReturnValue(true),
         renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.perpsWithdraw,
-        txParams: {},
-      } as never);
 
       const { result } = renderHook(() => usePayWithCryptoSection());
 
       expect(
         result.current?.rows.find((row) => row.id === 'crypto-no-fee-token'),
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
-        result.current?.rows.some(
-          (row) => row.id !== 'crypto-other-assets' && row.isNoFee,
-        ),
-      ).toBe(false);
+        result.current?.rows.find((row) => row.id === 'crypto-preferred-token')
+          ?.isNoFee,
+      ).toBe(true);
     });
 
     it('sets isNoFee on preferred token when it is a no-fee token', () => {

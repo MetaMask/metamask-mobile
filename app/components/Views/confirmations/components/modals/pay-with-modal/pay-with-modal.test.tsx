@@ -440,7 +440,7 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('does not render no-fee tags for withdrawal transactions', async () => {
+    it('delegates no-fee tagging to renderNoFeeTag for withdrawal tokens (hook decides visibility)', async () => {
       const withdrawToken = {
         accountType: EthAccountType.Eoa,
         address: '0xWithdrawToken',
@@ -459,7 +459,10 @@ describe('PayWithModal', () => {
       const { findByText } = render();
 
       expect(await findByText('Withdraw Token')).toBeOnTheScreen();
-      expect(mockRenderNoFeeTag).not.toHaveBeenCalled();
+      // The modal always wires renderNoFeeTag; usePayWithNoFeeToken returns null
+      // for withdrawals so no pill renders. Here the hook is mocked, so we only
+      // assert the renderer is invoked per token row.
+      expect(mockRenderNoFeeTag).toHaveBeenCalled();
     });
 
     it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {

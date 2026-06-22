@@ -2,9 +2,16 @@ import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
-import { isSubsidizedSource } from '../../utils/relayFixedSpread';
+import {
+  isSubsidizedRoute,
+  isSubsidizedSource,
+  RouteEndpoint,
+} from '../../utils/relayFixedSpread';
 import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../types/token';
 import { NoFeeTag } from '../../components/UI/no-fee-tag';
 import { TokenTagRenderer } from '../../components/UI/token';
@@ -17,12 +24,12 @@ export interface NoFeeTokenResult {
 }
 
 /**
- * Identifies payment tokens whose `(chainId, address)` matches a subsidised
- * source declared by the `confirmationsRelayFixedSpread` LD flag.
+ * Flags subsidised ("no fee") tokens from the `confirmations_relay_fixed_spread`
+ * flag, directionally: deposits match the relay source, withdrawals match an
+ * exact source→target route (no tag when the source is unknown pre-quote).
  *
- * Accepts an optional `excludeToken` to de-duplicate against the preferred
- * token row — when the preferred token is already a no-fee token, this hook
- * returns the next-highest-balance no-fee token instead.
+ * `excludeToken` skips the already-shown preferred token, returning the next
+ * eligible no-fee token instead.
  */
 export function usePayWithNoFeeToken({
   excludeToken,
@@ -35,16 +42,38 @@ export function usePayWithNoFeeToken({
 } {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { availableTokens } = useTransactionPayAvailableTokens();
+  const transactionMeta = useTransactionMetadataRequest();
+  const requiredTokens = useTransactionPayRequiredTokens();
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
+  const withdrawSource: RouteEndpoint | undefined = useMemo(() => {
+    if (!isWithdraw) return undefined;
+    const source = requiredTokens?.find((token) => !token.allowUnderMinimum);
+    if (!source) return undefined;
+    return {
+      address: source.address,
+      chainId: safeFormatChainIdToHex(source.chainId),
+    };
+  }, [isWithdraw, requiredTokens]);
 
   const matchesSubsidizedSource = useCallback(
     (address: string | undefined, chainId: string | undefined): boolean => {
       if (!address || !chainId) return false;
-      return isSubsidizedSource(relayFixedSpread, {
+
+      const candidate = {
         address,
         chainId: safeFormatChainIdToHex(chainId),
-      });
+      };
+
+      if (isWithdraw) {
+        return withdrawSource
+          ? isSubsidizedRoute(relayFixedSpread, withdrawSource, candidate)
+          : false;
+      }
+
+      return isSubsidizedSource(relayFixedSpread, candidate);
     },
-    [relayFixedSpread],
+    [isWithdraw, relayFixedSpread, withdrawSource],
   );
 
   const isNoFeeToken = useCallback(

@@ -124,7 +124,6 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     TransactionType.predictDeposit,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const shouldShowNoFeeTokens = !isWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
     clearPaymentOverride();
@@ -228,9 +227,10 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         !isDedicatedSectionOwningSelection &&
         isMatchingPayToken(selectedToken, preferredToken);
 
-      const preferredIsNoFee =
-        shouldShowNoFeeTokens &&
-        isNoFeeToken(preferredToken.address, preferredToken.chainId);
+      const preferredIsNoFee = isNoFeeToken(
+        preferredToken.address,
+        preferredToken.chainId,
+      );
 
       tokenRows.push({
         _balanceUsd: parseFloat(preferredToken.balanceUsd) || 0,
@@ -279,12 +279,10 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           selectedTokenDisplay.address,
           selectedTokenDisplay.chainId,
         ),
-        isNoFee:
-          shouldShowNoFeeTokens &&
-          isNoFeeToken(
-            selectedTokenDisplay.address,
-            selectedTokenDisplay.chainId,
-          ),
+        isNoFee: isNoFeeToken(
+          selectedTokenDisplay.address,
+          selectedTokenDisplay.chainId,
+        ),
         trailingElement: 'checkmark',
         testID: PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID,
       });
@@ -296,7 +294,6 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       isMatchingPayToken(selectedTokenDisplay, noFeeToken);
 
     if (
-      shouldShowNoFeeTokens &&
       noFeeToken &&
       !isDedicatedSectionOwningSelection &&
       !noFeeTokenDuplicatesSelectedRow
@@ -377,6 +374,5 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectedToken,
     selectedTokenBalance,
     selectedTokenDisplay,
-    shouldShowNoFeeTokens,
   ]);
 }

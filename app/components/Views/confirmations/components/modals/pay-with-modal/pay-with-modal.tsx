@@ -87,10 +87,7 @@ export function PayWithModal() {
   );
 
   const { renderNoFeeTag } = usePayWithNoFeeToken();
-  const tagRenderers = useMemo(
-    () => (isWithdraw ? undefined : [renderNoFeeTag]),
-    [isWithdraw, renderNoFeeTag],
-  );
+  const tagRenderers = useMemo(() => [renderNoFeeTag], [renderNoFeeTag]);
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
