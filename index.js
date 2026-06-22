@@ -5,13 +5,8 @@ import './app/util/theme/preBootPureBlack';
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 
-// Replace global.fetch with nitro-fetch (native C++ networking) and register
-// startup endpoints for native prefetching on cold start. Must run after shim
-// but before any code that uses fetch().
+// Native C++ networking (nitro-fetch + nitro-websockets). Must run after shim.
 import './app/core/NitroFetchSetup';
-
-// Replace global.WebSocket with react-native-nitro-websockets (native C++ via
-// libwebsockets + mbedTLS) and prewarm the MetaMask backend gateway on cold start.
 import './app/core/NitroWebSocketSetup';
 
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
