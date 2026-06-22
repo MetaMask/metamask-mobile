@@ -1,5 +1,5 @@
 import React from 'react';
-import { useWindowDimensions , Text } from 'react-native';
+import { useWindowDimensions, Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import VipSplashScreenLayout, {
   VIP_SPLASH_SCREEN_TEST_IDS,
