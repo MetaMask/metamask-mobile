@@ -343,6 +343,7 @@ const TraderProfileView = () => {
 
   return (
     <SafeAreaView
+      edges={['top']}
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >
