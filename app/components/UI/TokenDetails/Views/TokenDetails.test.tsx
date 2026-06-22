@@ -2,6 +2,7 @@ import React from 'react';
 import {
   ActivityIndicator,
   AppState,
+  Platform,
   Share,
   type AppStateStatus,
 } from 'react-native';
@@ -35,6 +36,13 @@ jest.mock('react-redux', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+let mockBeforeRemoveListener: (() => void) | undefined;
+const mockAddListener = jest.fn(
+  (event: string, cb: () => void): (() => void) => {
+    if (event === 'beforeRemove') mockBeforeRemoveListener = cb;
+    return jest.fn();
+  },
+);
 const mockRouteParams = jest.fn().mockReturnValue({
   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
   chainId: '0x1',
@@ -63,7 +71,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
-    addListener: jest.fn(() => jest.fn()),
+    addListener: mockAddListener,
   }),
   useRoute: () => ({ params: mockRouteParams() }),
   useFocusEffect: jest.fn((cb: () => () => void) => {
@@ -99,6 +107,8 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 
 const mockHandleStickySwapPress = jest.fn();
 const mockOnBuy = jest.fn();
+const mockOnSend = jest.fn();
+const mockOnReceive = jest.fn();
 const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
   useTokenActions: () => mockUseTokenActions(),
@@ -137,6 +147,9 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
 
 let mockLastUseAmbientColorProp: boolean | undefined;
 let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
+let mockLatestOnBuy: (() => void) | undefined;
+let mockLatestOnSend: (() => Promise<void> | void) | undefined;
+let mockLatestOnMarketInsightsDisclaimerPress: (() => void) | undefined;
 let mockAutoResolveMarketInsights = true;
 let mockLatestMarketInsightsResolver:
   | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
@@ -156,6 +169,9 @@ jest.mock('../components/AssetOverviewContent', () => {
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
     onPriceDirectionChange,
+    onBuy,
+    onSend,
+    onMarketInsightsDisclaimerPress,
     token,
     useAmbientColor,
   }: {
@@ -164,10 +180,22 @@ jest.mock('../components/AssetOverviewContent', () => {
       severity: string | undefined;
     }) => void;
     onPriceDirectionChange?: (isPositive: boolean) => void;
+    onBuy?: () => void;
+    onSend?: () => Promise<void> | void;
+    onMarketInsightsDisclaimerPress?: () => void;
     token?: { address?: string; chainId?: string; symbol?: string };
     useAmbientColor?: boolean;
   }) => {
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
+    // Capture the latest handlers in a deps-less effect (runs every render, no
+    // state updates → no loop). This avoids depending on the unstable inline
+    // `onMarketInsightsDisclaimerPress` arrow in the auto-resolve effect below.
+    ReactLib.useEffect(() => {
+      mockLatestOnBuy = onBuy;
+      mockLatestOnSend = onSend;
+      mockLatestOnMarketInsightsDisclaimerPress =
+        onMarketInsightsDisclaimerPress;
+    });
     ReactLib.useEffect(() => {
       mockLastUseAmbientColorProp = useAmbientColor;
       mockLatestPriceDirectionChange = onPriceDirectionChange;
@@ -296,7 +324,7 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
-const mockUseABTest = jest.fn((key: string) => {
+const defaultUseABTestImpl = (key: string) => {
   if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
     return {
       variant: { useAmbientPriceColor: false },
@@ -316,7 +344,8 @@ const mockUseABTest = jest.fn((key: string) => {
     variantName: 'control',
     isActive: false,
   };
-});
+};
+const mockUseABTest = jest.fn(defaultUseABTestImpl);
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => mockUseABTest(...(args as [string])),
 }));
@@ -325,8 +354,12 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: jest.fn(() => jest.fn()),
 }));
 
+const mockMarketInsightsDisclaimer = jest.fn(
+  (_props: { onClose?: () => void }) => null,
+);
 jest.mock('../../MarketInsights', () => ({
-  MarketInsightsDisclaimerBottomSheet: () => null,
+  MarketInsightsDisclaimerBottomSheet: (props: { onClose?: () => void }) =>
+    mockMarketInsightsDisclaimer(props),
 }));
 
 const mockAssetDetailsQuickBuy = jest.fn(
@@ -345,11 +378,16 @@ jest.mock('../../../../util/haptics', () => ({
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBeforeRemoveListener = undefined;
+    mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
     mockLatestMarketInsightsResolver = undefined;
     mockLastUseAmbientColorProp = undefined;
     mockLatestPriceDirectionChange = undefined;
+    mockLatestOnBuy = undefined;
+    mockLatestOnSend = undefined;
+    mockLatestOnMarketInsightsDisclaimerPress = undefined;
     mockUseTokenPrice.mockReturnValue(defaultUseTokenPriceReturn);
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -364,8 +402,8 @@ describe('TokenDetails', () => {
     });
     mockUseTokenActions.mockReturnValue({
       onBuy: mockOnBuy,
-      onSend: jest.fn(),
-      onReceive: jest.fn(),
+      onSend: mockOnSend,
+      onReceive: mockOnReceive,
     });
     mockUseStickyTokenActions.mockReturnValue({
       onBuy: mockOnBuy,
@@ -987,6 +1025,286 @@ describe('TokenDetails', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('on Android passes message with URL and no separate url field', async () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        configurable: true,
+      });
+      try {
+        render(<TokenDetails />);
+        await invokeSharePress();
+
+        const [args] = (Share.share as jest.Mock).mock.calls[0];
+        expect(args.message).toMatch(/link\.metamask\.io/);
+        expect(args.url).toBeUndefined();
+      } finally {
+        Object.defineProperty(Platform, 'OS', {
+          value: 'ios',
+          configurable: true,
+        });
+      }
+    });
+
+    it('shares only the token symbol when caip19AssetId cannot be resolved', async () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        chainId: undefined,
+      });
+
+      render(<TokenDetails />);
+      await invokeSharePress();
+
+      const [args] = (Share.share as jest.Mock).mock.calls[0];
+      expect(args.message).toBe('DAI');
+      expect(args.url).toBeUndefined();
+    });
+
+    it('resolves caip19AssetId directly when address is already CAIP-19 format', async () => {
+      const caipAddress =
+        'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: caipAddress,
+      });
+
+      render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining(encodeURIComponent(caipAddress)),
+        }),
+      );
+    });
+  });
+
+  describe('header back button', () => {
+    it('calls navigation.goBack when onBackPress is invoked', () => {
+      render(<TokenDetails />);
+
+      const { onBackPress } = (mockTokenDetailsInlineHeader.mock.calls.at(
+        -1,
+      )?.[0] ?? {}) as { onBackPress: () => void };
+      act(() => {
+        onBackPress();
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('overview Buy/Send actions', () => {
+    it('fires cta_clicked and triggers onBuy when overview Buy is pressed', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        mockLatestOnBuy?.();
+      });
+
+      expect(mockOnBuy).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'cta_clicked' }),
+      );
+    });
+
+    it('fires cta_clicked and triggers onSend when overview Send is pressed', async () => {
+      render(<TokenDetails />);
+
+      await act(async () => {
+        await mockLatestOnSend?.();
+      });
+
+      expect(mockOnSend).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'cta_clicked' }),
+      );
+    });
+  });
+
+  describe('market insights disclaimer', () => {
+    it('does not render the disclaimer bottom sheet before it is requested', () => {
+      render(<TokenDetails />);
+
+      expect(mockMarketInsightsDisclaimer).not.toHaveBeenCalled();
+    });
+
+    it('renders the disclaimer bottom sheet when the disclaimer is pressed and hides it on close', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        mockLatestOnMarketInsightsDisclaimerPress?.();
+      });
+      expect(mockMarketInsightsDisclaimer).toHaveBeenCalled();
+
+      const { onClose } = (mockMarketInsightsDisclaimer.mock.calls.at(
+        -1,
+      )?.[0] ?? {}) as { onClose?: () => void };
+      act(() => {
+        onClose?.();
+      });
+
+      expect(onClose).toBeDefined();
+    });
+  });
+
+  describe('non-EVM asset', () => {
+    it('renders without crashing and shows sticky footer for non-EVM assets', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      // Sticky footer is still rendered for non-EVM assets (not inside the EVM/non-EVM branch)
+      expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
+    });
+
+    it('does not render loader for non-EVM assets when not loading', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+        loading: false,
+      });
+
+      const { UNSAFE_queryAllByType } = render(<TokenDetails />);
+
+      expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
+    });
+  });
+
+  describe('TOKEN_DETAILS_OPENED tracking details', () => {
+    it('tracks has_balance: false when balance is "0"', async () => {
+      mockRouteParams.mockReturnValue({ ...defaultRouteParams, balance: '0' });
+
+      render(<TokenDetails />);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ has_balance: false }),
+        );
+      });
+    });
+
+    it('tracks has_balance: false when balance is undefined', async () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        balance: undefined,
+      });
+
+      render(<TokenDetails />);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ has_balance: false }),
+        );
+      });
+    });
+
+    it('tracks has_balance: true when balance is a non-zero string', async () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        balance: '10.5',
+      });
+
+      render(<TokenDetails />);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ has_balance: true }),
+        );
+      });
+    });
+
+    it('tracks source from route params', async () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        source: 'trending',
+      });
+
+      render(<TokenDetails />);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ source: 'trending' }),
+        );
+      });
+    });
+
+    it('defaults source to "unknown" when not provided in route params', async () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        source: undefined,
+      });
+
+      render(<TokenDetails />);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ source: 'unknown' }),
+        );
+      });
+    });
+  });
+
+  describe('TOKEN_DETAILS_CLOSED via back navigation', () => {
+    it('fires TOKEN_DETAILS_CLOSED with back_navigation when screen is removed', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        mockBeforeRemoveListener?.();
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_DETAILS_CLOSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'back_navigation' }),
+      );
+    });
+
+    it('does not fire TOKEN_DETAILS_CLOSED twice on double back navigation', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        mockBeforeRemoveListener?.();
+        mockBeforeRemoveListener?.();
+      });
+
+      const closedCount = mockCreateEventBuilder.mock.calls.filter(
+        ([event]) => event === MetaMetricsEvents.TOKEN_DETAILS_CLOSED,
+      ).length;
+      expect(closedCount).toBe(1);
+    });
+  });
+
+  describe('TOKEN_DETAILS_CLOSED via CTA', () => {
+    it('fires TOKEN_DETAILS_CLOSED with cta_clicked when Buy is pressed', () => {
+      const { getByText } = render(<TokenDetails />);
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_DETAILS_CLOSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'cta_clicked' }),
+      );
+    });
+
+    it('fires TOKEN_DETAILS_CLOSED with cta_clicked when Swap is pressed', () => {
+      const { getByText } = render(<TokenDetails />);
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_DETAILS_CLOSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'cta_clicked' }),
+      );
     });
   });
 
