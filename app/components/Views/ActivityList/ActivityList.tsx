@@ -659,10 +659,18 @@ const ActivityList = ({
     }
   }, [refetch]);
 
+  // Guards against out-of-order async decodes: each press claims a token, and
+  // only the most recent press is allowed to open the details sheet. Without
+  // this, tapping row A then row B before A's decode resolves could navigate to
+  // A last and show the wrong transaction.
+  const activityPressTokenRef = useRef(0);
+
   const handleActivityItemPress = useCallback(
     async (item: ActivityListItem) => {
       const { raw } = item;
       if (!raw) return;
+
+      const pressToken = (activityPressTokenRef.current += 1);
 
       const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
       const actionKey = resolveActivityListItemTitle(
@@ -761,6 +769,8 @@ const ActivityList = ({
             selectedInternalAccount: selectSelectedInternalAccount(state),
           });
 
+        if (activityPressTokenRef.current !== pressToken) return;
+
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.TRANSACTION_DETAILS,
           params: {
@@ -772,8 +782,7 @@ const ActivityList = ({
           },
         });
       } catch {
-        // Decoding failed — fall back to a minimal detail view rather than
-        // blocking the row from opening at all.
+        if (activityPressTokenRef.current !== pressToken) return;
         const { from, to } = getActivityFromTo(item);
         const value = getActivityValue(item);
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

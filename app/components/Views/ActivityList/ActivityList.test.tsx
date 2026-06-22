@@ -14,6 +14,8 @@ import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import Routes from '../../../constants/navigation/Routes';
+import decodeTransaction from '../../UI/TransactionElement/utils';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -576,6 +578,46 @@ describe('ActivityList', () => {
         }),
       ),
     );
+  });
+
+  it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {
+    const decodeMock = jest.mocked(decodeTransaction);
+    type DecodeResult = Awaited<ReturnType<typeof decodeTransaction>>;
+    let resolveFirst: (value: DecodeResult) => void = () => undefined;
+    let resolveSecond: (value: DecodeResult) => void = () => undefined;
+    decodeMock
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          }),
+      );
+
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+
+    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
+    fireEvent.press(screen.getByTestId('row-0xlocal'));
+
+    resolveSecond([{ actionKey: 'Approve' }, { hash: '0xlocal' }]);
+    resolveFirst([{ actionKey: 'Sent' }, { hash: '0xconfirmed' }]);
+
+    await waitFor(() => {
+      const detailCalls = mockNavigate.mock.calls.filter(
+        (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+      );
+      expect(detailCalls).toHaveLength(1);
+    });
+
+    const detailCalls = mockNavigate.mock.calls.filter(
+      (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+    );
+    expect(detailCalls[0][1].params.tx.hash).toBe('0xlocal');
   });
 
   it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {
