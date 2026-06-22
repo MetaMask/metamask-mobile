@@ -169,6 +169,7 @@
   },
   "resolutions": {
     "@metamask/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch",
+    "@metamask/design-system-shared": "npm:@metamask-previews/design-system-shared@0.23.0-preview.0a4d6f8",
     "@metamask/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.5.0-preview.0a4d6f8",
     "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@8.5.0-preview.0a4d6f8",
     "@metamask/network-controller": "32.0.0",
@@ -266,6 +267,7 @@
     "@metamask/delegation-controller": "^2.0.2",
     "@metamask/delegation-deployments": "^1.0.0",
     "@metamask/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch",
+    "@metamask/design-system-shared": "npm:@metamask-previews/design-system-shared@0.23.0-preview.0a4d6f8",
     "@metamask/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.5.0-preview.0a4d6f8",
     "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@8.5.0-preview.0a4d6f8",
     "@metamask/earn-controller": "^12.1.0",
