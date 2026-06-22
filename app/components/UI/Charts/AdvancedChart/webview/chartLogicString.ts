@@ -1279,6 +1279,11 @@ function applyChartScaleLayout(type) {
   let useCustomDashed = lc.useCustomDashedLastPriceLine;
   /** Match pane background so time/price scale rules disappear; labels use textColor above. */
   let axisLineColor = theme.backgroundColor || '#131416';
+  let separatorColor =
+    window.CONFIG.features && window.CONFIG.features.hidePaneSeparator
+      ? theme.backgroundColor || '#131416'
+      : theme.borderColor;
+  let gridLineColor = theme.gridLineColor || 'transparent';
 
   try {
     window.chartWidget.applyOverrides(
@@ -1291,10 +1296,12 @@ function applyChartScaleLayout(type) {
           'scalesProperties.showSymbolLabels': false,
           'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
           'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
+          'paneProperties.vertGridProperties.color': gridLineColor,
+          'paneProperties.horzGridProperties.color': gridLineColor,
           'mainSeriesProperties.showPriceLine': !useCustomDashed,
           'timeScale.borderColor': axisLineColor,
           'scalesProperties.lineColor': axisLineColor,
-          'paneProperties.separatorColor': theme.borderColor,
+          'paneProperties.separatorColor': separatorColor,
           'paneProperties.topMargin': 12,
           'paneProperties.bottomMargin': 8,
         },
@@ -4928,8 +4935,11 @@ function initChart() {
         {
           'paneProperties.background': theme.backgroundColor,
           'paneProperties.backgroundType': 'solid',
-          'paneProperties.vertGridProperties.color': 'transparent',
-          'paneProperties.horzGridProperties.color': 'transparent',
+          'paneProperties.vertGridProperties.color':
+            theme.gridLineColor || 'transparent',
+          'paneProperties.horzGridProperties.color':
+            theme.gridLineColor || 'transparent',
+          'scalesProperties.textColor': theme.textColor,
           'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'scalesProperties.fontSize': 12,

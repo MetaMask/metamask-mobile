@@ -48,6 +48,19 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
+const formatTradingViewCssColor = (hex: string): string => {
+  if (hex.length !== 9 || !hex.startsWith('#')) {
+    return hex;
+  }
+
+  const red = Number.parseInt(hex.slice(1, 3), 16);
+  const green = Number.parseInt(hex.slice(3, 5), 16);
+  const blue = Number.parseInt(hex.slice(5, 7), 16);
+  const alpha = Number.parseInt(hex.slice(7, 9), 16) / 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
+};
+
 const getChartSuccessColor = (theme: Theme): string =>
   theme.themeAppearance === AppThemeKey.light
     ? LIGHT_MODE_SUCCESS_GREEN
@@ -58,6 +71,8 @@ interface ChartFeatures {
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
   useSubscriptPriceFormat?: boolean;
+  hidePaneSeparator?: boolean;
+  gridLineColorOverride?: string;
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
@@ -116,6 +131,7 @@ window.CONFIG = {
     textAlternativeColor: '${legendTextColor}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
+    gridLineColor: '${features.gridLineColorOverride ? formatTradingViewCssColor(features.gridLineColorOverride) : 'transparent'}',
     errorColor: '${errorColor}',
     volumeSuccessColor: '${volumeSuccessColor}',
     volumeErrorColor: '${volumeErrorColor}',
@@ -124,7 +140,8 @@ window.CONFIG = {
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
-    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
+    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
+    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'}
   },
   lineChrome: {
     hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
