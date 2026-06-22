@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { View, Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -17,6 +17,7 @@ import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
+  isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
@@ -60,14 +61,7 @@ import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  selectTokenOverviewChartType,
-  selectTokenIndicators,
-} from '../../../../reducers/user/selectors';
-import {
-  setTokenOverviewChartType,
-  setTokenIndicators,
-} from '../../../../actions/user';
+import { useTokenChartPreferences } from './hooks/useTokenChartPreferences';
 import type {
   TimePeriod,
   TokenPrice,
@@ -178,12 +172,17 @@ const PriceAdvanced = ({
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const chartType = useSelector(selectTokenOverviewChartType);
-  const persistedIndicators = useSelector(selectTokenIndicators);
+  const {
+    chartType,
+    chartInterval: persistedChartInterval,
+    indicators: persistedIndicators,
+    setChartType,
+    setChartInterval,
+    setIndicators,
+  } = useTokenChartPreferences();
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
     selectTokenDetailsTechnicalIndicatorsEnabled,
@@ -255,8 +254,8 @@ const PriceAdvanced = ({
 
   // Sync activeIndicators to Redux for persistence
   useEffect(() => {
-    dispatch(setTokenIndicators([...activeIndicators]));
-  }, [activeIndicators, dispatch]);
+    setIndicators([...activeIndicators]);
+  }, [activeIndicators, setIndicators]);
 
   const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
 
@@ -295,13 +294,13 @@ const PriceAdvanced = ({
           .addProperties(properties)
           .build(),
       );
-      dispatch(setTokenOverviewChartType(next));
+      setChartType(next);
     },
     [
       chartType,
       createEventBuilder,
       trackEvent,
-      dispatch,
+      setChartType,
       isTechnicalIndicatorsEnabled,
       activeIndicators,
     ],
@@ -357,13 +356,35 @@ const PriceAdvanced = ({
   const config = TIME_RANGE_CONFIGS[timeRange];
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
 
-  const [displayInterval, setDisplayInterval] = useState(
-    wsInterval.toUpperCase(),
+  const resolveDisplayInterval = useCallback(
+    (interval: string | undefined | null) => {
+      const normalised = interval?.toLowerCase();
+      if (isTokenOverviewChartInterval(normalised)) {
+        return normalised.toUpperCase();
+      }
+      return wsInterval.toUpperCase();
+    },
+    [wsInterval],
+  );
+
+  const [displayInterval, setDisplayInterval] = useState(() =>
+    isTechnicalIndicatorsEnabled
+      ? resolveDisplayInterval(persistedChartInterval)
+      : wsInterval.toUpperCase(),
   );
 
   useEffect(() => {
+    if (isTechnicalIndicatorsEnabled) {
+      setDisplayInterval(resolveDisplayInterval(persistedChartInterval));
+      return;
+    }
     setDisplayInterval(wsInterval.toUpperCase());
-  }, [wsInterval]);
+  }, [
+    isTechnicalIndicatorsEnabled,
+    persistedChartInterval,
+    resolveDisplayInterval,
+    wsInterval,
+  ]);
 
   const chartInterval = displayInterval.toLowerCase();
 
@@ -580,6 +601,7 @@ const PriceAdvanced = ({
   const handleInlineIntervalSelect = useCallback(
     (interval: string) => {
       setDisplayInterval(interval);
+      setChartInterval(interval);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
@@ -593,7 +615,13 @@ const PriceAdvanced = ({
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, chartType, activeIndicators],
+    [
+      trackEvent,
+      createEventBuilder,
+      chartType,
+      activeIndicators,
+      setChartInterval,
+    ],
   );
 
   // TradingView Advanced Charts Bar.time expects milliseconds

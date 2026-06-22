@@ -41,11 +41,14 @@ jest.mock(
   }),
 );
 
-const { selectTokenIndicators: selectTokenIndicatorsActual } =
-  jest.requireActual('../../../../reducers/user/selectors');
+const {
+  selectTokenIndicators: selectTokenIndicatorsActual,
+  selectTokenOverviewChartInterval: selectTokenOverviewChartIntervalActual,
+} = jest.requireActual('../../../../reducers/user/selectors');
 
 const mockUseSelector = jest.fn((selector: unknown) => {
   if (selector === selectTokenIndicatorsActual) return [];
+  if (selector === selectTokenOverviewChartIntervalActual) return '15m';
   if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
     return mockSelectTechnicalIndicatorsEnabled();
   }
@@ -1465,8 +1468,12 @@ describe('PriceAdvanced', () => {
       selector: unknown,
       chartType: ChartType = ChartType.Candles,
       persisted: string[] = ['RSI'],
+      persistedInterval = '15m',
     ) => {
       if (selector === selectTokenIndicatorsActual) return persisted;
+      if (selector === selectTokenOverviewChartIntervalActual) {
+        return persistedInterval;
+      }
       if (selector === selectTokenOverviewChartType) return chartType;
       if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
         return mockSelectTechnicalIndicatorsEnabled();
@@ -1477,6 +1484,7 @@ describe('PriceAdvanced', () => {
     afterEach(() => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
         if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
           return mockSelectTechnicalIndicatorsEnabled();
         }
@@ -1524,11 +1532,97 @@ describe('PriceAdvanced', () => {
     });
   });
 
+  describe('chart interval persistence', () => {
+    const enableIndicatorBar = (persistedInterval = '15m') => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) {
+          return persistedInterval;
+        }
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+    };
+
+    beforeEach(() => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+    });
+
+    it('uses persisted interval for OHLCV fetch when technical indicators flag is ON', () => {
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenOverviewChartIntervalActual) return '1h';
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockUseOHLCVChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timePeriod: '1w',
+          interval: '1h',
+        }),
+      );
+    });
+
+    it('dispatches SET_TOKEN_OVERVIEW_CHART_INTERVAL when user selects an interval', () => {
+      enableIndicatorBar();
+
+      const { getByLabelText } = render(<PriceAdvanced {...baseProps} />);
+      mockUseOHLCVChart.mockClear();
+
+      fireEvent.press(getByLabelText('1h'));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_TOKEN_OVERVIEW_CHART_INTERVAL',
+        payload: { interval: '1h' },
+      });
+      expect(mockUseOHLCVChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timePeriod: '1w',
+          interval: '1h',
+        }),
+      );
+    });
+
+    it('does not dispatch interval persistence when technical indicators flag is OFF', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
+        if (selector === selectTokenOverviewChartType) return ChartType.Line;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return false;
+        }
+        return ChartType.Line;
+      });
+
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      fireEvent.press(getByTestId('select-1W'));
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_TOKEN_OVERVIEW_CHART_INTERVAL',
+        }),
+      );
+    });
+  });
+
   describe('handleIndicatorToggle', () => {
     const enableIndicatorBar = (persisted: string[] = []) => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return persisted;
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
         if (selector === selectTokenOverviewChartType) return ChartType.Candles;
         if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
           return true;
@@ -1540,6 +1634,7 @@ describe('PriceAdvanced', () => {
     afterEach(() => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
         if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
           return mockSelectTechnicalIndicatorsEnabled();
         }
