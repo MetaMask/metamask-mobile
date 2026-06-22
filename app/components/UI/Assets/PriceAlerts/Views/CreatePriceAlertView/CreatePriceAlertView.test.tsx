@@ -8,7 +8,7 @@ const mockPop = jest.fn();
 const mockSubmit = jest.fn();
 const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
-const mockUseSubmitPriceAlert = jest.fn(() => ({
+const mockUseSubmitPriceAlert = jest.fn((_editingAlert?: unknown) => ({
   submit: mockSubmit,
   isSubmitting: false,
 }));
@@ -35,7 +35,8 @@ jest.mock('@tanstack/react-query', () => ({
 
 jest.mock('../../api', () => ({
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
-  useSubmitPriceAlert: (...args: unknown[]) => mockUseSubmitPriceAlert(...args),
+  useSubmitPriceAlert: (editingAlert?: unknown) =>
+    mockUseSubmitPriceAlert(editingAlert),
 }));
 
 import { ToastContext } from '../../../../../../component-library/components/Toast';
