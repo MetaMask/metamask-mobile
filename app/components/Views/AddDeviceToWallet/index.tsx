@@ -74,9 +74,8 @@ const AddDeviceToWallet = () => {
       navigation.goBack();
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-        params: __DEV__
-          ? { verificationCode: ADD_DEVICE_MOCK_VERIFICATION_CODE }
-          : undefined,
+        // TODO(TO-793): Replace with QrSyncController OTP once integrated.
+        params: { verificationCode: ADD_DEVICE_MOCK_VERIFICATION_CODE },
       });
     },
     [navigation],
