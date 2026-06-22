@@ -144,19 +144,6 @@ def getPassword(String currentUser, String keyChain) {
 def enableProguardInReleaseBuilds = true
 
 /**
- * The preferred build flavor of JavaScriptCore (JSC)
- *
- * For example, to use the international variant, you can use:
- * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
- *
- * The international variant includes ICU i18n library and necessary data
- * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
- * give correct results when using with locales other than en-US. Note that
- * this variant is about 6MiB larger per architecture than default.
- */
-def jscFlavor = 'org.webkit:android-jsc:+'
-
-/**
  * Private function to get the list of Native Architectures you want to build.
  * This reads the value from reactNativeArchitectures in your gradle.properties
  * file and works together with the --active-arch-only flag of react-native run-android.
@@ -398,11 +385,9 @@ dependencies {
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:core-ktx:1.5.0'
 
-    if (hermesEnabled.toBoolean()) {
-        implementation("com.facebook.react:hermes-android")
-    } else {
-        implementation jscFlavor
-    }
+    // Hermes is the default (and only bundled) JS engine in React Native 0.83+.
+    // JSC was removed from core, so we always link Hermes.
+    implementation("com.facebook.react:hermes-android")
     // Detox's AAR still reflects Espresso UiControllerImpl.eventInjector, but its POM pulls
     // espresso-* 3.6.x where that field was removed. Exclude Espresso from Detox and pin 3.5.1.
     androidTestImplementation(project(path: ":detox")) {
