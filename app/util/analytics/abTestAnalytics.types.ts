@@ -11,7 +11,18 @@ export interface ABTestAnalyticsMapping {
   >;
   /**
    * When set, `active_ab_tests` for this flag is only injected if every entry
-   * matches `event.properties` (strict `===`). Omit for unconditional injection.
+   * matches `event.properties`. Values may be a scalar or an array of scalars
+   * (any one matching value satisfies the condition).
    */
-  injectWhenPropertiesMatch?: Readonly<Record<string, unknown>>;
+  injectWhenPropertiesMatch?: Readonly<
+    Record<string, unknown | readonly unknown[]>
+  >;
+  /**
+   * When set, `active_ab_tests` for this flag is NOT injected if any entry
+   * matches `event.properties`. Values may be a scalar or an array of scalars
+   * (any one matching value causes exclusion).
+   */
+  excludeWhenPropertiesMatch?: Readonly<
+    Record<string, unknown | readonly unknown[]>
+  >;
 }
