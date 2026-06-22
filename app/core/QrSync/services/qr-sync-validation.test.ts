@@ -1,4 +1,5 @@
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
+import { deflate } from 'pako';
 
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type { QrSyncData, QrSyncDataEntry, QrSyncMessage } from '../types';
@@ -7,12 +8,14 @@ import {
   isQrSyncData,
   isQrSyncDataEntry,
   isQrSyncMessage,
+  isQrSyncMwpDeeplink,
   isQrSyncSecretMetadata,
   isQrSyncSessionRequest,
   isQrSyncSyncReadyMessage,
   normalizeQrSyncData,
   normalizeQrSyncDataEntry,
   parseQrSyncConnectionRequest,
+  QR_SYNC_MWP_DEEPLINK_PREFIX,
   validateAndNormalizeQrSyncData,
   validateAndNormalizeQrSyncSyncReadyMessage,
   validateQrSyncData,
@@ -29,6 +32,25 @@ const FUTURE_DEADLINE = FIXED_NOW + 60_000;
 
 const encodeSecret = (plaintext: string): string =>
   Buffer.from(plaintext, 'utf-8').toString('base64');
+
+const encodeBase64Json = (value: unknown): string =>
+  Buffer.from(JSON.stringify(value), 'utf-8').toString('base64');
+
+const compressAndEncode = (data: string): string => {
+  const compressed = deflate(new TextEncoder().encode(data));
+  return Buffer.from(compressed).toString('base64');
+};
+
+const createMwpDeeplink = (
+  payload: string,
+  options: { compressed?: boolean } = {},
+): string => {
+  const query = options.compressed
+    ? `p=${encodeURIComponent(payload)}&c=1`
+    : `p=${encodeURIComponent(payload)}`;
+
+  return `${QR_SYNC_MWP_DEEPLINK_PREFIX}?${query}`;
+};
 
 const createSessionRequest = (
   overrides: Partial<SessionRequest> = {},
@@ -65,7 +87,60 @@ const createSyncReadyMessage = (
 });
 
 describe('qr-sync-validation', () => {
+  describe('isQrSyncMwpDeeplink', () => {
+    it('returns true for metamask://connect/mwp deeplinks', () => {
+      const deeplink = createMwpDeeplink('payload');
+
+      const result = isQrSyncMwpDeeplink(deeplink);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for non-deeplink strings', () => {
+      expect(isQrSyncMwpDeeplink('{"sessionRequest":{}}')).toBe(false);
+      expect(isQrSyncMwpDeeplink('metamask://other')).toBe(false);
+    });
+  });
+
   describe('parseQrSyncConnectionRequest', () => {
+    it('parses metamask://connect/mwp deeplinks with base64 p parameter', () => {
+      const connectionRequest = { sessionRequest: createSessionRequest() };
+      const deeplink = createMwpDeeplink(encodeBase64Json(connectionRequest));
+
+      const result = parseQrSyncConnectionRequest(deeplink);
+
+      expect(result).toEqual(connectionRequest);
+    });
+
+    it('parses metamask://connect/mwp deeplinks with plain JSON p parameter', () => {
+      const connectionRequest = { sessionRequest: createSessionRequest() };
+      const deeplink = createMwpDeeplink(JSON.stringify(connectionRequest));
+
+      const result = parseQrSyncConnectionRequest(deeplink);
+
+      expect(result).toEqual(connectionRequest);
+    });
+
+    it('parses metamask://connect/mwp deeplinks with compressed p parameter', () => {
+      const connectionRequest = { sessionRequest: createSessionRequest() };
+      const deeplink = createMwpDeeplink(
+        compressAndEncode(encodeBase64Json(connectionRequest)),
+        { compressed: true },
+      );
+
+      const result = parseQrSyncConnectionRequest(deeplink);
+
+      expect(result).toEqual(connectionRequest);
+    });
+
+    it('throws when metamask://connect/mwp deeplink is missing p parameter', () => {
+      const deeplink = `${QR_SYNC_MWP_DEEPLINK_PREFIX}?c=1`;
+
+      expect(() => parseQrSyncConnectionRequest(deeplink)).toThrow(
+        'QR sync deeplink is missing the p parameter.',
+      );
+    });
+
     it('returns wrapped session request for direct SessionRequest JSON', () => {
       const sessionRequest = createSessionRequest();
       const rawQrData = JSON.stringify(sessionRequest);

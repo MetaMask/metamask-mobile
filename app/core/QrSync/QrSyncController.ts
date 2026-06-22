@@ -120,9 +120,10 @@ export class QrSyncController extends BaseController<
   /**
    * Primary mobile entrypoint for QR sync.
    *
-   * The UI passes the raw scanned QR string here. The controller validates the
-   * payload, creates the wallet-side MWP session, attaches it, and starts the
-   * connection handshake.
+   * Expects the scanned deeplink
+   * `metamask://connect/mwp?p=<base64-encoded-session-request>` (optional
+   * `&c=1` when compressed). The controller validates the payload, creates the
+   * wallet-side MWP session, attaches it, and starts the connection handshake.
    */
   public async handleScannedQrPayload(scannedQrData: string): Promise<void> {
     // Destroy any existing session before starting a new one.

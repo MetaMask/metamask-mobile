@@ -2,6 +2,7 @@ import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
 import { isUUID } from '../../SDKConnect/utils/isUUID';
+import { decompressPayloadB64 } from '../../SDKConnectV2/utils/compression-utils';
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import {
   QrSyncConnectionRequest,
@@ -37,6 +38,9 @@ const SYNC_DATA_TYPES: SyncDataType[] = ['MNEMONIC', 'PRIVATE_KEY'];
 
 const HANDSHAKE_CHANNEL_REGEX =
   /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Scanned QR deeplink prefix for QR sync session bootstrap. */
+export const QR_SYNC_MWP_DEEPLINK_PREFIX = 'metamask://connect/mwp';
 
 const isRecord = (data: unknown): data is Record<string, unknown> =>
   typeof data === 'object' && data !== null && !Array.isArray(data);
@@ -143,28 +147,57 @@ const decodeMaybeBase64Json = (raw: string): string => {
   return raw;
 };
 
-/**
- * Parses the raw QR scan payload into a validated QR sync connection request.
- *
- * Accepts either a direct JSON-serialized `SessionRequest` or a wrapped
- * `{ sessionRequest }` object. If the QR encodes base64 JSON, that is also
- * supported.
- */
-export function parseQrSyncConnectionRequest(
-  rawQrData: string,
-): QrSyncConnectionRequest {
+/** Returns true when the scanned value is an MWP connect deeplink. */
+export function isQrSyncMwpDeeplink(data: unknown): data is string {
+  return (
+    typeof data === 'string' && data.startsWith(QR_SYNC_MWP_DEEPLINK_PREFIX)
+  );
+}
+
+const extractMwpDeeplinkPayload = (deeplink: string): string => {
+  const parsedUrl = new URL(deeplink);
+  const payload = parsedUrl.searchParams.get('p');
+
+  if (!payload) {
+    throw new Error('QR sync deeplink is missing the p parameter.');
+  }
+
+  const compressionFlag = parsedUrl.searchParams.get('c');
+  const rawPayload =
+    compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
+
+  return decodeMaybeBase64Json(rawPayload);
+};
+
+const parseQrSyncScanPayloadJson = (rawQrData: string): unknown => {
   if (!rawQrData || typeof rawQrData !== 'string') {
     throw new Error('QR sync scan payload must be a non-empty string.');
   }
 
-  let parsed: unknown;
-  const decodedPayload = decodeMaybeBase64Json(rawQrData);
+  const jsonString = isQrSyncMwpDeeplink(rawQrData)
+    ? extractMwpDeeplinkPayload(rawQrData)
+    : decodeMaybeBase64Json(rawQrData);
 
   try {
-    parsed = JSON.parse(decodedPayload);
+    return JSON.parse(jsonString);
   } catch {
     throw new Error('QR sync scan payload is not valid JSON.');
   }
+};
+
+/**
+ * Parses the raw QR scan payload into a validated QR sync connection request.
+ *
+ * Primary format: `metamask://connect/mwp?p=<base64-encoded-json>` with
+ * optional `&c=1` when the `p` value is compressed.
+ *
+ * Legacy/manual-entry formats are also accepted: direct JSON, wrapped
+ * `{ sessionRequest }`, or base64-encoded JSON.
+ */
+export function parseQrSyncConnectionRequest(
+  rawQrData: string,
+): QrSyncConnectionRequest {
+  const parsed = parseQrSyncScanPayloadJson(rawQrData);
 
   if (!isQrSyncConnectionRequest(parsed)) {
     throw new Error(
