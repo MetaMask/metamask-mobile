@@ -35,6 +35,7 @@ import {
   isMoneyAccountTx,
   isMoneyDepositTx,
   isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
   perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
@@ -228,7 +229,8 @@ export const useMoneyTransactionStatus = () => {
 
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      const isReceive = isPerpsPredictMoneyWithdraw(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
 
@@ -248,6 +250,22 @@ export const useMoneyTransactionStatus = () => {
             : 'money.toasts.send_destination_perps',
         );
         showToast(MoneyToastOptions.send.success({ amountFiat, destination }));
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
+
+      if (isReceive) {
+        const fiat = Number(transactionMeta.metamaskPay?.targetFiat);
+        const amountFiat =
+          !Number.isNaN(fiat) && fiat > 0
+            ? moneyFormatFiat(
+                new BigNumber(fiat),
+                selectCurrentCurrency(store.getState()),
+              )
+            : undefined;
+        showToast(
+          MoneyToastOptions.deposit.success({ amountFiat, intent: 'addMusd' }),
+        );
         scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
         return;
       }

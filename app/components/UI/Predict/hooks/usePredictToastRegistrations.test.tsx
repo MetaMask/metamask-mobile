@@ -5,7 +5,10 @@ import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../../Money/utils/moneyTransactionGuards';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../../selectors/networkController';
 
@@ -95,6 +98,7 @@ jest.mock('../../../../selectors/transactionController', () => ({
 
 jest.mock('../../Money/utils/moneyTransactionGuards', () => ({
   isPerpsPredictMoneyDeposit: jest.fn(() => false),
+  isPerpsPredictMoneyWithdraw: jest.fn(() => false),
 }));
 
 jest.mock('../../../../selectors/tokensController', () => ({
@@ -823,6 +827,106 @@ describe('usePredictToastRegistrations', () => {
       );
 
       expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('suppresses the native success toast on confirmed when destination is the Money account', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-money-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-money-withdraw',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('still shows the native pending toast on approved for a Money-account withdraw', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-money-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'approved',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-money-withdraw',
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'Loading' }),
+      );
+    });
+
+    it('still shows the native error toast on failed for a Money-account withdraw', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-money-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'failed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-money-withdraw',
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'Error' }),
+      );
+    });
+
+    it('still shows the native success toast for a non-Money withdraw (other flows unchanged)', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-normal-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-normal-withdraw',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'Confirmation' }),
+      );
     });
   });
 

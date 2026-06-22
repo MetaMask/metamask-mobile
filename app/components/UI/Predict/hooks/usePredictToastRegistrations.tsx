@@ -26,7 +26,10 @@ import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../../Money/utils/moneyTransactionGuards';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
@@ -307,6 +310,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
+          const withdrawMeta = transactionId
+            ? selectTransactionMetadataById(store.getState(), transactionId)
+            : undefined;
+          if (withdrawMeta && isPerpsPredictMoneyWithdraw(withdrawMeta)) {
+            return;
+          }
+
           const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
           const { title, description } = getWithdrawConfirmedMessage(
             transactionId,
