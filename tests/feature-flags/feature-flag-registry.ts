@@ -75,7 +75,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   },
 
   addDeviceSyncEnabled: {
-    name: 'add-device-sync-enabled',
+    name: 'addDeviceSyncEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: true,
