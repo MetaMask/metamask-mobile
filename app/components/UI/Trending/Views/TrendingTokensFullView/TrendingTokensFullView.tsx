@@ -29,6 +29,12 @@ import { FilterButton } from '../../components/FilterBar/FilterBar';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import type { Theme } from '../../../../../util/theme/models';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../../../../Views/TrendingView/search/abTestConfig';
 
 export interface TrendingTokensFullViewParams {
   initialTimeOption?: TimeOption;
@@ -116,6 +122,11 @@ const TrendingTokensFullView = () => {
   const sessionManager = TrendingFeedSessionManager.getInstance();
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
+  );
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
   const { params } =
     useRoute<
@@ -266,7 +277,9 @@ const TrendingTokensFullView = () => {
           selectedTime={filters.selectedTimeOption}
         />
       }
-      onQuickTrade={setQuickTradeToken}
+      onQuickTrade={
+        quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+      }
       quickBuyNode={
         <TrendingQuickBuy
           token={quickTradeToken}

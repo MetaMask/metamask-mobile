@@ -35,6 +35,12 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../search/abTestConfig';
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -110,6 +116,12 @@ const CryptoTabContent: React.FC<TabProps> = ({
     null,
   );
 
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+
   const tokens = useTokensFeed({ refresh });
   const cryptoPredictions = usePredictionsFeed({
     variant: 'crypto',
@@ -139,10 +151,12 @@ const CryptoTabContent: React.FC<TabProps> = ({
             item_clicked: item.assetId,
           })
         }
-        onQuickTrade={setQuickTradeToken}
+        onQuickTrade={
+          quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+        }
       />
     ),
-    [],
+    [quickBuyVariant.showQuickTradeButton],
   );
 
   const showTokens = tokens.isLoading || tokens.data.length > 0;

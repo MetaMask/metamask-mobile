@@ -10,10 +10,21 @@ import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import { RWA_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../../../../Views/TrendingView/search/abTestConfig';
 
 const RWATokensFullView = () => {
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
+  );
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
   const filters = useTokenListFilters({
     timeOption: TimeOption.TwentyFourHours,
@@ -58,7 +69,9 @@ const RWATokensFullView = () => {
       allowedNetworks={RWA_NETWORKS_LIST}
       onLoadMore={loadMore}
       isLoadingMore={isLoadingMore}
-      onQuickTrade={setQuickTradeToken}
+      onQuickTrade={
+        quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+      }
       quickBuyNode={
         <TrendingQuickBuy
           token={quickTradeToken}

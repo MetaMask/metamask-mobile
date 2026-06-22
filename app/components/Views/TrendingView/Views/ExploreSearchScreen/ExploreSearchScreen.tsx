@@ -76,10 +76,16 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     null,
   );
 
-  const { variant: quickBuyVariant } = useABTest(
+  const exploreQuickBuyABTest = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
     EXPLORE_QUICK_BUY_VARIANTS,
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+  const { variant: quickBuyVariant } = exploreQuickBuyABTest;
+  // eslint-disable-next-line no-console
+  console.log(
+    `[${EXPLORE_QUICK_BUY_AB_KEY}] ExploreSearchScreen result:`,
+    exploreQuickBuyABTest,
   );
 
   useEffect(() => {
