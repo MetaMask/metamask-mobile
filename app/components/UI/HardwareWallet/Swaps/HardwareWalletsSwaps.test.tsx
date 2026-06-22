@@ -680,48 +680,40 @@ describe('HardwareWalletsSwaps', () => {
   });
 
   describe('force-hide bottom sheet', () => {
-    describe('non-QR wallets', () => {
-      beforeEach(() => {
-        mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
-      });
+    it('force-hides the shared bottom sheet on mount for Ledger wallets', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      renderScreen({});
 
-      it('force-hides the shared bottom sheet once all steps are signed', () => {
-        renderScreen(SUBMITTED_STATE);
-
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-      });
-
-      it('does not force-hide while signing is still in progress', () => {
-        renderScreen({});
-
-        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(true);
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
-      });
-
-      it('keeps force-hide latched on unmount after all steps are signed', () => {
-        const { unmount } = renderScreen(SUBMITTED_STATE);
-
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-        mockSetForceHideBottomSheet.mockClear();
-
-        unmount();
-
-        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
-      });
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
     });
 
-    describe('QR wallets', () => {
-      beforeEach(() => {
-        mockHardwareWalletState.walletType = HardwareWalletType.Qr;
-      });
+    it('force-hides the shared bottom sheet on mount for QR wallets', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Qr;
+      renderScreen({});
 
-      it('force-hides the shared bottom sheet on mount', () => {
-        renderScreen({});
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+      expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
+      expect(mockSetForceHideBottomSheet.mock.calls.at(-1)?.[0]).toBe(true);
+    });
 
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
-        expect(mockSetForceHideBottomSheet.mock.calls.at(-1)?.[0]).toBe(true);
-      });
+    it('force-hides even while signing is still in progress', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      renderScreen({});
+
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+      expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
+    });
+
+    it('restores the bottom sheet on unmount', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      const { unmount } = renderScreen({});
+
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+      mockSetForceHideBottomSheet.mockClear();
+
+      unmount();
+
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
     });
   });
 });

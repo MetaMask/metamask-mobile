@@ -63,7 +63,7 @@ import { useHardwareWallet } from '../../../../core/HardwareWallet';
 
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
-import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { StepRow } from './StepRow';
 
 interface SubmissionParams {
@@ -157,21 +157,19 @@ export function HardwareWalletsSwaps() {
       currentStatus: progress.status,
     });
 
-  const { connectionState, setForceHideBottomSheet, walletType } =
-    useHardwareWallet();
+  const { connectionState, setForceHideBottomSheet } = useHardwareWallet();
 
-  const isLedgerHardwareWallet = useMemo(
-    () => walletType === HardwareWalletType.Ledger,
-    [walletType],
-  );
-
+  // Suppress the provider's shared hardware-wallet bottom sheet for the
+  // entire lifetime of this screen. This screen renders its own signing
+  // progress UI (StepRow list + Rive animation, plus its own error /
+  // reconnect / retry actions), so the shared "confirm on device" modal is
+  // redundant. Restored to false on unmount so other flows see the sheet.
   useEffect(() => {
-    if (isLedgerHardwareWallet) return;
     setForceHideBottomSheet?.(true);
     return () => {
       setForceHideBottomSheet?.(false);
     };
-  }, [isLedgerHardwareWallet, isQrHardwareWallet, setForceHideBottomSheet]);
+  }, [setForceHideBottomSheet]);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { params: routeParams } = useRoute();
@@ -229,42 +227,6 @@ export function HardwareWalletsSwaps() {
       ),
     [progress.steps],
   );
-
-  // For non-QR (Ledger) hardware wallets, the provider's shared
-  // "confirm on device" bottom sheet otherwise stays open until
-  // executeHardwareWalletOperation's await chain — which blocks on
-  // publishBatch's STX polling — resolves. That can take seconds after
-  // the device is already done signing, leaving the sheet orphaned on
-  // top of the activity screen post-navigation. Force-hide the sheet
-  // once all device-signing steps are complete; we deliberately do NOT
-  // call hideAwaitingConfirmation here because it disconnects the BLE
-  // adapter, which breaks publishHook error propagation mid-flight.
-  // The provider runs its own hide-and-disconnect when publishBatch
-  // finally resolves.
-  //
-  // Reset on mount so a prior session's latched force-hide doesn't
-  // block this signing operation; latch once allStepsSigned so the
-  // subsequent navigateToTransactions → resetHardwareWalletsSwaps
-  // (which clears steps and flips allStepsSigned back to false)
-  // doesn't un-hide the sheet right before unmount. Only clear on unmount
-  // if signing never reached the latched force-hide state.
-  const forceHideLatchedRef = useRef(false);
-  useEffect(() => {
-    if (isQrHardwareWallet) return;
-    forceHideLatchedRef.current = false;
-    setForceHideBottomSheet?.(false);
-    return () => {
-      if (forceHideLatchedRef.current) return;
-      setForceHideBottomSheet?.(false);
-    };
-  }, [isQrHardwareWallet, setForceHideBottomSheet]);
-  useEffect(() => {
-    if (isQrHardwareWallet) return;
-    if (!allStepsSigned) return;
-    if (forceHideLatchedRef.current) return;
-    forceHideLatchedRef.current = true;
-    setForceHideBottomSheet?.(true);
-  }, [allStepsSigned, isQrHardwareWallet, setForceHideBottomSheet]);
 
   useEffect(() => {
     // ── Flow termination ──────────────────────────────────────────────
