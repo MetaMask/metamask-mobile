@@ -140,6 +140,7 @@ import {
   getProfileMetricsControllerInitMessenger,
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
+import { getProofOfOwnershipServiceMessenger } from './proof-of-ownership-service-messenger';
 import {
   getAnalyticsControllerInitMessenger,
   getAnalyticsControllerMessenger,
@@ -453,6 +454,10 @@ export const MESSENGER_FACTORIES = {
   },
   ProfileMetricsService: {
     getMessenger: getProfileMetricsServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProofOfOwnershipService: {
+    getMessenger: getProofOfOwnershipServiceMessenger,
     getInitMessenger: noop,
   },
   AnalyticsController: {
