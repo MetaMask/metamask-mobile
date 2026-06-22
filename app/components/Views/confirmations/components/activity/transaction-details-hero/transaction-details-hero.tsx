@@ -153,7 +153,7 @@ function AssetLine({
         alignItems={AlignItems.center}
         gap={12}
       >
-        {iconOverride ?? (
+        {iconOverride || (
           <TokenIcon
             chainId={data.chainId}
             address={data.address as Hex}
