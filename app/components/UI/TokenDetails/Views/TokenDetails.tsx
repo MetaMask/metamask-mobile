@@ -1,7 +1,7 @@
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Theme } from '@metamask/design-tokens';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -54,6 +54,8 @@ import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
+import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
+import { usePriceInUsd } from '../../Assets/PriceAlerts/hooks/usePriceInUsd';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -186,6 +188,11 @@ const TokenDetails: React.FC<{
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
 
+  const isPriceAlertsChainSupported = useIsPriceAlertsChainSupported(
+    caip19AssetId,
+    { enabled: isPriceAlertsFeatureEnabled },
+  );
+
   const {
     securityData,
     isLoading: isSecurityDataLoading,
@@ -218,6 +225,11 @@ const TokenDetails: React.FC<{
     chartNavigationButtons,
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
+
+  const currentPriceUsd = usePriceInUsd(
+    isPriceAlertsFeatureEnabled ? (token.chainId as Hex) : null,
+    currentPrice,
+  );
 
   const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
     null,
@@ -275,18 +287,11 @@ const TokenDetails: React.FC<{
     navigation.navigate(Routes.MANAGE_PRICE_ALERTS, {
       symbol: token.symbol,
       ticker: token.ticker,
-      currentPrice,
-      currentCurrency,
+      currentPrice: currentPriceUsd ?? 0,
+      currentCurrency: 'usd',
       assetId: caip19AssetId,
     });
-  }, [
-    navigation,
-    token.symbol,
-    token.ticker,
-    currentPrice,
-    currentCurrency,
-    caip19AssetId,
-  ]);
+  }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
 
   const {
     transactions,
@@ -364,7 +369,10 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
         onPriceAlertPress={
-          isPriceAlertsFeatureEnabled && currentPrice > 0 && caip19AssetId
+          isPriceAlertsFeatureEnabled &&
+          isPriceAlertsChainSupported &&
+          (currentPriceUsd ?? 0) > 0 &&
+          caip19AssetId
             ? handlePriceAlertPress
             : undefined
         }

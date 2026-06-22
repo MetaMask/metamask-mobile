@@ -70,6 +70,12 @@ export const selectTokenOverviewChartType = (state: RootState) =>
   state.user?.tokenOverviewChartType ?? ChartType.Line;
 
 /**
+ * Selects the active technical indicators for token charts
+ */
+export const selectTokenIndicators = (state: RootState): string[] =>
+  state.user?.tokenIndicators ?? [];
+
+/**
  * Selects the onboarding stepper progress record (keyed by stepper ID)
  */
 export const selectOnboardingStepperProgress = (state: RootState) =>

@@ -3,6 +3,10 @@ import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { formatDelayFromArray } from '../../../../UI/Ramp/Aggregator/utils';
+import {
+  getFiatFunnelRampSurface,
+  useFiatPaymentSelectorMetrics,
+} from '../../../../UI/Ramp/hooks/useFiatFunnelMetrics';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
@@ -23,6 +27,11 @@ export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
   const transactionId = transactionMeta?.id ?? '';
   const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
   const isFiatAvailable = useIsFiatPaymentAvailable();
+
+  useFiatPaymentSelectorMetrics({
+    rampSurface: getFiatFunnelRampSurface(transactionMeta?.type),
+    currentPaymentMethodId: selectedPaymentMethodId,
+  });
 
   return useMemo(() => {
     if (!isFiatAvailable) {
