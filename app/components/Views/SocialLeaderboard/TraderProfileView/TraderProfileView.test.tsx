@@ -477,12 +477,23 @@ describe('TraderProfileView', () => {
   });
 
   it('renders position skeletons when positions are loading', () => {
+    mockPositionsResult.openPositions = [];
     mockPositionsResult.isLoadingOpen = true;
     renderWithProvider(<TraderProfileView />);
     expect(screen.queryByText('STARKBOT')).not.toBeOnTheScreen();
   });
 
+  it('keeps cached positions visible during background refetch', () => {
+    mockPositionsResult.isLoadingOpen = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('renders closed position skeletons when closed tab is loading', () => {
+    mockPositionsResult.closedPositions = [];
     mockPositionsResult.isLoadingClosed = true;
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(
@@ -586,6 +597,15 @@ describe('TraderProfileView', () => {
     });
   });
 
+  it('keeps cached profile visible during background refetch', () => {
+    mockProfileResult.isLoading = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Follow')).toBeOnTheScreen();
+  });
+
   it('title section onLayout sets header height for scroll animation', () => {
     renderWithProvider(<TraderProfileView />);
 
@@ -602,7 +622,7 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders skeleton when profile is null even if not loading', () => {
+  it('does not render profile header when profile is null and not loading', () => {
     mockProfileResult.profile = null;
     renderWithProvider(<TraderProfileView />);
     expect(
@@ -857,7 +877,8 @@ describe('TraderProfileView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the sort button while positions are loading', () => {
+    it('hides the sort button when positions are loading with no cached data', () => {
+      mockPositionsResult.openPositions = [];
       mockPositionsResult.isLoadingOpen = true;
       renderWithProvider(<TraderProfileView />);
 
