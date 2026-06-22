@@ -79,6 +79,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
+import MAPickerSheet from '../../UI/Charts/AdvancedChart/MAPickerSheet';
 import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
@@ -446,6 +447,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
       component={MoreTokenActionsMenu}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.MA_PICKER}
+      component={MAPickerSheet}
     />
     <NativeStack.Screen
       name={Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET}

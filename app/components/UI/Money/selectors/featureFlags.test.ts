@@ -12,6 +12,7 @@ import {
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
+  selectMoneyVaultApyRemoteConfig,
 } from './featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -379,6 +380,17 @@ describe('selectMoneyDepositMinBalance', () => {
     expect(result).toBe(0.05);
   });
 
+  it('falls back to env var when remote value is negative', () => {
+    process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE = '0.05';
+    const state = createState({
+      earnMoneyDepositMinAssetBalance: -0.2,
+    });
+
+    const result = selectMoneyDepositMinBalance(state as never);
+
+    expect(result).toBe(0.05);
+  });
+
   it('parses env var string as fallback when remote is absent', () => {
     process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE = '0.1';
     const state = createState({});
@@ -386,6 +398,15 @@ describe('selectMoneyDepositMinBalance', () => {
     const result = selectMoneyDepositMinBalance(state as never);
 
     expect(result).toBe(0.1);
+  });
+
+  it('falls back to 0.01 when env var is negative and remote is absent', () => {
+    process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE = '-0.1';
+    const state = createState({});
+
+    const result = selectMoneyDepositMinBalance(state as never);
+
+    expect(result).toBe(0.01);
   });
 
   it('falls back to 0.01 when both remote and env are absent', () => {
@@ -559,6 +580,203 @@ describe('selectMoneyFirstTimeDepositAnimationEnabledFlag', () => {
     );
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyVaultApyRemoteConfig', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('vaultApyFallback', () => {
+    it('parses numeric fallback from object', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+
+      const { vaultApyFallback } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyFallback).toBe(0.04);
+    });
+
+    it('parses numeric-string fallback from object', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: '0.05',
+          vaultApyOverride: undefined,
+        },
+      });
+
+      const { vaultApyFallback } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyFallback).toBe(0.05);
+    });
+
+    it('returns undefined vaultApyFallback when flag is absent', () => {
+      const state = createState({});
+
+      const { vaultApyFallback } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyFallback).toBeUndefined();
+    });
+
+    it('returns undefined vaultApyFallback when fallback value is non-numeric string', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 'bad',
+          vaultApyOverride: undefined,
+        },
+      });
+
+      const { vaultApyFallback } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyFallback).toBeUndefined();
+    });
+
+    it('returns undefined vaultApyFallback when fallback value is NaN', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: NaN,
+          vaultApyOverride: undefined,
+        },
+      });
+
+      const { vaultApyFallback } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyFallback).toBeUndefined();
+    });
+
+    it('returns undefined vaultApyFallback when fallback value is negative', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: -0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+
+      const { vaultApyFallback } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyFallback).toBeUndefined();
+    });
+
+    it('accepts 0 as a valid fallback value', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 0,
+          vaultApyOverride: undefined,
+        },
+      });
+
+      const { vaultApyFallback } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyFallback).toBe(0);
+    });
+  });
+
+  describe('vaultApyOverride', () => {
+    it('parses numeric override from object', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 0,
+          vaultApyOverride: 0.06,
+        },
+      });
+
+      const { vaultApyOverride } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyOverride).toBe(0.06);
+    });
+
+    it('parses numeric-string override from object', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 0,
+          vaultApyOverride: '0.07',
+        },
+      });
+
+      const { vaultApyOverride } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyOverride).toBe(0.07);
+    });
+
+    it('returns undefined override when vaultApyOverride is absent', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: { vaultApyFallback: 0.04 },
+      });
+
+      const { vaultApyOverride } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyOverride).toBeUndefined();
+    });
+
+    it('accepts 0 as a valid override (zero APY override is intentional)', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: 0,
+        },
+      });
+
+      const { vaultApyOverride } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyOverride).toBe(0);
+    });
+
+    it('returns undefined override when override value is negative', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: -0.01,
+        },
+      });
+
+      const { vaultApyOverride } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyOverride).toBeUndefined();
+    });
+
+    it('returns undefined override when override value is non-numeric string', () => {
+      const state = createState({
+        earnMoneyVaultApyControl: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: 'bad',
+        },
+      });
+
+      const { vaultApyOverride } = selectMoneyVaultApyRemoteConfig(
+        state as never,
+      );
+
+      expect(vaultApyOverride).toBeUndefined();
+    });
   });
 });
 
