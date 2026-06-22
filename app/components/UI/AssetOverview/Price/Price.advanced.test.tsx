@@ -206,10 +206,27 @@ jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
 });
 
 jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View, Pressable, Text } = jest.requireActual('react-native');
+  const QUICK_INTERVALS = ['1m', '5m', '15m', '1h', '1d'];
   return {
     __esModule: true,
-    default: () => <View testID="mock-interval-bar" />,
+    default: ({
+      onIntervalSelect,
+    }: {
+      onIntervalSelect?: (interval: string) => void;
+    }) => (
+      <View testID="mock-interval-bar">
+        {QUICK_INTERVALS.map((interval) => (
+          <Pressable
+            key={interval}
+            accessibilityLabel={interval}
+            onPress={() => onIntervalSelect?.(interval.toUpperCase())}
+          >
+            <Text>{interval}</Text>
+          </Pressable>
+        ))}
+      </View>
+    ),
   };
 });
 
@@ -280,6 +297,7 @@ describe('PriceAdvanced', () => {
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenIndicatorsActual) return [];
+      if (selector === selectTokenOverviewChartIntervalActual) return '15m';
       if (selector === selectTokenOverviewChartType) return ChartType.Line;
       if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
         return mockSelectTechnicalIndicatorsEnabled();
@@ -980,6 +998,7 @@ describe('PriceAdvanced', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
         if (selector === selectTokenOverviewChartType) return ChartType.Candles;
         if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
           return true;
@@ -1006,6 +1025,7 @@ describe('PriceAdvanced', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
         if (selector === selectTokenOverviewChartType) return ChartType.Candles;
         if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
           return true;
@@ -1682,7 +1702,14 @@ describe('PriceAdvanced', () => {
     it('dispatches SET_TOKEN_OVERVIEW_CHART_INTERVAL when user selects an interval', () => {
       enableIndicatorBar();
 
-      const { getByLabelText } = render(<PriceAdvanced {...baseProps} />);
+      const { getByLabelText, getByTestId } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
       mockUseOHLCVChart.mockClear();
 
       fireEvent.press(getByLabelText('1h'));
