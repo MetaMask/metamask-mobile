@@ -16,8 +16,7 @@ export default `/**
  * CONFIG is injected before this script runs and contains:
  * - libraryUrl: string
  * - theme: { backgroundColor, borderColor, textColor, textAlternativeColor, successColor, errorColor, primaryColor }
- * - lineChrome: { hideTimeScale, useCustomLineEndMarker, useCustomDashedLastPriceLine,
- *   useCustomPriceLabels }
+ * - lineChrome: { hideTimeScale, useCustomLineEndMarker, useCustomDashedLastPriceLine }
  *   Single source of truth; \`SET_LINE_CHROME\` replaces it. Missing keys in old HTML fall back in
  *   \`getLineChrome\` via \`LINE_CHROME_DEFAULTS\`.
  * - indicatorColors: { MA, MACD, RSI, BOL } — sourced from indicatorColors.ts
@@ -291,7 +290,6 @@ const LINE_CHROME_DEFAULTS = {
   hideTimeScale: false,
   useCustomLineEndMarker: true,
   useCustomDashedLastPriceLine: true,
-  useCustomPriceLabels: true,
 };
 
 function lineChromePickBool(lc, key, fallback) {
@@ -319,11 +317,6 @@ function getLineChrome() {
       'useCustomDashedLastPriceLine',
       LINE_CHROME_DEFAULTS.useCustomDashedLastPriceLine,
     ),
-    useCustomPriceLabels: lineChromePickBool(
-      lc,
-      'useCustomPriceLabels',
-      LINE_CHROME_DEFAULTS.useCustomPriceLabels,
-    ),
   };
 }
 
@@ -347,10 +340,6 @@ function resolveLineChromeFromPayload(payload) {
       payload.useCustomDashedLastPriceLine !== undefined
         ? !!payload.useCustomDashedLastPriceLine
         : LINE_CHROME_DEFAULTS.useCustomDashedLastPriceLine,
-    useCustomPriceLabels:
-      payload.useCustomPriceLabels !== undefined
-        ? !!payload.useCustomPriceLabels
-        : LINE_CHROME_DEFAULTS.useCustomPriceLabels,
   };
 }
 
@@ -364,9 +353,6 @@ function handleSetLineChrome(payload) {
   if (!resolved.useCustomLineEndMarker) {
     clearLineEndDotVisibleRangeDebounce();
   }
-  if (!resolved.useCustomPriceLabels) {
-    window.lastCloseLabelScheduled = false;
-  }
   if (!window.isChartReady || !window.chartWidget) {
     return;
   }
@@ -377,10 +363,7 @@ function handleSetLineChrome(payload) {
     if (getLineChrome().useCustomDashedLastPriceLine) {
       createLastPriceLine();
     } else {
-      removeAllLastPriceHorizontalOverlays({
-        hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-      });
-      scheduleLastCloseLabelUpdate();
+      removeAllLastPriceHorizontalOverlays();
     }
   }
 }
@@ -594,10 +577,7 @@ function handleRealtimeUpdate(payload) {
     if (getLineChrome().useCustomDashedLastPriceLine) {
       createLastPriceLine();
     } else {
-      removeAllLastPriceHorizontalOverlays({
-        hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-      });
-      scheduleLastCloseLabelUpdate();
+      removeAllLastPriceHorizontalOverlays();
     }
   }
 }
@@ -832,7 +812,7 @@ function generatePaletteShades(hex) {
 // ============================================
 
 /**
- * Ambient / series stroke color: line chart, filled last-close pill, line-end dot.
+ * Ambient / series stroke color: line chart, line-end dot.
  * Falls back to successColor when lineColorOverride is unset (ambient feature off).
  * @param {object} [theme] — defaults to window.CONFIG.theme
  */
@@ -842,8 +822,9 @@ function getThemeLineColor(theme) {
 }
 
 /**
- * Custom dashed last-price horizontal_line. Honors currentPriceLineColorOverride when set,
- * else matches series line / filled pill via {@link getThemeLineColor}.
+ * Custom dashed last-price horizontal_line and built-in last-value scale pill.
+ * Honors currentPriceLineColorOverride when set, else matches series line via
+ * {@link getThemeLineColor}.
  * @param {object} [theme] — defaults to window.CONFIG.theme
  */
 function getThemeLastPriceLineColor(theme) {
@@ -852,25 +833,52 @@ function getThemeLastPriceLineColor(theme) {
   return t.currentPriceColor || lineColor;
 }
 
-function getSeriesColorOverrides(color) {
+function getSeriesColorOverrides(lineColor, lastPriceLineColor) {
+  const pillColor = lastPriceLineColor != null ? lastPriceLineColor : lineColor;
   return {
-    'mainSeriesProperties.lineStyle.color': color,
+    'mainSeriesProperties.lineStyle.color': lineColor,
     'mainSeriesProperties.lineStyle.colorType': 'solid',
     'mainSeriesProperties.lineStyle.linewidth': 2,
-    'mainSeriesProperties.lineWithMarkersStyle.color': color,
+    'mainSeriesProperties.lineWithMarkersStyle.color': lineColor,
     'mainSeriesProperties.lineWithMarkersStyle.colorType': 'solid',
     'mainSeriesProperties.lineWithMarkersStyle.linewidth': 2,
-    'mainSeriesProperties.areaStyle.linecolor': color,
+    'mainSeriesProperties.areaStyle.linecolor': lineColor,
     'mainSeriesProperties.areaStyle.linewidth': 2,
-    'mainSeriesProperties.baselineStyle.topLineColor': color,
+    'mainSeriesProperties.baselineStyle.topLineColor': lineColor,
     'mainSeriesProperties.baselineStyle.topLineWidth': 2,
-    'mainSeriesProperties.baselineStyle.bottomLineColor': color,
+    'mainSeriesProperties.baselineStyle.bottomLineColor': lineColor,
     'mainSeriesProperties.baselineStyle.bottomLineWidth': 2,
     'mainSeriesProperties.baselineStyle.topFillColor1': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.topFillColor2': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor1': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor2': 'rgba(0,0,0,0)',
+    'mainSeriesProperties.priceLineColor': pillColor,
   };
+}
+
+function getSeriesAndLastValueColorOverrides(theme) {
+  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
+  return getSeriesColorOverrides(
+    getThemeLineColor(t),
+    getThemeLastPriceLineColor(t),
+  );
+}
+
+/**
+ * Forces TV to repaint the built-in last-value scale pill after color overrides change.
+ */
+function refreshBuiltInLastValueLabelVisibility() {
+  if (!window.chartWidget || !window.isChartReady) {
+    return;
+  }
+  try {
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showSeriesLastValue': false,
+    });
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showSeriesLastValue': true,
+    });
+  } catch (e) {}
 }
 
 // ============================================
@@ -878,32 +886,49 @@ function getSeriesColorOverrides(color) {
 // ============================================
 
 /**
- * Series stroke colors only (no scale chrome). Scale layout is applyChartScaleLayout.
+ * Series stroke + built-in last-value scale pill colors (matches dashed last-price line).
+ * Scale chrome is applyChartScaleLayout.
  */
 function applySeriesColors() {
-  if (!window.chartWidget) return;
-  const color = getThemeLineColor();
+  if (!window.chartWidget || !window.isChartReady) {
+    return;
+  }
+  const theme = (window.CONFIG && window.CONFIG.theme) || {};
+  const lineColor = getThemeLineColor(theme);
+  const lastPriceLineColor = getThemeLastPriceLineColor(theme);
   try {
-    window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
-    let series = window.chartWidget.activeChart().getSeries();
-    series.setChartStyleProperties(2, {
-      color: color,
-      colorType: 'solid',
-      linewidth: 2,
-    });
-    series.setChartStyleProperties(10, {
-      topLineColor: color,
-      bottomLineColor: color,
-      topLineWidth: 2,
-      bottomLineWidth: 2,
-    });
+    window.chartWidget.applyOverrides(getSeriesAndLastValueColorOverrides(theme));
+    const series = window.chartWidget.activeChart().getSeries();
+    const ct = window.currentChartType;
+    if (ct === 2) {
+      series.setChartStyleProperties(2, {
+        color: lineColor,
+        colorType: 'solid',
+        linewidth: 2,
+      });
+    } else if (ct === 10) {
+      series.setChartStyleProperties(10, {
+        topLineColor: lineColor,
+        bottomLineColor: lineColor,
+        topLineWidth: 2,
+        bottomLineWidth: 2,
+      });
+    } else if (ct === 1) {
+      series.setChartStyleProperties(1, {
+        upColor: theme.successColor,
+        downColor: theme.errorColor,
+        borderUpColor: theme.successColor,
+        borderDownColor: theme.errorColor,
+        wickUpColor: theme.successColor,
+        wickDownColor: theme.errorColor,
+      });
+    }
   } catch (e) {}
 }
 
 /**
  * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
- * WebView.  Updates CONFIG, TradingView overrides, volume study, and custom
- * DOM pills in a single synchronous pass.
+ * WebView.  Updates CONFIG, TradingView overrides, volume study, and drawing shapes.
  */
 function handleSetThemeColors(payload) {
   if (!payload) return;
@@ -926,6 +951,7 @@ function handleSetThemeColors(payload) {
   } catch (e) {}
 
   applySeriesColors();
+  refreshBuiltInLastValueLabelVisibility();
 
   let chart = window.chartWidget.activeChart();
   let lineColor = getThemeLineColor(theme);
@@ -939,12 +965,6 @@ function handleSetThemeColors(payload) {
         'volume.color.1': theme.successColor,
       });
     } catch (e) {}
-  }
-
-  // Update custom DOM pill colors
-  let elLast = document.getElementById('last-close-price-label');
-  if (elLast) {
-    elLast.style.background = lineColor;
   }
 
   // Update Drawing API shapes in-place via setProperties (synchronous, no
@@ -972,9 +992,6 @@ function handleSetThemeColors(payload) {
       });
     } catch (e) {}
   }
-
-  // Outline pill + visible-edge re-derive color from theme on next frame
-  scheduleLastCloseLabelUpdate();
 }
 
 /**
@@ -1008,36 +1025,48 @@ function scheduleLineChartLayoutReflow() {
   setTimeout(run, 120);
 }
 
+/** TradingView built-in crosshair label background (section token from CONFIG.theme). */
+function getBuiltInCrosshairLabelOverrides(theme) {
+  let bg =
+    theme.sectionBackgroundColor || theme.backgroundColor || '#131416';
+  return {
+    'scalesProperties.crosshairLabelBgColorDark': bg,
+    'scalesProperties.crosshairLabelBgColorLight': bg,
+  };
+}
+
 function applyChartScaleLayout(type) {
   if (!window.chartWidget) return;
 
   let theme = window.CONFIG.theme;
   let isLineChart = type === 2;
   let lc = getLineChrome();
-  let useCustomLabels = lc.useCustomPriceLabels;
   let useCustomDashed = lc.useCustomDashedLastPriceLine;
   /** Match pane background so time/price scale rules disappear; labels use textColor above. */
   let axisLineColor = theme.backgroundColor || '#131416';
 
   try {
-    window.chartWidget.applyOverrides({
-      'scalesProperties.showRightScale': true,
-      'scalesProperties.showLeftScale': false,
-      'scalesProperties.showSeriesLastValue': !useCustomLabels,
-      'scalesProperties.showStudyLastValue': false,
-      'scalesProperties.showSymbolLabels': false,
-      'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-      'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
-      'scalesProperties.textColor': theme.textColor,
-      'mainSeriesProperties.showPriceLine': !useCustomDashed,
-      'timeScale.borderColor': axisLineColor,
-      'scalesProperties.lineColor': axisLineColor,
-      'paneProperties.separatorColor': theme.borderColor,
-      'paneProperties.topMargin': 12,
-      'paneProperties.bottomMargin': 8,
-    });
+    window.chartWidget.applyOverrides(
+      Object.assign(
+        {
+          'scalesProperties.showRightScale': true,
+          'scalesProperties.showLeftScale': false,
+          'scalesProperties.showSeriesLastValue': true,
+          'scalesProperties.showStudyLastValue': false,
+          'scalesProperties.showSymbolLabels': false,
+          'scalesProperties.showPriceScaleCrosshairLabel': true,
+          'scalesProperties.showTimeScaleCrosshairLabel': true,
+          'scalesProperties.textColor': theme.textColor,
+          'mainSeriesProperties.showPriceLine': !useCustomDashed,
+          'timeScale.borderColor': axisLineColor,
+          'scalesProperties.lineColor': axisLineColor,
+          'paneProperties.separatorColor': theme.borderColor,
+          'paneProperties.topMargin': 12,
+          'paneProperties.bottomMargin': 8,
+        },
+        getBuiltInCrosshairLabelOverrides(theme),
+      ),
+    );
   } catch (e) {}
 
   removeLineChartMarkupStyle();
@@ -1052,141 +1081,10 @@ function applyChartScaleLayout(type) {
   applyLineTimeScaleVisibility(
     window.currentChartType === 2 ? lc.hideTimeScale : false,
   );
-  if (!useCustomLabels) {
-    hideCustomCrosshairLabels();
-  } else {
-    scheduleLastCloseLabelUpdate();
-  }
 }
 
 /**
- * Subscript helpers for tiny prices — mirrors app/util/number/subscriptNotation.ts.
- * This file is injected as a standalone script string in the chart WebView (see chartLogicString.ts),
- * not executed in the Metro/RN bundle, so we cannot import or require the shared TS module.
- */
-const SUBSCRIPT_DIGITS_CROSSHAIR = [
-  '₀',
-  '₁',
-  '₂',
-  '₃',
-  '₄',
-  '₅',
-  '₆',
-  '₇',
-  '₈',
-  '₉',
-];
-
-function toSubscriptDigitsCrosshair(n) {
-  return String(n)
-    .split('')
-    .map(function (digit) {
-      return SUBSCRIPT_DIGITS_CROSSHAIR[parseInt(digit, 10)];
-    })
-    .join('');
-}
-
-function formatSubscriptNotationCrosshair(abs) {
-  if (abs > 0 && abs < 0.0001) {
-    let priceStr = abs.toFixed(20);
-    let match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
-    if (match) {
-      let leadingZeros = priceStr.indexOf(match[1]) - 2;
-      if (leadingZeros >= 4) {
-        let sig = match[1];
-        let significantDigits =
-          sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
-        return (
-          '0.0' + toSubscriptDigitsCrosshair(leadingZeros) + significantDigits
-        );
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Custom crosshair labels (DOM overlay in #chart_surface; built-in TV labels disabled).
- * Number only — no currency symbol.
- */
-function formatCrosshairPrice(price) {
-  if (price === undefined || price === null || isNaN(Number(price))) {
-    return '';
-  }
-  let p = Number(price);
-  if (p === 0) {
-    return '0.00';
-  }
-  let abs = Math.abs(p);
-  let sub = formatSubscriptNotationCrosshair(abs);
-  if (sub) {
-    return p < 0 ? '-' + sub : sub;
-  }
-  return new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: abs >= 1 ? 2 : 4,
-  }).format(p);
-}
-
-function formatCrosshairTime(timeSeconds) {
-  if (
-    timeSeconds === undefined ||
-    timeSeconds === null ||
-    isNaN(Number(timeSeconds))
-  ) {
-    return '';
-  }
-  let d = new Date(Number(timeSeconds) * 1000);
-  let weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  let months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  let w = weekdays[d.getDay()];
-  let day = d.getDate();
-  let mo = months[d.getMonth()];
-  let y = String(d.getFullYear()).slice(-2);
-  let h = String(d.getHours());
-  let min = String(d.getMinutes());
-  if (h.length < 2) {
-    h = '0' + h;
-  }
-  if (min.length < 2) {
-    min = '0' + min;
-  }
-  return w + ' ' + day + ' ' + mo + " '" + y + ' ' + h + ':' + min;
-}
-
-function hideCustomCrosshairLabels() {
-  let elP = document.getElementById('crosshair-price-label');
-  let elT = document.getElementById('crosshair-time-label');
-  if (elP) {
-    elP.style.display = 'none';
-    elP.style.left = '';
-    elP.style.right = '';
-    elP.style.transform = '';
-  }
-  if (elT) {
-    elT.style.display = 'none';
-    elT.style.left = '';
-    elT.style.transform = '';
-  }
-  scheduleLastCloseLabelUpdate();
-}
-
-/**
- * X (px from #custom-crosshair-overlay left) of the **left** edge of the main pane’s
+ * X (px from the chart surface left) of the **left** edge of the main pane’s
  * \`.price-axis-container\` (smallest \`top\` = main chart price scale). Same as where the plot
  * ends; scale legend text starts inside this column, not on the plot side.
  */
@@ -1219,382 +1117,6 @@ function getMainPriceAxisLeftRelativeTo(el) {
     return null;
   }
   return Math.max(0, Math.min(bestLeft, maxW));
-}
-
-/**
- * Place crosshair / last-close pills with the **left** edge on the main-chart / price-scale
- * boundary (same X as \`getMainPriceAxisLeftRelativeToOverlay\`). TradingView’s horizontal
- * crosshair line ends there; anchoring the pill here removes the gap vs right-aligning to
- * legend text (narrow pills like “1.00” sat too far right).
- */
-function positionPricePillAtPlotPriceBoundary(el, overlay, yPx) {
-  if (!el) {
-    return;
-  }
-  el.style.top = yPx + 'px';
-  if (!overlay) {
-    el.style.left = 'auto';
-    el.style.right = '0';
-    el.style.transform = 'translateY(-50%)';
-    return;
-  }
-  let boundaryLeft = getMainPriceAxisLeftRelativeTo(overlay);
-  if (boundaryLeft !== null && !isNaN(boundaryLeft) && boundaryLeft >= 0) {
-    let w = el.offsetWidth;
-    if (!w || w <= 0) {
-      w = 0;
-    }
-    let pillLeft = boundaryLeft + 2; // Adding 2px to the boundary left to ensure the pill is not too close to the boundary.
-    let maxW = overlay.clientWidth;
-    if (maxW > 0) {
-      pillLeft = Math.max(0, Math.min(pillLeft, maxW - w));
-    }
-    el.style.left = pillLeft + 'px';
-    el.style.right = 'auto';
-    el.style.transform = 'translateY(-50%)';
-  } else {
-    el.style.left = 'auto';
-    el.style.right = '0';
-    el.style.transform = 'translateY(-50%)';
-  }
-}
-
-function updateCustomCrosshairLabels(params) {
-  let elP = document.getElementById('crosshair-price-label');
-  let elT = document.getElementById('crosshair-time-label');
-  let overlay = document.getElementById('custom-crosshair-overlay');
-  if (!elP || !elT || !overlay) {
-    return;
-  }
-  if (!getLineChrome().useCustomPriceLabels) {
-    hideCustomCrosshairLabels();
-    return;
-  }
-  let ox = params.offsetX;
-  let oy = params.offsetY;
-  if (ox === undefined || oy === undefined || isNaN(ox) || isNaN(oy)) {
-    hideCustomCrosshairLabels();
-    return;
-  }
-  elP.textContent = formatCrosshairPrice(params.price);
-  let tSec = params.time;
-  elT.textContent = formatCrosshairTime(tSec);
-  elP.style.display = 'flex';
-  elT.style.display = 'flex';
-  function positionPricePill() {
-    positionPricePillAtPlotPriceBoundary(elP, overlay, oy);
-  }
-  positionPricePill();
-  try {
-    requestAnimationFrame(positionPricePill);
-  } catch (e) {}
-  /* Time label: left + translateX(-50%) → center at crosshair X; remeasure after layout. */
-  let ow = overlay.clientWidth;
-  function positionTimeLabel() {
-    let tw = elT.offsetWidth;
-    let halfTw = tw / 2;
-    let clampedOx = Math.max(halfTw, Math.min(ox, ow - halfTw));
-    elT.style.left = clampedOx + 'px';
-    elT.style.transform = 'translateX(-50%)';
-  }
-  positionTimeLabel();
-  try {
-    requestAnimationFrame(positionTimeLabel);
-  } catch (e) {}
-}
-
-// --- Last close price pill (same layout as crosshair labels in AdvancedChartTemplate) ---
-window.lastCloseLabelScheduled = false;
-
-/**
- * Coalesces DOM updates for the right-axis price pills into one animation frame so pan/zoom bursts
- * do not thrash layout. Updates: (1) filled last-close, (2) optional outline visible-edge pill.
- */
-function scheduleLastCloseLabelUpdate() {
-  if (!getLineChrome().useCustomPriceLabels) {
-    return;
-  }
-  if (window.lastCloseLabelScheduled) {
-    return;
-  }
-  window.lastCloseLabelScheduled = true;
-  try {
-    requestAnimationFrame(function () {
-      window.lastCloseLabelScheduled = false;
-      /*
-       * 1) Filled last-close: candle or line when useCustomPriceLabels.
-       * 2) Outline visible-edge: second pill when tail is off-screen (same flag).
-       */
-      updateLastClosePriceLabel();
-      updateVisibleEdgeOutlinePriceLabel();
-    });
-  } catch (e) {
-    window.lastCloseLabelScheduled = false;
-    setTimeout(function () {
-      updateLastClosePriceLabel();
-      updateVisibleEdgeOutlinePriceLabel();
-    }, 0);
-  }
-}
-
-function hideLastClosePriceLabelDom() {
-  let el = document.getElementById('last-close-price-label');
-  if (el) {
-    el.style.display = 'none';
-    el.style.left = '';
-    el.style.right = '';
-    el.style.transform = '';
-  }
-}
-
-/**
- * Hides the outline pill and clears inline positioning set by \`positionPricePillAtPlotPriceBoundary\`.
- * Safe to call when the DOM node is missing (older cached HTML).
- */
-function hideCustomSeriesLastValueLabelDom() {
-  let elC = document.getElementById('custom-series-last-value-label');
-  if (elC) {
-    elC.style.display = 'none';
-    elC.style.left = '';
-    elC.style.right = '';
-    elC.style.transform = '';
-    elC.style.borderColor = '';
-    elC.style.color = '';
-  }
-}
-
-/**
- * Whether to hide the outline price pill: {@link isCustomLineEndMarkerVisibleInPlot} (geometry) plus
- * {@link isSeriesTailOffScreenByData} so panning to old history (newest bar not in visible window) still
- * shows the outline when coordinateToTime alone would wrongly hide it.
- */
-function shouldHideVisibleEdgeOutlinePill(chart, tailSec, ohlcvData) {
-  if (tailSec === null || !isFinite(Number(tailSec))) {
-    return true;
-  }
-  const geo = isCustomLineEndMarkerVisibleInPlot(chart, Number(tailSec));
-  const dataOff = ohlcvData?.length
-    ? isSeriesTailOffScreenByData(chart, ohlcvData)
-    : null;
-  if (geo === false || dataOff === true) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * Outline pill: shown when geometry or data says the series tail is off-screen (see
- * {@link shouldHideVisibleEdgeOutlinePill}).
- */
-function updateVisibleEdgeOutlinePriceLabel() {
-  const elOut = document.getElementById('custom-series-last-value-label');
-  if (!elOut) {
-    return;
-  }
-  const w = window;
-  if (
-    !getLineChrome().useCustomPriceLabels ||
-    !w.chartWidget ||
-    !w.isChartReady ||
-    !w.ohlcvData ||
-    !w.ohlcvData.length
-  ) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  const ct = w.currentChartType;
-  if (ct !== 1 && ct !== 2) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  const chart = w.chartWidget.activeChart();
-  const tailBar = w.ohlcvData[w.ohlcvData.length - 1];
-  const tailSec = normalizeChartUnixSec(tailBar.time);
-  if (shouldHideVisibleEdgeOutlinePill(chart, tailSec, w.ohlcvData)) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  const edgeBar = getVisibleEdgeOutlineBar(chart, w.ohlcvData);
-  if (!edgeBar) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  let price = Number(edgeBar.close);
-  if (ct === 2) {
-    const tEdgeMs = getVisiblePlotRightEdgeTimeMs(chart);
-    if (tEdgeMs !== null) {
-      const pLine = interpolateCloseAlongLineAtTimeMs(w.ohlcvData, tEdgeMs);
-      if (pLine !== null && isFinite(pLine)) {
-        price = pLine;
-      }
-    }
-  }
-  const y = getPriceYForLastCloseOverlay(chart, price);
-  if (y === null || y === undefined || isNaN(y)) {
-    elOut.style.display = 'none';
-    elOut.style.borderColor = '';
-    elOut.style.color = '';
-    return;
-  }
-  const resolvedLast = resolveLineEndOverlayPoint(chart);
-  const lastClosePrice =
-    resolvedLast && isFinite(resolvedLast.price)
-      ? resolvedLast.price
-      : tailBar.close;
-  const yLastClose = getPriceYForLastCloseOverlay(chart, lastClosePrice);
-
-  const theme = (w.CONFIG && w.CONFIG.theme) || {};
-  const upColor = theme.successColor || '#0C9F76';
-  const lineColor = getThemeLineColor(theme) || upColor;
-  const downColor = theme.errorColor || '#E06470';
-  let outlineColor = ct === 2 ? lineColor : upColor;
-  if (ct === 1) {
-    const o = Number(edgeBar.open);
-    const c = Number(edgeBar.close);
-    if (isFinite(o) && isFinite(c) && c < o) {
-      outlineColor = downColor;
-    }
-  }
-  elOut.style.borderColor = outlineColor;
-  elOut.style.color = outlineColor;
-  elOut.textContent = formatCrosshairPrice(price);
-  elOut.style.display = 'flex';
-  const overlayOut = document.getElementById('custom-crosshair-overlay');
-
-  let yPos = y;
-  positionPricePillAtPlotPriceBoundary(elOut, overlayOut, yPos);
-  const gapPx = 4;
-  const elLast = document.getElementById('last-close-price-label');
-  let hO = elOut.offsetHeight;
-  if (!hO || hO < 8) {
-    hO = 24;
-  }
-  /* Nudge outline if it overlaps last-close pill: higher price → above, else below (ties = below). */
-  if (
-    elLast &&
-    elLast.style.display !== 'none' &&
-    elLast.offsetHeight > 0 &&
-    yLastClose !== null &&
-    yLastClose !== undefined &&
-    !isNaN(yLastClose)
-  ) {
-    const hF = elLast.offsetHeight;
-    const half = (hF + hO) / 2 + gapPx;
-    if (Math.abs(y - yLastClose) < half) {
-      const minCenter = hO / 2 + 2;
-      const maxCenter =
-        overlayOut && overlayOut.clientHeight > 0
-          ? overlayOut.clientHeight - hO / 2 - 2
-          : Infinity;
-      const pOut = Number(price);
-      const pLast = Number(lastClosePrice);
-      const edgeAboveFilled =
-        isFinite(pOut) && isFinite(pLast) ? pOut > pLast : y < yLastClose;
-      if (edgeAboveFilled) {
-        yPos = yLastClose - hF / 2 - gapPx - hO / 2;
-        if (yPos < minCenter) {
-          yPos = minCenter;
-        }
-      } else {
-        yPos = yLastClose + hF / 2 + gapPx + hO / 2;
-        if (yPos > maxCenter) {
-          yPos = Math.max(minCenter, maxCenter);
-        }
-      }
-      positionPricePillAtPlotPriceBoundary(elOut, overlayOut, yPos);
-    }
-  }
-}
-
-/**
- * Y pixel for a price (crosshair overlay space). \`getVisiblePriceRange\` + \`getHeight\` + \`isInverted\`;
- * \`getMode() === 1\` (log) uses log mapping.
- */
-function getPriceYForLastCloseOverlay(chart, price) {
-  if (!chart || price === undefined || price === null || isNaN(Number(price))) {
-    return null;
-  }
-  const p = Number(price);
-  try {
-    const panes = chart.getPanes();
-    if (!panes || !panes.length) return null;
-    const pane = panes[0];
-    const scale = pane.getMainSourcePriceScale();
-    if (!scale) return null;
-
-    const range = scale.getVisiblePriceRange();
-    if (!range || range.from === undefined || range.to === undefined) {
-      return null;
-    }
-    const lo = Math.min(range.from, range.to);
-    const hi = Math.max(range.from, range.to);
-    const h = pane.getHeight();
-    if (!h || h <= 0) return null;
-    const pClamped = Math.min(hi, Math.max(lo, p));
-    const inverted =
-      typeof scale.isInverted === 'function' && scale.isInverted();
-    const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
-    if (mode === 1 && lo > 0 && hi > 0 && pClamped > 0) {
-      const logLo = Math.log(lo);
-      const logHi = Math.log(hi);
-      const logP = Math.log(pClamped);
-      if (logHi === logLo) {
-        return inverted ? 0 : h / 2;
-      }
-      const t = (logP - logLo) / (logHi - logLo);
-      return inverted ? t * h : (1 - t) * h;
-    }
-    if (inverted) {
-      return ((pClamped - lo) / (hi - lo)) * h;
-    }
-    return ((hi - pClamped) / (hi - lo)) * h;
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
- * Last-close DOM pill when \`useCustomPriceLabels\` (candle or line).
- * Stays visible alongside the crosshair price pill (crosshair stacks above when Y aligns).
- */
-function updateLastClosePriceLabel() {
-  let el = document.getElementById('last-close-price-label');
-  if (!el) {
-    return;
-  }
-  let w = window;
-  if (!getLineChrome().useCustomPriceLabels) {
-    hideLastClosePriceLabelDom();
-    return;
-  }
-  if (
-    !w.chartWidget ||
-    !w.isChartReady ||
-    !w.ohlcvData ||
-    !w.ohlcvData.length
-  ) {
-    hideLastClosePriceLabelDom();
-    return;
-  }
-  let ct = w.currentChartType;
-  if (ct !== 1 && ct !== 2) {
-    hideLastClosePriceLabelDom();
-    return;
-  }
-  let lastBar = w.ohlcvData[w.ohlcvData.length - 1];
-  let chart = w.chartWidget.activeChart();
-  let resolved = resolveLineEndOverlayPoint(chart);
-  let labelPrice =
-    resolved && isFinite(resolved.price) ? resolved.price : lastBar.close;
-  let y = getPriceYForLastCloseOverlay(chart, labelPrice);
-  if (y === null || y === undefined || isNaN(y)) {
-    el.style.display = 'none';
-    return;
-  }
-  el.textContent = formatCrosshairPrice(labelPrice);
-  el.style.display = 'flex';
-  let overlay = document.getElementById('custom-crosshair-overlay');
-  positionPricePillAtPlotPriceBoundary(el, overlay, y);
 }
 
 /**
@@ -1651,25 +1173,12 @@ function scheduleLineEndDotAfterVisibleRangeChange() {
 }
 
 /**
- * Subscribes to anything that changes the visible price level or time window so both the filled
- * last-close pill and the optional outline “visible edge” pill stay aligned with the chart.
+ * Subscribes to pane/layout changes for legend overlay and line-end marker refresh.
  */
-function subscribeLastCloseLabelUpdates() {
+function subscribeChartLayoutUpdates() {
   if (!window.chartWidget) return;
-  let tick = scheduleLastCloseLabelUpdate;
-  function tickIfCustomPriceLabels() {
-    if (getLineChrome().useCustomPriceLabels) {
-      tick();
-    }
-  }
-  try {
-    window.chartWidget.subscribe('series_event', function (ev) {
-      if (ev === 'price_scale_changed') tickIfCustomPriceLabels();
-    });
-  } catch (e) {}
   try {
     window.chartWidget.subscribe('panes_height_changed', function () {
-      tickIfCustomPriceLabels();
       const legend = document.getElementById('study-legend-overlay');
       if (legend) {
         updateLegendOverlayLayout();
@@ -1681,7 +1190,6 @@ function subscribeLastCloseLabelUpdates() {
       .activeChart()
       .onVisibleRangeChanged()
       .subscribe(null, function () {
-        tickIfCustomPriceLabels();
         if (getLineChrome().useCustomLineEndMarker) {
           scheduleLineEndDotAfterVisibleRangeChange();
         }
@@ -2185,9 +1693,7 @@ function handleSetChartType(payload) {
 
   // Immediately remove old indicators when switching types (don't wait for setTimeout)
   if (type === 2) {
-    removeAllLastPriceHorizontalOverlays({
-      hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-    });
+    removeAllLastPriceHorizontalOverlays();
   } else {
     ensureNoLineChartEndIcons();
   }
@@ -2196,22 +1702,8 @@ function handleSetChartType(payload) {
     let ac = window.chartWidget.activeChart();
     ac.setChartType(type);
 
-    const color = getThemeLineColor();
-    let series = ac.getSeries();
-    if (type === 2) {
-      series.setChartStyleProperties(2, {
-        color: color,
-        colorType: 'solid',
-        linewidth: 2,
-      });
-    } else if (type === 10) {
-      series.setChartStyleProperties(10, {
-        topLineColor: color,
-        bottomLineColor: color,
-        topLineWidth: 2,
-        bottomLineWidth: 2,
-      });
-    }
+    applySeriesColors();
+    refreshBuiltInLastValueLabelVisibility();
 
     applyChartScaleLayout(type);
 
@@ -2350,8 +1842,7 @@ function handleSetPositionLines(payload) {
 }
 
 // ============================================
-// Last close: dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
-// same styles as crosshair labels in AdvancedChartTemplate)
+// Last close: optional green dashed horizontal_line (showPrice:false); scale label is TV built-in.
 // ============================================
 window.lastPriceShapeId = null;
 /** Invalidates in-flight \`createLineLastPriceLine\` \`createShape\` when a newer refresh runs. */
@@ -2384,6 +1875,18 @@ function sweepNonPositionHorizontalLines() {
   } catch (e) {}
 }
 
+function getLastPriceLineShapeOverrides(lineColor) {
+  return {
+    linecolor: lineColor,
+    linestyle: 2,
+    linewidth: 1,
+    showLabel: false,
+    showPrice: false,
+    fontsize: 11,
+    horzLabelsAlign: 'right',
+  };
+}
+
 function createLastPriceLine() {
   if (!window.chartWidget || !window.isChartReady) return;
   if (window.ohlcvData.length === 0) return;
@@ -2395,10 +1898,7 @@ function createLastPriceLine() {
   }
 
   if (!getLineChrome().useCustomDashedLastPriceLine) {
-    removeAllLastPriceHorizontalOverlays({
-      hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-    });
-    scheduleLastCloseLabelUpdate();
+    removeAllLastPriceHorizontalOverlays();
     return;
   }
 
@@ -2417,15 +1917,7 @@ function createLastPriceLine() {
       {
         shape: 'horizontal_line',
         lock: true,
-        overrides: {
-          linecolor: color,
-          linestyle: 2,
-          linewidth: 1,
-          showLabel: false,
-          showPrice: false,
-          fontsize: 11,
-          horzLabelsAlign: 'right',
-        },
+        overrides: getLastPriceLineShapeOverrides(color),
         disableSelection: true,
         disableSave: true,
         disableUndo: true,
@@ -2444,7 +1936,6 @@ function createLastPriceLine() {
         return;
       }
       window.lastPriceShapeId = id;
-      scheduleLastCloseLabelUpdate();
     })
     .catch(function (e) {
       // Silent catch - shape creation can fail if chart state changes
@@ -2455,20 +1946,11 @@ function createLastPriceLine() {
  * Clears last-close horizontal_line overlays for both chart modes. Candle mode
  * tracks lastPriceShapeId; line mode tracks lineLastPriceShapeId — same sweep,
  * both refs must be nulled when removing drawings.
- * @param { { hideLastCloseDom?: boolean } } [options] — pass \`hideLastCloseDom: false\` to keep the
- * last-close DOM pill when custom dashed line is off but custom labels stay on.
  */
-function removeAllLastPriceHorizontalOverlays(options) {
+function removeAllLastPriceHorizontalOverlays() {
   sweepNonPositionHorizontalLines();
   window.lastPriceShapeId = null;
   window.lineLastPriceShapeId = null;
-  let hideDom = true;
-  if (options && options.hideLastCloseDom === false) {
-    hideDom = false;
-  }
-  if (hideDom) {
-    hideLastClosePriceLabelDom();
-  }
 }
 
 function createLineLastPriceLine() {
@@ -2502,15 +1984,7 @@ function createLineLastPriceLine() {
       {
         shape: 'horizontal_line',
         lock: true,
-        overrides: {
-          linecolor: color,
-          linestyle: 2,
-          linewidth: 1,
-          showLabel: false,
-          showPrice: false,
-          fontsize: 11,
-          horzLabelsAlign: 'right',
-        },
+        overrides: getLastPriceLineShapeOverrides(color),
         disableSelection: true,
         disableSave: true,
         disableUndo: true,
@@ -2539,7 +2013,6 @@ function createLineLastPriceLine() {
         return;
       }
       window.lineLastPriceShapeId = id;
-      scheduleLastCloseLabelUpdate();
     })
     .catch(function () {});
 }
@@ -2552,10 +2025,7 @@ function refreshLineChartOverlays() {
   ) {
     createLineLastPriceLine();
   } else {
-    removeAllLastPriceHorizontalOverlays({
-      hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-    });
-    scheduleLastCloseLabelUpdate();
+    removeAllLastPriceHorizontalOverlays();
   }
 }
 
@@ -4326,7 +3796,6 @@ function initChart() {
     let theme = window.CONFIG.theme;
     let features = window.CONFIG.features || {};
     let lcInit = getLineChrome();
-    let initCustomLabels = lcInit.useCustomPriceLabels;
     let initCustomDashed = lcInit.useCustomDashedLastPriceLine;
 
     // Disabled features are passed from React Native via CONFIG.features.disabledFeatures.
@@ -4517,14 +3986,12 @@ function initChart() {
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'scalesProperties.fontSize': 12,
           'scalesProperties.showStudyLastValue': false,
-          'scalesProperties.showSeriesLastValue': !initCustomLabels,
+          'scalesProperties.showSeriesLastValue': true,
           'scalesProperties.showSymbolLabels': false,
           'scalesProperties.showRightScale': true,
           'scalesProperties.showLeftScale': false,
-          'scalesProperties.showPriceScaleCrosshairLabel': !initCustomLabels,
-          'scalesProperties.showTimeScaleCrosshairLabel': !initCustomLabels,
-          'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-          'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
+          'scalesProperties.showPriceScaleCrosshairLabel': true,
+          'scalesProperties.showTimeScaleCrosshairLabel': true,
           'paneProperties.legendProperties.showSeriesTitle': false,
           'paneProperties.legendProperties.showSeriesOHLC': false,
           'paneProperties.legendProperties.showBarChange': false,
@@ -4542,7 +4009,8 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesColorOverrides(getThemeLineColor(theme)),
+        getSeriesAndLastValueColorOverrides(theme),
+        getBuiltInCrosshairLabelOverrides(theme),
       ),
 
       loading_screen: {
@@ -4566,6 +4034,7 @@ function initChart() {
       window.pendingMessages = [];
 
       applySeriesColors();
+      refreshBuiltInLastValueLabelVisibility();
       applyChartScaleLayout(window.currentChartType);
 
       if (window.visibleFromMs == null) {
@@ -4611,7 +4080,6 @@ function initChart() {
               if (!window.chartWidget) return;
               try {
                 applyChartContainerOverflowUnclip();
-                scheduleLastCloseLabelUpdate();
                 if (window.currentChartType === 2) {
                   try {
                     requestAnimationFrame(refreshLineChartOverlays);
@@ -4622,7 +4090,7 @@ function initChart() {
           });
       } catch (e) {}
 
-      subscribeLastCloseLabelUpdates();
+      subscribeChartLayoutUpdates();
 
       if (isLegendOverlayEnabled()) {
         createStudyLegendOverlay();
@@ -4729,16 +4197,12 @@ function initChart() {
               params.price === undefined ||
               params.time === undefined
             ) {
-              hideCustomCrosshairLabels();
               return;
             }
 
             if (Date.now() < window.ohlcvDismissUntil) {
-              hideCustomCrosshairLabels();
               return;
             }
-
-            updateCustomCrosshairLabels(params);
 
             if (!window.ohlcvBarVisible) {
               window.ohlcvBarShownAt = Date.now();
@@ -4796,7 +4260,6 @@ function initChart() {
             window.ohlcvBarVisible = false;
             window.ohlcvBarShownAt = 0;
             window.ohlcvDismissUntil = Date.now() + 800;
-            hideCustomCrosshairLabels();
             refreshStudyLegendFromExport();
             setTimeout(function () {
               window.__mmTooltipChartInteractSent = false;

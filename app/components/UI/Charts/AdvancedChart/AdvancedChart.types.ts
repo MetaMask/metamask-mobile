@@ -120,8 +120,7 @@ export type ChartType = (typeof ChartType)[keyof typeof ChartType];
  * Line / chart chrome for the TradingView WebView.
  *
  * When a `useCustom*` flag is **false**, TradingView built-ins apply where relevant
- * (`showSeriesLastValue`, `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses
- * custom drawings/DOM instead and disables the TV equivalent to avoid duplicates.
+ * (`showPriceLine`, scale labels). When **true**, MetaMask uses custom drawings instead.
  */
 export interface LineChromeOptions {
   /** When true, hide the time-axis row (line chart only). */
@@ -130,11 +129,6 @@ export interface LineChromeOptions {
   useCustomLineEndMarker?: boolean;
   /** When true, draw the dashed last-price guide with `horizontal_line` shapes (candles + line). */
   useCustomDashedLastPriceLine?: boolean;
-  /**
-   * When true, custom DOM for last-close pill, visible-edge outline pill, and crosshair price/time
-   * labels. When false, TV scale last value and crosshair labels are enabled.
-   */
-  useCustomPriceLabels?: boolean;
 }
 
 /** Default `lineChrome` when props omit fields; merged by `resolveLineChromeOptions`. */
@@ -142,7 +136,6 @@ export const DEFAULT_LINE_CHROME = {
   hideTimeScale: false,
   useCustomLineEndMarker: true,
   useCustomDashedLastPriceLine: true,
-  useCustomPriceLabels: true,
 } as const;
 
 export type ResolvedLineChromeOptions = {
@@ -164,8 +157,6 @@ export function resolveLineChromeOptions(
     useCustomDashedLastPriceLine:
       partial?.useCustomDashedLastPriceLine ??
       DEFAULT_LINE_CHROME.useCustomDashedLastPriceLine,
-    useCustomPriceLabels:
-      partial?.useCustomPriceLabels ?? DEFAULT_LINE_CHROME.useCustomPriceLabels,
   };
 }
 
@@ -465,9 +456,9 @@ export interface AdvancedChartProps {
   disabledFeatures?: string[];
 
   /**
-   * Line / chart chrome: time axis, custom line-end marker, dashed last-price drawing, custom
-   * price/crosshair labels vs TV built-ins. Omitted fields use `DEFAULT_LINE_CHROME`. After
-   * `CHART_READY`, RN sends `SET_LINE_CHROME` with `resolveLineChromeOptions(lineChrome)`.
+   * Line / chart chrome: time axis, custom line-end marker, dashed last-price drawing.
+   * Omitted fields use `DEFAULT_LINE_CHROME`. After `CHART_READY`, RN sends `SET_LINE_CHROME`
+   * with `resolveLineChromeOptions(lineChrome)`.
    */
   lineChrome?: LineChromeOptions;
 
