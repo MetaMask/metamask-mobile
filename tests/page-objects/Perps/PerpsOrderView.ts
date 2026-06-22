@@ -254,6 +254,38 @@ class PerpsOrderView {
     return Matchers.getElementByText('Auto close');
   }
 
+  private async ensureTpslKeypadVisible(
+    input: EncapsulatedElementType,
+    focusInputElemDescription: string,
+    probeKey: string = '2',
+  ): Promise<void> {
+    const probeKeyElement = this.getTpslKeypadKey(probeKey);
+
+    await UnifiedGestures.waitAndTap(input, {
+      description: focusInputElemDescription,
+      checkForDisplayed: true,
+      checkForEnabled: false,
+    });
+
+    const isProbeKeyVisible = await Utilities.isElementVisible(
+      probeKeyElement,
+      2000,
+    );
+
+    if (!isProbeKeyVisible) {
+      await UnifiedGestures.waitAndTap(input, {
+        description: `${focusInputElemDescription} (refocus keypad)`,
+        checkForDisplayed: true,
+        checkForEnabled: false,
+      });
+    }
+
+    await Assertions.expectElementToBeVisible(probeKeyElement, {
+      description: `TPSL keypad key ${probeKey} is visible`,
+      timeout: 10000,
+    });
+  }
+
   // Required for next test
   async setAmountUSD(amount: string): Promise<void> {
     await encapsulatedAction({
@@ -377,15 +409,26 @@ class PerpsOrderView {
     });
 
     const input = this.getTpslPriceInput(inputTestId);
-
-    await UnifiedGestures.waitAndTap(input, {
-      description: focusInputElemDescription,
-      checkForDisplayed: true,
-      checkForEnabled: false,
-    });
+    await this.ensureTpslKeypadVisible(input, focusInputElemDescription);
 
     for (const ch of price) {
-      await UnifiedGestures.waitAndTap(this.getTpslKeypadKey(ch), {
+      const keypadKey = this.getTpslKeypadKey(ch);
+      const isKeyVisible = await Utilities.isElementVisible(keypadKey, 1500);
+
+      if (!isKeyVisible) {
+        await UnifiedGestures.waitAndTap(input, {
+          description: `${focusInputElemDescription} (restore keypad for ${ch})`,
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+
+        await Assertions.expectElementToBeVisible(keypadKey, {
+          description: `TPSL keypad key ${ch} visible after refocus`,
+          timeout: 10000,
+        });
+      }
+
+      await UnifiedGestures.waitAndTap(keypadKey, {
         description: `TPSL keypad key ${ch}`,
         checkForDisplayed: true,
         checkForEnabled: false,
