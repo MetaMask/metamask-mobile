@@ -3,5 +3,7 @@ export enum OnboardingFundWalletTestIds {
   SKIP_BUTTON = 'onboarding-fund-wallet-skip-button',
   BACK_BUTTON = 'onboarding-fund-wallet-back-button',
   OPTION_PREFIX = 'onboarding-fund-wallet-option-',
-  SELECTION_SUFFIX = '-selection',
+  PAYMENT_METHODS_LOADER = 'onboarding-fund-wallet-payment-methods-loader',
+  PAYMENT_METHODS_ERROR = 'onboarding-fund-wallet-payment-methods-error',
+  PAYMENT_METHODS_UNAVAILABLE = 'onboarding-fund-wallet-payment-methods-unavailable',
 }

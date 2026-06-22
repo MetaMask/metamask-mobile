@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -9,25 +9,17 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   FontWeight,
   Icon,
-  IconColor,
   IconName,
   IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { PaymentMethod } from '@metamask/ramps-controller';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import MoreWaysToFundBottomSheet from './MoreWaysToFundBottomSheet';
-import { getMoreWaysToFundOptionById } from './MoreWaysToFundBottomSheet/MoreWaysToFundBottomSheet.constants';
-import type {
-  MoreWaysToFundOptionId,
-  MoreWaysToFundSheetRowId,
-} from './MoreWaysToFundBottomSheet/MoreWaysToFundBottomSheet.types';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -37,146 +29,24 @@ import { selectSelectedAccountGroup } from '../../../selectors/multichainAccount
 import Logger from '../../../util/Logger';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { OnboardingFundWalletTestIds } from './OnboardingFundWallet.testIds';
-import type { FundWalletOptionId } from './OnboardingFundWallet.types';
 import {
-  ONBOARDING_FUND_WALLET_DEPOSIT_FLOW_OPTION_IDS,
-  ONBOARDING_FUND_WALLET_RECEIVE_FLOW_OPTION_IDS,
+  RECEIVE_EXTERNAL_OPTION_ID,
+  MORE_WAYS_TO_FUND_ENTRIES,
+  isBankOrCardPaymentType,
+  resolveMoreWaysSelection,
+  type MoreWaysToFundEntry,
 } from './OnboardingFundWallet.constants';
-import { navigateFromOnboardingToDepositFlow } from './navigateFromOnboardingToDepositFlow';
+import {
+  OptionRow,
+  SectionHeader,
+  RampsPaymentMethodIcon,
+  getPaymentMethodDescription,
+} from './OnboardingFundWallet.components';
+import { navigateFromOnboardingToBuyFlow } from './navigateFromOnboardingToBuyFlow';
 import { navigateFromOnboardingToReceiveFlow } from './navigateFromOnboardingToReceiveFlow';
-import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
-
-interface FundWalletOption {
-  id: FundWalletOptionId;
-  labelKey: string;
-  descriptionKey: string;
-  iconName: IconName;
-}
-
-interface FundWalletSection {
-  titleKey: string;
-  options: FundWalletOption[];
-}
-
-const FUND_WALLET_SECTIONS: FundWalletSection[] = [
-  {
-    titleKey: 'onboarding_fund_wallet.section_bank_and_card',
-    options: [
-      {
-        id: 'apple_pay',
-        labelKey: 'onboarding_fund_wallet.option_apple_pay',
-        descriptionKey: 'onboarding_fund_wallet.option_apple_pay_description',
-        iconName: IconName.AppleLogo,
-      },
-      {
-        id: 'debit_credit',
-        labelKey: 'onboarding_fund_wallet.option_debit_credit',
-        descriptionKey:
-          'onboarding_fund_wallet.option_debit_credit_description',
-        iconName: IconName.Card,
-      },
-      {
-        id: 'wire_transfer',
-        labelKey: 'onboarding_fund_wallet.option_wire_transfer',
-        descriptionKey:
-          'onboarding_fund_wallet.option_wire_transfer_description',
-        iconName: IconName.Bank,
-      },
-    ],
-  },
-  {
-    titleKey: 'onboarding_fund_wallet.section_crypto',
-    options: [
-      {
-        id: 'receive_external',
-        labelKey: 'onboarding_fund_wallet.option_receive_external',
-        descriptionKey:
-          'onboarding_fund_wallet.option_receive_external_description',
-        iconName: IconName.SwapHorizontal,
-      },
-    ],
-  },
-  {
-    titleKey: 'onboarding_fund_wallet.section_more_ways',
-    options: [
-      {
-        id: 'paypal',
-        labelKey: 'onboarding_fund_wallet.option_paypal',
-        descriptionKey: 'onboarding_fund_wallet.option_paypal_description',
-        iconName: IconName.Coin,
-      },
-      {
-        id: 'more_payment_methods',
-        labelKey: 'onboarding_fund_wallet.option_more_payment_methods',
-        descriptionKey:
-          'onboarding_fund_wallet.option_more_payment_methods_description',
-        iconName: IconName.AddCard,
-      },
-    ],
-  },
-];
-
-const MORE_WAYS_SHEET_ROW_IDS: FundWalletOptionId[] = [
-  'paypal',
-  'more_payment_methods',
-];
-
-interface FundWalletOptionRowProps {
-  option: FundWalletOption;
-  selectedLabel?: string;
-  onPress: (id: FundWalletOptionId) => void;
-}
-
-const FundWalletOptionRow = ({
-  option,
-  selectedLabel,
-  onPress,
-}: FundWalletOptionRowProps) => {
-  const tw = useTailwind();
-
-  return (
-    <TouchableOpacity
-      onPress={() => onPress(option.id)}
-      style={tw.style('flex-row items-center py-4')}
-      testID={`${OnboardingFundWalletTestIds.OPTION_PREFIX}${option.id}`}
-      accessibilityRole="button"
-    >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="h-10 w-10 rounded-full bg-muted"
-      >
-        <Icon name={option.iconName} size={IconSize.Md} />
-      </Box>
-      <Box twClassName="flex-1 ml-3">
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          testID={
-            selectedLabel
-              ? `${OnboardingFundWalletTestIds.OPTION_PREFIX}${option.id}${OnboardingFundWalletTestIds.SELECTION_SUFFIX}`
-              : undefined
-          }
-        >
-          {selectedLabel ?? strings(option.labelKey)}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="mt-0.5"
-        >
-          {strings(option.descriptionKey)}
-        </Text>
-      </Box>
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </TouchableOpacity>
-  );
-};
+import { useRampsController } from '../../UI/Ramp/hooks/useRampsController';
+import { useRampsProviders } from '../../UI/Ramp/hooks/useRampsProviders';
+import { providerSupportsAsset } from '../../UI/Ramp/utils/providerSupportsAsset';
 
 const OnboardingFundWallet = () => {
   const tw = useTailwind();
@@ -189,14 +59,109 @@ const OnboardingFundWallet = () => {
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
 
   const accountType = routeAccountType ?? reduxAccountType;
-  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
-  const [isMoreWaysSheetVisible, setIsMoreWaysSheetVisible] = useState(false);
-  const [moreWaysSheetRow, setMoreWaysSheetRow] =
-    useState<MoreWaysToFundSheetRowId | null>(null);
-  const [moreWaysSelections, setMoreWaysSelections] = useState<
-    Partial<Record<MoreWaysToFundSheetRowId, MoreWaysToFundOptionId>>
-  >({});
+  // Drive ramps provider auto-selection while this onboarding screen is mounted.
+  // For returning users / Transak regions this picks the preferred provider so
+  // the payment-methods query can run. The effect is guarded by
+  // `!selectedProvider`, so it's a no-op once a provider is already selected.
+  useRampsProviders({ enableSideEffects: true });
+
+  // Unified RampsController is the single source of truth for the payment list.
+  // The legacy Deposit SDK is no longer used here.
+  const {
+    paymentMethods,
+    paymentMethodsLoading,
+    paymentMethodsFetching,
+    paymentMethodsStatus,
+    paymentMethodsError,
+    setSelectedPaymentMethod,
+    providers,
+    providersLoading,
+    selectedProvider,
+    setSelectedProvider,
+    tokens,
+    tokensLoading,
+    selectedToken,
+    setSelectedToken,
+  } = useRampsController();
+
+  // The unified flow only loads payment methods once a token -> provider
+  // cascade has run (token-less, the query stays "idle" forever). On a token-
+  // less onboarding screen, seed a sensible default token so that cascade can
+  // start here too; the user can still change it in the Buy flow.
+  const defaultAssetId =
+    tokens?.topTokens?.[0]?.assetId ?? tokens?.allTokens?.[0]?.assetId;
+
+  useEffect(() => {
+    if (!selectedToken && defaultAssetId) {
+      setSelectedToken(defaultAssetId);
+    }
+  }, [selectedToken, defaultAssetId, setSelectedToken]);
+
+  // Mirror BuildQuote: once a token is selected but no provider is (e.g. a
+  // first-time user in a region without Transak), pick the first provider that
+  // supports the token so the payment-methods query becomes enabled.
+  const effectiveAssetId = selectedToken?.assetId;
+  const supportingProvider = useMemo(
+    () =>
+      effectiveAssetId
+        ? (providers ?? []).find((candidate) =>
+            providerSupportsAsset(candidate, effectiveAssetId),
+          )
+        : undefined,
+    [providers, effectiveAssetId],
+  );
+
+  useEffect(() => {
+    if (!selectedProvider && supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [selectedProvider, supportingProvider, setSelectedProvider]);
+
+  // Surface only bank/card methods in the top section; wallets and other
+  // provider-specific methods live in the unified flow / curated "More ways".
+  const bankAndCard = useMemo(
+    () =>
+      (paymentMethods ?? []).filter((paymentMethod) =>
+        isBankOrCardPaymentType(paymentMethod.paymentType),
+      ),
+    [paymentMethods],
+  );
+
+  const hasError = Boolean(paymentMethodsError);
+
+  // We're still resolving the bank/card list whenever the query is in-flight, or
+  // while we are still seeding the token/provider selection that enables it
+  // (region/providers/tokens loading, a default token about to be applied, or a
+  // supporting provider about to be selected). Anything outside these cases is a
+  // settled "no eligible methods" state, so we show the unavailable message
+  // rather than spinning forever.
+  const isSeedingSelection =
+    providersLoading ||
+    tokensLoading ||
+    (!selectedToken && Boolean(defaultAssetId)) ||
+    (!selectedProvider && Boolean(supportingProvider));
+
+  const isQueryRunning =
+    paymentMethodsLoading ||
+    paymentMethodsStatus === 'loading' ||
+    (paymentMethodsFetching && bankAndCard.length === 0);
+
+  const isResolvingPaymentMethods =
+    !hasError &&
+    (isQueryRunning || (paymentMethodsStatus === 'idle' && isSeedingSelection));
+
+  const isBankAndCardEmpty =
+    !isResolvingPaymentMethods && !hasError && bankAndCard.length === 0;
+
+  useEffect(() => {
+    if (paymentMethodsError) {
+      Logger.log(
+        'OnboardingFundWallet: failed to load payment methods',
+        paymentMethodsError,
+      );
+    }
+  }, [paymentMethodsError]);
 
   const hasTrackedView = React.useRef(false);
   useEffect(() => {
@@ -211,6 +176,22 @@ const OnboardingFundWallet = () => {
         .build(),
     );
   }, [trackEvent, createEventBuilder, accountType]);
+
+  const trackSubmitted = useCallback(
+    (selectedFundMethod: string) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
+          .addProperties({
+            question_type: 'fund_wallet',
+            selected_fund_method: selectedFundMethod,
+            skipped: false,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, accountType],
+  );
 
   const onBack = useCallback(() => {
     navigation.goBack();
@@ -230,126 +211,65 @@ const OnboardingFundWallet = () => {
     onComplete();
   }, [trackEvent, createEventBuilder, accountType, onComplete]);
 
-  const openMoreWaysSheet = useCallback((rowId: MoreWaysToFundSheetRowId) => {
-    setMoreWaysSheetRow(rowId);
-    setIsMoreWaysSheetVisible(true);
-  }, []);
-
-  const handleMoreWaysSheetClose = useCallback(() => {
-    setIsMoreWaysSheetVisible(false);
-    setMoreWaysSheetRow(null);
-  }, []);
-
-  const handleMoreWaysSelect = useCallback(
-    (optionId: MoreWaysToFundOptionId) => {
-      if (!moreWaysSheetRow) {
-        return;
-      }
-
-      setMoreWaysSelections((prev) => ({
-        ...prev,
-        [moreWaysSheetRow]: optionId,
-      }));
-      setIsMoreWaysSheetVisible(false);
-      setMoreWaysSheetRow(null);
+  // Bank/card methods pre-select in the unified RampsController state, then open
+  // the unified Buy v2 flow so the payment screen opens with the choice applied.
+  const handlePaymentMethodPress = useCallback(
+    (paymentMethod: PaymentMethod) => {
+      trackSubmitted(paymentMethod.id);
+      setSelectedPaymentMethod(paymentMethod);
+      navigateFromOnboardingToBuyFlow(navigation);
     },
-    [moreWaysSheetRow],
+    [trackSubmitted, setSelectedPaymentMethod, navigation],
   );
 
-  const handleDepositFundOptionPress = useCallback(
-    (fundMethod: FundWalletOptionId) => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
-          .addProperties({
-            question_type: 'fund_wallet',
-            selected_fund_method: fundMethod,
-            skipped: false,
-            ...(accountType && { account_type: accountType }),
-          })
-          .build(),
-      );
+  // Curated "More ways to fund" entries pre-select their specific provider /
+  // payment method (when eligible for the region) so the unified Buy v2 flow
+  // opens that checkout directly (PayPal's external browser, Revolut's redirect,
+  // Google Pay, etc.). When nothing eligible is found we open the flow without a
+  // pre-selection so the user can still pick a method there.
+  const handleMoreWaysPress = useCallback(
+    (entry: MoreWaysToFundEntry) => {
+      trackSubmitted(entry.id);
 
-      navigateFromOnboardingToDepositFlow(navigation, isRampsUnifiedV2Enabled);
-    },
-    [
-      trackEvent,
-      createEventBuilder,
-      accountType,
-      isRampsUnifiedV2Enabled,
-      navigation,
-    ],
-  );
-
-  const handleReceiveFundOptionPress = useCallback(
-    (fundMethod: FundWalletOptionId) => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
-          .addProperties({
-            question_type: 'fund_wallet',
-            selected_fund_method: fundMethod,
-            skipped: false,
-            ...(accountType && { account_type: accountType }),
-          })
-          .build(),
-      );
-
-      if (!selectedAccountGroup?.id) {
-        Logger.error(
-          new Error(
-            'OnboardingFundWallet::handleReceiveFundOptionPress - Missing selectedAccountGroup',
-          ),
-        );
-        return;
-      }
-
-      navigateFromOnboardingToReceiveFlow(navigation, {
-        groupId: selectedAccountGroup.id,
+      const selection = resolveMoreWaysSelection(entry, {
+        providers: providers ?? [],
+        paymentMethods: paymentMethods ?? [],
       });
+
+      if (selection.kind === 'paymentMethod') {
+        setSelectedPaymentMethod(selection.paymentMethod);
+      } else if (selection.kind === 'provider') {
+        setSelectedProvider(selection.provider);
+      }
+
+      navigateFromOnboardingToBuyFlow(navigation);
     },
     [
-      trackEvent,
-      createEventBuilder,
-      accountType,
+      trackSubmitted,
+      providers,
+      paymentMethods,
+      setSelectedPaymentMethod,
+      setSelectedProvider,
       navigation,
-      selectedAccountGroup?.id,
     ],
   );
 
-  const handleOptionPress = useCallback(
-    (id: FundWalletOptionId) => {
-      if (ONBOARDING_FUND_WALLET_DEPOSIT_FLOW_OPTION_IDS.includes(id)) {
-        handleDepositFundOptionPress(id);
-        return;
-      }
+  const handleReceivePress = useCallback(() => {
+    trackSubmitted(RECEIVE_EXTERNAL_OPTION_ID);
 
-      if (ONBOARDING_FUND_WALLET_RECEIVE_FLOW_OPTION_IDS.includes(id)) {
-        handleReceiveFundOptionPress(id);
-        return;
-      }
+    if (!selectedAccountGroup?.id) {
+      Logger.error(
+        new Error(
+          'OnboardingFundWallet::handleReceivePress - Missing selectedAccountGroup',
+        ),
+      );
+      return;
+    }
 
-      if (MORE_WAYS_SHEET_ROW_IDS.includes(id)) {
-        openMoreWaysSheet(id as MoreWaysToFundSheetRowId);
-      }
-    },
-    [
-      handleDepositFundOptionPress,
-      handleReceiveFundOptionPress,
-      openMoreWaysSheet,
-    ],
-  );
-
-  const getSelectedLabelForRow = useCallback(
-    (rowId: MoreWaysToFundSheetRowId) => {
-      const selectedOptionId = moreWaysSelections[rowId];
-      if (!selectedOptionId) {
-        return undefined;
-      }
-
-      const selectedOption = getMoreWaysToFundOptionById(selectedOptionId);
-      return strings(selectedOption.labelKey);
-    },
-    [moreWaysSelections],
-  );
+    navigateFromOnboardingToReceiveFlow(navigation, {
+      groupId: selectedAccountGroup.id,
+    });
+  }, [trackSubmitted, navigation, selectedAccountGroup?.id]);
 
   return (
     <View
@@ -394,54 +314,93 @@ const OnboardingFundWallet = () => {
           contentContainerStyle={tw.style('px-4 pb-4')}
           showsVerticalScrollIndicator={false}
         >
-          {FUND_WALLET_SECTIONS.map((section, sectionIndex) => (
-            <Box
-              key={section.titleKey}
-              twClassName={
-                sectionIndex > 0 ? 'mt-2 border-t border-border-muted pt-4' : ''
-              }
-            >
+          <Box>
+            <SectionHeader
+              title={strings('onboarding_fund_wallet.section_bank_and_card')}
+            />
+            {isResolvingPaymentMethods ? (
+              <ActivityIndicator
+                testID={OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER}
+                style={tw.style('py-4')}
+              />
+            ) : hasError ? (
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-                twClassName="uppercase mb-1"
+                twClassName="py-4"
+                testID={OnboardingFundWalletTestIds.PAYMENT_METHODS_ERROR}
               >
-                {strings(section.titleKey)}
+                {strings('onboarding_fund_wallet.payment_methods_error')}
               </Text>
+            ) : isBankAndCardEmpty ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="py-4"
+                testID={OnboardingFundWalletTestIds.PAYMENT_METHODS_UNAVAILABLE}
+              >
+                {strings(
+                  'onboarding_fund_wallet.payment_methods_unavailable_region',
+                )}
+              </Text>
+            ) : (
               <Box flexDirection={BoxFlexDirection.Column}>
-                {section.options.map((option) => {
-                  const isMoreWaysRow = MORE_WAYS_SHEET_ROW_IDS.includes(
-                    option.id,
-                  );
-                  const selectedLabel = isMoreWaysRow
-                    ? getSelectedLabelForRow(
-                        option.id as MoreWaysToFundSheetRowId,
-                      )
-                    : undefined;
-
-                  return (
-                    <FundWalletOptionRow
-                      key={option.id}
-                      option={option}
-                      selectedLabel={selectedLabel}
-                      onPress={handleOptionPress}
-                    />
-                  );
-                })}
+                {bankAndCard.map((paymentMethod) => (
+                  <OptionRow
+                    key={paymentMethod.id}
+                    testID={`${OnboardingFundWalletTestIds.OPTION_PREFIX}${paymentMethod.id}`}
+                    label={paymentMethod.name}
+                    description={getPaymentMethodDescription(paymentMethod)}
+                    onPress={() => handlePaymentMethodPress(paymentMethod)}
+                    icon={
+                      <RampsPaymentMethodIcon paymentMethod={paymentMethod} />
+                    }
+                  />
+                ))}
               </Box>
+            )}
+          </Box>
+
+          <Box twClassName="mt-2 border-t border-border-muted pt-4">
+            <SectionHeader
+              title={strings('onboarding_fund_wallet.section_crypto')}
+            />
+            <Box flexDirection={BoxFlexDirection.Column}>
+              <OptionRow
+                testID={`${OnboardingFundWalletTestIds.OPTION_PREFIX}${RECEIVE_EXTERNAL_OPTION_ID}`}
+                label={strings(
+                  'onboarding_fund_wallet.option_receive_external',
+                )}
+                description={strings(
+                  'onboarding_fund_wallet.option_receive_external_description',
+                )}
+                onPress={handleReceivePress}
+                icon={
+                  <Icon name={IconName.SwapHorizontal} size={IconSize.Md} />
+                }
+              />
             </Box>
-          ))}
+          </Box>
+
+          <Box twClassName="mt-2 border-t border-border-muted pt-4">
+            <SectionHeader
+              title={strings('onboarding_fund_wallet.section_more_ways')}
+            />
+            <Box flexDirection={BoxFlexDirection.Column}>
+              {MORE_WAYS_TO_FUND_ENTRIES.map((entry) => (
+                <OptionRow
+                  key={entry.id}
+                  testID={`${OnboardingFundWalletTestIds.OPTION_PREFIX}${entry.id}`}
+                  label={strings(entry.labelKey)}
+                  description={strings(entry.descriptionKey)}
+                  onPress={() => handleMoreWaysPress(entry)}
+                  icon={<Icon name={entry.icon} size={IconSize.Md} />}
+                />
+              ))}
+            </Box>
+          </Box>
         </ScrollView>
       </SafeAreaView>
-
-      {isMoreWaysSheetVisible && moreWaysSheetRow ? (
-        <MoreWaysToFundBottomSheet
-          selectedOptionId={moreWaysSelections[moreWaysSheetRow]}
-          onClose={handleMoreWaysSheetClose}
-          onSelect={handleMoreWaysSelect}
-        />
-      ) : null}
     </View>
   );
 };

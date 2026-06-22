@@ -1,8 +1,8 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { navigateFromOnboardingToDepositFlow } from './navigateFromOnboardingToDepositFlow';
+import { navigateFromOnboardingToBuyFlow } from './navigateFromOnboardingToBuyFlow';
 
-describe('navigateFromOnboardingToDepositFlow', () => {
+describe('navigateFromOnboardingToBuyFlow', () => {
   const mockParentNavigate = jest.fn();
   const mockGetParent = jest.fn(
     () =>
@@ -23,8 +23,8 @@ describe('navigateFromOnboardingToDepositFlow', () => {
     jest.clearAllMocks();
   });
 
-  it('pushes token selection onto the onboarding root stack when unified V2 is enabled', () => {
-    navigateFromOnboardingToDepositFlow(mockNavigation, true);
+  it('pushes the unified buy flow (token selection) onto the onboarding root stack', () => {
+    navigateFromOnboardingToBuyFlow(mockNavigation);
 
     expect(mockGetParent).toHaveBeenCalledTimes(1);
     expect(mockParentNavigate).toHaveBeenCalledWith(
@@ -32,14 +32,8 @@ describe('navigateFromOnboardingToDepositFlow', () => {
     );
   });
 
-  it('pushes deposit onto the onboarding root stack when unified V2 is disabled', () => {
-    navigateFromOnboardingToDepositFlow(mockNavigation, false);
-
-    expect(mockParentNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
-  });
-
   it('does nothing when the onboarding root navigator is unavailable', () => {
-    navigateFromOnboardingToDepositFlow(noParentNavigation, true);
+    navigateFromOnboardingToBuyFlow(noParentNavigation);
 
     expect(mockParentNavigate).not.toHaveBeenCalled();
   });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, screen, act } from '@testing-library/react-native';
-import { View, Pressable, Text } from 'react-native';
+import { PaymentType } from '@consensys/on-ramp-sdk';
+import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import OnboardingFundWallet from './OnboardingFundWallet';
 import { OnboardingFundWalletTestIds } from './OnboardingFundWallet.testIds';
@@ -15,61 +16,94 @@ import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { useSelector } from 'react-redux';
 
-const MockView = View;
-const MockPressable = Pressable;
-const MockText = Text;
-
-jest.mock('./MoreWaysToFundBottomSheet', () => ({
-  __esModule: true,
-  default: function MockMoreWaysToFundBottomSheet({
-    onClose,
-    onSelect,
-  }: {
-    onClose: () => void;
-    onSelect: (optionId: string) => void;
-  }) {
-    return (
-      <MockView testID="mock-more-ways-bottom-sheet">
-        <MockPressable
-          testID="mock-more-ways-select-revolut"
-          onPress={() => onSelect('revolut_pay')}
-        >
-          <MockText>Revolut Pay</MockText>
-        </MockPressable>
-        <MockPressable
-          testID="mock-more-ways-select-paypal"
-          onPress={() => onSelect('paypal')}
-        >
-          <MockText>PayPal</MockText>
-        </MockPressable>
-        <MockPressable testID="mock-more-ways-close" onPress={onClose}>
-          <MockText>Close</MockText>
-        </MockPressable>
-      </MockView>
-    );
-  },
-}));
-
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-const mockNavigateFromOnboardingToDepositFlow = jest.fn();
+const mockSetSelectedPaymentMethod = jest.fn();
+const mockSetSelectedProvider = jest.fn();
+const mockSetSelectedToken = jest.fn();
+const mockUseRampsController = jest.fn();
+
+const MOCK_TOKEN = {
+  assetId: 'eip155:1/slip44:60',
+  chainId: 'eip155:1',
+  symbol: 'ETH',
+};
+
+const MOCK_SUPPORTING_PROVIDER = {
+  id: '/providers/some-provider',
+  name: 'Some Provider',
+  supportedCryptoCurrencies: { [MOCK_TOKEN.assetId]: true },
+} as unknown as Provider;
+
+jest.mock('../../UI/Ramp/hooks/useRampsController', () => ({
+  __esModule: true,
+  useRampsController: () => mockUseRampsController(),
+}));
+
+jest.mock('../../UI/Ramp/hooks/useRampsProviders', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  useRampsProviders: jest.fn(),
+}));
+
+const MOCK_APPLE_PAY = {
+  id: '/payments/apple-pay',
+  name: 'Apple Pay',
+  paymentType: PaymentType.ApplePay,
+  delay: [0, 0],
+} as unknown as PaymentMethod;
+
+const MOCK_DEBIT_CREDIT_CARD = {
+  id: '/payments/debit-credit-card',
+  name: 'Debit or Credit',
+  paymentType: PaymentType.DebitCreditCard,
+  delay: [0, 0],
+} as unknown as PaymentMethod;
+
+// A wallet method (e.g. PayPal-like) that should NOT appear under "Bank and
+// card" — it is filtered out of that section.
+const MOCK_WALLET = {
+  id: '/payments/some-wallet',
+  name: 'Some Wallet',
+  paymentType: PaymentType.Wallet,
+  delay: [0, 0],
+} as unknown as PaymentMethod;
+
+const MOCK_GOOGLE_PAY = {
+  id: '/payments/google-pay',
+  name: 'Google Pay',
+  paymentType: PaymentType.GooglePay,
+  delay: [0, 0],
+} as unknown as PaymentMethod;
+
+const MOCK_REVOLUT_PAY = {
+  id: '/payments/rev-pay',
+  name: 'Revolut Pay',
+  paymentType: PaymentType.RevPay,
+  delay: [0, 0],
+} as unknown as PaymentMethod;
+
+const MOCK_PAYPAL_PROVIDER = {
+  id: '/providers/paypal',
+  name: 'PayPal',
+} as unknown as Provider;
+
+const MOCK_REVOLUT_PROVIDER = {
+  id: '/providers/revolut',
+  name: 'Revolut',
+} as unknown as Provider;
+
+const mockNavigateFromOnboardingToBuyFlow = jest.fn();
 const mockNavigateFromOnboardingToReceiveFlow = jest.fn();
 
-jest.mock('./navigateFromOnboardingToDepositFlow', () => ({
-  navigateFromOnboardingToDepositFlow: (...args: unknown[]) =>
-    mockNavigateFromOnboardingToDepositFlow(...args),
+jest.mock('./navigateFromOnboardingToBuyFlow', () => ({
+  navigateFromOnboardingToBuyFlow: (...args: unknown[]) =>
+    mockNavigateFromOnboardingToBuyFlow(...args),
 }));
 
 jest.mock('./navigateFromOnboardingToReceiveFlow', () => ({
   navigateFromOnboardingToReceiveFlow: (...args: unknown[]) =>
     mockNavigateFromOnboardingToReceiveFlow(...args),
-}));
-
-const mockUseRampsUnifiedV2Enabled = jest.fn(() => true);
-
-jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV2Enabled(),
 }));
 
 const mockNavigate = jest.fn();
@@ -122,10 +156,43 @@ const renderComponent = () =>
     { state: {} },
   );
 
+const setControllerState = (
+  overrides: Partial<{
+    paymentMethods: PaymentMethod[];
+    paymentMethodsLoading: boolean;
+    paymentMethodsFetching: boolean;
+    paymentMethodsStatus: 'idle' | 'loading' | 'success' | 'error';
+    paymentMethodsError: string | null;
+    providers: Provider[];
+    providersLoading: boolean;
+    selectedProvider: Provider | null;
+    tokens: unknown;
+    tokensLoading: boolean;
+    selectedToken: unknown;
+  }> = {},
+) =>
+  mockUseRampsController.mockReturnValue({
+    paymentMethods: [MOCK_APPLE_PAY, MOCK_DEBIT_CREDIT_CARD],
+    paymentMethodsLoading: false,
+    paymentMethodsFetching: false,
+    paymentMethodsStatus: 'success',
+    paymentMethodsError: null,
+    setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
+    providers: [MOCK_PAYPAL_PROVIDER],
+    providersLoading: false,
+    selectedProvider: MOCK_PAYPAL_PROVIDER,
+    setSelectedProvider: mockSetSelectedProvider,
+    tokens: null,
+    tokensLoading: false,
+    selectedToken: MOCK_TOKEN,
+    setSelectedToken: mockSetSelectedToken,
+    ...overrides,
+  });
+
 describe('OnboardingFundWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    setControllerState();
     delete mockFundWalletRouteParams.accountType;
     delete mockFundWalletRouteParams.selectedInterests;
     delete mockFundWalletRouteParams.otherText;
@@ -163,39 +230,215 @@ describe('OnboardingFundWallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders all funding options', () => {
+    it('renders the bank/card payment methods from the unified controller', () => {
       renderComponent();
 
       expect(
         screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}apple_pay`,
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}${MOCK_APPLE_PAY.id}`,
         ),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}debit_credit`,
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}${MOCK_DEBIT_CREDIT_CARD.id}`,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(MOCK_APPLE_PAY.name)).toBeOnTheScreen();
+      expect(screen.getByText(MOCK_DEBIT_CREDIT_CARD.name)).toBeOnTheScreen();
+    });
+
+    it('filters out non-bank/card methods from the bank and card section', () => {
+      setControllerState({
+        paymentMethods: [MOCK_APPLE_PAY, MOCK_WALLET],
+      });
+
+      renderComponent();
+
+      expect(
+        screen.getByTestId(
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}${MOCK_APPLE_PAY.id}`,
         ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}wire_transfer`,
+        screen.queryByTestId(
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}${MOCK_WALLET.id}`,
         ),
-      ).toBeOnTheScreen();
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the receive crypto option', () => {
+      renderComponent();
+
       expect(
         screen.getByTestId(
           `${OnboardingFundWalletTestIds.OPTION_PREFIX}receive_external`,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('renders a loader while payment methods are loading', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsLoading: true,
+        paymentMethodsStatus: 'loading',
+      });
+
+      renderComponent();
+
+      expect(
+        screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders a loader (not the unavailable message) while a supporting provider is being selected from the token', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        selectedToken: MOCK_TOKEN,
+        selectedProvider: null,
+        providers: [MOCK_SUPPORTING_PROVIDER],
+      });
+
+      renderComponent();
+
+      expect(
+        screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          OnboardingFundWalletTestIds.PAYMENT_METHODS_UNAVAILABLE,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders a loader while providers are loading', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        providers: [],
+        providersLoading: true,
+        selectedProvider: null,
+      });
+
+      renderComponent();
+
+      expect(
+        screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders a loader while tokens are loading', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        tokensLoading: true,
+        selectedToken: null,
+        selectedProvider: null,
+      });
+
+      renderComponent();
+
+      expect(
+        screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('seeds a default token and shows a loader while it applies', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        selectedToken: null,
+        selectedProvider: null,
+        tokens: { topTokens: [{ assetId: MOCK_TOKEN.assetId }] },
+      });
+
+      renderComponent();
+
+      expect(mockSetSelectedToken).toHaveBeenCalledWith(MOCK_TOKEN.assetId);
+      expect(
+        screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders an error message when payment methods fail to load', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsError: 'boom',
+      });
+
+      renderComponent();
+
+      expect(
+        screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the unavailable message when the query settled with no bank/card methods', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'success',
+      });
+
+      renderComponent();
+
       expect(
         screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal`,
+          OnboardingFundWalletTestIds.PAYMENT_METHODS_UNAVAILABLE,
         ),
       ).toBeOnTheScreen();
       expect(
+        screen.queryByTestId(
+          OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the unavailable message when no providers exist for the region', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        providers: [],
+        providersLoading: false,
+        selectedProvider: null,
+        selectedToken: null,
+        tokens: null,
+      });
+
+      renderComponent();
+
+      expect(
         screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}more_payment_methods`,
+          OnboardingFundWalletTestIds.PAYMENT_METHODS_UNAVAILABLE,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('shows the unavailable message when a token is selected but no provider supports it', () => {
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        selectedToken: MOCK_TOKEN,
+        selectedProvider: null,
+        providers: [MOCK_PAYPAL_PROVIDER],
+      });
+
+      renderComponent();
+
+      expect(
+        screen.getByTestId(
+          OnboardingFundWalletTestIds.PAYMENT_METHODS_UNAVAILABLE,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER,
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders the Skip button', () => {
@@ -271,13 +514,13 @@ describe('OnboardingFundWallet', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('opens the deposit flow when Apple Pay is pressed', async () => {
+    it('pre-selects the method and opens the unified buy flow when a bank/card method is pressed', async () => {
       renderComponent();
 
       await act(async () => {
         fireEvent.press(
           screen.getByTestId(
-            `${OnboardingFundWalletTestIds.OPTION_PREFIX}apple_pay`,
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}${MOCK_APPLE_PAY.id}`,
           ),
         );
       });
@@ -291,16 +534,16 @@ describe('OnboardingFundWallet', () => {
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           question_type: 'fund_wallet',
-          selected_fund_method: 'apple_pay',
+          selected_fund_method: MOCK_APPLE_PAY.id,
           skipped: false,
         }),
       );
-      expect(mockNavigateFromOnboardingToDepositFlow).toHaveBeenCalledWith(
+      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(MOCK_APPLE_PAY);
+      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalledWith(
         expect.objectContaining({
           goBack: expect.any(Function),
           navigate: expect.any(Function),
         }),
-        true,
       );
       expect(mockOnComplete).not.toHaveBeenCalled();
     });
@@ -316,19 +559,6 @@ describe('OnboardingFundWallet', () => {
         );
       });
 
-      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
-
-      expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
-        2,
-        MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED,
-      );
-      expect(builderInstance.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          question_type: 'fund_wallet',
-          selected_fund_method: 'receive_external',
-          skipped: false,
-        }),
-      );
       expect(mockNavigateFromOnboardingToReceiveFlow).toHaveBeenCalledWith(
         expect.objectContaining({
           goBack: expect.any(Function),
@@ -336,121 +566,152 @@ describe('OnboardingFundWallet', () => {
         }),
         { groupId: mockSelectedAccountGroupId },
       );
-      expect(mockNavigateFromOnboardingToDepositFlow).not.toHaveBeenCalled();
+      expect(mockNavigateFromOnboardingToBuyFlow).not.toHaveBeenCalled();
       expect(mockOnComplete).not.toHaveBeenCalled();
     });
+  });
 
-    it('opens the legacy deposit flow when unified V2 is disabled', async () => {
-      mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+  describe('more ways to fund', () => {
+    it('always renders the curated more-ways entries (PayPal, Google Pay, Revolut)', () => {
+      renderComponent();
 
+      expect(
+        screen.getByText(strings('onboarding_fund_wallet.section_more_ways')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}google_pay`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}revolut`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('pre-selects the PayPal provider and opens the flow when PayPal is eligible', async () => {
+      setControllerState({ providers: [MOCK_PAYPAL_PROVIDER] });
       renderComponent();
 
       await act(async () => {
         fireEvent.press(
           screen.getByTestId(
-            `${OnboardingFundWalletTestIds.OPTION_PREFIX}debit_credit`,
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal`,
           ),
         );
       });
 
-      expect(mockNavigateFromOnboardingToDepositFlow).toHaveBeenCalledWith(
+      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
+      expect(builderInstance.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'fund_wallet',
+          selected_fund_method: 'paypal',
+          skipped: false,
+        }),
+      );
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(
+        MOCK_PAYPAL_PROVIDER,
+      );
+      expect(mockSetSelectedPaymentMethod).not.toHaveBeenCalled();
+      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalledWith(
         expect.objectContaining({
           goBack: expect.any(Function),
           navigate: expect.any(Function),
         }),
-        false,
-      );
-    });
-  });
-
-  describe('More ways to fund bottom sheet', () => {
-    it('does not render the bottom sheet by default', () => {
-      renderComponent();
-
-      expect(
-        screen.queryByTestId('mock-more-ways-bottom-sheet'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('opens the bottom sheet when PayPal is pressed', () => {
-      renderComponent();
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal`,
-        ),
-      );
-
-      expect(
-        screen.getByTestId('mock-more-ways-bottom-sheet'),
-      ).toBeOnTheScreen();
-    });
-
-    it('opens the bottom sheet when more payment methods is pressed', () => {
-      renderComponent();
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}more_payment_methods`,
-        ),
-      );
-
-      expect(
-        screen.getByTestId('mock-more-ways-bottom-sheet'),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows the selected method on the PayPal row after selection', () => {
-      renderComponent();
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal`,
-        ),
-      );
-      fireEvent.press(screen.getByTestId('mock-more-ways-select-revolut'));
-
-      expect(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal${OnboardingFundWalletTestIds.SELECTION_SUFFIX}`,
-        ),
-      ).toHaveTextContent(
-        strings('onboarding_fund_wallet.more_ways_option_revolut_pay'),
       );
     });
 
-    it('shows PayPal on the more payment methods row when PayPal is selected', () => {
+    it('opens the flow without pre-selection when PayPal is not eligible (graceful fallback)', async () => {
+      setControllerState({ providers: [] });
       renderComponent();
 
-      fireEvent.press(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}more_payment_methods`,
-        ),
-      );
-      fireEvent.press(screen.getByTestId('mock-more-ways-select-paypal'));
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal`,
+          ),
+        );
+      });
 
-      expect(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}more_payment_methods${OnboardingFundWalletTestIds.SELECTION_SUFFIX}`,
-        ),
-      ).toHaveTextContent(
-        strings('onboarding_fund_wallet.more_ways_option_paypal'),
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+      expect(mockSetSelectedPaymentMethod).not.toHaveBeenCalled();
+      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          goBack: expect.any(Function),
+          navigate: expect.any(Function),
+        }),
       );
     });
 
-    it('closes the bottom sheet when dismissed', () => {
+    it('pre-selects the Google Pay method when it is in the payment list', async () => {
+      setControllerState({
+        paymentMethods: [MOCK_APPLE_PAY, MOCK_GOOGLE_PAY],
+      });
       renderComponent();
 
-      fireEvent.press(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}paypal`,
-        ),
-      );
-      fireEvent.press(screen.getByTestId('mock-more-ways-close'));
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}google_pay`,
+          ),
+        );
+      });
 
-      expect(
-        screen.queryByTestId('mock-more-ways-bottom-sheet'),
-      ).not.toBeOnTheScreen();
+      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
+        MOCK_GOOGLE_PAY,
+      );
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalled();
+    });
+
+    it('prefers the Revolut payment method over the provider match when available', async () => {
+      setControllerState({
+        paymentMethods: [MOCK_APPLE_PAY, MOCK_REVOLUT_PAY],
+        providers: [MOCK_REVOLUT_PROVIDER],
+      });
+      renderComponent();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}revolut`,
+          ),
+        );
+      });
+
+      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
+        MOCK_REVOLUT_PAY,
+      );
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalled();
+    });
+
+    it('falls back to the Revolut provider when no rev-pay method is present', async () => {
+      setControllerState({
+        paymentMethods: [MOCK_APPLE_PAY],
+        providers: [MOCK_REVOLUT_PROVIDER],
+      });
+      renderComponent();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}revolut`,
+          ),
+        );
+      });
+
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(
+        MOCK_REVOLUT_PROVIDER,
+      );
+      expect(mockSetSelectedPaymentMethod).not.toHaveBeenCalled();
+      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalled();
     });
   });
 });
