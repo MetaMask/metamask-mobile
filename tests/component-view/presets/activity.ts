@@ -89,6 +89,9 @@ export const initialStateActivity = () =>
           GasFeeController: {
             gasFeeEstimates: {},
           },
+          MoneyAccountController: {
+            moneyAccounts: {},
+          },
           NetworkEnablementController: {
             enabledNetworkMap: {
               eip155: {},
