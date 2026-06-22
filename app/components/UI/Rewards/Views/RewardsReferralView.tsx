@@ -2,9 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { InteractionManager, ScrollView } from 'react-native';
+import { InteractionManager, Platform, ScrollView, Share } from 'react-native';
 import { useSelector } from 'react-redux';
-import Share from 'react-native-share';
 import {
   Box,
   Button,
@@ -55,15 +54,20 @@ const ReferralRewardsView: React.FC = () => {
         })
         .build(),
     );
-    // Defer opening the native share sheet until the button press gesture
-    // completes. Launching it synchronously from onPress on Android can leave
-    // the touch responder stuck after the sheet is dismissed.
+    // Use RN's built-in Share API instead of react-native-share. On Android,
+    // react-native-share uses startActivityForResult, which notifies every
+    // ActivityEventListener (including ReactNativePayments) and can crash when
+    // the sheet is dismissed with a null intent.
     InteractionManager.runAfterInteractions(() => {
-      Share.open({
-        message: strings('rewards.referral.actions.share_referral_subject'),
-        url: link,
-        failOnCancel: false,
-      }).catch((error) => {
+      const subject = strings(
+        'rewards.referral.actions.share_referral_subject',
+      );
+      const shareContent =
+        Platform.OS === 'ios'
+          ? { message: subject, url: link }
+          : { message: `${subject}\n${link}` };
+
+      Share.share(shareContent).catch((error) => {
         Logger.log('Error while trying to share referral link', error);
       });
     });

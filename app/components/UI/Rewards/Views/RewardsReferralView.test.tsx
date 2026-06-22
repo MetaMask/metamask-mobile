@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform, Share } from 'react-native';
 import { useSelector } from 'react-redux';
 import RewardsReferralView from './RewardsReferralView';
 
@@ -11,10 +11,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('react-native-share', () => ({
-  open: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -89,11 +85,12 @@ jest.mock('../components/ReferralDetails/ReferralDetails', () => {
   };
 });
 
-import Share from 'react-native-share';
-
 describe('RewardsReferralView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task) => {
@@ -113,6 +110,10 @@ describe('RewardsReferralView', () => {
       if (selector.name === 'selectReferralDetailsLoading') return false;
       return undefined;
     });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('rendering', () => {
@@ -218,18 +219,31 @@ describe('RewardsReferralView', () => {
       expect(button).toBeDisabled();
     });
 
-    it('calls Share.open when the share button is pressed', async () => {
+    it('calls Share.share when the share button is pressed on Android', async () => {
+      Platform.OS = 'android';
       const { getByTestId } = render(<RewardsReferralView />);
 
       fireEvent.press(getByTestId('referral-share-button'));
 
       await waitFor(() => {
-        expect(Share.open).toHaveBeenCalledWith(
-          expect.objectContaining({
-            url: 'https://link.metamask.io/rewards?referral=TESTCODE',
-            failOnCancel: false,
-          }),
-        );
+        expect(Share.share).toHaveBeenCalledWith({
+          message:
+            'Join MetaMask Rewards\nhttps://link.metamask.io/rewards?referral=TESTCODE',
+        });
+      });
+    });
+
+    it('calls Share.share when the share button is pressed on iOS', async () => {
+      Platform.OS = 'ios';
+      const { getByTestId } = render(<RewardsReferralView />);
+
+      fireEvent.press(getByTestId('referral-share-button'));
+
+      await waitFor(() => {
+        expect(Share.share).toHaveBeenCalledWith({
+          message: 'Join MetaMask Rewards',
+          url: 'https://link.metamask.io/rewards?referral=TESTCODE',
+        });
       });
     });
   });
