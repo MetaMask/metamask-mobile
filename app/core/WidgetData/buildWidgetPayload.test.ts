@@ -2,10 +2,7 @@ import { RootState } from '../../reducers';
 import { selectAssetsBySelectedAccountGroup } from '../../selectors/assets/assets-list';
 import { selectTokenMarketData } from '../../selectors/tokenRatesController';
 import { selectMultichainAssetsRates } from '../../selectors/multichain/multichain';
-import {
-  buildWidgetPayload,
-  WIDGET_MAX_TOKENS,
-} from './buildWidgetPayload';
+import { buildWidgetPayload, WIDGET_MAX_TOKENS } from './buildWidgetPayload';
 
 jest.mock('../../selectors/assets/assets-list', () => ({
   selectAssetsBySelectedAccountGroup: jest.fn(),
@@ -47,9 +44,9 @@ const makeAsset = (
     chainId,
     fiat: { balance: fiatBalance, currency: 'usd', conversionRate: 1 },
     ...extra,
-  } as unknown as ReturnType<
+  }) as unknown as ReturnType<
     typeof selectAssetsBySelectedAccountGroup
-  >[string][number]);
+  >[string][number];
 
 const state = {} as RootState;
 
@@ -139,7 +136,7 @@ describe('buildWidgetPayload', () => {
 
     const { tokens } = buildWidgetPayload(state);
 
-    expect(tokens[0].swapDeeplink).toBe(
+    expect(tokens[0].deeplink).toBe(
       `metamask://swap?from=${encodeURIComponent(
         'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       )}`,
@@ -150,11 +147,13 @@ describe('buildWidgetPayload', () => {
     it('reads an EVM token change from market data keyed by [chainId][address]', () => {
       const address = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
       mockSelector.mockReturnValue({
-        '0x1': [makeAsset('USDC', '100', 100, undefined, address, '0x1', { address })],
+        '0x1': [
+          makeAsset('USDC', '100', 100, undefined, address, '0x1', { address }),
+        ],
       });
       mockMarketData.mockReturnValue({
         '0x1': { [address]: { pricePercentChange1d: 2.31 } },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(buildWidgetPayload(state).tokens[0].priceChange1d).toBe(2.31);
@@ -164,11 +163,15 @@ describe('buildWidgetPayload', () => {
       // getNativeTokenAddress(chainId) → the zero address.
       const nativeAddress = '0x0000000000000000000000000000000000000000';
       mockSelector.mockReturnValue({
-        '0x1': [makeAsset('ETH', '2', 6000, undefined, '0x0', '0x1', { isNative: true })],
+        '0x1': [
+          makeAsset('ETH', '2', 6000, undefined, '0x0', '0x1', {
+            isNative: true,
+          }),
+        ],
       });
       mockMarketData.mockReturnValue({
         '0x1': { [nativeAddress]: { pricePercentChange1d: -1.5 } },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(buildWidgetPayload(state).tokens[0].priceChange1d).toBe(-1.5);
@@ -183,7 +186,7 @@ describe('buildWidgetPayload', () => {
       });
       mockMultichainRates.mockReturnValue({
         [caipAssetId]: { marketData: { pricePercentChange: { P1D: 4.2 } } },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(buildWidgetPayload(state).tokens[0].priceChange1d).toBe(4.2);

@@ -28,13 +28,18 @@ export interface WidgetTokenEntry {
   symbol: string;
   /** Pre-formatted unit market price in the user's currency, e.g. "$1.00". */
   priceFormatted: string;
-  /** Remote logo URL. The native bridge downloads/rasterizes this to a local PNG. */
+  /**
+   * Remote logo URL. Transient: {@link syncWidgetLogos} downloads this into the
+   * App Group container and replaces it with a local `logoFile` before the
+   * payload is written to the widget.
+   */
   logoUrl: string;
   /**
    * Deep link that opens the Swap screen with this token preselected as the
-   * source. Undefined when a CAIP-19 asset id can't be derived.
+   * source. Undefined when a CAIP-19 asset id can't be derived. Consumed
+   * directly by the widget (Swift no longer remaps field names).
    */
-  swapDeeplink?: string;
+  deeplink?: string;
   /**
    * 24h price change as a percentage (e.g. `2.31`, `-0.04`). Real market data;
    * undefined when no rate is available. The widget colors it green/red and
@@ -193,7 +198,7 @@ export function buildWidgetPayload(state: RootState): WidgetTokenPayload {
           { style: 'currency', currency },
         ),
         logoUrl: asset.image ?? '',
-        swapDeeplink: caipAssetId ? buildSwapDeeplink(caipAssetId) : undefined,
+        deeplink: caipAssetId ? buildSwapDeeplink(caipAssetId) : undefined,
         priceChange1d,
         sparkline: buildSparkline(asset.symbol, priceChange1d),
       };

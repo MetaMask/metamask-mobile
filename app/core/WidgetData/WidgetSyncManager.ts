@@ -7,7 +7,8 @@ import {
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 import { WidgetBridge } from '../NativeModules';
-import { buildWidgetPayload } from './buildWidgetPayload';
+import { buildWidgetPayload, WidgetTokenPayload } from './buildWidgetPayload';
+import { syncWidgetLogos } from './syncWidgetLogos';
 
 /**
  * Debounce window for store-driven syncs. Balances are recomputed on many Redux
@@ -48,7 +49,10 @@ export class WidgetSyncManager {
       // Initial push so the widget reflects state from app start.
       this.sync();
     } catch (error) {
-      Logger.error(error as Error, 'WidgetSyncManager: store not ready at init');
+      Logger.error(
+        error as Error,
+        'WidgetSyncManager: store not ready at init',
+      );
     }
   }
 
@@ -76,7 +80,9 @@ export class WidgetSyncManager {
 
   /**
    * Build the payload from current state and push it to the widget. Skips the
-   * native call when the payload is unchanged since the last successful push.
+   * native call when the payload is unchanged since the last push. Dedup runs on
+   * the pre-logo payload (which is deterministic for a given state), so cached
+   * logos aren't re-downloaded on every Redux tick.
    */
   sync(): void {
     if (!this.isSupported()) {
@@ -89,12 +95,21 @@ export class WidgetSyncManager {
         return;
       }
       this.lastSerialized = serialized;
-      WidgetBridge.setTokens(serialized)?.catch?.((error: unknown) => {
-        Logger.error(error as Error, 'WidgetSyncManager: setTokens failed');
+      this.pushToWidget(payload).catch((error: unknown) => {
+        Logger.error(error as Error, 'WidgetSyncManager: push failed');
       });
     } catch (error) {
       Logger.error(error as Error, 'WidgetSyncManager: sync failed');
     }
+  }
+
+  /**
+   * Downloads the token logos into the widget's App Group container (in JS) and
+   * writes the final payload through the native bridge.
+   */
+  private async pushToWidget(payload: WidgetTokenPayload): Promise<void> {
+    const output = await syncWidgetLogos(payload);
+    await WidgetBridge.setTokens(JSON.stringify(output));
   }
 
   cleanup(): void {

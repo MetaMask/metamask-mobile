@@ -9,6 +9,8 @@
 #import "React/RCTBridgeModule.h"
 
 @interface RCT_EXTERN_MODULE(RCTWidgetBridge, NSObject)
+RCT_EXTERN_METHOD(getLogosDirectoryPath:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(setTokens:(nonnull NSString *)json
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
