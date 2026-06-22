@@ -576,14 +576,17 @@ const PriceAdvanced = ({
     !hasEmptyData &&
     !chartError;
 
+  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
+
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
    * This prevents a confusing flash where interval/indicator bars appear then disappear
-   * when falling back to legacy chart.
+   * when falling back to legacy chart or while WebView init is still pending.
    */
   const shouldShowTechnicalIndicators =
     isTechnicalIndicatorsEnabled &&
-    !chartLoading &&
+    !isAdvancedChartUiPending &&
     ohlcvData.length >= CHART_DATA_THRESHOLD &&
     !hasEmptyData &&
     !chartError;
@@ -965,8 +968,8 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      {/* Unified skeleton bar when feature flag ON and loading */}
-      {isTechnicalIndicatorsEnabled && chartLoading && (
+      {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
+      {isTechnicalIndicatorsEnabled && isAdvancedChartUiPending && (
         <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <Box twClassName="w-full px-4">
@@ -975,23 +978,21 @@ const PriceAdvanced = ({
           </View>
         </View>
       )}
-      {/* IntervalBar appears when not loading */}
-      {isTechnicalIndicatorsEnabled &&
-        !chartLoading &&
-        shouldShowTechnicalIndicators && (
-          <View style={styles.intervalBarContainer}>
-            <View style={styles.timeRangeSelectorWrap}>
-              <Box twClassName="w-full">
-                <IntervalBar
-                  selectedInterval={displayInterval}
-                  onIntervalSelect={handleInlineIntervalSelect}
-                  chartType={chartType}
-                  onChartTypeSelect={handleChartTypeSelect}
-                />
-              </Box>
-            </View>
+      {/* IntervalBar appears once OHLCV and WebView init have completed */}
+      {isTechnicalIndicatorsEnabled && shouldShowTechnicalIndicators && (
+        <View style={styles.intervalBarContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
+            <Box twClassName="w-full">
+              <IntervalBar
+                selectedInterval={displayInterval}
+                onIntervalSelect={handleInlineIntervalSelect}
+                chartType={chartType}
+                onChartTypeSelect={handleChartTypeSelect}
+              />
+            </Box>
           </View>
-        )}
+        </View>
+      )}
       <Box
         twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
       >
@@ -1066,7 +1067,7 @@ const PriceAdvanced = ({
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector
-              isChartLoading={chartLoading || chartInitFailed === null}
+              isChartLoading={isAdvancedChartUiPending}
               selected={timeRange}
               onSelect={handleTimeRangeSelect}
               chartType={chartType}

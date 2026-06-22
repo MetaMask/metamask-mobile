@@ -202,6 +202,14 @@ jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
   };
 });
 
+jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-interval-bar" />,
+  };
+});
+
 jest.mock('./Price.legacy', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View } = require('react-native');
@@ -265,6 +273,15 @@ describe('PriceAdvanced', () => {
       hasMore: false,
       nextCursor: null,
       hasEmptyData: false,
+    });
+
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenIndicatorsActual) return [];
+      if (selector === selectTokenOverviewChartType) return ChartType.Line;
+      if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+        return mockSelectTechnicalIndicatorsEnabled();
+      }
+      return ChartType.Line;
     });
   });
 
@@ -956,6 +973,61 @@ describe('PriceAdvanced', () => {
       expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
     });
 
+    it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(getByTestId('mock-interval-bar')).toBeOnTheScreen();
+      expect(getByTestId('mock-indicator-bar')).toBeOnTheScreen();
+    });
+
+    it('falls back to legacy without flashing interval or indicator bars when init fails', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onInitFailed?.(
+          'Failed to load TradingView library',
+        );
+      });
+
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+    });
+
     it('starts time range visibility trace when time range changes', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
@@ -1586,6 +1658,10 @@ describe('PriceAdvanced', () => {
       enableIndicatorBar();
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
       fireEvent.press(getByTestId('toggle-rsi'));
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -1606,6 +1682,10 @@ describe('PriceAdvanced', () => {
       enableIndicatorBar(['RSI']);
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
       fireEvent.press(getByTestId('toggle-rsi'));
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -1624,6 +1704,10 @@ describe('PriceAdvanced', () => {
     it('replaces other sub-pane indicators when selecting a new one', () => {
       enableIndicatorBar(['MACD']);
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
 
       fireEvent.press(getByTestId('toggle-rsi'));
 
