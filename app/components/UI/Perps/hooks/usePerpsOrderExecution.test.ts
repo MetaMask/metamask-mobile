@@ -8,6 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
+import { PERPS_CHART_ANALYTICS_PROPERTY } from '../utils/analytics/chartInstrumentation';
 
 jest.mock('./usePerpsTrading');
 const mockTrack = jest.fn();
@@ -206,7 +207,7 @@ describe('usePerpsOrderExecution', () => {
           [PERPS_EVENT_PROPERTY.STATUS]:
             PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY]: 'advanced',
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -322,7 +323,7 @@ describe('usePerpsOrderExecution', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY]: 'advanced',
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -439,7 +440,7 @@ describe('usePerpsOrderExecution', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY]: 'advanced',
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
