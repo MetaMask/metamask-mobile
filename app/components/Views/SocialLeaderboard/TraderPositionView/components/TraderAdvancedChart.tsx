@@ -25,6 +25,8 @@ import type { TimePeriod } from '../useTraderPositionData';
 import TraderPriceChart from './TraderPriceChart';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+/** Stable empty-bar reference so the spot path doesn't churn the perp memo. */
+const EMPTY_OHLCV: OHLCVBar[] = [];
 
 /**
  * Maps the Social Trading period selector (which includes `All`) onto the
@@ -133,15 +135,28 @@ export interface TradeFocusRequest {
 }
 
 export interface TraderAdvancedChartProps {
-  /** CAIP-19 asset id for the spot token (drives the OHLCV feed). */
-  assetId: string;
+  /**
+   * CAIP-19 asset id for the spot token (drives the spot OHLCV feed). Omitted for
+   * Hyperliquid perps, which have no CAIP id — set {@link TraderAdvancedChartProps.isPerp}
+   * instead and the chart renders from `historicalPrices`.
+   */
+  assetId?: string;
+  /**
+   * Hyperliquid perp position. Perps have no spot OHLCV feed, so the chart renders
+   * the already-fetched `historicalPrices` line series (from the candleSnapshot
+   * endpoint) instead of fetching via the price API.
+   */
+  isPerp?: boolean;
   /** Social Trading period selection (`1H`..`All`). */
   activeTimePeriod: TimePeriod;
   /** Trades to render as open/close circles. */
   trades: readonly Trade[];
   /** When set, the chart slides to center this trade's time (see {@link TradeFocusRequest}). */
   focusRequest?: TradeFocusRequest;
-  /** Fallback (legacy) chart data, used when OHLCV coverage is insufficient. */
+  /**
+   * Price history. For perps this is the live chart series (Hyperliquid); for spot
+   * it is the fallback used when the OHLCV feed has insufficient coverage.
+   */
   historicalPrices: TokenPrice[];
   priceDiff: number;
   isPricesLoading: boolean;
@@ -156,13 +171,16 @@ export interface TraderAdvancedChartProps {
 }
 
 /**
- * Spot-position chart for the Social Trading trader position page, backed by the
- * same TradingView AdvancedChart used on Token Details. Renders open/close trade
- * circles via the `tradeMarkers` prop. Falls back to the legacy SVG
- * {@link TraderPriceChart} when the OHLCV feed has insufficient coverage.
+ * Position chart for the Social Trading trader position page, backed by the same
+ * TradingView AdvancedChart used on Token Details. Handles both spot (price-API
+ * OHLCV, keyed by `assetId`) and Hyperliquid perp positions (`isPerp`, rendered
+ * from the `historicalPrices` line series). Renders open/close trade circles via
+ * the `tradeMarkers` prop. Falls back to the legacy SVG {@link TraderPriceChart}
+ * when there is insufficient chart coverage.
  */
 const TraderAdvancedChart = ({
   assetId,
+  isPerp = false,
   activeTimePeriod,
   trades,
   focusRequest,
@@ -187,27 +205,56 @@ const TraderAdvancedChart = ({
   const timeRange = SOCIAL_PERIOD_TO_TIME_RANGE[activeTimePeriod];
   const config = TIME_RANGE_CONFIGS[timeRange];
 
-  const {
-    ohlcvData,
-    isLoading: chartLoading,
-    error: chartError,
-    hasMore,
-    nextCursor,
-    hasEmptyData,
-  } = useOHLCVChart({
-    assetId,
+  // Spot: OHLCV from the MetaMask price API. A no-op (no fetch) when there is no
+  // assetId — i.e. for perps, which supply their series via `historicalPrices`.
+  const spot = useOHLCVChart({
+    assetId: assetId ?? '',
     timePeriod: config.timePeriod,
     interval: config.interval,
     vsCurrency,
   });
 
-  const ohlcvSeriesKey = `${assetId}|${config.timePeriod}|${
-    config.interval ?? ''
-  }|${vsCurrency}`;
+  // Perps (Hyperliquid) have no CAIP asset id and no spot OHLCV feed; their price
+  // history is already fetched as a line series (`historicalPrices`, from the
+  // candleSnapshot endpoint). Render it on the same chart by treating each close
+  // as a flat OHLC bar — this is a line chart, so only `close` is plotted.
+  const perpOhlcvData = useMemo<OHLCVBar[]>(() => {
+    if (!isPerp) return EMPTY_OHLCV;
+    return historicalPrices.map(([time, price]) => ({
+      time: Number(time),
+      open: price,
+      high: price,
+      low: price,
+      close: price,
+      volume: 0,
+    }));
+  }, [isPerp, historicalPrices]);
 
+  const ohlcvData = isPerp ? perpOhlcvData : spot.ohlcvData;
+  const chartLoading = isPerp ? isPricesLoading : spot.isLoading;
+  const chartError = isPerp ? null : spot.error;
+  const hasEmptyData = isPerp ? perpOhlcvData.length === 0 : spot.hasEmptyData;
+
+  // Series key changes on data identity so a period switch (or fresh data) forces
+  // a full re-send + reframe. Perps key off the loaded series; spot off its params.
+  const ohlcvSeriesKey = isPerp
+    ? `perp|${activeTimePeriod}|${perpOhlcvData.length}|${
+        perpOhlcvData[perpOhlcvData.length - 1]?.time ?? ''
+      }`
+    : `${assetId}|${config.timePeriod}|${config.interval ?? ''}|${vsCurrency}`;
+
+  // Perps have no paginated history feed (the price API doesn't serve them).
   const ohlcvPagination = useMemo(
-    () => ({ nextCursor, hasMore, assetId, vsCurrency }),
-    [nextCursor, hasMore, assetId, vsCurrency],
+    () =>
+      isPerp
+        ? undefined
+        : {
+            nextCursor: spot.nextCursor,
+            hasMore: spot.hasMore,
+            assetId: assetId ?? '',
+            vsCurrency,
+          },
+    [isPerp, spot.nextCursor, spot.hasMore, assetId, vsCurrency],
   );
 
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;

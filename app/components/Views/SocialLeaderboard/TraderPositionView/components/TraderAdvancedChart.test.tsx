@@ -280,6 +280,57 @@ describe('TraderAdvancedChart', () => {
     expect(getByTestId('legacy-chart')).toBeTruthy();
   });
 
+  it('renders a perp position from historicalPrices, ignoring the spot OHLCV feed', () => {
+    // Spot feed empty: the perp path must build its series from historicalPrices.
+    setOHLCV([]);
+    const historicalPrices: TokenPrice[] = Array.from(
+      { length: 10 },
+      (_, i) => [String(1_700_000_000_000 + i * 60_000), 100 + i],
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        historicalPrices={historicalPrices}
+      />,
+    );
+
+    expect(getByTestId('advanced-chart')).toBeTruthy();
+    expect(queryByTestId('legacy-chart')).toBeNull();
+
+    const props = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      ohlcvData: { time: number; open: number; close: number }[];
+    };
+    expect(props.ohlcvData).toHaveLength(10);
+    // Each line point becomes a flat OHLC bar (open === close).
+    expect(props.ohlcvData[0]).toMatchObject({
+      time: 1_700_000_000_000,
+      open: 100,
+      close: 100,
+    });
+  });
+
+  it('falls back to the legacy chart for a perp with insufficient price history', () => {
+    setOHLCV([]);
+
+    const { getByTestId, queryByTestId } = render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        historicalPrices={[
+          ['1', 1],
+          ['2', 2],
+        ]}
+      />,
+    );
+
+    expect(getByTestId('legacy-chart')).toBeTruthy();
+    expect(queryByTestId('advanced-chart')).toBeNull();
+  });
+
   it('centers and pulses a trade when focusRequest changes (normalizing seconds → ms)', () => {
     setOHLCV(makeBars(20));
 

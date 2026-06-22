@@ -412,6 +412,7 @@ const TraderPositionView = () => {
               onChartIndexChange={handleChartIndexChange}
               trades={allTrades}
               assetId={chartAssetId}
+              isPerp={isPerp}
               activeTimePeriod={activeTimePeriod}
               onScrubPercentChange={setScrubPercent}
               focusRequest={focusRequest}
@@ -435,7 +436,9 @@ const TraderPositionView = () => {
               trades={allTrades}
               traderImageUrl={traderImageUrl}
               traderAddress={traderAddress}
-              onTradePress={chartAssetId ? handleTradePress : undefined}
+              onTradePress={
+                chartAssetId || isPerp ? handleTradePress : undefined
+              }
             />
           </ScrollView>
 
