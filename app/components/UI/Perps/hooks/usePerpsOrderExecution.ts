@@ -193,6 +193,9 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
+          const chartLibrary = (
+            orderParams.trackingData as { chartLibrary?: string } | undefined
+          )?.chartLibrary;
 
           // Check if order was partially filled
           const orderSize = Number.parseFloat(orderParams.size.toString());
@@ -221,6 +224,9 @@ export function usePerpsOrderExecution(
             if (orderParams.trackingData?.source) {
               partialProps[PERPS_EVENT_PROPERTY.SOURCE] =
                 orderParams.trackingData.source;
+            }
+            if (chartLibrary) {
+              partialProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
             }
             if (orderParams.trackingData?.tradeWithToken === true) {
               if (orderParams.trackingData.mmPayTokenSelected != null) {
@@ -372,6 +378,12 @@ export function usePerpsOrderExecution(
             failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
               orderParams.trackingData.source;
           }
+          const chartLibrary = (
+            orderParams.trackingData as { chartLibrary?: string } | undefined
+          )?.chartLibrary;
+          if (chartLibrary) {
+            failedProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
+          }
           if (orderParams.trackingData?.tradeWithToken === true) {
             if (orderParams.trackingData.mmPayTokenSelected != null) {
               failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
@@ -444,6 +456,12 @@ export function usePerpsOrderExecution(
         if (orderParams.trackingData?.source) {
           exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
             orderParams.trackingData.source;
+        }
+        const chartLibrary = (
+          orderParams.trackingData as { chartLibrary?: string } | undefined
+        )?.chartLibrary;
+        if (chartLibrary) {
+          exceptionProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
         }
         if (orderParams.trackingData?.tradeWithToken === true) {
           if (orderParams.trackingData.mmPayTokenSelected != null) {

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +36,7 @@ import PerpsOHLCVBar from '../PerpsOHLCVBar';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { getPerpsChartAnalyticsProperties } from '../../utils/analytics/chartInstrumentation';
 
 export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
@@ -77,6 +84,10 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   // Track OHLCV bar height to subtract from chart height
   const [ohlcvHeight, setOhlcvHeight] = useState<number>(0);
   const { track } = usePerpsEventTracking();
+  const chartAnalyticsProperties = useMemo(
+    () => getPerpsChartAnalyticsProperties(Boolean(isAdvancedChartEnabled)),
+    [isAdvancedChartEnabled],
+  );
 
   // Allow landscape orientation when modal is visible
   // Automatically locks back to portrait when modal closes or unmounts
@@ -103,8 +114,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
       [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+      ...chartAnalyticsProperties,
     });
-  }, [isVisible, symbol, track]);
+  }, [chartAnalyticsProperties, isVisible, symbol, track]);
 
   useEffect(() => {
     if (
@@ -157,8 +169,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
       ...(symbol ? { [PERPS_EVENT_PROPERTY.ASSET]: symbol } : {}),
+      ...chartAnalyticsProperties,
     });
-  }, [symbol, track]);
+  }, [chartAnalyticsProperties, symbol, track]);
 
   // Handle boundary-level chart errors by closing the modal.
   // Orientation is automatically restored by the hook.
