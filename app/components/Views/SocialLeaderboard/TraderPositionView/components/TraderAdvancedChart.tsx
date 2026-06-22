@@ -1,5 +1,5 @@
 import type { Trade } from '@metamask/social-controllers';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
@@ -9,6 +9,7 @@ import {
 import AdvancedChart from '../../../../UI/Charts/AdvancedChart/AdvancedChart';
 import {
   ChartType,
+  type AdvancedChartRef,
   type CrosshairData,
   type IndicatorType,
   type OHLCVBar,
@@ -119,6 +120,18 @@ export function mapTradesToAdvancedMarkers(
   return markers;
 }
 
+/**
+ * A request to slide the chart to a trade and pulse its marker. `timestamp` is
+ * the trade's timestamp (seconds or ms — normalized here); `id` is its
+ * `transactionHash` (matches the marker id); `nonce` changes on every tap so
+ * re-tapping the same trade re-centers and re-pulses it.
+ */
+export interface TradeFocusRequest {
+  id: string;
+  timestamp: number;
+  nonce: number;
+}
+
 export interface TraderAdvancedChartProps {
   /** CAIP-19 asset id for the spot token (drives the OHLCV feed). */
   assetId: string;
@@ -126,6 +139,8 @@ export interface TraderAdvancedChartProps {
   activeTimePeriod: TimePeriod;
   /** Trades to render as open/close circles. */
   trades: readonly Trade[];
+  /** When set, the chart slides to center this trade's time (see {@link TradeFocusRequest}). */
+  focusRequest?: TradeFocusRequest;
   /** Fallback (legacy) chart data, used when OHLCV coverage is insufficient. */
   historicalPrices: TokenPrice[];
   priceDiff: number;
@@ -150,6 +165,7 @@ const TraderAdvancedChart = ({
   assetId,
   activeTimePeriod,
   trades,
+  focusRequest,
   historicalPrices,
   priceDiff,
   isPricesLoading,
@@ -158,6 +174,15 @@ const TraderAdvancedChart = ({
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
 }: TraderAdvancedChartProps) => {
   const vsCurrency = CHART_VS_CURRENCY;
+  const chartRef = useRef<AdvancedChartRef>(null);
+
+  // Slide the chart to center a tapped trade and pulse its marker.
+  // `focusRequest.nonce` changes on every tap so re-tapping re-centers/re-pulses.
+  useEffect(() => {
+    if (!focusRequest) return;
+    chartRef.current?.focusTime(normalizeTs(focusRequest.timestamp));
+    chartRef.current?.pulseTradeMarker(focusRequest.id);
+  }, [focusRequest]);
 
   const timeRange = SOCIAL_PERIOD_TO_TIME_RANGE[activeTimePeriod];
   const config = TIME_RANGE_CONFIGS[timeRange];
@@ -279,6 +304,7 @@ const TraderAdvancedChart = ({
   return (
     <View style={{ height: chartHeight }} testID="trader-advanced-chart">
       <AdvancedChart
+        ref={chartRef}
         ohlcvData={ohlcvData}
         ohlcvSeriesKey={ohlcvSeriesKey}
         height={chartHeight}

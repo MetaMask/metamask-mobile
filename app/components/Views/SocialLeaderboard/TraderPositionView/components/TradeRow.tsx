@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable } from 'react-native';
 import {
   Box,
   Text,
@@ -22,12 +23,15 @@ export interface TradeRowProps {
   trade: Trade;
   traderImageUrl?: string;
   traderAddress?: string;
+  /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
+  onPress?: (trade: Trade) => void;
 }
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
   traderImageUrl,
   traderAddress,
+  onPress,
 }) => {
   const isEntry = trade.intent === 'enter';
   const isPerp = isPerpTrade(trade);
@@ -43,68 +47,79 @@ const TradeRow: React.FC<TradeRowProps> = ({
       : strings('social_leaderboard.trader_position.sold');
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="px-4 py-3"
+    <Pressable
+      onPress={onPress ? () => onPress(trade) : undefined}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
       testID={`trade-row-${trade.transactionHash}`}
+      style={({ pressed }) =>
+        pressed && onPress ? { opacity: 0.6 } : undefined
+      }
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={4}
-        twClassName="flex-1 min-w-0 mr-3"
+        twClassName="px-4 py-3"
       >
-        <TraderAvatar
-          imageUrl={traderImageUrl}
-          address={traderAddress}
-          size={AVATAR_SIZE}
-        />
-        <Box twClassName="flex-1 min-w-0">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-              twClassName="shrink"
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={4}
+          twClassName="flex-1 min-w-0 mr-3"
+        >
+          <TraderAvatar
+            imageUrl={traderImageUrl}
+            address={traderAddress}
+            size={AVATAR_SIZE}
+          />
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
             >
-              {actionLabel}
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {actionLabel}
+              </Text>
+              {perpDirection ? (
+                <PerpBadges
+                  direction={perpDirection}
+                  leverage={trade.perpLeverage}
+                  testID={`trade-row-perp-badges-${trade.transactionHash}`}
+                />
+              ) : null}
+            </Box>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {formatTradeDate(trade.timestamp)}
             </Text>
-            {perpDirection ? (
-              <PerpBadges
-                direction={perpDirection}
-                leverage={trade.perpLeverage}
-                testID={`trade-row-perp-badges-${trade.transactionHash}`}
-              />
-            ) : null}
           </Box>
+        </Box>
+
+        <Box alignItems={BoxAlignItems.End}>
           <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName={
+              isEntry ? 'text-success-default' : 'text-error-default'
+            }
           >
-            {formatTradeDate(trade.timestamp)}
+            {formatUsd(
+              isEntry ? Math.abs(trade.usdCost) : -Math.abs(trade.usdCost),
+            )}
           </Text>
         </Box>
       </Box>
-
-      <Box alignItems={BoxAlignItems.End}>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName={isEntry ? 'text-success-default' : 'text-error-default'}
-        >
-          {formatUsd(
-            isEntry ? Math.abs(trade.usdCost) : -Math.abs(trade.usdCost),
-          )}
-        </Text>
-      </Box>
-    </Box>
+    </Pressable>
   );
 };
 

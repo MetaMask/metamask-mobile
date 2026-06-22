@@ -22,6 +22,8 @@ window.currentSymbol = 'ASSET';
 window.activeStudies = new Map();
 window.positionShapeIds = [];
 window.tradeMarkerShapeIds = [];
+/** Map<tradeId, shapeEntityId> so a specific trade marker can be pulsed on demand. */
+window.tradeMarkerShapeIdsById = new Map();
 window.isChartReady = false;
 window.pendingMessages = [];
 window.libraryLoaded = false;
@@ -242,6 +244,12 @@ function handleMessage(event) {
         break;
       case 'SET_TRADE_MARKERS':
         handleSetTradeMarkers(message.payload);
+        break;
+      case 'FOCUS_TIME':
+        handleFocusTime(message.payload);
+        break;
+      case 'PULSE_TRADE_MARKER':
+        handlePulseTradeMarker(message.payload);
         break;
       case 'REALTIME_UPDATE':
         handleRealtimeUpdate(message.payload);
@@ -510,6 +518,7 @@ function handleSetOHLCVData(payload) {
       window.lineLastPriceShapeId = null;
       window.positionShapeIds = [];
       window.tradeMarkerShapeIds = [];
+      window.tradeMarkerShapeIdsById = new Map();
       window.realtimeCallbacks = {};
       window.currentChartType = 2;
       initChart();
@@ -2210,6 +2219,7 @@ function clearTradeMarkers() {
       }
     }
     window.tradeMarkerShapeIds = [];
+    window.tradeMarkerShapeIdsById = new Map();
   } catch (error) {
     sendToReactNative('ERROR', {
       message: 'Failed to clear trade markers: ' + error.message,
@@ -2268,6 +2278,9 @@ function handleSetTradeMarkers(payload) {
           .then(function (entityId) {
             if (entityId) {
               window.tradeMarkerShapeIds.push(entityId);
+              if (marker.id != null) {
+                window.tradeMarkerShapeIdsById.set(String(marker.id), entityId);
+              }
             }
           })
           .catch(function () {});
@@ -2277,6 +2290,199 @@ function handleSetTradeMarkers(payload) {
     sendToReactNative('ERROR', {
       message: 'Failed to add trade markers: ' + error.message,
     });
+  }
+}
+
+/** Bumped on each pulse so a newer pulse (or marker rebuild) cancels the previous loop. */
+window.__tradeMarkerPulseGen = 0;
+/** Pulse animation duration (ms). */
+var TRADE_MARKER_PULSE_MS = 1100;
+/** Peak icon size at the crest of a pulse (base is TRADE_MARKER_SIZE). */
+var TRADE_MARKER_PULSE_PEAK = 26;
+/** Number of grow/shrink humps over the animation. */
+var TRADE_MARKER_PULSE_CYCLES = 2;
+
+/**
+ * Briefly pulses (grows + shrinks, fading out) the trade marker for `payload.id`
+ * to draw attention to it — e.g. after the chart slides to a tapped trade.
+ * Animates the icon's `size` via `setProperties`; a generation token cancels an
+ * in-flight pulse if a newer one starts or the markers are rebuilt.
+ */
+function handlePulseTradeMarker(payload) {
+  if (!window.chartWidget || !window.isChartReady) return;
+  if (!payload || payload.id == null) return;
+
+  var markerId = String(payload.id);
+  var byId = window.tradeMarkerShapeIdsById;
+  if (!byId || typeof byId.get !== 'function') return;
+  var entityId = byId.get(markerId);
+  if (entityId == null) return;
+
+  var chart;
+  try {
+    chart = window.chartWidget.activeChart();
+  } catch (e) {
+    return;
+  }
+  if (!chart || typeof chart.getShapeById !== 'function') return;
+
+  var shape;
+  try {
+    shape = chart.getShapeById(entityId);
+  } catch (e) {
+    return;
+  }
+  if (!shape || typeof shape.setProperties !== 'function') return;
+
+  window.__tradeMarkerPulseGen = (window.__tradeMarkerPulseGen || 0) + 1;
+  var gen = window.__tradeMarkerPulseGen;
+  var startTs = Date.now();
+
+  function setSize(size) {
+    try {
+      shape.setProperties({ size: Math.round(size) });
+    } catch (e) {}
+  }
+
+  function step() {
+    if (gen !== window.__tradeMarkerPulseGen) return;
+    if (!window.chartWidget || !window.isChartReady) return;
+    // Bail if the markers were rebuilt (entityId no longer maps to this id).
+    if (window.tradeMarkerShapeIdsById.get(markerId) !== entityId) return;
+
+    var t = (Date.now() - startTs) / TRADE_MARKER_PULSE_MS;
+    if (t >= 1) {
+      setSize(TRADE_MARKER_SIZE);
+      return;
+    }
+    // Decaying |sine| envelope: humps that shrink back to the base size.
+    var envelope =
+      Math.abs(Math.sin(Math.PI * TRADE_MARKER_PULSE_CYCLES * t)) * (1 - t);
+    setSize(
+      TRADE_MARKER_SIZE +
+        (TRADE_MARKER_PULSE_PEAK - TRADE_MARKER_SIZE) * envelope,
+    );
+    try {
+      requestAnimationFrame(step);
+    } catch (e) {
+      setTimeout(step, 16);
+    }
+  }
+
+  try {
+    requestAnimationFrame(step);
+  } catch (e) {
+    setSize(TRADE_MARKER_SIZE);
+  }
+}
+
+// ============================================
+// Focus / center on a point in time (FOCUS_TIME) — e.g. tapping a trade row
+// ============================================
+
+/** Bumped on each FOCUS_TIME so a newer focus cancels the previous animation loop. */
+window.__focusTimeAnimGen = 0;
+/** Animation duration for the slide-to-center, ms. */
+var FOCUS_TIME_ANIM_MS = 350;
+/** Fallback visible span (in bar durations) when no current range is readable. */
+var FOCUS_TIME_FALLBACK_BARS = 60;
+
+function focusTimeEaseInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+/**
+ * Slides the visible range so `payload.timeMs` is centered. Keeps the current zoom
+ * unless `payload.spanMs` is given, and animates (eased) unless `payload.animate === false`.
+ * A generation token cancels an in-flight slide when a newer FOCUS_TIME arrives.
+ */
+function handleFocusTime(payload) {
+  if (!window.chartWidget || !window.isChartReady) return;
+  if (!payload || !isFinite(payload.timeMs)) return;
+
+  var chart;
+  try {
+    chart = window.chartWidget.activeChart();
+  } catch (e) {
+    return;
+  }
+  if (!chart || typeof chart.setVisibleRange !== 'function') return;
+
+  var centerSec = payload.timeMs / 1000;
+
+  // Current visible range (seconds) — used for the start of the animation and to
+  // preserve the zoom when no explicit span is requested.
+  var curFrom = null;
+  var curTo = null;
+  try {
+    var vr = chart.getVisibleRange();
+    if (vr) {
+      var f = normalizeChartUnixSec(vr.from);
+      var t = normalizeChartUnixSec(vr.to);
+      if (f !== null && t !== null && t > f) {
+        curFrom = f;
+        curTo = t;
+      }
+    }
+  } catch (e2) {}
+
+  var spanSec;
+  if (isFinite(payload.spanMs) && payload.spanMs > 0) {
+    spanSec = payload.spanMs / 1000;
+  } else if (curFrom !== null) {
+    spanSec = curTo - curFrom;
+  } else {
+    spanSec = getApproxBarDurationSec() * FOCUS_TIME_FALLBACK_BARS;
+  }
+
+  var targetFrom = centerSec - spanSec / 2;
+  var targetTo = centerSec + spanSec / 2;
+
+  function applyRange(from, to) {
+    try {
+      chart.setVisibleRange({ from: from, to: to });
+    } catch (e) {}
+  }
+
+  window.__focusTimeAnimGen = (window.__focusTimeAnimGen || 0) + 1;
+  var gen = window.__focusTimeAnimGen;
+
+  // Jump when animation is disabled or we have no start range to interpolate from.
+  if (payload.animate === false || curFrom === null) {
+    suppressChartUserInteraction(500);
+    applyRange(targetFrom, targetTo);
+    return;
+  }
+
+  var startFrom = curFrom;
+  var startTo = curTo;
+  var startTs = Date.now();
+  suppressChartUserInteraction(FOCUS_TIME_ANIM_MS + 300);
+
+  function step() {
+    if (gen !== window.__focusTimeAnimGen) return;
+    if (!window.chartWidget || !window.isChartReady) return;
+    var elapsed = Date.now() - startTs;
+    var progress =
+      elapsed >= FOCUS_TIME_ANIM_MS ? 1 : elapsed / FOCUS_TIME_ANIM_MS;
+    var eased = focusTimeEaseInOutCubic(progress);
+    applyRange(
+      startFrom + (targetFrom - startFrom) * eased,
+      startTo + (targetTo - startTo) * eased,
+    );
+    if (progress < 1) {
+      try {
+        requestAnimationFrame(step);
+      } catch (e) {
+        setTimeout(step, 16);
+      }
+    }
+  }
+
+  try {
+    requestAnimationFrame(step);
+  } catch (e) {
+    applyRange(targetFrom, targetTo);
   }
 }
 

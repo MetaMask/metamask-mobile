@@ -60,6 +60,8 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import type { Trade } from '@metamask/social-controllers';
+import type { TradeFocusRequest } from './components/TraderAdvancedChart';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -340,6 +342,19 @@ const TraderPositionView = () => {
     [navigation],
   );
 
+  // Tapping a trade row slides the chart to center that trade. The nonce changes
+  // on every tap so re-tapping the same trade re-centers it.
+  const focusNonceRef = useRef(0);
+  const [focusRequest, setFocusRequest] = useState<TradeFocusRequest>();
+  const handleTradePress = useCallback((trade: Trade) => {
+    focusNonceRef.current += 1;
+    setFocusRequest({
+      id: trade.transactionHash,
+      timestamp: trade.timestamp,
+      nonce: focusNonceRef.current,
+    });
+  }, []);
+
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
   const hasFailed =
@@ -399,6 +414,7 @@ const TraderPositionView = () => {
               assetId={chartAssetId}
               activeTimePeriod={activeTimePeriod}
               onScrubPercentChange={setScrubPercent}
+              focusRequest={focusRequest}
             />
 
             <TraderTimePeriodSelector
@@ -419,6 +435,7 @@ const TraderPositionView = () => {
               trades={allTrades}
               traderImageUrl={traderImageUrl}
               traderAddress={traderAddress}
+              onTradePress={chartAssetId ? handleTradePress : undefined}
             />
           </ScrollView>
 

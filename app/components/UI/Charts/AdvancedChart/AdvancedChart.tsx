@@ -443,6 +443,21 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         addIndicator,
         removeIndicator,
         setChartType: setChartTypeInternal,
+        focusTime: (timeMs, options) => {
+          if (!Number.isFinite(timeMs)) return;
+          postMessage({
+            type: 'FOCUS_TIME',
+            payload: {
+              timeMs,
+              ...(options?.spanMs != null ? { spanMs: options.spanMs } : {}),
+              ...(options?.animate != null ? { animate: options.animate } : {}),
+            },
+          });
+        },
+        pulseTradeMarker: (id) => {
+          if (!id) return;
+          postMessage({ type: 'PULSE_TRADE_MARKER', payload: { id } });
+        },
         reset: () => {
           clearLayoutSettleTimeout();
           setLayoutSettling(false);
@@ -465,6 +480,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         removeIndicator,
         setChartTypeInternal,
         clearLayoutSettleTimeout,
+        postMessage,
       ],
     );
 

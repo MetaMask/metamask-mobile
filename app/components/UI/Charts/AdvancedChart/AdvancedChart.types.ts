@@ -196,7 +196,9 @@ export type RNToWebViewMessageType =
   | 'SET_TRADE_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
-  | 'SET_THEME_COLORS';
+  | 'SET_THEME_COLORS'
+  | 'FOCUS_TIME'
+  | 'PULSE_TRADE_MARKER';
 
 export type WebViewToRNMessageType =
   | 'CHART_READY'
@@ -274,6 +276,23 @@ export interface SetThemeColorsPayload {
   errorColor: string;
 }
 
+export interface FocusTimePayload {
+  /** Center the viewport on this point in time (Unix timestamp in **milliseconds**). */
+  timeMs: number;
+  /**
+   * Visible span (ms) to apply while centering. Omitted → keep the current zoom
+   * so the chart simply slides to the point at the same scale.
+   */
+  spanMs?: number;
+  /** Smoothly animate the scroll (default `true`); `false` jumps instantly. */
+  animate?: boolean;
+}
+
+export interface PulseTradeMarkerPayload {
+  /** `id` of the trade marker to pulse (matches {@link TradeMarker.id}). No-op if not found. */
+  id: string;
+}
+
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
@@ -284,7 +303,9 @@ export type RNToWebViewMessage =
   | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
-  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload };
+  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload }
+  | { type: 'FOCUS_TIME'; payload: FocusTimePayload }
+  | { type: 'PULSE_TRADE_MARKER'; payload: PulseTradeMarkerPayload };
 
 export interface IndicatorAddedPayload {
   name: IndicatorType;
@@ -553,4 +574,18 @@ export interface AdvancedChartRef {
   removeIndicator: (indicator: IndicatorType) => void;
   setChartType: (chartType: ChartType) => void;
   reset: () => void;
+  /**
+   * Slide the viewport so `timeMs` (Unix ms) is centered. By default keeps the
+   * current zoom and animates; pass `spanMs` to set the zoom and `animate: false`
+   * to jump. No-op until the chart is ready.
+   */
+  focusTime: (
+    timeMs: number,
+    options?: { spanMs?: number; animate?: boolean },
+  ) => void;
+  /**
+   * Briefly pulse the trade marker with this `id` (matches {@link TradeMarker.id})
+   * to draw attention to it. No-op if no such marker exists or the chart isn't ready.
+   */
+  pulseTradeMarker: (id: string) => void;
 }

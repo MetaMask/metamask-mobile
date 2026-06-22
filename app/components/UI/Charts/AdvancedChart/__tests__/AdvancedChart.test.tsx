@@ -352,6 +352,77 @@ describe('AdvancedChart', () => {
     expect(ref.current?.removeIndicator).toBeInstanceOf(Function);
     expect(ref.current?.setChartType).toBeInstanceOf(Function);
     expect(ref.current?.reset).toBeInstanceOf(Function);
+    expect(ref.current?.focusTime).toBeInstanceOf(Function);
+    expect(ref.current?.pulseTradeMarker).toBeInstanceOf(Function);
+  });
+
+  it('sends PULSE_TRADE_MARKER via the pulseTradeMarker ref method', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.pulseTradeMarker('0xabc');
+    });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'PULSE_TRADE_MARKER',
+        payload: { id: '0xabc' },
+      }),
+    );
+
+    // Empty id is a no-op.
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.pulseTradeMarker('');
+    });
+    expect(mockPostMessage).not.toHaveBeenCalled();
+  });
+
+  it('sends FOCUS_TIME with options via the focusTime ref method', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.focusTime(1_700_000_000_000, {
+        spanMs: 86_400_000,
+        animate: false,
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FOCUS_TIME',
+        payload: {
+          timeMs: 1_700_000_000_000,
+          spanMs: 86_400_000,
+          animate: false,
+        },
+      }),
+    );
+  });
+
+  it('omits unset options and ignores non-finite times in focusTime', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.focusTime(1_700_000_000_000);
+    });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FOCUS_TIME',
+        payload: { timeMs: 1_700_000_000_000 },
+      }),
+    );
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.focusTime(Number.NaN);
+    });
+    expect(mockPostMessage).not.toHaveBeenCalled();
   });
 
   it('calls onChartReady when chart reports ready', () => {

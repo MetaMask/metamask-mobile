@@ -8,20 +8,32 @@ import TraderAdvancedChart, {
   mapTradesToAdvancedMarkers,
 } from './TraderAdvancedChart';
 
-// Capture the props AdvancedChart receives so we can assert on tradeMarkers.
+// Capture the props AdvancedChart receives so we can assert on tradeMarkers,
+// and expose a mock `focusTime` via the forwarded ref so we can assert centering.
 const mockAdvancedChart = jest.fn();
-jest.mock('../../../../UI/Charts/AdvancedChart/AdvancedChart', () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => {
-    mockAdvancedChart(props);
-    const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="advanced-chart">
-        <Text>advanced</Text>
-      </View>
-    );
-  },
-}));
+const mockFocusTime = jest.fn();
+const mockPulseTradeMarker = jest.fn();
+jest.mock('../../../../UI/Charts/AdvancedChart/AdvancedChart', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (props: Record<string, unknown>, ref: unknown) => {
+        mockAdvancedChart(props);
+        ReactActual.useImperativeHandle(ref, () => ({
+          focusTime: mockFocusTime,
+          pulseTradeMarker: mockPulseTradeMarker,
+        }));
+        const { View, Text } = jest.requireActual('react-native');
+        return (
+          <View testID="advanced-chart">
+            <Text>advanced</Text>
+          </View>
+        );
+      },
+    ),
+  };
+});
 
 // Render a lightweight stand-in for the legacy fallback chart.
 jest.mock('./TraderPriceChart', () => ({
@@ -266,5 +278,32 @@ describe('TraderAdvancedChart', () => {
     const { getByTestId } = render(<TraderAdvancedChart {...defaultProps} />);
 
     expect(getByTestId('legacy-chart')).toBeTruthy();
+  });
+
+  it('centers and pulses a trade when focusRequest changes (normalizing seconds → ms)', () => {
+    setOHLCV(makeBars(20));
+
+    const { rerender } = render(<TraderAdvancedChart {...defaultProps} />);
+    expect(mockFocusTime).not.toHaveBeenCalled();
+    expect(mockPulseTradeMarker).not.toHaveBeenCalled();
+
+    rerender(
+      <TraderAdvancedChart
+        {...defaultProps}
+        focusRequest={{ id: '0xbuy', timestamp: 1_700_000_060, nonce: 1 }}
+      />,
+    );
+    expect(mockFocusTime).toHaveBeenCalledWith(1_700_000_060_000);
+    expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xbuy');
+
+    // Re-tapping (new nonce) re-centers and re-pulses, even with the same trade.
+    rerender(
+      <TraderAdvancedChart
+        {...defaultProps}
+        focusRequest={{ id: '0xbuy', timestamp: 1_700_000_060, nonce: 2 }}
+      />,
+    );
+    expect(mockFocusTime).toHaveBeenCalledTimes(2);
+    expect(mockPulseTradeMarker).toHaveBeenCalledTimes(2);
   });
 });
