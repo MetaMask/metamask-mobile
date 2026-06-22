@@ -208,6 +208,21 @@ export function TransactionDetailsHero() {
       ]) &&
       Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
 
+    const icon = isMusdToken(tokenMeta.contractAddress) ? (
+      <Image
+        source={MoneyIcon}
+        style={iconStyles.moneyIcon}
+        testID="money-account-icon"
+      />
+    ) : (
+      <TokenIcon
+        chainId={tokenMeta.chainId}
+        address={tokenMeta.contractAddress as Hex}
+        symbol={tokenMeta.symbol}
+        showNetwork={false}
+      />
+    );
+
     return (
       <Box
         testID="transaction-details-hero"
@@ -216,12 +231,7 @@ export function TransactionDetailsHero() {
         gap={12}
         style={styles.container}
       >
-        <TokenIcon
-          chainId={tokenMeta.chainId}
-          address={tokenMeta.contractAddress as Hex}
-          symbol={tokenMeta.symbol}
-          showNetwork={false}
-        />
+        {icon}
         <Text
           variant={TextVariant.DisplayMD}
           color={isFiatDeposit ? TextColor.Success : undefined}
