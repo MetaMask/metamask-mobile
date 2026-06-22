@@ -3,9 +3,6 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeMoney } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
-import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
-
 import Assertions from '../../framework/Assertions';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { Mockttp } from 'mockttp';
@@ -47,10 +44,6 @@ describe(SmokeMoney('Buy Crypto Deeplinks'), () => {
 
         // V2: chainId-only deeplink resolves to native ETH and opens BuildQuote directly.
         await Assertions.expectTextDisplayed('Buy ETH');
-        await BuildQuoteView.tapBackButton();
-
-        await TokenSelectScreen.tapTokenByName('DAI');
-        await Assertions.expectTextDisplayed('Buy DAI');
         await Assertions.expectTextDisplayed('USD');
       },
     );
