@@ -7788,6 +7788,7 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "batch_sell_transaction_label": "Batch sell",
     "batch_sell_select_title": "Select up to 5 tokens",
     "batch_sell_select_subtitle": "All tokens need to be on the same network.",
     "batch_sell_empty_state_title": "No tokens. No problem.",
@@ -7998,6 +7999,7 @@
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Date",
+    "network": "Network",
     "total_gas_fee": "Total gas fee",
     "estimated_completion": "Est. completion",
     "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
@@ -8007,6 +8009,8 @@
     "view_on_block_explorer": "View on block explorer",
     "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
     "transaction_details": "Transaction details",
+    "you_swapped": "You swapped",
+    "you_received": "You received",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
   },
