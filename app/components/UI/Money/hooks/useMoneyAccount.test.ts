@@ -216,6 +216,7 @@ describe('useMoneyAccountDeposit', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        isGasFeeSponsored: true,
       }),
     );
   });
@@ -462,11 +463,7 @@ describe('useMoneyAccountWithdrawal', () => {
     );
   });
 
-  it('sets isGasFeeSponsored to true when vault chain is Monad', async () => {
-    setupSelectors({
-      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
-    });
-
+  it('always sets isGasFeeSponsored to true', async () => {
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
     await act(async () => {
@@ -476,20 +473,6 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
         isGasFeeSponsored: true,
-      }),
-    );
-  });
-
-  it('sets isGasFeeSponsored to false when vault chain is not Monad', async () => {
-    const { result } = renderHook(() => useMoneyAccountWithdrawal());
-
-    await act(async () => {
-      await result.current.initiateWithdrawal();
-    });
-
-    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isGasFeeSponsored: false,
       }),
     );
   });
