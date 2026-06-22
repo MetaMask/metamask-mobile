@@ -9222,9 +9222,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-upgrade-controller@npm:^2.0.5":
-  version: 2.0.5
-  resolution: "@metamask/money-account-upgrade-controller@npm:2.0.5"
+"@metamask/money-account-upgrade-controller@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/money-account-upgrade-controller@npm:2.1.0"
   dependencies:
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9232,11 +9232,11 @@ __metadata:
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-core": "npm:^2.2.1"
     "@metamask/delegation-deployments": "npm:^1.4.0"
-    "@metamask/keyring-controller": "npm:^27.0.0"
+    "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/network-controller": "npm:^32.0.0"
+    "@metamask/network-controller": "npm:^33.0.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/ce7c34035abe401f310832fe15cd8cd99c3740d72ead914b170667cd65c2612820c6936eaaf8b9bf1bf2407aed92ff7cc2bff7bebfc12ce40683e68344b6c606
+  checksum: 10/5e24234658b903fca1ebd27e4bde110d4157fb10e046d1400f6c786b62a4a7a25a34f6bb45d90ff33b611ebffea3baa202ac731ddf4d56a25b4ad9156465c5f1
   languageName: node
   linkType: hard
 
@@ -35456,7 +35456,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-balance-service": "npm:^2.1.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
-    "@metamask/money-account-upgrade-controller": "npm:^2.0.5"
+    "@metamask/money-account-upgrade-controller": "npm:^2.1.0"
     "@metamask/multichain-account-service": "npm:^10.0.2"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^3.1.1"
