@@ -202,6 +202,21 @@ describe('ManagePriceAlertsView', () => {
       expect(screen.getByText('Reaches $0.0₁₃105')).toBeOnTheScreen();
     });
 
+    it('preserves full precision for sub-cent thresholds', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-a', threshold: 0.00181069 }),
+          makeAlert({ id: 'alert-b', threshold: 0.00182069 }),
+        ]),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Reaches $0.00181069')).toBeOnTheScreen();
+      expect(screen.getByText('Reaches $0.00182069')).toBeOnTheScreen();
+    });
+
     it('shows "Recurring" for recurring alerts and "Once" for one-shot alerts', async () => {
       const screen = renderView();
       await waitForLoaded(screen);

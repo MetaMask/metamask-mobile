@@ -5,8 +5,31 @@ import Price from './Price';
 import type { TokenI } from '../../Tokens/types';
 import { PriceChartProvider } from '../PriceChart/PriceChart.context';
 import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
-import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import {
+  selectTokenOverviewChartType,
+  selectTokenIndicators,
+} from '../../../../reducers/user/selectors';
+import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
@@ -104,12 +127,22 @@ const unifiedProps = {
 describe('Price Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return false;
       }
       if (selector === selectTokenOverviewChartType) {
         return ChartType.Line;
+      }
+      if (selector === selectTokenIndicators) {
+        return [];
+      }
+      if (selector === selectTokenDetailsOhlcvWsEnabled) {
+        return false;
+      }
+      if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+        return false;
       }
       return undefined;
     });

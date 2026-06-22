@@ -78,6 +78,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       realtimeBar,
       ohlcvPagination,
       indicators = [],
+      selectedMAs = [],
       positionLines,
       chartType,
       showVolume = false,
@@ -98,6 +99,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
+      legendOverlay,
       currentPriceLineColorOverride,
     },
     ref,
@@ -121,6 +123,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
+    const [appliedIndicatorCount, setAppliedIndicatorCount] = useState(0);
+    const [legendRendered, setLegendRendered] = useState(false);
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
@@ -159,6 +163,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         errorColorOverride,
         currentPriceLineColorOverride,
+        legendOverlay,
       });
       // lineColorOverride/successColorOverride/errorColorOverride intentionally excluded —
       // color changes hot-swap via SET_THEME_COLORS without rebuilding the WebView.
@@ -171,6 +176,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       disabledFeatures,
       lineChrome,
       currentPriceLineColorOverride,
+      legendOverlay,
     ]);
 
     // Reset all chart state when the WebView reloads due to htmlContent changes.
@@ -183,6 +189,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       webViewLoadedRef.current = false;
       setWebViewError(null);
       activeIndicatorsRef.current.clear();
+      setAppliedIndicatorCount(0);
+      setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
@@ -235,6 +243,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           ? prevOhlcvDataRef.current
           : null;
       activeIndicatorsRef.current.clear();
+      setAppliedIndicatorCount(0);
+      setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
     }, [ohlcvSeriesKey, clearLayoutSettleTimeout]);
@@ -339,7 +349,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         let raw;
         try {
           raw = JSON.parse(event.nativeEvent.data);
-        } catch {
+        } catch (err) {
           return;
         }
 
@@ -349,6 +359,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         switch (message.type) {
           case 'CHART_READY':
             activeIndicatorsRef.current.clear();
+            setAppliedIndicatorCount(0);
+            setLegendRendered(false);
             prevPositionLinesRef.current = undefined;
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
@@ -365,10 +377,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
           case 'INDICATOR_ADDED':
             activeIndicatorsRef.current.add(message.payload.name);
+            setAppliedIndicatorCount(activeIndicatorsRef.current.size);
             break;
 
           case 'INDICATOR_REMOVED':
             activeIndicatorsRef.current.delete(message.payload.name);
+            setAppliedIndicatorCount(activeIndicatorsRef.current.size);
+            break;
+
+          case 'LEGEND_RENDERED':
+            setLegendRendered(true);
             break;
 
           case 'CROSSHAIR_MOVE':
@@ -586,6 +604,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [indicators, chartReadyCount, addIndicator, removeIndicator]);
 
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+
+      postMessage({
+        type: 'SET_MA_VISIBILITY',
+        payload: { visible: selectedMAs },
+      });
+    }, [selectedMAs, chartReadyCount, postMessage]);
+
     // Sync positionLines prop
     useEffect(() => {
       if (chartReadyCount === 0) return;
@@ -664,21 +691,59 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       theme.colors.error.default,
     ]);
 
-    const showSkeleton = isLoading || !isChartReady || layoutSettling;
+    // On first paint, wait for indicators/legend before hiding skeleton. After the chart
+    // has been revealed once, keep it visible while users toggle indicators live.
+    const expectedIndicators = useMemo(
+      () => new Set([...indicators, ...selectedMAs]),
+      [indicators, selectedMAs],
+    );
+    const awaitingInitialIndicatorPaint = !skeletonHiddenReportedRef.current;
+    const waitingForIndicators =
+      awaitingInitialIndicatorPaint &&
+      isChartReady &&
+      expectedIndicators.size > 0 &&
+      activeIndicatorsRef.current.size < expectedIndicators.size;
+
+    const waitingForLegend =
+      awaitingInitialIndicatorPaint &&
+      isChartReady &&
+      legendOverlay?.enabled &&
+      expectedIndicators.size > 0 &&
+      !legendRendered;
+
+    const showSkeleton =
+      isLoading ||
+      !isChartReady ||
+      layoutSettling ||
+      waitingForIndicators ||
+      waitingForLegend;
 
     useEffect(() => {
-      if (webViewError) {
-        return;
+      if (webViewError) return;
+      if (!onSkeletonHidden) return;
+      if (isLoading || !isChartReady || layoutSettling) return;
+
+      if (!skeletonHiddenReportedRef.current) {
+        // If we expect indicators, wait for all of them to be painted
+        if (
+          expectedIndicators.size > 0 &&
+          activeIndicatorsRef.current.size < expectedIndicators.size
+        ) {
+          return;
+        }
+
+        // If legend overlay is enabled and we have indicators, wait for it to render
+        if (
+          legendOverlay?.enabled &&
+          expectedIndicators.size > 0 &&
+          !legendRendered
+        ) {
+          return;
+        }
       }
-      if (!onSkeletonHidden) {
-        return;
-      }
-      if (isLoading || !isChartReady || layoutSettling) {
-        return;
-      }
-      if (skeletonHiddenReportedRef.current) {
-        return;
-      }
+
+      // Hide skeleton
+      if (skeletonHiddenReportedRef.current) return;
       skeletonHiddenReportedRef.current = true;
       onSkeletonHidden();
     }, [
@@ -687,6 +752,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       layoutSettling,
       webViewError,
       onSkeletonHidden,
+      expectedIndicators,
+      appliedIndicatorCount,
+      legendOverlay,
+      legendRendered,
     ]);
 
     // ---- Render ----
