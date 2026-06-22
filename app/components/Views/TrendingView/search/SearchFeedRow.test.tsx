@@ -248,7 +248,7 @@ describe('onQuickTrade prop', () => {
     expect(mockOnQuickTrade).toHaveBeenCalledWith(token);
   });
 
-  it('does not forward onQuickTrade to TokenSearchRowItem for the stocks feed', () => {
+  it('forwards onQuickTrade to TokenSearchRowItem for the stocks feed', () => {
     const token = { assetId: 'eip155:1/erc20:0xabc' } as TrendingAsset;
 
     const { getByTestId } = render(
@@ -263,7 +263,7 @@ describe('onQuickTrade prop', () => {
     );
 
     fireEvent.press(getByTestId('stub-token-row'));
-    expect(mockOnQuickTrade).not.toHaveBeenCalled();
+    expect(mockOnQuickTrade).toHaveBeenCalledWith(token);
   });
 
   it('renders tokens feed without onQuickTrade when prop is not provided', () => {

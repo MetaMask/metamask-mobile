@@ -100,7 +100,8 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   }, [searchQuery, resetScrollTracking]);
 
   const handleQuickTrade =
-    feedId === 'tokens' && quickBuyVariant.showQuickTradeButton
+    (feedId === 'tokens' || feedId === 'stocks') &&
+    quickBuyVariant.showQuickTradeButton
       ? setQuickTradeToken
       : undefined;
 

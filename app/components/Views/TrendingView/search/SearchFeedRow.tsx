@@ -74,7 +74,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
             token={item as TrendingAsset}
             index={index}
             tokenDetailsSource={TokenDetailsSource.ExploreSearch}
-            onQuickTrade={feedId === 'tokens' ? onQuickTrade : undefined}
+            onQuickTrade={onQuickTrade}
           />
         );
       case 'perps':

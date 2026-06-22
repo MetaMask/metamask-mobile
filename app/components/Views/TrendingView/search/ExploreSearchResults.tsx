@@ -273,7 +273,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           tabName={activeTab}
           resultCount={totalResultCount}
           onQuickTrade={
-            item.feedId === 'tokens' && quickBuyVariant.showQuickTradeButton
+            (item.feedId === 'tokens' || item.feedId === 'stocks') &&
+            quickBuyVariant.showQuickTradeButton
               ? setQuickTradeToken
               : undefined
           }
