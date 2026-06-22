@@ -69,7 +69,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
         onClose={onClose}
       />
 
-      <Box twClassName="px-4 pt-3 pb-4" gap={3}>
+      <Box twClassName="px-4 pt-3" gap={3}>
         <KeyValueRowStubs.Root>
           <KeyValueRowStubs.Section>
             <KeyValueRowStubs.Label
