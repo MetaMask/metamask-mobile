@@ -192,6 +192,17 @@ describe('BuildQuote Component', () => {
     expect(screen.getByText('Continue')).toBeOnTheScreen();
   });
 
+  it('renders deposit screen header with back button', () => {
+    render(BuildQuote);
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(BuildQuote);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   describe('Region Selection', () => {
     it('displays default US region on initial render', () => {
       render(BuildQuote);

@@ -83,6 +83,12 @@ describe('VerifyIdentity Component', () => {
     expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(VerifyIdentity);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('navigates to EnterEmail when "Agree and continue" button is pressed', async () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByRole('button', { name: 'Agree and continue' }));

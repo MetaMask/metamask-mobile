@@ -115,6 +115,12 @@ describe('KycProcessing Component', () => {
     expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(KycProcessing);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('renders error state with error heading', () => {
     mockUseUserDetailsPolling.error = 'Network error';
     render(KycProcessing);

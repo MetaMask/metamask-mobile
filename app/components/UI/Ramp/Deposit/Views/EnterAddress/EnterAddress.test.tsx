@@ -186,6 +186,12 @@ describe('EnterAddress Component', () => {
     expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(EnterAddress);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('disables the continue button when loading is true', async () => {
     render(EnterAddress);
     const button = screen.getByTestId('address-continue-button');

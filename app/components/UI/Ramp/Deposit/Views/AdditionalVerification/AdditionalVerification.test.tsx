@@ -6,6 +6,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 
+const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockNavigateToKycWebview = jest.fn();
 
@@ -14,6 +15,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
+      goBack: mockGoBack,
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
@@ -69,6 +71,12 @@ describe('AdditionalVerification Component', () => {
       screen.getAllByText(strings('deposit.additional_verification.title'))[0],
     ).toBeOnTheScreen();
     expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(AdditionalVerification);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('calls navigateToKycWebview when continue button is pressed', () => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { processFiatOrder } from '../../../index';
-import { act, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import DepositOrderDetails from './DepositOrderDetails';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -14,6 +14,7 @@ import AppConstants from '../../../../../../core/AppConstants';
 import { MOCK_DEPOSIT_ORDER, MOCK_US_REGION } from '../../testUtils';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
 
@@ -28,6 +29,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
       setOptions: mockSetOptions,
     }),
     useRoute: () => ({
@@ -112,6 +114,18 @@ describe('DepositOrderDetails Component', () => {
     });
     expect(screen.getByText('Order ID')).toBeOnTheScreen();
     expect(screen.getByText('Total')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    renderWithProvider(<DepositOrderDetails />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    fireEvent.press(screen.getByTestId('deposit-order-details-back-button'));
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders error state correctly', () => {

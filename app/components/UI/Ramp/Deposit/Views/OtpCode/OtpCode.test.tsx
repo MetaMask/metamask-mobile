@@ -135,6 +135,12 @@ describe('OtpCode Screen', () => {
     expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(OtpCode);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('shows error message when API call fails', async () => {
     mockVerifyUserOtp.mockImplementation(() => {
       throw new Error('API call failed');

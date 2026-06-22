@@ -214,6 +214,12 @@ describe('BankDetails Component', () => {
     expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(BankDetails);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('displays confirmPaymentError when it has a value', async () => {
     mockUseDepositSdkMethodInitialState.error = 'Payment confirmation failed';
     mockConfirmPayment = jest

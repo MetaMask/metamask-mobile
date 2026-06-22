@@ -267,6 +267,12 @@ describe('BasicInfo Component', () => {
     expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
+  it('calls navigation.goBack when header back button is pressed', () => {
+    render(BasicInfo);
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('tracks analytics event when continue button is pressed with valid form data', async () => {
     const dob = new Date('1990-01-01').getTime().toString();
     render(BasicInfo);

@@ -9,6 +9,7 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { MOCK_USDC_TOKEN } from '../../testUtils';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
 const mockLinkingOpenURL = jest.fn();
 const mockUseDepositSDK = jest.fn();
@@ -20,6 +21,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
       setOptions: mockSetOptions,
     }),
     useRoute: () => ({
@@ -116,6 +118,18 @@ describe('OrderProcessing Component', () => {
     });
     expect(screen.getByText('Close')).toBeOnTheScreen();
     expect(screen.queryByText('Try again')).not.toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders error state correctly', () => {
