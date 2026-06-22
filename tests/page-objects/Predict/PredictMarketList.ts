@@ -259,8 +259,7 @@ class PredictMarketList {
       appium: async () => {
         const tabEl = await asPlaywrightElement(tab);
         const tabsBar = await asPlaywrightElement(this.categoryTabs);
-        const appiumSwipeDirection =
-          direction === 'right' ? 'left' : 'right';
+        const appiumSwipeDirection = direction === 'right' ? 'left' : 'right';
 
         await Utilities.executeWithRetry(
           async () => {
