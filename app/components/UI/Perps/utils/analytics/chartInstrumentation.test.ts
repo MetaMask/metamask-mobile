@@ -1,25 +1,24 @@
-jest.mock('@metamask/perps-controller', () => ({
-  PERPS_EVENT_PROPERTY: {
-    CHART_LIBRARY: 'chart_library',
-    ASSET_TYPE: 'asset_type',
-  },
-  PERPS_EVENT_VALUE: {
-    CHART_LIBRARY: {
-      LIGHTWEIGHT: 'lightweight',
-      ADVANCED: 'advanced',
-    },
-    ASSET_TYPE: {
-      PERP: 'perp',
-    },
-  },
-}));
-
 import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
+  PERPS_CHART_ANALYTICS_PROPERTY,
+  PERPS_CHART_ANALYTICS_VALUE,
 } from './chartInstrumentation';
 
 describe('chartInstrumentation', () => {
+  it('exports chart analytics property keys', () => {
+    expect(PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY).toBe('chart_library');
+    expect(PERPS_CHART_ANALYTICS_PROPERTY.ASSET_TYPE).toBe('asset_type');
+  });
+
+  it('exports chart analytics values', () => {
+    expect(PERPS_CHART_ANALYTICS_VALUE.CHART_LIBRARY.ADVANCED).toBe('advanced');
+    expect(PERPS_CHART_ANALYTICS_VALUE.CHART_LIBRARY.LIGHTWEIGHT).toBe(
+      'lightweight',
+    );
+    expect(PERPS_CHART_ANALYTICS_VALUE.ASSET_TYPE.PERP).toBe('perp');
+  });
+
   it('returns the advanced chart library value when advanced chart is enabled', () => {
     expect(getPerpsChartLibrary(true)).toBe('advanced');
   });
