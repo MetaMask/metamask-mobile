@@ -252,7 +252,7 @@ describe('multichain/tron', () => {
       });
 
       const result = await tronAdapter.handleRequest({
-        origin: 'https://tron.example.com',
+        origin: 'channelId',
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -269,7 +269,7 @@ describe('multichain/tron', () => {
       });
 
       expect(mockedCallTronSnap).toHaveBeenCalledWith({
-        origin: 'https://tron.example.com',
+        origin: 'channelId',
         connectedAddresses: ['tron:728126428:TTestAddress'],
         scope: 'tron:728126428',
         requestId: 1,
@@ -296,7 +296,7 @@ describe('multichain/tron', () => {
       });
 
       await tronAdapter.handleRequest({
-        origin: 'https://tron.example.com',
+        origin: 'channelId',
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -309,7 +309,7 @@ describe('multichain/tron', () => {
 
       expect(mockedCallTronSnap).toHaveBeenCalledWith(
         expect.objectContaining({
-          origin: 'https://tron.example.com',
+          origin: 'channelId',
           connectedAddresses: ['tron:728126428:TTestAddress'],
           scope: 'tron:728126428',
           requestId: 1,
@@ -319,7 +319,7 @@ describe('multichain/tron', () => {
 
     it('rejects unsupported WalletConnect methods', async () => {
       const args = {
-        origin: 'https://tron.example.com',
+        origin: 'channelId',
         connectedAddresses: [] as CaipAccountId[],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,

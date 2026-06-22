@@ -662,7 +662,7 @@ class WalletConnect2Session {
       }
 
       return this.handleAdapterRequest({
-        origin: unverifiedOrigin,
+        origin: this.channelId,
         requestEvent,
         scope: normalizedRequestChainId,
       });
