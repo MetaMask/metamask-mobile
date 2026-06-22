@@ -200,7 +200,7 @@ const TraderProfileView = () => {
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
-  const [closedSort, setClosedSort] = useState<ClosedSortKey>('recent');
+  const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
 
   const notificationsSheetRef = useRef<TraderNotificationsBottomSheetRef>(null);
   const setupSheetRef =
