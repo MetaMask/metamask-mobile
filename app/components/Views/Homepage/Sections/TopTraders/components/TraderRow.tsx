@@ -1,6 +1,4 @@
 import {
-  AvatarBase,
-  AvatarBaseSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -15,11 +13,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TopRankAvatar, TopRankIndicator } from '../topRank';
+import { RankMedal, isTopRank } from '../topRank';
 import type { TopTrader } from '../types';
-import { formatPnl } from '../utils/formatPnl';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+import TraderAvatar from './TraderAvatar';
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
@@ -41,8 +41,8 @@ export interface TraderRowProps {
 /**
  * TraderRow -- a single row in the Top Traders leaderboard.
  *
- * Displays the trader's rank, avatar, username, performance stats,
- * and a Follow / Following toggle button.
+ * Displays the trader's avatar (with a podium medal badge for ranks 1–3),
+ * username, 30D PnL, and a Follow / Following toggle button.
  */
 const TraderRow: React.FC<TraderRowProps> = ({
   trader,
@@ -52,11 +52,9 @@ const TraderRow: React.FC<TraderRowProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const roiSign = trader.percentageChange >= 0 ? '+' : '';
-  const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
-  const pnlText = formatPnl(trader.pnlValue);
+  const pnlText = formatSignedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
-  const isRoiPositive = trader.percentageChange >= 0;
+  const showMedal = isTopRank(trader.rank);
 
   return (
     <Box
@@ -81,29 +79,23 @@ const TraderRow: React.FC<TraderRowProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={3}
+          gap={4}
         >
-          <TopRankIndicator
-            rank={trader.rank}
-            podiumRank={trader.overallRank}
-          />
-
-          <TopRankAvatar rank={trader.overallRank}>
-            {trader.avatarUri ? (
-              <Image
-                source={{ uri: trader.avatarUri }}
-                style={tw.style(
-                  `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-                )}
-                resizeMode="cover"
-              />
-            ) : (
-              <AvatarBase
-                size={AvatarBaseSize.Lg}
-                fallbackText={trader.username.charAt(0).toUpperCase()}
-              />
-            )}
-          </TopRankAvatar>
+          <View>
+            <TraderAvatar
+              imageUrl={trader.avatarUri}
+              address={trader.address}
+              size={AVATAR_SIZE}
+              recyclingKey={trader.id}
+            />
+            {showMedal ? (
+              // Offset so the medal bottom (incl. its 2px border) sits ~10px
+              // below the avatar's bottom edge.
+              <View style={tw.style('absolute -bottom-[10px] -right-2')}>
+                <RankMedal rank={trader.rank} />
+              </View>
+            ) : null}
+          </View>
 
           <Box twClassName="flex-1 min-w-0">
             <Text
@@ -118,39 +110,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
+              twClassName={
+                isPnlPositive ? 'text-success-default' : 'text-error-default'
+              }
             >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isRoiPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {roiText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {' \u00B7 '}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {pnlText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {' 30D'}
-              </Text>
+              {pnlText}
             </Text>
           </Box>
         </Box>

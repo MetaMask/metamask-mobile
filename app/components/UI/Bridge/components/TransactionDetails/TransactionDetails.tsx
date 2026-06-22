@@ -4,14 +4,16 @@ import {
   HeaderStandard,
   Button,
   ButtonVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { TextVariant as TextVariantLegacy } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
-import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import {
   TransactionMeta,
@@ -24,6 +26,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
+import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets';
 import { calcTokenAmount } from '../../../../../util/transactions';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
@@ -37,6 +40,7 @@ import {
   getNativeAssetForChainId,
   isNonEvmChainId,
   StatusTypes,
+  AllowedBridgeChainIds,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
@@ -48,7 +52,13 @@ import TagColored, {
 } from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -114,7 +124,7 @@ const PaidByMetaMask = () => (
     color={TagColor.Success}
     style={styles.paidByMetaMask}
     labelProps={{
-      variant: TextVariant.BodySM,
+      variant: TextVariantLegacy.BodySM,
       style: {
         textTransform: 'none',
         textAlign: 'center',
@@ -128,30 +138,30 @@ const PaidByMetaMask = () => (
 );
 
 const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
-  [StatusTypes.PENDING]: TextColor.Warning,
-  [StatusTypes.COMPLETE]: TextColor.Success,
-  [StatusTypes.FAILED]: TextColor.Error,
-  [StatusTypes.UNKNOWN]: TextColor.Error,
-  [StatusTypes.SUBMITTED]: TextColor.Warning,
+  [StatusTypes.PENDING]: TextColor.WarningDefault,
+  [StatusTypes.COMPLETE]: TextColor.SuccessDefault,
+  [StatusTypes.FAILED]: TextColor.ErrorDefault,
+  [StatusTypes.UNKNOWN]: TextColor.ErrorDefault,
+  [StatusTypes.SUBMITTED]: TextColor.WarningDefault,
 };
 
 const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
-  [TransactionStatus.submitted]: TextColor.Warning,
-  [TransactionStatus.confirmed]: TextColor.Success,
-  [TransactionStatus.failed]: TextColor.Error,
-  [TransactionStatus.unapproved]: TextColor.Warning,
-  [TransactionStatus.approved]: TextColor.Warning,
-  [TransactionStatus.signed]: TextColor.Warning,
-  [TransactionStatus.dropped]: TextColor.Error,
-  [TransactionStatus.rejected]: TextColor.Error,
-  [TransactionStatus.cancelled]: TextColor.Error,
+  [TransactionStatus.submitted]: TextColor.WarningDefault,
+  [TransactionStatus.confirmed]: TextColor.SuccessDefault,
+  [TransactionStatus.failed]: TextColor.ErrorDefault,
+  [TransactionStatus.unapproved]: TextColor.WarningDefault,
+  [TransactionStatus.approved]: TextColor.WarningDefault,
+  [TransactionStatus.signed]: TextColor.WarningDefault,
+  [TransactionStatus.dropped]: TextColor.ErrorDefault,
+  [TransactionStatus.rejected]: TextColor.ErrorDefault,
+  [TransactionStatus.cancelled]: TextColor.ErrorDefault,
 };
 
 const MultichainTxStatusToColorMap: Record<Transaction['status'], TextColor> = {
-  submitted: TextColor.Warning,
-  confirmed: TextColor.Success,
-  unconfirmed: TextColor.Warning,
-  failed: TextColor.Error,
+  submitted: TextColor.WarningDefault,
+  confirmed: TextColor.SuccessDefault,
+  unconfirmed: TextColor.WarningDefault,
+  failed: TextColor.ErrorDefault,
 };
 
 const getStatusColor = ({
@@ -177,13 +187,14 @@ const getStatusColor = ({
     return MultichainTxStatusToColorMap[multiChainTx.status];
   }
 
-  return TextColor.Error;
+  return TextColor.ErrorDefault;
 };
 
 export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
@@ -196,10 +207,11 @@ export const BridgeTransactionDetails = (
     fromAddress && isHardwareAccount(fromAddress),
   );
 
-  const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    evmTxMeta,
-    multiChainTx,
-  });
+  const { bridgeTxHistoryItem, batchSellHistoryItems, is7702Batch } =
+    useBridgeTxHistoryData({
+      evmTxMeta,
+      multiChainTx,
+    });
 
   // Get source chain explorer data for swaps
   const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
@@ -277,6 +289,10 @@ export const BridgeTransactionDetails = (
     quote.destAsset.decimals,
   ).toFixed(5);
 
+  const networkName =
+    NETWORK_TO_SHORT_NETWORK_NAME_MAP[sourceChainId as AllowedBridgeChainIds];
+  const networkImageSource = getNetworkImageSource({ chainId: sourceChainId });
+
   const submissionDate = startTime ? new Date(startTime) : null;
   const submissionDateString = startTime ? toDateFormat(startTime) : 'N/A';
 
@@ -326,33 +342,46 @@ export const BridgeTransactionDetails = (
       {bridgeTransactionDetailsHeader}
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
-          <TransactionAsset
-            token={sourceToken}
-            tokenAmount={sourceTokenAmount}
-            chainId={sourceChainId}
-            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
-          />
-          <Box style={styles.arrowContainer}>
-            <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
-          </Box>
-          <TransactionAsset
-            token={destinationToken}
-            tokenAmount={destinationTokenAmount}
-            chainId={destinationChainId}
-            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
-          />
+          {is7702Batch && batchSellHistoryItems?.length ? (
+            <BatchSell7702TransactionAssets
+              batchSellHistoryItems={batchSellHistoryItems}
+            />
+          ) : (
+            <>
+              <TransactionAsset
+                token={sourceToken}
+                tokenAmount={sourceTokenAmount}
+                chainId={sourceChainId}
+                txType={
+                  isBridge ? TransactionType.bridge : TransactionType.swap
+                }
+              />
+              <Box style={styles.arrowContainer}>
+                <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
+              </Box>
+              <TransactionAsset
+                token={destinationToken}
+                tokenAmount={destinationTokenAmount}
+                chainId={destinationChainId}
+                txType={
+                  isBridge ? TransactionType.bridge : TransactionType.swap
+                }
+              />
+            </>
+          )}
         </Box>
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.status')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            gap={4}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            gap={1}
+            alignItems={BoxAlignItems.Center}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={getStatusColor({
                 isBridge,
                 isSwap,
@@ -370,17 +399,19 @@ export const BridgeTransactionDetails = (
           bridgeStatus.status === StatusTypes.PENDING &&
           estimatedCompletionString && (
             <Box style={styles.detailRow}>
-              <Text variant={TextVariant.BodyMDMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings(
                   'bridge_transaction_details.estimated_completion',
                 )}{' '}
               </Text>
               <Box
-                flexDirection={FlexDirection.Row}
-                gap={4}
-                alignItems={AlignItems.center}
+                flexDirection={BoxFlexDirection.Row}
+                gap={1}
+                alignItems={BoxAlignItems.Center}
               >
-                <Text>{estimatedCompletionString}</Text>
+                <Text variant={TextVariant.BodyMd}>
+                  {estimatedCompletionString}
+                </Text>
                 <TouchableOpacity
                   onPress={() => setIsStepListExpanded(!isStepListExpanded)}
                 >
@@ -404,11 +435,30 @@ export const BridgeTransactionDetails = (
           </Box>
         )}
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.date')}
           </Text>
-          <Text>{submissionDateString}</Text>
+          <Text variant={TextVariant.BodyMd}>{submissionDateString}</Text>
         </Box>
+        {is7702Batch && batchSellHistoryItems?.length && networkName ? (
+          <Box style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('bridge_transaction_details.network')}
+            </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              gap={2}
+              alignItems={BoxAlignItems.Center}
+            >
+              <AvatarNetwork
+                name={networkName}
+                imageSource={networkImageSource}
+                size={AvatarSize.Xs}
+              />
+              <Text variant={TextVariant.BodyMd}>{networkName}</Text>
+            </Box>
+          </Box>
+        ) : null}
         {/* TODO uncomment when recipient is available */}
         {/* <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>
@@ -417,7 +467,7 @@ export const BridgeTransactionDetails = (
           <Text>{renderShortAddress(bridgeTxHistoryItem.account)}</Text>
         </Box> */}
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
           {isTransactionMarkedAsGasFeeSponsored(evmTxMeta) &&
@@ -427,13 +477,13 @@ export const BridgeTransactionDetails = (
             <>
               {/* TODO get solana gas fee from multiChainTx */}
               {evmTotalGasFee && (
-                <Text>
+                <Text variant={TextVariant.BodyMd}>
                   {evmTotalGasFee}{' '}
                   {getNativeAssetForChainId(quote.srcChainId).symbol}
                 </Text>
               )}
               {multiChainTotalGasFee && (
-                <Text>
+                <Text variant={TextVariant.BodyMd}>
                   {multiChainTotalGasFee}{' '}
                   {getNativeAssetForChainId(quote.srcChainId).symbol}
                 </Text>
@@ -450,6 +500,13 @@ export const BridgeTransactionDetails = (
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+                trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+                  location: 'bridge_transaction_details',
+                  text: strings(
+                    'bridge_transaction_details.view_on_block_explorer',
+                  ),
+                  url: swapSrcExplorerData.explorerTxUrl,
+                });
                 navigation.navigate(Routes.WEBVIEW.MAIN, {
                   screen: Routes.WEBVIEW.SIMPLE,
                   params: {

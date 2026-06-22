@@ -148,7 +148,23 @@ export const PerpsMarketListViewSelectorsIDs = {
   MARKET_LIST: 'perps-market-list',
   SORT_FILTERS: 'perps-market-list-sort-filters',
   WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
+  /** Star badge in the category row that filters to watchlisted markets */
+  WATCHLIST_FILTER_BADGE: 'perps-market-list-sort-filters-categories-watchlist',
 };
+
+// ========================================
+// PERPS WATCHLIST SECTION SELECTORS
+// ========================================
+
+export const PerpsWatchlistSelectorsIDs = {
+  SECTION: 'perps-watchlist-section',
+  HEADER: 'perps-watchlist-header',
+  EMPTY_STATE: 'perps-watchlist-empty-state',
+  SHOW_MORE_BUTTON: 'perps-watchlist-show-more-button',
+  SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
+  SUGGESTED_SECTION: 'perps-watchlist-suggested-section',
+  SUGGESTED_HEADER: 'perps-watchlist-suggested-header',
+} as const;
 
 // ========================================
 // PERPS MARKET ROW ITEM SELECTORS
@@ -166,6 +182,22 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
   badge: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
+  addButton: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-add-button`,
+};
+
+// ========================================
+// PERPS RELATED MARKETS SELECTORS
+// ========================================
+
+export const PerpsRelatedMarketsSelectorsIDs = {
+  RAIL: 'perps-related-markets-rail',
+  HEADER: 'perps-related-markets-header',
+  PILL_GRID: 'perps-related-markets-pill-grid',
+};
+
+export const getPerpsRelatedMarketsSelector = {
+  tile: (symbol: string) => `perps-market-tile-card-${symbol}`,
 };
 
 // ========================================
@@ -238,6 +270,13 @@ export const PerpsHomeViewSelectorsIDs = {
   TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
 };
 
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
+  SCROLL_VIEW: 'perps-tab-scroll-view',
+} as const;
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'back-button',
@@ -268,6 +307,7 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
+  DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',

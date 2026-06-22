@@ -1,16 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  createStackNavigator,
-  TransitionPresets,
-} from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { darkTheme } from '@metamask/design-tokens';
 import Routes from '../../../constants/navigation/Routes';
+import { slideFromRightNativeOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
+import RewardsVipRefereeSplashView from './Views/RewardsVipRefereeSplashView';
+import RewardsVipRefereeView from './Views/RewardsVipRefereeView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
@@ -31,20 +31,12 @@ import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignW
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
 import PredictThePitchCampaignStatsView from './Views/PredictThePitchCampaignStatsView';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import {
-  selectIsRewardsVersionBlocked,
-  selectPendingDeeplink,
-} from '../../../reducers/rewards/selectors';
-import { setPendingDeeplink } from '../../../reducers/rewards';
-import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
-import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
-import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
-import { useReferralDetails } from './hooks/useReferralDetails';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
@@ -52,25 +44,12 @@ import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinning
 import { getActiveRouteNameFromNavigationState } from './utils';
 
 let sessionNotificationsNudgeShown = false;
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
-  const pendingDeeplink = useSelector(selectPendingDeeplink);
-  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  // Guards against the spurious re-fire that dispatch(setPendingDeeplink(null))
-  // triggers. After a deeplink is handled, clearing the Redux state changes
-  // pendingDeeplink from a value to null; that dep change causes this effect to
-  // re-run and would otherwise fall through to navigate(REWARDS_DASHBOARD),
-  // overriding the deeplink destination. The ref skips exactly that one follow-up fire.
-  // Clearing via Redux (instead of route.params / setParams) is necessary because
-  // RewardsHome is UnmountOnBlur — the navigator is not mounted when the user is
-  // on another tab, so navigation params would be lost; Redux state is always
-  // available regardless of mount status.
-  const skipNextEffectRef = useRef(false);
 
   const activeRewardsRoute = useNavigationState(
     getActiveRouteNameFromNavigationState,
@@ -78,14 +57,12 @@ const RewardsNavigator: React.FC = () => {
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
-  // Set candidate subscription ID in Redux state when component mounts and account changes
-  useCandidateSubscriptionId();
-
-  // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
-  useGeoRewardsMetadata({});
-
-  // Fetch referral details so referral code is available across all rewards screens
-  useReferralDetails();
+  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata,
+  // useReferralDetails) intentionally live on RewardsDashboard, not here.
+  // RewardsDashboard is the Rewards tab entry and stays mounted while this pushed
+  // REWARDS_FLOW stack is open, so it already populates Redux for these sub-pages
+  // and keeps event-driven refetches running. Re-declaring those hooks here would
+  // duplicate the focus-driven fetches on every entry into the flow.
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
@@ -159,220 +136,163 @@ const RewardsNavigator: React.FC = () => {
     showEnableNotificationsNudge,
   ]);
 
-  // Determine initial route - always start with onboarding intro step initially
-  const getInitialRoute = () => {
-    // If user has already opted in and has a valid subscription candidate ID, go to dashboard
-    if (subscriptionId) {
-      return Routes.REWARDS_DASHBOARD;
-    }
-
-    // For all other cases, start with onboarding flow (intro step)
-    return Routes.REWARDS_ONBOARDING_FLOW;
-  };
-
+  // Recover from a lost subscription while the flow is mounted.
+  //
+  // REWARDS_FLOW is a screen on the root MainNavigator stack; it is normally
+  // pushed from the dashboard, which only renders for subscribed users. But if
+  // the subscription disappears while the flow is still mounted (account switch
+  // or opt-out), subscriptionId flips to falsy and the native stack below would
+  // be left with zero registered screens — which throws — and its navigation
+  // state would still reference sub-page routes that no longer exist (blank flow
+  // / broken back). Dismiss the flow so the user returns to the Rewards tab and
+  // the stale state is discarded.
   useEffect(() => {
-    if (isVersionBlocked) {
+    if (isVersionBlocked || subscriptionId) {
       return;
     }
-    if (subscriptionId) {
-      if (skipNextEffectRef.current) {
-        skipNextEffectRef.current = false;
-        return;
-      }
-      if (pendingDeeplink?.page === 'campaigns') {
-        navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'ondo') {
-        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'season1') {
-        navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'perps-comp') {
-        navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'predict-the-pitch') {
-        navigation.navigate(
-          Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-        );
-      } else if (pendingDeeplink?.page === 'musd') {
-        navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
-      } else if (pendingDeeplink?.page === 'benefits') {
-        navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
-      } else {
-        navigation.navigate(Routes.REWARDS_DASHBOARD);
-      }
-      if (pendingDeeplink?.page || pendingDeeplink?.campaign) {
-        skipNextEffectRef.current = true;
-        dispatch(setPendingDeeplink(null));
-      }
-    } else {
-      navigation.navigate(Routes.REWARDS_ONBOARDING_FLOW);
+    if (navigation.canGoBack()) {
+      navigation.goBack();
     }
-  }, [navigation, dispatch, subscriptionId, isVersionBlocked, pendingDeeplink]);
+  }, [isVersionBlocked, subscriptionId, navigation]);
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
   }
 
+  // Never render an empty native stack navigator (it throws). When there is no
+  // subscription, render nothing while the effect above dismisses the flow.
+  if (!subscriptionId) {
+    return null;
+  }
+
+  const vipScreenOptions = {
+    headerShown: false,
+    ...slideFromRightNativeOptions,
+    contentStyle: {
+      backgroundColor: darkTheme.colors.background.default,
+    },
+  };
+
   return (
-    <Stack.Navigator initialRouteName={getInitialRoute()}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
-        name={Routes.REWARDS_ONBOARDING_FLOW}
-        component={OnboardingNavigator}
-        options={{
-          headerShown: false,
-          cardStyle: { backgroundColor: colors.background.default },
-        }}
+        name={Routes.REFERRAL_REWARDS_VIEW}
+        component={ReferralRewardsView}
       />
-      {subscriptionId ? (
-        <>
-          <Stack.Screen
-            name={Routes.REWARDS_DASHBOARD}
-            component={RewardsDashboard}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REFERRAL_REWARDS_VIEW}
-            component={ReferralRewardsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_SETTINGS_VIEW}
-            component={RewardsSettingsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_VIP_SPLASH_VIEW}
-            component={RewardsVipSplashView}
-            options={{
-              headerShown: false,
-              ...TransitionPresets.SlideFromRightIOS,
-              cardStyle: {
-                backgroundColor: darkTheme.colors.background.default,
-              },
-            }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_VIP_VIEW}
-            component={RewardsVipView}
-            options={{
-              headerShown: false,
-              ...TransitionPresets.SlideFromRightIOS,
-              cardStyle: {
-                backgroundColor: darkTheme.colors.background.default,
-              },
-            }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_VIP_TIERS_VIEW}
-            component={RewardsVipTiersView}
-            options={{
-              headerShown: false,
-              ...TransitionPresets.SlideFromRightIOS,
-              cardStyle: {
-                backgroundColor: darkTheme.colors.background.default,
-              },
-            }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_CAMPAIGNS_VIEW}
-            component={CampaignsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
-            component={CampaignTourStepView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
-            component={OndoCampaignDetailsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW}
-            component={OndoCampaignWinningView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW}
-            component={SeasonOneCampaignDetailsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_CAMPAIGN_MECHANICS}
-            component={CampaignMechanicsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
-            component={MusdCalculatorView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
-            component={OndoLeaderboardView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR}
-            component={OndoCampaignRwaSelectorView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW}
-            component={OndoCampaignPortfolioView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
-            component={OndoCampaignStatsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}
-            component={PerpsTradingCampaignDetailsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD}
-            component={PerpsTradingCampaignLeaderboardView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_STATS}
-            component={PerpsTradingCampaignStatsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW}
-            component={PerpsTradingCampaignWinningView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW}
-            component={PredictThePitchCampaignDetailsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD}
-            component={PredictThePitchCampaignLeaderboardView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW}
-            component={PredictThePitchCampaignPortfolioView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS}
-            component={PredictThePitchCampaignStatsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW}
-            component={PredictThePitchCampaignWinningView}
-            options={{ headerShown: false }}
-          />
-        </>
-      ) : null}
+      <Stack.Screen
+        name={Routes.REWARDS_SETTINGS_VIEW}
+        component={RewardsSettingsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_SPLASH_VIEW}
+        component={RewardsVipSplashView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_VIEW}
+        component={RewardsVipView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_TIERS_VIEW}
+        component={RewardsVipTiersView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW}
+        component={RewardsVipRefereeSplashView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_REFEREE_VIEW}
+        component={RewardsVipRefereeView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_CAMPAIGNS_VIEW}
+        component={CampaignsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
+        component={CampaignTourStepView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
+        component={OndoCampaignDetailsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW}
+        component={OndoCampaignWinningView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW}
+        component={SeasonOneCampaignDetailsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_CAMPAIGN_MECHANICS}
+        component={CampaignMechanicsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
+        component={MusdCalculatorView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
+        component={OndoLeaderboardView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR}
+        component={OndoCampaignRwaSelectorView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW}
+        component={OndoCampaignPortfolioView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
+        component={OndoCampaignStatsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}
+        component={PerpsTradingCampaignDetailsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD}
+        component={PerpsTradingCampaignLeaderboardView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_STATS}
+        component={PerpsTradingCampaignStatsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW}
+        component={PerpsTradingCampaignWinningView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW}
+        component={PredictThePitchCampaignDetailsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD}
+        component={PredictThePitchCampaignLeaderboardView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS}
+        component={PredictThePitchCampaignStatsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW}
+        component={PredictThePitchCampaignPortfolioView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW}
+        component={PredictThePitchCampaignWinningView}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };

@@ -69,7 +69,9 @@ export const dismissDevScreens = async (): Promise<void> => {
 
 const getMetroServerUrl = (): string => {
   const port = process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
-  const host = process.env.METRO_HOST_E2E || 'localhost';
+  const host =
+    process.env.METRO_HOST_E2E ??
+    (PlatformDetector.isAndroid() ? '10.0.2.2' : 'localhost');
   return `http://${host}:${port}`;
 };
 
@@ -83,12 +85,21 @@ export const dismissDevelopmentServerPickerPlaywright =
     const serverUrl = getMetroServerUrl();
 
     try {
-      const devServerRow = await PlaywrightMatchers.getElementByText(serverUrl);
-      await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
-        timeout: 2000,
-        description: 'Dev Server Row should be visible',
-      });
-      await PlaywrightGestures.waitAndTap(devServerRow);
+      const end = Date.now() + 8000;
+      while (Date.now() < end) {
+        try {
+          const devServerRow =
+            await PlaywrightMatchers.getElementByText(serverUrl);
+          await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
+            timeout: 1500,
+            description: 'Dev Server Row should be visible',
+          });
+          await PlaywrightGestures.waitAndTap(devServerRow);
+          return;
+        } catch {
+          await sleep(500);
+        }
+      }
     } catch (error) {
       logger.debug(
         `Playwright development server picker was not dismissed (best effort): ${

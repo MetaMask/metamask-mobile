@@ -11,9 +11,23 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../../../UI/Earn/components/MerklRewards/constants';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
+import { ARBITRUM_USDC } from '../../../constants/perps';
+import { POLYGON_PUSD } from '../../../constants/predict';
+import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../../selectors/transactionController', () => ({
+  ...jest.requireActual('../../../../../../selectors/transactionController'),
+  selectTransactionsByIds: jest.fn().mockReturnValue([]),
+}));
+jest.mock('../../token-icon', () => ({
+  TokenIcon: () => null,
+}));
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
@@ -137,10 +151,11 @@ describe('TransactionDetailsHero', () => {
     expect(queryByTestId('transaction-details-hero')).toBeNull();
   });
 
-  it('renders targetFiat from metamaskPay when available', () => {
+  it('renders token amount with symbol for Money types with targetFiat', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
+        type: TransactionType.moneyAccountDeposit,
         metamaskPay: {
           targetFiat: '456.78',
         },
@@ -149,10 +164,31 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$456.78')).toBeDefined();
+    expect(getByText(/456\.78/)).toBeDefined();
+    expect(getByText(/mUSD/)).toBeDefined();
   });
 
-  it('renders amount for musdConversion transactions', () => {
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'renders fiat (not mUSD) for %s with targetFiat',
+    (type) => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type,
+          metamaskPay: {
+            targetFiat: '100.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText(/\$100/)).toBeDefined();
+      expect(queryByText(/mUSD/)).toBeNull();
+    },
+  );
+
+  it('renders token amount for musdConversion transactions', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
@@ -165,7 +201,8 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$100')).toBeDefined();
+    expect(getByText(/100\.00/)).toBeDefined();
+    expect(getByText(/mUSD/)).toBeDefined();
   });
 
   it('renders claim amount for musdClaim with valid claim data', () => {
@@ -232,5 +269,186 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
     expect(getByText('$123.46')).toBeDefined();
+  });
+
+  describe('money context (isMoneyContext = true)', () => {
+    const useIsMoneyAccountContextMock = jest.mocked(useIsMoneyAccountContext);
+    const selectTransactionsByIdsMock = jest.mocked(selectTransactionsByIds);
+
+    beforeEach(() => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+      selectTransactionsByIdsMock.mockReturnValue([]);
+    });
+
+    it('renders two-asset hero for musdConversion', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.musdConversion,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '123.46',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-123\.46 TST/)).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+123\.46 mUSD/)).toBeDefined();
+    });
+
+    it('renders two-asset hero for perpsDeposit with USDC symbol', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsDeposit,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '123.46',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-123\.46 TST/)).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(
+        getByText(new RegExp(`\\+123\\.46 ${ARBITRUM_USDC.symbol}`)),
+      ).toBeDefined();
+    });
+
+    it('renders two-asset hero for predictDeposit with pUSD symbol', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.predictDeposit,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '123.46',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-123\.46 TST/)).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(
+        getByText(new RegExp(`\\+123\\.46 ${POLYGON_PUSD.symbol}`)),
+      ).toBeDefined();
+    });
+
+    it('renders fiat deposit hero with green + prefix for moneyAccountDeposit with fiat orderId', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: {
+            targetFiat: '100.00',
+            fiat: { orderId: 'order-123' },
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText(/\+100\.00 mUSD/)).toBeDefined();
+    });
+
+    it('renders null for unsupported type in money context', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.contractInteraction,
+        } as unknown as TransactionMeta,
+      });
+
+      const { queryByTestId } = render();
+      expect(queryByTestId('transaction-details-hero')).toBeNull();
+    });
+
+    it('extracts sent amount from relay deposit child transaction', () => {
+      selectTransactionsByIdsMock.mockReturnValue([
+        {
+          type: TransactionType.relayDeposit,
+          txParams: { data: DATA_MOCK },
+        } as unknown as TransactionMeta,
+      ]);
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.musdConversion,
+          requiredTransactionIds: ['child-tx-1'],
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '123.46',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-123\.46 TST/)).toBeDefined();
+    });
+
+    it('extracts sent amount from relay deposit native value', () => {
+      const nativeAddress = '0x0000000000000000000000000000000000000000';
+      selectTransactionsByIdsMock.mockReturnValue([
+        {
+          type: TransactionType.relayDeposit,
+          txParams: { value: '1000000000000000000' },
+        } as unknown as TransactionMeta,
+      ]);
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.musdConversion,
+          requiredTransactionIds: ['child-tx-1'],
+          metamaskPay: {
+            tokenAddress: nativeAddress,
+            chainId: '0x1',
+            targetFiat: '123.46',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-1\.00/)).toBeDefined();
+    });
+
+    it('falls back to tokenMeta amount when parent data is not decodable', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsDeposit,
+          txParams: { data: '0xdeadbeef', to: TOKEN_ADDRESS_MOCK },
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '77.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-77\.00 TST/)).toBeDefined();
+    });
   });
 });

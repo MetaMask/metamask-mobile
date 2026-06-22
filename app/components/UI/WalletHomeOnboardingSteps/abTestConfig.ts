@@ -8,9 +8,8 @@ import { WALLET_HOME_ONBOARDING_CHECKLIST_INTERACTION_TYPE } from './walletHomeO
  * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
  * sync with the flag in LD (team `home`, ticket TMCU-828).
  *
- * Layered on top of the existing onboarding checklist gate
- * (`homeTMCU610AbtestWalletHomePostOnboardingSteps`); only users who already see
- * the checklist are evaluated for this experiment.
+ * Layered on top of eligible checklist users (`selectShouldShowWalletHomeOnboardingSteps`);
+ * only users who already see the checklist are evaluated for this experiment.
  */
 export const ONBOARDING_CHECKLIST_STEPPER_AB_KEY =
   'homeTMCU828AbtestOnboardingChecklistStepper';

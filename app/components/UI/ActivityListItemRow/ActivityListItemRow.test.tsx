@@ -1,0 +1,921 @@
+/**
+ * Tests for ActivityListItemRow content mapping.
+ */
+import React from 'react';
+import { render } from '@testing-library/react-native';
+import type { ActivityListItem, Status } from '../../../util/activity-adapters';
+import { ActivityListItemRow } from './ActivityListItemRow';
+import { strings } from '../../../../locales/i18n';
+import { getNetworkImageSource } from '../../../util/networks';
+
+const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+const LINEA_MUSD_CHECKSUM_ADDRESS =
+  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
+
+const mockState = {
+  user: {
+    appTheme: 'light',
+  },
+  settings: {
+    showFiatOnTestnets: true,
+  },
+  engine: {
+    backgroundState: {
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionRate: 2500,
+            usdConversionRate: 2500,
+          },
+        },
+      },
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+      TokenRatesController: {
+        marketData: {
+          '0x1': {
+            [LINEA_MUSD_CHECKSUM_ADDRESS]: {
+              price: 0.0004,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+// Minimal required mocks
+jest.mock('../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      background: { default: 'white', alternative: 'grey' },
+      text: { default: 'black', alternative: 'grey', muted: 'grey' },
+      border: { muted: 'grey' },
+      success: { default: 'green' },
+      error: { default: 'red' },
+      warning: { default: 'orange' },
+      primary: { default: 'blue' },
+      icon: { default: 'grey' },
+    },
+    typography: {
+      sBodyLGMedium: { fontSize: 16 },
+      sBodyMDMedium: { fontSize: 14 },
+      sBodyMDBold: { fontSize: 14, fontWeight: 'bold' },
+      sBodyMD: { fontSize: 14 },
+      sBodySM: { fontSize: 12 },
+    },
+  })),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn((selector) => {
+    const str = selector.toString();
+    if (str.includes('appTheme')) return 'light';
+    try {
+      return selector(mockState);
+    } catch {
+      return undefined;
+    }
+  }),
+}));
+
+jest.mock('../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(
+    (state) =>
+      state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  ),
+  selectConversionRateByChainId: jest.fn(() => 2500),
+  selectCurrencyRateForChainId: jest.fn(() => 2500),
+  selectUSDConversionRateByChainId: jest.fn(() => 2500),
+}));
+
+jest.mock('../../../selectors/tokenRatesController', () => ({
+  selectContractExchangeRatesByChainId: jest.fn(() => ({
+    [LINEA_MUSD_ADDRESS]: {
+      price: 0.0004,
+    },
+  })),
+  selectTokenMarketData: jest.fn(
+    (state) => state.engine.backgroundState.TokenRatesController.marketData,
+  ),
+}));
+
+jest.mock('../Earn/constants/musd', () => ({
+  MUSD_DECIMALS: 6,
+  MUSD_TOKEN: { symbol: 'mUSD' },
+  MUSD_TOKEN_ADDRESS_BY_CHAIN: {
+    '0x1': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    '0xe708': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN: {
+    '0x1': 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    '0xe708': 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
+}));
+
+jest.mock('react-native', () => {
+  const rn = jest.requireActual('react-native');
+  return {
+    ...rn,
+    useColorScheme: jest.fn(() => 'light'),
+  };
+});
+
+jest.mock('../../../util/transaction-icons', () => ({
+  getTransactionIcon: jest.fn(() => 1),
+}));
+
+jest.mock('../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image' })),
+}));
+
+jest.mock('../../../util/address', () => ({
+  renderShortAddress: jest.fn((address: string) => `${address.slice(0, 6)}...`),
+}));
+
+jest.mock('../../../component-library/components/Badges/BadgeWrapper', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return ({ children }: { children: React.ReactNode }) =>
+    ReactActual.createElement(View, null, children);
+});
+
+jest.mock('../../../component-library/components/Badges/Badge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const Badge = () => ReactActual.createElement(View, null);
+  Badge.displayName = 'Badge';
+  return {
+    __esModule: true,
+    default: Badge,
+    BadgeVariant: { Network: 'Network' },
+  };
+});
+
+jest.mock('../../../component-library/components/Avatars/Avatar', () => ({
+  AvatarSize: { Xs: 'xs', Md: 'md', Sm: 'sm' },
+}));
+
+jest.mock(
+  '../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ({ name, imageSource }: { name?: string; imageSource?: unknown }) =>
+      ReactActual.createElement(View, {
+        testID: `avatar-token-${name ?? 'unknown'}`,
+        imageSource,
+      });
+  },
+);
+
+jest.mock('../../../component-library/components/Texts/Text', () => ({
+  getFontFamily: jest.fn(() => 'Inter'),
+  TextVariant: {
+    BodyLGMedium: 'bodyLGMedium',
+    BodyMDMedium: 'bodyMDMedium',
+    BodyMDBold: 'bodyMDBold',
+    BodyMD: 'bodyMD',
+    BodySM: 'bodySM',
+  },
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Pressable, View } = jest.requireActual('react-native');
+
+  const ListItem = ({
+    avatar,
+    description,
+    endAccessory,
+    isInteractive,
+    onPress,
+    title,
+    ...rest
+  }: {
+    avatar?: React.ReactNode;
+    description?: React.ReactNode;
+    endAccessory?: React.ReactNode;
+    isInteractive?: boolean;
+    onPress?: () => void;
+    title?: React.ReactNode;
+  }) => {
+    const Component = isInteractive ? Pressable : View;
+    return ReactActual.createElement(
+      Component,
+      { onPress, ...rest },
+      avatar,
+      ReactActual.createElement(View, null, title, description),
+      endAccessory,
+    );
+  };
+
+  return { ListItem };
+});
+
+// ---------------------------------------------------------------------------
+// Helper to build minimal ActivityListItem
+// ---------------------------------------------------------------------------
+
+const makeItem = (
+  overrides: Partial<{
+    type: ActivityListItem['type'];
+    chainId: string;
+    status: Status;
+    isEarliestNonce: boolean;
+    hash: string;
+    from: string;
+    to: string;
+    token?: object;
+    sourceToken?: object;
+    destinationToken?: object;
+    transactionProtocol?: string;
+  }>,
+): ActivityListItem => {
+  const type = overrides.type ?? 'send';
+  const status = overrides.status ?? 'success';
+  const base = {
+    type,
+    chainId: (overrides.chainId ?? 'eip155:1') as ActivityListItem['chainId'],
+    status,
+    timestamp: 1_700_000_000_000,
+    hash: overrides.hash ?? '0xabc',
+    isEarliestNonce: overrides.isEarliestNonce,
+  };
+
+  if (type === 'send' || type === 'receive') {
+    return {
+      ...base,
+      type,
+      data: {
+        from: overrides.from ?? '0xfrom',
+        to: overrides.to ?? '0xto',
+        token: overrides.token as never,
+      },
+    } as unknown as ActivityListItem;
+  }
+
+  if (
+    type === 'swap' ||
+    type === 'bridge' ||
+    type === 'convert' ||
+    type === 'wrap' ||
+    type === 'unwrap' ||
+    type === 'lendingDeposit' ||
+    type === 'lendingWithdrawal'
+  ) {
+    return {
+      ...base,
+      type,
+      raw: overrides.transactionProtocol
+        ? {
+            type: 'apiEvmTransaction',
+            data: {
+              transactionProtocol: overrides.transactionProtocol,
+            },
+          }
+        : undefined,
+      data: {
+        sourceToken: overrides.sourceToken as never,
+        destinationToken: overrides.destinationToken as never,
+      },
+    } as unknown as ActivityListItem;
+  }
+
+  return {
+    ...base,
+    type,
+    raw: overrides.transactionProtocol
+      ? {
+          type: 'apiEvmTransaction',
+          data: {
+            transactionProtocol: overrides.transactionProtocol,
+          },
+        }
+      : undefined,
+    data: {
+      from: overrides.from ?? '0xfrom',
+      to: overrides.to ?? '0xto',
+      token: overrides.token as never,
+    },
+  } as unknown as ActivityListItem;
+};
+
+// ---------------------------------------------------------------------------
+// Row content tests — mirrors extension ActivityRow title/subtitle/amount split
+// ---------------------------------------------------------------------------
+
+describe('ActivityListItemRow — row content', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('uses the activity item chain for the network badge', () => {
+    const item = makeItem({
+      type: 'send',
+      chainId: 'eip155:59144',
+      status: 'success',
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+
+    render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getNetworkImageSource).toHaveBeenCalledWith({
+      chainId: 'eip155:59144',
+    });
+  });
+
+  it('renders send title, recipient subtitle, and signed primary amount', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      to: '0x1234567890',
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent USDC',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: 0x1234...',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-10 USDC',
+    );
+    expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
+  });
+
+  it('renders receive title, sender subtitle, and positive primary amount', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      from: '0xabcdef1234',
+      token: {
+        amount: '200.34',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Received mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'From: 0xabcd...',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200.34 mUSD',
+    );
+  });
+
+  it('renders mUSD fiat using the stablecoin fallback when market rates are missing', () => {
+    const item = makeItem({
+      type: 'receive',
+      chainId: 'eip155:59144',
+      status: 'success',
+      from: '0xabcdef1234',
+      token: {
+        amount: '200340000',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200.34 mUSD',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '+$200.34',
+    );
+  });
+
+  it('renders swap title, protocol subtitle, primary and secondary amounts', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'Curve',
+      sourceToken: {
+        amount: '0.123',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '300',
+        symbol: 'USDT',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Swapped ETH to USDT',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('Curve');
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+300 USDT',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '-0.123 ETH',
+    );
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('renders spending cap rows with token subtitle and no empty amount', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Approved spending cap',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('USDC');
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders spending cap amount without an outgoing sign', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        amount: '100000000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '100 USDC',
+    );
+  });
+
+  it('renders cross-token bridge as swapped with token pair subtitle', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '0.123',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '300',
+        symbol: 'USDT',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'ETH → USDT',
+    );
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('renders bridge route and destination amount from bridge history', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '5100000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const bridgeHistoryItem = {
+      quote: {
+        srcChainId: 1,
+        destChainId: 59144,
+        srcTokenAmount: '5100000',
+        srcAsset: {
+          assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        destTokenAmount: '5090000',
+        destAsset: {
+          assetId:
+            'eip155:59144/erc20:0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    const { getAllByTestId, getByTestId } = render(
+      <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem as never}
+        item={item}
+        index={0}
+      />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Ethereum → Linea',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-5.1 USDC',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '+5.09 USDC',
+    );
+    expect(getAllByTestId('avatar-token-USDC')).toHaveLength(1);
+  });
+
+  it('renders source-only API bridge rows as sends when bridge history is unavailable', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '5000000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent USDC',
+    );
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-5 USDC',
+    );
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('does not render technical protocol values as subtitles', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'GNOSIS_SAFE',
+      sourceToken: {
+        amount: '1',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '1',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+  });
+
+  it('does not render contract subtitle when the contract address is missing', () => {
+    const item = makeItem({
+      type: 'contractInteraction',
+      status: 'success',
+      to: '',
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+  });
+
+  it('renders user-facing protocol for contract interactions when available', () => {
+    const item = makeItem({
+      type: 'contractInteraction',
+      status: 'success',
+      transactionProtocol: 'ACROSS',
+      to: '0xabcdef1234',
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Across',
+    );
+  });
+
+  it('renders lending withdrawal title and amount from the destination token', () => {
+    const item = makeItem({
+      type: 'lendingWithdrawal',
+      status: 'success',
+      sourceToken: {
+        amount: '200',
+        symbol: 'aLinUSDC',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '200',
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      `${strings('transactions.tx_review_lending_withdraw')} USDC`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200 USDC',
+    );
+    expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
+    expect(queryByTestId('avatar-token-aLinUSDC')).toBeNull();
+  });
+
+  it('renders nameless NFT buys as Bought NFT without a primary amount', () => {
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '1',
+        direction: 'in',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bought NFT',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('shortens long crypto decimals in token amounts', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      token: {
+        amount: '0.123456789',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    const primaryAmount = getByTestId('activity-primary-amount-0xabc');
+    expect(primaryAmount.props.children).toBe('-0.1235 ETH');
+    expect(primaryAmount.props.numberOfLines).toBe(1);
+    expect(primaryAmount.props.ellipsizeMode).toBe('tail');
+  });
+
+  it('compacts large token amounts before rendering', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      token: {
+        symbol: 'USDC',
+        amount: '2500000000000000',
+        decimals: 6,
+        direction: 'in',
+      },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+2.5B USDC',
+    );
+  });
+});
+
+describe('ActivityListItemRow — network badge', () => {
+  it('uses the row item chainId for the network badge', () => {
+    const item = makeItem({ status: 'success' });
+    render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getNetworkImageSource).toHaveBeenCalledWith({
+      chainId: item.chainId,
+    });
+  });
+});
+
+describe('ActivityListItemRow — amount display', () => {
+  it('formats raw token base units and renders fiat when rates are available', () => {
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('+1 mUSD')).toBeOnTheScreen();
+    expect(getByText('+$1')).toBeOnTheScreen();
+  });
+
+  it('does not render fiat when token market data is unavailable', () => {
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'UNKNOWN',
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000001',
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+1 UNKNOWN')).toBeOnTheScreen();
+    expect(queryByText('+$1')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Type mapping tests — prove all ActivityKind values produce a non-empty title
+// ---------------------------------------------------------------------------
+
+const ALL_KINDS: ActivityListItem['type'][] = [
+  'send',
+  'receive',
+  'swap',
+  'swapIncomplete',
+  'bridge',
+  'buy',
+  'sell',
+  'claim',
+  'claimMusdBonus',
+  'deposit',
+  'convert',
+  'wrap',
+  'unwrap',
+  'approveSpendingCap',
+  'revokeSpendingCap',
+  'increaseSpendingCap',
+  'lendingDeposit',
+  'lendingWithdrawal',
+  'nftMint',
+  'contractInteraction',
+  'contractDeployment',
+  'smartAccountUpgrade',
+  'predictionsAddFunds',
+  'predictionsWithdrawFunds',
+  'predictionClaimWinnings',
+  'predictionCashedOut',
+  'predictionPlaced',
+  'perpsAddFunds',
+  'perpsWithdraw',
+  'perpsOpenLong',
+  'perpsCloseLong',
+  'perpsCloseLongLiquidated',
+  'perpsCloseLongStopLoss',
+  'perpsOpenShort',
+  'perpsCloseShort',
+  'perpsCloseShortLiquidated',
+  'perpsCloseShortStopLoss',
+  'perpsPaidFundingFees',
+  'perpsReceivedFundingFees',
+  'perpsCloseShortTakeProfit',
+  'perpsCloseLongTakeProfit',
+  'marketShort',
+  'stopMarketCloseShort',
+  'marketCloseShort',
+];
+
+const EXPECTED_TITLES = {
+  send: strings('transactions.sent'),
+  receive: strings('transactions.received'),
+  swap: strings('transactions.swaps_transaction'),
+  swapIncomplete: 'Swapped',
+  bridge: 'Bridged',
+  buy: 'Bought',
+  sell: 'Sold',
+  claim: 'Claimed',
+  claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
+  deposit: 'Deposited',
+  convert: 'Converted',
+  wrap: strings('transactions.activity_wrap'),
+  unwrap: strings('transactions.activity_unwrap'),
+  approveSpendingCap: 'Approved spending cap',
+  revokeSpendingCap: strings('transactions.activity_revoke_spending_cap'),
+  increaseSpendingCap: 'Increased spending cap',
+  lendingDeposit: strings('transactions.tx_review_lending_deposit'),
+  lendingWithdrawal: strings('transactions.tx_review_lending_withdraw'),
+  nftMint: strings('transactions.activity_nft_mint'),
+  contractInteraction: strings('transactions.smart_contract_interaction'),
+  contractDeployment: strings('transactions.tx_review_contract_deployment'),
+  smartAccountUpgrade: 'Smart account upgraded',
+  predictionsAddFunds: strings('transactions.tx_review_predict_deposit'),
+  predictionsWithdrawFunds: strings('transactions.tx_review_predict_withdraw'),
+  predictionClaimWinnings: strings('transactions.tx_review_predict_claim'),
+  predictionCashedOut: strings('transactions.activity_prediction_cashed_out'),
+  predictionPlaced: strings('transactions.activity_prediction_placed'),
+  perpsAddFunds: strings('transactions.tx_review_perps_deposit'),
+  perpsWithdraw: strings('transactions.tx_review_perps_withdraw'),
+  perpsOpenLong: strings('transactions.activity_perps_open_long'),
+  perpsCloseLong: strings('transactions.activity_perps_close_long'),
+  perpsCloseLongLiquidated: strings(
+    'transactions.activity_perps_close_long_liquidated',
+  ),
+  perpsCloseLongStopLoss: strings(
+    'transactions.activity_perps_close_long_stop_loss',
+  ),
+  perpsOpenShort: strings('transactions.activity_perps_open_short'),
+  perpsCloseShort: strings('transactions.activity_perps_close_short'),
+  perpsCloseShortLiquidated: strings(
+    'transactions.activity_perps_close_short_liquidated',
+  ),
+  perpsCloseShortStopLoss: strings(
+    'transactions.activity_perps_close_short_stop_loss',
+  ),
+  perpsPaidFundingFees: strings(
+    'transactions.activity_perps_paid_funding_fees',
+  ),
+  perpsReceivedFundingFees: strings(
+    'transactions.activity_perps_received_funding_fees',
+  ),
+  perpsCloseShortTakeProfit: strings(
+    'transactions.activity_perps_close_short_take_profit',
+  ),
+  perpsCloseLongTakeProfit: strings(
+    'transactions.activity_perps_close_long_take_profit',
+  ),
+  marketShort: strings('transactions.activity_market_short'),
+  stopMarketCloseShort: strings(
+    'transactions.activity_stop_market_close_short',
+  ),
+  marketCloseShort: strings('transactions.activity_market_close_short'),
+} satisfies Record<ActivityListItem['type'], string>;
+
+describe('ActivityListItemRow — title display for all ActivityKind values', () => {
+  it.each(ALL_KINDS)('renders the explicit title for type=%s', (type) => {
+    const item = makeItem({ type, status: 'success' });
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText(EXPECTED_TITLES[type])).toBeOnTheScreen();
+    expect(queryByText(strings('transactions.interaction'))).toBeNull();
+  });
+
+  it('prefers the title override when provided (legacy swap/bridge contract)', () => {
+    const item = makeItem({ type: 'swap', status: 'success' });
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} title="Swap ETH to USDC" />,
+    );
+
+    expect(getByText('Swap ETH to USDC')).toBeOnTheScreen();
+    expect(queryByText(strings('transactions.swaps_transaction'))).toBeNull();
+  });
+});

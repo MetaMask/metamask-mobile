@@ -25,6 +25,8 @@ import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
@@ -173,6 +175,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       }
 
       if (type === 'deposit') {
+        const depositMeta = transactionId
+          ? selectTransactionMetadataById(store.getState(), transactionId)
+          : undefined;
+        if (depositMeta && isPerpsPredictMoneyDeposit(depositMeta)) {
+          return;
+        }
+
         if (status === 'approved') {
           showPendingToast({
             showToast,

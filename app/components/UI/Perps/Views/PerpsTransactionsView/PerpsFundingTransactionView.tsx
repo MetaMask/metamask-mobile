@@ -29,11 +29,14 @@ import {
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsFundingTransactionView.styles';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const PerpsFundingTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<PerpsFundingTransactionRouteProp>();
 
   const selectedInternalAccount = useSelector(
@@ -70,6 +73,11 @@ const PerpsFundingTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'perps_transaction_details',
+      text: strings('perps.transactions.view_on_explorer'),
+      url: explorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {

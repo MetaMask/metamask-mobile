@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -9,22 +9,26 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  SectionDivider,
+  SectionHeader,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   type PerpsMarketData,
   type SortDirection,
   PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import { PerpsPillItem } from '../PerpsPillItem';
 import { usePerpsTopMovers } from '../../hooks/usePerpsTopMovers';
 import { usePerpsNavigation } from '../../hooks';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { selectPerpsTopMoversEnabledFlag } from '../../selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -77,63 +81,71 @@ export interface PerpsTopMoversSectionProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-/**
- * Inner component — only mounted when the feature flag is enabled.
- * Keeps all stream-based hooks (usePerpsTopMovers, usePerpsMarkets,
- * usePerpsLivePrices) out of the React tree entirely when the flag is off,
- * so no subscriptions or sorting work runs unnecessarily.
- */
 const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
   source,
   transactionActiveAbTests,
 }) => {
-  const tw = useTailwind();
   const perpsNavigation = usePerpsNavigation();
+  const { track } = usePerpsEventTracking();
   const [direction, setDirection] = useState<SortDirection>('desc');
   const { data, isLoading } = usePerpsTopMovers({ direction });
 
-  if (!isLoading && data.length === 0) {
-    return null;
-  }
+  // Pills navigate to asset_details — use source=perps_home + direction-aware
+  // source_section so analysts can distinguish gainers from losers.
+  const pillSourceSection =
+    direction === 'desc'
+      ? PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS
+      : PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS;
 
-  const handleViewAll = () => {
+  const handleViewAll = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.TOP_MOVERS,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    });
     perpsNavigation.navigateToMarketList({
       defaultSortOptionId: 'priceChange',
       defaultSortDirection: direction,
       source,
       ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
     });
-  };
+  }, [track, perpsNavigation, direction, source, transactionActiveAbTests]);
 
   const renderPill = (item: PerpsMarketData) => {
     const feedItem: PerpsFeedItem = { market: item, isWatchlisted: false };
     return (
       <PerpsPillItem
         item={feedItem}
-        marketDetailsSource={source}
+        marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+        marketDetailsSourceSection={pillSourceSection}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   };
 
+  if (!isLoading && data.length === 0) {
+    return null;
+  }
+
   return (
     <Box
-      paddingTop={8}
-      style={tw.style('mb-6 border-t border-muted')}
+      paddingBottom={3}
       testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_SECTION}
     >
+      <SectionDivider />
       <SectionHeader
         title={strings('perps.home.top_movers')}
+        isInteractive
         onPress={handleViewAll}
         testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER}
-        twClassName="mb-3"
       />
-
-      {/* Gainers / Losers toggle */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="px-4 gap-2 mb-2"
+        twClassName="px-4 gap-2 mb-3"
       >
         <TogglePill
           label={strings('perps.home.gainers')}
@@ -148,7 +160,6 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
           testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_LOSERS_PILL}
         />
       </Box>
-
       <PillScrollList<PerpsMarketData>
         data={data}
         isLoading={isLoading}
@@ -157,21 +168,13 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
         Skeleton={SectionPillsSkeleton}
         rowCount={TOP_MOVERS_ROW_COUNT}
         maxPills={TOP_MOVERS_MAX_PILLS}
-        wrapperTwClassName="bg-transparent mt-1"
+        wrapperTwClassName="bg-transparent"
         listTestId={PerpsHomeViewSelectorsIDs.TOP_MOVERS_LIST}
       />
     </Box>
   );
 };
 
-/**
- * "Top Movers" section for the Perps home screen.
- *
- * Reads the feature flag first. When the flag is off the inner component is
- * never mounted, so no stream subscriptions or sorting work runs at all.
- * When enabled, renders a Gainers / Losers toggle and a 2×4 pill carousel of
- * the top price-change markets with live WebSocket price updates.
- */
 const PerpsTopMoversSection: React.FC<PerpsTopMoversSectionProps> = (props) => {
   const isEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
   if (!isEnabled) {
