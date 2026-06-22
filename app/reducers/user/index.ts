@@ -31,6 +31,7 @@ export const userInitialState: UserState = {
   musdConversionAssetDetailCtasSeen: {},
   moneyOnboardingSeen: false,
   tokenOverviewChartType: ChartType.Line,
+  tokenIndicators: [],
   onboardingStepperProgress: {},
 };
 
@@ -166,6 +167,11 @@ const userReducer = (
       return {
         ...state,
         tokenOverviewChartType: action.payload.chartType,
+      };
+    case UserActionType.SET_TOKEN_INDICATORS:
+      return {
+        ...state,
+        tokenIndicators: action.payload.indicators,
       };
     case UserActionType.SET_ONBOARDING_STEPPER_STEP:
       return {

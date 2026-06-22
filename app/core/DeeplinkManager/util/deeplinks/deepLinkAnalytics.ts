@@ -487,6 +487,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.SDK_CONNECT]: extractInvalidProperties,
   [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
+  [DeepLinkRoute.MONEY]: extractInvalidProperties,
 };
 
 /**
@@ -640,6 +641,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SDK_CONNECT;
     case ACTIONS.MMSDK:
       return DeepLinkRoute.SDK_MMSDK;
+    case ACTIONS.MONEY:
+      return DeepLinkRoute.MONEY;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -704,6 +707,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.NFT;
       case 'agentic-cli':
         return DeepLinkRoute.AGENTIC_CLI;
+      case 'money':
+        return DeepLinkRoute.MONEY;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

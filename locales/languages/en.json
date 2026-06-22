@@ -124,6 +124,9 @@
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
+    "deposit_limit": {
+      "title": "Max deposit: {{amount}}"
+    },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
       "message": "Something went wrong with your fiat purchase. Please try again."
@@ -1043,7 +1046,9 @@
     "top_traders_view": {
       "title": "Weekly Top Traders",
       "chain_filter": {
-        "all": "All"
+        "all": "All",
+        "tokens": "Tokens",
+        "perps": "Perps"
       }
     },
     "notification_preferences": {
@@ -1098,6 +1103,7 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
+      "unsupported_market": "Unsupported market",
       "bought": "Bought",
       "sold": "Sold",
       "no_trades": "No trades yet",
@@ -4219,6 +4225,8 @@
       "3y": "3Y",
       "all": "All"
     },
+    "ma_picker_title": "Moving average",
+    "done": "Done",
     "no_chart_data": {
       "title": "No chart data",
       "description": "We could not fetch any data for this token",
@@ -4524,6 +4532,7 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "submitted": "Submitted",
+    "queued": "Queued",
     "failed": "Failed",
     "cancelled": "Cancelled",
     "signed": "Pending",
@@ -7022,7 +7031,8 @@
     },
     "first_time_deposit": {
       "title": "First deposit, done",
-      "content": "Your funds are on the way to your account and will start earning soon."
+      "content": "It’s in your Money account —\n and already earning.",
+      "button_text": "Done"
     },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
@@ -7032,12 +7042,13 @@
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
       "step2_footer_text": "Money account uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
-      "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
+      "step3_body_card_ineligible": "Coming soon! Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
       "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
       "step4_footer_text": "Powered by Monad.",
-      "continue": "Continue"
+      "button_text": "Continue"
     },
     "action": {
       "add": "Add",
@@ -7149,9 +7160,12 @@
       "in_progress_body": "This may take a few minutes.",
       "deposit_in_progress_title_convert": "Converting crypto",
       "deposit_in_progress_title_add_musd": "Adding funds",
+      "deposit_in_progress_title_card": "Depositing",
+      "deposit_in_progress_body_card": "Card orders may take a few minutes.",
       "success_title": "Transaction complete",
       "deposit_success_title_convert": "Conversion complete",
       "deposit_success_title_add_musd": "Funds added",
+      "deposit_success_title_card": "Deposit complete",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",
       "withdraw_in_progress_title": "Transfer in progress",
@@ -7161,6 +7175,7 @@
       "withdraw_fallback_destination": "your account",
       "deposit_failed_title_convert": "Conversion failed",
       "deposit_failed_title_add_musd": "Failed to add funds",
+      "deposit_failed_title_card": "Deposit failed",
       "deposit_failed_body_convert": "Unable to convert. Try again.",
       "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
       "withdraw_failed_title": "Transfer failed",
@@ -7213,6 +7228,10 @@
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
+      "cashback": "mUSD back",
+      "card": "Card",
+      "purchase": "Purchase",
+      "musd_back": "mUSD back",
       "converted": "Converted",
       "depositing": "Depositing",
       "converting": "Converting",
@@ -7224,11 +7243,14 @@
       "received_from": "From: {{address}}",
       "failed": "Failed"
     },
-    "card_details": {
-      "title": "Card transaction",
+    "api_activity_details": {
+      "card_title": "Card transaction",
+      "cashback_title": "mUSD back",
       "you_spent": "You spent",
+      "you_earned": "You earned",
       "completed": "Completed",
       "paid_to": "Paid to",
+      "received_from": "Received from",
       "date": "Date"
     },
     "convert_stablecoins": {
@@ -7272,6 +7294,11 @@
       "faq_a9": "Opening a Money Account and holding mUSD does not require identity verification. However, certain MetaMask features—including MetaMask Card and Ramps—require KYC (Know Your Customer) verification as required by applicable regulations. These checks are carried out by the third-party providers that operate these regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
       "faq_q10": "Which countries is MetaMask Money Account available in?",
       "faq_a10": "MetaMask Money Account is available globally except in the following regions: the UK, and countries on the USA sanctions list."
+    },
+    "geo_block": {
+      "title": "Money account unavailable",
+      "description": "Money account isn't available in your location due to local restrictions or sanctions.",
+      "button": "Got it"
     }
   },
   "stake": {
@@ -7765,6 +7792,7 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "batch_sell_transaction_label": "Batch sell",
     "batch_sell_select_title": "Select up to 5 tokens",
     "batch_sell_select_subtitle": "All tokens need to be on the same network.",
     "batch_sell_empty_state_title": "No tokens. No problem.",
@@ -7778,7 +7806,7 @@
     "batch_sell_review_title": "Batch Sell Review",
     "batch_sell_select_stablecoin": "Select a stablecoin",
     "batch_sell_total_received": "Total received",
-    "batch_sell_minimum_received": "Minimum received",
+    "batch_sell_minimum_received": "Min. received:",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
     "batch_sell_no_quote_available": "No quote available",
     "batch_sell_high_price_impact": "High price impact",
@@ -7975,6 +8003,7 @@
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Date",
+    "network": "Network",
     "total_gas_fee": "Total gas fee",
     "estimated_completion": "Est. completion",
     "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
@@ -7984,6 +8013,8 @@
     "view_on_block_explorer": "View on block explorer",
     "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
     "transaction_details": "Transaction details",
+    "you_swapped": "You swapped",
+    "you_received": "You received",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
   },
@@ -9405,9 +9436,9 @@
       "stats_title": "Stats",
       "label_rank": "Rank",
       "label_your_rank": "Your rank",
-      "label_roi": "ROI",
+      "label_roi": "ROI (after fees)",
       "label_total_volume": "Total volume",
-      "label_pnl": "PnL",
+      "label_pnl": "PnL (after fees)",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
       "positions_open_section": "Open",
@@ -9521,6 +9552,15 @@
       "money_account_withdraw": "Transfer from Money Account",
       "money_account_sent": "Sent {{symbol}}",
       "money_account_received": "Received",
+      "deposited_musd": "Deposited mUSD",
+      "depositing_musd": "Depositing mUSD",
+      "deposit_failed": "Deposit failed",
+      "sent": "Sent",
+      "sending_musd": "Sending mUSD",
+      "send_failed": "Send failed",
+      "converted_to_musd": "Converted to mUSD",
+      "converting_to_musd": "Converting to mUSD",
+      "conversion_failed": "Conversion failed",
       "default": "Transaction details"
     },
     "label": {
@@ -9528,6 +9568,7 @@
       "provider_fee": "Provider fee",
       "network_fee": "Network fee",
       "transaction_fee": "Transaction fee",
+      "transaction_fees": "Transaction fees",
       "paid_with": "Paid with",
       "receive_token": "Receive token",
       "retry_button": "Try again",
@@ -9540,6 +9581,7 @@
       "order_id": "Order ID",
       "network": "Network",
       "you_sent": "You sent",
+      "you_received": "You received",
       "token_received": "Token received",
       "money_account": "Money account",
       "perps_account": "Perps Account 1",

@@ -111,7 +111,7 @@ const HomepageDiscoveryPills: React.FC<HomepageDiscoveryPillsProps> = ({
             handlePillPress(pillId, HOMEPAGE_DISCOVERY_PILL_IDS.indexOf(pillId))
           }
           size={ButtonSize.Md}
-          style={tw.style('rounded-xl py-2 px-3')}
+          style={tw.style('rounded-xl py-2 pl-2 pr-3')}
           testID={HomepageDiscoveryPillsTestIds.pill(pillId)}
           accessibilityLabel={strings(PILL_LABEL_KEYS[pillId])}
         />
