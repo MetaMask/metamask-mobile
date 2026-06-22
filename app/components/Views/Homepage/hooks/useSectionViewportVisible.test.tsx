@@ -1,6 +1,6 @@
+import { act, renderHook } from '@testing-library/react-native';
 import React, { createRef } from 'react';
 import { View } from 'react-native';
-import { act, renderHook } from '@testing-library/react-native';
 import { HomepageScrollContext } from '../context/HomepageScrollContext';
 import useSectionViewportVisible from './useSectionViewportVisible';
 
@@ -130,13 +130,17 @@ describe('useSectionViewportVisible', () => {
     );
     sectionRef.current = { measureInWindow } as unknown as View;
 
-    const visitIdState = { value: 1 };
+    const visitIdRef = { current: 1 };
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      createWrapper({ visitId: visitIdState.value })({ children });
+      createWrapper({ visitId: visitIdRef.current })({ children });
 
     const { result, rerender } = renderHook(
-      () => useSectionViewportVisible(sectionRef, { isLoading: false }),
-      { wrapper },
+      ({ visitId: _visitId }: { visitId: number }) =>
+        useSectionViewportVisible(sectionRef, { isLoading: false }),
+      {
+        wrapper,
+        initialProps: { visitId: 1 },
+      },
     );
 
     act(() => {
@@ -146,8 +150,8 @@ describe('useSectionViewportVisible', () => {
     expect(result.current.isVisible).toBe(true);
     measureInWindow.mockClear();
 
-    visitIdState.value = 2;
-    rerender();
+    visitIdRef.current = 2;
+    rerender({ visitId: 2 });
 
     expect(measureInWindow).toHaveBeenCalled();
     expect(result.current.isVisible).toBe(true);

@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { act, renderHook } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
 import ReactQueryService from '../../../../../../core/ReactQueryService';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { prefetchTraderProfileData } from '../../../../../../util/social/traderProfileQueries';
@@ -35,6 +35,16 @@ const mockPrefetchTraderProfileData =
     typeof prefetchTraderProfileData
   >;
 
+const createInteractionHandle = (): ReturnType<
+  typeof InteractionManager.runAfterInteractions
+> => ({
+  then: (onfulfilled, onrejected) =>
+    Promise.resolve().then(onfulfilled, onrejected),
+  done: (onfulfilled, onrejected) =>
+    Promise.resolve().then(onfulfilled, onrejected),
+  cancel: jest.fn(),
+});
+
 let focusCleanup: (() => void) | undefined;
 let lastFocusCallback: (() => (() => void) | void) | undefined;
 
@@ -66,8 +76,10 @@ describe('usePrefetchTraderProfiles', () => {
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task) => {
-        task();
-        return { cancel: jest.fn() };
+        if (typeof task === 'function') {
+          task();
+        }
+        return createInteractionHandle();
       });
   });
 
@@ -253,8 +265,8 @@ describe('usePrefetchTraderProfiles', () => {
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task) => {
-        deferredTask = task;
-        return { cancel: jest.fn() };
+        deferredTask = typeof task === 'function' ? task : undefined;
+        return createInteractionHandle();
       });
 
     const { rerender } = renderHook(
