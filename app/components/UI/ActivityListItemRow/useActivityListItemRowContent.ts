@@ -687,6 +687,17 @@ function resolveAmount(
   return isSpendingCapActivity ? amount : applyDisplaySign(amount, signPrefix);
 }
 
+function shouldUsePrimaryFiatFallback(
+  itemType: ActivityListItem['type'],
+  secondaryToken: TokenAmount | undefined,
+) {
+  if (secondaryToken) {
+    return false;
+  }
+
+  return !['swap', 'bridge', 'wrap', 'unwrap', 'convert'].includes(itemType);
+}
+
 function formatTokenQuantity(amount: string): string {
   const value = Number(amount);
   const absoluteValue = Math.abs(value);
@@ -861,17 +872,32 @@ export function useActivityListItemRowContent(
     networkChainId,
   );
   const primaryAmount = resolveAmount(primaryToken, item.type);
+  const resolvedSecondaryAmount = resolveAmount(secondaryToken, item.type);
+  const secondaryFiatAmount = resolveFiatAmount({
+    activityType: item.type,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    hexChainId,
+    token: secondaryToken,
+    usdConversionRate,
+  });
+  const primaryFiatAmount = shouldUsePrimaryFiatFallback(
+    item.type,
+    secondaryToken,
+  )
+    ? resolveFiatAmount({
+        activityType: item.type,
+        contractExchangeRates,
+        conversionRate,
+        currentCurrency,
+        hexChainId,
+        token: primaryToken,
+        usdConversionRate,
+      })
+    : undefined;
   const secondaryAmount =
-    resolveAmount(secondaryToken, item.type) ??
-    resolveFiatAmount({
-      activityType: item.type,
-      contractExchangeRates,
-      conversionRate,
-      currentCurrency,
-      hexChainId,
-      token: primaryToken,
-      usdConversionRate,
-    });
+    resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount;
 
   return {
     ...content,
