@@ -25,5 +25,6 @@ export interface UserState {
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
   moneyOnboardingSeen: boolean;
   tokenOverviewChartType: ChartType;
+  tokenIndicators: string[];
   onboardingStepperProgress: Record<string, number>;
 }
