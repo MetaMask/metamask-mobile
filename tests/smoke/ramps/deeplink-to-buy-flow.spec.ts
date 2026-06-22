@@ -44,11 +44,13 @@ describe(SmokeMoney('Buy Crypto Deeplinks'), () => {
         await device.launchApp({
           url: buyLink,
         });
-        await BuildQuoteView.tapTokenDropdown('Ethereum');
+
+        // V2: chainId-only deeplink resolves to native ETH and opens BuildQuote directly.
+        await Assertions.expectTextDisplayed('Buy ETH');
+        await BuildQuoteView.tapBackButton();
 
         await TokenSelectScreen.tapTokenByName('DAI');
-        await Assertions.expectTextDisplayed('Dai Stablecoin');
-        await Assertions.expectTextDisplayed('$275');
+        await Assertions.expectTextDisplayed('Buy DAI');
         await Assertions.expectTextDisplayed('USD');
       },
     );
@@ -74,7 +76,7 @@ describe(SmokeMoney('Buy Crypto Deeplinks'), () => {
         await device.launchApp({
           url: BASE_USDC_BUY_DEEPLINK,
         });
-        await Assertions.expectTextDisplayed('USD Coin');
+        await Assertions.expectTextDisplayed('Buy USDC');
       },
     );
   });
