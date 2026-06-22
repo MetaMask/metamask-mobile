@@ -104,7 +104,7 @@ jest.mock(
           children: React.ReactNode;
           keyboardAvoidingViewEnabled?: boolean;
         },
-        _ref,
+        _ref: unknown,
       ) =>
         ReactActual.createElement(
           'View',

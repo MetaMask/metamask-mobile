@@ -93,7 +93,7 @@ jest.mock('@shopify/flash-list', () => {
         ListFooterComponent?: () => React.ReactElement;
         [key: string]: unknown;
       },
-      ref,
+      ref: unknown,
     ) => {
       ReactActual.useImperativeHandle(ref, () => ({
         scrollToIndex: mockFlashListScrollToIndex,
