@@ -550,6 +550,31 @@ describe('AdvancedChart', () => {
     expect(getByTestId('mock-webview')).toBeOnTheScreen();
   });
 
+  it('delegates pre-ready native WebView error to onInitFailed without showing error UI', () => {
+    const onInitFailed = jest.fn();
+    const onError = jest.fn();
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onInitFailed={onInitFailed}
+        onError={onError}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onError?.({
+        nativeEvent: { description: 'WebView failed to load' },
+      });
+    });
+
+    expect(onInitFailed).toHaveBeenCalledWith('WebView failed to load');
+    expect(onError).not.toHaveBeenCalled();
+    expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
+    expect(queryByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
+  });
+
   it('shows error UI for pre-ready ERROR when onInitFailed is not set', () => {
     const { getByTestId, queryByTestId, getByText } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} />,
