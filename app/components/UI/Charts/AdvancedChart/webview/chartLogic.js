@@ -24,6 +24,8 @@ window.positionShapeIds = [];
 window.tradeMarkerShapeIds = [];
 /** Map<tradeId, shapeEntityId> so a specific trade marker can be pulsed on demand. */
 window.tradeMarkerShapeIdsById = new Map();
+/** Latest full marker set from RN; markers are (re)drawn as their candles load (draw-on-pan). */
+window.tradeMarkersData = null;
 window.isChartReady = false;
 window.pendingMessages = [];
 window.libraryLoaded = false;
@@ -519,6 +521,7 @@ function handleSetOHLCVData(payload) {
       window.positionShapeIds = [];
       window.tradeMarkerShapeIds = [];
       window.tradeMarkerShapeIdsById = new Map();
+      window.tradeMarkersData = null;
       window.realtimeCallbacks = {};
       window.currentChartType = 2;
       initChart();
@@ -1533,6 +1536,8 @@ function subscribeLastCloseLabelUpdates() {
         if (getLineChrome().useCustomLineEndMarker) {
           scheduleLineEndDotAfterVisibleRangeChange();
         }
+        // Re-place trade markers so ones that scroll into the loaded range appear.
+        scheduleTradeMarkerRefresh();
       });
   } catch (e) {}
 }
@@ -2205,6 +2210,10 @@ function handleSetPositionLines(payload) {
 /** Circle glyph (FontAwesome fa-circle), same icon used for the line-end dot. */
 var TRADE_MARKER_ICON = 0xf111;
 var TRADE_MARKER_SIZE = 14;
+/** Bumped when the visible marker set changes so stale async createShape resolves are discarded. */
+window.__tradeMarkerGen = 0;
+/** Debounce handle for re-placing markers after pan / zoom / pagination. */
+var tradeMarkerRefreshDebounce = null;
 
 function clearTradeMarkers() {
   if (!window.chartWidget || !window.isChartReady) return;
@@ -2230,34 +2239,111 @@ function clearTradeMarkers() {
 function handleSetTradeMarkers(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
 
-  // Always clear existing markers first so an update replaces, not stacks.
+  // Store the full marker set (RN sends ALL trades, not just the visible window).
+  window.tradeMarkersData =
+    payload && payload.markers && payload.markers.length
+      ? payload.markers
+      : null;
+
+  // "clear only" — no markers to draw.
+  if (!window.tradeMarkersData) {
+    clearTradeMarkers();
+    return;
+  }
+
+  placeTradeMarkers();
+}
+
+/**
+ * Draws the trade markers whose candle is within the currently-loaded data range,
+ * snapping each Y onto the rendered close-price line. Markers older than the loaded
+ * range are skipped and drawn later, once the user pans/zooms and the WebView
+ * paginates their candles in (see {@link scheduleTradeMarkerRefresh}) — this is why
+ * a trade from weeks ago appears as you scroll back instead of being dropped.
+ *
+ * No-ops when the visible marker set is unchanged (avoids redraw flicker on pan).
+ * A generation token discards stale async `createShape` resolves when the set
+ * changes. Y is taken from the WebView's own candles (which grow via pagination),
+ * so older markers RN couldn't snap still land on the line.
+ */
+function placeTradeMarkers() {
+  if (!window.chartWidget || !window.isChartReady) return;
+  var chart;
+  try {
+    chart = window.chartWidget.activeChart();
+  } catch (e) {
+    return;
+  }
+  if (!chart) return;
+
+  var markers = window.tradeMarkersData || [];
+  var data = window.ohlcvData || [];
+  if (!data.length) return; // no candles loaded yet; re-runs after data / pan
+  var firstT = data[0].time;
+  var lastT = data[data.length - 1].time;
+
+  // Markers whose candle is within the loaded range → drawable right now.
+  var desired = [];
+  for (var i = 0; i < markers.length; i++) {
+    var m = markers[i];
+    if (
+      m &&
+      m.id != null &&
+      isFinite(m.time) &&
+      isFinite(m.price) &&
+      m.time >= firstT &&
+      m.time <= lastT
+    ) {
+      desired.push(m);
+    }
+  }
+
+  // Skip the redraw when the drawn set already matches (prevents pan flicker).
+  var desiredKey = desired
+    .map(function (mk) {
+      return String(mk.id);
+    })
+    .sort()
+    .join('|');
+  var drawnIds = [];
+  window.tradeMarkerShapeIdsById.forEach(function (_entityId, id) {
+    drawnIds.push(id);
+  });
+  if (desiredKey === drawnIds.sort().join('|')) return;
+
+  window.__tradeMarkerGen = (window.__tradeMarkerGen || 0) + 1;
+  var gen = window.__tradeMarkerGen;
   clearTradeMarkers();
 
-  // null or empty markers means "clear only".
-  if (!payload || !payload.markers || !payload.markers.length) return;
-
-  var markers = payload.markers;
   var theme = window.CONFIG.theme;
 
-  try {
-    var chart = window.chartWidget.activeChart();
+  function createDesired() {
+    if (gen !== window.__tradeMarkerGen) return;
+    if (!window.chartWidget || !window.isChartReady) return;
+    var activeChart;
+    try {
+      activeChart = window.chartWidget.activeChart();
+    } catch (e) {
+      return;
+    }
+    if (!activeChart) return;
 
-    for (var i = 0; i < markers.length; i++) {
+    for (var j = 0; j < desired.length; j++) {
       (function (marker) {
-        if (!marker || !isFinite(marker.time) || !isFinite(marker.price)) {
-          return;
-        }
-        // RN sends marker.time in ms (matches OHLCVBar.time); the Drawing API
-        // anchors shapes by Unix seconds, so convert here. marker.price is the
-        // close-price line value at the trade time (RN snaps it onto the line),
-        // so the circle sits on the line instead of at the raw fill price.
         var timeSec = Math.floor(marker.time / 1000);
+        // Snap Y onto the rendered line at the trade time using the WebView's own
+        // (paginating) candles — works for older markers RN couldn't snap.
+        var lineY = interpolateCloseAlongLineAtTimeMs(
+          window.ohlcvData,
+          marker.time,
+        );
+        var price = lineY !== null && isFinite(lineY) ? lineY : marker.price;
         var color =
           marker.intent === 'exit' ? theme.errorColor : theme.successColor;
 
-        chart
+        activeChart
           .createShape(
-            { time: timeSec, price: marker.price },
+            { time: timeSec, price: price },
             {
               // Drawings API: icon + fixed size (matches the line-end dot).
               // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/Drawings-Overrides/
@@ -2276,21 +2362,47 @@ function handleSetTradeMarkers(payload) {
             },
           )
           .then(function (entityId) {
+            // Discard if a newer placement superseded this one.
+            if (gen !== window.__tradeMarkerGen) {
+              if (entityId) {
+                try {
+                  activeChart.removeEntity(entityId);
+                } catch (e) {}
+              }
+              return;
+            }
             if (entityId) {
               window.tradeMarkerShapeIds.push(entityId);
-              if (marker.id != null) {
-                window.tradeMarkerShapeIdsById.set(String(marker.id), entityId);
-              }
+              window.tradeMarkerShapeIdsById.set(String(marker.id), entityId);
             }
           })
           .catch(function () {});
-      })(markers[i]);
+      })(desired[j]);
     }
-  } catch (error) {
-    sendToReactNative('ERROR', {
-      message: 'Failed to add trade markers: ' + error.message,
-    });
   }
+
+  // Defer to dataReady so the series has the bars for correct X anchoring.
+  try {
+    if (typeof chart.dataReady === 'function') {
+      chart.dataReady(createDesired);
+    } else {
+      createDesired();
+    }
+  } catch (e) {
+    createDesired();
+  }
+}
+
+/** Debounced re-place after pan / zoom / pagination so off-screen markers appear. */
+function scheduleTradeMarkerRefresh() {
+  if (!window.tradeMarkersData) return;
+  if (tradeMarkerRefreshDebounce) {
+    clearTimeout(tradeMarkerRefreshDebounce);
+  }
+  tradeMarkerRefreshDebounce = setTimeout(function () {
+    tradeMarkerRefreshDebounce = null;
+    placeTradeMarkers();
+  }, 150);
 }
 
 /** Bumped on each pulse so a newer pulse (or marker rebuild) cancels the previous loop. */
@@ -3736,6 +3848,8 @@ function fetchOlderBars(pending) {
 
       if (newBars.length > 0) {
         window.ohlcvData = newBars.concat(window.ohlcvData);
+        // Older history just paginated in → draw any trade markers now in range.
+        scheduleTradeMarkerRefresh();
       }
 
       var olderBars = [];

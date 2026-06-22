@@ -259,17 +259,26 @@ const TraderAdvancedChart = ({
 
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
 
-  // Markers are bounded to the chart's *loaded data window* — not a now-relative
-  // window — so trades on a closed position (whose price feed may end well in the
-  // past) still render. `trades` is the full trade list; we keep only those whose
-  // timestamp falls within the OHLCV data so markers never sit in empty space.
-  const tradeMarkers = useMemo(() => {
-    const mapped = mapTradesToAdvancedMarkers(trades, ohlcvData);
-    if (!ohlcvData.length) return mapped;
+  // ALL trades become markers. The WebView draws each one as its candle enters
+  // the loaded range (draw-on-pan): older trades appear when you scroll back and
+  // their history paginates in, rather than being dropped up front. The WebView
+  // also re-snaps each marker's Y onto the line using its own paginating candles.
+  const tradeMarkers = useMemo(
+    () => mapTradesToAdvancedMarkers(trades, ohlcvData),
+    [trades, ohlcvData],
+  );
+
+  // Subset within the currently-loaded window — used ONLY to frame the initial
+  // viewport (below). Framing must not span the full trade history, or the period
+  // buttons would zoom out to weeks/months on a token with many trades.
+  const framingMarkers = useMemo(() => {
+    if (!ohlcvData.length) return tradeMarkers;
     const firstTime = ohlcvData[0].time;
     const lastTime = ohlcvData[ohlcvData.length - 1].time;
-    return mapped.filter((m) => m.time >= firstTime && m.time <= lastTime);
-  }, [trades, ohlcvData]);
+    return tradeMarkers.filter(
+      (m) => m.time >= firstTime && m.time <= lastTime,
+    );
+  }, [tradeMarkers, ohlcvData]);
 
   // Visible viewport. Unlike Token Details (which always shows the trailing
   // `durationMs`), a position chart must FRAME THE TRADES: a closed position may
@@ -285,8 +294,8 @@ const TraderAdvancedChart = ({
     let from: number;
     let to: number;
 
-    if (tradeMarkers.length) {
-      const times = tradeMarkers.map((m) => m.time);
+    if (framingMarkers.length) {
+      const times = framingMarkers.map((m) => m.time);
       const minT = Math.min(...times);
       const maxT = Math.max(...times);
       const pad = Math.max(maxT - minT, config.durationMs * 0.5) * 0.2;
@@ -307,7 +316,7 @@ const TraderAdvancedChart = ({
       visibleFromMs: Math.max(from, firstBarTime),
       visibleToMs: Math.min(to, lastBarTime),
     };
-  }, [lastBarTime, ohlcvData, tradeMarkers, config.durationMs]);
+  }, [lastBarTime, ohlcvData, framingMarkers, config.durationMs]);
 
   // Reference price for crosshair % change: the first bar inside the window.
   const comparePrice = useMemo(() => {

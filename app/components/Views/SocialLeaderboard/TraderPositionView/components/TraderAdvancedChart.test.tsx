@@ -230,7 +230,7 @@ describe('TraderAdvancedChart', () => {
     );
   });
 
-  it('filters out trades that fall outside the loaded OHLCV data window', () => {
+  it('passes ALL trades as markers, even ones outside the loaded window (draw-on-pan)', () => {
     const bars = makeBars(20); // window: 1_700_000_000_000 .. +19*60_000
     setOHLCV(bars);
 
@@ -248,7 +248,7 @@ describe('TraderAdvancedChart', () => {
         direction: 'sell',
         tokenAmount: 1,
         usdCost: 100,
-        timestamp: (bars[bars.length - 1].time + 60_000_000) / 1000, // after last bar
+        timestamp: (bars[0].time - 60_000_000) / 1000, // long before the window
         transactionHash: '0xoutside',
       },
     ];
@@ -257,8 +257,15 @@ describe('TraderAdvancedChart', () => {
 
     const lastCall = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
       tradeMarkers: { id: string }[];
+      visibleFromMs: number;
     };
-    expect(lastCall.tradeMarkers.map((m) => m.id)).toEqual(['0xinside']);
+    // Both markers are sent — the WebView decides which to draw as candles load.
+    expect(lastCall.tradeMarkers.map((m) => m.id).sort()).toEqual([
+      '0xinside',
+      '0xoutside',
+    ]);
+    // The out-of-window trade must NOT pull the initial viewport before the data.
+    expect(lastCall.visibleFromMs).toBeGreaterThanOrEqual(bars[0].time);
   });
 
   it('falls back to the legacy chart when OHLCV coverage is below threshold', () => {
