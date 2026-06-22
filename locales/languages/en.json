@@ -4914,7 +4914,8 @@
     "between_account": "Transfer between my accounts",
     "others": "Others",
     "memo": "Memo",
-    "network": "Network"
+    "network": "Network",
+    "custom": "Custom"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
