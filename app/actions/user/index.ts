@@ -28,6 +28,7 @@ import {
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
   type SetTokenOverviewChartTypeAction,
+  type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
   UserActionType,
 } from './types';
@@ -249,6 +250,18 @@ export function setTokenOverviewChartType(
   return {
     type: UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE,
     payload: { chartType },
+  };
+}
+
+/**
+ * Action to set active technical indicators for token charts
+ */
+export function setTokenIndicators(
+  indicators: string[],
+): SetTokenIndicatorsAction {
+  return {
+    type: UserActionType.SET_TOKEN_INDICATORS,
+    payload: { indicators },
   };
 }
 

@@ -29,16 +29,10 @@ import {
   selectLastKnownMoneyBalance,
   setLastKnownMoneyBalance,
 } from '../../../../core/redux/slices/moneyBalance';
+import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
-
-// TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-const DEV_APY = {
-  decimal: 0.04,
-  percent: 4,
-  percentFormatted: '4%',
-};
 
 /**
  * Fetches the live exchange rate for the mUSD token.
@@ -62,6 +56,9 @@ const useMoneyAccountBalance = (
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);
+  const { vaultApyFallback, vaultApyOverride } = useSelector(
+    selectMoneyVaultApyRemoteConfig,
+  );
 
   const moneyBalanceQuery = useQuery({
     queryKey: [
@@ -226,10 +223,23 @@ const useMoneyAccountBalance = (
     ? lastKnownBalance.value
     : undefined;
 
-  const rawApy = vaultApyQuery.data?.apy;
+  const serviceApy = vaultApyQuery.data?.apy;
 
-  const apyDecimal = rawApy;
-  const apyPercent = rawApy !== undefined ? rawApy * 100 : undefined;
+  // During first load with no cache, do not show fallback to avoid flicker.
+  // Show fallback on explicit APY query errors (service outage path) or when
+  // a settled query still yields no APY value.
+  const shouldUseFallback =
+    !vaultApyQuery.isLoading &&
+    (vaultApyQuery.isError || serviceApy === undefined);
+
+  // Override always wins when set; otherwise use live service value; then use
+  // fallback only when the APY query is settled/error and no live APY exists.
+  const apyDecimal =
+    vaultApyOverride !== undefined
+      ? vaultApyOverride
+      : (serviceApy ?? (shouldUseFallback ? vaultApyFallback : undefined));
+
+  const apyPercent = apyDecimal !== undefined ? apyDecimal * 100 : undefined;
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
@@ -246,12 +256,9 @@ const useMoneyAccountBalance = (
     totalFiatFormatted,
     totalFiatRaw,
     withdrawableMusd,
-    // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-    apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
-    apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
-    apyPercentFormatted: __DEV__
-      ? DEV_APY.percentFormatted
-      : apyPercentFormatted,
+    apyDecimal,
+    apyPercent,
+    apyPercentFormatted,
   };
 };
 

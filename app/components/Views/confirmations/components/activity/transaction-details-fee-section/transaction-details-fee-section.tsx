@@ -30,13 +30,15 @@ export function TransactionDetailsFeeSection() {
   const isMoneyContext = useIsMoneyAccountContext();
 
   const { metamaskPay } = transactionMeta;
-  const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
+  const { networkFeeFiat: payNetworkFeeFiat, bridgeFeeFiat: payBridgeFeeFiat } =
+    metamaskPay || {};
 
   const isSponsored =
     isMoneyContext &&
     hasTransactionType(transactionMeta, SPONSORED_FEE_TYPES) &&
     payNetworkFeeFiat !== undefined &&
-    new BigNumber(payNetworkFeeFiat).isZero();
+    new BigNumber(payNetworkFeeFiat).isZero() &&
+    new BigNumber(payBridgeFeeFiat ?? 0).isZero();
 
   if (isSponsored) {
     return (

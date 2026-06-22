@@ -85,11 +85,11 @@ describe('TopTradersSection', () => {
     });
   });
 
-  it('queries with the spot chains so the cache key aligns with TopTradersView "All" and the prewarm saga', () => {
+  it('queries with all chains so the cache key aligns with TopTradersView "All"', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
         limit: 50,
       }),
     );

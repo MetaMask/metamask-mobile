@@ -111,7 +111,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
               {strings('bridge.select_quote_info')}
             </Text>
           </Box>
-          <Box twClassName="pb-4">
+          <Box>
             {rows.map((rowProps) => (
               <QuoteRow key={rowProps.quoteRequestId} {...rowProps} />
             ))}
