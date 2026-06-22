@@ -29,9 +29,9 @@ import ActivityList, {
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../ActivityList';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
-import { TRENDING_NETWORKS_LIST } from '../../UI/Trending/utils/trendingNetworksList';
 import type { CaipChainId } from '@metamask/utils';
 import { ActivityTypeFilter } from './types';
+import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -60,6 +60,8 @@ const ActivityScreen = () => {
     null,
   );
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
+
+  const networkOptions = useNetworkFilterOptions();
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
@@ -96,9 +98,8 @@ const ActivityScreen = () => {
   const isNetworkFilterActive =
     Array.isArray(effectiveNetworkFilter) && effectiveNetworkFilter.length > 0;
   const selectedNetworkName = isNetworkFilterActive
-    ? TRENDING_NETWORKS_LIST.find(
-        (n) => n.caipChainId === effectiveNetworkFilter[0],
-      )?.name
+    ? networkOptions.find((n) => n.caipChainId === effectiveNetworkFilter[0])
+        ?.name
     : undefined;
   const networkFilterLabel =
     isNetworkFilterActive && selectedNetworkName
@@ -264,13 +265,12 @@ const ActivityScreen = () => {
           />
         ) : null}
 
-        {/* This is a stub for the network filter bottom sheet. We may actually use this version depending on the feedback/requirements */}
         <TrendingTokenNetworkBottomSheet
           isVisible={isNetworkSheetOpen}
           onClose={handleCloseNetworkSheet}
           onNetworkSelect={handleSelectNetwork}
           selectedNetwork={networkFilter}
-          networks={TRENDING_NETWORKS_LIST}
+          networks={networkOptions}
         />
       </SafeAreaView>
     </ErrorBoundary>

@@ -8,6 +8,7 @@ import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
 } from '../../../../tests/component-view/renderers/activity';
+import { activityLineaNetworkOverride } from '../../../../tests/component-view/presets/activity';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
@@ -50,8 +51,9 @@ describeForPlatforms('ActivityScreen', () => {
   });
 
   it('updates the selected network filter through the real network sheet', async () => {
-    const { getByTestId, getAllByText, findByText } =
-      renderActivityScreenView();
+    const { getByTestId, getAllByText, findByText } = renderActivityScreenView({
+      overrides: activityLineaNetworkOverride,
+    });
 
     fireEvent.press(
       getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
@@ -95,7 +97,7 @@ describeForPlatforms('ActivityScreen', () => {
       queryAllByText,
       findByText,
       findByTestId,
-    } = renderActivityScreenView();
+    } = renderActivityScreenView({ overrides: activityLineaNetworkOverride });
 
     // Pick a network that Perps does not settle on.
     fireEvent.press(
