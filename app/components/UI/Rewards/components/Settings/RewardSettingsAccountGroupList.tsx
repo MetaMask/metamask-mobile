@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, memo, useState } from 'react';
+import React, { useCallback, useMemo, memo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -161,10 +161,21 @@ const RewardSettingsAccountGroupList: React.FC<
 > = ({ onRequestOptOut }) => {
   const tw = useTailwind();
 
+  const flashListRef =
+    useRef<FlashListRef<RewardSettingsAccountGroupListFlatListItem> | null>(
+      null,
+    );
+
   // State to track which wallets are expanded
   const [expandedWallets, setExpandedWallets] = useState<Set<string>>(
     new Set(),
   );
+
+  const handleReferralInputFocus = useCallback(() => {
+    setTimeout(() => {
+      flashListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, []);
 
   // Move all expensive operations to parent component
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -358,12 +369,12 @@ const RewardSettingsAccountGroupList: React.FC<
   const ListFooterComponent = useCallback(
     () => (
       <Box twClassName="gap-4">
-        <ReferredByCodeSection />
+        <ReferredByCodeSection onInputFocus={handleReferralInputFocus} />
         {onRequestOptOut && <OptOutSection onErasePress={onRequestOptOut} />}
         <RewardsEnvironmentToggle />
       </Box>
     ),
-    [onRequestOptOut],
+    [handleReferralInputFocus, onRequestOptOut],
   );
 
   // Flatten data for FlatList with collapse/expand support
@@ -469,6 +480,7 @@ const RewardSettingsAccountGroupList: React.FC<
   // Account list using FlashList for better performance
   return (
     <FlashList
+      ref={flashListRef}
       testID="rewards-settings-flash-list"
       data={flattenedData}
       renderItem={renderFlatListItem}
