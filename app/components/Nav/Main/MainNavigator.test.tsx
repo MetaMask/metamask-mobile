@@ -1558,10 +1558,44 @@ describe('MainNavigator', () => {
         expect(screenNames).not.toContain(Routes.REWARDS_DASHBOARD);
       });
 
-      it('registers the rewards modal screens regardless of subscription state', () => {
-        // The modal screens are siblings of the dashboard/onboarding branch and
-        // must always be available so deeplinks/bottom sheets can open.
+      it('does not register rewards modal screens in the Rewards tab stack', () => {
+        // Modal sheets live on the root MainNavigator so they are reachable from
+        // both the Rewards tab and REWARDS_FLOW without switching tabs.
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
+
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        );
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        );
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+        );
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+        );
+        expect(screenNames).not.toContain(Routes.MODAL.REWARDS_SELECT_SHEET);
+      });
+    });
+
+    describe('Root rewards modal screens', () => {
+      const findRootScreenNames = (): string[] => {
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+
+        return root
+          .findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'Screen' &&
+              typeof node.props?.name === 'string',
+          )
+          .map((node) => node.props.name as string);
+      };
+
+      it('registers rewards modal screens on the root navigator', () => {
+        const screenNames = findRootScreenNames();
 
         expect(screenNames).toEqual(
           expect.arrayContaining([
