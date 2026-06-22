@@ -284,7 +284,7 @@ class NotificationsService {
       }
       logPushEvent('NOTIFEE_DISPLAY_CALLED', `displayNotification called: "${title}"`, { channelId, id });
       await notifee.displayNotification({
-        id,
+        ...(id !== undefined && { id }),
         title,
         body,
         // Notifee can only store and handle data strings
@@ -297,7 +297,7 @@ class NotificationsService {
             id: pressActionId,
             launchActivity: LAUNCH_ACTIVITY,
           },
-          tag: id,
+          ...(id !== undefined && { tag: id }),
         },
         ios: {
           launchImageName: 'Default',
