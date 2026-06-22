@@ -197,9 +197,11 @@ const TokenDetails: React.FC<{
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
 
   const handleShare = useCallback(() => {
-    const url = caip19AssetId
-      ? `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`
-      : undefined;
+    if (!caip19AssetId) {
+      return;
+    }
+
+    const url = `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SHARED)
@@ -211,12 +213,9 @@ const TokenDetails: React.FC<{
         .build(),
     );
 
-    // iOS renders `url` as a rich link preview; Android needs it in `message`
-    Share.share(
-      Platform.OS === 'ios'
-        ? { message: token.symbol, url }
-        : { message: url ?? token.symbol },
-    );
+    // Share only the deep link. iOS renders `url` as a rich link preview;
+    // Android needs the link in `message`.
+    Share.share(Platform.OS === 'ios' ? { url } : { message: url });
   }, [
     caip19AssetId,
     createEventBuilder,

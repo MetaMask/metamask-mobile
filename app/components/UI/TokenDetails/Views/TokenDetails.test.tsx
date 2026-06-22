@@ -1047,7 +1047,7 @@ describe('TokenDetails', () => {
       }
     });
 
-    it('shares only the token symbol when caip19AssetId cannot be resolved', async () => {
+    it('does not share when caip19AssetId cannot be resolved', async () => {
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         chainId: undefined,
@@ -1056,9 +1056,7 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
       await invokeSharePress();
 
-      const [args] = (Share.share as jest.Mock).mock.calls[0];
-      expect(args.message).toBe('DAI');
-      expect(args.url).toBeUndefined();
+      expect(Share.share).not.toHaveBeenCalled();
     });
 
     it('resolves caip19AssetId directly when address is already CAIP-19 format', async () => {
