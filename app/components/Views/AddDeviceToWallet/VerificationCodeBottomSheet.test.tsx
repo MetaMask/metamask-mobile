@@ -1,11 +1,13 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
-import { DeviceEventEmitter } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import VerificationCodeBottomSheet from './VerificationCodeBottomSheet';
 import { strings } from '../../../../locales/i18n';
+import { QrSyncPhases } from '../../../core/QrSync/constants';
 
 const mockGoBack = jest.fn();
+const mockSelectQrSyncPhase = jest.fn();
+const mockSelectQrSyncOtp = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -14,44 +16,32 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
     }),
-    useRoute: () => ({
-      params: {},
-    }),
   };
 });
+
+jest.mock('../../../selectors/qrSyncController', () => ({
+  selectQrSyncPhase: (...args: unknown[]) => mockSelectQrSyncPhase(...args),
+  selectQrSyncOtp: (...args: unknown[]) => mockSelectQrSyncOtp(...args),
+}));
 
 describe('VerificationCodeBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
+    mockSelectQrSyncPhase.mockReturnValue(QrSyncPhases.DISPLAYING_OTP);
+    mockSelectQrSyncOtp.mockReturnValue('123456');
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it('renders pending verification copy when route has no code', () => {
+  it('renders OTP from QrSyncController', () => {
     const { getByText } = renderWithProvider(<VerificationCodeBottomSheet />);
 
-    expect(
-      getByText(strings('app_settings.add_device.verification_code_pending')),
-    ).toBeOnTheScreen();
+    expect(getByText('123456')).toBeOnTheScreen();
   });
 
-  it('emits verification done and navigates back when Done is pressed', () => {
-    const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
+  it('navigates back when Done is pressed', () => {
     const { getByText } = renderWithProvider(<VerificationCodeBottomSheet />);
 
     fireEvent.press(getByText(strings('app_settings.add_device.done')));
 
-    expect(emitSpy).toHaveBeenCalledWith('addDeviceVerificationDone');
     expect(mockGoBack).toHaveBeenCalled();
-
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    expect(mockGoBack).toHaveBeenCalledTimes(2);
-    emitSpy.mockRestore();
   });
 });
