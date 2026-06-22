@@ -6,6 +6,8 @@ alwaysApply: false
 
 # Version-Gated Feature Flags
 
+> Canonical human guide: [`docs/readme/version-gated-feature-flags.md`](../../docs/readme/version-gated-feature-flags.md)
+
 ## Canonical source (SSOT)
 
 All version-gated feature flag logic lives in `app/util/remoteFeatureFlag/index.ts`:
