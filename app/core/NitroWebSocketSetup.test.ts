@@ -75,6 +75,56 @@ describe('NitroWebSocketSetup', () => {
     });
   });
 
+  describe('hasTestOverrides guard', () => {
+    it('does not replace global.WebSocket or prewarm when hasTestOverrides is true', async () => {
+      const localPrewarm = jest.fn();
+      const sentinel = function sentinelWebSocket() {
+        // Sentinel: left untouched if the module is correctly guarded.
+      };
+      const previousWebSocket = global.WebSocket;
+      global.WebSocket = sentinel as unknown as typeof WebSocket;
+
+      await jest.isolateModulesAsync(async () => {
+        jest.doMock('react-native-nitro-websockets', () => ({
+          NitroWebSocket: jest.fn(),
+          prewarmOnAppStart: localPrewarm,
+        }));
+        jest.doMock('../util/test/utils', () => ({
+          hasTestOverrides: true,
+        }));
+
+        await import('./NitroWebSocketSetup');
+      });
+
+      expect(global.WebSocket).toBe(sentinel);
+      expect(localPrewarm).not.toHaveBeenCalled();
+
+      global.WebSocket = previousWebSocket;
+    });
+  });
+
+  describe('prewarm error handling', () => {
+    it('does not throw when prewarmOnAppStart throws on install', async () => {
+      const previousWebSocket = global.WebSocket;
+
+      await jest.isolateModulesAsync(async () => {
+        jest.doMock('react-native-nitro-websockets', () => ({
+          NitroWebSocket: jest.fn(),
+          prewarmOnAppStart: jest.fn(() => {
+            throw new Error('prewarm boom');
+          }),
+        }));
+        jest.doMock('../util/test/utils', () => ({
+          hasTestOverrides: false,
+        }));
+
+        await expect(import('./NitroWebSocketSetup')).resolves.toBeDefined();
+      });
+
+      global.WebSocket = previousWebSocket;
+    });
+  });
+
   describe('NitroWebSocketAdapter — static constants', () => {
     it('exposes CONNECTING as 0', () => {
       expect(global.WebSocket.CONNECTING).toBe(0);
@@ -252,13 +302,15 @@ describe('NitroWebSocketSetup', () => {
       expect(ws.onopen).toBe(handler);
     });
 
-    it('fires onopen when the native socket opens', () => {
+    it('fires onopen with an open event when the native socket opens', () => {
       const handler = jest.fn();
       ws.onopen = handler;
 
       mockWsInstance.onopen?.();
 
-      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'open' }),
+      );
     });
 
     it('stores and retrieves onmessage handler', () => {
@@ -274,7 +326,9 @@ describe('NitroWebSocketSetup', () => {
 
       mockWsInstance.onmessage?.({ isBinary: false, data: 'hello' });
 
-      expect(handler).toHaveBeenCalledWith({ data: 'hello' });
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: 'hello' }),
+      );
     });
 
     it('stores and retrieves onclose handler', () => {
@@ -287,15 +341,21 @@ describe('NitroWebSocketSetup', () => {
     it('fires onclose with close event when native socket closes', () => {
       const handler = jest.fn();
       ws.onclose = handler;
-      const closeEvent: MockNitroCloseEvent = {
+
+      mockWsInstance.onclose?.({
         code: 1000,
         reason: 'normal',
         wasClean: true,
-      };
+      });
 
-      mockWsInstance.onclose?.(closeEvent);
-
-      expect(handler).toHaveBeenCalledWith(closeEvent);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'close',
+          code: 1000,
+          reason: 'normal',
+          wasClean: true,
+        }),
+      );
     });
 
     it('stores and retrieves onerror handler', () => {
@@ -305,13 +365,18 @@ describe('NitroWebSocketSetup', () => {
       expect(ws.onerror).toBe(handler);
     });
 
-    it('fires onerror with error string when native socket errors', () => {
+    it('fires onerror with an error event carrying the message when native socket errors', () => {
       const handler = jest.fn();
       ws.onerror = handler;
 
       mockWsInstance.onerror?.('connection refused');
 
-      expect(handler).toHaveBeenCalledWith('connection refused');
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          message: 'connection refused',
+        }),
+      );
     });
 
     it('does not fire onopen after it is reassigned to null', () => {
@@ -344,7 +409,9 @@ describe('NitroWebSocketSetup', () => {
         binaryData: binary,
       });
 
-      expect(handler).toHaveBeenCalledWith({ data: binary });
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: binary }),
+      );
     });
 
     it('falls back to data string when binaryData is undefined on a binary frame', () => {
@@ -357,7 +424,9 @@ describe('NitroWebSocketSetup', () => {
         binaryData: undefined,
       });
 
-      expect(handler).toHaveBeenCalledWith({ data: 'fallback' });
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: 'fallback' }),
+      );
     });
 
     it('falls back to data string when binaryData is null on a binary frame', () => {
@@ -370,7 +439,9 @@ describe('NitroWebSocketSetup', () => {
         binaryData: null,
       });
 
-      expect(handler).toHaveBeenCalledWith({ data: 'fallback' });
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: 'fallback' }),
+      );
     });
 
     it('delivers data string for non-binary frames', () => {
@@ -379,7 +450,9 @@ describe('NitroWebSocketSetup', () => {
 
       mockWsInstance.onmessage?.({ isBinary: false, data: 'text-payload' });
 
-      expect(handler).toHaveBeenCalledWith({ data: 'text-payload' });
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: 'text-payload' }),
+      );
     });
   });
 
@@ -406,30 +479,40 @@ describe('NitroWebSocketSetup', () => {
 
       mockWsInstance.onmessage?.({ isBinary: false, data: 'hello' });
 
-      expect(listener).toHaveBeenCalledWith({ data: 'hello' });
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: 'hello' }),
+      );
     });
 
     it('fires close listener added via addEventListener with close event', () => {
       const listener = jest.fn();
       ws.addEventListener('close', listener);
-      const closeEvent: MockNitroCloseEvent = {
+
+      mockWsInstance.onclose?.({
         code: 1001,
         reason: 'going away',
         wasClean: false,
-      };
+      });
 
-      mockWsInstance.onclose?.(closeEvent);
-
-      expect(listener).toHaveBeenCalledWith(closeEvent);
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'close',
+          code: 1001,
+          reason: 'going away',
+          wasClean: false,
+        }),
+      );
     });
 
-    it('fires error listener added via addEventListener with error string', () => {
+    it('fires error listener added via addEventListener with error event', () => {
       const listener = jest.fn();
       ws.addEventListener('error', listener);
 
       mockWsInstance.onerror?.('timeout');
 
-      expect(listener).toHaveBeenCalledWith('timeout');
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'error', message: 'timeout' }),
+      );
     });
 
     it('fires all listeners when multiple are added for the same event', () => {
@@ -450,6 +533,39 @@ describe('NitroWebSocketSetup', () => {
       ws.addEventListener('open', listener);
 
       mockWsInstance.onopen?.();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires a { once: true } listener only on the first event', () => {
+      const listener = jest.fn();
+      ws.addEventListener('open', listener, { once: true });
+
+      mockWsInstance.onopen?.();
+      mockWsInstance.onopen?.();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not register a listener when the provided signal is already aborted', () => {
+      const controller = new AbortController();
+      controller.abort();
+      const listener = jest.fn();
+      ws.addEventListener('open', listener, { signal: controller.signal });
+
+      mockWsInstance.onopen?.();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('removes a signal-bound listener when the signal aborts', () => {
+      const controller = new AbortController();
+      const listener = jest.fn();
+      ws.addEventListener('message', listener, { signal: controller.signal });
+
+      mockWsInstance.onmessage?.({ isBinary: false, data: 'first' });
+      controller.abort();
+      mockWsInstance.onmessage?.({ isBinary: false, data: 'second' });
 
       expect(listener).toHaveBeenCalledTimes(1);
     });
@@ -517,6 +633,53 @@ describe('NitroWebSocketSetup', () => {
     });
   });
 
+  describe('NitroWebSocketAdapter — dispatchEvent', () => {
+    let ws: WebSocket;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      ws = new global.WebSocket('wss://example.com');
+    });
+
+    it('invokes close listeners with an externally dispatched close event', () => {
+      // Mirrors @nktkas/rews dispatching a synthetic CloseEvent on connect timeout.
+      const listener = jest.fn();
+      ws.addEventListener('close', listener);
+      const closeEvent = {
+        type: 'close',
+        code: 3008,
+        reason: 'Timeout',
+        wasClean: false,
+      };
+
+      const result = ws.dispatchEvent(closeEvent as unknown as Event);
+
+      expect(listener).toHaveBeenCalledWith(closeEvent);
+      expect(result).toBe(true);
+    });
+
+    it('invokes the .onclose handler on an externally dispatched close event', () => {
+      const handler = jest.fn();
+      ws.onclose = handler;
+      const closeEvent = {
+        type: 'close',
+        code: 1006,
+        reason: '',
+        wasClean: false,
+      };
+
+      ws.dispatchEvent(closeEvent as unknown as Event);
+
+      expect(handler).toHaveBeenCalledWith(closeEvent);
+    });
+
+    it('does not throw when dispatching an unknown event type', () => {
+      expect(() =>
+        ws.dispatchEvent({ type: 'custom' } as unknown as Event),
+      ).not.toThrow();
+    });
+  });
+
   describe('NitroWebSocketAdapter — .onX and addEventListener composition', () => {
     let ws: WebSocket;
 
@@ -545,8 +708,12 @@ describe('NitroWebSocketSetup', () => {
 
       mockWsInstance.onmessage?.({ isBinary: false, data: 'hello' });
 
-      expect(onXHandler).toHaveBeenCalledWith({ data: 'hello' });
-      expect(addedListener).toHaveBeenCalledWith({ data: 'hello' });
+      expect(onXHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: 'hello' }),
+      );
+      expect(addedListener).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'message', data: 'hello' }),
+      );
     });
 
     it('fires both .onclose and a close addEventListener listener with the same close event', () => {
@@ -554,16 +721,17 @@ describe('NitroWebSocketSetup', () => {
       const addedListener = jest.fn();
       ws.onclose = onXHandler;
       ws.addEventListener('close', addedListener);
-      const closeEvent: MockNitroCloseEvent = {
+
+      mockWsInstance.onclose?.({ code: 1000, reason: 'done', wasClean: true });
+
+      const expected = expect.objectContaining({
+        type: 'close',
         code: 1000,
         reason: 'done',
         wasClean: true,
-      };
-
-      mockWsInstance.onclose?.(closeEvent);
-
-      expect(onXHandler).toHaveBeenCalledWith(closeEvent);
-      expect(addedListener).toHaveBeenCalledWith(closeEvent);
+      });
+      expect(onXHandler).toHaveBeenCalledWith(expected);
+      expect(addedListener).toHaveBeenCalledWith(expected);
     });
 
     it('fires both .onerror and an error addEventListener listener with the same error', () => {
@@ -574,8 +742,12 @@ describe('NitroWebSocketSetup', () => {
 
       mockWsInstance.onerror?.('network error');
 
-      expect(onXHandler).toHaveBeenCalledWith('network error');
-      expect(addedListener).toHaveBeenCalledWith('network error');
+      const expected = expect.objectContaining({
+        type: 'error',
+        message: 'network error',
+      });
+      expect(onXHandler).toHaveBeenCalledWith(expected);
+      expect(addedListener).toHaveBeenCalledWith(expected);
     });
   });
 
@@ -598,6 +770,32 @@ describe('NitroWebSocketSetup', () => {
       ws.send(buffer);
 
       expect(mockWsInstance.send).toHaveBeenCalledWith(buffer);
+    });
+
+    it('normalizes a Uint8Array to its backing ArrayBuffer before sending', () => {
+      const view = new Uint8Array([1, 2, 3, 4]);
+
+      (ws as unknown as { send(data: ArrayBufferView): void }).send(view);
+
+      expect(mockWsInstance.send).toHaveBeenCalledTimes(1);
+      const sent = mockWsInstance.send.mock.calls[0][0];
+      // Must be a raw buffer, not the typed-array view that was passed in.
+      expect(ArrayBuffer.isView(sent)).toBe(false);
+      expect(sent.byteLength).toBe(4);
+      expect(Array.from(new Uint8Array(sent))).toEqual([1, 2, 3, 4]);
+    });
+
+    it('sends only the view byte range for a partial Uint8Array, not the whole buffer', () => {
+      // View over bytes [1,2] of a 4-byte buffer; the whole buffer must NOT leak.
+      const backing = new Uint8Array([10, 20, 30, 40]).buffer;
+      const view = new Uint8Array(backing, 1, 2);
+
+      (ws as unknown as { send(data: ArrayBufferView): void }).send(view);
+
+      const sent = mockWsInstance.send.mock.calls[0][0];
+      expect(ArrayBuffer.isView(sent)).toBe(false);
+      expect(sent.byteLength).toBe(2);
+      expect(Array.from(new Uint8Array(sent))).toEqual([20, 30]);
     });
   });
 
