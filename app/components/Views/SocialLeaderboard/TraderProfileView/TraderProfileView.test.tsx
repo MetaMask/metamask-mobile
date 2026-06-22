@@ -3,7 +3,7 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
@@ -351,11 +351,37 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays the trader name', () => {
+  it('displays the trader name in the profile header and compact nav header', () => {
     renderWithProvider(<TraderProfileView />);
-    const visibleTraderNames = screen.getAllByText('trader1');
-    expect(visibleTraderNames).toHaveLength(1);
-    expect(visibleTraderNames[0]).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
+      ).getByText('trader1'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(
+          TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY,
+        ),
+      ).getByText('trader1'),
+    ).toBeOnTheScreen();
+  });
+
+  it('displays compact win rate and 7D PnL in the nav header', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    const header = screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER);
+
+    expect(
+      within(header).getByTestId(
+        TraderProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE,
+      ),
+    ).toHaveTextContent('92%');
+    expect(
+      within(header).getByTestId(
+        TraderProfileViewSelectorsIDs.HEADER_COMPACT_PNL,
+      ),
+    ).toHaveTextContent('+$20,610');
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -373,7 +399,11 @@ describe('TraderProfileView', () => {
 
   it('renders the win rate stat', () => {
     renderWithProvider(<TraderProfileView />);
-    expect(screen.getByText('92%')).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+      ).getByText('92%'),
+    ).toBeOnTheScreen();
   });
 
   it('renders the Follow button when not following', () => {
@@ -439,7 +469,10 @@ describe('TraderProfileView', () => {
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
     ).not.toBeOnTheScreen();
   });
 
@@ -573,11 +606,30 @@ describe('TraderProfileView', () => {
     expect(screen.getByText('Follow')).toBeOnTheScreen();
   });
 
-  it('does not render header when profile is null and not loading', () => {
+  it('title section onLayout sets header height for scroll animation', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    const titleSectionWrapper = screen.getByTestId(
+      TraderProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+    );
+    fireEvent(titleSectionWrapper, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
+    });
+
+    expect(titleSectionWrapper).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render profile header when profile is null and not loading', () => {
     mockProfileResult.profile = null;
     renderWithProvider(<TraderProfileView />);
     expect(
-      screen.queryByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
     ).not.toBeOnTheScreen();
   });
 
@@ -614,7 +666,10 @@ describe('TraderProfileView', () => {
     it('does not show skeleton when error is present', () => {
       renderWithProvider(<TraderProfileView />);
       expect(
-        screen.queryByTestId(TraderProfileViewSelectorsIDs.HEADER),
+        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
       ).not.toBeOnTheScreen();
       expect(screen.queryByText('Follow')).not.toBeOnTheScreen();
     });
@@ -635,7 +690,7 @@ describe('TraderProfileView', () => {
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
       ).not.toBeOnTheScreen();
       expect(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+        screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
       ).toBeOnTheScreen();
     });
   });
@@ -855,7 +910,11 @@ describe('TraderProfileView', () => {
 
       // Sum is 1,000,000 — hyperliquid is included; rendered with the full
       // no-decimals formatter: 1,000,000 → +$1,000,000
-      expect(screen.getByText('+$1,000,000')).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$1,000,000'),
+      ).toBeOnTheScreen();
       // And the trader's global pnl7d (999,999) is NOT what we display
       expect(screen.queryByText('+$999,999')).not.toBeOnTheScreen();
     });
@@ -877,7 +936,11 @@ describe('TraderProfileView', () => {
       renderWithProvider(<TraderProfileView />);
 
       // 1,474,000 rendered with the full no-decimals formatter → +$1,474,000
-      expect(screen.getByText('+$1,474,000')).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$1,474,000'),
+      ).toBeOnTheScreen();
       expect(screen.queryByText('$0')).not.toBeOnTheScreen();
     });
 
@@ -902,7 +965,11 @@ describe('TraderProfileView', () => {
 
       // -1000 + -2500 + 500 + -50000 = -53000 (hyperliquid included);
       // rendered with the full no-decimals formatter: -53,000 → -$53,000
-      expect(screen.getByText('-$53,000')).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('-$53,000'),
+      ).toBeOnTheScreen();
     });
 
     it('treats a missing chain entry as 0', () => {
@@ -919,7 +986,11 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$7,500')).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$7,500'),
+      ).toBeOnTheScreen();
     });
 
     it('falls back to the global stats.pnl7d when perChainPnl7d is empty', () => {
@@ -936,7 +1007,11 @@ describe('TraderProfileView', () => {
 
       renderWithProvider(<TraderProfileView />);
 
-      expect(screen.getByText('+$20,610')).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$20,610'),
+      ).toBeOnTheScreen();
     });
   });
 });

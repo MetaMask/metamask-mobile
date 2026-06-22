@@ -1,27 +1,31 @@
 /**
- * Row component that renders a single ActivityListItem from the shared adapter shape.
- * All styling and localization are Mobile-specific; data comes from the shared adapters.
+ * Pending variant of the activity row. Reuses the shared row content/layout,
+ * shows a spinner beside the title for in-flight txs, and prefixes queued txs
+ * with an hourglass indicator while keeping the normal address subtitle.
  */
 import React, { useCallback } from 'react';
-import { useColorScheme } from 'react-native';
+import { View, useColorScheme } from 'react-native';
 import { useSelector } from 'react-redux';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { getNetworkImageSource } from '../../../util/networks';
 import { RootState } from '../../../reducers';
 import { AppThemeKey } from '../../../util/theme/models';
+import PendingSpinner from '../Money/components/PendingSpinner/PendingSpinner';
 import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
-import { PendingActivityListItemRow } from './PendingActivityListItemRow';
 import { resolveIconType } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
-export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
-export { resolveIconType } from './resolveIconType';
-
-function ResolvedActivityListItemRow({
+export function PendingActivityListItemRow({
   bridgeHistoryItem,
   item,
   index,
@@ -39,10 +43,9 @@ function ResolvedActivityListItemRow({
     bridgeHistoryItem,
   );
   const styles = createStyles(colors, typography);
-  const isFailed = item.status === 'failed' || item.status === 'cancelled';
   const icon = getTransactionIcon(
     resolveIconType(item.type),
-    isFailed,
+    false,
     appTheme,
     osColorScheme,
   );
@@ -53,6 +56,29 @@ function ResolvedActivityListItemRow({
   const handlePress = useCallback(() => {
     onPress?.(item);
   }, [onPress, item]);
+
+  const testIdSuffix = item.hash ?? index;
+  const isQueued = item.isEarliestNonce === false;
+  const subtitle = content.subtitle
+    ? isQueued
+      ? `${strings('transaction.queued')} • ${content.subtitle}`
+      : content.subtitle
+    : undefined;
+
+  const titleAccessory = isQueued ? undefined : (
+    <View style={styles.titleSpinner}>
+      <PendingSpinner testID={`activity-pending-spinner-${testIdSuffix}`} />
+    </View>
+  );
+
+  const subtitleLeadingAccessory = isQueued ? (
+    <Icon
+      name={IconName.Pending}
+      size={IconSize.Sm}
+      color={IconColor.Alternative}
+      style={styles.subtitleLeadingIcon}
+    />
+  ) : undefined;
 
   return (
     <ActivityListItemRowLayout
@@ -65,30 +91,19 @@ function ResolvedActivityListItemRow({
         />
       }
       index={index}
-      isFailed={isFailed}
+      isFailed={false}
       item={item}
       onPress={handlePress}
       primaryAmount={content.primaryAmount}
       primaryToken={content.primaryToken}
       secondaryAmount={content.secondaryAmount}
       styles={styles}
-      subtitle={content.subtitle}
+      subtitle={subtitle}
+      subtitleLeadingAccessory={subtitleLeadingAccessory}
       title={titleOverride ?? content.title}
+      titleAccessory={titleAccessory}
     />
   );
 }
 
-/**
- * Dispatches to the pending or resolved row variant, mirroring the extension's
- * `ActivityRow`. Holds no hooks so the branch can switch as a row transitions
- * from pending to a final status.
- */
-export function ActivityListItemRow(props: ActivityListItemRowProps) {
-  if (props.item.status === 'pending') {
-    return <PendingActivityListItemRow {...props} />;
-  }
-
-  return <ResolvedActivityListItemRow {...props} />;
-}
-
-export default ActivityListItemRow;
+export default PendingActivityListItemRow;

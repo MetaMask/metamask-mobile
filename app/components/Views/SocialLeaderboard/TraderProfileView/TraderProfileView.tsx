@@ -6,21 +6,21 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, TouchableOpacity } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandardAnimated,
   IconName,
   Text,
   TextColor,
   TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
@@ -60,6 +60,8 @@ import {
 } from './components/Skeletons';
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
+import TraderProfileCompactStats from './components/TraderProfileCompactStats';
+import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TopTradersNotificationsSetupBottomSheet, {
   type TopTradersNotificationsSetupBottomSheetRef,
 } from './components/TopTradersNotificationsSetupBottomSheet';
@@ -330,164 +332,200 @@ const TraderProfileView = () => {
     }
   }, [activeTab]);
 
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+
+  const headerTitle = profile?.profile.name;
+
   return (
     <SafeAreaView
+      edges={['top']}
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-2 py-2"
-      >
-        <Box twClassName="w-20">
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={handleBack}
-            testID={TraderProfileViewSelectorsIDs.BACK_BUTTON}
-          />
-        </Box>
-        <Box twClassName="w-20 items-end">
-          <ButtonIcon
-            iconName={IconName.Notification}
-            size={ButtonIconSize.Md}
-            onPress={handleNotificationPress}
-            testID={TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON}
-          />
-        </Box>
-      </Box>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-6')}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            testID={TraderProfileViewSelectorsIDs.REFRESH_CONTROL}
-          />
-        }
-      >
-        {!isLoading && profileError && !profile ? (
-          <Box testID={TraderProfileViewSelectorsIDs.ERROR_BANNER}>
-            <ErrorState
-              title={strings(
-                'social_leaderboard.trader_profile.error_loading_profile',
-              )}
-              onRetry={refresh}
+      <HeaderStandardAnimated
+        scrollY={scrollYShared}
+        titleSectionHeight={titleSectionHeightSv}
+        title={
+          headerTitle && profile ? (
+            <TraderHeaderIdentity
+              traderName={headerTitle}
+              traderImageUrl={profile.profile.imageUrl}
+              traderAddress={profile.profile.address}
+              variant="compact"
+              testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />
-          </Box>
-        ) : (
-          <>
-            {isLoading && !profile ? (
-              <ProfileHeaderSkeleton />
-            ) : profile ? (
-              <ProfileHeader
-                profile={profile.profile}
-                twitterHandle={profile.socialHandles?.twitter}
+          ) : undefined
+        }
+        subtitle={
+          headlineStats ? (
+            <TraderProfileCompactStats stats={headlineStats} />
+          ) : undefined
+        }
+        onBack={handleBack}
+        backButtonProps={{
+          testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Notification,
+            onPress: handleNotificationPress,
+            testID: TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON,
+          },
+        ]}
+        testID={TraderProfileViewSelectorsIDs.HEADER}
+      />
+
+      <Box twClassName="flex-1">
+        <Animated.ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              testID={TraderProfileViewSelectorsIDs.REFRESH_CONTROL}
+            />
+          }
+        >
+          {!isLoading && profileError && !profile ? (
+            <Box testID={TraderProfileViewSelectorsIDs.ERROR_BANNER}>
+              <ErrorState
+                title={strings(
+                  'social_leaderboard.trader_profile.error_loading_profile',
+                )}
+                onRetry={refresh}
               />
-            ) : null}
+            </Box>
+          ) : (
+            <>
+              <Box
+                testID={TraderProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER}
+                onLayout={(e) =>
+                  setTitleSectionHeight(e.nativeEvent.layout.height)
+                }
+              >
+                {isLoading && !profile ? (
+                  <>
+                    <ProfileHeaderSkeleton />
+                    <StatsRowSkeleton />
+                  </>
+                ) : profile ? (
+                  <>
+                    <ProfileHeader
+                      profile={profile.profile}
+                      twitterHandle={profile.socialHandles?.twitter}
+                    />
+                    {headlineStats ? (
+                      <StatsRow
+                        stats={headlineStats}
+                        holdTimeMinutes={profile.stats.medianHoldMinutes}
+                      />
+                    ) : (
+                      <StatsRowSkeleton />
+                    )}
+                  </>
+                ) : null}
+              </Box>
 
-            {isLoading && !profile ? (
-              <StatsRowSkeleton />
-            ) : profile && headlineStats ? (
-              <StatsRow
-                stats={headlineStats}
-                holdTimeMinutes={profile.stats.medianHoldMinutes}
-              />
-            ) : null}
+              {profile && (
+                <>
+                  <Box twClassName="px-4 pt-3 pb-1">
+                    <Button
+                      variant={
+                        isFollowing
+                          ? ButtonVariant.Secondary
+                          : ButtonVariant.Primary
+                      }
+                      isFullWidth
+                      onPress={handleFollowPress}
+                      testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                    >
+                      {isFollowing
+                        ? strings('social_leaderboard.following')
+                        : strings('social_leaderboard.follow')}
+                    </Button>
+                  </Box>
 
-            {profile && (
-              <>
-                <Box twClassName="px-4 pt-3 pb-1">
-                  <Button
-                    variant={
-                      isFollowing
-                        ? ButtonVariant.Secondary
-                        : ButtonVariant.Primary
-                    }
-                    isFullWidth
-                    onPress={handleFollowPress}
-                    testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
-                  >
-                    {isFollowing
-                      ? strings('social_leaderboard.following')
-                      : strings('social_leaderboard.follow')}
-                  </Button>
-                </Box>
+                  <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
 
-                <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
-
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName="px-4 mb-2"
-                >
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    gap={4}
+                    justifyContent={BoxJustifyContent.Between}
+                    twClassName="px-4 mb-2"
                   >
-                    <TabButton
-                      label={strings('social_leaderboard.trader_profile.open')}
-                      isActive={activeTab === 'open'}
-                      onPress={() => handleTabChange('open')}
-                      testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
-                    />
-                    <TabButton
-                      label={strings(
-                        'social_leaderboard.trader_profile.closed',
-                      )}
-                      isActive={activeTab === 'closed'}
-                      onPress={() => handleTabChange('closed')}
-                      testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
-                    />
-                  </Box>
-                  {positions.length > 0 && (
-                    <SortButton
-                      label={strings(SORT_LABEL_KEYS[currentSortKey])}
-                      onPress={handleSortPress}
-                      testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
-                    />
-                  )}
-                </Box>
-
-                {isLoadingPositions && positions.length === 0 ? (
-                  POSITION_SKELETON_KEYS.map((key) => (
-                    <PositionRowSkeleton key={key} />
-                  ))
-                ) : sortedPositions.length === 0 ? (
-                  <Box
-                    twClassName="px-4 py-8"
-                    alignItems={BoxAlignItems.Center}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={4}
                     >
-                      {strings(
-                        'social_leaderboard.trader_profile.no_positions',
-                      )}
-                    </Text>
+                      <TabButton
+                        label={strings(
+                          'social_leaderboard.trader_profile.open',
+                        )}
+                        isActive={activeTab === 'open'}
+                        onPress={() => handleTabChange('open')}
+                        testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
+                      />
+                      <TabButton
+                        label={strings(
+                          'social_leaderboard.trader_profile.closed',
+                        )}
+                        isActive={activeTab === 'closed'}
+                        onPress={() => handleTabChange('closed')}
+                        testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
+                      />
+                    </Box>
+                    {positions.length > 0 && (
+                      <SortButton
+                        label={strings(SORT_LABEL_KEYS[currentSortKey])}
+                        onPress={handleSortPress}
+                        testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
+                      />
+                    )}
                   </Box>
-                ) : (
-                  sortedPositions.map((position, index) => (
-                    <PositionRow
-                      key={`${position.tokenAddress}-${position.chain}-${index}`}
-                      position={position}
-                      onPress={handlePositionPress}
-                      isClosed={activeTab === 'closed'}
-                    />
-                  ))
-                )}
-              </>
-            )}
-          </>
-        )}
-      </ScrollView>
+
+                  {isLoadingPositions && positions.length === 0 ? (
+                    POSITION_SKELETON_KEYS.map((key) => (
+                      <PositionRowSkeleton key={key} />
+                    ))
+                  ) : sortedPositions.length === 0 ? (
+                    <Box
+                      twClassName="px-4 py-8"
+                      alignItems={BoxAlignItems.Center}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings(
+                          'social_leaderboard.trader_profile.no_positions',
+                        )}
+                      </Text>
+                    </Box>
+                  ) : (
+                    sortedPositions.map((position, index) => (
+                      <PositionRow
+                        key={`${position.tokenAddress}-${position.chain}-${index}`}
+                        position={position}
+                        onPress={handlePositionPress}
+                        isClosed={activeTab === 'closed'}
+                      />
+                    ))
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </Animated.ScrollView>
+      </Box>
 
       <TopTradersNotificationsSetupBottomSheet
         ref={setupSheetRef}
