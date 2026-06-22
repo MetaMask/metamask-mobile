@@ -230,6 +230,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
+      // Mark "not loaded" synchronously: the WebView is remounting (new `key`), so
+      // the OHLCV sync effect running later in THIS same commit must not post to the
+      // fresh, not-yet-loaded WebView (the message would be dropped and the data
+      // never re-sent). `setWebViewLoaded(false)` only applies next render, so the
+      // ref is the synchronously-correct gate. Re-set true in `handleLoadEnd`.
+      webViewLoadedRef.current = false;
       setLayoutSettling(false);
       clearLayoutSettleTimeout();
       ohlcvSeriesStaleSnapshotRef.current =
@@ -487,7 +493,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // ---- Declarative prop syncing ----
 
     useEffect(() => {
-      if (ohlcvData.length === 0 || !webViewLoaded) return;
+      // `webViewLoaded` (state) is in deps so this re-runs once the new WebView
+      // loads; `webViewLoadedRef` is the synchronously-correct value that prevents
+      // posting to a WebView that is mid-remount (see the series-key reset effect).
+      if (ohlcvData.length === 0 || !webViewLoaded || !webViewLoadedRef.current)
+        return;
 
       if (ohlcvSeriesStaleSnapshotRef.current !== null) {
         if (ohlcvData !== ohlcvSeriesStaleSnapshotRef.current) {

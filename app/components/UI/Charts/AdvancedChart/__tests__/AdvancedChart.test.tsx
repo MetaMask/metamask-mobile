@@ -290,6 +290,46 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('sends fresh data when the series key and data change in the SAME render (synchronous data, e.g. perps)', () => {
+    const oldBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 10, low: 10, close: 10, volume: 0 },
+      { time: 1000300, open: 11, high: 11, low: 11, close: 11, volume: 0 },
+    ];
+    const newBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 20, low: 20, close: 20, volume: 0 },
+      { time: 2000300, open: 21, high: 21, low: 21, close: 21, volume: 0 },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={oldBars} ohlcvSeriesKey="perp|1M" />,
+    );
+    act(() => {
+      getByTestId('mock-webview').props.onLoadEnd();
+    });
+
+    mockPostMessage.mockClear();
+
+    // Perp-style: a period switch changes the key AND the (already in-memory) data
+    // in a single render, while the previous WebView still looks loaded.
+    rerender(<AdvancedChart ohlcvData={newBars} ohlcvSeriesKey="perp|1W" />);
+
+    // Must NOT post to the remounting (not-yet-loaded) WebView — that message is
+    // dropped and was never re-sent (the original "loading forever" bug).
+    expect(mockPostMessage).not.toHaveBeenCalled();
+
+    // Once the new WebView loads, the fresh data is delivered.
+    act(() => {
+      getByTestId('mock-webview').props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: newBars },
+      }),
+    );
+  });
+
   it('reset() clears stale series snapshot so OHLCV sync runs after reload with the same data ref', () => {
     const staleBars: OHLCVBar[] = [
       { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
