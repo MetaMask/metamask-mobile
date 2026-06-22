@@ -1,12 +1,20 @@
 /**
- * Tests for ActivityListItemRow — exhaustive status and type mapping.
+ * Tests for ActivityListItemRow content mapping.
  */
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import type { ActivityListItem, Status } from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
+import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingActions';
 import { strings } from '../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../util/networks';
+import { hasGasFeeTokenSelected } from '../../Views/confirmations/utils/transaction';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
@@ -51,15 +59,32 @@ const mockState = {
 };
 
 // Minimal required mocks
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      background: { default: 'white', alternative: 'grey' },
+      text: { default: 'black', alternative: 'grey', muted: 'grey' },
+      border: { muted: 'grey' },
+      success: { default: 'green' },
+      error: { default: 'red' },
+      warning: { default: 'orange' },
+      primary: { default: 'blue' },
+      icon: { default: 'grey' },
+    },
+    typography: {
+      sBodyLGMedium: { fontSize: 16 },
+      sBodyMDMedium: { fontSize: 14 },
+      sBodyMDBold: { fontSize: 14, fontWeight: 'bold' },
+      sBodyMD: { fontSize: 14 },
+      sBodySM: { fontSize: 12 },
+    },
+  })),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => {
+    const str = selector.toString();
+    if (str.includes('appTheme')) return 'light';
     try {
       return selector(mockState);
     } catch {
@@ -73,13 +98,33 @@ jest.mock('../../../selectors/currencyRateController', () => ({
     (state) =>
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
   ),
+  selectConversionRateByChainId: jest.fn(() => 2500),
   selectCurrencyRateForChainId: jest.fn(() => 2500),
+  selectUSDConversionRateByChainId: jest.fn(() => 2500),
 }));
 
 jest.mock('../../../selectors/tokenRatesController', () => ({
+  selectContractExchangeRatesByChainId: jest.fn(() => ({
+    [LINEA_MUSD_ADDRESS]: {
+      price: 0.0004,
+    },
+  })),
   selectTokenMarketData: jest.fn(
     (state) => state.engine.backgroundState.TokenRatesController.marketData,
   ),
+}));
+
+jest.mock('../Earn/constants/musd', () => ({
+  MUSD_DECIMALS: 6,
+  MUSD_TOKEN: { symbol: 'mUSD' },
+  MUSD_TOKEN_ADDRESS_BY_CHAIN: {
+    '0x1': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    '0xe708': '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN: {
+    '0x1': 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    '0xe708': 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
 }));
 
 jest.mock('react-native', () => {
@@ -94,12 +139,14 @@ jest.mock('../../../util/transaction-icons', () => ({
   getTransactionIcon: jest.fn(() => 1),
 }));
 
-jest.mock('../../../util/date', () => ({
-  toDateFormat: jest.fn(() => 'Jan 1'),
-}));
-
 jest.mock('../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image' })),
+}));
+
+jest.mock('../../../util/address', () => ({
+  renderShortAddress: jest.fn((address: string) => `${address.slice(0, 6)}...`),
+  safeToChecksumAddress: jest.requireActual('../../../util/address')
+    .safeToChecksumAddress,
 }));
 
 jest.mock('../../../component-library/components/Badges/BadgeWrapper', () => {
@@ -122,50 +169,115 @@ jest.mock('../../../component-library/components/Badges/Badge', () => {
 });
 
 jest.mock('../../../component-library/components/Avatars/Avatar', () => ({
-  AvatarSize: { Xs: 'xs' },
+  AvatarSize: { Xs: 'xs', Md: 'md', Sm: 'sm' },
 }));
+
+jest.mock(
+  '../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ({ name, imageSource }: { name?: string; imageSource?: unknown }) =>
+      ReactActual.createElement(View, {
+        testID: `avatar-token-${name ?? 'unknown'}`,
+        imageSource,
+      });
+  },
+);
 
 jest.mock('../../../component-library/components/Texts/Text', () => ({
   getFontFamily: jest.fn(() => 'Inter'),
   TextVariant: {
     BodyLGMedium: 'bodyLGMedium',
+    BodyMDMedium: 'bodyMDMedium',
     BodyMDBold: 'bodyMDBold',
     BodyMD: 'bodyMD',
+    BodySM: 'bodySM',
   },
 }));
 
-jest.mock('../../Base/ListItem', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text: TextActual, View } = jest.requireActual('react-native');
+  const { Pressable, View } = jest.requireActual('react-native');
 
-  const ListItem = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-
-  ListItem.Date = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(TextActual, null, children);
-  ListItem.Content = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.Icon = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.Body = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.Title = ({
-    children,
+  const ListItem = ({
+    avatar,
+    description,
+    endAccessory,
+    isInteractive,
+    onPress,
+    title,
     ...rest
   }: {
-    children: React.ReactNode;
-    numberOfLines?: number;
-    style?: object;
-  }) => ReactActual.createElement(TextActual, rest, children);
-  ListItem.Amount = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(TextActual, null, children);
-  ListItem.Amounts = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-  ListItem.FiatAmount = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(TextActual, null, children);
+    avatar?: React.ReactNode;
+    description?: React.ReactNode;
+    endAccessory?: React.ReactNode;
+    isInteractive?: boolean;
+    onPress?: () => void;
+    title?: React.ReactNode;
+  }) => {
+    const Component = isInteractive ? Pressable : View;
+    return ReactActual.createElement(
+      Component,
+      { onPress, ...rest },
+      avatar,
+      ReactActual.createElement(View, null, title, description),
+      endAccessory,
+    );
+  };
 
-  return ListItem;
+  return { ListItem };
 });
+
+jest.mock('../StyledButton', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text: TextActual } = jest.requireActual('react-native');
+  return ({
+    children,
+    onPress,
+  }: {
+    children: React.ReactNode;
+    onPress?: () => void;
+  }) => ReactActual.createElement(TextActual, { onPress }, children);
+});
+
+jest.mock('../../Base/StatusText', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text: TextActual } = jest.requireActual('react-native');
+  const StatusText = ({
+    status,
+    testID,
+  }: {
+    status: string;
+    testID?: string;
+  }) => ReactActual.createElement(TextActual, { testID }, status);
+  return { __esModule: true, default: StatusText };
+});
+
+jest.mock('../Money/components/PendingSpinner/PendingSpinner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+});
+
+jest.mock('../../../component-library/components/Icons/Icon', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const Icon = ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+  return {
+    __esModule: true,
+    default: Icon,
+    IconColor: { Alternative: 'alternative', Default: 'default' },
+    IconName: { Pending: 'Pending' },
+    IconSize: { Sm: '16' },
+  };
+});
+
+jest.mock('../../Views/confirmations/utils/transaction', () => ({
+  hasGasFeeTokenSelected: jest.fn(() => false),
+}));
 
 // ---------------------------------------------------------------------------
 // Helper to build minimal ActivityListItem
@@ -174,21 +286,26 @@ jest.mock('../../Base/ListItem', () => {
 const makeItem = (
   overrides: Partial<{
     type: ActivityListItem['type'];
+    chainId: string;
     status: Status;
     isEarliestNonce: boolean;
     hash: string;
     from: string;
     to: string;
     token?: object;
+    sourceToken?: object;
+    destinationToken?: object;
+    transactionProtocol?: string;
   }>,
 ): ActivityListItem => {
   const type = overrides.type ?? 'send';
   const status = overrides.status ?? 'success';
   const base = {
     type,
-    chainId: 'eip155:1' as const,
+    chainId: (overrides.chainId ?? 'eip155:1') as ActivityListItem['chainId'],
     status,
     timestamp: 1_700_000_000_000,
+    hash: overrides.hash ?? '0xabc',
     isEarliestNonce: overrides.isEarliestNonce,
   };
 
@@ -197,7 +314,6 @@ const makeItem = (
       ...base,
       type,
       data: {
-        hash: overrides.hash ?? '0xabc',
         from: overrides.from ?? '0xfrom',
         to: overrides.to ?? '0xto',
         token: overrides.token as never,
@@ -205,70 +321,473 @@ const makeItem = (
     } as unknown as ActivityListItem;
   }
 
+  if (
+    type === 'swap' ||
+    type === 'bridge' ||
+    type === 'convert' ||
+    type === 'wrap' ||
+    type === 'unwrap' ||
+    type === 'lendingDeposit' ||
+    type === 'lendingWithdrawal'
+  ) {
+    return {
+      ...base,
+      type,
+      raw: overrides.transactionProtocol
+        ? {
+            type: 'apiEvmTransaction',
+            data: {
+              transactionProtocol: overrides.transactionProtocol,
+            },
+          }
+        : undefined,
+      data: {
+        sourceToken: overrides.sourceToken as never,
+        destinationToken: overrides.destinationToken as never,
+      },
+    } as unknown as ActivityListItem;
+  }
+
   return {
     ...base,
     type,
+    raw: overrides.transactionProtocol
+      ? {
+          type: 'apiEvmTransaction',
+          data: {
+            transactionProtocol: overrides.transactionProtocol,
+          },
+        }
+      : undefined,
     data: {
-      hash: overrides.hash ?? '0xabc',
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
+      token: overrides.token as never,
     },
   } as unknown as ActivityListItem;
 };
 
 // ---------------------------------------------------------------------------
-// Status mapping tests — prove all Status values map to explicit display labels
+// Row content tests — mirrors extension ActivityRow title/subtitle/amount split
 // ---------------------------------------------------------------------------
 
-describe('ActivityListItemRow — status display', () => {
-  const allStatuses: Status[] = ['pending', 'success', 'failed', 'cancelled'];
-
-  it.each(allStatuses)(
-    'renders an explicit non-empty status label for status=%s',
-    (status) => {
-      const item = makeItem({ status });
-      const { getByTestId } = render(
-        <ActivityListItemRow item={item} index={0} />,
-      );
-      const el = getByTestId('transaction-status-0');
-      expect(el.props.children).toBeTruthy();
-    },
-  );
-
-  it('shows "Confirmed" for success status', () => {
-    const item = makeItem({ status: 'success' });
-    const { getByTestId } = render(
-      <ActivityListItemRow item={item} index={0} />,
-    );
-    const el = getByTestId('transaction-status-0');
-    expect(el.props.children).toBe(strings('transaction.confirmed'));
+describe('ActivityListItemRow — row content', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('shows "Failed" for failed status', () => {
-    const item = makeItem({ status: 'failed' });
-    const { getByTestId } = render(
-      <ActivityListItemRow item={item} index={0} />,
-    );
-    const el = getByTestId('transaction-status-0');
-    expect(el.props.children).toBe(strings('transaction.failed'));
+  it('uses the activity item chain for the network badge', () => {
+    const item = makeItem({
+      type: 'send',
+      chainId: 'eip155:59144',
+      status: 'success',
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+
+    render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getNetworkImageSource).toHaveBeenCalledWith({
+      chainId: 'eip155:59144',
+    });
   });
 
-  it('shows "Cancelled" for cancelled status', () => {
-    const item = makeItem({ status: 'cancelled' });
+  it('renders send title, recipient subtitle, and signed primary amount', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      to: '0x1234567890',
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('transaction-status-0');
-    expect(el.props.children).toBe(strings('transaction.cancelled'));
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent USDC',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: 0x1234...',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-10 USDC',
+    );
+    expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
   });
 
-  it('shows "Submitted" for pending status (earliest nonce)', () => {
-    const item = makeItem({ status: 'pending', isEarliestNonce: true });
+  it('renders receive title, sender subtitle, and positive primary amount', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      from: '0xabcdef1234',
+      token: {
+        amount: '200.34',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('transaction-status-0');
-    expect(el.props.children).toBe(strings('transaction.submitted'));
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Received mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'From: 0xabcd...',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200.34 mUSD',
+    );
+  });
+
+  it('renders mUSD fiat using the stablecoin fallback when market rates are missing', () => {
+    const item = makeItem({
+      type: 'receive',
+      chainId: 'eip155:59144',
+      status: 'success',
+      from: '0xabcdef1234',
+      token: {
+        amount: '200340000',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200.34 mUSD',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '+$200.34',
+    );
+  });
+
+  it('renders swap title, protocol subtitle, primary and secondary amounts', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'Curve',
+      sourceToken: {
+        amount: '0.123',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '300',
+        symbol: 'USDT',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Swapped ETH to USDT',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('Curve');
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+300 USDT',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '-0.123 ETH',
+    );
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('renders spending cap rows with token subtitle and no empty amount', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Approved spending cap',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('USDC');
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders spending cap amount without an outgoing sign', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        amount: '100000000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '100 USDC',
+    );
+  });
+
+  it('renders cross-token bridge as swapped with token pair subtitle', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '0.123',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '300',
+        symbol: 'USDT',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'ETH → USDT',
+    );
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('renders bridge route and destination amount from bridge history', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '5100000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const bridgeHistoryItem = {
+      quote: {
+        srcChainId: 1,
+        destChainId: 59144,
+        srcTokenAmount: '5100000',
+        srcAsset: {
+          assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        destTokenAmount: '5090000',
+        destAsset: {
+          assetId:
+            'eip155:59144/erc20:0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    const { getAllByTestId, getByTestId } = render(
+      <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem as never}
+        item={item}
+        index={0}
+      />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Ethereum → Linea',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-5.1 USDC',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '+5.09 USDC',
+    );
+    expect(getAllByTestId('avatar-token-USDC')).toHaveLength(1);
+  });
+
+  it('renders source-only API bridge rows as sends when bridge history is unavailable', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '5000000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent USDC',
+    );
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-5 USDC',
+    );
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('does not render technical protocol values as subtitles', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'GNOSIS_SAFE',
+      sourceToken: {
+        amount: '1',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '1',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+  });
+
+  it('does not render contract subtitle when the contract address is missing', () => {
+    const item = makeItem({
+      type: 'contractInteraction',
+      status: 'success',
+      to: '',
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+  });
+
+  it('renders user-facing protocol for contract interactions when available', () => {
+    const item = makeItem({
+      type: 'contractInteraction',
+      status: 'success',
+      transactionProtocol: 'ACROSS',
+      to: '0xabcdef1234',
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Across',
+    );
+  });
+
+  it('renders lending withdrawal title and amount from the destination token', () => {
+    const item = makeItem({
+      type: 'lendingWithdrawal',
+      status: 'success',
+      sourceToken: {
+        amount: '200',
+        symbol: 'aLinUSDC',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '200',
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      `${strings('transactions.tx_review_lending_withdraw')} USDC`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200 USDC',
+    );
+    expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
+    expect(queryByTestId('avatar-token-aLinUSDC')).toBeNull();
+  });
+
+  it('renders nameless NFT buys as Bought NFT without a primary amount', () => {
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '1',
+        direction: 'in',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bought NFT',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('shortens long crypto decimals in token amounts', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      token: {
+        amount: '0.123456789',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    const primaryAmount = getByTestId('activity-primary-amount-0xabc');
+    expect(primaryAmount.props.children).toBe('-0.1235 ETH');
+    expect(primaryAmount.props.numberOfLines).toBe(1);
+    expect(primaryAmount.props.ellipsizeMode).toBe('tail');
+  });
+
+  it('compacts large token amounts before rendering', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      token: {
+        symbol: 'USDC',
+        amount: '2500000000000000',
+        decimals: 6,
+        direction: 'in',
+      },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+2.5B USDC',
+    );
   });
 });
 
@@ -321,6 +840,69 @@ describe('ActivityListItemRow — amount display', () => {
     expect(getByText('+1 UNKNOWN')).toBeOnTheScreen();
     expect(queryByText('+$1')).toBeNull();
   });
+
+  it('does not render destination fiat as the source line for source-less swaps', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      destinationToken: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+1 mUSD')).toBeOnTheScreen();
+    expect(queryByText('+$1')).toBeNull();
+  });
+});
+
+describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => {
+  const mockContractExchangeRates = jest.mocked(
+    selectContractExchangeRatesByChainId,
+  );
+  const USDC_LOWER = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  const USDC_CHECKSUM = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+
+  const ratesFor = (address: string) =>
+    ({ [address]: { price: 0.0004 } }) as ReturnType<
+      typeof selectContractExchangeRatesByChainId
+    >;
+
+  // This mock uses a persistent return value (clearAllMocks does not reset it),
+  // so restore the suite default (lowercased mUSD key) after each test.
+  afterEach(() => {
+    mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
+  });
+
+  it('renders fiat for an ERC-20 when market data is keyed by a checksummed address', () => {
+    // Production keys marketData by checksummed addresses while the lookup
+    // address is lowercased (CAIP asset references). The fiat line must still
+    // resolve. Regression guard for the missing-ERC-20-fiat bug.
+    mockContractExchangeRates.mockReturnValue(ratesFor(USDC_CHECKSUM));
+
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'USDC',
+        assetId: `eip155:1/erc20:${USDC_LOWER}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('+1 USDC')).toBeOnTheScreen();
+    expect(getByText('+$1')).toBeOnTheScreen();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -356,7 +938,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'predictionCashedOut',
   'predictionPlaced',
   'perpsAddFunds',
-  'perpsWithdrawFunds',
+  'perpsWithdraw',
   'perpsOpenLong',
   'perpsCloseLong',
   'perpsCloseLongLiquidated',
@@ -378,32 +960,32 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: strings('transactions.swaps_transaction'),
-  swapIncomplete: strings('transactions.swaps_transaction'),
-  bridge: strings('transactions.bridge_transaction'),
-  buy: strings('transactions.activity_buy'),
-  sell: strings('transactions.activity_sell'),
-  claim: strings('transactions.claim'),
+  swapIncomplete: 'Swapped',
+  bridge: 'Bridged',
+  buy: 'Bought',
+  sell: 'Sold',
+  claim: 'Claimed',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
-  deposit: strings('transactions.tx_review_staking_deposit'),
-  convert: strings('transactions.tx_review_musd_conversion'),
+  deposit: 'Deposited',
+  convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),
-  approveSpendingCap: strings('transactions.tx_review_approve'),
+  approveSpendingCap: 'Approved spending cap',
   revokeSpendingCap: strings('transactions.activity_revoke_spending_cap'),
-  increaseSpendingCap: strings('transactions.tx_review_increase_allowance'),
+  increaseSpendingCap: 'Increased spending cap',
   lendingDeposit: strings('transactions.tx_review_lending_deposit'),
   lendingWithdrawal: strings('transactions.tx_review_lending_withdraw'),
   nftMint: strings('transactions.activity_nft_mint'),
   contractInteraction: strings('transactions.smart_contract_interaction'),
   contractDeployment: strings('transactions.tx_review_contract_deployment'),
-  smartAccountUpgrade: strings('transactions.activity_smart_account_upgrade'),
+  smartAccountUpgrade: 'Smart account upgraded',
   predictionsAddFunds: strings('transactions.tx_review_predict_deposit'),
   predictionsWithdrawFunds: strings('transactions.tx_review_predict_withdraw'),
   predictionClaimWinnings: strings('transactions.tx_review_predict_claim'),
   predictionCashedOut: strings('transactions.activity_prediction_cashed_out'),
   predictionPlaced: strings('transactions.activity_prediction_placed'),
   perpsAddFunds: strings('transactions.tx_review_perps_deposit'),
-  perpsWithdrawFunds: strings('transactions.tx_review_perps_withdraw'),
+  perpsWithdraw: strings('transactions.tx_review_perps_withdraw'),
   perpsOpenLong: strings('transactions.activity_perps_open_long'),
   perpsCloseLong: strings('transactions.activity_perps_close_long'),
   perpsCloseLongLiquidated: strings(
@@ -458,5 +1040,273 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 
     expect(getByText('Swap ETH to USDC')).toBeOnTheScreen();
     expect(queryByText(strings('transactions.swaps_transaction'))).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pending rows — spinner on title, queued subtitle prefix, no inline actions
+// ---------------------------------------------------------------------------
+
+interface MakePendingLocalItemOptions {
+  txStatus?: string;
+  isEarliestNonce?: boolean;
+}
+
+const makePendingLocalItem = ({
+  txStatus = 'submitted',
+  isEarliestNonce = true,
+}: MakePendingLocalItemOptions = {}): ActivityListItem =>
+  ({
+    type: 'send',
+    chainId: 'eip155:1',
+    status: 'pending',
+    timestamp: 1_700_000_000_000,
+    hash: '0xabc',
+    isEarliestNonce,
+    raw: {
+      type: 'localTransaction',
+      data: {
+        primaryTransaction: {
+          id: 'tx-1',
+          status: txStatus,
+        },
+      },
+    },
+    data: {
+      from: '0xfrom',
+      to: '0x1234567890',
+      token: { amount: '1', symbol: 'ETH', direction: 'out' },
+    },
+  }) as unknown as ActivityListItem;
+
+const makePendingRemoteItem = (): ActivityListItem =>
+  ({
+    type: 'receive',
+    chainId: 'eip155:1',
+    status: 'pending',
+    timestamp: 1_700_000_000_000,
+    hash: '0xdef',
+    data: {
+      from: '0xfrom',
+      to: '0xto',
+      token: { amount: '1', symbol: 'ETH', direction: 'in' },
+    },
+  }) as unknown as ActivityListItem;
+
+const pendingHandlers = () => ({
+  onSpeedUpAction: jest.fn(),
+  onCancelAction: jest.fn(),
+  signQRTransaction: jest.fn(),
+  signLedgerTransaction: jest.fn(),
+  cancelUnsignedQRTransaction: jest.fn(),
+});
+
+describe('ActivityListItemRow — pending rows', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders the pending title, spinner, and normal subtitle', () => {
+    const item = makePendingLocalItem({ txStatus: 'submitted' });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sending ETH',
+    );
+    expect(getByTestId('activity-pending-spinner-0xabc')).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: 0x1234...',
+    );
+  });
+
+  it('renders queued rows with an hourglass prefix and no title spinner', () => {
+    const item = makePendingLocalItem({ isEarliestNonce: false });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sending ETH',
+    );
+    expect(queryByTestId('activity-pending-spinner-0xabc')).toBeNull();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `${strings('transaction.queued')} • To: 0x1234...`,
+    );
+  });
+
+  it('does not render speed-up or cancel actions for pending rows', () => {
+    const item = makePendingLocalItem({ txStatus: 'submitted' });
+    const { queryByText } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+  });
+
+  it('shows a spinner and normal subtitle for non-local pending rows', () => {
+    const item = makePendingRemoteItem();
+    const { getByTestId, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    expect(getByTestId('activity-pending-spinner-0xdef')).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xdef').props.children).toBe(
+      'From: 0xfrom...',
+    );
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pending row actions — speed-up/cancel and hardware signing gates
+// ---------------------------------------------------------------------------
+
+type PendingActionsProps = React.ComponentProps<
+  typeof ActivityListItemRowPendingActions
+>;
+
+const pendingActionStyles = {
+  pendingActions: {},
+  actionContainerStyle: {},
+  speedupActionContainerStyle: {},
+  actionStyle: {},
+} as PendingActionsProps['styles'];
+
+const makePendingActionTx = (
+  overrides: Partial<TransactionMeta & { isSmartTransaction?: boolean }> = {},
+) =>
+  ({
+    id: 'tx-1',
+    status: TransactionStatus.submitted,
+    type: TransactionType.simpleSend,
+    ...overrides,
+  }) as unknown as TransactionMeta;
+
+const makePendingActionProps = (
+  overrides: Partial<PendingActionsProps> = {},
+): PendingActionsProps => ({
+  tx: makePendingActionTx(),
+  styles: pendingActionStyles,
+  isQRHardwareAccount: false,
+  isLedgerAccount: false,
+  onSpeedUpAction: jest.fn(),
+  onCancelAction: jest.fn(),
+  signQRTransaction: jest.fn(),
+  signLedgerTransaction: jest.fn(),
+  cancelUnsignedQRTransaction: jest.fn(),
+  ...overrides,
+});
+
+describe('ActivityListItemRowPendingActions', () => {
+  const mockHasGasFeeTokenSelected = jest.mocked(hasGasFeeTokenSelected);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasGasFeeTokenSelected.mockReturnValue(false);
+  });
+
+  it('renders speed-up and cancel actions for submitted transactions', () => {
+    const props = makePendingActionProps();
+    const { getByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    fireEvent.press(getByText(strings('transaction.speedup')));
+    fireEvent.press(getByText(strings('transaction.cancel')));
+
+    expect(props.onSpeedUpAction).toHaveBeenCalledWith(true, props.tx);
+    expect(props.onCancelAction).toHaveBeenCalledWith(true, props.tx);
+  });
+
+  it('renders normal actions for approved software-account transactions', () => {
+    const props = makePendingActionProps({
+      tx: makePendingActionTx({ status: TransactionStatus.approved }),
+    });
+    const { getByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    expect(getByText(strings('transaction.speedup'))).toBeOnTheScreen();
+    expect(getByText(strings('transaction.cancel'))).toBeOnTheScreen();
+  });
+
+  it('renders QR signing and QR cancel actions for approved QR hardware transactions', () => {
+    const props = makePendingActionProps({
+      isQRHardwareAccount: true,
+      tx: makePendingActionTx({ status: TransactionStatus.approved }),
+    });
+    const { getByText, queryByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+
+    fireEvent.press(getByText(strings('transaction.sign_with_keystone')));
+    fireEvent.press(getByText(strings('transaction.cancel')));
+
+    expect(props.signQRTransaction).toHaveBeenCalledWith(props.tx);
+    expect(props.cancelUnsignedQRTransaction).toHaveBeenCalledWith(props.tx);
+  });
+
+  it('renders Ledger signing action for approved Ledger transactions', () => {
+    const props = makePendingActionProps({
+      isLedgerAccount: true,
+      tx: makePendingActionTx({
+        id: 'ledger-tx',
+        status: TransactionStatus.approved,
+      }),
+    });
+    const { getByText, queryByText } = render(
+      <ActivityListItemRowPendingActions {...props} />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+
+    fireEvent.press(getByText(strings('transaction.sign_with_ledger')));
+
+    expect(props.signLedgerTransaction).toHaveBeenCalledWith({
+      id: 'ledger-tx',
+    });
+  });
+
+  it.each([
+    ['smart transaction', makePendingActionTx({ isSmartTransaction: true })],
+    [
+      'bridge transaction',
+      makePendingActionTx({ type: TransactionType.bridge }),
+    ],
+    [
+      'unapproved transaction',
+      makePendingActionTx({ status: TransactionStatus.unapproved }),
+    ],
+  ])('renders nothing for %s', (_description, tx) => {
+    const { queryByText } = render(
+      <ActivityListItemRowPendingActions
+        {...makePendingActionProps({
+          tx,
+        })}
+      />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
+    expect(queryByText(strings('transaction.sign_with_keystone'))).toBeNull();
+    expect(queryByText(strings('transaction.sign_with_ledger'))).toBeNull();
+  });
+
+  it('renders nothing when a gas fee token is selected', () => {
+    mockHasGasFeeTokenSelected.mockReturnValue(true);
+
+    const { queryByText } = render(
+      <ActivityListItemRowPendingActions {...makePendingActionProps()} />,
+    );
+
+    expect(queryByText(strings('transaction.speedup'))).toBeNull();
+    expect(queryByText(strings('transaction.cancel'))).toBeNull();
   });
 });

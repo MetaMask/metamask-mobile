@@ -27,15 +27,6 @@ const TraderRowSkeleton: React.FC = () => {
         highlightColor={colors.background.subsection}
       >
         <View style={tw.style('flex-row items-center')}>
-          {/* Rank placeholder — outer cell mirrors the rendered rank's
-              `w-8 text-right` (32px container, content right-aligned) so the
-              bar's visible right edge lines up with where the loaded digit
-              sits. The inner bar's width (`w-4`) approximates a 1–2 digit
-              rank glyph. */}
-          <View style={tw.style('w-8 mr-3 items-end')}>
-            <View style={tw.style('w-4 h-5 rounded')} />
-          </View>
-
           {/* Avatar placeholder */}
           <View style={tw.style('w-10 h-10 rounded-full mr-3')} />
 

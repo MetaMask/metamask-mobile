@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "现已上线",
       "categories_placeholder": "类别",
-      "popular_today_placeholder": "今日热门",
       "trending_placeholder": "趋势"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "通过推荐所获积分",
       "referrals_label": "VIP 推荐",
       "tier_benefits_title": "等级权益",
-      "splash_title": "欢迎\n成为黄金\nFOX VIP",
+      "splash_title": "欢迎\n加入 GOLD FOX\nCOLLECTIVE",
       "splash_description": "解锁专属权益、抢先体验功能及精选奖励。仅限受邀用户。",
       "splash_accept_invite": "接受邀请",
       "splash_not_now": "暂时不",
@@ -8843,17 +8842,14 @@
       "tiers_title": "等级",
       "tier_thresholds": "{{points}} 积分",
       "bps_value": "{{bps}} 个基点",
-      "referee_splash_title": "欢迎\n成为黄金\nFOX VIP",
-      "referee_splash_description": "解锁专属权益、抢先体验功能及精选奖励。仅限受邀用户。",
       "referee_splash_continue": "继续",
-      "referee_splash_not_now": "暂时不",
       "referee_referred_by": "由 {{code}} 推荐",
       "referee_page_title": "VIP 抢先体验计划",
       "referee_stats_title": "统计数据",
       "referee_period_last_30d": "过去 30 天",
-      "referee_points_label": "积分",
       "referee_swaps_volume_label": "兑换交易量",
       "referee_perps_volume_label": "永续合约交易量",
+      "referee_points_to_label": "给 {{code}} 的积分",
       "referee_error_title": "无法加载您的 VIP 被推荐人详情",
       "referee_error_description": "请检查连接后重试。",
       "last_updated": "最后更新于：{{time}}"

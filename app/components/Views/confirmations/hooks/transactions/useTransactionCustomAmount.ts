@@ -78,6 +78,9 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate =
     useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
@@ -207,7 +210,10 @@ export function useTransactionCustomAmount({
       // vmUSD fiat total). Keeping isMaxAmount false routes the typed
       // amount through as token.amountRaw.
       const shouldSetMax =
-        percentage === 100 && !isPerpsWithdraw && !isMoneyAccountWithdraw;
+        percentage === 100 &&
+        !isPerpsWithdraw &&
+        !isMoneyAccountWithdraw &&
+        !isMoneyAccountDeposit;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -222,6 +228,7 @@ export function useTransactionCustomAmount({
       isMaxAmount,
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
+      isMoneyAccountDeposit,
       setIsMax,
       setConfirmationMetric,
     ],
