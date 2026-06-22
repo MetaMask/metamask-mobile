@@ -23,6 +23,15 @@ import {
 type CategoryTab = 'trending' | 'new' | 'sports' | 'crypto' | 'politics';
 type CategoryTabScrollDirection = 'left' | 'right';
 
+/** Tab indices in {@link PredictFeedSelectorsIDs.TABS} — must match PREDICT_BASE_TABS order. */
+const CATEGORY_TAB_INDEX: Record<CategoryTab, number> = {
+  trending: 0,
+  new: 2,
+  sports: 3,
+  crypto: 4,
+  politics: 5,
+};
+
 const CATEGORY_LABELS: Record<CategoryTab, string> = {
   trending: 'Trending',
   new: 'New',
@@ -183,9 +192,10 @@ class PredictMarketList {
 
   getCategoryTab(category: CategoryTab): EncapsulatedElementType {
     const label = CATEGORY_LABELS[category];
+    const tabTestId = getPredictFeedSelector.tab(CATEGORY_TAB_INDEX[category]);
 
     return encapsulated({
-      detox: () => Matchers.getElementByText(label),
+      detox: () => Matchers.getElementByID(tabTestId),
       appium: () => PlaywrightMatchers.getElementByText(label),
     });
   }
@@ -217,13 +227,13 @@ class PredictMarketList {
 
     await encapsulatedAction({
       detox: async () => {
+        const tabEl = (await tab) as Detox.IndexableNativeElement;
+
         await Utilities.executeWithRetry(
           async () => {
             for (let attempt = 0; attempt < maxSwipeAttempts; attempt += 1) {
               try {
-                await Assertions.expectElementToBeVisible(tab, {
-                  timeout: 1000,
-                });
+                await waitFor(tabEl).toBeVisible().withTimeout(1000);
                 return;
               } catch {
                 await Gestures.swipe(this.categoryTabs, detoxSwipeDirection, {
@@ -233,7 +243,7 @@ class PredictMarketList {
                 });
               }
             }
-            await Assertions.expectElementToBeVisible(tab, { timeout: 3000 });
+            await waitFor(tabEl).toBeVisible().withTimeout(3000);
           },
           {
             timeout,
@@ -249,11 +259,43 @@ class PredictMarketList {
       appium: async () => {
         const tabEl = await asPlaywrightElement(tab);
         const tabsBar = await asPlaywrightElement(this.categoryTabs);
-        await PlaywrightGestures.scrollIntoView(tabEl, {
-          scrollParams: { direction },
-          scrollableElement: tabsBar,
-          maxScrolls: maxSwipeAttempts,
-        });
+        const appiumSwipeDirection =
+          direction === 'right' ? 'left' : 'right';
+
+        await Utilities.executeWithRetry(
+          async () => {
+            for (let attempt = 0; attempt < maxSwipeAttempts; attempt += 1) {
+              try {
+                await Assertions.expectElementToBeVisible(tab, {
+                  timeout: 1000,
+                });
+                return;
+              } catch {
+                try {
+                  await PlaywrightGestures.scrollIntoView(tabEl, {
+                    scrollParams: { direction },
+                    scrollableElement: tabsBar,
+                    maxScrolls: 2,
+                  });
+                } catch {
+                  await UnifiedGestures.swipe(
+                    this.categoryTabs,
+                    appiumSwipeDirection,
+                    {
+                      description: `Swipe tabs ${direction} to reveal ${description} (attempt ${attempt + 1})`,
+                      percentage: swipePercentage,
+                    },
+                  );
+                }
+              }
+            }
+            await Assertions.expectElementToBeVisible(tab, { timeout: 3000 });
+          },
+          {
+            timeout,
+            description: `Reveal ${description}`,
+          },
+        );
         await PlaywrightGestures.waitAndTap(tabEl, {
           timeout: 15_000,
           checkForStable: true,
