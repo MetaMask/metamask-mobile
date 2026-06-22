@@ -17,7 +17,7 @@ export enum FeatureFlagNames {
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
   telegramLoginEnabled = 'telegram_login_enabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
-  addDeviceSyncEnabled = 'addDeviceSyncEnabled',
+  addDeviceSyncEnabled = 'add-device-sync-enabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
 }
 
