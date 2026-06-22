@@ -1,10 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
-import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
+import {
+  applyMarketFilters,
+  type PerpsMarketData,
+  type SortOptionId,
+} from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -21,7 +25,10 @@ import {
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
-import PerpsToggleBlock from '../feeds/perps/PerpsToggleBlock';
+import PerpsToggleBlock, {
+  type PerpsFilterKey,
+} from '../feeds/perps/PerpsToggleBlock';
+import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
@@ -36,10 +43,30 @@ import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../search/abTestConfig';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
+
+/** Perps category pills for the RWAs tab, in perps display order. */
+const RWA_PERPS_CATEGORIES: PerpsFilterKey[] = [
+  'stock',
+  'pre-ipo',
+  'forex',
+  'index',
+  'etf',
+];
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
+  onViewAll: (filter: PerpsFilterKey, sortOptionId: SortOptionId) => void;
 }
 
 const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
@@ -47,35 +74,20 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   onViewAll,
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
+  const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
 
-  const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
-    const byType = (type: PerpsMarketData['marketType']) =>
-      perps.data
-        .filter((d) => d.market.marketType === type)
-        .slice(0, 3)
-        .map((d) => d.market);
-    const stockLikeItems = perps.data
-      .filter((d) => isEquityAsset(d.market.marketType))
-      .slice(0, 3)
-      .map((d) => d.market);
-    return [
-      {
-        key: 'commodities',
-        name: strings('trending.rwa_pill_commodities'),
-        items: byType('commodity'),
-      },
-      {
-        key: 'stocks',
-        name: strings('trending.rwa_pill_stocks'),
-        items: stockLikeItems,
-      },
-      {
-        key: 'forex',
-        name: strings('trending.rwa_pill_forex'),
-        items: byType('forex'),
-      },
-    ];
-  }, [perps.data]);
+  const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(
+    () =>
+      RWA_PERPS_CATEGORIES.map((category) => ({
+        key: category,
+        name: strings(`perps.home.tabs.${normalizeFilterKey(category)}`),
+        items: applyMarketFilters(markets, {
+          categories: [category],
+          limit: 3,
+        }),
+      })),
+    [markets],
+  );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
@@ -84,7 +96,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       title={strings('trending.rwa_perps_section')}
       tabs={tabs}
       isLoading={perps.isLoading}
-      defaultPillKey="commodities"
+      defaultPillKey={RWA_PERPS_CATEGORIES[0]}
       onViewAll={onViewAll}
       sortOptionId={perps.defaultSortOptionId}
       tabName="RWAs"
@@ -107,6 +119,16 @@ const RwasTabContent: React.FC<TabProps> = ({
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
   const stocks = useStocksFeed({
@@ -133,9 +155,12 @@ const RwasTabContent: React.FC<TabProps> = ({
             item_clicked: item.assetId,
           })
         }
+        onQuickTrade={
+          quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+        }
       />
     ),
-    [],
+    [quickBuyVariant.showQuickTradeButton],
   );
 
   const showStocks = stocks.isLoading || stocks.data.length > 0;
@@ -225,13 +250,21 @@ const RwasTabContent: React.FC<TabProps> = ({
   ]);
 
   return (
-    <ExploreScroll
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
-    >
-      <ExploreSectionList sections={sections} />
-    </ExploreScroll>
+    <View style={styles.container}>
+      <ExploreScroll
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+      >
+        <ExploreSectionList sections={sections} />
+      </ExploreScroll>
+
+      <TrendingQuickBuy
+        token={quickTradeToken}
+        onClose={() => setQuickTradeToken(null)}
+        source="explore_rwas"
+      />
+    </View>
   );
 };
 

@@ -124,6 +124,7 @@ First, ensure the build watcher is running in a dedicated terminal for logs:
 ```bash
 export METAMASK_ENVIRONMENT='e2e'
 export METAMASK_BUILD_TYPE='main'
+export HAS_TEST_OVERRIDES="true"
 yarn setup:expo
 yarn watch:clean  # First time or after dependency changes
 yarn watch        # Subsequent runs

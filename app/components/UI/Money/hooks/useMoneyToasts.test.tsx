@@ -104,6 +104,11 @@ describe('useMoneyToasts', () => {
       ).toBeDefined();
       expect(result.current.MoneyToastOptions.withdraw.success).toBeDefined();
       expect(result.current.MoneyToastOptions.withdraw.failed).toBeDefined();
+
+      expect(result.current.MoneyToastOptions.send).toBeDefined();
+      expect(result.current.MoneyToastOptions.send.inProgress).toBeDefined();
+      expect(result.current.MoneyToastOptions.send.success).toBeDefined();
+      expect(result.current.MoneyToastOptions.send.failed).toBeDefined();
     });
   });
 
@@ -137,6 +142,22 @@ describe('useMoneyToasts', () => {
       });
 
       expect(toast.labelOptions?.[0].label).toBe('Adding funds');
+    });
+
+    it('inProgress title/body is "Depositing" / "Card orders may take a few minutes." when intent is card', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.inProgress({
+        intent: 'card',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Depositing');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe(
+        'Card orders may take a few minutes.',
+      );
     });
 
     it('success has Confirmation icon, Success haptics and includes amount in body', () => {
@@ -175,6 +196,23 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions?.[0].label).toBe('Funds added');
     });
 
+    it('success title/body is "Deposit complete" / amount added when intent is card', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.success({
+        amountFiat: '$1,000.00',
+        intent: 'card',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Deposit complete');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe(
+        '$1,000.00 added to Money account.',
+      );
+    });
+
     it('failed has CircleX icon, Error haptics and a descriptive body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
@@ -208,6 +246,20 @@ describe('useMoneyToasts', () => {
       });
 
       expect(toast.labelOptions?.[0].label).toBe('Failed to add funds');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Unable to add funds. Try again.');
+    });
+
+    it('failed title/body is "Deposit failed" / "Unable to add funds. Try again." for card', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.failed({
+        intent: 'card',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Deposit failed');
       const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
         children?: React.ReactNode;
       }>;
@@ -286,6 +338,75 @@ describe('useMoneyToasts', () => {
     });
   });
 
+  describe('send toasts', () => {
+    it('inProgress mirrors the in-progress configuration', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.send.inProgress();
+
+      expect(toast.variant).toBe(ToastVariants.Icon);
+      expect(toast.iconName).toBe(IconName.Loading);
+      expect(toast.hapticsType).toBe(NotificationMoment.Warning);
+      expect(toast.hasNoTimeout).toBe(true);
+    });
+
+    it('inProgress title/body is "Sending funds" / "This may take a few minutes."', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.send.inProgress();
+
+      expect(toast.labelOptions?.[0].label).toBe('Sending funds');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('This may take a few minutes.');
+    });
+
+    it('success title/body interpolates the amount and destination', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.send.success({
+        amountFiat: '$50.00',
+        destination: 'Perps',
+      });
+
+      expect(toast.iconName).toBe(IconName.Confirmation);
+      expect(toast.hapticsType).toBe(NotificationMoment.Success);
+      expect(toast.labelOptions?.[0].label).toBe('Funds sent');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('$50.00 is available in Perps.');
+    });
+
+    it('success body falls back to "Available in {{destination}}." when amount is missing', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.send.success({
+        destination: 'Predict',
+      });
+
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Available in Predict.');
+    });
+
+    it('failed title/body is "Send failed" / "Unable to send funds. Try again."', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.send.failed();
+
+      expect(toast.iconName).toBe(IconName.CircleX);
+      expect(toast.hapticsType).toBe(NotificationMoment.Error);
+      expect(toast.labelOptions?.[0].label).toBe('Send failed');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Unable to send funds. Try again.');
+    });
+  });
+
   describe('closeButtonOptions', () => {
     it.each([
       ['deposit.inProgress', () => ({}), 'inProgress'],
@@ -298,10 +419,17 @@ describe('useMoneyToasts', () => {
         'success',
       ],
       ['withdraw.failed', () => ({}), 'failed'],
+      ['send.inProgress', () => ({}), 'inProgress'],
+      [
+        'send.success',
+        () => ({ amountFiat: '$1.00', destination: 'Perps' }),
+        'success',
+      ],
+      ['send.failed', () => ({}), 'failed'],
     ])('exposes a Close button on %s', (key, paramsFactory, _builder) => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
       const [namespace, builder] = key.split('.') as [
-        'deposit' | 'withdraw',
+        'deposit' | 'withdraw' | 'send',
         'inProgress' | 'success' | 'failed',
       ];
 

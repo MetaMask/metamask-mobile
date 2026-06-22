@@ -191,6 +191,17 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
   });
 
+  it('keeps outcome button labels on one line and shrinks to fit to prevent truncation', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const drawLabel = getByText('DRAW 15¢');
+    expect(drawLabel.props.numberOfLines).toBe(1);
+    expect(drawLabel.props.adjustsFontSizeToFit).toBe(true);
+  });
+
   it('renders live Moneyline best ask prices when available', () => {
     mockGetLivePrice.mockImplementation((tokenId: string) => ({
       tokenId,

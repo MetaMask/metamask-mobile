@@ -85,12 +85,21 @@ export const dismissDevelopmentServerPickerPlaywright =
     const serverUrl = getMetroServerUrl();
 
     try {
-      const devServerRow = await PlaywrightMatchers.getElementByText(serverUrl);
-      await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
-        timeout: 2000,
-        description: 'Dev Server Row should be visible',
-      });
-      await PlaywrightGestures.waitAndTap(devServerRow);
+      const end = Date.now() + 8000;
+      while (Date.now() < end) {
+        try {
+          const devServerRow =
+            await PlaywrightMatchers.getElementByText(serverUrl);
+          await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
+            timeout: 1500,
+            description: 'Dev Server Row should be visible',
+          });
+          await PlaywrightGestures.waitAndTap(devServerRow);
+          return;
+        } catch {
+          await sleep(500);
+        }
+      }
     } catch (error) {
       logger.debug(
         `Playwright development server picker was not dismissed (best effort): ${
