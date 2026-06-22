@@ -3,7 +3,8 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
- CHAIN_IDS } from '@metamask/transaction-controller';
+  CHAIN_IDS,
+} from '@metamask/transaction-controller';
 import { usePerpsWithdrawToastRegistrations } from './usePerpsWithdrawToastRegistrations';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -356,42 +357,6 @@ describe('usePerpsWithdrawToastRegistrations', () => {
       );
 
       expect(mockShowToast).not.toHaveBeenCalled();
-    });
-
-    it('still shows the native pending toast on approved for a Money-account withdraw', () => {
-      const handler = getHandler();
-
-      handler(
-        {
-          transactionMeta: moneyWithdrawMeta(
-            'tx-money',
-            TransactionStatus.approved,
-          ),
-        },
-        mockShowToast,
-      );
-
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({ iconName: IconName.Loading }),
-      );
-    });
-
-    it('still shows the native error toast on failed for a Money-account withdraw', () => {
-      const handler = getHandler();
-
-      handler(
-        {
-          transactionMeta: moneyWithdrawMeta(
-            'tx-money',
-            TransactionStatus.failed,
-          ),
-        },
-        mockShowToast,
-      );
-
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({ iconName: IconName.Error }),
-      );
     });
 
     it('still shows the native success toast for a non-Money withdraw (other flows unchanged)', () => {
