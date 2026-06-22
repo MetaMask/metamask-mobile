@@ -1,19 +1,25 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
+import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
+import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
 
 import {
   QR_SYNC_CONTROLLER_NAME,
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
 } from './controller-types';
-import type { QrSyncError, QrSyncPhase, QrSyncServiceEvent } from './types';
-import { QrSyncSession } from './services/qr-sync-session';
+import type {
+  QrSyncConnectionStatus,
+  QrSyncError,
+  QrSyncPhase,
+  QrSyncServiceEvent,
+  QrSyncWireMessage,
+} from './types';
+import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import { parseQrSyncConnectionRequest } from './services/qr-sync-connection-request';
-import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
-  QrSyncServiceEventTypes,
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
@@ -64,7 +70,7 @@ export const defaultQrSyncControllerState: QrSyncControllerState = {
 /**
  * Controller that owns serialized QR sync state and coordinates runtime helpers.
  *
- * Runtime-only objects such as `QrSyncSession` are intentionally kept out of
+ * Runtime-only objects such as `WalletClient` are intentionally kept out of
  * controller state. `importPlan` holds secret material and is excluded from
  * debug snapshots and state logs.
  */
@@ -77,7 +83,9 @@ export class QrSyncController extends BaseController<
 
   private readonly relayUrl: string;
 
-  private session: QrSyncSession | null = null;
+  private client: WalletClient | null = null;
+
+  private sessionId: string | null = null;
 
   constructor({
     messenger,
@@ -121,15 +129,16 @@ export class QrSyncController extends BaseController<
       const connectionRequest = parseQrSyncConnectionRequest(scannedQrData);
       const { sessionRequest } = connectionRequest;
 
-      const session = await QrSyncSession.create({
+      const { sessionId, client } = await createQrSyncWalletClient({
         sessionId: sessionRequest.id,
         keyManager: this.keyManager,
         relayUrl: this.relayUrl,
       });
 
-      this.attachSession(session);
-      await session.connect(sessionRequest);
-      await this.sendSyncOffer(session);
+      this.attachClient(client, sessionId);
+      this.setConnectionStatus('connecting');
+      await client.connect({ sessionRequest });
+      await this.sendSyncOffer();
     } catch (error) {
       this.terminateWithError(this.toQrSyncError(error));
     }
@@ -140,7 +149,7 @@ export class QrSyncController extends BaseController<
    * No-op when the session is already idle, completed, or failed.
    */
   public cancelSession(): void {
-    if (this.session === null) {
+    if (this.client === null) {
       return;
     }
 
@@ -149,20 +158,51 @@ export class QrSyncController extends BaseController<
     );
   }
 
-  /** Attaches a runtime QR sync session helper to this controller. */
-  public attachSession(session: QrSyncSession): void {
-    if (this.session !== null) {
+  private attachClient(client: WalletClient, sessionId: string): void {
+    if (this.client !== null) {
       throw new Error(
-        'QrSyncController.attachSession called while a session already exists',
+        'QrSyncController.attachClient called while a client already exists',
       );
     }
 
-    this.session = session;
-    this.session.on('serviceEvent', this.handleSessionServiceEvent);
-    this.session.on('message', this.handleSessionMessage);
+    this.client = client;
+    this.sessionId = sessionId;
+    this.bindClientListeners();
   }
 
-  private readonly handleSessionMessage = (message: unknown) => {
+  private readonly handleClientDisplayOtp = (
+    otp: string,
+    deadline: number,
+  ): void => {
+    this.handleSessionServiceEvent({
+      type: QrSyncActionTypes.OTP_DISPLAY_GRANT,
+      data: { otp, deadline },
+    });
+  };
+
+  private readonly handleClientConnected = (): void => {
+    // Wallet-client `connected` fires after the extension verifies OTP (handshake_ack).
+    this.setConnectionStatus('connected');
+  };
+
+  private readonly handleClientDisconnected = (): void => {
+    if (
+      this.client === null ||
+      this.state.phase === QrSyncPhases.IDLE ||
+      this.state.phase === QrSyncPhases.COMPLETED ||
+      this.state.phase === QrSyncPhases.FAILED
+    ) {
+      return;
+    }
+
+    this.terminateWithError({
+      code: 'CHANNEL_DISCONNECTED',
+      message: 'QR sync connection was lost.',
+      retryable: true,
+    });
+  };
+
+  private readonly handleClientMessage = (message: unknown): void => {
     const routedMessage = routeIncomingQrSyncMessage(message);
 
     if (!routedMessage) {
@@ -179,29 +219,24 @@ export class QrSyncController extends BaseController<
     this.handleSessionServiceEvent(routedMessage.event);
 
     if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-      if (!this.session) {
-        throw new Error('Session not found');
+      if (!this.client) {
+        throw new Error('Wallet client not found');
       }
 
-      this.sendSyncCompleted(this.session).catch(() => undefined);
+      this.sendSyncCompleted().catch(() => undefined);
     }
+  };
+
+  private readonly handleClientError = (error: Error): void => {
+    this.setConnectionStatus('errored');
+    this.handleSessionServiceEvent({
+      type: QrSyncActionTypes.SYNC_ERROR,
+      data: this.toClientSyncError(error),
+    });
   };
 
   private readonly handleSessionServiceEvent = (event: QrSyncServiceEvent) => {
     switch (event.type) {
-      case QrSyncServiceEventTypes.CONNECTION_STATUS_CHANGED: {
-        this.update((state) => {
-          state.connectionStatus = event.data.status;
-        });
-
-        if (
-          event.data.status === 'connected' &&
-          this.state.phase === QrSyncPhases.DISPLAYING_OTP
-        ) {
-          this.onHandshakeAcknowledged();
-        }
-        break;
-      }
       case QrSyncActionTypes.OTP_DISPLAY_GRANT: {
         this.update((state) => {
           state.phase = QrSyncPhases.DISPLAYING_OTP;
@@ -244,21 +279,21 @@ export class QrSyncController extends BaseController<
   private onHandshakeAcknowledged(): void {
     this.transitionTo(QrSyncPhases.CONNECTED);
 
-    if (!this.session) {
+    if (!this.client) {
       return;
     }
 
-    this.sendSyncOffer(this.session).catch((error) => {
+    this.sendSyncOffer().catch((error) => {
       this.terminateWithError(this.toQrSyncError(error));
     });
   }
 
-  private async sendSyncOffer(session: QrSyncSession): Promise<void> {
-    await session.send({
+  private async sendSyncOffer(): Promise<void> {
+    await this.sendMessage({
       type: QrSyncActionTypes.SYNC_OFFER,
       version: QrSyncMessageVersion.V1,
       data: {
-        sessionId: this.session?.id,
+        sessionId: this.sessionId ?? undefined,
         deadline: Date.now() + SYNC_OFFER_DEADLINE_MS,
       },
     });
@@ -269,8 +304,8 @@ export class QrSyncController extends BaseController<
     });
   }
 
-  private async sendSyncCompleted(session: QrSyncSession): Promise<void> {
-    await session.send({
+  private async sendSyncCompleted(): Promise<void> {
+    await this.sendMessage({
       type: QrSyncActionTypes.SYNC_COMPLETED,
       version: QrSyncMessageVersion.V1,
     });
@@ -281,6 +316,14 @@ export class QrSyncController extends BaseController<
       state.error = null;
     });
     await this.destroySession();
+  }
+
+  private async sendMessage(message: QrSyncWireMessage): Promise<void> {
+    if (!this.client) {
+      throw new Error('Wallet client not found');
+    }
+
+    await this.client.sendResponse(message);
   }
 
   private transitionTo(phase: QrSyncPhase): void {
@@ -301,18 +344,16 @@ export class QrSyncController extends BaseController<
       | typeof QrSyncActionTypes.SYNC_ERROR,
     error?: QrSyncError,
   ): Promise<void> {
-    const session = this.session;
-
-    if (session) {
+    if (this.client) {
       try {
         if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
-          await session.send({
+          await this.sendMessage({
             type: QrSyncActionTypes.SYNC_ERROR,
             version: QrSyncMessageVersion.V1,
             data: error,
           });
         } else {
-          await session.send({
+          await this.sendMessage({
             type: QrSyncActionTypes.SYNC_CANCEL,
             version: QrSyncMessageVersion.V1,
           });
@@ -336,20 +377,57 @@ export class QrSyncController extends BaseController<
   }
 
   private async destroySession(): Promise<void> {
-    if (!this.session) {
+    if (!this.client) {
       return;
     }
 
-    this.session.off('serviceEvent', this.handleSessionServiceEvent);
-    this.session.off('message', this.handleSessionMessage);
+    this.unbindClientListeners();
 
-    const session = this.session;
-    this.session = null;
+    const client = this.client;
+    this.client = null;
+    this.sessionId = null;
 
     try {
-      await session.disconnect();
+      await client.disconnect();
     } catch {
       // Best-effort teardown.
+    }
+  }
+
+  private bindClientListeners(): void {
+    if (!this.client) {
+      return;
+    }
+
+    this.client.on('display_otp', this.handleClientDisplayOtp);
+    this.client.on('connected', this.handleClientConnected);
+    this.client.on('disconnected', this.handleClientDisconnected);
+    this.client.on('message', this.handleClientMessage);
+    this.client.on('error', this.handleClientError);
+  }
+
+  private unbindClientListeners(): void {
+    if (!this.client) {
+      return;
+    }
+
+    this.client.off('display_otp', this.handleClientDisplayOtp);
+    this.client.off('connected', this.handleClientConnected);
+    this.client.off('disconnected', this.handleClientDisconnected);
+    this.client.off('message', this.handleClientMessage);
+    this.client.off('error', this.handleClientError);
+  }
+
+  private setConnectionStatus(status: QrSyncConnectionStatus): void {
+    this.update((state) => {
+      state.connectionStatus = status;
+    });
+
+    if (
+      status === 'connected' &&
+      this.state.phase === QrSyncPhases.DISPLAYING_OTP
+    ) {
+      this.onHandshakeAcknowledged();
     }
   }
 
@@ -361,6 +439,14 @@ export class QrSyncController extends BaseController<
       state.error = null;
       state.importPlan = null;
     });
+  }
+
+  private toClientSyncError(error: Error): QrSyncError {
+    return {
+      code: 'SYNC_FAILED',
+      message: error.message,
+      retryable: false,
+    };
   }
 
   private toQrSyncError(error: unknown): QrSyncError {

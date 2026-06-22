@@ -102,8 +102,3 @@ export const QrSyncActionTypes = {
    */
   SYNC_ERROR: 'sync-error',
 } as const;
-
-/** Internal service event types that are not exchanged as wire actions. */
-export const QrSyncServiceEventTypes = {
-  CONNECTION_STATUS_CHANGED: 'connection-status-changed',
-} as const;

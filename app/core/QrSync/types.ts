@@ -4,7 +4,6 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
-  QrSyncServiceEventTypes,
 } from './constants';
 
 /** Mobile-local lifecycle state for one QR sync session. */
@@ -15,7 +14,6 @@ export type QrSyncConnectionStatus =
   | 'disconnected'
   | 'connecting'
   | 'connected'
-  | 'reconnecting'
   | 'errored';
 
 /** All supported QR sync protocol action names. */
@@ -179,15 +177,6 @@ export type QrSyncOtpDisplay = {
   deadline: number;
 };
 
-/** Service event emitted when transport connectivity changes. */
-export interface QrSyncConnectionStatusChangedEvent {
-  type: typeof QrSyncServiceEventTypes.CONNECTION_STATUS_CHANGED;
-  data: {
-    status: QrSyncConnectionStatus;
-    previousStatus: QrSyncConnectionStatus;
-  };
-}
-
 /** Service event emitted when UI should display the OTP code. */
 export interface QrSyncOtpDisplayGrantEvent {
   type: typeof QrSyncActionTypes.OTP_DISPLAY_GRANT;
@@ -222,7 +211,6 @@ export interface QrSyncSyncErrorEvent {
  * peer-to-peer protocol messages exchanged over the encrypted MWP session.
  */
 export type QrSyncServiceEvent =
-  | QrSyncConnectionStatusChangedEvent
   | QrSyncOtpDisplayGrantEvent
   | QrSyncSyncReadyEvent
   | QrSyncSyncCompletedEvent
