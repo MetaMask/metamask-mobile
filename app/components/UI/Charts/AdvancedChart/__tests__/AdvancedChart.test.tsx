@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
+import { getTokenDetailsLegendOverlay } from '../indicatorColors';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   ChartType,
   resolveLineChromeOptions,
@@ -514,6 +516,89 @@ describe('AdvancedChart', () => {
     expect(onSkeletonHidden).not.toHaveBeenCalled();
   });
 
+  it('delegates pre-ready ERROR to onInitFailed without showing error UI', () => {
+    const onInitFailed = jest.fn();
+    const onError = jest.fn();
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onInitFailed={onInitFailed}
+        onError={onError}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'ERROR',
+            payload: {
+              message: 'Failed to load TradingView library. URL: bad',
+            },
+          }),
+        },
+      });
+    });
+
+    expect(onInitFailed).toHaveBeenCalledWith(
+      'Failed to load TradingView library. URL: bad',
+    );
+    expect(onError).not.toHaveBeenCalled();
+    expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
+    expect(queryByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
+  });
+
+  it('delegates pre-ready native WebView error to onInitFailed without showing error UI', () => {
+    const onInitFailed = jest.fn();
+    const onError = jest.fn();
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onInitFailed={onInitFailed}
+        onError={onError}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onError?.({
+        nativeEvent: { description: 'WebView failed to load' },
+      });
+    });
+
+    expect(onInitFailed).toHaveBeenCalledWith('WebView failed to load');
+    expect(onError).not.toHaveBeenCalled();
+    expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
+    expect(queryByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
+  });
+
+  it('shows error UI for pre-ready ERROR when onInitFailed is not set', () => {
+    const { getByTestId, queryByTestId, getByText } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'ERROR',
+            payload: { message: 'early init error' },
+          }),
+        },
+      });
+    });
+
+    expect(
+      getByText(/Failed to load chart: early init error/),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId('mock-webview')).not.toBeOnTheScreen();
+  });
+
   it('calls onError when chart reports an error', () => {
     const onError = jest.fn();
     const { getByTestId } = render(
@@ -959,5 +1044,116 @@ describe('AdvancedChart', () => {
 
     expect(queryByText(/Load failed/)).not.toBeOnTheScreen();
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+  });
+
+  it('waits for indicator and legend WebView messages before hiding skeleton', () => {
+    const onSkeletonHidden = jest.fn();
+    const { getByTestId, queryByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        indicators={['RSI', 'MACD']}
+        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(onSkeletonHidden).not.toHaveBeenCalled();
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'INDICATOR_ADDED',
+            payload: { name: 'RSI', id: 'rsi-1' },
+          }),
+        },
+      });
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'INDICATOR_ADDED',
+            payload: { name: 'MACD', id: 'macd-1' },
+          }),
+        },
+      });
+    });
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'LEGEND_RENDERED', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'INDICATOR_REMOVED',
+            payload: { name: 'RSI' },
+          }),
+        },
+      });
+    });
+  });
+
+  it('does not show skeleton when adding indicators after initial reveal', () => {
+    const onSkeletonHidden = jest.fn();
+    const { getByTestId, queryByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        indicators={[]}
+        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        indicators={['RSI']}
+        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
   });
 });

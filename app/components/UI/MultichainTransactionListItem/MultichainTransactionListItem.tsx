@@ -12,6 +12,7 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
+import { strings } from '../../../../locales/i18n';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
@@ -49,7 +50,15 @@ const MultichainTransactionListItem = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
-  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
+  const {
+    title,
+    from,
+    to,
+    priorityFee,
+    baseFee,
+    isRedeposit,
+    isUnlimitedApproval,
+  } = displayData;
 
   const handlePress = useCallback(() => {
     trackEvent(
@@ -114,6 +123,16 @@ const MultichainTransactionListItem = ({
 
     if (transaction.type === TransactionType.Unknown) {
       return `${baseFee?.amount} ${baseFee?.unit}`;
+    }
+
+    if (transaction.type === TransactionType.TokenApprove) {
+      const unit = from?.unit || to?.unit || '';
+      if (isUnlimitedApproval) {
+        const unitSuffix = unit ? ` ${unit}` : '';
+        return `${strings('confirm.unlimited')}${unitSuffix}`;
+      }
+      const amount = to?.amount || from?.amount?.replace(/^-/, '') || '';
+      return `${amount} ${unit}`.trim();
     }
 
     return `${to?.amount} ${to?.unit}`;

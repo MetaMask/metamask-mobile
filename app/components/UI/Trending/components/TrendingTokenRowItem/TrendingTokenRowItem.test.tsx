@@ -1816,6 +1816,67 @@ describe('TrendingTokenRowItem', () => {
     });
   });
 
+  describe('Quick Trade button (onQuickTrade)', () => {
+    it('does not render the quick trade button when onQuickTrade is not provided', () => {
+      const token = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(queryByTestId('quick-trade-button')).toBeNull();
+    });
+
+    it('renders the quick trade button when onQuickTrade is provided', () => {
+      const token = createMockToken();
+      const onQuickTrade = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByTestId('quick-trade-button')).toBeOnTheScreen();
+    });
+
+    it('calls onQuickTrade with the token when the button is pressed', () => {
+      const token = createMockToken();
+      const onQuickTrade = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(getByTestId('quick-trade-button'));
+
+      expect(onQuickTrade).toHaveBeenCalledTimes(1);
+      expect(onQuickTrade).toHaveBeenCalledWith(token);
+    });
+
+    it('does not trigger row navigation when the quick trade button is pressed', async () => {
+      const token = createMockToken();
+      const onQuickTrade = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(getByTestId('quick-trade-button'));
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('memoization', () => {
     it('is wrapped in React.memo to avoid re-renders in hot lists', () => {
       // React.memo components expose the `react.memo` symbol on `$$typeof`.

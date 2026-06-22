@@ -11,6 +11,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import PerpBadges from '../../components/PerpBadges';
 import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
@@ -68,6 +69,10 @@ const PositionRow: React.FC<PositionRowProps> = ({
         : 'text-error-default';
 
   const testID = `position-row-${position.tokenSymbol}`;
+
+  // Strip the HIP-3 provider prefix for display (`xyz:SPCX` → `SPCX`);
+  // non-HIP-3 symbols pass through unchanged. testIDs keep the raw symbol.
+  const displaySymbol = getPerpsDisplaySymbol(position.tokenSymbol);
 
   const perpDirection = getPerpPositionDirection(position);
 
@@ -161,7 +166,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
               numberOfLines={1}
               twClassName="shrink"
             >
-              {position.tokenSymbol}
+              {displaySymbol}
             </Text>
             {perpDirection ? (
               <PerpBadges
@@ -185,7 +190,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
                           position.positionAmount,
                       )
                     : position.positionAmount,
-                )} ${position.tokenSymbol}`}
+                )} ${displaySymbol}`}
           </Text>
         </Box>
       </Box>
