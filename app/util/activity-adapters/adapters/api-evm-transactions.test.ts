@@ -853,4 +853,56 @@ describe('mapApiEvmTransactions', () => {
       },
     });
   });
+
+  it('maps a generic contract call to a contract interaction with its token amount', () => {
+    const mainnetUsdc = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const transaction = {
+      hash: '0xd206cc6c16974409bae072ce4cd1559743041af40c2bae84775a0bbb4dff5fee',
+      timestamp: '2026-05-01T13:39:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: subjectAddress,
+      methodId: '0xe9ae5c53',
+      value: '0',
+      transactionCategory: 'CONTRACT_CALL',
+      transactionType: 'GENERIC_CONTRACT_CALL',
+      valueTransfers: [
+        {
+          from: subjectAddress,
+          to: '0x4cd00e387622c35bddb9b4c962c136462338bc31',
+          amount: '580060',
+          decimal: 6,
+          contractAddress: mainnetUsdc,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          transferType: 'erc20',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'contractInteraction',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1777642787000,
+      hash: '0xd206cc6c16974409bae072ce4cd1559743041af40c2bae84775a0bbb4dff5fee',
+      data: {
+        from: subjectAddress,
+        methodId: '0xe9ae5c53',
+        to: subjectAddress,
+        transactionCategory: 'CONTRACT_CALL',
+        transactionProtocol: undefined,
+        transactionType: 'GENERIC_CONTRACT_CALL',
+        token: {
+          amount: '580060',
+          assetId: toAssetId(mainnetUsdc, 'eip155:1'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
 });
