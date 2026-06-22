@@ -14287,7 +14287,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@npm:~7.11.0":
+"@sentry/react-native@npm:7.11.0":
   version: 7.11.0
   resolution: "@sentry/react-native@npm:7.11.0"
   dependencies:
@@ -14307,6 +14307,29 @@ __metadata:
   bin:
     sentry-expo-upload-sourcemaps: scripts/expo-upload-sourcemaps.js
   checksum: 10/f62233a0f899b845afac725789312cb5b6b9e339f463d4b3304794c17ba346b41bd5dc75ebb8cf8d79f52bb81fccc3e1d68c0c6092b7c816de74564b5689b72e
+  languageName: node
+  linkType: hard
+
+"@sentry/react-native@patch:@sentry/react-native@npm%3A7.11.0#~/.yarn/patches/@sentry-react-native-npm-7.11.0-a49fbd89e3.patch":
+  version: 7.11.0
+  resolution: "@sentry/react-native@patch:@sentry/react-native@npm%3A7.11.0#~/.yarn/patches/@sentry-react-native-npm-7.11.0-a49fbd89e3.patch::version=7.11.0&hash=104dae"
+  dependencies:
+    "@sentry/babel-plugin-component-annotate": "npm:4.8.0"
+    "@sentry/browser": "npm:10.37.0"
+    "@sentry/cli": "npm:2.58.4"
+    "@sentry/core": "npm:10.37.0"
+    "@sentry/react": "npm:10.37.0"
+    "@sentry/types": "npm:10.37.0"
+  peerDependencies:
+    expo: ">=49.0.0"
+    react: ">=17.0.0"
+    react-native: ">=0.65.0"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  bin:
+    sentry-expo-upload-sourcemaps: scripts/expo-upload-sourcemaps.js
+  checksum: 10/8f58ec25c6174bdf26d0c8d2b3302c7f0a121f42d0771a46c68e9840c8e3d5480f45a235aa92a7a1198fc11bc90e5e0eb80c63fb00368908d67bf9073c77c8de
   languageName: node
   linkType: hard
 
@@ -35933,7 +35956,7 @@ __metadata:
     "@sentry/browser": "npm:~8.54.0"
     "@sentry/core": "npm:~8.54.0"
     "@sentry/react": "npm:~8.54.0"
-    "@sentry/react-native": "npm:~7.11.0"
+    "@sentry/react-native": "patch:@sentry/react-native@npm%3A7.11.0#~/.yarn/patches/@sentry-react-native-npm-7.11.0-a49fbd89e3.patch"
     "@shopify/flash-list": "npm:2.0.2"
     "@solana/addresses": "npm:2.0.0"
     "@storybook/addon-controls": "npm:^7.5.1"

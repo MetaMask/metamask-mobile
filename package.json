@@ -387,7 +387,7 @@
     "@sentry/browser": "~8.54.0",
     "@sentry/core": "~8.54.0",
     "@sentry/react": "~8.54.0",
-    "@sentry/react-native": "~7.11.0",
+    "@sentry/react-native": "patch:@sentry/react-native@npm%3A7.11.0#~/.yarn/patches/@sentry-react-native-npm-7.11.0-a49fbd89e3.patch",
     "@shopify/flash-list": "2.0.2",
     "@solana/addresses": "2.0.0",
     "@tanstack/react-query": "^4.43.0",
