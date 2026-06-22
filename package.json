@@ -315,13 +315,8 @@
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^3.1.0",
-<<<<<<< HEAD
-    "@metamask/profile-sync-controller": "^28.1.0",
-    "@metamask/ramps-controller": "^14.3.0",
-=======
     "@metamask/profile-sync-controller": "^28.2.0",
-    "@metamask/ramps-controller": "^14.1.0",
->>>>>>> origin/main
+    "@metamask/ramps-controller": "^14.3.0",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",

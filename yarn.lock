@@ -9582,11 +9582,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@metamask/profile-sync-controller@npm:^28.0.0, @metamask/profile-sync-controller@npm:^28.0.2, @metamask/profile-sync-controller@npm:^28.1.0, @metamask/profile-sync-controller@npm:^28.1.1, @metamask/profile-sync-controller@npm:^28.2.0":
-=======
 "@metamask/profile-sync-controller@npm:^28.0.0, @metamask/profile-sync-controller@npm:^28.1.0, @metamask/profile-sync-controller@npm:^28.1.1, @metamask/profile-sync-controller@npm:^28.2.0":
->>>>>>> origin/main
   version: 28.2.0
   resolution: "@metamask/profile-sync-controller@npm:28.2.0"
   dependencies:
@@ -9652,11 +9648,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@metamask/ramps-controller@npm:^14.1.1, @metamask/ramps-controller@npm:^14.3.0":
-=======
-"@metamask/ramps-controller@npm:^14.1.0, @metamask/ramps-controller@npm:^14.3.0":
->>>>>>> origin/main
+"@metamask/ramps-controller@npm:^14.3.0":
   version: 14.3.0
   resolution: "@metamask/ramps-controller@npm:14.3.0"
   dependencies:
