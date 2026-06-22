@@ -680,35 +680,33 @@ describe('HardwareWalletsSwaps', () => {
   });
 
   describe('force-hide bottom sheet', () => {
-    it('force-hides the shared bottom sheet on mount for Ledger wallets', () => {
+    it('shows the shared bottom sheet on mount for Ledger (connection phase)', () => {
       mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
       renderScreen({});
 
-      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+      // Not in AwaitingConfirmation → sheet is visible for device selection
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
     });
 
-    it('force-hides the shared bottom sheet on mount for QR wallets', () => {
+    it('shows the shared bottom sheet on mount for QR wallets', () => {
       mockHardwareWalletState.walletType = HardwareWalletType.Qr;
       renderScreen({});
 
-      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-      expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
-      expect(mockSetForceHideBottomSheet.mock.calls.at(-1)?.[0]).toBe(true);
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
     });
 
-    it('force-hides even while signing is still in progress', () => {
+    it('hides the bottom sheet during AwaitingConfirmation', () => {
       mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      mockConnectionState.status = 'awaiting_confirmation';
       renderScreen({});
 
       expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-      expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
     });
 
     it('restores the bottom sheet on unmount', () => {
       mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
       const { unmount } = renderScreen({});
 
-      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
       mockSetForceHideBottomSheet.mockClear();
 
       unmount();

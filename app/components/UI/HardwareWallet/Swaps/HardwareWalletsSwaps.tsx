@@ -159,17 +159,21 @@ export function HardwareWalletsSwaps() {
 
   const { connectionState, setForceHideBottomSheet } = useHardwareWallet();
 
-  // Suppress the provider's shared hardware-wallet bottom sheet for the
-  // entire lifetime of this screen. This screen renders its own signing
-  // progress UI (StepRow list + Rive animation, plus its own error /
-  // reconnect / retry actions), so the shared "confirm on device" modal is
-  // redundant. Restored to false on unmount so other flows see the sheet.
+  // Show the provider's bottom sheet during connection phases (device
+  // selection, connecting, awaiting app) so the user can pick their Ledger.
+  // Suppress it only during AwaitingConfirmation — this screen renders its
+  // own signing progress UI (StepRow list), so the shared "confirm on
+  // device" modal is redundant during the signing phase.
   useEffect(() => {
-    setForceHideBottomSheet?.(true);
-    return () => {
+    setForceHideBottomSheet?.(
+      connectionState.status === ConnectionStatus.AwaitingConfirmation,
+    );
+  }, [connectionState.status, setForceHideBottomSheet]);
+
+  // Restore the sheet on unmount so other flows see it.
+  useEffect(() => () => {
       setForceHideBottomSheet?.(false);
-    };
-  }, [setForceHideBottomSheet]);
+    }, [setForceHideBottomSheet]);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { params: routeParams } = useRoute();
