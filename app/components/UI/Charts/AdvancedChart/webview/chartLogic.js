@@ -964,17 +964,6 @@ function handleSetThemeColors(payload) {
     } catch (e) {}
   }
 
-  // Recreate dashed last-price lines when ambient lineColor diverges from successColor
-  // (setProperties alone can miss updates on horizontal_line shapes).
-  if (window.currentChartType === 2) {
-    refreshLineChartOverlays();
-  } else if (
-    window.currentChartType === 1 &&
-    getLineChrome().useCustomDashedLastPriceLine
-  ) {
-    createLastPriceLine();
-  }
-
   // Outline pill + visible-edge re-derive color from theme on next frame
   scheduleLastCloseLabelUpdate();
 }
