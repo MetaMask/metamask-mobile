@@ -25,7 +25,6 @@ on:
         value: ${{ jobs.commit.outputs.commit-hash }}
 
 permissions:
-  contents: write
   id-token: write
 
 jobs:

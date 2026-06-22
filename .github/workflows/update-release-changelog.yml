@@ -92,8 +92,6 @@ jobs:
           set -euo pipefail
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
-          corepack enable
-          yarn install --immutable
           bash .github/scripts/run-update-release-changelog-mobile.sh \
             "${{ github.ref_name }}" \
             mobile \
