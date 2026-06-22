@@ -17,7 +17,10 @@ const DeviceAdded = () => {
   const navigation = useNavigation();
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard onBack={() => navigation.goBack()} />
+      <HeaderCompactStandard
+        onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: 'device-added-back-button' }}
+      />
       <Box twClassName="flex-1 px-4 justify-center items-center">
         <Text
           variant={TextVariant.HeadingLg}

@@ -109,7 +109,10 @@ const AddDeviceToWallet = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard onBack={() => navigation.goBack()} />
+      <HeaderCompactStandard
+        onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: 'add-device-to-wallet-back-button' }}
+      />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
           source={addDeviceToWalletImage}
