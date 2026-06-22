@@ -98,6 +98,18 @@ function sendToReactNative(type, payload) {
   }
 }
 
+var CHART_INTERVAL_LOG_PREFIX = 'ChartInterval';
+
+function logChartInterval(phase, extra) {
+  var msg = CHART_INTERVAL_LOG_PREFIX + ' ' + phase;
+  if (extra != null) {
+    try {
+      msg += ' ' + JSON.stringify(extra);
+    } catch (e) {}
+  }
+  sendToReactNative('DEBUG', { message: msg });
+}
+
 /**
  * Posts `CHART_LAYOUT_SETTLED` to React Native so the native skeleton overlay can hide.
  *
@@ -149,6 +161,7 @@ function clearMmLayoutSettleFallbackTimer() {
  * - No-ops if `__mmLayoutSettlePending` is false (idempotent / avoids double-fire).
  * - Clears the pending flag and the fallback timer, then runs `applyChartScaleLayout` and line
  *   overlays when applicable, then `scheduleChartLayoutSettledNotify`.
+ * - Refreshes the custom study legend when indicators/MAs are active (see inline comment below).
  */
 function tryCompleteLayoutSettleAfterDataCore() {
   if (!window.__mmLayoutSettlePending) {
@@ -164,6 +177,26 @@ function tryCompleteLayoutSettleAfterDataCore() {
       }
     }
   } catch (e) {}
+
+  /**
+   * Interval / time-range hot reload (`handleSetOHLCVData` → `resetData`) keeps MA and sub-pane
+   * studies mounted; TradingView recalculates their series from the new bars, but our legend is a
+   * separate DOM overlay (`#study-legend-overlay`) fed by a one-shot `chart.exportData()` snapshot
+   * in `refreshStudyLegendFromExport`. Without re-export here, pills like MA(10) would keep showing
+   * the pre-switch value even though the plotted line already moved (regression vs WebView remount,
+   * which recreated studies and triggered legend refresh via `subscribeStudyDataLoaded`).
+   */
+  if (
+    window.legendStudyOrder.size > 0 ||
+    window.activeStudies.size > 0 ||
+    window.maStudies.size > 0
+  ) {
+    refreshStudyLegendFromExport();
+  }
+
+  logChartInterval('webview_layout_settle_complete', {
+    resolution: window.currentResolution,
+  });
   scheduleChartLayoutSettledNotify();
 }
 
@@ -204,6 +237,9 @@ function queueTryCompleteLayoutSettleAfterData() {
  * **Errors:** Use `abortDeferredLayoutSettleAndNotify` so RN never stays stuck with the skeleton on.
  */
 function beginDeferredLayoutSettleAfterOhlcvReload() {
+  logChartInterval('webview_layout_settle_begin', {
+    resolution: window.currentResolution,
+  });
   clearMmLayoutSettleFallbackTimer();
   window.__mmLayoutSettlePending = true;
   window.__mmLayoutSettleFallbackTimer = setTimeout(function () {
@@ -253,6 +289,9 @@ function handleMessage(event) {
       case 'SET_LINE_CHROME':
         handleSetLineChrome(message.payload);
         break;
+      case 'SET_SCALE_CHROME':
+        handleSetScaleChrome(message.payload);
+        break;
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
         break;
@@ -284,6 +323,102 @@ const LINE_CHROME_DEFAULTS = {
   useCustomDashedLastPriceLine: true,
   useCustomPriceLabels: true,
 };
+
+/** Mirrors `DEFAULT_SCALE_CHROME` in AdvancedChart.types.ts (WebView cannot import RN modules). */
+const SCALE_CHROME_DEFAULTS = {
+  fontSize: 12,
+};
+
+function getScaleChrome() {
+  let sc = (window.CONFIG && window.CONFIG.scaleChrome) || {};
+  return {
+    fontSize:
+      sc.fontSize != null
+        ? Number(sc.fontSize)
+        : SCALE_CHROME_DEFAULTS.fontSize,
+    scaleAxisTextColor:
+      sc.scaleAxisTextColor != null ? String(sc.scaleAxisTextColor) : null,
+    lastValuePillBackgroundColor:
+      sc.lastValuePillBackgroundColor != null
+        ? String(sc.lastValuePillBackgroundColor)
+        : null,
+    crosshairLabelBackgroundColor:
+      sc.crosshairLabelBackgroundColor != null
+        ? String(sc.crosshairLabelBackgroundColor)
+        : null,
+  };
+}
+
+function resolveScaleChromeFromPayload(payload) {
+  if (!window.CONFIG) {
+    window.CONFIG = {};
+  }
+  window.CONFIG.scaleChrome = {
+    fontSize:
+      payload.fontSize != null
+        ? Number(payload.fontSize)
+        : SCALE_CHROME_DEFAULTS.fontSize,
+    scaleAxisTextColor:
+      payload.scaleAxisTextColor != null
+        ? String(payload.scaleAxisTextColor)
+        : null,
+    lastValuePillBackgroundColor:
+      payload.lastValuePillBackgroundColor != null
+        ? String(payload.lastValuePillBackgroundColor)
+        : null,
+    crosshairLabelBackgroundColor:
+      payload.crosshairLabelBackgroundColor != null
+        ? String(payload.crosshairLabelBackgroundColor)
+        : null,
+  };
+  return getScaleChrome();
+}
+
+function getEffectiveLastValuePillBackgroundColor(theme) {
+  let sc = getScaleChrome();
+  if (sc.lastValuePillBackgroundColor) {
+    return sc.lastValuePillBackgroundColor;
+  }
+  return getThemeLastPriceLineColor(theme);
+}
+
+function buildScaleChromeOverrides() {
+  let sc = getScaleChrome();
+  let theme = (window.CONFIG && window.CONFIG.theme) || {};
+  let crosshairBg =
+    sc.crosshairLabelBackgroundColor ||
+    theme.sectionBackgroundColor ||
+    theme.backgroundColor ||
+    '#131416';
+  return {
+    'scalesProperties.fontSize': sc.fontSize,
+    'scalesProperties.textColor': sc.scaleAxisTextColor || theme.textColor,
+    'scalesProperties.crosshairLabelBgColorDark': crosshairBg,
+    'scalesProperties.crosshairLabelBgColorLight': crosshairBg,
+  };
+}
+
+function applyScaleChromeOverrides() {
+  if (!window.chartWidget) {
+    return;
+  }
+  try {
+    window.chartWidget.applyOverrides(buildScaleChromeOverrides());
+  } catch (e) {}
+}
+
+function handleSetScaleChrome(payload) {
+  if (!payload) {
+    return;
+  }
+  resolveScaleChromeFromPayload(payload);
+  if (!window.chartWidget || !window.isChartReady) {
+    return;
+  }
+  applyScaleChromeOverrides();
+  applySeriesColors();
+  refreshBuiltInLastValueLabelVisibility();
+}
 
 function lineChromePickBool(lc, key, fallback) {
   return lc[key] !== undefined ? !!lc[key] : fallback;
@@ -457,6 +592,13 @@ function handleSetOHLCVData(payload) {
 
   let newResolution = detectResolution(window.ohlcvData);
 
+  logChartInterval('webview_set_ohlcv', {
+    barCount: window.ohlcvData.length,
+    newResolution: newResolution,
+    isChartReady: !!window.isChartReady,
+    hasWidget: !!window.chartWidget,
+  });
+
   function scheduleVisibleRangeAfterDataLoad(chart) {
     if (visibleFromMs == null) {
       try {
@@ -495,6 +637,10 @@ function handleSetOHLCVData(payload) {
     try {
       let chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
+        logChartInterval('webview_set_resolution', {
+          from: previousResolution,
+          to: newResolution,
+        });
         chart.setResolution(newResolution, function () {
           try {
             chart.resetData();
@@ -506,6 +652,10 @@ function handleSetOHLCVData(payload) {
           }
         });
       } else {
+        logChartInterval('webview_reset_data', {
+          resolution: newResolution,
+          sameResolution: true,
+        });
         try {
           chart.resetData();
           beginDeferredLayoutSettleAfterOhlcvReload();
@@ -843,7 +993,8 @@ function getThemeLastPriceLineColor(theme) {
   return t.currentPriceColor || lineColor;
 }
 
-function getSeriesColorOverrides(color) {
+function getSeriesColorOverrides(color, lastPriceLineColor) {
+  var pillColor = lastPriceLineColor != null ? lastPriceLineColor : color;
   return {
     'mainSeriesProperties.lineStyle.color': color,
     'mainSeriesProperties.lineStyle.colorType': 'solid',
@@ -861,7 +1012,33 @@ function getSeriesColorOverrides(color) {
     'mainSeriesProperties.baselineStyle.topFillColor2': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor1': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor2': 'rgba(0,0,0,0)',
+    'mainSeriesProperties.priceLineColor': pillColor,
   };
+}
+
+function getSeriesAndLastValueColorOverrides(theme) {
+  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
+  return getSeriesColorOverrides(
+    getThemeLineColor(t),
+    getEffectiveLastValuePillBackgroundColor(t),
+  );
+}
+
+/**
+ * Forces TV to repaint the built-in last-value scale pill after color overrides change.
+ */
+function refreshBuiltInLastValueLabelVisibility() {
+  if (!window.chartWidget || !window.isChartReady) {
+    return;
+  }
+  try {
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showSeriesLastValue': false,
+    });
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showSeriesLastValue': true,
+    });
+  } catch (e) {}
 }
 
 // ============================================
@@ -1011,24 +1188,29 @@ function applyChartScaleLayout(type) {
   let axisLineColor = theme.backgroundColor || '#131416';
 
   try {
-    window.chartWidget.applyOverrides({
-      'scalesProperties.showRightScale': true,
-      'scalesProperties.showLeftScale': false,
-      'scalesProperties.showSeriesLastValue': !useCustomLabels,
-      'scalesProperties.showStudyLastValue': false,
-      'scalesProperties.showSymbolLabels': false,
-      'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-      'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
-      'scalesProperties.textColor': theme.textColor,
-      'mainSeriesProperties.showPriceLine': !useCustomDashed,
-      'timeScale.borderColor': axisLineColor,
-      'scalesProperties.lineColor': axisLineColor,
-      'paneProperties.separatorColor': theme.borderColor,
-      'paneProperties.topMargin': 12,
-      'paneProperties.bottomMargin': 8,
-    });
+    window.chartWidget.applyOverrides(
+      Object.assign(
+        {
+          'scalesProperties.showRightScale': true,
+          'scalesProperties.showLeftScale': false,
+          'scalesProperties.showSeriesLastValue': !useCustomLabels,
+          'scalesProperties.showStudyLastValue': false,
+          'scalesProperties.showSymbolLabels': false,
+          'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
+          'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
+          'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
+          'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
+          'scalesProperties.textColor': theme.textColor,
+          'mainSeriesProperties.showPriceLine': !useCustomDashed,
+          'timeScale.borderColor': axisLineColor,
+          'scalesProperties.lineColor': axisLineColor,
+          'paneProperties.separatorColor': theme.borderColor,
+          'paneProperties.topMargin': 12,
+          'paneProperties.bottomMargin': 8,
+        },
+        buildScaleChromeOverrides(),
+      ),
+    );
   } catch (e) {}
 
   removeLineChartMarkupStyle();
@@ -3704,6 +3886,13 @@ const LEGEND_RETRY_DELAY_MS = 100;
 const LEGEND_RENDER_TIMEOUT_MS = 3000;
 let _legendTimeoutId = null;
 
+/**
+ * Rebuilds `#study-legend-overlay` from TradingView `chart.exportData()` (last bar per study).
+ *
+ * Called when studies are added/removed, on crosshair dismiss, and after OHLCV hot reload
+ * completes in `tryCompleteLayoutSettleAfterDataCore` so MA/indicator pills reflect the new
+ * resolution (studies recalculate internally; this overlay does not update automatically).
+ */
 function refreshStudyLegendFromExport() {
   if (!isLegendOverlayEnabled()) return;
   if (!window.chartWidget || !window.isChartReady) return;
@@ -4506,7 +4695,6 @@ function initChart() {
           'scalesProperties.textColor': theme.textColor,
           'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
-          'scalesProperties.fontSize': 12,
           'scalesProperties.showStudyLastValue': false,
           'scalesProperties.showSeriesLastValue': !initCustomLabels,
           'scalesProperties.showSymbolLabels': false,
@@ -4533,7 +4721,8 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesColorOverrides(getThemeLineColor(theme)),
+        getSeriesAndLastValueColorOverrides(theme),
+        buildScaleChromeOverrides(),
       ),
 
       loading_screen: {

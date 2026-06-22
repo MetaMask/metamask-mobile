@@ -27,6 +27,7 @@ import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
+import { advancedChartScaleChromePresets } from '../../Charts/AdvancedChart/advancedChartScaleChrome.presets';
 import {
   ChartType,
   type ChartInteractedPayload,
@@ -40,6 +41,10 @@ import TimeRangeSelector, {
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
+import {
+  logChartInterval,
+  markIntervalTap,
+} from '../../Charts/AdvancedChart/chartIntervalLog';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
@@ -191,6 +196,8 @@ const PriceAdvanced = ({
   );
   /** `null` = WebView init pending; `false` = chart ready; `true` = init failed → legacy fallback. */
   const [chartInitFailed, setChartInitFailed] = useState<boolean | null>(null);
+  /** True after the chart skeleton has been hidden once this WebView session. */
+  const [hasChartBeenRevealed, setHasChartBeenRevealed] = useState(false);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -387,6 +394,12 @@ const PriceAdvanced = ({
     [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
+  /** Remount WebView only on asset/currency change — not on interval/time-range change. */
+  const webViewInstanceKey = useMemo(
+    () => `${assetId}|${currentCurrency}`,
+    [assetId, currentCurrency],
+  );
+
   const assetIdRef = useRef(assetId);
   assetIdRef.current = assetId;
 
@@ -398,6 +411,7 @@ const PriceAdvanced = ({
   } | null>(null);
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    setHasChartBeenRevealed(true);
     setChartInitFailed(false);
     const open = activeVisibilityTraceRef.current;
     if (!open) {
@@ -444,7 +458,8 @@ const PriceAdvanced = ({
 
   useEffect(() => {
     setChartInitFailed(null);
-  }, [ohlcvSeriesKey]);
+    setHasChartBeenRevealed(false);
+  }, [webViewInstanceKey]);
 
   const {
     ohlcvData,
@@ -576,20 +591,24 @@ const PriceAdvanced = ({
     !hasEmptyData &&
     !chartError;
 
-  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
-  const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
+  /** First visit only — interval refresh keeps bars/chart visible (stale-while-revalidate). */
+  const isInitialChartPending =
+    !hasChartBeenRevealed && (chartLoading || chartInitFailed === null);
+
+  /** @deprecated alias kept for logging — use isInitialChartPending for UI gating. */
+  const isAdvancedChartUiPending = isInitialChartPending;
 
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
-   * This prevents a confusing flash where interval/indicator bars appear then disappear
-   * when falling back to legacy chart or while WebView init is still pending.
+   * After first reveal, keep bars visible during interval refresh.
    */
   const shouldShowTechnicalIndicators =
     isTechnicalIndicatorsEnabled &&
-    !isAdvancedChartUiPending &&
-    ohlcvData.length >= CHART_DATA_THRESHOLD &&
-    !hasEmptyData &&
-    !chartError;
+    (hasChartBeenRevealed ||
+      (!isInitialChartPending &&
+        ohlcvData.length >= CHART_DATA_THRESHOLD &&
+        !hasEmptyData &&
+        !chartError));
 
   /** Candlestick-only: keep selections in state/Redux but hide studies on line chart. */
   const showChartIndicators =
@@ -607,6 +626,15 @@ const PriceAdvanced = ({
 
   const handleInlineIntervalSelect = useCallback(
     (interval: string) => {
+      markIntervalTap();
+      logChartInterval('interval_select', {
+        fromInterval: displayInterval,
+        toInterval: interval,
+        ohlcvSeriesKey,
+        hasChartBeenRevealed,
+        chartLoading,
+        chartInitFailed,
+      });
       setDisplayInterval(interval);
 
       trackEvent(
@@ -621,8 +649,48 @@ const PriceAdvanced = ({
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, chartType, activeIndicators],
+    [
+      trackEvent,
+      createEventBuilder,
+      chartType,
+      activeIndicators,
+      displayInterval,
+      ohlcvSeriesKey,
+      hasChartBeenRevealed,
+      chartLoading,
+      chartInitFailed,
+    ],
   );
+
+  useEffect(() => {
+    logChartInterval('ui_chart_loading', {
+      chartLoading,
+      ohlcvSeriesKey,
+      barCount: ohlcvData.length,
+    });
+  }, [chartLoading, ohlcvSeriesKey, ohlcvData.length]);
+
+  useEffect(() => {
+    logChartInterval('ui_pending_state', {
+      isInitialChartPending,
+      hasChartBeenRevealed,
+      shouldShowTechnicalIndicators,
+      chartInitFailed,
+      chartLoading,
+      ohlcvSeriesKey,
+    });
+  }, [
+    isInitialChartPending,
+    hasChartBeenRevealed,
+    shouldShowTechnicalIndicators,
+    chartInitFailed,
+    chartLoading,
+    ohlcvSeriesKey,
+  ]);
+
+  useEffect(() => {
+    logChartInterval('series_key_change', { ohlcvSeriesKey });
+  }, [ohlcvSeriesKey]);
 
   // TradingView Advanced Charts Bar.time expects milliseconds
   // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
@@ -969,7 +1037,7 @@ const PriceAdvanced = ({
         </Text>
       </View>
       {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
-      {isTechnicalIndicatorsEnabled && isAdvancedChartUiPending && (
+      {isTechnicalIndicatorsEnabled && isInitialChartPending && (
         <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <Box twClassName="w-full px-4">
@@ -1012,6 +1080,7 @@ const PriceAdvanced = ({
             <AdvancedChart
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
+              webViewInstanceKey={webViewInstanceKey}
               realtimeBar={realtimeBar}
               height={chartHeight}
               showVolume={
@@ -1025,7 +1094,8 @@ const PriceAdvanced = ({
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
-              isLoading={chartLoading}
+              scaleChrome={advancedChartScaleChromePresets.tokenOverview}
+              isLoading={!hasChartBeenRevealed && chartLoading}
               ohlcvPagination={ohlcvPagination}
               visibleFromMs={visibleFromMs}
               visibleToMs={visibleToMs}
@@ -1067,7 +1137,7 @@ const PriceAdvanced = ({
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector
-              isChartLoading={isAdvancedChartUiPending}
+              isChartLoading={isInitialChartPending}
               selected={timeRange}
               onSelect={handleTimeRangeSelect}
               chartType={chartType}
