@@ -28,6 +28,17 @@ jest.mock('react-redux', () => ({
     mockUseSelector(selector),
 }));
 
+jest.mock('../../AssetOverview/Price/hooks/useTokenChartPreferences', () => ({
+  useTokenChartPreferences: () => ({
+    chartType: 'line',
+    chartInterval: '15m',
+    indicators: [],
+    setChartType: jest.fn(),
+    setChartInterval: jest.fn(),
+    setIndicators: jest.fn(),
+  }),
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockRouteParams = jest.fn().mockReturnValue({
