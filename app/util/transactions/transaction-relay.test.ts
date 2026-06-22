@@ -100,7 +100,25 @@ describe('Transaction Relay (mobile)', () => {
     it('throws when chain is not supported by relay', async () => {
       mockRelayUnsupported();
       await expect(submitRelayTransaction(SUBMIT_REQUEST_MOCK)).rejects.toThrow(
-        `Chain not supported by transaction relay - ${SUBMIT_REQUEST_MOCK.chainId}`,
+        `Sentinel: Relay: Chain not supported - ${SUBMIT_REQUEST_MOCK.chainId}`,
+      );
+    });
+
+    it('prefixes JSON-RPC relay submission errors', async () => {
+      const error = new Error('submission failed');
+      jsonRpcRequestMock.mockRejectedValueOnce(error);
+
+      await expect(submitRelayTransaction(SUBMIT_REQUEST_MOCK)).rejects.toThrow(
+        'Sentinel: Relay: submission failed',
+      );
+      expect(error.message).toBe('Sentinel: Relay: submission failed');
+    });
+
+    it('converts non-Error JSON-RPC relay submission rejections', async () => {
+      jsonRpcRequestMock.mockRejectedValueOnce('submission failed');
+
+      await expect(submitRelayTransaction(SUBMIT_REQUEST_MOCK)).rejects.toThrow(
+        'Sentinel: Relay: submission failed',
       );
     });
 
@@ -128,7 +146,7 @@ describe('Transaction Relay (mobile)', () => {
     it('throws when chain is not supported by relay', async () => {
       mockRelayUnsupported();
       await expect(waitForRelayResult(WAIT_REQUEST_MOCK)).rejects.toThrow(
-        `Chain not supported by transaction relay - ${WAIT_REQUEST_MOCK.chainId}`,
+        `Sentinel: Relay: Chain not supported - ${WAIT_REQUEST_MOCK.chainId}`,
       );
     });
 
@@ -174,13 +192,33 @@ describe('Transaction Relay (mobile)', () => {
 
     it('rejects when polling responds with non-ok status', async () => {
       mockFetchError(ERROR_BODY_MOCK, 502);
-      const resultPromise = waitForRelayResult(WAIT_REQUEST_MOCK);
 
-      // eslint-disable-next-line jest/valid-expect
-      expect(resultPromise).rejects.toThrow(
-        'Failed to fetch relay transaction status: 502 - test error',
+      const errorPromise = waitForRelayResult(WAIT_REQUEST_MOCK).catch(
+        (error) => error,
       );
+
       await jest.advanceTimersByTimeAsync(INTERVAL_MS);
+
+      await expect(errorPromise).resolves.toMatchObject({
+        message:
+          'Sentinel: Relay: Failed to fetch transaction status: 502 - test error',
+      });
+    });
+
+    it('prefixes polling transport errors', async () => {
+      (global.fetch as jest.Mock).mockRejectedValueOnce(
+        new Error('poll failed'),
+      );
+
+      const errorPromise = waitForRelayResult(WAIT_REQUEST_MOCK).catch(
+        (error) => error,
+      );
+
+      await jest.advanceTimersByTimeAsync(INTERVAL_MS);
+
+      await expect(errorPromise).resolves.toMatchObject({
+        message: 'Sentinel: Relay: poll failed',
+      });
     });
 
     it('polls repeatedly on interval until a non-pending status is returned', async () => {

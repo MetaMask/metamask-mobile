@@ -250,10 +250,7 @@ describe('Transaction Controller Init', () => {
       slippage: 0.005,
       stxDisabled: false,
       enableDepositWalletWithdraw: false,
-      enablePerpsMoneyAccountTransactions: false,
-      enablePredictMoneyAccountTransactions: false,
-      enableMoneyHomePagePerpsTransaction: false,
-      enableMoneyHomePagePredictTransaction: false,
+      enableMoneyAccountTransactions: {},
     });
 
     payHookClassMock.mockReturnValue({
@@ -410,10 +407,7 @@ describe('Transaction Controller Init', () => {
         slippage: 0.005,
         stxDisabled: true,
         enableDepositWalletWithdraw: false,
-        enablePerpsMoneyAccountTransactions: false,
-        enablePredictMoneyAccountTransactions: false,
-        enableMoneyHomePagePerpsTransaction: false,
-        enableMoneyHomePagePredictTransaction: false,
+        enableMoneyAccountTransactions: {},
       });
 
       const hooks = testConstructorOption('hooks');
@@ -432,10 +426,7 @@ describe('Transaction Controller Init', () => {
         slippage: 0.005,
         stxDisabled: false,
         enableDepositWalletWithdraw: false,
-        enablePerpsMoneyAccountTransactions: false,
-        enablePredictMoneyAccountTransactions: false,
-        enableMoneyHomePagePerpsTransaction: false,
-        enableMoneyHomePagePredictTransaction: false,
+        enableMoneyAccountTransactions: {},
       });
 
       const hooks = testConstructorOption('hooks');

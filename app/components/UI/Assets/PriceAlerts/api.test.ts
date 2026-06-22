@@ -7,6 +7,7 @@ import {
   createAlert,
   deleteAlert,
   updateAlert,
+  fetchSupportedChains,
   useSavePriceAlert,
 } from './api';
 
@@ -91,6 +92,27 @@ describe('authenticatedFetch', () => {
     await fetchAlerts('eip155:1/slip44:60');
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(init.credentials).toBe('omit');
+  });
+});
+
+describe('fetchSupportedChains', () => {
+  it('calls /alerts/supported-chains', async () => {
+    await fetchSupportedChains();
+    expect(mockGetBearerToken).not.toHaveBeenCalled();
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(
+      (init.headers as Record<string, string>).Authorization,
+    ).toBeUndefined();
+    expect((init.headers as Record<string, string>).Accept).toBe(
+      'application/json',
+    );
+    expect(init.credentials).toBe('omit');
+  });
+
+  it('returns the raw Response from fetch', async () => {
+    const response = makeOkResponse({ chains: ['eip155:1'] });
+    mockFetch.mockResolvedValue(response);
+    expect(await fetchSupportedChains()).toBe(response);
   });
 });
 

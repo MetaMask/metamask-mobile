@@ -422,11 +422,7 @@ const CardHome = () => {
 
         {canLinkMoneyAccount && (
           <>
-            <Box
-              twClassName="h-px bg-border-muted mt-4"
-              testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP}
-            />
-            <Box twClassName="mb-6 mt-4">
+            <Box twClassName="mb-6 mt-7">
               <MoneyMetaMaskCard
                 mode="link"
                 hideCardImage

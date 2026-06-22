@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
@@ -35,12 +35,16 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
   useGestureHandlerScrollView = false,
 }) => {
   const tw = useTailwind();
+  const activeChipIndex = useMemo(
+    () => chips.findIndex((chip) => chip.key === activeChipKey),
+    [chips, activeChipKey],
+  );
   const {
     scrollViewRef,
     handleScrollViewLayout,
     handleChipLayout,
     scrollToChipAtIndex,
-  } = useChipScrollList(chips.length);
+  } = useChipScrollList(chips.length, { activeChipIndex });
 
   const handlePress = useCallback(
     (key: string, index: number) => {

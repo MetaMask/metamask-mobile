@@ -10,6 +10,7 @@ import {
   selectMusdConversionAssetDetailCtasSeen,
   selectMoneyOnboardingSeen,
   selectTokenOverviewChartType,
+  selectTokenIndicators,
   selectOnboardingStepperProgress,
 } from './selectors';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
@@ -24,6 +25,7 @@ const mockState = {
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
     moneyOnboardingSeen: false,
     tokenOverviewChartType: ChartType.Line as ChartType,
+    tokenIndicators: [] as string[],
     onboardingStepperProgress: {} as Record<string, number>,
   },
 };
@@ -189,6 +191,33 @@ describe('user state selectors', () => {
       );
 
       expect(result.current).toBe(ChartType.Line);
+    });
+  });
+
+  describe('selectTokenIndicators', () => {
+    it('returns empty array when no indicators are active', () => {
+      mockState.user.tokenIndicators = [];
+
+      const { result } = renderHook(() => useSelector(selectTokenIndicators));
+
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns active indicators when set', () => {
+      mockState.user.tokenIndicators = ['RSI', 'MACD'];
+
+      const { result } = renderHook(() => useSelector(selectTokenIndicators));
+
+      expect(result.current).toEqual(['RSI', 'MACD']);
+    });
+
+    it('returns empty array when tokenIndicators is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.tokenIndicators = undefined;
+
+      const { result } = renderHook(() => useSelector(selectTokenIndicators));
+
+      expect(result.current).toEqual([]);
     });
   });
 
