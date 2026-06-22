@@ -26,8 +26,9 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { setOnboardingCryptoExperience } from '../../../actions/onboarding';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { OnboardingCryptoExperienceQuestionnaireTestIds } from './OnboardingCryptoExperienceQuestionnaire.testIds';
 import type { CryptoExperienceLevel } from './OnboardingCryptoExperienceQuestionnaire.types';
@@ -65,6 +66,7 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
       RouteProp<RootStackParamList, 'OnboardingCryptoExperienceQuestionnaire'>
     >();
   const { onComplete, accountType: routeAccountType } = route.params;
+  const dispatch = useDispatch();
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   const accountType = routeAccountType ?? reduxAccountType;
@@ -102,6 +104,10 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
   const onContinue = useCallback(() => {
     const skipped = selectedLevel === null;
 
+    if (selectedLevel) {
+      dispatch(setOnboardingCryptoExperience(selectedLevel));
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
@@ -114,7 +120,14 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
     );
 
     onComplete();
-  }, [selectedLevel, trackEvent, createEventBuilder, accountType, onComplete]);
+  }, [
+    selectedLevel,
+    dispatch,
+    trackEvent,
+    createEventBuilder,
+    accountType,
+    onComplete,
+  ]);
 
   return (
     <SafeAreaView

@@ -36,8 +36,9 @@ import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { setOnboardingInterests } from '../../../actions/onboarding';
 import { selectAccountGroupBalanceForEmptyState } from '../../../selectors/assets/balances';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
@@ -118,6 +119,7 @@ const OnboardingInterestQuestionnaire = () => {
       RouteProp<RootStackParamList, 'OnboardingInterestQuestionnaire'>
     >();
   const { onComplete, accountType: routeAccountType } = route.params;
+  const dispatch = useDispatch();
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   const accountType = routeAccountType ?? reduxAccountType;
@@ -201,6 +203,13 @@ const OnboardingInterestQuestionnaire = () => {
   const onNext = useCallback(() => {
     const selectedInterests = Array.from(selectedIds);
 
+    dispatch(
+      setOnboardingInterests({
+        interests: selectedInterests,
+        ...(otherText && { otherText }),
+      }),
+    );
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
@@ -228,6 +237,7 @@ const OnboardingInterestQuestionnaire = () => {
   }, [
     selectedIds,
     otherText,
+    dispatch,
     trackEvent,
     createEventBuilder,
     accountType,
@@ -237,6 +247,8 @@ const OnboardingInterestQuestionnaire = () => {
   ]);
 
   const onSkip = useCallback(() => {
+    dispatch(setOnboardingInterests({ interests: [] }));
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
@@ -250,7 +262,7 @@ const OnboardingInterestQuestionnaire = () => {
     );
 
     onComplete();
-  }, [trackEvent, createEventBuilder, accountType, onComplete]);
+  }, [dispatch, trackEvent, createEventBuilder, accountType, onComplete]);
 
   return (
     <SafeAreaView

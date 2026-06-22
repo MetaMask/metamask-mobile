@@ -5,12 +5,16 @@ import {
   setCompletedOnboarding,
   setAccountType,
   clearAccountType,
+  setOnboardingInterests,
+  setOnboardingCryptoExperience,
   SAVE_EVENT,
   CLEAR_EVENTS,
   CLEAR_ONBOARDING,
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
+  SET_ONBOARDING_INTERESTS,
+  SET_ONBOARDING_CRYPTO_EXPERIENCE,
   setWalletHomeOnboardingStepsEligible,
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   resetWalletHomeOnboardingSteps,
@@ -90,6 +94,38 @@ describe('Onboarding actions', () => {
     it('creates an action to clear accountType', () => {
       expect(clearAccountType()).toEqual({
         type: CLEAR_ACCOUNT_TYPE,
+      });
+    });
+  });
+
+  describe('setOnboardingInterests', () => {
+    it('creates an action with interests and other text', () => {
+      expect(
+        setOnboardingInterests({
+          interests: ['swap_tokens', 'other'],
+          otherText: 'staking',
+        }),
+      ).toEqual({
+        type: SET_ONBOARDING_INTERESTS,
+        interests: ['swap_tokens', 'other'],
+        otherText: 'staking',
+      });
+    });
+
+    it('creates an action with undefined other text when omitted', () => {
+      expect(setOnboardingInterests({ interests: [] })).toEqual({
+        type: SET_ONBOARDING_INTERESTS,
+        interests: [],
+        otherText: undefined,
+      });
+    });
+  });
+
+  describe('setOnboardingCryptoExperience', () => {
+    it('creates an action to set the crypto experience level', () => {
+      expect(setOnboardingCryptoExperience('beginner')).toEqual({
+        type: SET_ONBOARDING_CRYPTO_EXPERIENCE,
+        cryptoExperience: 'beginner',
       });
     });
   });

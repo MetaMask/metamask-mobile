@@ -8,6 +8,9 @@ export const CLEAR_EVENTS = 'CLEAR_EVENTS';
 export const SET_COMPLETED_ONBOARDING = 'SET_COMPLETED_ONBOARDING';
 export const SET_ACCOUNT_TYPE = 'SET_ACCOUNT_TYPE';
 export const CLEAR_ACCOUNT_TYPE = 'CLEAR_ACCOUNT_TYPE';
+export const SET_ONBOARDING_INTERESTS = 'SET_ONBOARDING_INTERESTS';
+export const SET_ONBOARDING_CRYPTO_EXPERIENCE =
+  'SET_ONBOARDING_CRYPTO_EXPERIENCE';
 export const SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL =
   'SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL';
 export const SET_SEEDLESS_ONBOARDING = 'SET_SEEDLESS_ONBOARDING';
@@ -46,6 +49,17 @@ interface SetAccountTypeAction {
 
 interface ClearAccountTypeAction {
   type: typeof CLEAR_ACCOUNT_TYPE;
+}
+
+export interface SetOnboardingInterestsAction {
+  type: typeof SET_ONBOARDING_INTERESTS;
+  interests: string[];
+  otherText?: string;
+}
+
+export interface SetOnboardingCryptoExperienceAction {
+  type: typeof SET_ONBOARDING_CRYPTO_EXPERIENCE;
+  cryptoExperience: string;
 }
 
 export interface SetPendingSocialLoginMarketingConsentBackfillAction {
@@ -102,6 +116,8 @@ export type OnboardingActionTypes =
   | SetCompletedOnboardingAction
   | SetAccountTypeAction
   | ClearAccountTypeAction
+  | SetOnboardingInterestsAction
+  | SetOnboardingCryptoExperienceAction
   | SetPendingSocialLoginMarketingConsentBackfillAction
   | SetSeedlessOnboardingAction
   | ClearSeedlessOnboardingAction
@@ -150,6 +166,26 @@ export function setAccountType(params: {
 export function clearAccountType(): ClearAccountTypeAction {
   return {
     type: CLEAR_ACCOUNT_TYPE,
+  };
+}
+
+export function setOnboardingInterests(params: {
+  interests: string[];
+  otherText?: string;
+}): SetOnboardingInterestsAction {
+  return {
+    type: SET_ONBOARDING_INTERESTS,
+    interests: params.interests,
+    otherText: params.otherText,
+  };
+}
+
+export function setOnboardingCryptoExperience(
+  cryptoExperience: string,
+): SetOnboardingCryptoExperienceAction {
+  return {
+    type: SET_ONBOARDING_CRYPTO_EXPERIENCE,
+    cryptoExperience,
   };
 }
 
