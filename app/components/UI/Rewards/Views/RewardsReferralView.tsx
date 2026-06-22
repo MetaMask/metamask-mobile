@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView } from 'react-native';
+import { InteractionManager, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import Share from 'react-native-share';
 import {
@@ -23,6 +23,7 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { buildReferralUrl, RewardsMetricsButtons } from '../utils';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import Logger from '../../../../util/Logger';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -44,7 +45,7 @@ const ReferralRewardsView: React.FC = () => {
     }
   }, [trackEvent, createEventBuilder]);
 
-  const handleShareLink = async () => {
+  const handleShareLink = () => {
     if (!referralCode) return;
     const link = buildReferralUrl(referralCode);
     trackEvent(
@@ -54,9 +55,17 @@ const ReferralRewardsView: React.FC = () => {
         })
         .build(),
     );
-    await Share.open({
-      message: strings('rewards.referral.actions.share_referral_subject'),
-      url: link,
+    // Defer opening the native share sheet until the button press gesture
+    // completes. Launching it synchronously from onPress on Android can leave
+    // the touch responder stuck after the sheet is dismissed.
+    InteractionManager.runAfterInteractions(() => {
+      Share.open({
+        message: strings('rewards.referral.actions.share_referral_subject'),
+        url: link,
+        failOnCancel: false,
+      }).catch((error) => {
+        Logger.log('Error while trying to share referral link', error);
+      });
     });
   };
 

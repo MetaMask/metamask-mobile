@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import RewardsReferralView from './RewardsReferralView';
 
@@ -14,6 +15,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('react-native-share', () => ({
   open: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -89,6 +94,12 @@ import Share from 'react-native-share';
 describe('RewardsReferralView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((task) => {
+        task();
+        return { cancel: jest.fn() };
+      });
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -216,6 +227,7 @@ describe('RewardsReferralView', () => {
         expect(Share.open).toHaveBeenCalledWith(
           expect.objectContaining({
             url: 'https://link.metamask.io/rewards?referral=TESTCODE',
+            failOnCancel: false,
           }),
         );
       });
