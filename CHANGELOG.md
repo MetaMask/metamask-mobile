@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed Trade push notifications not respecting user's disabled preference setting by adding a client-side preference check. (#32147)
+
 ## [7.81.2]
 
 ### Changed
