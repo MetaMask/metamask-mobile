@@ -2,7 +2,6 @@ import {
   ClientConfigApiService,
   ClientType,
 } from '@metamask/remote-feature-flag-controller';
-import type { Json } from '@metamask/utils';
 import type { WalletOptions } from '@metamask/wallet';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
@@ -29,7 +28,7 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
   state,
 }: {
   messenger: RootMessenger;
-  state: Record<string, Record<string, Json> | undefined>;
+  state: NonNullable<WalletOptions['state']>;
 }): RemoteFeatureFlagControllerInstanceOptions {
   return {
     clientConfigApiService: new ClientConfigApiService({
@@ -50,7 +49,9 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
       typeof state?.AppMetadataController?.currentAppVersion === 'string'
         ? state.AppMetadataController.currentAppVersion
         : undefined,
-    // Initial value only; runtime toggling + the startup fetch live in Engine.
+    // Initial value only (set once at construction); the startup fetch lives
+    // in Engine. `selectBasicFunctionalityEnabled` reads Redux settings, not
+    // wallet `state`.
     disabled: !selectBasicFunctionalityEnabled(store.getState()),
   };
 }

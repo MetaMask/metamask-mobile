@@ -25,7 +25,7 @@ jest.mock('../../../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn(),
 }));
 
-function buildMessenger(analyticsId: string) {
+function buildMessenger(analyticsId?: string) {
   return { call: jest.fn(() => ({ analyticsId })) } as unknown as RootMessenger;
 }
 
@@ -62,6 +62,15 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     expect(messenger.call).toHaveBeenCalledWith('AnalyticsController:getState');
   });
 
+  it('passes through an undefined MetaMetrics id (resolved lazily at fetch time)', () => {
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger: buildMessenger(undefined),
+      state: {},
+    });
+
+    expect(options.getMetaMetricsId?.()).toBeUndefined();
+  });
+
   it('reads prevClientVersion from persisted AppMetadataController state', () => {
     const options = getRemoteFeatureFlagControllerInstanceOptions({
       messenger: buildMessenger('metrics-id'),
@@ -75,6 +84,15 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     const options = getRemoteFeatureFlagControllerInstanceOptions({
       messenger: buildMessenger('metrics-id'),
       state: {},
+    });
+
+    expect(options.prevClientVersion).toBeUndefined();
+  });
+
+  it('ignores a non-string persisted app version', () => {
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger: buildMessenger('metrics-id'),
+      state: { AppMetadataController: { currentAppVersion: 123 } },
     });
 
     expect(options.prevClientVersion).toBeUndefined();
@@ -102,5 +120,22 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     expect(options.fetchInterval).toBe(
       AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
     );
+  });
+
+  it('uses a short fetch interval in development', () => {
+    const globalWithDev = global as unknown as { __DEV__: boolean };
+    const originalDev = globalWithDev.__DEV__;
+    globalWithDev.__DEV__ = true;
+
+    try {
+      const options = getRemoteFeatureFlagControllerInstanceOptions({
+        messenger: buildMessenger('metrics-id'),
+        state: {},
+      });
+
+      expect(options.fetchInterval).toBe(1000);
+    } finally {
+      globalWithDev.__DEV__ = originalDev;
+    }
   });
 });

@@ -1,5 +1,4 @@
-import { Wallet } from '@metamask/wallet';
-import { Json } from '@metamask/utils';
+import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
@@ -16,7 +15,7 @@ export function initializeWallet({
   state,
 }: {
   messenger: RootMessenger;
-  state: Record<string, Record<string, Json> | undefined>;
+  state: NonNullable<WalletOptions['state']>;
 }) {
   return new Wallet({
     messenger,

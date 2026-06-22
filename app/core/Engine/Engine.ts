@@ -539,6 +539,16 @@ export class Engine {
       messengerClientsByName.NetworkEnablementController;
     networkEnablementController.init();
 
+    // The wallet constructs AccountsController; emit the startup breadcrumb
+    // (account counts) that the deleted local init used to log.
+    Logger.log('AccountsController initialized', {
+      hasSelectedAccount:
+        !!accountsController.state.internalAccounts.selectedAccount,
+      accountsCount: Object.keys(
+        accountsController.state.internalAccounts.accounts,
+      ).length,
+    });
+
     // The wallet constructs ConnectivityController but does not seed its initial
     // status; do that here (fire-and-forget).
     connectivityController.init().catch((error) => {

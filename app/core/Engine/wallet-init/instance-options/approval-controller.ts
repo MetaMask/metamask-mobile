@@ -9,7 +9,12 @@ type ApprovalControllerInstanceOptions = NonNullable<
 
 /**
  * Mobile drives approvals through state, so `showApprovalRequest` is omitted
- * here (the wallet defaults it to a no-op).
+ * here (the wallet defaults it to a no-op). `typesExcludedFromRateLimiting`
+ * lists the approval types allowed to bypass the per-origin rate limit
+ * (transactions, watch-asset, smart-transaction status, and one queued
+ * `snap_dialog`).
+ *
+ * @returns The mobile ApprovalController instance options.
  */
 export function getApprovalControllerInstanceOptions(): ApprovalControllerInstanceOptions {
   return {
