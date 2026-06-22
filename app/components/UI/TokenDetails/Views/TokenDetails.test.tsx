@@ -244,6 +244,29 @@ jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
   selectPriceAlertsEnabled: jest.fn(() => false),
 }));
 
+const mockUseIsPriceAlertsChainSupported = jest.fn<
+  boolean,
+  [string | null | undefined, { enabled?: boolean }?]
+>(() => true);
+jest.mock(
+  '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported',
+  () => ({
+    useIsPriceAlertsChainSupported: (
+      assetId: string | null | undefined,
+      options?: { enabled?: boolean },
+    ) => mockUseIsPriceAlertsChainSupported(assetId, options),
+  }),
+);
+
+const mockUsePriceInUsd = jest.fn<
+  number | null,
+  [string | null | undefined, number]
+>(() => 100);
+jest.mock('../../Assets/PriceAlerts/hooks/usePriceInUsd', () => ({
+  usePriceInUsd: (chainId: string | null | undefined, price: number) =>
+    mockUsePriceInUsd(chainId, price),
+}));
+
 jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampNativeTokenSupported: jest.fn(() => true),
   isNetworkRampSupported: jest.fn(() => true),
@@ -345,6 +368,8 @@ describe('TokenDetails', () => {
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
+    mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUsePriceInUsd.mockReturnValue(100);
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -762,6 +787,7 @@ describe('TokenDetails', () => {
         ...defaultUseTokenPriceReturn,
         currentPrice: 0,
       });
+      mockUsePriceInUsd.mockReturnValue(0);
 
       render(<TokenDetails />);
 
@@ -788,6 +814,69 @@ describe('TokenDetails', () => {
       );
     });
 
+    it('passes undefined onPriceAlertPress when the chain is not supported for price alerts', () => {
+      enablePriceAlerts();
+      mockUseIsPriceAlertsChainSupported.mockReturnValue(false);
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 100,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('passes undefined onPriceAlertPress when usePriceInUsd returns null', () => {
+      enablePriceAlerts();
+      mockUsePriceInUsd.mockReturnValue(null);
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 100,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('always navigates to MANAGE_PRICE_ALERTS with currentCurrency usd regardless of user fiat setting', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 2800,
+        currentCurrency: 'eur',
+      });
+      mockUsePriceInUsd.mockReturnValue(3000);
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        chainId: '0x1',
+        symbol: 'DAI',
+      });
+
+      render(<TokenDetails />);
+
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0] as {
+        onPriceAlertPress?: () => void;
+      };
+      act(() => {
+        lastCall.onPriceAlertPress?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MANAGE_PRICE_ALERTS,
+        expect.objectContaining({
+          currentPrice: 3000,
+          currentCurrency: 'usd',
+        }),
+      );
+    });
+
     it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
       enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
@@ -795,6 +884,7 @@ describe('TokenDetails', () => {
         currentPrice: 2500,
         currentCurrency: 'USD',
       });
+      mockUsePriceInUsd.mockReturnValue(2500);
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -817,7 +907,7 @@ describe('TokenDetails', () => {
         expect.objectContaining({
           symbol: 'DAI',
           currentPrice: 2500,
-          currentCurrency: 'USD',
+          currentCurrency: 'usd',
           assetId: expect.stringMatching(/^eip155:1\//),
         }),
       );

@@ -35,9 +35,8 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
-import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -143,21 +142,16 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { allTransactions, moneyAddress, mockDataEnabled } =
-    useMoneyAccountTransactions();
-  const { cardTransactions, isLoading: isCardActivityLoading } =
-    useMoneyAccountCardTransactions();
-  // Mock mode shows curated demo data only — never merge real card spends (or
-  // their loading state) into it.
-  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
-  const activityItems = useMemo(
-    () =>
-      mergeMoneyActivity(
-        allTransactions,
-        mockDataEnabled ? [] : cardTransactions,
-      ),
-    [allTransactions, cardTransactions, mockDataEnabled],
-  );
+  // Share the single merge/bucket path with the full activity view so the home
+  // preview and that view never diverge (notably in mock mode). The home
+  // preview shows the "All" bucket; `isLoading` is already mock-aware.
+  const {
+    buckets,
+    isLoading: showCardActivityLoading,
+    moneyAddress,
+    mockDataEnabled,
+  } = useMoneyActivityItems();
+  const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
@@ -660,29 +654,27 @@ const MoneyHomeView = () => {
     contentSections.push({
       key: 'how-it-works',
       node: (
-        <MoneyHowItWorks
-          apy={apyPercent}
-          onHeaderPress={() =>
-            handleHowItWorksPress({
-              componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
-            })
-          }
-          isLoading={vaultApyQuery.isLoading}
-        />
-      ),
-    });
-    contentSections.push({
-      key: 'musd-row',
-      node: (
-        <MoneyMusdTokenRow
-          onPress={() =>
-            handleMusdRowPress({
-              componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-            })
-          }
-          onAddPress={handleMusdRowAddPress}
-          balance={musdFiatFormatted}
-        />
+        <>
+          <MoneyHowItWorks
+            apy={apyPercent}
+            onHeaderPress={() =>
+              handleHowItWorksPress({
+                componentName:
+                  COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
+              })
+            }
+            isLoading={vaultApyQuery.isLoading}
+          />
+          <MoneyMusdTokenRow
+            onPress={() =>
+              handleMusdRowPress({
+                componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+              })
+            }
+            onAddPress={handleMusdRowAddPress}
+            balance={musdFiatFormatted}
+          />
+        </>
       ),
     });
   }
