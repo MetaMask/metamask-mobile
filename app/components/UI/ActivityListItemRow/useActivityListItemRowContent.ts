@@ -799,6 +799,17 @@ function resolveAmount(
   return isSpendingCapActivity ? amount : applyDisplaySign(amount, signPrefix);
 }
 
+function shouldUsePrimaryFiatFallback(
+  itemType: ActivityListItem['type'],
+  secondaryToken: TokenAmount | undefined,
+) {
+  if (secondaryToken) {
+    return false;
+  }
+
+  return !['swap', 'bridge', 'wrap', 'unwrap', 'convert'].includes(itemType);
+}
+
 function formatTokenQuantity(amount: string): string {
   const value = Number(amount);
   const absoluteValue = Math.abs(value);
@@ -1034,7 +1045,6 @@ export function useActivityListItemRowContent(
     content.secondaryToken,
     networkChainId,
   );
-
   const isPerpsFunding = isPerpsFundingKind(item.type);
   const isFundsRow = isDomainFundsKind(item.type);
   const isUsdDenominated =
@@ -1052,14 +1062,23 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  const primaryAmount =
-    domainFiatAmount ?? resolveAmount(primaryToken, item.type);
-  const secondaryAmount = domainFiatAmount
-    ? isFundsRow
-      ? fundsTokenSecondaryAmount(primaryToken)
-      : undefined
-    : (resolveAmount(secondaryToken, item.type) ??
-      resolveFiatAmount({
+  // Non-domain fiat fallbacks (from main): token amount first, then secondary
+  // fiat, then a primary fiat fallback for kinds that warrant it.
+  const resolvedSecondaryAmount = resolveAmount(secondaryToken, item.type);
+  const secondaryFiatAmount = resolveFiatAmount({
+    activityType: item.type,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    hexChainId,
+    token: secondaryToken,
+    usdConversionRate,
+  });
+  const primaryFiatAmount = shouldUsePrimaryFiatFallback(
+    item.type,
+    secondaryToken,
+  )
+    ? resolveFiatAmount({
         activityType: item.type,
         contractExchangeRates,
         conversionRate,
@@ -1067,7 +1086,18 @@ export function useActivityListItemRowContent(
         hexChainId,
         token: primaryToken,
         usdConversionRate,
-      }));
+      })
+    : undefined;
+
+  // Perps/Predict rows are USD-denominated; everything else uses the token
+  // amount with main's fiat fallback chain.
+  const primaryAmount =
+    domainFiatAmount ?? resolveAmount(primaryToken, item.type);
+  const secondaryAmount = domainFiatAmount
+    ? isFundsRow
+      ? fundsTokenSecondaryAmount(primaryToken)
+      : undefined
+    : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data

@@ -15,6 +15,7 @@ import {
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
+import { isMonadMainnetChainId } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -22,7 +23,7 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 
 const LOG_TAG = '[Money Account]';
 
-export type MoneyAccountDepositIntent = 'convert' | 'addMusd';
+export type MoneyAccountDepositIntent = 'convert' | 'addMusd' | 'card';
 
 const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
 
@@ -204,6 +205,7 @@ export function useMoneyAccountWithdrawal() {
         isInternal: true,
         disableHook: true,
         disableSequential: true,
+        isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {
