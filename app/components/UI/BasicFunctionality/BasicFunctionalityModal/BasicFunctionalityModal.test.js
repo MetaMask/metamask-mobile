@@ -86,4 +86,17 @@ describe('BasicFunctionalityModal', () => {
 
     expect(toggleBasicFunctionality).toHaveBeenCalledWith(false);
   });
+
+  it('should turn off basic functionality when route params are undefined', () => {
+    mockRouteParams = undefined;
+
+    const { getByText } = renderWithProvider(<BasicFunctionalityModal />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByText('I understand and want to continue'));
+    fireEvent.press(getByText('Turn off'));
+
+    expect(toggleBasicFunctionality).toHaveBeenCalledWith(false);
+  });
 });
