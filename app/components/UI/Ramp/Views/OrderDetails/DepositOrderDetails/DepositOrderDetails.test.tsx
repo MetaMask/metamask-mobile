@@ -158,8 +158,12 @@ describe('DepositOrderDetails Component', () => {
     expect(screen.queryByText('Total')).not.toBeOnTheScreen();
   });
 
-  it('renders loading state correctly', () => {
-    const loadingOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
+  it('renders loading state correctly for pollable CREATED orders', () => {
+    const loadingOrder = {
+      ...mockOrder,
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
     (getOrderById as jest.Mock).mockReturnValue(loadingOrder);
 
     renderWithProvider(<DepositOrderDetails />, {
@@ -173,8 +177,32 @@ describe('DepositOrderDetails Component', () => {
     expect(screen.queryByText('Total')).not.toBeOnTheScreen();
   });
 
+  it('renders CREATED legacy DEPOSIT orders without polling', () => {
+    const createdOrder = {
+      ...mockOrder,
+      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
+    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
+
+    renderWithProvider(<DepositOrderDetails />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+
+    expect(screen.getByText('Order ID')).toBeOnTheScreen();
+    expect(processFiatOrder).not.toHaveBeenCalled();
+  });
+
   it('renders an error screen if a CREATED order cannot be polled on load', async () => {
-    const createdOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
+    const createdOrder = {
+      ...mockOrder,
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
     (getOrderById as jest.Mock).mockReturnValue(createdOrder);
     (processFiatOrder as jest.Mock).mockImplementationOnce(() => {
       throw new Error('Test error message');
@@ -195,8 +223,12 @@ describe('DepositOrderDetails Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls handleOnRefresh successfully on mount for CREATED orders', async () => {
-    const createdOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
+  it('calls handleOnRefresh successfully on mount for pollable CREATED orders', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
     (getOrderById as jest.Mock).mockReturnValue(createdOrder);
 
     await waitFor(() => {
@@ -219,9 +251,13 @@ describe('DepositOrderDetails Component', () => {
     });
   });
 
-  it('polls transacted orders using interval', async () => {
+  it('polls pollable CREATED orders using interval', async () => {
     jest.useFakeTimers();
-    const createdOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
+    const createdOrder = {
+      ...mockOrder,
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
     (getOrderById as jest.Mock).mockReturnValue(createdOrder);
 
     const intervalCount = 3;

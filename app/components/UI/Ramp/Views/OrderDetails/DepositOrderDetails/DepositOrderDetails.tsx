@@ -26,6 +26,7 @@ import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import DepositOrderContent from '../../../components/DepositOrderContent/DepositOrderContent';
 import { processFiatOrder } from '../../../index';
+import { supportsFiatOrderPolling } from '../../../orderProcessor';
 
 interface DepositOrderDetailsParams {
   orderId: string;
@@ -41,9 +42,11 @@ const DepositOrderDetails = () => {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
-  const [isLoading, setIsLoading] = useState(
-    order?.state === FIAT_ORDER_STATES.CREATED,
-  );
+  const shouldPollOrder =
+    Boolean(order) &&
+    order.state === FIAT_ORDER_STATES.CREATED &&
+    supportsFiatOrderPolling(order.provider);
+  const [isLoading, setIsLoading] = useState(shouldPollOrder);
   const [error, setError] = useState<string | null>(null);
   const { colors } = useTheme();
   const navigation = useNavigation();
@@ -101,7 +104,7 @@ const DepositOrderDetails = () => {
   );
 
   useEffect(() => {
-    if (order?.state === FIAT_ORDER_STATES.CREATED) {
+    if (shouldPollOrder) {
       handleOnRefresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,10 +112,7 @@ const DepositOrderDetails = () => {
 
   useInterval(() => handleOnRefresh({ fromInterval: true }), {
     delay:
-      !isLoading &&
-      !isRefreshingInterval &&
-      order &&
-      order.state === FIAT_ORDER_STATES.CREATED
+      shouldPollOrder && !isLoading && !isRefreshingInterval
         ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
         : null,
   });
