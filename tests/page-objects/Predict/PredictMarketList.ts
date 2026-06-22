@@ -23,14 +23,10 @@ import {
 type CategoryTab = 'trending' | 'new' | 'sports' | 'crypto' | 'politics';
 type CategoryTabScrollDirection = 'left' | 'right';
 
-/** Tab indices in {@link PredictFeedSelectorsIDs.TABS} — must match PREDICT_BASE_TABS order. */
-const CATEGORY_TAB_INDEX: Record<CategoryTab, number> = {
-  trending: 0,
-  new: 2,
-  sports: 3,
-  crypto: 4,
-  politics: 5,
-};
+/** TabsBar assigns `predict-feed-tabs-tab-{runtimeIndex}`; match pressable by label, not fixed index. */
+const PREDICT_FEED_TAB_PRESSABLE_ID = new RegExp(
+  `^${PredictFeedSelectorsIDs.TABS}-tab-\\d+$`,
+);
 
 const CATEGORY_LABELS: Record<CategoryTab, string> = {
   trending: 'Trending',
@@ -192,10 +188,15 @@ class PredictMarketList {
 
   getCategoryTab(category: CategoryTab): EncapsulatedElementType {
     const label = CATEGORY_LABELS[category];
-    const tabTestId = getPredictFeedSelector.tab(CATEGORY_TAB_INDEX[category]);
 
     return encapsulated({
-      detox: () => Matchers.getElementByID(tabTestId),
+      detox: () =>
+        element(
+          by
+            .id(PREDICT_FEED_TAB_PRESSABLE_ID)
+            .withAncestor(by.id(PredictFeedSelectorsIDs.TABS))
+            .withDescendant(by.text(label)),
+        ) as unknown as DetoxElement,
       appium: () => PlaywrightMatchers.getElementByText(label),
     });
   }
