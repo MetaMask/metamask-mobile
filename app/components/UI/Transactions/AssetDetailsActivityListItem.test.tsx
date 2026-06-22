@@ -103,6 +103,33 @@ describe('AssetDetailsActivityListItem', () => {
     );
   });
 
+  it('does not render account import marker when import time is null', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccount) {
+        return { metadata: { importTime: null } };
+      }
+      return undefined;
+    });
+    const navigation = createNavigation();
+    const transaction = createTransaction({ insertImportTime: true });
+
+    const { queryByTestId } = render(
+      <AssetDetailsActivityListItem
+        transaction={transaction}
+        index={0}
+        assetSymbol="ETH"
+        chainId="0x1"
+        navigation={navigation}
+        onSpeedUpAction={jest.fn()}
+        onCancelAction={jest.fn()}
+      />,
+    );
+
+    expect(
+      queryByTestId('activity-list-account-import-time-row'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('opens transaction details when activity row is pressed', () => {
     const navigation = createNavigation();
     const onSpeedUpAction = jest.fn();

@@ -86,7 +86,9 @@ export const AssetDetailsActivityListItem = ({
   );
 
   const shouldRenderImportTime =
-    Boolean(tx.insertImportTime) && accountImportTime !== undefined;
+    Boolean(tx.insertImportTime) &&
+    typeof accountImportTime === 'number' &&
+    Number.isFinite(accountImportTime);
   const importTimeRow = shouldRenderImportTime ? (
     <ActivityListAccountImportTimeRow
       importTime={accountImportTime}
