@@ -29,6 +29,8 @@ type AndroidIntentExtra = ['s', string, string];
 
 /** Brief pause after force-stopping Android before startActivity (CI emulators). */
 const ANDROID_PRE_LAUNCH_SETTLE_MS = 1500;
+const IOS_PRE_LAUNCH_TERMINATE_RETRY_DELAY_MS = 1000;
+const IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS = 3;
 /** Let UiAutomator2 stabilize after Expo dev-client deep link before element queries. */
 const ANDROID_POST_DEEPLINK_SETTLE_MS = 3000;
 /** Cold Metro bundles can exceed 2 min; pre-warm before deep link to avoid DevLauncherError. */
@@ -40,6 +42,14 @@ const APPIUM_START_ACTIVITY_CONTROL_KEYS = new Set<keyof LaunchArgs>([
   'stop',
   'wait',
 ]);
+
+const IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS = [
+  'Could not proxy command to the remote server',
+  'connect ECONNREFUSED 127.0.0.1:8100',
+  'socket hang up',
+  'The session identified by',
+  'invalid session id',
+];
 
 const getMetroPort = (): string =>
   process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
@@ -252,6 +262,65 @@ export function isOverheadTrackingActive(): boolean {
 }
 
 class PlaywrightUtilities {
+  private static isTransientIosTerminateError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS.some((pattern) =>
+      message.includes(pattern),
+    );
+  }
+
+  /**
+   * iOS `terminateApp` intermittently fails in CI when WDA briefly drops the
+   * transport. We retry transient connection/session errors before launch so we
+   * do not fail the whole spec during fixture bootstrap.
+   */
+  private static async terminateIosAppBeforeLaunch(
+    bundleId: string,
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    for (
+      let attempt = 1;
+      attempt <= IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS;
+      attempt++
+    ) {
+      try {
+        await drv.terminateApp(bundleId);
+        return;
+      } catch (error) {
+        const isTransient = this.isTransientIosTerminateError(error);
+        const message = error instanceof Error ? error.message : String(error);
+
+        if (
+          isTransient &&
+          attempt < IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS
+        ) {
+          logger.warn(
+            `terminateApp(${bundleId}) transient failure ` +
+              `(attempt ${attempt}/${IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS}); ` +
+              `retrying: ${message}`,
+          );
+          await new Promise((resolve) =>
+            setTimeout(resolve, IOS_PRE_LAUNCH_TERMINATE_RETRY_DELAY_MS),
+          );
+          continue;
+        }
+
+        if (isTransient) {
+          logger.warn(
+            `terminateApp(${bundleId}) still failing after ` +
+              `${IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS} transient attempts; ` +
+              `continuing with launch: ${message}`,
+          );
+          return;
+        }
+
+        throw error;
+      }
+    }
+  }
+
   /**
    * Get the device screen size.
    * @returns The device screen size.
@@ -656,7 +725,7 @@ class PlaywrightUtilities {
     });
 
     logger.debug(`Launching iOS app ${bundleId}`);
-    await drv.terminateApp(bundleId);
+    await PlaywrightUtilities.terminateIosAppBeforeLaunch(bundleId);
 
     await drv.execute('mobile: launchApp', {
       bundleId,
