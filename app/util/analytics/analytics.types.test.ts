@@ -38,4 +38,13 @@ describe('isTrackingEvent', () => {
 
     expect(isTrackingEvent(event)).toBe(false);
   });
+
+  it('returns false when both category and name are present', () => {
+    const event = {
+      category: 'test_category',
+      name: 'test_name',
+    } as unknown as IMetaMetricsEvent;
+
+    expect(isTrackingEvent(event)).toBe(false);
+  });
 });

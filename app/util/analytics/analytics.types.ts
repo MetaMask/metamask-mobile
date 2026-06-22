@@ -142,7 +142,7 @@ export interface ITrackingEvent {
 export const isTrackingEvent = (
   event: IMetaMetricsEvent | ITrackingEvent,
 ): event is ITrackingEvent =>
-  typeof (event as ITrackingEvent).name === 'string';
+  typeof (event as ITrackingEvent).name === 'string' && !('category' in event);
 
 /**
  * Monetized primitives associated with a transaction.
