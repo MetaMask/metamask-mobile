@@ -3077,3 +3077,15 @@ index 3d58791691af9ae8af5e9d8fc2c0b9489a8671d4..587fa59ab58eb79114800303fb430701
  import $React, { useEffect } from "react";
  const React = $importDefault($React);
  import { View } from "react-native";
+diff --git a/package.json b/package.json
+index ccfc491d9d064764932372d564518b4a6e3a75ec..722be5a76eff3f23128c314b20175e0c4c18080d 100644
+--- a/package.json
++++ b/package.json
+@@ -18,6 +18,7 @@
+   "sideEffects": false,
+   "exports": {
+     ".": {
++      "react-native": "./dist/index.mjs",
+       "import": {
+         "types": "./dist/index.d.mts",
+         "default": "./dist/index.mjs"

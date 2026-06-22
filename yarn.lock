@@ -7785,7 +7785,7 @@ __metadata:
 
 "@metamask-previews/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch":
   version: 0.30.0-preview.0a4d6f8
-  resolution: "@metamask-previews/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch::version=0.30.0-preview.0a4d6f8&hash=bcb6c4"
+  resolution: "@metamask-previews/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch::version=0.30.0-preview.0a4d6f8&hash=f4923b"
   dependencies:
     "@metamask-previews/design-system-shared": "npm:0.23.0-preview.0a4d6f8"
     fast-text-encoding: "npm:^1.0.6"
@@ -7800,7 +7800,7 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/98ea9d34bf9aedb0e02d35ce77ae109520a1e09163aa2a610768567f37f9cae20b91be10b7d81549825a66400f750af0b084a3d9c40e602cf844c5a21ed1bcba
+  checksum: 10/8aeb83e76025ebe14aeb87812abe8c447db3cd4e4a34f2042058462d0fb20a574436d94c79d4fbea67cb8208103fcf874e996650a4b8b688369d2f87ef289ff4
   languageName: node
   linkType: hard
 
@@ -8478,7 +8478,7 @@ __metadata:
 
 "@metamask/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch":
   version: 0.30.0-preview.0a4d6f8
-  resolution: "@metamask/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch::version=0.30.0-preview.0a4d6f8&hash=bcb6c4"
+  resolution: "@metamask/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.30.0-preview.0a4d6f8#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.30.0-preview.0a4d6f8-483f196f12.patch::version=0.30.0-preview.0a4d6f8&hash=f4923b"
   dependencies:
     "@metamask-previews/design-system-shared": "npm:0.23.0-preview.0a4d6f8"
     fast-text-encoding: "npm:^1.0.6"
@@ -8493,7 +8493,7 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/052ae5490e12e42fe3e0126278e855af136fed65710caf5c3988307cd8154b3f4b717514abe9903628d4cbdd59b74991fc03528d5cffe5185213f9d6b6f692fb
+  checksum: 10/00c5270466302096e151a80a47494da1863dfe9b61819b020c47d822e8f1bafe8b0b1c634344a7b9ae57193fed6a41e4305c9e3bfde98b1446d5c6abf30b3c29
   languageName: node
   linkType: hard
 
