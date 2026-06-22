@@ -4255,6 +4255,8 @@
       "3y": "3Y",
       "all": "All"
     },
+    "ma_picker_title": "Moving average",
+    "done": "Done",
     "no_chart_data": {
       "title": "No chart data",
       "description": "We could not fetch any data for this token",
@@ -4560,6 +4562,7 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "submitted": "Submitted",
+    "queued": "Queued",
     "failed": "Failed",
     "cancelled": "Cancelled",
     "signed": "Pending",
@@ -8030,6 +8033,7 @@
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Date",
+    "network": "Network",
     "total_gas_fee": "Total gas fee",
     "estimated_completion": "Est. completion",
     "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
@@ -8039,6 +8043,8 @@
     "view_on_block_explorer": "View on block explorer",
     "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
     "transaction_details": "Transaction details",
+    "you_swapped": "You swapped",
+    "you_received": "You received",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
   },
