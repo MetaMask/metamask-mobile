@@ -20,6 +20,7 @@ import QuickBuyBanners from '../QuickBuyBanners';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
+import QuickBuyRateRow from './QuickBuyRateRow';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
@@ -108,6 +109,8 @@ const QuickBuyActionFooter: React.FC = () => {
           </Box>
         </TouchableOpacity>
       </Box>
+
+      <QuickBuyRateRow />
 
       <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 

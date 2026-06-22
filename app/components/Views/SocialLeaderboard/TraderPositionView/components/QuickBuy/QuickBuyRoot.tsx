@@ -193,13 +193,18 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           <Box
             testID="quick-buy-content-container"
             onLayout={handleContentLayout}
-            style={lockedHeight !== null ? { height: lockedHeight } : undefined}
+            style={
+              lockedHeight !== null ? { minHeight: lockedHeight } : undefined
+            }
           >
             <Animated.View
               key={activeScreen}
               entering={hasNavigated ? entering : undefined}
               exiting={isClosing ? undefined : exiting}
-              style={lockedHeight !== null ? tw.style('flex-1') : undefined}
+              // `grow` (flexGrow:1, flexBasis:auto) lets content drive the
+              // height so screens taller than the locked floor expand
+              // instead of being clipped
+              style={lockedHeight !== null ? tw.style('grow') : undefined}
             >
               {renderActiveScreen(activeScreen, children)}
             </Animated.View>

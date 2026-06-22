@@ -8,9 +8,11 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
   });
 
-  it('renders the toolbar rate-tag skeleton', () => {
+  it('renders the toolbar close-button skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(screen.getByTestId('quick-buy-skeleton-rate-tag')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-skeleton-close-button'),
+    ).toBeOnTheScreen();
   });
 
   it('renders the slider skeleton', () => {
@@ -21,6 +23,11 @@ describe('QuickBuyBottomSheetSkeleton', () => {
   it('renders the pay-with pill skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(screen.getByTestId('quick-buy-skeleton-pay-with')).toBeOnTheScreen();
+  });
+
+  it('renders the rate-row skeleton', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(screen.getByTestId('quick-buy-skeleton-rate-row')).toBeOnTheScreen();
   });
 
   it('renders the confirm-button skeleton', () => {

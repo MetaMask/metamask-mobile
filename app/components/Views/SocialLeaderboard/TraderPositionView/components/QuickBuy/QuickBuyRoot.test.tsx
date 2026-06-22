@@ -446,7 +446,7 @@ describe('QuickBuyRoot', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('locks the content container height after the first layout', () => {
+  it('locks the content container min height after the first layout', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -467,11 +467,11 @@ describe('QuickBuyRoot', () => {
     });
 
     expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
+      minHeight: 480,
     });
   });
 
-  it('keeps the locked height when a later layout reports a different height', () => {
+  it('keeps the locked min height when a later layout reports a different height', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -497,7 +497,7 @@ describe('QuickBuyRoot', () => {
     });
 
     expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
+      minHeight: 480,
     });
   });
 
