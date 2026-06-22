@@ -620,6 +620,40 @@ describe('ActivityList', () => {
     expect(detailCalls[0][1].params.tx.hash).toBe('0xlocal');
   });
 
+  it('falls back to a minimal details view when decoding throws', async () => {
+    jest
+      .mocked(decodeTransaction)
+      .mockRejectedValueOnce(new Error('decode failed'));
+
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+
+    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
+
+    await waitFor(() => {
+      const detailCalls = mockNavigate.mock.calls.filter(
+        (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+      );
+      expect(detailCalls).toHaveLength(1);
+    });
+
+    const call = mockNavigate.mock.calls.find(
+      (c) => c[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+    );
+    // Minimal transactionDetails are built from the item (addresses via
+    // getActivityFromTo) rather than the decoded data.
+    expect(call?.[1].params.transactionDetails).toEqual(
+      expect.objectContaining({
+        hash: '0xconfirmed',
+        renderFrom: '0xevm',
+        renderTo: '0xto',
+        transactionType: 'contractInteraction',
+      }),
+    );
+    expect(call?.[1].params.transactionElement).toEqual(
+      expect.objectContaining({ actionKey: expect.any(String) }),
+    );
+  });
+
   it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {
     selectorValues.enabledEvm = [];
     selectorValues.enabledNonEvm = ['solana:mainnet'];
