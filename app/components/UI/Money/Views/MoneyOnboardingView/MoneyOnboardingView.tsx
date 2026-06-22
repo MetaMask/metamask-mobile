@@ -22,9 +22,10 @@ import Rive, {
 } from 'rive-react-native';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
+import { PixelRatio } from 'react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyOnboardingAnimationV5 = require('../../../../../animations/money_account_onboarding_animation_v5.riv');
+const MoneyOnboardingAnimationV6 = require('../../../../../animations/money_account_onboarding_animation_v6.riv');
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -257,11 +258,12 @@ const MoneyOnboardingView = () => {
   return (
     <Rive
       ref={ref}
-      source={MoneyOnboardingAnimationV5}
+      source={MoneyOnboardingAnimationV6}
       artboardName={RIVE_ARTBOARD_NAME}
       stateMachineName={RIVE_STATE_MACHINE_NAME}
       dataBinding={AutoBind(true)}
-      fit={Fit.FitWidth}
+      fit={Fit.Layout}
+      layoutScaleFactor={PixelRatio.get()}
       onStateChanged={handleStateChanged}
       testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
     />

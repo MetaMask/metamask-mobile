@@ -59,7 +59,6 @@ import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 const KEYPAD_EMPTY = '0';
 const MIN_KEYPAD_DECIMALS = 2;
 const MAX_KEYPAD_DECIMALS = 15;
-/** Fractional offset that yields 6 significant figures via toFixed. */
 const SIG_FIGS_FRACTIONAL_OFFSET = 5;
 
 /**
@@ -72,7 +71,6 @@ const getKeypadDecimalPlaces = (price: number): number => {
   if (!Number.isFinite(price) || price <= 0) {
     return MIN_KEYPAD_DECIMALS;
   }
-
   const exponent = Math.floor(Math.log10(price));
   const places =
     exponent >= 0
@@ -84,7 +82,7 @@ const getKeypadDecimalPlaces = (price: number): number => {
 /**
  * Converts a computed price into a plain decimal string suitable for the keypad.
  * Always preserves 6 significant figures and never produces scientific notation.
- * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.0000000000000105".
+ * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.000000000000011".
  */
 const toKeypadString = (price: number): string => {
   if (!Number.isFinite(price) || price <= 0) return KEYPAD_EMPTY;

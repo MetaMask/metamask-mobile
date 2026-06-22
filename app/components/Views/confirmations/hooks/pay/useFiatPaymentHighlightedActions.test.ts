@@ -5,12 +5,21 @@ import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedAct
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useRampsUserRegion } from '../../../../UI/Ramp/hooks/useRampsUserRegion';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('./useMMPayFiatConfig');
 jest.mock('./useTransactionPayData');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useRampsUserRegion');
+
+// Capture selector-opened emits at the ramps analytics boundary.
+const mockRampsTrackEvent = jest.fn();
+jest.mock('../../../../UI/Ramp/hooks/useAnalytics', () => ({
+  __esModule: true,
+  default: () => mockRampsTrackEvent,
+}));
 jest.mock('../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
   useHasNativeFiatProvider: () => true,
 }));
@@ -44,9 +53,16 @@ describe('useFiatPaymentHighlightedActions', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useRampsUserRegionMock = jest.mocked(useRampsUserRegion);
   const updateFiatPaymentMock = jest.mocked(
     Engine.context.TransactionPayController.updateFiatPayment,
   );
+
+  /** How many times the ramps analytics boundary received `event`. */
+  function emitCount(event: string): number {
+    return mockRampsTrackEvent.mock.calls.filter(([type]) => type === event)
+      .length;
+  }
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -63,6 +79,75 @@ describe('useFiatPaymentHighlightedActions', () => {
       id: TRANSACTION_ID_MOCK,
       type: TRANSACTION_TYPE_MOCK,
     } as ReturnType<typeof useTransactionMetadataRequest>);
+    useRampsUserRegionMock.mockReturnValue({
+      userRegion: { regionCode: 'us-ca' },
+      setUserRegion: jest.fn(),
+    } as never);
+  });
+
+  // TRAM-3623: fiat options call the ramps-owned selector tracker. It emits
+  // only this event, once, money-only (no funnel re-mount).
+  describe('selector-opened telemetry', () => {
+    function setMoneyDeposit(selectedPaymentMethodId = 'pm-card') {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        type: TransactionType.moneyAccountDeposit,
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId,
+      } as never);
+    }
+
+    it('emits the money_account selector payload exactly once and no other event', () => {
+      setMoneyDeposit();
+
+      const { rerender } = renderHook(() => useFiatPaymentHighlightedActions());
+      setMoneyDeposit('pm-apple-pay'); // method change must not re-emit
+      rerender();
+
+      expect(mockRampsTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockRampsTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED',
+        {
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+          region: 'us-ca',
+          location: 'Amount Input',
+          current_payment_method: 'pm-card',
+        },
+      );
+      expect(emitCount('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED')).toBe(1);
+    });
+
+    it('falls back to an empty region when unavailable', () => {
+      setMoneyDeposit();
+      useRampsUserRegionMock.mockReturnValue({
+        userRegion: null,
+        setUserRegion: jest.fn(),
+      } as never);
+
+      renderHook(() => useFiatPaymentHighlightedActions());
+
+      expect(mockRampsTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED',
+        expect.objectContaining({ region: '' }),
+      );
+    });
+
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.simpleSend,
+    ])('emits nothing for the non-money flow %s', (type) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        type,
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      renderHook(() => useFiatPaymentHighlightedActions());
+
+      expect(mockRampsTrackEvent).not.toHaveBeenCalled();
+    });
   });
 
   it('returns empty array when transaction type is not in enabledTransactionTypes', () => {

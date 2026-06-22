@@ -16,6 +16,8 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
+import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
+import type { MoneyVaultApyRemoteConfig } from '../selectors/featureFlags.types';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -90,8 +92,14 @@ const MOCK_NETWORK_CONFIGURATIONS = {
   [MAINNET_CHAIN_ID]: { nativeCurrency: 'ETH' },
 };
 
+const DEFAULT_REMOTE_APY_CONFIG: MoneyVaultApyRemoteConfig = {
+  vaultApyFallback: undefined,
+  vaultApyOverride: undefined,
+};
+
 function setupDefaultSelectors({
   lastKnownBalance = null,
+  remoteApyConfig = DEFAULT_REMOTE_APY_CONFIG,
 }: {
   lastKnownBalance?: {
     address: string;
@@ -99,6 +107,7 @@ function setupDefaultSelectors({
     currency: string;
     updatedAt: number;
   } | null;
+  remoteApyConfig?: MoneyVaultApyRemoteConfig;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPrimaryMoneyAccount) {
@@ -118,6 +127,9 @@ function setupDefaultSelectors({
     }
     if (selector === selectLastKnownMoneyBalance) {
       return lastKnownBalance;
+    }
+    if (selector === selectMoneyVaultApyRemoteConfig) {
+      return remoteApyConfig;
     }
     return undefined;
   });
@@ -279,6 +291,9 @@ describe('useMoneyAccountBalance', () => {
       if (selector === selectNetworkConfigurations) {
         return MOCK_NETWORK_CONFIGURATIONS;
       }
+      if (selector === selectMoneyVaultApyRemoteConfig) {
+        return DEFAULT_REMOTE_APY_CONFIG;
+      }
       return undefined;
     });
 
@@ -305,6 +320,9 @@ describe('useMoneyAccountBalance', () => {
       }
       if (selector === selectCurrentCurrency) {
         return 'usd';
+      }
+      if (selector === selectMoneyVaultApyRemoteConfig) {
+        return DEFAULT_REMOTE_APY_CONFIG;
       }
       return undefined;
     });
@@ -347,6 +365,9 @@ describe('useMoneyAccountBalance', () => {
       if (selector === selectCurrentCurrency) {
         return 'usd';
       }
+      if (selector === selectMoneyVaultApyRemoteConfig) {
+        return DEFAULT_REMOTE_APY_CONFIG;
+      }
       return undefined;
     });
 
@@ -384,7 +405,7 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.apyPercentFormatted).toBe('5%');
   });
 
-  it('returns undefined for all APY fields when vault APY data is not available', () => {
+  it('returns undefined for all APY fields when vault APY data is not available and no fallback configured', () => {
     setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
       data: undefined,
       isLoading: true,
@@ -397,6 +418,171 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.apyDecimal).toBeUndefined();
     expect(result.current.apyPercent).toBeUndefined();
     expect(result.current.apyPercentFormatted).toBeUndefined();
+  });
+
+  describe('effective APY precedence', () => {
+    it('uses serviceApy when no override and service returns a value', () => {
+      setupDefaultSelectors();
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0.05);
+      expect(result.current.apyPercent).toBe(5);
+      expect(result.current.apyPercentFormatted).toBe('5%');
+    });
+
+    it('uses vaultApyFallback when service returns undefined and fallback is configured', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0.04);
+      expect(result.current.apyPercent).toBe(4);
+      expect(result.current.apyPercentFormatted).toBe('4%');
+    });
+
+    it('does not use vaultApyFallback while vault APY query is loading', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBeUndefined();
+      expect(result.current.apyPercent).toBeUndefined();
+      expect(result.current.apyPercentFormatted).toBeUndefined();
+    });
+
+    it('uses vaultApyFallback when vault APY query errors and fallback is configured', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0.04);
+      expect(result.current.apyPercent).toBe(4);
+      expect(result.current.apyPercentFormatted).toBe('4%');
+    });
+
+    it('uses vaultApyOverride when query errors and override is configured', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: 0.08,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0.08);
+      expect(result.current.apyPercent).toBe(8);
+      expect(result.current.apyPercentFormatted).toBe('8%');
+    });
+
+    it('returns undefined APY when service is undefined and vaultApyFallback is unconfigured', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: undefined,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBeUndefined();
+      expect(result.current.apyPercent).toBeUndefined();
+      expect(result.current.apyPercentFormatted).toBeUndefined();
+    });
+
+    it('uses vaultApyOverride instead of serviceApy when override is set', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: { vaultApyFallback: 0, vaultApyOverride: 0.08 },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0.08);
+      expect(result.current.apyPercent).toBe(8);
+      expect(result.current.apyPercentFormatted).toBe('8%');
+    });
+
+    it('uses vaultApyOverride 0 even when serviceApy has a valid value', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: { vaultApyFallback: 0, vaultApyOverride: 0 },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0);
+      expect(result.current.apyPercent).toBe(0);
+      expect(result.current.apyPercentFormatted).toBe('0%');
+    });
+
+    it('shows real 0% from service when serviceApy is 0 and override is undefined', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0 },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.apyDecimal).toBe(0);
+      expect(result.current.apyPercent).toBe(0);
+      expect(result.current.apyPercentFormatted).toBe('0%');
+    });
   });
 
   it('collapses sub-cent total fiat to $0.00 when both balances are 1 minimal unit', () => {
