@@ -41,8 +41,22 @@ import {
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import { PASSCODE_DISABLED } from '../../../constants/storage';
+import { passwordRequirementsMet } from '../../../util/password';
+import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+
+jest.mock('../../../util/password', () => ({
+  ...jest.requireActual('../../../util/password'),
+  passwordRequirementsMet: jest.fn(
+    jest.requireActual('../../../util/password').passwordRequirementsMet,
+  ),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -955,9 +969,81 @@ describe('ResetPassword', () => {
         Routes.SETTINGS.SECURITY_SETTINGS,
       );
     });
+
+    it('shows alert when passwordRequirementsMet returns false on submit', async () => {
+      jest.mocked(passwordRequirementsMet).mockReturnValueOnce(false);
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        strings('choose_password.password_length_error'),
+      );
+      expect(recreateVaultsWithNewPassword).not.toHaveBeenCalled();
+    });
+
+    it('shows alert when passwords do not match on submit', async () => {
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component, {
+        newPassword: 'NewPassword123',
+        confirmPassword: 'DifferentPassword1',
+        pressCheckbox: true,
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        strings('choose_password.password_dont_match'),
+      );
+      expect(recreateVaultsWithNewPassword).not.toHaveBeenCalled();
+    });
+
+    it('logs error and completes reset when storePassword rejects', async () => {
+      jest
+        .spyOn(Authentication, 'storePassword')
+        .mockRejectedValueOnce(new Error('store failed'));
+      jest
+        .mocked(recreateVaultsWithNewPassword)
+        .mockResolvedValueOnce(undefined);
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.SETTINGS.SECURITY_SETTINGS,
+        );
+      });
+    });
   });
 
   describe('biometry initialization', () => {
+    it('logs error and keeps confirm view when initAuth fails', async () => {
+      jest
+        .spyOn(Authentication, 'getType')
+        .mockRejectedValueOnce(new Error('auth init failed'));
+
+      const component = renderComponent();
+      await flushMicrotasks();
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(
+        component.getByText(
+          strings('manual_backup_step_1.enter_current_password'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('sets biometry type for passcode authentication', async () => {
       jest.spyOn(Authentication, 'getType').mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
