@@ -1089,10 +1089,7 @@ function formatChartScalePrice(price) {
 /** TradingView custom_formatters for built-in scale / crosshair / last-value price text. */
 function getBuiltInPriceScaleFormatters() {
   return {
-    priceFormatterFactory: function (symbolInfo) {
-      if (!symbolInfo) {
-        return null;
-      }
+    priceFormatterFactory: function () {
       return {
         format: function (price) {
           return formatChartScalePrice(price);
@@ -3730,6 +3727,7 @@ let customDatafeed = {
         exchange: '',
         minmov: 1,
         pricescale: 100,
+        format: 'price',
         variable_tick_size: VARIABLE_TICK_SIZE,
         has_intraday: true,
         has_daily: true,

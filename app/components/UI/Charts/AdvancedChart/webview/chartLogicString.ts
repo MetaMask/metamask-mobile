@@ -1064,9 +1064,7 @@ function formatSubscriptNotationChart(abs) {
         let sig = match[1];
         let significantDigits =
           sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
-        return (
-          '0.0' + toSubscriptDigitsChart(leadingZeros) + significantDigits
-        );
+        return '0.0' + toSubscriptDigitsChart(leadingZeros) + significantDigits;
       }
     }
   }
@@ -1100,10 +1098,7 @@ function formatChartScalePrice(price) {
 /** TradingView custom_formatters for built-in scale / crosshair / last-value price text. */
 function getBuiltInPriceScaleFormatters() {
   return {
-    priceFormatterFactory: function (symbolInfo) {
-      if (!symbolInfo) {
-        return null;
-      }
+    priceFormatterFactory: function () {
       return {
         format: function (price) {
           return formatChartScalePrice(price);
@@ -3741,6 +3736,7 @@ let customDatafeed = {
         exchange: '',
         minmov: 1,
         pricescale: 100,
+        format: 'price',
         variable_tick_size: VARIABLE_TICK_SIZE,
         has_intraday: true,
         has_daily: true,
@@ -4061,6 +4057,8 @@ function initChart() {
           color3: generatePaletteShades(theme.errorColor),
         },
       },
+
+      custom_formatters: getBuiltInPriceScaleFormatters(),
 
       overrides: Object.assign(
         {
