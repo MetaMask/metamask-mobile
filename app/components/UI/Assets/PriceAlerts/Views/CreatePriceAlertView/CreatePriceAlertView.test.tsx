@@ -617,6 +617,19 @@ describe('CreatePriceAlertView — edit mode', () => {
       ['priceAlerts', 'eip155:1/slip44:60'],
       expect.any(Function),
     );
+
+    const updater = mockSetQueryData.mock.calls[0][1] as (
+      prev: (typeof editingAlert)[] | undefined,
+    ) => (typeof editingAlert)[] | undefined;
+
+    // Cache miss → leave it undefined so ManagePriceAlertsView can refetch
+    expect(updater(undefined)).toBeUndefined();
+
+    // Cache hit → update only the matching alert
+    const updated = updater([editingAlert]);
+    expect(updated).toEqual([
+      { ...editingAlert, threshold: 1500, recurring: false },
+    ]);
   });
 
   it('calls goBack (not pop) after a successful update', async () => {

@@ -248,7 +248,7 @@ const CreatePriceAlertView: React.FC = () => {
               a.id === editingAlert.id
                 ? { ...a, threshold: targetPrice, recurring: isRecurring }
                 : a,
-            ) ?? [],
+            ),
         );
       }
       toastRef?.current?.showToast({
