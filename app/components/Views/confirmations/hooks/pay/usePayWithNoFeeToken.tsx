@@ -85,19 +85,14 @@ export function usePayWithNoFeeToken({
     [relayFixedSpread, isMoneyWithdraw],
   );
 
+  // Matches purely on the route config — NOT gated on `availableTokens`. The
+  // full token-list modal tags via `matchesNoFee` directly, and withdrawal
+  // receive tokens (incl. mUSD) come from the allowlist rather than the user's
+  // held tokens, so gating here would drop their tag on bottom-sheet rows.
   const isNoFeeToken = useCallback(
-    (address: string, chainId: string): boolean => {
-      const token = availableTokens.find(
-        (t) =>
-          t.address.toLowerCase() === address.toLowerCase() &&
-          t.chainId?.toLowerCase() === chainId.toLowerCase(),
-      );
-
-      if (!token) return false;
-
-      return matchesNoFee(token.address, token.chainId);
-    },
-    [availableTokens, matchesNoFee],
+    (address: string, chainId: string): boolean =>
+      matchesNoFee(address, chainId),
+    [matchesNoFee],
   );
 
   const noFeeToken = useMemo(() => {

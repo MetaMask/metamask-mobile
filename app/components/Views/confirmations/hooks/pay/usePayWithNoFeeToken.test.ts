@@ -387,28 +387,30 @@ describe('usePayWithNoFeeToken', () => {
     expect(result.current.noFeeToken).toBeUndefined();
   });
 
-  it('isNoFeeToken returns false when token has no chainId', () => {
-    const tokens = [
-      {
-        address: '0xAAA' as Hex,
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-        disabled: false,
-      } as AssetType,
-    ];
-
+  it('isNoFeeToken returns false when chainId is missing', () => {
     selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
 
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(result.current.isNoFeeToken('0xAAA', '')).toBe(false);
+  });
+
+  it('isNoFeeToken does not require the token to be in availableTokens', () => {
+    // The full token modal tags via the route config directly; the bottom
+    // sheet must stay consistent even for tokens the user does not hold.
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
     useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: tokens,
-      hasTokens: true,
+      availableTokens: [],
+      hasTokens: false,
     });
 
     const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
       state: STATE_MOCK,
     });
 
-    expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(false);
+    expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(true);
   });
 
   it('handles tokens with zero fiat balance', () => {
