@@ -11,14 +11,32 @@ import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import Logger from '../../../util/Logger';
 
+const mockSubscribe = jest.fn();
+const mockGetState = jest.fn();
+
+jest.mock('../../../store', () => ({
+  store: {
+    subscribe: (...args: unknown[]) => mockSubscribe(...args),
+    getState: () => mockGetState(),
+  },
+}));
+
 jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+const mockUpdate = jest.fn();
+const mockEnable = jest.fn();
+const mockDisable = jest.fn();
+const mockUpdateRemoteFeatureFlags = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
   RemoteFeatureFlagController: jest.fn().mockImplementation(() => ({
-    updateRemoteFeatureFlags: jest.fn().mockResolvedValue(undefined),
+    updateRemoteFeatureFlags: mockUpdateRemoteFeatureFlags,
+    update: mockUpdate,
+    enable: mockEnable,
+    disable: mockDisable,
   })),
 }));
 
@@ -48,6 +66,11 @@ function getInitRequestMock(): jest.Mocked<
 describe('remoteFeatureFlagControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetState.mockReturnValue({
+      settings: {
+        basicFunctionalityEnabled: true,
+      },
+    });
   });
 
   it('initializes the controller', () => {
@@ -83,10 +106,7 @@ describe('remoteFeatureFlagControllerInit', () => {
 
     remoteFeatureFlagControllerInit(initRequestMock);
 
-    const controllerMock = jest.mocked(RemoteFeatureFlagController);
-    expect(
-      controllerMock.mock.results[0].value.updateRemoteFeatureFlags,
-    ).toHaveBeenCalled();
+    expect(mockUpdateRemoteFeatureFlags).toHaveBeenCalled();
   });
 
   it('does not call `updateRemoteFeatureFlags` when controller is disabled', () => {
@@ -101,10 +121,58 @@ describe('remoteFeatureFlagControllerInit', () => {
 
     remoteFeatureFlagControllerInit(initRequestMock);
 
-    const controllerMock = jest.mocked(RemoteFeatureFlagController);
-    expect(
-      controllerMock.mock.results[0].value.updateRemoteFeatureFlags,
-    ).not.toHaveBeenCalled();
+    expect(mockUpdateRemoteFeatureFlags).not.toHaveBeenCalled();
+  });
+
+  it('clears cached remote flags when controller is disabled at init', () => {
+    const initRequestMock = getInitRequestMock();
+
+    // @ts-expect-error: Partial mock.
+    initRequestMock.getState.mockImplementation(() => ({
+      settings: {
+        basicFunctionalityEnabled: false,
+      },
+    }));
+
+    remoteFeatureFlagControllerInit(initRequestMock);
+
+    expect(mockUpdate).toHaveBeenCalledWith(expect.any(Function));
+    const callback = mockUpdate.mock.calls[0][0];
+    const nextState = callback({
+      remoteFeatureFlags: { otaUpdatesEnabled: true },
+      rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+      localOverrides: { testOverride: true },
+      cacheTimestamp: 123,
+    });
+
+    expect(nextState).toEqual({
+      remoteFeatureFlags: {},
+      rawRemoteFeatureFlags: {},
+      localOverrides: { testOverride: true },
+      cacheTimestamp: 0,
+    });
+  });
+
+  it('subscribes to basic functionality changes', () => {
+    remoteFeatureFlagControllerInit(getInitRequestMock());
+
+    expect(mockSubscribe).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('syncs controller when basic functionality changes', () => {
+    remoteFeatureFlagControllerInit(getInitRequestMock());
+
+    const subscribeCallback = mockSubscribe.mock.calls[0][0] as () => void;
+
+    mockGetState.mockReturnValue({
+      settings: {
+        basicFunctionalityEnabled: false,
+      },
+    });
+    subscribeCallback();
+
+    expect(mockDisable).toHaveBeenCalled();
+    expect(mockUpdate).toHaveBeenCalled();
   });
 
   it('logs success message when feature flags update successfully', async () => {
@@ -120,13 +188,7 @@ describe('remoteFeatureFlagControllerInit', () => {
   it('logs error message when feature flags update fails', async () => {
     const initRequestMock = getInitRequestMock();
     const mockError = new Error('Network error');
-    const controllerMock = jest.mocked(RemoteFeatureFlagController);
-    controllerMock.mockImplementationOnce(
-      () =>
-        ({
-          updateRemoteFeatureFlags: jest.fn().mockRejectedValue(mockError),
-        }) as unknown as RemoteFeatureFlagController,
-    );
+    mockUpdateRemoteFeatureFlags.mockRejectedValueOnce(mockError);
 
     remoteFeatureFlagControllerInit(initRequestMock);
 

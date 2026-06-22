@@ -4,8 +4,10 @@ import {
   ClientType,
   RemoteFeatureFlagController,
   type RemoteFeatureFlagControllerMessenger,
+  type RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { store } from '../../../store';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
 import {
@@ -26,14 +28,15 @@ export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerMessenger
 > = ({ controllerMessenger, persistedState, getState, analyticsId }) => {
-  const disabled = !selectBasicFunctionalityEnabled(getState());
+  const isBasicFunctionalityEnabled =
+    selectBasicFunctionalityEnabled(getState());
   const prevClientVersion =
     persistedState?.AppMetadataController?.currentAppVersion;
 
   const controller = new RemoteFeatureFlagController({
     messenger: controllerMessenger,
     state: persistedState.RemoteFeatureFlagController,
-    disabled,
+    disabled: !isBasicFunctionalityEnabled,
     getMetaMetricsId: () => analyticsId,
     clientVersion: getBaseSemVerVersion(),
     prevClientVersion,
@@ -50,7 +53,30 @@ export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
       : AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
   });
 
-  if (disabled) {
+  const clearRemoteFeatureFlags = () => {
+    // @ts-expect-error TS2589 - BaseController.update causes deep type recursion.
+    controller.update((state: RemoteFeatureFlagControllerState) => ({
+      ...state,
+      remoteFeatureFlags: {},
+      rawRemoteFeatureFlags: {},
+      cacheTimestamp: 0,
+    }));
+  };
+
+  const syncWithBasicFunctionality = (enabled: boolean) => {
+    if (enabled) {
+      controller.enable();
+      controller
+        .updateRemoteFeatureFlags()
+        .catch((error) => Logger.log('Feature flags update failed: ', error));
+    } else {
+      controller.disable();
+      clearRemoteFeatureFlags();
+    }
+  };
+
+  if (!isBasicFunctionalityEnabled) {
+    clearRemoteFeatureFlags();
     Logger.log('Feature flag controller disabled.');
   } else if (isRemoteFeatureFlagOverrideActivated) {
     Logger.log('Remote feature flags override activated.');
@@ -62,6 +88,22 @@ export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
       })
       .catch((error) => Logger.log('Feature flags update failed: ', error));
   }
+
+  let previousBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
+  store.subscribe(() => {
+    const currentBasicFunctionalityEnabled = selectBasicFunctionalityEnabled(
+      store.getState(),
+    );
+
+    if (
+      currentBasicFunctionalityEnabled === previousBasicFunctionalityEnabled
+    ) {
+      return;
+    }
+
+    previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
+    syncWithBasicFunctionality(currentBasicFunctionalityEnabled);
+  });
 
   return {
     controller,

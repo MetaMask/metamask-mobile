@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { selectBasicFunctionalityEnabled } from '../settings';
 import { StateWithPartialEngine } from './types';
 
 // Access the controller state directly
@@ -12,7 +13,7 @@ export const selectRawFeatureFlags = createSelector(
     remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
 );
 
-export const selectRemoteFeatureFlags = createSelector(
+const selectRemoteFeatureFlagsMerged = createSelector(
   selectRemoteFeatureFlagControllerState,
   (remoteFeatureFlagControllerState) => {
     const localOverrides =
@@ -23,6 +24,28 @@ export const selectRemoteFeatureFlags = createSelector(
       ...remoteFeatureFlags,
       ...localOverrides,
     };
+  },
+);
+
+/**
+ * Merged remote + local override flags, ignoring the basic functionality gate.
+ * Use for dev override UI only.
+ */
+export const selectRemoteFeatureFlagsUnfiltered =
+  selectRemoteFeatureFlagsMerged;
+
+/**
+ * Primary selector for remote feature flags.
+ * Returns an empty object when basic functionality is disabled.
+ */
+export const selectRemoteFeatureFlags = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectRemoteFeatureFlagsMerged,
+  (isBasicFunctionalityEnabled, remoteFeatureFlags) => {
+    if (!isBasicFunctionalityEnabled) {
+      return {};
+    }
+    return remoteFeatureFlags;
   },
 );
 
