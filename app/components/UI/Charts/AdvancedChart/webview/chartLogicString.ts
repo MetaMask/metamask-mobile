@@ -897,7 +897,9 @@ function applySeriesColors() {
   const lineColor = getThemeLineColor(theme);
   const lastPriceLineColor = getThemeLastPriceLineColor(theme);
   try {
-    window.chartWidget.applyOverrides(getSeriesAndLastValueColorOverrides(theme));
+    window.chartWidget.applyOverrides(
+      getSeriesAndLastValueColorOverrides(theme),
+    );
     const series = window.chartWidget.activeChart().getSeries();
     const ct = window.currentChartType;
     if (ct === 2) {
@@ -1025,10 +1027,95 @@ function scheduleLineChartLayoutReflow() {
   setTimeout(run, 120);
 }
 
+/**
+ * Subscript helpers for tiny prices — mirrors app/util/number/subscriptNotation.ts.
+ * This file is injected as a standalone script string in the chart WebView (see chartLogicString.ts),
+ * not executed in the Metro/RN bundle, so we cannot import or require the shared TS module.
+ */
+const SUBSCRIPT_DIGITS_CHART = [
+  '₀',
+  '₁',
+  '₂',
+  '₃',
+  '₄',
+  '₅',
+  '₆',
+  '₇',
+  '₈',
+  '₉',
+];
+
+function toSubscriptDigitsChart(n) {
+  return String(n)
+    .split('')
+    .map(function (digit) {
+      return SUBSCRIPT_DIGITS_CHART[parseInt(digit, 10)];
+    })
+    .join('');
+}
+
+function formatSubscriptNotationChart(abs) {
+  if (abs > 0 && abs < 0.0001) {
+    let priceStr = abs.toFixed(20);
+    let match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
+    if (match) {
+      let leadingZeros = priceStr.indexOf(match[1]) - 2;
+      if (leadingZeros >= 4) {
+        let sig = match[1];
+        let significantDigits =
+          sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
+        return (
+          '0.0' + toSubscriptDigitsChart(leadingZeros) + significantDigits
+        );
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Built-in TV price scale labels (ticks, last-value pill, crosshair price).
+ * Number only — no currency symbol.
+ */
+function formatChartScalePrice(price) {
+  if (price === undefined || price === null || isNaN(Number(price))) {
+    return '';
+  }
+  let p = Number(price);
+  if (p === 0) {
+    return '0.00';
+  }
+  let abs = Math.abs(p);
+  let sub = formatSubscriptNotationChart(abs);
+  if (sub) {
+    return p < 0 ? '-' + sub : sub;
+  }
+  return new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: abs >= 1 ? 2 : 4,
+  }).format(p);
+}
+
+/** TradingView custom_formatters for built-in scale / crosshair / last-value price text. */
+function getBuiltInPriceScaleFormatters() {
+  return {
+    priceFormatterFactory: function (symbolInfo) {
+      if (!symbolInfo) {
+        return null;
+      }
+      return {
+        format: function (price) {
+          return formatChartScalePrice(price);
+        },
+      };
+    },
+  };
+}
+
 /** TradingView built-in crosshair label background (section token from CONFIG.theme). */
 function getBuiltInCrosshairLabelOverrides(theme) {
-  let bg =
-    theme.sectionBackgroundColor || theme.backgroundColor || '#131416';
+  let bg = theme.sectionBackgroundColor || theme.backgroundColor || '#131416';
   return {
     'scalesProperties.crosshairLabelBgColorDark': bg,
     'scalesProperties.crosshairLabelBgColorLight': bg,
