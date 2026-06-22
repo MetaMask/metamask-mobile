@@ -135,12 +135,17 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
     onSelect,
     onChartTypeSelect,
     onChartTypeToggle,
+    isChartLoading,
   }: {
     onSelect: (r: string) => void;
     onChartTypeSelect?: (type: number) => void;
     onChartTypeToggle?: () => void;
+    isChartLoading?: boolean;
   }) => (
-    <View testID="mock-time-range-selector">
+    <View
+      testID="mock-time-range-selector"
+      accessibilityState={{ busy: isChartLoading }}
+    >
       <Pressable testID="select-1W" onPress={() => onSelect('1W')} />
       <Pressable testID="select-1D" onPress={() => onSelect('1D')} />
       {(onChartTypeSelect || onChartTypeToggle) && (
@@ -194,6 +199,14 @@ jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
         />
       </View>
     ),
+  };
+});
+
+jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-interval-bar" />,
   };
 });
 
@@ -260,6 +273,15 @@ describe('PriceAdvanced', () => {
       hasMore: false,
       nextCursor: null,
       hasEmptyData: false,
+    });
+
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenIndicatorsActual) return [];
+      if (selector === selectTokenOverviewChartType) return ChartType.Line;
+      if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+        return mockSelectTechnicalIndicatorsEnabled();
+      }
+      return ChartType.Line;
     });
   });
 
@@ -922,6 +944,90 @@ describe('PriceAdvanced', () => {
       );
     });
 
+    it('falls back to legacy when TradingView init fails while OHLCV data is available', () => {
+      // AdvancedChart renders from useOHLCVChart (ohlcvData), not `prices`.
+      // CDN/library failure is the common case: OHLCV succeeded, WebView init did not.
+      expect(mockUseOHLCVChart).toBeDefined();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      act(() => {
+        advancedChart.props.onInitFailed?.(
+          'Failed to load TradingView library',
+        );
+      });
+
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    });
+
+    it('keeps TimeRangeSelector loading until advanced chart is revealed', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const timeRangeSelector = getByTestId('mock-time-range-selector');
+
+      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(true);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
+    });
+
+    it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(getByTestId('mock-interval-bar')).toBeOnTheScreen();
+      expect(getByTestId('mock-indicator-bar')).toBeOnTheScreen();
+    });
+
+    it('falls back to legacy without flashing interval or indicator bars when init fails', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onInitFailed?.(
+          'Failed to load TradingView library',
+        );
+      });
+
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+    });
+
     it('starts time range visibility trace when time range changes', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
@@ -1552,6 +1658,10 @@ describe('PriceAdvanced', () => {
       enableIndicatorBar();
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
       fireEvent.press(getByTestId('toggle-rsi'));
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -1572,6 +1682,10 @@ describe('PriceAdvanced', () => {
       enableIndicatorBar(['RSI']);
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
       fireEvent.press(getByTestId('toggle-rsi'));
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -1590,6 +1704,10 @@ describe('PriceAdvanced', () => {
     it('replaces other sub-pane indicators when selecting a new one', () => {
       enableIndicatorBar(['MACD']);
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
 
       fireEvent.press(getByTestId('toggle-rsi'));
 

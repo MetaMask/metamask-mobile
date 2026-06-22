@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Animated,
   StyleSheet,
@@ -51,9 +52,10 @@ import {
   CreatePriceAlertTestIds,
   CURRENCY_SYMBOLS,
   PRICE_ALERT_QUICK_PERCENTAGES,
+  PriceAlert,
   PriceAlertType,
 } from '../../constants';
-import { useSavePriceAlert } from '../../api';
+import { priceAlertsQueryKey, useSubmitPriceAlert } from '../../api';
 import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 
 const KEYPAD_EMPTY = '0';
@@ -123,14 +125,20 @@ const CreatePriceAlertView: React.FC = () => {
     assetId,
     fromManage,
     existingThresholds,
+    editingAlert,
   } = route.params;
 
+  const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
   const [alertType, setAlertType] = useState<PriceAlertType>(
     PriceAlertType.PriceReaches,
   );
-  const [targetAmount, setTargetAmount] = useState(KEYPAD_EMPTY);
-  const [isRecurring, setIsRecurring] = useState(true);
+  const [targetAmount, setTargetAmount] = useState(
+    editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
+  );
+  const [isRecurring, setIsRecurring] = useState(
+    editingAlert?.recurring ?? true,
+  );
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -164,8 +172,18 @@ const CreatePriceAlertView: React.FC = () => {
   const isDuplicateThreshold = useMemo(
     () =>
       hasValidTarget &&
-      (existingThresholds ?? []).some((t) => t === targetPrice),
-    [hasValidTarget, existingThresholds, targetPrice],
+      (existingThresholds ?? []).some(
+        (t) => t === targetPrice && t !== editingAlert?.threshold,
+      ),
+    [hasValidTarget, existingThresholds, targetPrice, editingAlert],
+  );
+
+  const isUnchanged = useMemo(
+    () =>
+      isEditing &&
+      targetPrice === editingAlert?.threshold &&
+      isRecurring === editingAlert?.recurring,
+    [isEditing, editingAlert, targetPrice, isRecurring],
   );
 
   const percentDiff = useMemo(() => {
@@ -203,7 +221,8 @@ const CreatePriceAlertView: React.FC = () => {
     [currentPrice],
   );
 
-  const { save, isSubmitting } = useSavePriceAlert();
+  const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
+  const queryClient = useQueryClient();
   const { toastRef } = useContext(ToastContext);
 
   const handleBack = useCallback(() => {
@@ -215,11 +234,22 @@ const CreatePriceAlertView: React.FC = () => {
       return;
     }
     try {
-      await save({
+      await submit({
         asset: assetId,
         threshold: targetPrice,
         recurring: isRecurring,
       });
+      if (isEditing && editingAlert) {
+        queryClient.setQueryData<PriceAlert[]>(
+          priceAlertsQueryKey(assetId),
+          (prev) =>
+            prev?.map((a) =>
+              a.id === editingAlert.id
+                ? { ...a, threshold: targetPrice, recurring: isRecurring }
+                : a,
+            ),
+        );
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
@@ -233,22 +263,24 @@ const CreatePriceAlertView: React.FC = () => {
         ],
         hasNoTimeout: false,
       });
-      // If opened from the manage list, pop both CreatePriceAlert and ManagePriceAlerts
-      // so the user lands back on TokenDetails instead of the list.
-      if (fromManage) {
-        navigation.pop(2);
-      } else {
+      // Editing always returns to Manage. Creating from Manage pops both screens to land on TokenDetails.
+      if (isEditing || !fromManage) {
         navigation.goBack();
+      } else {
+        navigation.pop(2);
       }
     } catch {
-      // save() surfaces the error via its thrown rejection; nothing to do here
+      // submit() surfaces the error via its thrown rejection; nothing to do here
     }
   }, [
-    save,
+    submit,
     assetId,
     targetPrice,
     hasValidTarget,
     isRecurring,
+    isEditing,
+    editingAlert,
+    queryClient,
     fromManage,
     navigation,
     toastRef,
@@ -278,9 +310,10 @@ const CreatePriceAlertView: React.FC = () => {
     >
       <Box twClassName="flex-1 bg-default">
         <HeaderStandard
-          title={strings('price_alerts.create_title', {
-            ticker: displayTicker,
-          })}
+          title={strings(
+            isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
+            { ticker: displayTicker },
+          )}
           subtitle={formattedCurrentPrice}
           onBack={handleBack}
         />
@@ -400,14 +433,21 @@ const CreatePriceAlertView: React.FC = () => {
                   onPress={handleSaveAlert}
                   isLoading={isSubmitting}
                   isDisabled={
-                    isSubmitting || !hasValidTarget || isDuplicateThreshold
+                    isSubmitting ||
+                    !hasValidTarget ||
+                    isDuplicateThreshold ||
+                    isUnchanged
                   }
                   testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
                   twClassName="mb-3 w-full"
                 >
                   {isDuplicateThreshold
                     ? strings('price_alerts.duplicate_threshold')
-                    : strings('price_alerts.set_price_alert')}
+                    : strings(
+                        isEditing
+                          ? 'price_alerts.update_price_alert'
+                          : 'price_alerts.set_price_alert',
+                      )}
                 </Button>
               ) : (
                 <Box
