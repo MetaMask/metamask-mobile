@@ -29,6 +29,8 @@ jest.mock('../../../selectors/accountsController', () => ({
 
 jest.mock('../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn((state) => state.currentCurrency),
+  selectConversionRateByChainId: jest.fn(),
+  selectCurrencyRates: jest.fn(),
 }));
 
 jest.mock('../../../selectors/multichain/multichain', () => ({
@@ -50,6 +52,7 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn((state) => state.evmConfigs),
   selectProviderType: jest.fn((state) => state.providerType),
   selectAllConfiguredEvmChainIds: jest.fn((state) => state.enabledEvm),
+  selectTickerByChainId: jest.fn(),
 }));
 
 jest.mock('../../../selectors/multichainNetworkController', () => ({
@@ -58,6 +61,31 @@ jest.mock('../../../selectors/multichainNetworkController', () => ({
 
 jest.mock('../../../selectors/transactionController', () => ({
   selectRelatedChainIdsByTransactionId: jest.fn((state) => state.related),
+  selectSwapsTransactions: jest.fn(),
+}));
+
+jest.mock('../../../selectors/tokenRatesController', () => ({
+  selectContractExchangeRatesByChainId: jest.fn(),
+}));
+
+jest.mock('../../../selectors/settings', () => ({
+  selectPrimaryCurrency: jest.fn(),
+}));
+
+jest.mock('../../../selectors/tokensController', () => ({
+  selectTokensByChainIdAndWalletAddress: jest.fn(),
+}));
+
+jest.mock('../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+
+jest.mock('../../UI/TransactionElement/utils', () => ({
+  __esModule: true,
+  default: jest.fn(async () => [
+    { actionKey: 'Sent ETH' },
+    { hash: '0xconfirmed', renderFrom: '0xfrom', renderTo: '0xto' },
+  ]),
 }));
 
 jest.mock('../../../selectors/bridgeStatusController', () => ({
@@ -534,16 +562,19 @@ describe('ActivityList', () => {
     );
   });
 
-  it('navigates to transaction details when a confirmed row is pressed', () => {
+  it('navigates to transaction details when a confirmed row is pressed', async () => {
     render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        screen: expect.any(String),
-      }),
+    // The press handler decodes the tx (async) before navigating.
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          screen: expect.any(String),
+        }),
+      ),
     );
   });
 

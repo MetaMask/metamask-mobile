@@ -28,9 +28,23 @@ import {
   selectAllConfiguredEvmChainIds,
   selectEvmNetworkConfigurationsByChainId,
   selectProviderType,
+  selectTickerByChainId,
 } from '../../../selectors/networkController';
 import { selectAllConfiguredNonEvmChainIds } from '../../../selectors/multichainNetworkController';
-import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
+import {
+  selectRelatedChainIdsByTransactionId,
+  selectSwapsTransactions,
+} from '../../../selectors/transactionController';
+import {
+  selectConversionRateByChainId,
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
+import { selectTokensByChainIdAndWalletAddress } from '../../../selectors/tokensController';
+import { store } from '../../../store';
+import decodeTransaction from '../../UI/TransactionElement/utils';
 import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import {
@@ -646,7 +660,7 @@ const ActivityList = ({
   }, [refetch]);
 
   const handleActivityItemPress = useCallback(
-    (item: ActivityListItem) => {
+    async (item: ActivityListItem) => {
       const { raw } = item;
       if (!raw) return;
 
@@ -715,29 +729,71 @@ const ActivityList = ({
         return;
       }
 
-      const { from, to } = getActivityFromTo(item);
-      const value = getActivityValue(item);
+      const txChainId = tx.chainId;
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TRANSACTION_DETAILS,
-        params: {
-          tx,
-          transactionElement: {
-            actionKey,
-            value,
+      // Decode the EVM transaction the same way the legacy list does, so the
+      // detail sheet's From/To and Amount/gas/total fields are populated.
+      // The unified list is multi-chain, so the per-chain rates/ticker/tokens
+      // are read from the store for this tx's chain rather than via hooks.
+      try {
+        const state = store.getState();
+        const [transactionElement, transactionDetails] =
+          await decodeTransaction({
+            tx,
+            selectedAddress: selectedEvmAddress,
+            chainId: txChainId,
+            txChainId,
+            ticker: selectTickerByChainId(state, txChainId),
+            conversionRate: selectConversionRateByChainId(state, txChainId),
+            currencyRates: selectCurrencyRates(state),
+            currentCurrency: selectCurrentCurrency(state),
+            contractExchangeRates: selectContractExchangeRatesByChainId(
+              state,
+              txChainId,
+            ),
+            primaryCurrency: selectPrimaryCurrency(state),
+            swapsTransactions: selectSwapsTransactions(state),
+            tokens: selectTokensByChainIdAndWalletAddress(
+              state,
+              txChainId,
+              selectedEvmAddress,
+            ),
+            selectedInternalAccount: selectSelectedInternalAccount(state),
+          });
+
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.TRANSACTION_DETAILS,
+          params: {
+            tx,
+            transactionElement,
+            transactionDetails,
+            showSpeedUpModal: noop,
+            showCancelModal: noop,
           },
-          transactionDetails: {
-            hash: item.hash,
-            renderFrom: from,
-            renderTo: to,
-            renderValue: value,
-            transactionType: item.type,
-            txChainId: tx.chainId,
+        });
+      } catch {
+        // Decoding failed — fall back to a minimal detail view rather than
+        // blocking the row from opening at all.
+        const { from, to } = getActivityFromTo(item);
+        const value = getActivityValue(item);
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.TRANSACTION_DETAILS,
+          params: {
+            tx,
+            transactionElement: { actionKey, value },
+            transactionDetails: {
+              hash: item.hash,
+              renderFrom: from,
+              renderTo: to,
+              renderValue: value,
+              transactionType: item.type,
+              txChainId,
+            },
+            showSpeedUpModal: noop,
+            showCancelModal: noop,
           },
-          showSpeedUpModal: noop,
-          showCancelModal: noop,
-        },
-      });
+        });
+      }
     },
     [
       bridgeHistory,
