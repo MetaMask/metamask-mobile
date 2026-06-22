@@ -3,11 +3,15 @@ import Gestures from '../../framework/Gestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import {
   Assertions,
+  FrameworkDetector,
+  PlatformDetector,
   Utilities,
   resolve,
   EncapsulatedElementType,
   sleep,
 } from '../../framework';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow';
 import { encapsulated } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import ActivitiesView from '../Transactions/ActivitiesView';
@@ -84,9 +88,13 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          timeout: 500,
-        });
+        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+        } else {
+          await Assertions.expectElementToBeVisible(WalletView.container, {
+            timeout: 500,
+          });
+        }
       },
       {
         // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.

@@ -50,6 +50,41 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
+  /**
+   * Scroll the wallet homepage down by swiping inside `wallet-scroll-view`.
+   * Uses the scroll container bounds — fixed screen coordinates often do nothing on iOS.
+   */
+  private async scrollWalletHomeDown(percent = 0.45): Promise<void> {
+    await UnifiedGestures.swipe(this.walletScrollView, 'up', {
+      percentage: percent,
+      description: 'Scroll wallet homepage down',
+    });
+  }
+
+  /** Scroll until `target` is visible on the wallet homepage (Appium). */
+  private async scrollWalletHomeToElement(
+    target: EncapsulatedElementType,
+    description: string,
+    maxAttempts = 16,
+  ): Promise<void> {
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        await Assertions.expectElementToBeVisible(target, {
+          timeout: 1_500,
+          description,
+        });
+        return;
+      } catch {
+        await this.scrollWalletHomeDown(0.5);
+      }
+    }
+
+    await Assertions.expectElementToBeVisible(target, {
+      timeout: 5_000,
+      description,
+    });
+  }
+
   private async tapIfAlreadyVisible(
     target: DetoxElement | EncapsulatedElementType,
     description: string,
@@ -117,15 +152,11 @@ class WalletView {
         });
       },
       appium: async () => {
-        const el = await asPlaywrightElement(target as EncapsulatedElementType);
-        const scrollable = await asPlaywrightElement(this.walletScrollView);
-        await PlaywrightGestures.scrollIntoView(el, {
-          scrollParams: {
-            direction: direction === 'down' ? 'down' : 'up',
-          },
-          scrollableElement: scrollable,
-          maxScrolls: 20,
-        });
+        await this.scrollWalletHomeToElement(
+          target as EncapsulatedElementType,
+          description,
+          Math.max(8, Math.ceil(timeout / 2_000)),
+        );
         if (overshootSwipe) {
           await Gestures.swipe(
             this.walletScrollView,
@@ -137,7 +168,10 @@ class WalletView {
             },
           );
         }
-        await PlaywrightGestures.waitAndTap(el, { timeout: 30_000 });
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(target as EncapsulatedElementType),
+          { timeout: 30_000 },
+        );
       },
     });
   }
@@ -989,30 +1023,44 @@ class WalletView {
       return;
     }
 
-    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
-      overshootSwipe: options.overshootSwipe ?? {
-        direction:
-          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
-        percentage: 0.15,
+    await encapsulatedAction({
+      detox: async () => {
+        const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
+          overshootSwipe: options.overshootSwipe ?? {
+            direction:
+              scrollDirection === 'down' ? ('up' as const) : ('down' as const),
+            percentage: 0.15,
+          },
+        });
+
+        try {
+          await this.scrollAndTapSection(
+            this.predictionsSectionHeader,
+            'Predictions section',
+            direction,
+            { ...getScrollOptions(direction), timeout: 60_000 },
+          );
+        } catch {
+          const fallbackDirection = direction === 'down' ? 'up' : 'down';
+          await this.scrollAndTapSection(
+            this.predictionsSectionHeader,
+            'Predictions section',
+            fallbackDirection,
+            { ...getScrollOptions(fallbackDirection), timeout: 60_000 },
+          );
+        }
+      },
+      appium: async () => {
+        await this.scrollWalletHomeToElement(
+          this.predictionsSectionHeader,
+          'Predictions section',
+        );
+        await UnifiedGestures.waitAndTap(this.predictionsSectionHeader, {
+          description: 'Predictions section',
+          timeout: 30_000,
+        });
       },
     });
-
-    try {
-      await this.scrollAndTapSection(
-        this.predictionsSectionHeader,
-        'Predictions section',
-        direction,
-        { ...getScrollOptions(direction), timeout: 60_000 },
-      );
-    } catch {
-      const fallbackDirection = direction === 'down' ? 'up' : 'down';
-      await this.scrollAndTapSection(
-        this.predictionsSectionHeader,
-        'Predictions section',
-        fallbackDirection,
-        { ...getScrollOptions(fallbackDirection), timeout: 60_000 },
-      );
-    }
   }
 
   private async scrollPredictionsSectionIntoView(
@@ -1032,15 +1080,11 @@ class WalletView {
         );
       },
       appium: async () => {
-        const header = await asPlaywrightElement(this.predictionsSectionHeader);
-        const scrollable = await asPlaywrightElement(this.walletScrollView);
-        await PlaywrightGestures.scrollIntoView(header, {
-          scrollParams: {
-            direction: direction === 'down' ? 'down' : 'up',
-          },
-          scrollableElement: scrollable,
-          maxScrolls: 20,
-        });
+        await this.scrollWalletHomeToElement(
+          this.predictionsSectionHeader,
+          'Predictions section',
+          24,
+        );
       },
     });
   }
@@ -1096,62 +1140,16 @@ class WalletView {
         }
       },
       appium: async () => {
-        const driver = getDriver();
         const description = `Predictions Position: ${positionName}`;
         const marketDetailsScreen = Matchers.getElementByID(
           PredictMarketDetailsSelectorsIDs.SCREEN,
         );
         const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(30_000);
 
-        if (await this.tapIfAlreadyVisible(target, description)) {
-          await Assertions.expectElementToBeVisible(marketDetailsScreen, {
-            timeout: predictNavigationTimeoutMs,
-            description: 'Predict market details screen after position tap',
-          });
-          return;
-        }
-
-        try {
-          await this.scrollPredictionsSectionIntoView('down');
-        } catch {
-          await this.scrollPredictionsSectionIntoView('up');
-        }
-
         await Utilities.executeWithRetry(
           async () => {
-            for (const direction of ['down', 'up'] as const) {
-              for (let attempt = 0; attempt < 8; attempt += 1) {
-                try {
-                  await Assertions.expectElementToBeVisible(target, {
-                    timeout: 2000,
-                  });
-                } catch {
-                  await driver.execute('mobile: scrollGesture', {
-                    left: 50,
-                    top: 300,
-                    width: 900,
-                    height: 1400,
-                    direction,
-                    percent: 0.55,
-                  });
-                  continue;
-                }
+            await this.scrollWalletHomeToElement(target, description);
 
-                await UnifiedGestures.waitAndTap(target, {
-                  description,
-                  timeout: 30_000,
-                });
-                await Assertions.expectElementToBeVisible(marketDetailsScreen, {
-                  timeout: predictNavigationTimeoutMs,
-                  description:
-                    'Predict market details screen after position tap',
-                });
-                return;
-              }
-            }
-            await Assertions.expectElementToBeVisible(target, {
-              timeout: 5000,
-            });
             await UnifiedGestures.waitAndTap(target, {
               description,
               timeout: 30_000,
@@ -1197,26 +1195,12 @@ class WalletView {
         });
       },
       appium: async () => {
-        const driver = getDriver();
         await Utilities.executeWithRetry(
           async () => {
-            for (let attempt = 0; attempt < 12; attempt += 1) {
-              try {
-                await Assertions.expectElementToBeVisible(this.claimButton, {
-                  timeout: 2000,
-                });
-                break;
-              } catch {
-                await driver.execute('mobile: scrollGesture', {
-                  left: 50,
-                  top: 300,
-                  width: 900,
-                  height: 1400,
-                  direction: 'down',
-                  percent: 0.6,
-                });
-              }
-            }
+            await this.scrollWalletHomeToElement(
+              this.claimButton,
+              'Claim button on wallet homepage',
+            );
             await UnifiedGestures.waitAndTap(this.claimButton, {
               description: 'Claim Button',
               timeout: 30_000,

@@ -90,12 +90,9 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
 
           await WalletView.scrollAndTapPredictionsSection();
 
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description: 'Predict market list container should be visible',
-            },
-          );
+          await PredictMarketList.waitForScreenToDisplay({
+            description: 'Predict market list container should be visible',
+          });
 
           await PredictMarketList.tapCategoryTab(positionDetails.category);
           await PredictMarketList.tapMarketCard(

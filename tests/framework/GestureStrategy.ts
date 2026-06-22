@@ -9,6 +9,7 @@ import {
 } from './EncapsulatedElement.ts';
 import type { ScrollContainer } from './types.ts';
 import { getDriver } from './PlaywrightUtilities.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 export type { ScrollContainer, ScrollViewMatcher } from './types.ts';
 
@@ -487,6 +488,16 @@ export class AppiumGestureStrategy implements GestureStrategy {
     swipeDirection: 'up' | 'down' | 'left' | 'right',
     percent = 0.6,
   ): Promise<void> {
+    // XCUITest does not implement `mobile: scrollGesture` (Android-only).
+    if (PlatformDetector.isIOS()) {
+      await PlaywrightGestures.swipe({
+        scrollParams: { direction: swipeDirection },
+        percent,
+        duration: 600,
+      });
+      return;
+    }
+
     const drv = getDriver();
     if (!drv) {
       throw new Error('Driver is not available');

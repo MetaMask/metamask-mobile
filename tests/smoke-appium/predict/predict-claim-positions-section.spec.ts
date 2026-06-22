@@ -15,6 +15,8 @@ import {
   loginForPredictTests,
   PredictHelpers,
 } from './helpers/predict-helpers.js';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import {
   postClaimMocks,
   predictionMarketFeature,
@@ -71,10 +73,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           }
 
           await TabBarComponent.tapWallet();
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description:
-              'Wallet screen should be visible after returning from activity',
-          });
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
           await Assertions.expectTextDisplayed('$48.16');

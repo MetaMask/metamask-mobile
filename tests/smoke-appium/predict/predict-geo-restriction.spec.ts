@@ -27,6 +27,8 @@ import {
   loginForPredictTests,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 
 const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -60,13 +62,10 @@ appiumTest.describe(SmokePredictions('Predictions - Geo Restriction'), () => {
           await loginForPredictTests();
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description:
-                'Predict market list container is visible before feed action',
-            },
-          );
+          await PredictMarketList.waitForScreenToDisplay({
+            description:
+              'Predict market list container is visible before feed action',
+          });
 
           await PredictMarketList.tapCategoryTab('new');
           await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
@@ -74,10 +73,7 @@ appiumTest.describe(SmokePredictions('Predictions - Geo Restriction'), () => {
           await PredictUnavailableView.tapGotIt();
           await PredictMarketList.tapBackButton();
           await TabBarComponent.tapWallet();
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description: 'Wallet home after leaving predict market list',
-            timeout: 15_000,
-          });
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
 
           await WalletView.scrollAndTapPredictionsPosition(
             'Spurs vs. Pelicans',

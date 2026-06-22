@@ -13,6 +13,7 @@ import {
   loginForPredictTests,
   PredictHelpers,
 } from './helpers/predict-helpers.js';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import {
   SPURS_PELICANS_POSITION_ID,
@@ -55,10 +56,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           );
           await PredictDetailsPage.tapBackButton();
 
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description: 'Wallet after leaving open position market details',
-            timeout: resolveE2EWaitTimeoutMs(20_000),
-          });
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
 
           await POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(mockServer);
 
@@ -94,7 +92,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           );
           await PredictDetailsPage.tapBackButton();
 
-          await Assertions.expectElementToBeVisible(WalletView.container);
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
 
           await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
             description: 'Claim button should not be visible',

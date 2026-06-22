@@ -88,12 +88,9 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
 
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description: 'Predict market list container should be visible',
-            },
-          );
+          await PredictMarketList.waitForScreenToDisplay({
+            description: 'Predict market list container should be visible',
+          });
           await PredictBalance.expectBalanceCardVisible();
           await PredictBalance.tapWithdraw();
 
@@ -101,13 +98,10 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
           await TransactionPayConfirmation.tapKeyboardContinueButton();
           await FooterActions.tapConfirmButton();
 
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description:
-                'Predict market list should be visible after withdraw confirmation',
-            },
-          );
+          await PredictMarketList.waitForScreenToDisplay({
+            description:
+              'Predict market list should be visible after withdraw confirmation',
+          });
         },
       );
     },

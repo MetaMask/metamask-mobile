@@ -2,6 +2,8 @@ import {
   Assertions,
   Gestures,
   Matchers,
+  PlatformDetector,
+  PlaywrightAssertions,
   PlaywrightGestures,
   PlaywrightMatchers,
   UnifiedGestures,
@@ -9,8 +11,11 @@ import {
   asPlaywrightElement,
   encapsulated,
   encapsulatedAction,
+  sleep,
   type EncapsulatedElementType,
 } from '../../framework';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import { withImplicitWait } from '../../framework/PlaywrightUtilities';
 import {
   PredictBalanceSelectorsIDs,
   PredictBalanceSelectorsText,
@@ -35,6 +40,15 @@ const CATEGORY_LABELS: Record<CategoryTab, string> = {
   crypto: 'Crypto',
   politics: 'Politics',
 };
+
+const IOS_MARKET_LIST_INDICATOR_IDS = [
+  PredictFeedSelectorsIDs.TABS,
+  PredictFeedSelectorsIDs.HEADER,
+  PredictFeedSelectorsIDs.TAB_BAR_CONTAINER,
+  PredictMarketListSelectorsIDs.BACK_BUTTON,
+] as const;
+
+const MARKET_LIST_POLL_INTERVAL_MS = 250;
 
 class PredictMarketList {
   get container(): EncapsulatedElementType {
@@ -405,6 +419,76 @@ class PredictMarketList {
   async tapBackButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.backButton, {
       description: 'Back button on predict market list',
+    });
+  }
+
+  /**
+   * Waits for the predict market list screen to be ready.
+   * On iOS, `predict-market-list-container` may exist but report
+   * `displayed === false` while feed chrome is already interactive.
+   */
+  async waitForScreenToDisplay(
+    options: { timeout?: number; description?: string } = {},
+  ): Promise<void> {
+    const {
+      timeout = resolveE2EWaitTimeoutMs(30_000),
+      description = 'Predict market list container should be visible',
+    } = options;
+
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(this.container, {
+          timeout,
+          description,
+        });
+      },
+      appium: async () => {
+        if (PlatformDetector.isAndroid()) {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(this.container),
+            { timeout, description },
+          );
+          return;
+        }
+
+        const deadline = Date.now() + timeout;
+        while (Date.now() < deadline) {
+          for (const testId of IOS_MARKET_LIST_INDICATOR_IDS) {
+            try {
+              const displayed = await withImplicitWait(500, async () => {
+                const el = await PlaywrightMatchers.getElementById(testId, {
+                  exact: true,
+                });
+                return el.isVisible();
+              });
+              if (displayed) {
+                return;
+              }
+            } catch {
+              // try next indicator
+            }
+          }
+
+          try {
+            const containerExists = await withImplicitWait(500, async () => {
+              const el = await asPlaywrightElement(this.container);
+              return el.unwrap().isExisting();
+            });
+            if (containerExists) {
+              return;
+            }
+          } catch {
+            // keep polling
+          }
+
+          await sleep(MARKET_LIST_POLL_INTERVAL_MS);
+        }
+
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.container),
+          { timeout: 5_000, description },
+        );
+      },
     });
   }
 }
