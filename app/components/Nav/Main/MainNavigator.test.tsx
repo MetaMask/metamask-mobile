@@ -10,19 +10,6 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
 
-jest.mock('react-native-material-textfield', () => {
-  const ReactActual = jest.requireActual('react');
-  const { TextInput } = jest.requireActual('react-native');
-  return {
-    OutlinedTextField: ReactActual.forwardRef(
-      (
-        props: React.ComponentProps<typeof TextInput>,
-        ref: React.Ref<typeof TextInput>,
-      ) => ReactActual.createElement(TextInput, { ...props, ref }),
-    ),
-  };
-});
-
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
