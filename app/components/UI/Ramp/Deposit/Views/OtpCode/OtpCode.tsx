@@ -21,7 +21,11 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { useDepositSDK } from '../../sdk';
@@ -37,7 +41,6 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
-import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { OTP_CODE_TEST_IDS } from './OtpCode.testIds';
 
 export interface OtpCodeParams {

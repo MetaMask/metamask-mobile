@@ -7,6 +7,7 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD } from '../../testUtils';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
+import { strings } from '../../../../../../../locales/i18n';
 import { StackActions } from '@react-navigation/native';
 import Logger from '../../../../../../util/Logger';
 import { endTrace } from '../../../../../../util/trace';
@@ -200,14 +201,17 @@ describe('BankDetails Component', () => {
     expect(screen.getByText('456 Recipient Street')).toBeTruthy();
   });
 
-  it('calls setOptions with header function when component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(BankDetails);
 
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        header: expect.any(Function),
-      }),
-    );
+    expect(
+      screen.getByText(
+        strings('deposit.bank_details.navbar_title', {
+          paymentMethod: 'SEPA',
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('displays confirmPaymentError when it has a value', async () => {

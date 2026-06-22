@@ -258,14 +258,13 @@ describe('BasicInfo Component', () => {
     );
   });
 
-  it('calls setOptions with header function when the component mounts', () => {
+  it('renders deposit screen header with navbar title', () => {
     render(BasicInfo);
 
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        header: expect.any(Function),
-      }),
-    );
+    expect(
+      screen.getByText(strings('deposit.basic_info.navbar_title')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('deposit-back-navbar-button')).toBeOnTheScreen();
   });
 
   it('tracks analytics event when continue button is pressed with valid form data', async () => {
@@ -313,13 +312,13 @@ describe('BasicInfo Component', () => {
     expect(screen.getByTestId('ssn-input')).toBeOnTheScreen();
   });
 
-  it('calls endTrace four times when component mounts', () => {
+  it('calls endTrace twice when component mounts', () => {
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
     mockEndTrace.mockClear();
 
     render(BasicInfo);
 
-    expect(mockEndTrace).toHaveBeenCalledTimes(4);
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: 'Deposit Continue Flow',
       data: {
