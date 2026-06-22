@@ -360,10 +360,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Baseline is the latest successful ci/ios-js-bundle-size status on the merge-base
-          # of the checked-out ref (refs/pull/N/merge) and the PR base branch (e.g. main).
-          # github.event.pull_request.base.sha can lag behind that point when the PR branch
-          # has not been rebased, which would charge the PR for main-only growth.
+          # Baseline: ci/ios-js-bundle-size on git merge-base origin/$BASE_REF HEAD (not pull_request.base.sha).
           append_job_summary() {
             if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
               cat >> "$GITHUB_STEP_SUMMARY"
@@ -495,7 +492,7 @@ jobs:
           | Current bundle | ${CURRENT_MB} |
           | Delta (current - baseline) | ${DELTA_MB} |
 
-          Fail threshold: more than 1 MiB above baseline. Baseline is the bundle size posted by CI to \`git merge-base origin/${BASE_REF} HEAD\`, not \`github.event.pull_request.base.sha\`.
+          Fail threshold: more than 1 MiB above baseline.
 
           EOF
 
