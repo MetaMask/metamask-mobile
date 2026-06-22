@@ -41,6 +41,8 @@ export interface QrSyncSecretMetadata {
 export interface QrSyncOffer {
   sessionId?: string;
   deadline: number;
+  /** Whether the user has completed mobile onboarding at offer-send time. */
+  isOnboardingCompleted: boolean;
 }
 
 /** Stable error codes shared across QR sync validation and runtime errors. */

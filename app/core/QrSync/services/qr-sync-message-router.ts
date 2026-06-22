@@ -8,7 +8,7 @@ import type {
   QrSyncSyncErrorEvent,
   QrSyncSyncReadyEvent,
 } from '../types';
-import { validateAndNormalizeQrSyncSyncReadyMessage } from './qr-sync-payload-validator';
+import { validateAndNormalizeQrSyncSyncReadyMessage } from './qr-sync-validation';
 
 export interface QrSyncRoutedMessageResult {
   handled: boolean;

@@ -11,6 +11,8 @@ import {
   type QrSyncControllerState,
 } from '../../QrSync/controller-types';
 import { KeyManager } from '../../SDKConnectV2/services/key-manager';
+import { selectCompletedOnboarding } from '../../../selectors/onboarding';
+import { store } from '../../../store';
 
 /**
  * Initializes the QR sync controller with any previously hydrated state.
@@ -33,6 +35,7 @@ export const qrSyncControllerInit: MessengerClientInitFunction<
     state: qrSyncState,
     keyManager: new KeyManager(),
     relayUrl: RELAY_URL,
+    getIsOnboardingCompleted: () => selectCompletedOnboarding(store.getState()),
   });
 
   return { controller };

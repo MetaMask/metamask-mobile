@@ -15,7 +15,7 @@ import type {
   QrSyncWireMessage,
 } from './types';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
-import { parseQrSyncConnectionRequest } from './services/qr-sync-connection-request';
+import { parseQrSyncConnectionRequest } from './services/qr-sync-validation';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
@@ -83,6 +83,8 @@ export class QrSyncController extends BaseController<
 
   private readonly relayUrl: string;
 
+  private readonly getIsOnboardingCompleted: () => boolean;
+
   private client: WalletClient | null = null;
 
   private sessionId: string | null = null;
@@ -92,11 +94,13 @@ export class QrSyncController extends BaseController<
     state,
     keyManager,
     relayUrl = RELAY_URL,
+    getIsOnboardingCompleted,
   }: {
     messenger: QrSyncControllerMessenger;
     state?: Partial<QrSyncControllerState>;
     keyManager: IKeyManager;
     relayUrl?: string;
+    getIsOnboardingCompleted: () => boolean;
   }) {
     super({
       name: QR_SYNC_CONTROLLER_NAME,
@@ -110,6 +114,7 @@ export class QrSyncController extends BaseController<
 
     this.keyManager = keyManager;
     this.relayUrl = relayUrl;
+    this.getIsOnboardingCompleted = getIsOnboardingCompleted;
   }
 
   /**
@@ -295,6 +300,7 @@ export class QrSyncController extends BaseController<
       data: {
         sessionId: this.sessionId ?? undefined,
         deadline: Date.now() + SYNC_OFFER_DEADLINE_MS,
+        isOnboardingCompleted: this.getIsOnboardingCompleted(),
       },
     });
 
