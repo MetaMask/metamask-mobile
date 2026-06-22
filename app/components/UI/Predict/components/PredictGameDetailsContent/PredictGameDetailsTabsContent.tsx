@@ -23,6 +23,7 @@ interface PredictGameDetailsTabsContentProps {
   activePositions: PredictPosition[];
   claimablePositions: PredictPosition[];
   groupMap: Map<string, PredictOutcomeGroup>;
+  resolvedOutcomeGroups?: PredictOutcomeGroup[];
   activeChipKey: string;
   onBetPress: (token: PredictOutcomeToken) => void;
 }
@@ -37,6 +38,7 @@ const PredictGameDetailsTabsContent = memo(
     activePositions,
     claimablePositions,
     groupMap,
+    resolvedOutcomeGroups = [],
     activeChipKey,
     onBetPress,
   }: PredictGameDetailsTabsContentProps) => {
@@ -74,6 +76,7 @@ const PredictGameDetailsTabsContent = memo(
       return (
         <PredictGameOutcomesTab
           groupMap={groupMap}
+          resolvedOutcomeGroups={resolvedOutcomeGroups}
           game={game}
           activeChipKey={activeChipKey}
           onBuyPress={handleBuyPress}
@@ -101,6 +104,7 @@ const PredictGameDetailsTabsContent = memo(
         {currentKey === 'outcomes' && (
           <PredictGameOutcomesTab
             groupMap={groupMap}
+            resolvedOutcomeGroups={resolvedOutcomeGroups}
             game={game}
             activeChipKey={activeChipKey}
             onBuyPress={handleBuyPress}
