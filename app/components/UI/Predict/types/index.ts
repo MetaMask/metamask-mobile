@@ -575,7 +575,8 @@ export interface GetMarketsResult {
 }
 
 export interface PredictMarketListParams {
-  tags?: string[]; // tag IDs -> tag_id (multi). TODO: slug support later
+  tags?: string[]; // tag IDs -> tag_id (multi).
+  tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
   series?: string[]; // series IDs -> series_id (multi)
   order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
   // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
@@ -593,6 +594,37 @@ export interface PredictMarketListParams {
 export interface PredictMarketListResponse {
   markets: PredictMarket[];
   nextCursor?: string | null;
+}
+
+/**
+ * Where a dynamic feed filter list is derived from. Keeps the UI decoupled from
+ * the concrete derivation strategy (V1: Polymarket related-tags endpoint).
+ */
+export type PredictFilterOptionSource =
+  | 'related-tags'
+  | 'hot-tags'
+  | 'trending-series'
+  | 'sports-leagues';
+
+export interface PredictFilterOptionsParams {
+  /** Base list params every derived option should also carry (e.g. a feed's base topic). */
+  baseParams?: PredictMarketListParams;
+  source: PredictFilterOptionSource;
+  /** Polymarket tag slug used as the related-tags root. Defaults to 'all' (general Popular/Trending). */
+  baseTagSlug?: string;
+  /** Max number of options to return. */
+  limit?: number;
+  /** Reserved for a future market-volume-derived fallback strategy (unused in V1). */
+  sampleSize?: number;
+}
+
+export interface PredictFilterOption {
+  /** Stable, slug-based id used for dedupe (not the display label). */
+  id: string;
+  label: string;
+  /** Ready-to-use list params for this filter; feed straight into `listMarkets`. */
+  params: PredictMarketListParams;
+  source: string;
 }
 
 export interface SearchMarketsParams {
@@ -669,13 +701,19 @@ export interface PlaceOrderParams {
     marketTitle?: string;
     marketCategory?: string;
     marketTags?: string[];
+    actionType?: string;
     entryPoint?: string;
     predictFeedTab?: string;
     predictScreen?: string;
+    predictComponent?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;
     volume?: number;
+    openPositionsCount?: number;
+    claimablePositionsCount?: number;
+    hasClaimableWinnings?: boolean;
+    portfolioModuleEnabled?: boolean;
     marketType?: string;
     outcome?: string;
     marketSlug?: string;

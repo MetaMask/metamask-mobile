@@ -294,8 +294,14 @@ const V2OtpCode = () => {
             }
           }
         } else if (headlessSessionId) {
+          // Successful auth with no amount/currency/assetId: route back to the
+          // still-mounted Host. This is a programmatic refocus, not a user
+          // back-out, so flag it to disable the host's focus-dismissal
+          // heuristic — otherwise the regained focus would be misread as
+          // `user_dismissed` and kill the live session.
           navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
             headlessSessionId,
+            suppressFocusDismissal: true,
           });
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);

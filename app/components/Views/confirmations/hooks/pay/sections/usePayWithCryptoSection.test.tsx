@@ -190,7 +190,7 @@ describe('usePayWithCryptoSection', () => {
 
     const expectedPreferred = {
       address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET,
+      chainId: CHAIN_IDS.MONAD,
     };
     expect(usePayWithPreferredTokenMock).toHaveBeenCalledWith({
       preferredToken: expectedPreferred,

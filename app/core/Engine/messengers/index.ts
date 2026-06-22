@@ -34,6 +34,7 @@ import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger/multichain-assets-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
+import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -334,6 +335,10 @@ export const MESSENGER_FACTORIES = {
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SnapAccountService: {
+    getMessenger: getSnapAccountServiceMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF

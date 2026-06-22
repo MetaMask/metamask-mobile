@@ -50,14 +50,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn(() => ({ event: 'CARD_HOME_CLICKED' })),
-    })),
-  },
-}));
-
 jest.mock('../../../core/', () => ({
   Authentication: {
     lockApp: jest.fn(),

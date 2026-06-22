@@ -8,15 +8,13 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './ConnectionDetails.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface ConnectionDetailsProps {
   route: {
@@ -51,7 +49,7 @@ const ConnectionDetails = (props: ConnectionDetailsProps) => {
           {strings('permissions.connection_details_title')}
         </BottomSheetHeader>
         <View style={styles.descriptionContainer}>
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('permissions.connection_details_description', {
               connectionDateTime: formatConnectionDate(connectionDateTime),
             })}

@@ -8,9 +8,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import Button, {
   ButtonSize,
@@ -34,6 +31,11 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 interface BasicFunctionalityModalRouteParams {
   caller: string;
@@ -115,25 +117,33 @@ const BasicFunctionalityModal = () => {
         size={IconSize.Xl}
         style={styles.icon}
       />
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMd} style={styles.title}>
         {strings('default_settings.sheet.title_off')}
       </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.description}>
+      <Text variant={TextVariant.BodyMd} style={styles.description}>
         {strings('default_settings.sheet.description_off')}
       </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.description}>
+      <Text variant={TextVariant.BodyMd} style={styles.description}>
         {strings('default_settings.sheet.description_off2')}{' '}
-        <Text variant={TextVariant.BodyMDBold} style={styles.description}>
+        <Text
+          variant={TextVariant.BodyMd}
+          style={styles.description}
+          fontWeight={FontWeight.Bold}
+        >
           {strings(
             'default_settings.sheet.description_off2_related_features1',
           )}{' '}
         </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMd} style={styles.description}>
           {strings(
             'default_settings.sheet.description_off2_related_features1_and',
           )}{' '}
         </Text>
-        <Text variant={TextVariant.BodyMDBold} style={styles.description}>
+        <Text
+          variant={TextVariant.BodyMd}
+          style={styles.description}
+          fontWeight={FontWeight.Bold}
+        >
           {strings('default_settings.sheet.description_off2_related_features2')}
         </Text>
       </Text>
@@ -172,10 +182,10 @@ const BasicFunctionalityModal = () => {
 
   const renderTurnOnContent = () => (
     <View style={styles.container}>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMd} style={styles.title}>
         {strings('default_settings.sheet.title_on')}
       </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
+      <Text variant={TextVariant.BodyMd} style={styles.subtitle}>
         {strings('default_settings.sheet.description_on')}
       </Text>
       <View style={styles.buttonsContainer}>

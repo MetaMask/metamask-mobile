@@ -242,7 +242,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x8f",
         "defaultRpcEndpointIndex": 0,
-        "name": "Monad Mainnet",
+        "name": "Monad",
         "nativeCurrency": "MON",
         "rpcEndpoints": [
           {
@@ -681,7 +681,8 @@
     "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
-    "providerData": {}
+    "providerData": {},
+    "moneyAccountCardLinkInProgress": false
   },
   "ClientController": {
     "isUiOpen": false
@@ -769,6 +770,10 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "predictThePitchLeaderboard": {},
+    "predictThePitchLeaderboardPositions": {},
+    "predictThePitchPositions": {},
+    "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
@@ -777,6 +782,7 @@
     "subscriptionBenefits": {},
     "vipDashboard": {},
     "vipPerpsFees": {},
+    "vipRefereeDashboard": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null

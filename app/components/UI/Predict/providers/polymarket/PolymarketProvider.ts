@@ -60,6 +60,8 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
   PredictMarketListParams,
   PredictMarketListResponse,
   PredictProvider,
@@ -105,6 +107,8 @@ import {
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
+  fetchRelatedTagsFromPolymarketApi,
+  normalizeRelatedTagsToFilterOptions,
   fetchCarouselFromPolymarketApi,
   getBalance,
   getL2Headers,
@@ -996,6 +1000,36 @@ export class PolymarketProvider implements PredictProvider {
       );
 
       return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]> {
+    const slug = params.baseTagSlug ?? 'all';
+
+    try {
+      const tags = await fetchRelatedTagsFromPolymarketApi(slug);
+
+      return normalizeRelatedTagsToFilterOptions(tags, {
+        source: params.source,
+        baseParams: params.baseParams,
+        limit: params.limit,
+      });
+    } catch (error) {
+      // Dynamic filters are best-effort and non-blocking: on any failure return
+      // an empty list so the UI can keep static filters and hide dynamic ones.
+      DevLogger.log('Error listing filter options via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listFilterOptions', {
+          source: params.source,
+          slug,
+        }),
+      );
+
+      return [];
     }
   }
 

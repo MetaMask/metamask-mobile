@@ -13,10 +13,10 @@ import {
   TextVariant,
   Text,
   Box,
+  ActionListItem,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';

@@ -2,9 +2,6 @@ import React, { useCallback, useRef, useEffect } from 'react';
 import { View, Image, Linking, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
@@ -15,17 +12,21 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import HeaderBase from '../../../component-library/components/HeaderBase';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
 import { ScrollView } from 'react-native-gesture-handler';
+
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import {
+  HeaderBase,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
@@ -125,10 +126,10 @@ const UpdateNeeded = () => {
             resizeMode="contain"
           />
         </View>
-        <Text variant={TextVariant.HeadingLG} style={styles.title}>
+        <Text variant={TextVariant.HeadingLg} style={styles.title}>
           {strings('update_needed.title')}
         </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMd} style={styles.description}>
           {strings('update_needed.description')}
         </Text>
       </ScrollView>

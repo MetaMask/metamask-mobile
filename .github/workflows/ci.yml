@@ -23,11 +23,11 @@ on:
         required: false
         default: current
       pr_number:
-        description: "PR number (shadow correlation, optional)"
+        description: 'PR number (shadow correlation, optional)'
         type: string
         required: false
       head_sha:
-        description: "PR head SHA (shadow correlation, optional)"
+        description: 'PR head SHA (shadow correlation, optional)'
         type: string
         required: false
   workflow_dispatch:
@@ -41,11 +41,11 @@ on:
           - namespace
         default: current
       pr_number:
-        description: "PR number (shadow correlation, optional)"
+        description: 'PR number (shadow correlation, optional)'
         required: false
         type: string
       head_sha:
-        description: "PR head SHA (shadow correlation, optional)"
+        description: 'PR head SHA (shadow correlation, optional)'
         required: false
         type: string
 
@@ -966,6 +966,8 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      ai_performance_test_tags: ${{ steps.e2e-selection.outputs.ai_performance_test_tags }}
+      ai_performance_test_reasoning: ${{ steps.e2e-selection.outputs.ai_performance_test_reasoning }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -996,6 +998,41 @@ jobs:
           repository: ${{ github.repository }}
           post-comment: ${{ inputs.runner_provider != 'namespace' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
+
+  run-performance-tests-pr:
+    name: 'Run Performance Tests (PR)'
+    # Run when:
+    # - run-performance-tests label is on the PR (forced run, all tests), OR
+    # - smart-e2e-selection ran and AI selected performance tags.
+    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
+    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
+    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
+    if: >-
+      ${{
+        github.event_name == 'pull_request' &&
+        !cancelled() &&
+        (
+          needs.get_requirements.outputs.run_performance == 'true' ||
+          (
+            needs.smart-e2e-selection.result == 'success' &&
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+          )
+        )
+      }}
+    needs: [get_requirements, smart-e2e-selection]
+    uses: ./.github/workflows/run-performance-e2e.yml
+    with:
+      performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      build_variant: 'e2e'
+      branch_name: ${{ github.head_ref }}
+      pr_number: ${{ github.event.pull_request.number }}
+    secrets: inherit
+    permissions:
+      contents: write
+      id-token: write
+      actions: write
+      pull-requests: write
 
   build-android-apks:
     name: 'Build Android APKs'
@@ -1084,6 +1121,64 @@ jobs:
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-smoke-gate:
+    name: 'Appium Smoke Gate'
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    needs: [smart-e2e-selection]
+    outputs:
+      enabled: ${{ steps.gate.outputs.enabled }}
+    steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+      - name: Checkout
+        uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          sparse-checkout: |
+            scripts/e2e/appium-smoke-tags.mjs
+
+      - name: Evaluate whether Appium smoke should run
+        id: gate
+        env:
+          SELECTED_TAGS: >-
+            ${{
+              (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+               needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+              '["ALL"]'
+            }}
+        run: |
+          enabled=$(node scripts/e2e/appium-smoke-tags.mjs "$SELECTED_TAGS")
+          echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
+
+  # Android Appium smoke (PR CI). iOS: run-appium-smoke-tests-ios-scheduled.yml.
+  appium-smoke-tests-android:
+    name: 'Appium Smoke Tests (Android)'
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.appium-smoke-gate.outputs.enabled == 'true' &&
+        needs.build-android-apks.result == 'success'
+      }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+    needs: [build-android-apks, smart-e2e-selection, appium-smoke-gate]
+    uses: ./.github/workflows/run-appium-smoke-tests-android.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
+      runner_provider: current
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -1243,7 +1338,7 @@ jobs:
           if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
             echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
           else
-            PROJECT_KEY="metamask-mobile"
+            PROJECT_KEY="MetaMask_metamask-mobile"
             PR_NUMBER="${{ github.event.pull_request.number }}"
             SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
 

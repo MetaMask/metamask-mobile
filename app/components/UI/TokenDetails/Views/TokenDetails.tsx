@@ -20,7 +20,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
 import { RootState } from '../../../../reducers';
-import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
@@ -40,6 +39,11 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
+import {
+  SOCIAL_AI_QUICK_BUY_AB_KEY,
+  SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
+  SOCIAL_AI_QUICK_BUY_VARIANTS,
+} from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
@@ -177,6 +181,13 @@ const TokenDetails: React.FC<{
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
 
+  const { variant: quickBuyVariant } = useABTest(
+    SOCIAL_AI_QUICK_BUY_AB_KEY,
+    SOCIAL_AI_QUICK_BUY_VARIANTS,
+    SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
+  );
+  const isQuickBuyEnabled = quickBuyVariant.showQuickBuy;
+
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
       if (isCaipAssetType(token.address)) {
@@ -209,9 +220,6 @@ const TokenDetails: React.FC<{
   const networkName = networkConfigurationByChainId?.name;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isQuickBuyEnabled = useSelector(
-    selectSocialAiAssetDetailsQuickBuyEnabled,
-  );
 
   const {
     currentPrice,

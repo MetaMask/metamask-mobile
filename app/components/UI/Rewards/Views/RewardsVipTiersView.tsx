@@ -15,6 +15,7 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
@@ -33,8 +34,11 @@ const RewardsVipTiersViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
-  const canViewVip = Boolean(subscriptionId && isVipEnabled);
+  const canViewVip = Boolean(
+    isVipProgramEnabled && subscriptionId && isVipEnabled,
+  );
 
   const {
     dashboard,
@@ -67,7 +71,7 @@ const RewardsVipTiersViewContent: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipTiersView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ top: 'additive', bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT}
       >

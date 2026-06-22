@@ -58,6 +58,7 @@ import {
   PlaywrightGestures,
   PlaywrightMatchers,
 } from '../framework';
+import { PlatformDetector } from '../framework/PlatformLocator';
 
 describe('general.flow Playwright dev screens', () => {
   beforeEach(() => {
@@ -82,6 +83,23 @@ describe('general.flow Playwright dev screens', () => {
     expect(PlaywrightGestures.waitAndTap).toHaveBeenCalledWith(serverRow);
     expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalled();
   });
+
+  it('uses 10.0.2.2 as the Metro host on Android', async () => {
+    (PlatformDetector.isAndroid as jest.Mock).mockReturnValueOnce(true);
+    (PlaywrightMatchers.getElementByText as jest.Mock).mockResolvedValue({
+      selector: 'metro-server-row',
+    });
+
+    await dismissDevelopmentServerPickerPlaywright();
+
+    expect(PlaywrightMatchers.getElementByText).toHaveBeenCalledWith(
+      'http://10.0.2.2:8081',
+    );
+  });
+
+  // The METRO_HOST_E2E override branch is not unit-testable here:
+  // babel-plugin-transform-inline-environment-variables (babel.config.js)
+  // inlines process.env.* at compile time, so runtime mutation has no effect.
 
   it('closes the developer menu directly without toggling Fast refresh', async () => {
     const closeButton = { selector: 'xmark' };

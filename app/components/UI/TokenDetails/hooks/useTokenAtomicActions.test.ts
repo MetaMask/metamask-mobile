@@ -673,6 +673,8 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
           networkName: 'Ethereum Mainnet',
           chainId: '0x1',
           groupId: 'group-1',
+          location: 'asset-details',
+          account: mockAccount,
         },
       },
     );
@@ -955,6 +957,25 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
           ...defaultToken,
           balance: '1',
           source: TokenDetailsSource.ExploreCryptoTrending,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('uses TrendingExplore location when token.source is ExploreSearch', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreSearch,
         },
       }),
     );

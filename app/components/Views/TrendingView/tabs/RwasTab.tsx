@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
@@ -29,8 +28,11 @@ import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarousel
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
-import type { PillToggleCardListTab } from '../components/PillToggleCardList';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
+import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -95,7 +97,11 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   );
 };
 
-const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const RwasTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -107,6 +113,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     refresh,
     pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
   });
+  const rwaPerps = usePerpsFeed({ variant: 'rwa', refresh });
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
@@ -132,6 +139,90 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   );
 
   const showStocks = stocks.isLoading || stocks.data.length > 0;
+  const showPredictions =
+    isPredictEnabled && (politics.isLoading || politics.data.length > 0);
+  const showPerps =
+    isPerpsEnabled && (rwaPerps.isLoading || rwaPerps.data.length > 0);
+
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
+
+    if (showPredictions) {
+      items.push({
+        key: 'predictions',
+        content: (
+          <PredictionsCarouselSection
+            feed={politics}
+            tabName="RWAs"
+            sectionName="predictions_politics"
+            title={strings('trending.predictions')}
+            testIdPrefix="predict-rwa-politics-market-row-item"
+            idPrefix="politics_predictions"
+            onViewAll={() =>
+              navigateToExplorePredictionsList(appNavigation, 'politics')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
+    }
+
+    if (showStocks) {
+      items.push({
+        key: 'stocks',
+        isVerticalList: true,
+        content: (
+          <>
+            <SectionHeader
+              title={strings('trending.stocks')}
+              onViewAll={() =>
+                appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
+              }
+              testID="section-header-view-all-stocks"
+              tabName="RWAs"
+              sectionName="stocks"
+            />
+            <CardList<TrendingAsset>
+              data={stocks.data}
+              isLoading={stocks.isLoading}
+              renderItem={renderStockItem}
+              Skeleton={TrendingTokensSkeleton}
+              idPrefix="stocks"
+            />
+          </>
+        ),
+      });
+    }
+
+    if (showPerps) {
+      items.push({
+        key: 'perps',
+        isVerticalList: true,
+        content: (
+          <RwaPerpsBlock
+            refresh={refresh}
+            onViewAll={(filter, sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
+            }
+          />
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showPredictions,
+    showStocks,
+    showPerps,
+    politics,
+    isPredictEnabled,
+    appNavigation,
+    stocks.data,
+    stocks.isLoading,
+    renderStockItem,
+    refresh,
+    perpsNavigation,
+  ]);
 
   return (
     <ExploreScroll
@@ -139,52 +230,15 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
     >
-      <PredictionsCarouselSection
-        feed={politics}
-        tabName="RWAs"
-        sectionName="predictions_politics"
-        title={strings('trending.predictions')}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-        idPrefix="politics_predictions"
-        onViewAll={() =>
-          navigateToExplorePredictionsList(appNavigation, 'politics')
-        }
-        isEnabled={isPredictEnabled}
-      />
-
-      {showStocks && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.stocks')}
-            onViewAll={() =>
-              appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
-            }
-            testID="section-header-view-all-stocks"
-            tabName="RWAs"
-            sectionName="stocks"
-          />
-          <CardList<TrendingAsset>
-            data={stocks.data}
-            isLoading={stocks.isLoading}
-            renderItem={renderStockItem}
-            Skeleton={TrendingTokensSkeleton}
-            idPrefix="stocks"
-          />
-        </Box>
-      )}
-
-      {isPerpsEnabled && (
-        <PerpsSectionProvider>
-          <RwaPerpsBlock
-            refresh={refresh}
-            onViewAll={(filter, sortOptionId) =>
-              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
-            }
-          />
-        </PerpsSectionProvider>
-      )}
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };
+
+const RwasTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <RwasTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default RwasTab;

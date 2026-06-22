@@ -32,6 +32,7 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  FeatureId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -361,6 +362,7 @@ export const BridgeTokenSelector: React.FC = () => {
           token_contract: item.address,
           chain_name: networkName,
           chain_id: item.chainId,
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
         },
       );
     },

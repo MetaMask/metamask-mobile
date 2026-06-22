@@ -16,7 +16,10 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { clearOnboarding } from '../../actions/onboarding';
+import {
+  clearOnboarding,
+  setCompletedOnboarding,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -87,6 +90,7 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -123,6 +127,7 @@ class AuthenticationService {
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
+    ReduxService.store.dispatch(setCompletedOnboarding(true));
   }
 
   /**
@@ -829,9 +834,7 @@ class AuthenticationService {
               ],
             });
           } else {
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+            await navigateToPostUnlockHome();
           }
         } else {
           // No password provided or derived. Navigate to login.
@@ -1562,6 +1565,12 @@ class AuthenticationService {
       // This prevents the temporary wallet (created during reset) from being backed up
       EngineClass.disableAutomaticVaultBackup = true;
 
+      // Suppress Card's reactive data fetching during reset. The temporary
+      // wallet created below emits KeyringController:unlock and rebuilds the
+      // account tree, which would otherwise make CardController fetch CardHome
+      // data (with the still-present old tokens) only to discard it in resetAll.
+      Engine.context.CardController.setResetInProgress(true);
+
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -1576,11 +1585,16 @@ class AuthenticationService {
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
+        // Clear all Card auth/session/onboarding data (CARD-431)
+        await Engine.context.CardController.resetAll();
+
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
+        // ALWAYS re-enable Card reactive fetching, even if an error occurs
+        Engine.context.CardController.setResetInProgress(false);
       }
     } catch (error) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;

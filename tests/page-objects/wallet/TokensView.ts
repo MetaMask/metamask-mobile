@@ -5,13 +5,14 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import NetworkManager from './NetworkManager';
+import { EncapsulatedElementType } from '../../framework';
 
 class TokensView {
-  get networkFilter(): DetoxElement {
+  get networkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  earnCtaForToken(tokenSymbol: string): DetoxElement {
+  earnCtaForToken(tokenSymbol: string): EncapsulatedElementType {
     return Matchers.getElementIDWithAncestor(
       SECONDARY_BALANCE_BUTTON_TEST_ID,
       getAssetTestId(tokenSymbol),
@@ -33,6 +34,22 @@ class TokensView {
       checkStability: true,
       elemDescription: 'Earn CTA on USDC token row',
     });
+  }
+
+  /**
+   * Wait for a token row to display a non-zero balance.
+   * Useful when the balance is seeded on an Anvil fork and the app needs
+   * time to refresh from the chain before the UI reflects it.
+   */
+  async waitForTokenBalance(
+    tokenSymbol: string,
+    timeout = 30000,
+  ): Promise<void> {
+    const assetTestId = getAssetTestId(tokenSymbol);
+    const zeroBalance = element(
+      by.text(`0 ${tokenSymbol}`).withAncestor(by.id(assetTestId)),
+    );
+    await waitFor(zeroBalance).not.toBeVisible().withTimeout(timeout);
   }
 
   async tapToken(tokenSymbol: string): Promise<void> {

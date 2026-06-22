@@ -57,11 +57,16 @@ export enum ConfirmationLoader {
   Transfer = 'transfer',
 }
 
+export enum PayWithOption {
+  MoneyAccount = 'money_account',
+}
+
 export interface ConfirmationParams {
   autoSelectFiatPayment?: boolean;
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
+  payWithOption?: PayWithOption;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;

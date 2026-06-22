@@ -255,6 +255,86 @@ describe('useMoneyAccountTransactions', () => {
       expect(result.current.transfers).toHaveLength(1);
     });
 
+    describe.each([
+      TransactionStatus.unapproved,
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+      TransactionStatus.rejected,
+      TransactionStatus.dropped,
+      TransactionStatus.cancelled,
+    ])('mid-compose / aborted Money batch status %s', (status) => {
+      it('excludes direct moneyAccountDeposit rows', () => {
+        const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+
+      it('excludes direct moneyAccountWithdraw rows', () => {
+        const tx = makeTx(TransactionType.moneyAccountWithdraw, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+
+      it('excludes EIP-7702 batch with nested moneyAccountDeposit', () => {
+        const tx = makeTx(TransactionType.batch, {
+          status,
+          nestedTransactions: [
+            { type: TransactionType.moneyAccountDeposit } as TransactionMeta,
+          ],
+        });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+    });
+
+    it.each([
+      TransactionStatus.confirmed,
+      TransactionStatus.submitted,
+      TransactionStatus.failed,
+    ])(
+      'includes direct moneyAccountDeposit with visible status %s',
+      (status) => {
+        const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(1);
+        expect(result.current.deposits).toHaveLength(1);
+      },
+    );
+
+    it.each([
+      TransactionStatus.confirmed,
+      TransactionStatus.submitted,
+      TransactionStatus.failed,
+    ])(
+      'includes EIP-7702 batch with nested moneyAccountDeposit and visible status %s',
+      (status) => {
+        const tx = makeTx(TransactionType.batch, {
+          status,
+          nestedTransactions: [
+            { type: TransactionType.moneyAccountDeposit } as TransactionMeta,
+          ],
+        });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(1);
+        expect(result.current.deposits).toHaveLength(1);
+      },
+    );
+
     it('excludes unrelated transaction types', () => {
       const tx = makeTx(TransactionType.swap);
       const { result } = renderHookWithProvider(

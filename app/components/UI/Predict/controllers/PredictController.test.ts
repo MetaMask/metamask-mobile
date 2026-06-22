@@ -47,6 +47,7 @@ import {
 import type { PredictFeatureFlags } from '../types/flags';
 
 import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { PredictEventValues } from '../constants/eventNames';
 import {
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -310,6 +311,7 @@ describe('PredictController', () => {
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
       listMarkets: jest.fn(),
+      listFilterOptions: jest.fn(),
       searchMarkets: jest.fn(),
       getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
@@ -409,6 +411,7 @@ describe('PredictController', () => {
         getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
         getNetworkState?: jest.MockedFunction<() => NetworkState>;
         getRemoteFeatureFlagState?: jest.MockedFunction<() => any>;
+        getAccountsFromSelectedAccountGroup?: jest.MockedFunction<() => any[]>;
         estimateGas?: jest.MockedFunction<
           (
             txParams: TransactionMeta['txParams'],
@@ -439,15 +442,16 @@ describe('PredictController', () => {
 
     rootMessenger.registerActionHandler(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      jest.fn().mockReturnValue([
-        {
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          type: 'eip155:eoa',
-          name: 'Test Account',
-          metadata: { lastSelected: 0 },
-        },
-      ]),
+      mocks.getAccountsFromSelectedAccountGroup ??
+        jest.fn().mockReturnValue([
+          {
+            id: 'mock-account-id',
+            address: '0x1234567890123456789012345678901234567890',
+            type: 'eip155:eoa',
+            name: 'Test Account',
+            metadata: { lastSelected: 0 },
+          },
+        ]),
     );
 
     rootMessenger.registerActionHandler(
@@ -715,6 +719,48 @@ describe('PredictController', () => {
         );
 
         await expect(controller.listMarkets({})).rejects.toThrow(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('lists filter options by delegating to the provider', async () => {
+      const mockOptions = [
+        {
+          id: 'nba',
+          label: 'NBA',
+          source: 'hot-tags',
+          params: { tagSlugs: ['nba'], order: 'volume24hr', status: 'open' },
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.listFilterOptions.mockResolvedValue(
+          mockOptions as any,
+        );
+
+        const result = await controller.listFilterOptions({
+          source: 'hot-tags',
+          baseTagSlug: 'all',
+        });
+
+        expect(result).toEqual(mockOptions);
+        expect(mockPolymarketProvider.listFilterOptions).toHaveBeenCalledWith({
+          source: 'hot-tags',
+          baseTagSlug: 'all',
+        });
+      });
+    });
+
+    it('handles errors when listing filter options', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Network error';
+        mockPolymarketProvider.listFilterOptions.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await expect(
+          controller.listFilterOptions({ source: 'hot-tags' }),
+        ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
       });
     });
@@ -5736,6 +5782,41 @@ describe('PredictController', () => {
         ],
       }) as any;
 
+    it('does not publish transaction status when no sender address can be resolved', () => {
+      withController(
+        ({ messenger }) => {
+          const transactionStatusChangedHandler = jest.fn();
+          const transactionMeta = {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictClaim,
+              status: TransactionStatus.confirmed,
+            }),
+            txParams: {
+              to: '0x0000000000000000000000000000000000000001',
+              value: '0x0',
+              data: '0x',
+            },
+          } as any;
+
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            transactionStatusChangedHandler,
+          );
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          } as any);
+
+          expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
+
     it('publishes event for predict deposit transaction with approved status', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
@@ -8613,6 +8694,32 @@ describe('PredictController', () => {
       );
     });
 
+    it('fetches explicit address balance when no selected EVM account exists', async () => {
+      const explicitAddress = '0x2222222222222222222222222222222222222222';
+      mockPolymarketProvider.getBalance.mockResolvedValue(1000);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          const result = await controller.getBalance({
+            address: explicitAddress,
+          });
+
+          // Assert
+          expect(result).toBe(1000);
+          expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+            address: explicitAddress,
+          });
+          expect(controller.state.balances[explicitAddress].balance).toBe(1000);
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
+
     it('fetches fresh balance when no cached balance exists', async () => {
       mockPolymarketProvider.getBalance.mockResolvedValue(1000);
 
@@ -9151,6 +9258,50 @@ describe('PredictController', () => {
       });
     });
 
+    it('calls analytics.trackEvent for trackPortfolioPositionsButtonTapped', () => {
+      withController(({ controller }) => {
+        controller.trackPortfolioPositionsButtonTapped({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPortfolioTransactionInitiated', () => {
+      withController(({ controller }) => {
+        controller.trackPortfolioTransactionInitiated({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionsScreenViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionsScreenViewed({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+          openPositionsCount: 2,
+          claimablePositionsCount: 1,
+          hasClaimableWinnings: true,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionsTabViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionsTabViewed({
+          predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+          openPositionsCount: 2,
+          claimablePositionsCount: 1,
+          hasClaimableWinnings: true,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('calls analytics.trackEvent for trackGeoBlockTriggered', () => {
       withController(({ controller }) => {
         controller.trackGeoBlockTriggered({
@@ -9192,6 +9343,23 @@ describe('PredictController', () => {
   });
 
   describe('onPlaceOrderSuccess', () => {
+    it('does not write activeBuyOrders under undefined when no EVM account is selected', () => {
+      withController(
+        ({ controller }) => {
+          controller.onPlaceOrderSuccess();
+
+          expect(controller.state.activeBuyOrders).not.toHaveProperty(
+            'undefined',
+          );
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
+
     it('resets activeBuyOrder to PREVIEW and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         setActiveOrderForTest(controller, {

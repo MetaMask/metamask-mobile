@@ -32,7 +32,7 @@ export const usePredictDeposit = () => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
+  const selectedInternalAccountAddress = evmAccount?.address ?? '';
 
   const { deposit: depositWithConfirmation } = usePredictTrading();
 
