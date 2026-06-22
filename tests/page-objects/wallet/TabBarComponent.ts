@@ -6,6 +6,7 @@ import {
   Utilities,
   resolve,
   EncapsulatedElementType,
+  sleep,
 } from '../../framework';
 import { encapsulated } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
@@ -13,6 +14,7 @@ import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
 import WalletView from './WalletView';
+import WalletActionsBottomSheet from './WalletActionsBottomSheet';
 import TrendingView from '../Trending/TrendingView';
 
 class TabBarComponent {
@@ -102,9 +104,26 @@ class TabBarComponent {
   }
 
   async tapActions(): Promise<void> {
-    await Gestures.waitAndTap(this.tabBarActionButton, {
-      elemDescription: 'Tab Bar - Actions Button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        // TradeTabBarItem measures buttonLayout async; tap before layout is ready
+        // opens TradeWalletActions with invalid params and the sheet dismisses.
+        await sleep(500);
+        await Gestures.waitAndTap(this.tabBarActionButton, {
+          elemDescription: 'Tab Bar - Actions Button',
+          timeout: 5000,
+        });
+        // TradeWalletActions (not legacy WalletActionsBottomSheet) exposes swap/perps/predict — not send.
+        await Assertions.expectElementToBeVisible(
+          WalletActionsBottomSheet.swapButton,
+          { timeout: 10000 },
+        );
+      },
+      {
+        timeout: 45000,
+        description: 'Open wallet actions bottom sheet',
+      },
+    );
   }
 
   async tapTrade(): Promise<void> {
