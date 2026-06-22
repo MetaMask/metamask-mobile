@@ -30,13 +30,29 @@ import {
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
 
-// Staked-token contract addresses that should never surface as regular ERC-20
-// tokens in the wallet token list or balance maps.
-const STAKED_TOKEN_ADDRESSES_TO_FILTER = new Set(
-  ['0x4fef9d741011476750a243ac70b9789a63dd47df'].map((addr) =>
-    toChecksumHexAddress(addr),
-  ),
-);
+// CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
+// vault token that should never surface as regular ERC-20 tokens in the wallet
+// token list or balance maps. Staking is only supported on Ethereum mainnet
+// (eip155:1) and the Hoodi testnet (eip155:560048), where the vault token shares
+// the same address. Scoping by CAIP-19 keeps the filter chain-aware so an
+// identically-addressed token on an unsupported chain is left untouched.
+const STAKED_TOKEN_ASSET_IDS_TO_FILTER = new Set<CaipAssetType>([
+  'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+  'eip155:560048/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+]);
+
+// AssetIds may carry the contract address in any case, so normalize the asset
+// reference to its checksummed form before matching against the filter set.
+const isStakedTokenAssetId = (assetId: string): boolean => {
+  const { chainId, assetNamespace, assetReference } = parseCaipAssetType(
+    assetId as CaipAssetType,
+  );
+  return STAKED_TOKEN_ASSET_IDS_TO_FILTER.has(
+    `${chainId}/${assetNamespace}:${toChecksumHexAddress(
+      assetReference,
+    )}` as CaipAssetType,
+  );
+};
 
 // ChainId (hex) -> AccountAddress (hex checksummed) -> Balance (hex)
 export const getAccountTrackerControllerAccountsByChainId =
@@ -100,15 +116,10 @@ export const getAccountTrackerControllerAccountsByChainId =
               // TODO: Use raw value from state when available
               balance: parseBalanceWithDecimals(amount, metadata.decimals),
             };
-          } else if (
-            metadata &&
-            STAKED_TOKEN_ADDRESSES_TO_FILTER.has(
-              toChecksumHexAddress(assetType.assetReference),
-            )
-          ) {
+          } else if (metadata && isStakedTokenAssetId(assetId)) {
             // Use the ERC-20 balance of the pooled-staking vault token as the
             // stakedBalance for this chain.  The token is filtered from the
-            // regular token list (see STAKED_TOKEN_ADDRESSES_TO_FILTER) and
+            // regular token list (see STAKED_TOKEN_ASSET_IDS_TO_FILTER) and
             // surfaced here so it appears in the Staked Ethereum section on
             // Token Details instead.
             result[hexChainId] ??= {};
@@ -194,7 +205,7 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
         ) as Hex;
         const assetAddress = toChecksumHexAddress(assetType.assetReference);
 
-        if (STAKED_TOKEN_ADDRESSES_TO_FILTER.has(assetAddress)) {
+        if (isStakedTokenAssetId(assetId)) {
           continue;
         }
 
@@ -335,7 +346,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
             : assetType.assetReference,
         ) as Hex;
 
-        if (STAKED_TOKEN_ADDRESSES_TO_FILTER.has(assetAddress)) {
+        if (isStakedTokenAssetId(assetId)) {
           continue;
         }
 
@@ -382,7 +393,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
           assetType.assetReference,
         ) as Hex;
 
-        if (STAKED_TOKEN_ADDRESSES_TO_FILTER.has(assetAddress)) {
+        if (isStakedTokenAssetId(assetId)) {
           continue;
         }
 
