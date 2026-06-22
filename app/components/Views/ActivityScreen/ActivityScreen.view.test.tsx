@@ -8,6 +8,7 @@ import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
 } from '../../../../tests/component-view/renderers/activity';
+import { activityLineaNetworkOverride } from '../../../../tests/component-view/presets/activity';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
