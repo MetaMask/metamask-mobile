@@ -5,21 +5,6 @@ import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
 import { processUnifiedOrder } from './unifiedOrderProcessor';
 
-/** Providers whose orders are not refreshed by `processFiatOrder` (last-known Redux state only). */
-export function supportsFiatOrderPolling(
-  provider: FIAT_ORDER_PROVIDERS,
-): boolean {
-  switch (provider) {
-    case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY:
-    case FIAT_ORDER_PROVIDERS.TRANSAK:
-    case FIAT_ORDER_PROVIDERS.MOONPAY:
-    case FIAT_ORDER_PROVIDERS.DEPOSIT:
-      return false;
-    default:
-      return true;
-  }
-}
-
 function processOrder(
   order: FiatOrder,
   options?: ProcessorOptions,

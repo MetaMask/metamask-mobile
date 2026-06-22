@@ -1,6 +1,5 @@
 import React from 'react';
-import { processFiatOrder } from '../../../index';
-import { act, screen, waitFor } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import DepositOrderDetails from './DepositOrderDetails';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -9,18 +8,11 @@ import {
   FIAT_ORDER_PROVIDERS,
 } from '../../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '../../../types/legacyDeposit';
-import { getOrderById, FiatOrder } from '../../../../../../reducers/fiatOrders';
-import AppConstants from '../../../../../../core/AppConstants';
+import { getOrderById } from '../../../../../../reducers/fiatOrders';
 import { MOCK_DEPOSIT_ORDER, MOCK_US_REGION } from '../../../testUtils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
-const mockDispatch = jest.fn();
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: () => mockDispatch,
-}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -44,27 +36,10 @@ jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
 }));
 
-function mockGetUpdatedOrder(order: FiatOrder) {
-  return {
-    ...order,
-    lastTimeFetched: (order.lastTimeFetched || 0) + 100,
-  };
-}
-
-jest.mock('../../../index', () => ({
-  processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
-    const updatedOrder = mockGetUpdatedOrder(order);
-    if (onSuccess) {
-      onSuccess(updatedOrder);
-    }
-    return Promise.resolve();
-  }),
-}));
-
 describe('DepositOrderDetails Component', () => {
   const mockOrder = {
     id: 'test-order-id-123456',
-    provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+    provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
     createdAt: Date.now(),
     amount: '100',
     currency: 'USD',
@@ -79,9 +54,9 @@ describe('DepositOrderDetails Component', () => {
     data: {
       ...MOCK_DEPOSIT_ORDER,
       id: 'test-deposit-order-1',
-      provider: 'transak',
-      providerOrderId: 'transak_123',
-      providerOrderLink: 'https://transak.com/order/123',
+      provider: 'deposit',
+      providerOrderId: 'deposit_123',
+      providerOrderLink: 'https://example.com/order/123',
       createdAt: Date.now(),
       status: 'COMPLETED',
       timeDescriptionPending: '1-2 days',
@@ -95,14 +70,9 @@ describe('DepositOrderDetails Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getOrderById as jest.Mock).mockReturnValue(mockOrder);
-    (processFiatOrder as jest.Mock).mockResolvedValue(undefined);
   });
 
-  afterEach(() => {
-    (processFiatOrder as jest.Mock).mockClear();
-  });
-
-  it('renders success state correctly', () => {
+  it('renders completed order from persisted state', () => {
     renderWithProvider(<DepositOrderDetails />, {
       state: {
         engine: {
@@ -114,7 +84,7 @@ describe('DepositOrderDetails Component', () => {
     expect(screen.getByText('Total')).toBeOnTheScreen();
   });
 
-  it('renders error state correctly', () => {
+  it('renders failed order from persisted state', () => {
     const errorOrder = { ...mockOrder, state: FIAT_ORDER_STATES.FAILED };
     (getOrderById as jest.Mock).mockReturnValue(errorOrder);
 
@@ -129,9 +99,24 @@ describe('DepositOrderDetails Component', () => {
     expect(screen.getByText('Total')).toBeOnTheScreen();
   });
 
-  it('renders processing state correctly', () => {
+  it('renders pending order from persisted state', () => {
     const processingOrder = { ...mockOrder, state: FIAT_ORDER_STATES.PENDING };
     (getOrderById as jest.Mock).mockReturnValue(processingOrder);
+
+    renderWithProvider(<DepositOrderDetails />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    expect(screen.getByText('Order ID')).toBeOnTheScreen();
+    expect(screen.getByText('Total')).toBeOnTheScreen();
+  });
+
+  it('renders CREATED order from persisted state', () => {
+    const createdOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
+    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
 
     renderWithProvider(<DepositOrderDetails />, {
       state: {
@@ -156,134 +141,5 @@ describe('DepositOrderDetails Component', () => {
     });
     expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
     expect(screen.queryByText('Total')).not.toBeOnTheScreen();
-  });
-
-  it('renders loading state correctly for pollable CREATED orders', () => {
-    const loadingOrder = {
-      ...mockOrder,
-      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-      state: FIAT_ORDER_STATES.CREATED,
-    };
-    (getOrderById as jest.Mock).mockReturnValue(loadingOrder);
-
-    renderWithProvider(<DepositOrderDetails />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
-    expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Total')).not.toBeOnTheScreen();
-  });
-
-  it('renders CREATED legacy DEPOSIT orders without polling', () => {
-    const createdOrder = {
-      ...mockOrder,
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
-      state: FIAT_ORDER_STATES.CREATED,
-    };
-    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
-
-    renderWithProvider(<DepositOrderDetails />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
-
-    expect(screen.getByText('Order ID')).toBeOnTheScreen();
-    expect(processFiatOrder).not.toHaveBeenCalled();
-  });
-
-  it('renders an error screen if a CREATED order cannot be polled on load', async () => {
-    const createdOrder = {
-      ...mockOrder,
-      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-      state: FIAT_ORDER_STATES.CREATED,
-    };
-    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
-    (processFiatOrder as jest.Mock).mockImplementationOnce(() => {
-      throw new Error('Test error message');
-    });
-
-    await waitFor(() => {
-      renderWithProvider(<DepositOrderDetails />, {
-        state: {
-          engine: {
-            backgroundState,
-          },
-        },
-      });
-    });
-
-    expect(
-      screen.getByText('There was an error with your deposit order'),
-    ).toBeOnTheScreen();
-  });
-
-  it('calls handleOnRefresh successfully on mount for pollable CREATED orders', async () => {
-    const createdOrder = {
-      ...mockOrder,
-      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-      state: FIAT_ORDER_STATES.CREATED,
-    };
-    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
-
-    await waitFor(() => {
-      renderWithProvider(<DepositOrderDetails />, {
-        state: {
-          engine: {
-            backgroundState,
-          },
-        },
-      });
-    });
-
-    await waitFor(() => {
-      expect(processFiatOrder).toHaveBeenCalledWith(
-        createdOrder,
-        expect.any(Function),
-        expect.any(Function),
-        { forced: true },
-      );
-    });
-  });
-
-  it('polls pollable CREATED orders using interval', async () => {
-    jest.useFakeTimers();
-    const createdOrder = {
-      ...mockOrder,
-      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-      state: FIAT_ORDER_STATES.CREATED,
-    };
-    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
-
-    const intervalCount = 3;
-
-    await waitFor(() => {
-      renderWithProvider(<DepositOrderDetails />, {
-        state: {
-          engine: {
-            backgroundState,
-          },
-        },
-      });
-    });
-
-    await waitFor(() => {
-      expect(processFiatOrder).toHaveBeenCalledTimes(1);
-    });
-
-    act(() => {
-      jest.advanceTimersByTime(
-        AppConstants.FIAT_ORDERS.POLLING_FREQUENCY * intervalCount,
-      );
-      jest.clearAllTimers();
-      jest.useFakeTimers({ legacyFakeTimers: true });
-    });
-
-    expect(processFiatOrder).toHaveBeenCalledTimes(1 + intervalCount);
   });
 });
