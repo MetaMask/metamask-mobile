@@ -94,8 +94,14 @@ describe('RewardsReferralView', () => {
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task) => {
-        task();
-        return { cancel: jest.fn() };
+        if (task && typeof task === 'function') {
+          task();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
       });
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
