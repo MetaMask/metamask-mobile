@@ -8404,35 +8404,35 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.29.0":
-  version: 0.29.0
-  resolution: "@metamask/design-system-react-native@npm:0.29.0"
+"@metamask/design-system-react-native@npm:^0.30.1":
+  version: 0.30.1
+  resolution: "@metamask/design-system-react-native@npm:0.30.1"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.22.0"
+    "@metamask/design-system-shared": "npm:^0.23.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.5.0
     "@metamask/design-tokens": ^8.2.0
     "@metamask/utils": ^11.11.0
-    lodash: ^4.17.23
+    lodash: ^4.17.21
     react: ">=18.2.0"
     react-native: ">=0.76.0"
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/dd6d4847ccc5fd677a49bd3881439a6776a85cfbd6ea9c4e03eccb0df7427ac56df666f57453ab7ae2c1ce2d3384d1b02d46d49bd0bcf25c848628a638d240a3
+  checksum: 10/a54e29f08ff36f2622d3d819b3933ab4ffdd7f5ece2b90c25f0491518858c1308e52ee4509d22eea7ea870c68c1726b4e4ba0868ad94e1d87e78a9fcabfc2c5e
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.22.0":
-  version: 0.22.0
-  resolution: "@metamask/design-system-shared@npm:0.22.0"
+"@metamask/design-system-shared@npm:^0.23.0":
+  version: 0.23.0
+  resolution: "@metamask/design-system-shared@npm:0.23.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/8d0e6ad002ad6dd248d59b04ce58c4c4fc89cebc7f6d8611ac0cd4dece6630cacd7876e3c31fd3f5f73ee11b08d124de3108c21c2871e4a30bcab06b198aa0db
+  checksum: 10/ca57804206f6219ef81809020b08f807f7400f1d526df8fcaa22dc3f5c2ad901c289ae4773e596e883b2f6af4a1e520f459f7b0f6ae00e8f3c3421b4ff6edfe1
   languageName: node
   linkType: hard
 
@@ -35412,7 +35412,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.29.0"
+    "@metamask/design-system-react-native": "npm:^0.30.1"
     "@metamask/design-system-twrnc-preset": "npm:^0.5.0"
     "@metamask/design-tokens": "npm:^8.5.0"
     "@metamask/earn-controller": "npm:^12.1.0"
