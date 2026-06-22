@@ -4532,6 +4532,7 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "submitted": "Submitted",
+    "queued": "Queued",
     "failed": "Failed",
     "cancelled": "Cancelled",
     "signed": "Pending",

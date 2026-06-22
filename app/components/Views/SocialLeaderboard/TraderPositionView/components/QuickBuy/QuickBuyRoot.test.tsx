@@ -446,7 +446,7 @@ describe('QuickBuyRoot', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('locks the content container height after the first layout', () => {
+  it('applies the measured locked height after the first layout', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -471,7 +471,7 @@ describe('QuickBuyRoot', () => {
     });
   });
 
-  it('keeps the locked height when a later layout reports a different height', () => {
+  it('keeps the initial locked height when a later layout reports a different height', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
