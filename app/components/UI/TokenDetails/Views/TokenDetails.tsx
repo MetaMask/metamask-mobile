@@ -14,7 +14,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Platform,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -161,6 +168,7 @@ const TokenDetails: React.FC<{
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
@@ -187,6 +195,35 @@ const TokenDetails: React.FC<{
   }, [token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+
+  const handleShare = useCallback(() => {
+    if (!caip19AssetId) {
+      return;
+    }
+
+    const url = `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SHARED)
+        .addProperties({
+          chain_id: token.chainId,
+          token_symbol: token.symbol,
+          token_address: token.address,
+        })
+        .build(),
+    );
+
+    // Share only the deep link. iOS renders `url` as a rich link preview;
+    // Android needs the link in `message`.
+    Share.share(Platform.OS === 'ios' ? { url } : { message: url });
+  }, [
+    caip19AssetId,
+    createEventBuilder,
+    token.address,
+    token.chainId,
+    token.symbol,
+    trackEvent,
+  ]);
 
   const isPriceAlertsChainSupported = useIsPriceAlertsChainSupported(
     caip19AssetId,
@@ -368,6 +405,7 @@ const TokenDetails: React.FC<{
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
+        onSharePress={handleShare}
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&

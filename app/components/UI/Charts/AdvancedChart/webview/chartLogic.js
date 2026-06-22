@@ -818,6 +818,31 @@ function generatePaletteShades(hex) {
   return shades;
 }
 
+// ============================================
+// Theme color helpers (series line, last-price overlays, end dot)
+// ============================================
+
+/**
+ * Ambient / series stroke color: line chart, filled last-close pill, line-end dot.
+ * Falls back to successColor when lineColorOverride is unset (ambient feature off).
+ * @param {object} [theme] — defaults to window.CONFIG.theme
+ */
+function getThemeLineColor(theme) {
+  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
+  return t.lineColor || t.successColor;
+}
+
+/**
+ * Custom dashed last-price horizontal_line. Honors currentPriceLineColorOverride when set,
+ * else matches series line / filled pill via {@link getThemeLineColor}.
+ * @param {object} [theme] — defaults to window.CONFIG.theme
+ */
+function getThemeLastPriceLineColor(theme) {
+  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
+  const lineColor = getThemeLineColor(t);
+  return t.currentPriceColor || lineColor;
+}
+
 function getSeriesColorOverrides(color) {
   return {
     'mainSeriesProperties.lineStyle.color': color,
@@ -848,8 +873,7 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  const color =
-    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color = getThemeLineColor();
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     let series = window.chartWidget.activeChart().getSeries();
@@ -895,8 +919,8 @@ function handleSetThemeColors(payload) {
   applySeriesColors();
 
   let chart = window.chartWidget.activeChart();
-  let lineColor = theme.lineColor || theme.successColor;
-  let currentPriceColor = theme.currentPriceColor || lineColor;
+  let lineColor = getThemeLineColor(theme);
+  let lastPriceLineColor = getThemeLastPriceLineColor(theme);
 
   // Update volume study colors if present
   if (window.volumeStudyId) {
@@ -927,7 +951,7 @@ function handleSetThemeColors(payload) {
   if (window.lastPriceShapeId) {
     try {
       chart.getShapeById(window.lastPriceShapeId).setProperties({
-        linecolor: theme.currentPriceColor || theme.successColor,
+        linecolor: lastPriceLineColor,
       });
     } catch (e) {}
   }
@@ -935,7 +959,7 @@ function handleSetThemeColors(payload) {
   if (window.lineLastPriceShapeId) {
     try {
       chart.getShapeById(window.lineLastPriceShapeId).setProperties({
-        linecolor: currentPriceColor,
+        linecolor: lastPriceLineColor,
       });
     } catch (e) {}
   }
@@ -1412,7 +1436,7 @@ function updateVisibleEdgeOutlinePriceLabel() {
 
   const theme = (w.CONFIG && w.CONFIG.theme) || {};
   const upColor = theme.successColor || '#0C9F76';
-  const lineColor = theme.lineColor || upColor;
+  const lineColor = getThemeLineColor(theme) || upColor;
   const downColor = theme.errorColor || '#E06470';
   let outlineColor = ct === 2 ? lineColor : upColor;
   if (ct === 1) {
@@ -2163,8 +2187,7 @@ function handleSetChartType(payload) {
     let ac = window.chartWidget.activeChart();
     ac.setChartType(type);
 
-    const color =
-      window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+    const color = getThemeLineColor();
     let series = ac.getSeries();
     if (type === 2) {
       series.setChartStyleProperties(2, {
@@ -2318,7 +2341,7 @@ function handleSetPositionLines(payload) {
 }
 
 // ============================================
-// Last close: green dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
+// Last close: dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
 // same styles as crosshair labels in AdvancedChartTemplate)
 // ============================================
 window.lastPriceShapeId = null;
@@ -2374,8 +2397,7 @@ function createLastPriceLine() {
 
   let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   let chart = window.chartWidget.activeChart();
-  let color =
-    window.CONFIG.theme.currentPriceColor || window.CONFIG.theme.successColor;
+  let color = getThemeLastPriceLineColor();
   let candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
   let candlePrice =
     candlePt && isFinite(candlePt.price) ? candlePt.price : lastBar.close;
@@ -2460,10 +2482,7 @@ function createLineLastPriceLine() {
 
   let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   let chart = window.chartWidget.activeChart();
-  const color =
-    window.CONFIG.theme.currentPriceColor ||
-    window.CONFIG.theme.lineColor ||
-    window.CONFIG.theme.successColor;
+  const color = getThemeLastPriceLineColor();
   let seriesPt = resolveLineEndOverlayPoint(chart);
   let linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3245,8 +3264,7 @@ function refreshLineEndDot() {
     return;
   }
 
-  const color =
-    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color = getThemeLineColor();
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
@@ -4515,7 +4533,7 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesColorOverrides(theme.lineColor || theme.successColor),
+        getSeriesColorOverrides(getThemeLineColor(theme)),
       ),
 
       loading_screen: {
