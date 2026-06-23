@@ -343,7 +343,8 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
-      IS_SIM_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+      PROFILE: 'development'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
