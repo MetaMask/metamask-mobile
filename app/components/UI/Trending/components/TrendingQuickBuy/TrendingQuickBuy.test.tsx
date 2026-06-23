@@ -33,6 +33,15 @@ jest.mock(
   }),
 );
 
+const mockUseExploreQuickBuyBridgeFeatureId = jest.fn();
+jest.mock(
+  '../../hooks/useExploreQuickBuyBridgeFeatureId/useExploreQuickBuyBridgeFeatureId',
+  () => ({
+    useExploreQuickBuyBridgeFeatureId: (...args: unknown[]) =>
+      mockUseExploreQuickBuyBridgeFeatureId(...args),
+  }),
+);
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const makeToken = (overrides: Partial<TrendingAsset> = {}): TrendingAsset => ({
@@ -54,6 +63,7 @@ describe('TrendingQuickBuy', () => {
   it('renders QuickBuy.Root with isVisible=false when token is null', () => {
     render(<TrendingQuickBuy token={null} onClose={jest.fn()} />);
 
+    expect(mockUseExploreQuickBuyBridgeFeatureId).toHaveBeenCalledWith(false);
     expect(mockQuickBuyRoot).toHaveBeenCalledWith(
       expect.objectContaining({ isVisible: false }),
     );
@@ -62,6 +72,7 @@ describe('TrendingQuickBuy', () => {
   it('renders QuickBuy.Root with isVisible=true when token is provided', () => {
     render(<TrendingQuickBuy token={makeToken()} onClose={jest.fn()} />);
 
+    expect(mockUseExploreQuickBuyBridgeFeatureId).toHaveBeenCalledWith(true);
     expect(mockQuickBuyRoot).toHaveBeenCalledWith(
       expect.objectContaining({ isVisible: true }),
     );
