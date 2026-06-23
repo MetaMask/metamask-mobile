@@ -3,11 +3,21 @@ import { Box } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { PriceChartProvider } from '../../../../UI/AssetOverview/PriceChart/PriceChart.context';
+import { TOKEN_OVERVIEW_CHART_HEIGHT } from '../../../../UI/AssetOverview/Price/tokenOverviewChart.constants';
 import type { TimePeriod } from '../useTraderPositionData';
 import TraderAdvancedChart, {
   type TradeFocusRequest,
 } from './TraderAdvancedChart';
 import TraderPriceChart from './TraderPriceChart';
+
+/**
+ * Position-view chart height: 20% shorter than the Token Details chart so the
+ * fixed top block (token info → chart → period selector → PnL card) stays
+ * compact and leaves room for the scrollable trades list below.
+ */
+const SOCIAL_POSITION_CHART_HEIGHT = Math.round(
+  TOKEN_OVERVIEW_CHART_HEIGHT * 0.8,
+);
 
 export interface TraderPositionChartSectionProps {
   historicalPrices: TokenPrice[];
@@ -59,6 +69,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           isPricesLoading={isPricesLoading}
           onChartIndexChange={onChartIndexChange}
           onScrubPercentChange={onScrubPercentChange}
+          chartHeight={SOCIAL_POSITION_CHART_HEIGHT}
         />
       ) : (
         <TraderPriceChart
@@ -67,6 +78,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           isLoading={isPricesLoading}
           onChartIndexChange={onChartIndexChange}
           trades={trades}
+          chartHeight={SOCIAL_POSITION_CHART_HEIGHT}
         />
       )}
     </Box>

@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -381,17 +381,11 @@ const TraderPositionView = () => {
         <TraderPositionFallback traderId={traderId} traderName={traderName} />
       ) : (
         <>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
-              />
-            }
-          >
+          {/* Fixed top block — token info, chart, period selector and the
+              position PnL card stay pinned; only the trades list below scrolls.
+              `shrink-0` keeps this block at its natural height so the sibling
+              flex-1 ScrollView only consumes the space below it. */}
+          <View style={tw.style('shrink-0')}>
             <TraderTokenInfoRow
               symbol={symbol}
               position={resolvedPosition}
@@ -431,7 +425,21 @@ const TraderPositionView = () => {
               pnlPercent={pnlPercent}
               isPnlPositive={isPnlPositive}
             />
+          </View>
 
+          {/* Scrollable region — the trades list is the only part that scrolls. */}
+          <ScrollView
+            style={tw.style('flex-1')}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('pb-6')}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+              />
+            }
+          >
             <TraderTradesSection
               trades={allTrades}
               traderImageUrl={traderImageUrl}
