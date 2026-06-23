@@ -301,6 +301,24 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+123\.46 mUSD/)).toBeDefined();
     });
 
+    it('renders Money Account icon instead of token icon for mUSD in two-asset hero', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.musdConversion,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '50.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getAllByTestId } = render();
+
+      expect(getAllByTestId('money-account-icon').length).toBeGreaterThan(0);
+    });
+
     it('renders two-asset hero for perpsDeposit with USDC symbol', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
