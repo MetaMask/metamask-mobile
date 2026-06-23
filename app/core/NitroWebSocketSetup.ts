@@ -92,6 +92,10 @@ class NitroWebSocketAdapter {
     error: new Map(),
   };
 
+  // Tracks abort-cleanup handlers keyed by listener so they can be removed from
+  // their AbortSignal when the socket closes (prevents signal holding stale refs).
+  private readonly _abortCleanups: Map<WsListener, () => void> = new Map();
+
   // .onX handlers stored separately so they compose with _listeners.
   private _onopen: WsListener | null = null;
   private _onmessage: WsListener | null = null;
@@ -126,6 +130,11 @@ class NitroWebSocketAdapter {
         code: e.code,
         reason: e.reason,
         wasClean: e.wasClean,
+      });
+      // Release all abort-cleanup refs so signals don't hold the adapter alive.
+      this._abortCleanups.forEach((cleanup, listener) => {
+        cleanup();
+        this._abortCleanups.delete(listener);
       });
     };
 
@@ -201,11 +210,18 @@ class NitroWebSocketAdapter {
     if (map.has(listener)) return; // dedup by identity (matches DOM no-op on repeats)
     map.set(listener, { once });
 
-    // Remove listener when the signal aborts — @nktkas/rews relies on this to
-    // tear down its open/message/close/error listeners.
-    signal?.addEventListener('abort', () => map.delete(listener), {
-      once: true,
-    });
+    if (signal) {
+      // Remove listener when the signal aborts — @nktkas/rews relies on this to
+      // tear down its open/message/close/error listeners.
+      const abortCleanup = () => {
+        map.delete(listener);
+        this._abortCleanups.delete(listener);
+      };
+      this._abortCleanups.set(listener, () =>
+        signal.removeEventListener('abort', abortCleanup),
+      );
+      signal.addEventListener('abort', abortCleanup, { once: true });
+    }
   }
 
   removeEventListener(type: EventType, listener: WsListener): void {
@@ -216,21 +232,39 @@ class NitroWebSocketAdapter {
    * Dispatches to the matching .onX handler and all registered listeners.
    * Called internally by native callbacks and externally by @nktkas/rews
    * (synthetic CloseEvent on connect timeout / close-during-connecting).
+   *
+   * W3C semantics: a throwing listener must not prevent remaining listeners
+   * from running. Exceptions are swallowed after being reported to the global
+   * error handler so the event loop stays intact.
    */
   dispatchEvent(event: WsAnyEvent): boolean {
     const type = event.type as EventType;
 
-    this._onHandlerFor(type)?.(event);
+    const onHandler = this._onHandlerFor(type);
+    if (onHandler) {
+      try {
+        onHandler(event);
+      } catch (e) {
+        // Non-fatal: report but continue dispatching to other listeners.
+        console.error('[NitroWS] Uncaught error in .on handler:', e);
+      }
+    }
 
     const map = this._listeners[type];
     if (map) {
       // Snapshot before iterating: a listener may mutate the map during dispatch.
       for (const [listener, meta] of [...map]) {
         if (meta.once) map.delete(listener);
-        listener(event);
+        try {
+          listener(event);
+        } catch (e) {
+          // Non-fatal: report but continue dispatching to remaining listeners.
+          console.error('[NitroWS] Uncaught error in event listener:', e);
+        }
       }
     }
 
+    // WebSocket events are not cancelable; always true per W3C spec.
     return true;
   }
 
