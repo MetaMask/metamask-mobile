@@ -30,7 +30,10 @@ import {
 import Logger from '../../../../../../util/Logger';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useIsNetworkGasSponsored } from '../../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useGasFeeEstimates } from '../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
@@ -159,6 +162,10 @@ jest.mock('../../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
 
 jest.mock('../../../../confirmations/hooks/gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: jest.fn(),
+}));
+
+jest.mock('../../../../../UI/Bridge/hooks/useIsNetworkGasSponsored', () => ({
+  useIsNetworkGasSponsored: jest.fn(() => false),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -429,6 +436,10 @@ const setupDefaultMocks = () => {
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
+  (useGasFeeEstimates as jest.Mock).mockReturnValue({
+    gasFeeEstimates: undefined,
+  });
+  (useIsNetworkGasSponsored as jest.Mock).mockReturnValue(false);
   (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
     false,
   );
@@ -680,6 +691,120 @@ describe('useQuickBuyController', () => {
       // still formats via Intl as whole yen.
       expect(result.current.fiatAmount).toBe('33.00');
       expect(result.current.fiatAmountLabel).toBe('¥33');
+    });
+  });
+
+  describe('maxSpendFiat (native gas reserve, TSA-605)', () => {
+    // 10 gwei medium maxFeePerGas x 21000 native-transfer gas = 0.00021 ETH.
+    const gasFeeEstimates = { medium: { suggestedMaxFeePerGas: 10 } };
+
+    it('reserves a gas buffer when the pay token is the chain native asset', () => {
+      // Arrange: native ETH source (zero address) with 1 ETH at $2000 and
+      // gas estimates available for the source chain.
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '1',
+        atomicBalance: '1000000000000000000',
+      });
+      (useGasFeeEstimates as jest.Mock).mockReturnValue({ gasFeeEstimates });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken()],
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // Assert: max = (1 - 0.00021) ETH x $2000 = $1999.58, not $2000.
+      expect(result.current.maxSpendFiat).toBeCloseTo(1999.58, 2);
+    });
+
+    it('keeps the full balance for ERC-20 pay tokens', () => {
+      // Arrange: USDC source with 100 USDC at $1 and gas estimates available.
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      (useGasFeeEstimates as jest.Mock).mockReturnValue({ gasFeeEstimates });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [
+          createSourceToken({
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+            decimals: 6,
+            currencyExchangeRate: 1,
+          }),
+        ],
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // Assert: ERC-20 gas is paid from the native balance, so no reserve.
+      expect(result.current.maxSpendFiat).toBe(100);
+    });
+
+    it('clamps the max at zero and disables the slider when the native balance is below the gas buffer', () => {
+      // Arrange: 0.0001 ETH balance, below the 0.00021 ETH gas buffer.
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.0001',
+        atomicBalance: '100000000000000',
+      });
+      (useGasFeeEstimates as jest.Mock).mockReturnValue({ gasFeeEstimates });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken()],
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // Assert
+      expect(result.current.maxSpendFiat).toBe(0);
+      expect(result.current.isSliderDisabled).toBe(true);
+    });
+
+    it('keeps the full native balance when gas estimates are unavailable', () => {
+      // Arrange: native source, but no estimates yet (default mock).
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '1',
+        atomicBalance: '1000000000000000000',
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken()],
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // Assert: falls back to the previous full-balance behavior.
+      expect(result.current.maxSpendFiat).toBe(2000);
+    });
+
+    it('keeps the full native balance on gas-sponsored networks', () => {
+      // Arrange: native source on a network that sponsors gas.
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '1',
+        atomicBalance: '1000000000000000000',
+      });
+      (useGasFeeEstimates as jest.Mock).mockReturnValue({ gasFeeEstimates });
+      (useIsNetworkGasSponsored as jest.Mock).mockReturnValue(true);
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken()],
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // Assert
+      expect(result.current.maxSpendFiat).toBe(2000);
     });
   });
 
