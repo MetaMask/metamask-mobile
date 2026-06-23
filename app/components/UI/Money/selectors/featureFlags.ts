@@ -171,8 +171,8 @@ const normalizeTokenSymbol = (tokenAlias: string): string => {
  *
  * Filters routes where the destination is Monad mUSD, then maps each input
  * (chainId, tokenAlias) to a display symbol, emitting a WildcardTokenList
- * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets and
- * formatBaseStablecoins in depositFaqTokens.ts.
+ * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets in
+ * depositFaqTokens.ts.
  *
  * Falls back to MONEY_NO_FEE_TOKENS_FALLBACK when the flag is absent or
  * structurally invalid, preserving current FAQ behaviour.
