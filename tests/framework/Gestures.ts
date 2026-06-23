@@ -62,7 +62,7 @@ export default class Gestures {
       checkEnabled,
     });
 
-    if (options.delay) {
+    if (options.delay !== undefined) {
       await new Promise((resolve) => setTimeout(resolve, options.delay));
     } else {
       await new Promise((resolve) =>
@@ -105,7 +105,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       waitForElementToDisappear = false,
-      delay = 500,
+      delay = 0,
     } = options;
 
     const fn = () =>
