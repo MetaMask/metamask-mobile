@@ -26,6 +26,7 @@ const buildApproveData = (spender: string, amount: bigint) =>
   `${approveFunctionSignature}${spender
     .replace('0x', '')
     .padStart(64, '0')}${amount.toString(16).padStart(64, '0')}`;
+const maxUint256 = 2n ** 256n - 1n;
 
 const withoutRaw = (item: ReturnType<typeof mapLocalTransaction>) => {
   const activity = { ...item };
@@ -474,6 +475,47 @@ describe('mapLocalTransaction', () => {
           assetId: toAssetId(baseUsdc, 'eip155:8453'),
           decimals: 6,
           direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('marks unlimited approval amounts from transaction calldata', () => {
+    const transaction = {
+      chainId: base,
+      id: 'approve-id',
+      hash: '0xapprove',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, maxUint256),
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'approveSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xapprove',
+      data: {
+        token: {
+          amount: maxUint256.toString(),
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          isUnlimitedApproval: true,
           symbol: 'USDC',
         },
       },

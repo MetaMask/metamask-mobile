@@ -109,7 +109,10 @@ export const createStyles = (
       alignItems: 'center',
     },
     titleSpinner: {
+      height: 18,
+      justifyContent: 'center',
       marginLeft: 6,
+      transform: [{ translateY: -2 }],
     },
     statusRow: {
       flexDirection: 'row',
@@ -122,7 +125,10 @@ export const createStyles = (
       marginTop: 0,
     },
     subtitleLeadingIcon: {
+      height: 16,
+      justifyContent: 'center',
       marginRight: 4,
+      transform: [{ translateY: -1 }],
     },
     statusText: {
       marginTop: 0,

@@ -427,47 +427,23 @@ const CreatePriceAlertView: React.FC = () => {
                 />
               </Box>
 
-              {/* Quick-percentage pickers → hidden once a positive target is set */}
-              {hasValidTarget ? (
-                <Button
-                  variant={ButtonVariant.Primary}
-                  onPress={handleSaveAlert}
-                  isLoading={isSubmitting}
-                  isDisabled={
-                    isSubmitting ||
-                    !hasValidTarget ||
-                    isDuplicateThreshold ||
-                    isUnchanged
-                  }
-                  testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
-                  twClassName="mb-3 w-full"
-                >
-                  {isDuplicateThreshold
-                    ? strings('price_alerts.duplicate_threshold')
-                    : strings(
-                        isEditing
-                          ? 'price_alerts.update_price_alert'
-                          : 'price_alerts.set_price_alert',
-                      )}
-                </Button>
-              ) : (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  twClassName="mb-3 gap-2"
-                >
-                  {PRICE_ALERT_QUICK_PERCENTAGES.map((percentage) => (
-                    <Button
-                      key={percentage}
-                      variant={ButtonVariant.Secondary}
-                      onPress={() => handleQuickPercentagePress(percentage)}
-                      testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
-                      twClassName="flex-1"
-                    >
-                      {strings('price_alerts.quick_percentage', { percentage })}
-                    </Button>
-                  ))}
-                </Box>
-              )}
+              {/* Quick-percentage pickers — always visible */}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="mb-3 gap-2"
+              >
+                {PRICE_ALERT_QUICK_PERCENTAGES.map((percentage) => (
+                  <Button
+                    key={percentage}
+                    variant={ButtonVariant.Secondary}
+                    onPress={() => handleQuickPercentagePress(percentage)}
+                    testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
+                    twClassName="flex-1"
+                  >
+                    {strings('price_alerts.quick_percentage', { percentage })}
+                  </Button>
+                ))}
+              </Box>
 
               {/* "price_alert" is intentionally not in the Keypad CURRENCIES map —
                   unknown codes fall through to the decimals-aware branch in useCurrency,
@@ -478,6 +454,29 @@ const CreatePriceAlertView: React.FC = () => {
                 currency="price_alert"
                 decimals={keypadDecimals}
               />
+
+              {/* Save button — always visible, sits below the keypad */}
+              <Button
+                variant={ButtonVariant.Primary}
+                onPress={handleSaveAlert}
+                isLoading={isSubmitting}
+                isDisabled={
+                  isSubmitting ||
+                  !hasValidTarget ||
+                  isDuplicateThreshold ||
+                  isUnchanged
+                }
+                testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
+                twClassName="mt-3 w-full"
+              >
+                {isDuplicateThreshold
+                  ? strings('price_alerts.duplicate_threshold')
+                  : strings(
+                      isEditing
+                        ? 'price_alerts.update_price_alert'
+                        : 'price_alerts.set_price_alert',
+                    )}
+              </Button>
             </View>
           </>
         ) : (

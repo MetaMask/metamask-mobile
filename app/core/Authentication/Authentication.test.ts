@@ -52,7 +52,7 @@ import {
 import { TraceName, TraceOperation } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -309,7 +309,7 @@ jest.mock('@sentry/react-native', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
-jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../components/UI/Ramp/utils/ProviderTokenVault', () => ({
   resetProviderToken: jest.fn(),
 }));
 

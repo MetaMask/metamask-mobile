@@ -97,30 +97,38 @@ describe('CreatePriceAlertView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows percentage pickers and hides Set button before any input', () => {
-    const { getByTestId, queryByTestId } = renderWithToast();
+  it('shows percentage pickers and Set button before any input', () => {
+    const { getByTestId } = renderWithToast();
 
     expect(
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     ).toBeOnTheScreen();
-    expect(queryByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON)).toBeNull();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
   });
 
-  it('hides percentage pickers and shows Set button once user types a digit', () => {
-    const { getByTestId, queryByTestId } = renderWithToast();
+  it('keeps percentage pickers visible and enables Set button once user types a digit', () => {
+    const { getByTestId } = renderWithToast();
 
     fireEvent.press(getByTestId('keypad-key-1'));
 
     expect(
-      queryByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
-    ).toBeNull();
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
   });
 
-  it('keeps percentage pickers and hides Set button for zero-valued keypad input like "0."', () => {
-    const { getByTestId, getByText, queryByTestId } = renderWithToast();
+  it('keeps percentage pickers visible and Set button disabled for zero-valued keypad input like "0."', () => {
+    const { getByTestId, getByText } = renderWithToast();
 
     fireEvent.press(getByTestId('keypad-key-dot'));
 
@@ -128,10 +136,12 @@ describe('CreatePriceAlertView', () => {
     expect(
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     ).toBeOnTheScreen();
-    expect(queryByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON)).toBeNull();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
   });
 
-  it('shows Set button after a quick-percentage pill is pressed', () => {
+  it('enables Set button after a quick-percentage pill is pressed', () => {
     const { getByTestId } = renderWithToast();
 
     fireEvent.press(
@@ -141,6 +151,9 @@ describe('CreatePriceAlertView', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
   });
 
   it('shows under development message when price change is selected', () => {
@@ -190,7 +203,9 @@ describe('CreatePriceAlertView', () => {
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
-    expect(getByText('5%')).toBeOnTheScreen();
+    expect(getByTestId(CreatePriceAlertTestIds.PERCENT_DIFF)).toHaveTextContent(
+      /5%/,
+    );
     expect(getByText(/above current ETH price/)).toBeOnTheScreen();
   });
 
@@ -413,7 +428,7 @@ describe('CreatePriceAlertView — tiny price token', () => {
     expect(getByText('$0.000000000000011')).toBeOnTheScreen();
   });
 
-  it('quick-percentage pill produces a non-zero value and reveals the Set button', () => {
+  it('quick-percentage pill produces a non-zero value and enables the Set button', () => {
     const { getByTestId } = render(<CreatePriceAlertView />);
 
     fireEvent.press(
@@ -423,6 +438,9 @@ describe('CreatePriceAlertView — tiny price token', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
   });
 
   it('allows manual keypad entry beyond two decimal places for sub-cent tokens', () => {

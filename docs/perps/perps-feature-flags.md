@@ -266,7 +266,7 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 - **Mocks:** `app/components/UI/Perps/mocks/remoteFeatureFlagMocks.ts`
 - **Tests:** `app/components/UI/Perps/selectors/featureFlags/index.test.ts`
 - **Version validation:** `app/util/remoteFeatureFlag/index.ts`
-- **Controller init:** `app/core/Engine/controllers/remote-feature-flag-controller-init.ts`
+- **Controller init:** `app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller.ts` (RFFC instance options) and `app/core/Engine/wallet-init/initialization.ts` (constructed via `@metamask/wallet`)
 - **Configuration service:** `app/controllers/perps/services/FeatureFlagConfigurationService.ts`
 
 ---
