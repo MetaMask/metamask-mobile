@@ -236,6 +236,6 @@ export function setupRampSdkApiMock(): void {
  */
 export function clearRampSdkApiMocks(): void {
   jest.clearAllMocks();
-  resetRampAggregatorSdkForTests();
   clearAllNockMocks();
+  resetRampAggregatorSdkForTests();
 }
