@@ -1195,18 +1195,29 @@ export class RewardsController extends BaseController<
       } else {
         const sortedAccounts = sortAccounts(accounts as InternalAccount[]);
 
+        let bulkOptInStatus: boolean[] | null = null;
         try {
           // Prefer to get opt in status in bulk for sorted accounts.
-          await this.getOptInStatus({
+          const bulkOptInStatusResult = await this.getOptInStatus({
             addresses: sortedAccounts.map((account) => account.address),
           });
+          bulkOptInStatus = bulkOptInStatusResult.ois ?? null;
         } catch {
           // Failed to get opt in status in bulk for sorted accounts, let silent auth do it individually
         }
 
-        // Try silent auth on each account until one succeeds
+        // Try silent auth on each account until one succeeds.
+        // When the bulk opt-in status is available, only attempt silent auth
+        // (which mints a session via mobile-login) for accounts that are
+        // opted in. This avoids spamming mobile-login with guaranteed-401
+        // requests for non-enrolled accounts on every account switch.
         let successAccount: InternalAccount | null = null;
-        for (const account of sortedAccounts) {
+        for (let i = 0; i < sortedAccounts.length; i++) {
+          const account = sortedAccounts[i];
+          if (bulkOptInStatus && bulkOptInStatus[i] === false) {
+            // Known not opted in — skip session mint for this account.
+            continue;
+          }
           try {
             const subscriptionId = await this.performSilentAuth(
               account as InternalAccount,
@@ -1426,8 +1437,17 @@ export class RewardsController extends BaseController<
           });
           return null;
         }
-      } catch {
-        // Continue with silent login attempt
+      } catch (error) {
+        // Opt-in status could not be determined. Treat unknown enrollment as
+        // "do not mint a session": abort silent auth instead of falling
+        // through to mobile-login, which would 401 for non-enrolled accounts
+        // and spam the backend on every account switch.
+        Logger.log(
+          'RewardsController: Failed to determine opt-in status, skipping silent auth',
+          internalAccount.address,
+          error instanceof Error ? error.message : String(error),
+        );
+        return null;
       }
     }
 
