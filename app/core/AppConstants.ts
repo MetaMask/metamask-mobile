@@ -111,6 +111,8 @@ export default {
     URL: 'https://card.metamask.io',
     TRAVEL_URL: 'https://travel.metamask.io/access',
     CARD_TOS_URL: 'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
+    CARD_FEES_URL:
+      'https://support.metamask.io/manage-crypto/metamask-card/limits-and-fees/',
   },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,

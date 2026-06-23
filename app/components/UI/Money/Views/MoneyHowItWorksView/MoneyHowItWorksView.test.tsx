@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
@@ -7,6 +8,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { SCREEN_NAMES } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../core/AppConstants';
 
 const mockTrackScreenViewed = jest.fn();
 
@@ -167,6 +169,32 @@ describe('MoneyHowItWorksView', () => {
     fireEvent.press(firstFaq);
 
     expect(firstFaq).toBeOnTheScreen();
+  });
+
+  it('renders the Risk and Disclosures section', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyHowItWorksView />,
+    );
+
+    expect(
+      getByTestId(MoneyHowItWorksViewTestIds.DISCLOSURES_TITLE),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.how_it_works_page.disclosures_body')),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Card fees breakdown when the fees FAQ link is pressed', () => {
+    const openURLSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_ITEM(4)));
+    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_LINK));
+
+    expect(openURLSpy).toHaveBeenCalledWith(AppConstants.CARD.CARD_FEES_URL);
   });
 
   describe('analytics', () => {
