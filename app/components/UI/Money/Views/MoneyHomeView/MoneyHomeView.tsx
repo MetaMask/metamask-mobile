@@ -84,6 +84,7 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -120,6 +121,8 @@ const MoneyHomeView = () => {
     apyPercent,
   } = useMoneyAccountBalance();
 
+  const refreshMusdFiatRate = useRefreshMusdFiatRate();
+
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
 
@@ -128,13 +131,13 @@ const MoneyHomeView = () => {
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refetchBalance();
+      await Promise.all([refetchBalance(), refreshMusdFiatRate()]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance]);
+  }, [refetchBalance, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =

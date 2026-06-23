@@ -156,7 +156,6 @@ const Routes = {
     ROOT_MODAL_FLOW: 'RootModalFlow',
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
-    WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
