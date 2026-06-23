@@ -62,6 +62,8 @@ const newOverrides = [
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
       'tests/framework/playwrightLogger.ts',
+      'tests/framework/PlaywrightUtilities.ts',
+      'tests/framework/fixtures/FixtureHelper.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',
