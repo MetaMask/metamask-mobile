@@ -1,0 +1,212 @@
+e2e/llm-workflow/index.ts
+  s_08df828263d878::t_130452654a41bf 1-2
+tests/framework/Constants.ts
+  s_e0342e4d5ea2c5::t_b68b8e18a377a6 4
+e2e/llm-workflow/launcher-types.ts
+  s_72adbe528b40cb::t_bc51ae7649bfb4 1-83
+e2e/llm-workflow/ios/metro-watch-attach.ts
+  s_23184eaf32dea2::t_5711117ef732c0 1-22,24-51,53-78,81-82,84-85,87-88,90-94,96-107,109-111,114-120,123-144
+  s_551e63f4bfdd91::t_80346cd97eddcc 79-80,83,86,89,95
+  s_551e63f4bfdd91::t_d004cea449b910 112-113,121-122
+  s_551e63f4bfdd91::t_c57d7f3462a0aa 52
+  s_551e63f4bfdd91::t_ba5b86fd0dcfa5 108
+  s_551e63f4bfdd91::t_352d71ce3963cf 23
+e2e/llm-workflow/metamask-provider.ts
+  s_08df828263d878::t_b4cc0b4e2ccd61 1-743
+e2e/llm-workflow/__tests__/fixture-adapter.test.ts
+  s_6852b1aed346d0::t_2ab38056e4409f 1-174
+e2e/llm-workflow/resolve-repo-root.ts
+  s_72adbe528b40cb::t_ba240ff139f417 1-44
+e2e/llm-workflow/__tests__/mock-server.test.ts
+  s_6852b1aed346d0::t_a3304bf7540417 1-113
+tsconfig.json
+  s_005283f7f23566::t_2f173b68483c34 69-71
+e2e/llm-workflow/capabilities/state-snapshot.ts
+  s_44d55f54bea79d::t_50594c46d6d627 1-75
+e2e/llm-workflow/__tests__/metro-watch-attach.test.ts
+  s_6852b1aed346d0::t_9161c6107cbc90 1-69,71-79,83-164
+  s_551e63f4bfdd91::t_67023ebfb4d872 70,80-82
+.gitignore
+  s_005283f7f23566::t_8f7e15d2238222 228-232
+e2e/llm-workflow/__tests__/factory.test.ts
+  s_6852b1aed346d0::t_ab196f2fd96742 1-143
+e2e/llm-workflow/__tests__/seeding.test.ts
+  s_6852b1aed346d0::t_ca3ba44b46e648 1-174
+e2e/llm-workflow/__tests__/chain.test.ts
+  s_6852b1aed346d0::t_b1556fa8df836f 1-118
+e2e/llm-workflow/__tests__/fixture.test.ts
+  s_6852b1aed346d0::t_df11b3332cf9eb 1-233
+e2e/llm-workflow/__tests__/state-snapshot.test.ts
+  s_6852b1aed346d0::t_dfe9fbf65a9174 1-229
+e2e/llm-workflow/capabilities/fixture.ts
+  s_44d55f54bea79d::t_d3c67a47f23d58 1-142
+e2e/llm-workflow/ios/platform-driver-factory.ts
+  s_23184eaf32dea2::t_e0c45a1a702987 1-125
+e2e/llm-workflow/capabilities/fixture-adapter.ts
+  s_44d55f54bea79d::t_8ac9428fb63fcd 1-71
+e2e/llm-workflow/daemon-entry.cjs
+  s_86557cb47f6b86::t_70b7ed029227c6 9-23,29-32,51,53
+  s_005283f7f23566::t_2ec0dd24083104 1-8,24-28,33-50,52,54-57
+e2e/llm-workflow/utils.ts
+  s_72adbe528b40cb::t_27e121c2d4402c 1-59
+e2e/llm-workflow/capabilities/chain.ts
+  s_44d55f54bea79d::t_444e0dc014b34a 1-67
+e2e/llm-workflow/stubs/react-native.cjs
+  s_005283f7f23566::t_bea7a272a529f6 1-8
+mm-client-cli.config.ts
+  s_005283f7f23566::t_089c53cd18355a 1-6
+e2e/llm-workflow/stubs/react-native-nitro-modules.cjs
+  s_005283f7f23566::t_4a5c45efa82595 1-26
+tests/seeder/anvil-manager.ts
+  s_e0342e4d5ea2c5::t_9d498fdcb9ac39 15-18
+e2e/llm-workflow/capabilities/factory.ts
+  s_44d55f54bea79d::t_951ed91fbc9682 1-95
+e2e/llm-workflow/daemon.ts
+  s_08df828263d878::t_be4c92efa461ab 11-12
+  s_72adbe528b40cb::t_f77afb5e2bb3b5 1-9,13-20,52,65-70,75-77,80-81,83-88,92-96,99-107
+  s_e0342e4d5ea2c5::t_08fc61f4f8ac40 10
+  s_fd143dc45bf4bc::t_bf059411f8dce9 21-51,54-63,71-74,78-79,82,89-91,97-98
+e2e/llm-workflow/README.md
+  s_9c3c08e26ff4ec::t_6989cf789a423e 1-291
+e2e/llm-workflow/__tests__/metamask-provider.test.ts
+  s_6852b1aed346d0::t_09d2554f27cc48 1-940
+jest.config.llm-workflow.js
+  s_6852b1aed346d0::t_ed1997ffac7363 1-19
+e2e/llm-workflow/capabilities/seeding.ts
+  s_44d55f54bea79d::t_6625c8fa18b2f3 1-181
+e2e/llm-workflow/__tests__/daemon.test.ts
+  s_6852b1aed346d0::t_65e94470338d4d 1-105,107-125,127-129,143-148,155,182,194-197,200,202,204-206,208-209
+  s_fd143dc45bf4bc::t_957ab4bb0aa3e6 106,126,130-142,149-154,156-181,183-193,198-199,201,203,207
+e2e/llm-workflow/ios/prerequisites.ts
+  s_23184eaf32dea2::t_8f67f98b4569d7 1-69,71-447
+  s_6c36f3cad14e17::t_7acbcdc6aace0d 70
+  s_6c36f3cad14e17::t_151a172c264fc9 448
+metro.config.js
+  s_97e18dad6b132b::t_0eb035dae0fd6a 97-99,101-105
+  s_005283f7f23566::t_f90fe6e2e13239 100,106-109
+babel.config.tests.js
+  s_6852b1aed346d0::t_cae9c89e97dc35 57-58
+e2e/llm-workflow/__tests__/prerequisites.test.ts
+  s_6852b1aed346d0::t_3bdba7ca4d84db 1-839
+e2e/llm-workflow/capabilities/index.ts
+  s_44d55f54bea79d::t_07df9d5aa62951 1-26
+e2e/llm-workflow/capabilities/mock-server.ts
+  s_44d55f54bea79d::t_32d994197dcdac 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "63e14967983627a22146991caafa95f8a864d1fc",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
+  "sessions": {
+    "s_005283f7f23566": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e39e8f4ffe01enWCUBe411j7",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_08df828263d878": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e2e4e4bffe167dxky843LeIP",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_23184eaf32dea2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e322f8fffeaUvz5h4nHrRxF6",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_44d55f54bea79d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e306d9dffeC16mMqhbu85B4f",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_551e63f4bfdd91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10fa437f0ffef7C3XuFNbkzXXS",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_6852b1aed346d0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e226578ffeYTh8R3DbQ0OL4d",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_6c36f3cad14e17": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10fbc2697ffeUhRlQY1MS6N91i",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_72adbe528b40cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e33990fffeJwFa6gOWzayFRE",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_86557cb47f6b86": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10fe3315affeyo0v1EyMdN7ku9",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_97e18dad6b132b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e3d7369ffe3YCasGPJwHuIgH",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_9c3c08e26ff4ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_12e18df19ffe5I5gEHF7paxxED",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_e0342e4d5ea2c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10bd996d9ffeX7I4e4jk4x9itl",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_fd143dc45bf4bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1103cb05bffeysNiIzBtVCFFBv",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
