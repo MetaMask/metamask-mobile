@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import type { Bip44Account } from '@metamask/account-api';
 import {
   XlmAccountType,
@@ -72,3 +73,4 @@ export class XlmAccountProvider extends SnapAccountProvider {
     return Promise.resolve([]);
   }
 }
+///: END:ONLY_INCLUDE_IF

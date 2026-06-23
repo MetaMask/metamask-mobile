@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { SnapId } from '@metamask/snaps-sdk';
 import { Sender } from '@metamask/keyring-snap-client';
 import { HandlerType } from '@metamask/snaps-utils';
@@ -19,3 +20,4 @@ export class StellarWalletSnapSender implements Sender {
       request,
     })) as Json;
 }
+///: END:ONLY_INCLUDE_IF
