@@ -8,6 +8,7 @@ import {
   asPlaywrightElement,
 } from './EncapsulatedElement.ts';
 import type { ScrollContainer } from './types.ts';
+import { getDriver } from './PlaywrightUtilities.ts';
 
 export type { ScrollContainer, ScrollViewMatcher } from './types.ts';
 
@@ -466,10 +467,42 @@ export class AppiumGestureStrategy implements GestureStrategy {
   async swipe(
     elem: EncapsulatedElementType,
     direction: 'up' | 'down' | 'left' | 'right',
+    opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.swipe({
-      scrollParams: { direction: direction as 'up' | 'down' },
+    const percent = opts?.percentage ?? 0.75;
+
+    if (direction === 'left' || direction === 'right') {
+      await PlaywrightGestures.swipe({
+        scrollParams: { direction },
+        percent,
+      });
+      return;
+    }
+
+    await this.scrollWithinContainer(elem, direction, percent);
+  }
+
+  private async scrollWithinContainer(
+    scrollView: EncapsulatedElementType,
+    swipeDirection: 'up' | 'down' | 'left' | 'right',
+    percent = 0.6,
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) {
+      throw new Error('Driver is not available');
+    }
+
+    const container = await asPlaywrightElement(scrollView);
+    const location = await container.unwrap().getLocation();
+    const size = await container.unwrap().getSize();
+
+    await drv.execute('mobile: scrollGesture', {
+      left: location.x,
+      top: location.y,
+      width: size.width,
+      height: size.height,
+      direction: swipeDirection,
+      percent,
     });
   }
 

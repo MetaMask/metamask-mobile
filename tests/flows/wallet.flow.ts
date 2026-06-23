@@ -36,10 +36,17 @@ import ManualBackupStep1View from '../page-objects/Onboarding/ManualBackupStep1V
 import NetworkListModal from '../page-objects/Network/NetworkListModal';
 import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
-import { waitForAppReady } from './general.flow';
+import {
+  dismissAndroidSystemOverlaysPlaywright,
+  dismissDeveloperMenuPlaywright,
+  waitForAppReady,
+} from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
-import PlaywrightUtilities from '../framework/PlaywrightUtilities';
+import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import PlaywrightUtilities, {
+  withImplicitWait,
+} from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
@@ -473,24 +480,25 @@ export const loginToApp = async (password?: string): Promise<void> => {
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
     try {
-      const btn = await asPlaywrightElement(
-        encapsulated({
-          detox: () =>
-            Matchers.getElementByID(
-              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
-            ),
-          appium: () =>
-            PlaywrightMatchers.getElementById(
-              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
-              { exact: true },
-            ),
-        }),
-      );
-      const isDisplayed = await btn.unwrap().isDisplayed();
-      if (isDisplayed) {
-        await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
-        logger.debug('Dismissed push notification existing user sheet');
-      }
+      await withImplicitWait(500, async () => {
+        const btn = await asPlaywrightElement(
+          encapsulated({
+            detox: () =>
+              Matchers.getElementByID(
+                ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+              ),
+            appium: () =>
+              PlaywrightMatchers.getElementById(
+                ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+                { exact: true },
+              ),
+          }),
+        );
+        if (await btn.unwrap().isDisplayed()) {
+          await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
+          logger.debug('Dismissed push notification existing user sheet');
+        }
+      });
     } catch {
       // Sheet not present — no-op
     }
@@ -515,18 +523,43 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
+  const dismissPostLoginModals = async (): Promise<void> => {
+    await PlaywrightUtilities.wait(500);
+    await dismissPushNotificationExistingUserSheet();
+    await dismissExperienceEnhancerModal();
+  };
+
+  await dismissAndroidSystemOverlaysPlaywright();
+  await waitForAppReady(resolveE2EWaitTimeoutMs(30_000));
+  await dismissDeveloperMenuPlaywright();
+  await dismissAndroidSystemOverlaysPlaywright();
+
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(WalletView.container),
+      {
+        description: 'Wallet already visible — skip password unlock',
+        timeout: 3_000,
+      },
+    );
+    await dismissPostLoginModals();
+    return;
+  } catch {
+    // Login screen expected — continue below.
+  }
+
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.container),
     {
       description: 'Login view container',
-      timeout: 45_000,
+      timeout: resolveE2EWaitTimeoutMs(30_000),
     },
   );
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.passwordInput),
     {
       description: 'Login password input',
-      timeout: 15_000,
+      timeout: resolveE2EWaitTimeoutMs(10_000),
     },
   );
 
@@ -535,9 +568,15 @@ export const loginToAppPlaywright = async (
   await LoginView.enterPassword(password ?? '');
   await LoginView.tapLoginButton();
 
-  await PlaywrightUtilities.wait(5000);
-  await dismissPushNotificationExistingUserSheet();
-  await dismissExperienceEnhancerModal();
+  await dismissPostLoginModals();
+
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    {
+      description: 'Wallet should be visible after login',
+      timeout: resolveE2EWaitTimeoutMs(30_000),
+    },
+  );
 };
 
 /**

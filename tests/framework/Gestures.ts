@@ -588,7 +588,7 @@ export default class Gestures {
    */
   static async scrollToElement(
     targetElement: DetoxElement | EncapsulatedElementType,
-    scrollableContainer: ScrollContainer,
+    scrollableContainer?: ScrollContainer,
     options: ScrollOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
