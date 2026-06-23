@@ -58,6 +58,7 @@ jest.mock('../../store', () => ({
         },
       },
     })),
+    subscribe: jest.fn(),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
