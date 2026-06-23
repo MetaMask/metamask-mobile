@@ -13,6 +13,10 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EncapsulatedElementType } from '../../framework';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import WalletView from './WalletView';
 
 class NetworkManager {
   /**
@@ -164,9 +168,28 @@ class NetworkManager {
    * Tap the network by name
    */
   async tapNetwork(caipChainId: CaipChainId) {
-    const elem = this.getNetworkByCaipChainId(caipChainId);
-    await Gestures.waitAndTap(elem, {
-      elemDescription: `NetworkManager - tapping network: ${caipChainId}`,
+    await encapsulatedAction({
+      detox: async () => {
+        const elem = this.getNetworkByCaipChainId(caipChainId);
+        await Gestures.waitAndTap(elem, {
+          elemDescription: `NetworkManager - tapping network: ${caipChainId}`,
+        });
+      },
+      appium: async () => {
+        const notSelected = await asPlaywrightElement(
+          this.getNotSelectedNetworkByCaipChainId(caipChainId),
+        );
+        try {
+          await notSelected.waitForDisplayed({ timeout: 3_000 });
+          await PlaywrightGestures.tap(notSelected);
+          return;
+        } catch {
+          const selected = await asPlaywrightElement(
+            this.getSelectedNetworkByCaipChainId(caipChainId),
+          );
+          await PlaywrightGestures.tap(selected);
+        }
+      },
     });
   }
 
@@ -205,12 +228,19 @@ class NetworkManager {
    * so that the network filter control bar becomes accessible.
    */
   async navigateToTokensFullView(): Promise<void> {
-    const tokensSectionHeader = Matchers.getElementByText(
-      WalletViewSelectorsText.TOKENS_SECTION,
-    );
-    await Gestures.waitAndTap(tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'Tokens Section Header (navigate to full view)',
+    await encapsulatedAction({
+      detox: async () => {
+        const tokensSectionHeader = Matchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        );
+        await Gestures.waitAndTap(tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'Tokens Section Header (navigate to full view)',
+        });
+      },
+      appium: async () => {
+        await WalletView.tapOnTokensSection();
+      },
     });
   }
 

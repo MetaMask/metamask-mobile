@@ -104,15 +104,28 @@ const ensureSingleBrowserTabView = async (): Promise<void> => {
     openedTabsHeader,
     2000,
   );
-  if (isInTabListView) {
-    const firstTab = Matchers.getElementByID(
-      BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
-      0,
-    );
+  if (!isInTabListView) {
+    return;
+  }
+
+  const firstTab = Matchers.getElementByID(
+    BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
+    0,
+  );
+  const hasExistingTab = await Utilities.isElementVisible(firstTab, 2000);
+  if (hasExistingTab) {
     await Gestures.waitAndTap(firstTab, {
       elemDescription: 'First browser tab (select to open single-tab view)',
     });
+    return;
   }
+
+  const addNewTab = Matchers.getElementByID(
+    BrowserViewSelectorsIDs.ADD_NEW_TAB,
+  );
+  await Gestures.waitAndTap(addNewTab, {
+    elemDescription: 'Add new browser tab from empty tabs view',
+  });
 };
 
 export const navigateToBrowserView = async (): Promise<void> => {

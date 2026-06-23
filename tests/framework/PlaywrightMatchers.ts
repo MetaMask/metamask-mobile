@@ -77,8 +77,16 @@ export default class PlaywrightMatchers {
       if (!drv) throw new Error('Driver is not available');
       if (options.index !== undefined) {
         const elements = await drv.$$(locator);
-        return wrapElement(
-          elements[options.index] as unknown as ChainablePromiseElement,
+        if (elements.length > options.index) {
+          return wrapElement(
+            elements[options.index] as unknown as ChainablePromiseElement,
+          );
+        }
+        if (options.index === 0) {
+          return wrapElement(await drv.$(locator));
+        }
+        throw new Error(
+          'An element could not be located on the page using the given search parameters.',
         );
       }
       const element = await drv.$(locator);
@@ -105,8 +113,16 @@ export default class PlaywrightMatchers {
     if (!drv) throw new Error('Driver is not available');
     if (options.index !== undefined) {
       const elements = await drv.$$(locator);
-      return wrapElement(
-        elements[options.index] as unknown as ChainablePromiseElement,
+      if (elements.length > options.index) {
+        return wrapElement(
+          elements[options.index] as unknown as ChainablePromiseElement,
+        );
+      }
+      if (options.index === 0) {
+        return wrapElement(await drv.$(locator));
+      }
+      throw new Error(
+        'An element could not be located on the page using the given search parameters.',
       );
     }
     const element = await drv.$(locator);

@@ -1032,9 +1032,16 @@ class WalletView {
   }
 
   async tapOnNewTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'New Tokens Section',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'New Tokens Section',
+        });
+      },
+      appium: async () => {
+        await this.tapOnTokensSection();
+      },
     });
   }
 
