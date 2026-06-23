@@ -5,6 +5,7 @@ import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
+import Logger from '../../../../util/Logger';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -67,9 +68,17 @@ export function useHwConnectionMonitoring({
   const handledErrorRef = useRef<unknown>(null);
   const baselineStateRef = useRef<typeof connectionState | null>(null);
   const prevWaitingRef = useRef(false);
+  // Debounce buffer: Ledger transports briefly report Disconnected during
+  // multi-tx signing (e.g. a BLE blip right after a retry reconnect). We wait
+  // out the blip instead of interrupting the batch with a spurious disconnect.
+  const disconnectDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const latestConnectionStatusRef = useRef(connectionState.status);
 
   useEffect(() => {
     const isWaiting = currentStatus === HardwareWalletsSwapsStatus.Waiting;
+    latestConnectionStatusRef.current = connectionState.status;
 
     if (isWaiting && !prevWaitingRef.current) {
       baselineStateRef.current = connectionState;
@@ -77,7 +86,13 @@ export function useHwConnectionMonitoring({
     }
     prevWaitingRef.current = isWaiting;
 
-    if (!isEnabled || !isWaiting) return;
+    if (!isEnabled || !isWaiting) {
+      if (disconnectDebounceRef.current) {
+        clearTimeout(disconnectDebounceRef.current);
+        disconnectDebounceRef.current = null;
+      }
+      return;
+    }
 
     if (
       baselineStateRef.current &&
@@ -98,13 +113,47 @@ export function useHwConnectionMonitoring({
         return;
       }
       if (handledErrorRef.current === ConnectionStatus.Disconnected) return;
-      handledErrorRef.current = ConnectionStatus.Disconnected;
-      dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.DeviceDisconnected,
-        }),
-      );
+      // Debounce: only surface the disconnect if it persists. A transient
+      // Ledger blip during multi-tx signing (common on a retry reconnect)
+      // would otherwise interrupt the batch before the FeeTransfer signs.
+      if (!disconnectDebounceRef.current) {
+        disconnectDebounceRef.current = setTimeout(() => {
+          disconnectDebounceRef.current = null;
+          if (
+            latestConnectionStatusRef.current !==
+            ConnectionStatus.Disconnected
+          ) {
+            return;
+          }
+          if (
+            handledErrorRef.current === ConnectionStatus.Disconnected
+          ) {
+            return;
+          }
+          handledErrorRef.current = ConnectionStatus.Disconnected;
+          Logger.log(
+            '[HW-SendBundle] monitoring → dispatching DeviceDisconnected (debounced)',
+            {
+              connectionStatus: latestConnectionStatusRef.current,
+              hasActiveSigning,
+              handledErrorBefore: handledErrorRef.current,
+            },
+          );
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+            }),
+          );
+        }, 1000);
+      }
       return;
+    }
+
+    // Recovered (or other non-Disconnected state): cancel any pending
+    // debounced disconnect so a transient blip is not surfaced.
+    if (disconnectDebounceRef.current) {
+      clearTimeout(disconnectDebounceRef.current);
+      disconnectDebounceRef.current = null;
     }
 
     if (connectionState.status !== ConnectionStatus.ErrorState) {
@@ -146,10 +195,25 @@ export function useHwConnectionMonitoring({
     handledErrorRef.current = error;
   }, [connectionState, currentStatus, hasActiveSigning, isEnabled, dispatch]);
 
+  // Clear any pending debounced disconnect fire on unmount.
+  useEffect(
+    () => () => {
+      if (disconnectDebounceRef.current) {
+        clearTimeout(disconnectDebounceRef.current);
+        disconnectDebounceRef.current = null;
+      }
+    },
+    [],
+  );
+
   /** Clears deduplication and baseline refs so a retry can observe the same error again. */
   const resetHandledError = useCallback(() => {
     handledErrorRef.current = null;
     baselineStateRef.current = null;
+    if (disconnectDebounceRef.current) {
+      clearTimeout(disconnectDebounceRef.current);
+      disconnectDebounceRef.current = null;
+    }
   }, []);
 
   return { resetHandledError };

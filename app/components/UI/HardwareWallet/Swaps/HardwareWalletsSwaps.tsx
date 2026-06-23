@@ -1,13 +1,10 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useEffect, useLayoutEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -23,286 +20,114 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { ScrollView, StyleSheet } from 'react-native';
-import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
+import { ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import genericHardwareWalletRiveFile from '../../../../animations/generic_hardware_wallet.riv';
 import {
-  resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
   selectSourceAmount,
   selectSourceToken,
-  updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
 import {
-  HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
-  HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStepStatus,
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
-import type {
-  QuoteMetadata,
-  QuoteResponse,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
-import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { useHwBatchSignTracker } from './useHwBatchSignTracker';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
-
-import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
-import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { StepRow } from './StepRow';
+import { HwSwapAnimation } from './HwSwapAnimation';
+import { resolveFlowStrategy } from './flowStrategy';
+import { useHwSwapLifecycle } from './useHwSwapLifecycle';
 
-interface SubmissionParams {
-  quoteResponse: QuoteResponse & QuoteMetadata;
-  location?: MetaMetricsSwapsEventSource;
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-}
-
-const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
-const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
-const styles = StyleSheet.create({
-  riveAnimation: {
-    height: 112,
-    width: 112,
-  },
-});
-
-const HardwareWalletRiveTrigger = {
-  Reset: 'reset',
-  WalletLocked: 'wallet_locked',
-  WalletDisconnected: 'wallet_disconnected',
-  Error: 'error',
-  Found: 'found',
-  NotFound: 'not_found',
-} as const;
-
-const STATUS_TO_RIVE_TRIGGER: Record<string, string> = {
-  [HardwareWalletsSwapsStatus.Submitted]: HardwareWalletRiveTrigger.Found,
-  [HardwareWalletsSwapsStatus.Rejected]: HardwareWalletRiveTrigger.Error,
-  [HardwareWalletsSwapsStatus.Failed]: HardwareWalletRiveTrigger.Error,
-  [HardwareWalletsSwapsStatus.Disconnected]:
-    HardwareWalletRiveTrigger.WalletDisconnected,
-  [HardwareWalletsSwapsStatus.Cancelled]:
-    HardwareWalletRiveTrigger.WalletDisconnected,
-  [HardwareWalletsSwapsStatus.Idle]: HardwareWalletRiveTrigger.NotFound,
-};
-
-/**
- * Determines the appropriate Rive animation trigger based on the current
- * swap flow state. Terminal statuses map to dedicated triggers; otherwise
- * the active step's status is inspected to choose between wallet-locked
- * (signing in progress) and reset (idle/awaiting input).
- *
- * @param progress - The current hardware wallet swap flow state.
- * @returns The Rive state-machine trigger string to fire.
- */
-function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
-  // Terminal/known statuses have a direct 1:1 mapping to a Rive trigger.
-  const mapped = STATUS_TO_RIVE_TRIGGER[progress.status];
-  if (mapped) return mapped;
-
-  // For non-terminal statuses, choose the animation based on the current step.
-  // Signing → wallet-locked; anything else (e.g. between steps) → reset.
-  const activeStep = progress.steps[progress.currentStep];
-  return activeStep?.status === HardwareWalletsSwapsStepStatus.Signing
-    ? HardwareWalletRiveTrigger.WalletLocked
-    : HardwareWalletRiveTrigger.Reset;
-}
+// Re-export so existing imports from './HardwareWalletsSwaps' keep working.
+export type { SubmissionParams } from './flowStrategy';
 
 export function HardwareWalletsSwaps() {
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
   const tw = useTailwind();
-  const riveRef = useRef<RiveRef>(null);
-  const [isRivePlaying, setIsRivePlaying] = useState(false);
+  const navigation = useNavigation();
   const progress = useSelector(selectHardwareWalletsSwaps);
-  const progressRef = useRef(progress);
-  useEffect(() => {
-    progressRef.current = progress;
-  });
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
-  const walletAddress = useSelector(selectSourceWalletAddress);
-  const submissionGenerationRef = useRef(0);
-  const retryGenerationRef = useRef(0);
-  const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
-    fromAddress: walletAddress ?? undefined,
-    isEnabled: Boolean(walletAddress),
-    retryGenerationRef,
-  });
+  const bridgedWalletAddress = useSelector(selectSourceWalletAddress);
 
-  const { resetHandledError } = useHwConnectionMonitoring({
-    isEnabled: Boolean(walletAddress),
-    currentStatus: progress.status,
-    hasActiveSigning: Boolean(confirmationTxId),
-  });
+  // Resolve the bridge-vs-send fork once — see flowStrategy.ts.
+  // Bridge is the default and stays byte-identical to pre-send behavior.
+  const { params: routeParams } =
+    useRoute<RouteProp<RootStackParamList, 'HardwareWalletsSwaps'>>();
+  const strategy = useMemo(
+    () =>
+      resolveFlowStrategy({
+        routeParams,
+        bridgedWalletAddress: bridgedWalletAddress ?? undefined,
+        sourceAmount: sourceAmount ?? undefined,
+        sourceToken: sourceToken ?? undefined,
+      }),
+    [routeParams, bridgedWalletAddress, sourceAmount, sourceToken],
+  );
 
-  const { isQrHardwareWallet, showInlineQrSigning, pendingScanRequest } =
-    useHwQrState({
-      isEnabled: Boolean(walletAddress),
-      currentStatus: progress.status,
-    });
+  const {
+    connectionState,
+    setForceHideBottomSheet,
+    ensureDeviceReady,
+    setPendingOperationAddress,
+  } = useHardwareWallet();
 
-  const { connectionState, setForceHideBottomSheet } = useHardwareWallet();
-
-  // Show the provider's bottom sheet during connection phases (device
-  // selection, connecting, awaiting app) so the user can pick their Ledger.
-  // Suppress it only during AwaitingConfirmation — this screen renders its
-  // own signing progress UI (StepRow list), so the shared "confirm on
-  // device" modal is redundant during the signing phase.
-  useEffect(() => {
+  // useLayoutEffect: must flush forceHideBottomSheet=false before the
+  // initial-submit useEffect calls ensureDeviceReady. With a regular
+  // useEffect the state update doesn't propagate in the same batch, so the
+  // provider still sees the stale hidden value and the connection bottom
+  // sheet never shows on the first mount.
+  useLayoutEffect(() => {
     setForceHideBottomSheet?.(
       connectionState.status === ConnectionStatus.AwaitingConfirmation,
     );
   }, [connectionState.status, setForceHideBottomSheet]);
 
   // Restore the sheet on unmount so other flows see it.
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       setForceHideBottomSheet?.(false);
-    }, [setForceHideBottomSheet]);
-
-  const { submitBridgeTx } = useSubmitBridgeTx();
-  const { params: routeParams } = useRoute();
-  const routeSubmissionParams = useMemo(
-    () =>
-      (routeParams as { submissionParams?: SubmissionParams })
-        ?.submissionParams ?? null,
-    [routeParams],
+    },
+    [setForceHideBottomSheet],
   );
-  const cachedSubmissionParams = useRef<SubmissionParams | null>(
-    routeSubmissionParams,
-  );
-  useEffect(() => {
-    if (routeSubmissionParams && !cachedSubmissionParams.current) {
-      cachedSubmissionParams.current = routeSubmissionParams;
-    }
-  }, [routeSubmissionParams]);
-  const toastRef = useContext(ToastContext)?.toastRef;
-  const hasAutoNavigatedRef = useRef(false);
-  const hasInitialSubmissionRef = useRef(false);
-  const retryInProgressRef = useRef(false);
-  const [isRetrying, setIsRetrying] = useState(false);
 
-  const navigateToTransactions = useCallback(() => {
-    if (hasAutoNavigatedRef.current) return;
-    hasAutoNavigatedRef.current = true;
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ToastIconName.Check,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('bridge.hardware_wallet_progress.submitted_title'),
-        },
-      ],
+  // Set the pending operation address synchronously on mount so the provider
+  // can derive the wallet type (Ledger vs QR) BEFORE the initial-submit
+  // useEffect calls ensureDeviceReady. Same timing rationale as the
+  // forceHideBottomSheet useLayoutEffect above.
+  useLayoutEffect(() => {
+    if (!strategy.walletAddress) return;
+    setPendingOperationAddress?.(strategy.walletAddress);
+    return () => {
+      setPendingOperationAddress?.(null);
+    };
+  }, [strategy.walletAddress, setPendingOperationAddress]);
+
+  const { isQrHardwareWallet, showInlineQrSigning, pendingScanRequest } =
+    useHwQrState({
+      isEnabled: Boolean(strategy.walletAddress),
+      currentStatus: progress.status,
     });
-    dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [dispatch, navigation, toastRef]);
 
-  useEffect(() => {
-    if (!isRivePlaying) {
-      return;
-    }
-
-    const trigger = getHardwareWalletRiveTrigger(progress);
-    riveRef.current?.fireState(HARDWARE_WALLET_RIVE_STATE_MACHINE, trigger);
-  }, [progress, isRivePlaying]);
-
-  const allStepsSigned = useMemo(
-    () =>
-      progress.steps.length > 0 &&
-      progress.steps.every(
-        (step) => step.status === HardwareWalletsSwapsStepStatus.Signed,
-      ),
-    [progress.steps],
-  );
-
-  useEffect(() => {
-    // ── Flow termination ──────────────────────────────────────────────
-    // All device signing steps are complete AND a submission was started.
-    // This fires exactly once (guarded by hasAutoNavigatedRef) to show the
-    // success toast, reset hardware-wallet-swaps state, and navigate to the
-    // activity / transactions view. This is where the swaps signing flow ends.
-    // ──────────────────────────────────────────────────────────────────
-    if (!allStepsSigned) return;
-    if (hasAutoNavigatedRef.current) return;
-    if (!hasInitialSubmissionRef.current) return;
-    navigateToTransactions();
-  }, [allStepsSigned, navigateToTransactions]);
-
-  const submitBridgeTxRef = useRef(submitBridgeTx);
-  submitBridgeTxRef.current = submitBridgeTx;
-
-  const submitWithDeviceReady = useCallback(async () => {
-    if (!cachedSubmissionParams.current || !walletAddress) {
-      dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.TransactionFailed,
-        }),
-      );
-      return;
-    }
-
-    // Stale-submission guard: capture the current generation before submitting.
-    // If a retry is triggered while this submission is in-flight, the generation
-    // counter is bumped (see retrySubmission). On error, we check whether our
-    // generation is still current — if not, a newer submission has already taken
-    // over and we must not dispatch a TransactionFailed
-    const myGeneration = submissionGenerationRef.current;
-    try {
-      await submitBridgeTxRef.current(cachedSubmissionParams.current);
-    } catch (error) {
-      if (submissionGenerationRef.current !== myGeneration) {
-        return;
-      }
-      const currentProgress = progressRef.current;
-      // We can't use isSigning here because it would skip transaction failed when it isn't signing.
-      // 1. Early throw — submitBridgeTx fails before signing starts (step status still Waiting, overall status Waiting).
-      // 2. Post-signing throw — all steps signed (status Submitted, step status Signed), then broadcast fails.
-      if (
-        currentProgress.status === HardwareWalletsSwapsStatus.Waiting ||
-        currentProgress.status === HardwareWalletsSwapsStatus.Submitted
-      ) {
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: HardwareWalletsSwapsEventType.TransactionFailed,
-          }),
-        );
-      }
-    }
-  }, [dispatch, walletAddress]);
-
-  useEffect(() => {
-    if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
-    if (hasInitialSubmissionRef.current) return;
-    if (hasAutoNavigatedRef.current) return;
-    if (!cachedSubmissionParams.current) {
-      dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.TransactionFailed,
-        }),
-      );
-      return;
-    }
-
-    hasInitialSubmissionRef.current = true;
-    submitWithDeviceReady();
-  }, [progress.currentStep, progress.status, dispatch, submitWithDeviceReady]);
+  // ── Flow state machine (initial submit, retry, cancel, done) ──────
+  const {
+    isRetrying,
+    handleCancel,
+    handleTryAgain,
+    handleReconnect,
+    handleDone,
+  } = useHwSwapLifecycle({
+    strategy,
+    connectionState,
+    ensureDeviceReady,
+    setPendingOperationAddress,
+  });
 
   const isSigning = useMemo(() => {
     if (
@@ -339,78 +164,6 @@ export function HardwareWalletsSwaps() {
         return null;
     }
   }, [progress.status, signingTitle]);
-
-  const handleCancel = useCallback(() => {
-    cancelCurrentBatch();
-    cachedSubmissionParams.current = null;
-    dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
-  }, [dispatch, navigation, cancelCurrentBatch]);
-
-  const retrySubmission = useCallback(
-    async (checkConnection: boolean) => {
-      if (retryInProgressRef.current) return;
-      if (!cachedSubmissionParams.current) {
-        dispatch(resetHardwareWalletsSwaps());
-        navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
-        return;
-      }
-      retryInProgressRef.current = true;
-      setIsRetrying(true);
-      hasAutoNavigatedRef.current = false;
-
-      try {
-        retryGenerationRef.current += 1;
-        await cancelCurrentBatch();
-
-        if (checkConnection) {
-          const canRetry =
-            connectionState.status === ConnectionStatus.Connected ||
-            connectionState.status === ConnectionStatus.Ready ||
-            connectionState.status === ConnectionStatus.AwaitingConfirmation ||
-            connectionState.status === ConnectionStatus.ErrorState;
-
-          if (!canRetry) return;
-        }
-
-        submissionGenerationRef.current += 1;
-        resetHandledError();
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: HardwareWalletsSwapsEventType.Retry,
-          }),
-        );
-        await submitWithDeviceReady();
-      } finally {
-        retryInProgressRef.current = false;
-        setIsRetrying(false);
-      }
-    },
-    [
-      dispatch,
-      navigation,
-      cancelCurrentBatch,
-      submitWithDeviceReady,
-      connectionState.status,
-      resetHandledError,
-    ],
-  );
-
-  const handleTryAgain = useCallback(
-    () => retrySubmission(false),
-    [retrySubmission],
-  );
-
-  const handleReconnect = useCallback(
-    () => retrySubmission(true),
-    [retrySubmission],
-  );
-
-  const handleDone = useCallback(() => {
-    cachedSubmissionParams.current = null;
-    dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [dispatch, navigation]);
 
   const handleHeaderClose =
     progress.status === HardwareWalletsSwapsStatus.Submitted
@@ -449,24 +202,7 @@ export function HardwareWalletsSwaps() {
         contentContainerStyle={tw`px-4 pb-4`}
         showsVerticalScrollIndicator={false}
       >
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="h-32"
-        >
-          <Rive
-            ref={riveRef}
-            testID={HardwareWalletsSwapsSelectorsIDs.RIVE_ANIMATION}
-            source={genericHardwareWalletRiveFile}
-            artboardName={HARDWARE_WALLET_RIVE_ARTBOARD}
-            stateMachineName={HARDWARE_WALLET_RIVE_STATE_MACHINE}
-            autoplay
-            fit={Fit.Contain}
-            alignment={Alignment.Center}
-            style={styles.riveAnimation}
-            onPlay={() => setIsRivePlaying(true)}
-          />
-        </Box>
+        <HwSwapAnimation progress={progress} />
 
         <Text
           testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
@@ -483,8 +219,8 @@ export function HardwareWalletsSwaps() {
               step={step}
               index={index}
               isLast={index === progress.steps.length - 1}
-              amount={sourceAmount}
-              tokenSymbol={sourceToken?.symbol}
+              amount={strategy.displayedAmount}
+              tokenSymbol={strategy.displayedTokenSymbol}
               isQrWallet={
                 isQrHardwareWallet &&
                 step.status === HardwareWalletsSwapsStepStatus.Signing

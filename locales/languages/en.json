@@ -7912,7 +7912,9 @@
       "done": "Done",
       "scan_next_qr_code": "Scan next QR code",
       "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
-      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet"
+      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}"
     },
     "price_impact_info_title": "Price impact",
     "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",

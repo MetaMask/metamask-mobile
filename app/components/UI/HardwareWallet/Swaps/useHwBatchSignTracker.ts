@@ -25,6 +25,7 @@ import { isValidHexAddress } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
+import { Flow } from './flowStrategy';
 
 const HARDWARE_WALLET_OPERATION_TRANSACTION: HardwareWalletOperationType =
   'transaction';
@@ -44,6 +45,14 @@ const TRADE_TYPES: Set<TransactionType> = new Set([
 const ALL_BATCH_TYPES: Set<TransactionType> = new Set([
   ...APPROVAL_TYPES,
   ...TRADE_TYPES,
+]);
+
+// Send-mode tracked types (flow === 'send'). Fungible-only.
+const SEND_TYPES: Set<TransactionType> = new Set([
+  TransactionType.simpleSend,
+  TransactionType.tokenMethodTransfer,
+  // FeeTransfer (gas payment) is typed `gasPayment` by useGasFeeToken.
+  TransactionType.gasPayment,
 ]);
 
 const NON_TERMINAL_CANCEL_STATUSES: ReadonlySet<TransactionStatus> = new Set([
@@ -75,11 +84,12 @@ const TX_STATUS_UPDATED_EVENT =
 const CANCEL_TERMINAL_WAIT_TIMEOUT_MS = 30_000;
 const DEVICE_NOT_READY_RETRY_DELAY_MS = 1_000;
 
-/** Type guard: true when the tx type is a hardware-wallet batch approval or trade. */
+/** Type guard: true when the tx type belongs to the given tracked-types set. */
 function isBatchTransactionType(
   txType: TransactionMeta['type'],
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): txType is TransactionType {
-  return Boolean(txType && ALL_BATCH_TYPES.has(txType));
+  return Boolean(txType && trackedTypes.has(txType));
 }
 
 /**
@@ -97,23 +107,41 @@ function normalizeAddress(address: string | undefined): string | undefined {
 }
 
 /**
- * Determines whether a transaction belongs to the active hardware wallet and is
- * part of a swap/bridge batch — same `from` (case-normalized) and a batch tx type.
+ * True when a tx belongs to the active hardware wallet and is part of a
+ * tracked batch (same `from`, tracked type).
  */
 function matchesTx(
   transactionMeta: TransactionMeta,
   targetFrom: string,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): boolean {
   const normalizedFrom = normalizeAddress(transactionMeta.txParams.from);
   if (normalizedFrom !== targetFrom) return false;
-  return isBatchTransactionType(transactionMeta.type);
+  return isBatchTransactionType(transactionMeta.type, trackedTypes);
 }
 
-/** Maps a batch transaction type to its swap-flow step kind (approval vs. transaction). */
+/** Maps a batch type to its swap-flow step kind (approval vs. transaction). Bridge-only. */
 function getStepKind(txType: TransactionType): HardwareWalletsSwapsStepKind {
   return APPROVAL_TYPES.has(txType)
     ? HardwareWalletsSwapsStepKind.Approval
     : HardwareWalletsSwapsStepKind.Transaction;
+}
+
+/**
+ * Send-mode step-kind resolver: a Sendbundle's two txs share one type, so
+ * distinguish by `txParams.to === gasTokenAddress` → FeeTransfer, else Transaction.
+ */
+function getSendStepKind(
+  transactionMeta: TransactionMeta,
+  normalizedGasTokenAddress: string | undefined,
+): HardwareWalletsSwapsStepKind {
+  if (normalizedGasTokenAddress) {
+    const normalizedTo = normalizeAddress(transactionMeta.txParams.to);
+    if (normalizedTo && normalizedTo === normalizedGasTokenAddress) {
+      return HardwareWalletsSwapsStepKind.FeeTransfer;
+    }
+  }
+  return HardwareWalletsSwapsStepKind.Transaction;
 }
 
 /** Returns all transactions currently held by the TransactionController. */
@@ -171,6 +199,7 @@ function hasSignedTrackedBatchFromAddress(
   batchId: string,
   address: string,
   pendingSignTxIds: ReadonlySet<string>,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): boolean {
   const normalizedAddress = normalizeAddress(address);
   if (!normalizedAddress) return false;
@@ -178,7 +207,7 @@ function hasSignedTrackedBatchFromAddress(
     (tx) =>
       pendingSignTxIds.has(tx.id) &&
       tx.batchId === batchId &&
-      matchesTx(tx, normalizedAddress) &&
+      matchesTx(tx, normalizedAddress, trackedTypes) &&
       isPostSignBatchTransaction(tx),
   );
 }
@@ -193,6 +222,7 @@ function getCancellableBatchTxIds(
   address: string | undefined,
   pendingSignTxIds: Iterable<string>,
   relatedBatchIds: ReadonlySet<string>,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): string[] {
   const pendingSignTxIdList = [...pendingSignTxIds];
   const normalizedAddress = normalizeAddress(address);
@@ -201,7 +231,7 @@ function getCancellableBatchTxIds(
       ? getTransactions()
           .filter(
             (tx: TransactionMeta) =>
-              matchesTx(tx, normalizedAddress) &&
+              matchesTx(tx, normalizedAddress, trackedTypes) &&
               isPendingBatchTransaction(tx) &&
               Boolean(tx.batchId && relatedBatchIds.has(tx.batchId)),
           )
@@ -251,15 +281,33 @@ function rejectPendingBatchApprovals({
   address,
   relatedBatchIds,
   relatedApprovalIds,
+  ignoredApprovalIds,
+  ignoreUnbatchedTransactionApprovals,
+  trackedTypes = ALL_BATCH_TYPES,
 }: {
   address: string | undefined;
   relatedBatchIds: ReadonlySet<string>;
   relatedApprovalIds: ReadonlySet<string>;
+  ignoredApprovalIds?: ReadonlySet<string>;
+  ignoreUnbatchedTransactionApprovals?: boolean;
+  trackedTypes?: Set<TransactionType>;
 }): boolean {
   const pendingApprovals = getPendingApprovals();
   let hadPendingApprovals = false;
 
   for (const [requestId, request] of Object.entries(pendingApprovals)) {
+    if (ignoredApprovalIds?.has(requestId)) {
+      continue;
+    }
+
+    if (
+      ignoreUnbatchedTransactionApprovals &&
+      request.type === ApprovalType.Transaction &&
+      !getTransactionById(requestId)?.batchId
+    ) {
+      continue;
+    }
+
     if (
       !shouldRejectPendingApprovalOnCancel(
         requestId,
@@ -267,6 +315,7 @@ function rejectPendingBatchApprovals({
         address,
         relatedBatchIds,
         relatedApprovalIds,
+        trackedTypes,
       )
     ) {
       continue;
@@ -290,12 +339,13 @@ function rejectPendingBatchApprovals({
 function getFailedBatchTxChainIds(
   address: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): Set<NonNullable<TransactionMeta['chainId']>> {
   const normalizedAddress = normalizeAddress(address);
   const failedBatchTxs = normalizedAddress
     ? getTransactions().filter(
         (tx: TransactionMeta) =>
-          matchesTx(tx, normalizedAddress) &&
+          matchesTx(tx, normalizedAddress, trackedTypes) &&
           Boolean(tx.batchId && relatedBatchIds.has(tx.batchId)) &&
           isFailedOrRejectedBatchTransaction(tx),
       )
@@ -318,11 +368,16 @@ function getFailedBatchTxChainIds(
 function wipeFailedBatchTransactions(
   address: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): void {
   if (!address) return;
   if (relatedBatchIds.size === 0) return;
 
-  for (const chainId of getFailedBatchTxChainIds(address, relatedBatchIds)) {
+  for (const chainId of getFailedBatchTxChainIds(
+    address,
+    relatedBatchIds,
+    trackedTypes,
+  )) {
     try {
       Engine.controllerMessenger.call(
         'TransactionController:wipeTransactions',
@@ -481,6 +536,7 @@ function shouldRejectPendingApprovalOnCancel(
   targetFrom: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
   relatedApprovalIds: ReadonlySet<string>,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): boolean {
   if (!targetFrom) {
     return false;
@@ -492,7 +548,7 @@ function shouldRejectPendingApprovalOnCancel(
 
   if (request.type === ApprovalType.Transaction) {
     const txMeta = getTransactionById(requestId);
-    if (!txMeta || !matchesTx(txMeta, targetFrom)) {
+    if (!txMeta || !matchesTx(txMeta, targetFrom, trackedTypes)) {
       return false;
     }
 
@@ -522,10 +578,11 @@ function shouldRejectPendingApprovalOnCancel(
 function hasMatchingBatchTransaction(
   batchId: string,
   targetFrom: string,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): boolean {
   return getTransactions().some(
     (tx: TransactionMeta) =>
-      tx.batchId === batchId && matchesTx(tx, targetFrom),
+      tx.batchId === batchId && matchesTx(tx, targetFrom, trackedTypes),
   );
 }
 
@@ -550,12 +607,13 @@ function hasAnyBatchTransaction(batchId: string): boolean {
 function getApprovedBatchTransactionIds(
   batchId: string,
   targetFrom: string,
+  trackedTypes: Set<TransactionType> = ALL_BATCH_TYPES,
 ): string[] {
   return getTransactions()
     .filter(
       (tx: TransactionMeta) =>
         tx.batchId === batchId &&
-        matchesTx(tx, targetFrom) &&
+        matchesTx(tx, targetFrom, trackedTypes) &&
         tx.status === TransactionStatus.approved,
     )
     .map((tx: TransactionMeta) => tx.id);
@@ -566,6 +624,14 @@ interface UseHwBatchSignTrackerOptions {
   fromAddress: string | undefined;
   isEnabled: boolean;
   retryGenerationRef?: React.RefObject<number>;
+  /** Signing-session origin. `Flow.Send` activates send-mode; defaults to `Flow.Bridge`. */
+  flow?: Flow;
+  /** Sendbundle only: gas-fee-token address for the `FeeTransfer` step. */
+  gasTokenAddress?: string;
+  /** Send only: original confirmation approval consumed by submit, not by the tracker. */
+  deferredApprovalRequestId?: string;
+  /** Sendbundle only: number of child txs expected in the TransactionBatch approval. */
+  expectedBatchTransactionCount?: number;
 }
 
 interface HwBatchSignTrackerState {
@@ -579,6 +645,7 @@ interface HwBatchSignTrackerState {
   approvalQueue: string[];
   handledTxIds: Set<string>;
   signingDispatchedTxIds: Set<string>;
+  sendTransactionStepIndexes: Map<string, number>;
   isProcessingQueue: boolean;
   isCancellingBatch: boolean;
   batchGeneration: number;
@@ -587,6 +654,10 @@ interface HwBatchSignTrackerState {
 
 interface HwBatchSignTrackerLatestValues {
   fromAddress: string | undefined;
+  /** Active tracked-types set; read by `cancelCurrentBatch` (outside the effect). */
+  trackedTypes: Set<TransactionType>;
+  /** Case-normalized gas-token address for send-mode; undefined in bridge mode. */
+  normalizedGasTokenAddress: string | undefined;
   dispatch: ReturnType<typeof useDispatch>;
   trackEvent: ReturnType<typeof useAnalytics>['trackEvent'];
   createEventBuilder: ReturnType<typeof useAnalytics>['createEventBuilder'];
@@ -603,6 +674,9 @@ interface HwBatchSignTrackerLatestValues {
   showHardwareWalletError: ReturnType<
     typeof useHardwareWallet
   >['showHardwareWalletError'];
+  isSendMode: boolean;
+  deferredApprovalRequestId?: string;
+  expectedBatchTransactionCount?: number;
 }
 
 /**
@@ -623,6 +697,7 @@ function createInitialBatchSignTrackerState(
     approvalQueue: [],
     handledTxIds: new Set(),
     signingDispatchedTxIds: new Set(),
+    sendTransactionStepIndexes: new Map(),
     isProcessingQueue: false,
     isCancellingBatch: false,
     batchGeneration: 0,
@@ -653,7 +728,19 @@ export function useHwBatchSignTracker({
   fromAddress,
   isEnabled,
   retryGenerationRef,
+  flow = Flow.Bridge,
+  gasTokenAddress,
+  deferredApprovalRequestId,
+  expectedBatchTransactionCount,
 }: UseHwBatchSignTrackerOptions) {
+  // SEND-MODE ISOLATION: send-mode activates ONLY when flow===Flow.Send.
+  // Bridge callers pass no flow → bridge branches stay byte-identical. DO NOT "simplify" this gate.
+  const SEND_MODE = flow === Flow.Send;
+  const trackedTypes: Set<TransactionType> = SEND_MODE
+    ? SEND_TYPES
+    : ALL_BATCH_TYPES;
+  const normalizedGasTokenAddress = normalizeAddress(gasTokenAddress);
+
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const {
@@ -665,6 +752,8 @@ export function useHwBatchSignTracker({
   } = useHardwareWallet();
   const latestValuesRef = useRef<HwBatchSignTrackerLatestValues>({
     fromAddress,
+    trackedTypes,
+    normalizedGasTokenAddress,
     dispatch,
     trackEvent,
     createEventBuilder,
@@ -673,9 +762,14 @@ export function useHwBatchSignTracker({
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
+    isSendMode: SEND_MODE,
+    deferredApprovalRequestId,
+    expectedBatchTransactionCount,
   });
   latestValuesRef.current = {
     fromAddress,
+    trackedTypes,
+    normalizedGasTokenAddress,
     dispatch,
     trackEvent,
     createEventBuilder,
@@ -684,6 +778,9 @@ export function useHwBatchSignTracker({
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
+    isSendMode: SEND_MODE,
+    deferredApprovalRequestId,
+    expectedBatchTransactionCount,
   };
   const trackerStateRef = useRef(
     createInitialBatchSignTrackerState(retryGenerationRef?.current),
@@ -708,6 +805,7 @@ export function useHwBatchSignTracker({
     trackerState.pendingSignTxIds = new Set();
     trackerState.handledTxIds = new Set();
     trackerState.signingDispatchedTxIds = new Set();
+    trackerState.sendTransactionStepIndexes = new Map();
     trackerState.batchGeneration += 1;
 
     for (const id of trackerState.seenBatchIds) {
@@ -800,6 +898,7 @@ export function useHwBatchSignTracker({
     const lifecycleKey = trackerLifecycleKeyRef.current;
     const cancelPromise = (async () => {
       const trackerState = trackerStateRef.current;
+      const { trackedTypes: cancelTrackedTypes } = latestValuesRef.current;
       const address = normalizeAddress(latestValuesRef.current.fromAddress);
       const relatedBatchIds = getRelatedBatchIds(
         trackerState.currentBatchId,
@@ -810,6 +909,7 @@ export function useHwBatchSignTracker({
         address,
         trackerState.pendingSignTxIds,
         relatedBatchIds,
+        cancelTrackedTypes,
       );
 
       const relatedApprovalIds = new Set([
@@ -826,23 +926,21 @@ export function useHwBatchSignTracker({
           address,
           relatedBatchIds,
           relatedApprovalIds,
+          ignoredApprovalIds: latestValuesRef.current.deferredApprovalRequestId
+            ? new Set([latestValuesRef.current.deferredApprovalRequestId])
+            : undefined,
+          ignoreUnbatchedTransactionApprovals:
+            latestValuesRef.current.isSendMode,
+          trackedTypes: cancelTrackedTypes,
         })
       ) {
         trackTransactionCancelledEvent();
       }
 
-      // Wipe chains with rejected/failed bridge txs so their nonces don't block retry
-      // batches. We can't rely on txIds (already cleared by failure handler),
-      // so scan all TransactionController transactions for failed/rejected bridge
-      // txs from this address. If we leave these metas in TransactionController
-      // state holding nonces N and N+1, TransactionController may assign nonces
-      // N+2 and N+3 to the retry batch, creating a nonce gap that STX's
-      // simulator rejects with would_revert.
-      //
-      // TransactionController only exposes a typed chain/address-scoped wipe
-      // action, not a single-transaction delete action. Skip missing chain IDs
-      // rather than widening to every chain for the address.
-      wipeFailedBatchTransactions(address, relatedBatchIds);
+      // Wipe chains with rejected/failed tracked txs so their held nonces
+      // don't create gaps that cause STX's simulator to reject the retry
+      // batch with would_revert.trackedTypes covers send too.
+      wipeFailedBatchTransactions(address, relatedBatchIds, cancelTrackedTypes);
 
       if (outstandingTxIds.length === 0) {
         return;
@@ -909,6 +1007,75 @@ export function useHwBatchSignTracker({
     }
 
     const targetFrom = trackerLifecycleKey;
+    // Active-flow tracked-types + step-kind resolver (bridge falls back to type-based).
+    const effectTrackedTypes = trackedTypes;
+    const effectGasTokenAddress = normalizedGasTokenAddress;
+    const effectExpectedBatchTransactionCount = SEND_MODE
+      ? expectedBatchTransactionCount
+      : undefined;
+    const resolveStepKind = (
+      transactionMeta: TransactionMeta,
+      txType: TransactionType,
+    ): HardwareWalletsSwapsStepKind => {
+      if (!SEND_MODE) return getStepKind(txType);
+      // The deferred confirmation tx is the send (Transaction).
+      if (
+        deferredApprovalRequestId &&
+        transactionMeta.id === deferredApprovalRequestId
+      ) {
+        return HardwareWalletsSwapsStepKind.Transaction;
+      }
+      // The FeeTransfer (gas payment) is typed `gasPayment` (see
+      // useGasFeeToken), while the Send is a send type
+      // (tokenMethodTransfer/simpleSend). Type reliably distinguishes them even
+      // when the Send transfers the gas token itself (same `to`), where address
+      // comparison fails. Without this, the retry batch's Send (fresh id) was
+      // misclassified as FeeTransfer, leaving the Transaction step unsigned and
+      // blocking success navigation.
+      if (txType === TransactionType.gasPayment) {
+        return HardwareWalletsSwapsStepKind.FeeTransfer;
+      }
+      return HardwareWalletsSwapsStepKind.Transaction;
+    };
+    const resolveStepIndex = (
+      transactionMeta: TransactionMeta,
+      stepKind: HardwareWalletsSwapsStepKind,
+    ): number | undefined => {
+      if (!SEND_MODE || !effectExpectedBatchTransactionCount) {
+        return undefined;
+      }
+
+      if (stepKind === HardwareWalletsSwapsStepKind.FeeTransfer) {
+        // FeeTransfer is the last step — device signs the send tx first.
+        return effectExpectedBatchTransactionCount - 1;
+      }
+
+      if (stepKind !== HardwareWalletsSwapsStepKind.Transaction) {
+        return undefined;
+      }
+
+      const trackerState = trackerStateRef.current;
+      const existingIndex = trackerState.sendTransactionStepIndexes.get(
+        transactionMeta.id,
+      );
+      if (existingIndex !== undefined) {
+        return existingIndex;
+      }
+
+      // Transaction steps fill from index 0 upward; FeeTransfer takes the last slot.
+      const nextIndex = trackerState.sendTransactionStepIndexes.size;
+      if (nextIndex >= effectExpectedBatchTransactionCount - 1) {
+        return undefined;
+      }
+
+      trackerState.sendTransactionStepIndexes.set(transactionMeta.id, nextIndex);
+      return nextIndex;
+    };
+    const buildStepPayload = (
+      stepKind: HardwareWalletsSwapsStepKind,
+      stepIndex?: number,
+    ) =>
+      stepIndex === undefined ? { stepKind } : { stepKind, stepIndex };
     const scheduleDeferredApprovalQueueRetry = () => {
       clearDeferredApprovalQueueRetry();
       const lifecycleKey = trackerLifecycleKeyRef.current;
@@ -976,6 +1143,7 @@ export function useHwBatchSignTracker({
                     batchId,
                     targetFrom,
                     trackerState.pendingSignTxIds,
+                    effectTrackedTypes,
                   )),
             );
             if (isLateSignedBatchRejection) {
@@ -1000,6 +1168,11 @@ export function useHwBatchSignTracker({
 
           try {
             const latestValues = latestValuesRef.current;
+            Logger.log('[HW-SendBundle] dispatching signing', {
+              requestId,
+              pendingSignTxIds: [...trackerState.pendingSignTxIds],
+              fromAddress: latestValues.fromAddress ?? targetFrom,
+            });
             const result = await executeHardwareWalletOperation({
               address: latestValues.fromAddress ?? targetFrom,
               operationType: HARDWARE_WALLET_OPERATION_TRANSACTION,
@@ -1104,8 +1277,20 @@ export function useHwBatchSignTracker({
     const enqueuePendingApprovals = () => {
       detectAndApplyRetryGeneration();
       const pendingApprovals = getPendingApprovals();
+      Logger.log('[HW-SendBundle] enqueuePendingApprovals', {
+        total: Object.keys(pendingApprovals).length,
+        approvals: Object.entries(pendingApprovals).map(([id, req]) => ({
+          id,
+          type: (req as { type?: string }).type,
+          isDeferred: id === deferredApprovalRequestId,
+        })),
+      });
 
       for (const [requestId, request] of Object.entries(pendingApprovals)) {
+        if (requestId === deferredApprovalRequestId) {
+          continue;
+        }
+
         const trackerState = trackerStateRef.current;
         if (trackerState.acceptedApprovalIds.has(requestId)) {
           continue;
@@ -1115,9 +1300,12 @@ export function useHwBatchSignTracker({
           const txMeta = getTransactions().find(
             (tx: TransactionMeta) => tx.id === requestId,
           );
+          if (SEND_MODE && !txMeta?.batchId) {
+            continue;
+          }
           if (
             txMeta &&
-            matchesTx(txMeta, targetFrom) &&
+            matchesTx(txMeta, targetFrom, effectTrackedTypes) &&
             isTransactionFromCurrentBatch(txMeta)
           ) {
             trackerState.acceptedApprovalIds.add(requestId);
@@ -1128,13 +1316,51 @@ export function useHwBatchSignTracker({
           }
         } else if (
           request.type === ApprovalType.TransactionBatch &&
-          isBatchIdFromCurrentBatch(requestId) &&
-          (hasMatchingBatchTransaction(requestId, targetFrom) ||
-            !hasAnyBatchTransaction(requestId))
+          isBatchIdFromCurrentBatch(requestId)
         ) {
+          const hasMatchingTransactions = hasMatchingBatchTransaction(
+            requestId,
+            targetFrom,
+            effectTrackedTypes,
+          );
+          const approvedBatchTransactionIds = getApprovedBatchTransactionIds(
+            requestId,
+            targetFrom,
+            effectTrackedTypes,
+          );
+          const expectedApprovedTransactionCount =
+            SEND_MODE && expectedBatchTransactionCount
+              ? expectedBatchTransactionCount
+              : 1;
+          Logger.log('[HW-SendBundle] batch gate', {
+            batchId: requestId,
+            isSendMode: SEND_MODE,
+            approvedCount: approvedBatchTransactionIds.length,
+            expected: expectedApprovedTransactionCount,
+            hasMatching: hasMatchingTransactions,
+            hasAnyBatch: hasAnyBatchTransaction(requestId),
+            children: getTransactions()
+              .filter((t) => t.batchId === requestId)
+              .map((t) => ({
+                id: t.id,
+                type: t.type,
+                status: t.status,
+                from: t.txParams?.from,
+                to: t.txParams?.to,
+              })),
+          });
+          if (
+            (SEND_MODE &&
+              approvedBatchTransactionIds.length <
+                expectedApprovedTransactionCount) ||
+            (!hasMatchingTransactions && hasAnyBatchTransaction(requestId))
+          ) {
+            continue;
+          }
+
           trackerState.acceptedApprovalIds.add(requestId);
-          getApprovedBatchTransactionIds(requestId, targetFrom).forEach(
-            (txId) => trackerState.pendingSignTxIds.add(txId),
+          approvedBatchTransactionIds.forEach((txId) =>
+            trackerState.pendingSignTxIds.add(txId),
           );
           trackerState.approvalQueue.push(requestId);
         }
@@ -1165,6 +1391,14 @@ export function useHwBatchSignTracker({
       return pendingApprovals[batchId]?.type === ApprovalType.TransactionBatch;
     };
 
+    const shouldIgnoreUnbatchedSendTx = (
+      transactionMeta: TransactionMeta,
+    ): boolean =>
+      SEND_MODE &&
+      !transactionMeta.batchId &&
+      Boolean(effectGasTokenAddress) &&
+      transactionMeta.id !== deferredApprovalRequestId;
+
     const shouldAcceptRetryApprovalForStaleBatch = (
       transactionMeta: TransactionMeta,
     ): boolean =>
@@ -1182,7 +1416,9 @@ export function useHwBatchSignTracker({
     };
 
     const shouldIgnoreTerminalTx = (transactionMeta: TransactionMeta) => {
-      if (!matchesTx(transactionMeta, targetFrom)) return true;
+      if (!matchesTx(transactionMeta, targetFrom, effectTrackedTypes))
+        return true;
+      if (shouldIgnoreUnbatchedSendTx(transactionMeta)) return true;
 
       // If a retry bumped the batch generation, only terminal events from the
       // previous generation's batches should be ignored. A new batch can hit a
@@ -1213,7 +1449,8 @@ export function useHwBatchSignTracker({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (!matchesTx(transactionMeta, targetFrom)) return;
+      if (!matchesTx(transactionMeta, targetFrom, effectTrackedTypes)) return;
+      if (shouldIgnoreUnbatchedSendTx(transactionMeta)) return;
 
       // detectAndApplyRetryGeneration() may invalidate state (resetting currentBatchId and
       // marking the previous batch ids as stale). Combined with the stale-batch
@@ -1232,11 +1469,31 @@ export function useHwBatchSignTracker({
       }
 
       const { status, type } = transactionMeta;
-      if (!isBatchTransactionType(type)) return;
-      const stepKind = getStepKind(type);
+      if (!isBatchTransactionType(type, effectTrackedTypes)) return;
+      const stepKind = resolveStepKind(transactionMeta, type);
 
       if (status === TransactionStatus.approved) {
-        if (!isTransactionFromCurrentBatch(transactionMeta)) {
+        Logger.log('[HW-SendBundle] tx approved', {
+          txId: transactionMeta.id,
+          type,
+          to: transactionMeta.txParams.to,
+          batchId: transactionMeta.batchId,
+          stepKind,
+          isDeferred: transactionMeta.id === deferredApprovalRequestId,
+          isFromCurrentBatch: isTransactionFromCurrentBatch(transactionMeta),
+          alreadyDispatched: trackerStateRef.current.signingDispatchedTxIds.has(transactionMeta.id),
+          currentBatchId: trackerStateRef.current.currentBatchId,
+        });
+        // Allow the deferred approval's tx through even without a batchId —
+        // the primary send tx may not have its batchId assigned yet when it
+        // first transitions to approved, but it IS part of the current batch.
+        if (
+          !isTransactionFromCurrentBatch(transactionMeta) &&
+          !(
+            SEND_MODE &&
+            transactionMeta.id === deferredApprovalRequestId
+          )
+        ) {
           return;
         }
         if (
@@ -1257,9 +1514,16 @@ export function useHwBatchSignTracker({
         trackerStateRef.current.signingDispatchedTxIds.add(transactionMeta.id);
         trackerStateRef.current.pendingSignTxIds.add(transactionMeta.id);
         setConfirmationTxId(transactionMeta.id);
+        const stepIndex = resolveStepIndex(transactionMeta, stepKind);
         dispatchSwapEvent({
           type: HardwareWalletsSwapsEventType.Signing,
-          payload: { stepKind },
+          payload: buildStepPayload(stepKind, stepIndex),
+        });
+        Logger.log('[HW-SendBundle] dispatched Signing', {
+          txId: transactionMeta.id,
+          stepKind,
+          stepIndex,
+          batchId: transactionMeta.batchId,
         });
         enqueuePendingApprovals();
       } else if (status === TransactionStatus.signed) {
@@ -1269,9 +1533,16 @@ export function useHwBatchSignTracker({
         if (transactionMeta.batchId) {
           trackerStateRef.current.signedBatchIds.add(transactionMeta.batchId);
         }
+        const stepIndex = resolveStepIndex(transactionMeta, stepKind);
         dispatchSwapEvent({
           type: HardwareWalletsSwapsEventType.Signed,
-          payload: { stepKind },
+          payload: buildStepPayload(stepKind, stepIndex),
+        });
+        Logger.log('[HW-SendBundle] dispatched Signed', {
+          txId: transactionMeta.id,
+          stepKind,
+          stepIndex,
+          batchId: transactionMeta.batchId,
         });
         completeTrackedTx(transactionMeta.id);
       } else if (status === TransactionStatus.confirmed) {
@@ -1284,9 +1555,10 @@ export function useHwBatchSignTracker({
           return;
         }
         trackTransactionCancelledEvent();
+        const stepIndex = resolveStepIndex(transactionMeta, stepKind);
         dispatchSwapEvent({
           type: HardwareWalletsSwapsEventType.Rejected,
-          payload: { stepKind },
+          payload: buildStepPayload(stepKind, stepIndex),
         });
         completeTrackedTx(transactionMeta.id);
       }
@@ -1297,15 +1569,17 @@ export function useHwBatchSignTracker({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
+      if (shouldIgnoreUnbatchedSendTx(transactionMeta)) return;
       if (shouldIgnoreTerminalTx(transactionMeta)) return;
 
       const { type } = transactionMeta;
-      if (!isBatchTransactionType(type)) return;
-      const stepKind = getStepKind(type);
+      if (!isBatchTransactionType(type, effectTrackedTypes)) return;
+      const stepKind = resolveStepKind(transactionMeta, type);
+      const stepIndex = resolveStepIndex(transactionMeta, stepKind);
       trackTransactionCancelledEvent();
       dispatchSwapEvent({
         type: HardwareWalletsSwapsEventType.Rejected,
-        payload: { stepKind },
+        payload: buildStepPayload(stepKind, stepIndex),
       });
       completeTrackedTx(transactionMeta.id);
     };
@@ -1315,6 +1589,7 @@ export function useHwBatchSignTracker({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
+      if (shouldIgnoreUnbatchedSendTx(transactionMeta)) return;
       if (shouldIgnoreTerminalTx(transactionMeta)) return;
 
       dispatchSwapEvent({
@@ -1369,9 +1644,14 @@ export function useHwBatchSignTracker({
     isCancelledError,
     isEnabled,
     isTransactionFromCurrentBatch,
+    normalizedGasTokenAddress,
     retryGenerationRef,
+    SEND_MODE,
     syncConfirmationTxId,
     trackTransactionCancelledEvent,
+    trackedTypes,
+    deferredApprovalRequestId,
+    expectedBatchTransactionCount,
   ]);
 
   return { cancelCurrentBatch, confirmationTxId };

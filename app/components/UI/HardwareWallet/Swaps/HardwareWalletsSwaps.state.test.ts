@@ -8,7 +8,96 @@ import {
   initialHardwareWalletsSwapsState,
   buildStartPayload,
 } from './HardwareWalletsSwaps.state';
+import { Flow } from './flowStrategy';
 import type { TxData } from '@metamask/bridge-controller';
+
+type StartEvent = Extract<
+  HardwareWalletsSwapsEvent,
+  { type: HardwareWalletsSwapsEventType.Start }
+>;
+
+const SENDBUNDLE_START: StartEvent = {
+  type: HardwareWalletsSwapsEventType.Start,
+  payload: {
+    totalSteps: 2,
+    flow: Flow.Send,
+    gasTokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+    recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+  },
+};
+
+const signing = (
+  stepKind: HardwareWalletsSwapsStepKind,
+): HardwareWalletsSwapsEvent => ({
+  type: HardwareWalletsSwapsEventType.Signing,
+  payload: { stepKind },
+});
+
+const signedEv = (
+  stepKind: HardwareWalletsSwapsStepKind,
+): HardwareWalletsSwapsEvent => ({
+  type: HardwareWalletsSwapsEventType.Signed,
+  payload: { stepKind },
+});
+
+const signingAt = (
+  stepKind: HardwareWalletsSwapsStepKind,
+  stepIndex: number,
+): HardwareWalletsSwapsEvent => ({
+  type: HardwareWalletsSwapsEventType.Signing,
+  payload: { stepKind, stepIndex },
+});
+
+const signedAt = (
+  stepKind: HardwareWalletsSwapsStepKind,
+  stepIndex: number,
+): HardwareWalletsSwapsEvent => ({
+  type: HardwareWalletsSwapsEventType.Signed,
+  payload: { stepKind, stepIndex },
+});
+
+const rejectedEv = (
+  stepKind: HardwareWalletsSwapsStepKind,
+): HardwareWalletsSwapsEvent => ({
+  type: HardwareWalletsSwapsEventType.Rejected,
+  payload: { stepKind },
+});
+
+const { Approval, FeeTransfer, Transaction } = HardwareWalletsSwapsStepKind;
+const Waiting = HardwareWalletsSwapsStepStatus.Waiting;
+
+// Shared shape-checker for buildSteps tests: dispatches the given Start
+// event and asserts the resulting steps match the expected list.
+function expectStartBuildsSteps(
+  startPayload: StartEvent['payload'],
+  expectedSteps: { kind: HardwareWalletsSwapsStepKind; address?: string }[],
+) {
+  const result = hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+    type: HardwareWalletsSwapsEventType.Start,
+    payload: startPayload,
+  });
+  expect(result.totalSteps).toBe(expectedSteps.length);
+  expect(result.currentStep).toBe(0);
+  expect(result.status).toBe(HardwareWalletsSwapsStatus.Waiting);
+  expect(result.steps).toHaveLength(expectedSteps.length);
+  expectedSteps.forEach((step, i) => {
+    expect(result.steps[i]).toEqual({
+      kind: step.kind,
+      status: Waiting,
+      ...(step.address !== undefined && { address: step.address }),
+    });
+  });
+  return result;
+}
+
+const evmTx = (to: `0x${string}`): TxData => ({
+  chainId: 1,
+  from: '0x0000000000000000000000000000000000000001',
+  to,
+  value: '0x0',
+  data: '0x',
+  gasLimit: 21000,
+});
 
 describe('hardwareWalletsSwapsReducer', () => {
   it('starts on the first transaction step', () => {
@@ -397,14 +486,18 @@ describe('hardwareWalletsSwapsReducer', () => {
         type: HardwareWalletsSwapsEventType.Start,
         payload: {
           totalSteps: 2,
-          spenderAddress: '0xSpender',
-          recipientAddress: '0xRecipient',
+          spenderAddress: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+          recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
         },
       },
     );
 
-    expect(result.steps[0].address).toBe('0xSpender');
-    expect(result.steps[1].address).toBe('0xRecipient');
+    expect(result.steps[0].address).toBe(
+      '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+    );
+    expect(result.steps[1].address).toBe(
+      '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+    );
   });
 
   it('omits addresses when not provided in START payload', () => {
@@ -427,12 +520,14 @@ describe('hardwareWalletsSwapsReducer', () => {
         type: HardwareWalletsSwapsEventType.Start,
         payload: {
           totalSteps: 1,
-          recipientAddress: '0xRecipient',
+          recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
         },
       },
     );
 
-    expect(result.steps[0].address).toBe('0xRecipient');
+    expect(result.steps[0].address).toBe(
+      '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+    );
     expect(result.steps[0].kind).toBe(HardwareWalletsSwapsStepKind.Transaction);
   });
 
@@ -686,43 +781,266 @@ describe('hardwareWalletsSwapsReducer', () => {
 
     expect(result).toBe(state);
   });
+
+  it('builds [FeeTransfer, Transaction] for a sendbundle Start (flow=send, totalSteps=2)', () => {
+    expectStartBuildsSteps(SENDBUNDLE_START.payload, [
+      {
+        kind: FeeTransfer,
+        address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+      },
+      {
+        kind: Transaction,
+        address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      },
+    ]);
+  });
+
+  it('builds [Transaction] for a plain send Start (flow=send, totalSteps=1)', () => {
+    expectStartBuildsSteps(
+      {
+        totalSteps: 1,
+        flow: Flow.Send,
+        recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      },
+      [
+        {
+          kind: Transaction,
+          address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+        },
+      ],
+    );
+  });
+
+  it('runs the full sendbundle lifecycle: Start → Signing/Signed FeeTransfer → Signing/Signed Transaction → Submitted', () => {
+    const started = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      SENDBUNDLE_START,
+    );
+
+    const feeSigning = hardwareWalletsSwapsReducer(
+      started,
+      signing(FeeTransfer),
+    );
+    expect(feeSigning.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signing,
+    );
+    expect(feeSigning.currentStep).toBe(0);
+
+    // FeeTransfer signed → currentStep advances to Transaction (1).
+    const feeSigned = hardwareWalletsSwapsReducer(
+      feeSigning,
+      signedEv(FeeTransfer),
+    );
+    expect(feeSigned.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signed,
+    );
+    expect(feeSigned.steps[1].status).toBe(Waiting);
+    expect(feeSigned.currentStep).toBe(1);
+    expect(feeSigned.status).toBe(HardwareWalletsSwapsStatus.Waiting);
+
+    const txSigning = hardwareWalletsSwapsReducer(
+      feeSigned,
+      signing(Transaction),
+    );
+    expect(txSigning.steps[1].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signing,
+    );
+    expect(txSigning.currentStep).toBe(1);
+
+    // Transaction signed → both Signed, status Submitted.
+    const txSigned = hardwareWalletsSwapsReducer(
+      txSigning,
+      signedEv(Transaction),
+    );
+    expect(txSigned.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signed,
+    );
+    expect(txSigned.steps[1].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signed,
+    );
+    expect(txSigned.currentStep).toBe(2);
+    expect(txSigned.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+  });
+
+  it('targets repeated sendbundle Transaction steps by stepIndex', () => {
+    const started = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: {
+          totalSteps: 3,
+          flow: Flow.Send,
+          gasTokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+          recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+        },
+      },
+    );
+
+    expect(started.steps.map((step) => step.kind)).toEqual([
+      FeeTransfer,
+      Transaction,
+      Transaction,
+    ]);
+
+    const firstTxSigning = hardwareWalletsSwapsReducer(
+      started,
+      signingAt(Transaction, 1),
+    );
+    const secondTxSigning = hardwareWalletsSwapsReducer(
+      firstTxSigning,
+      signingAt(Transaction, 2),
+    );
+
+    expect(secondTxSigning.steps[1].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signing,
+    );
+    expect(secondTxSigning.steps[2].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signing,
+    );
+
+    const firstTxSigned = hardwareWalletsSwapsReducer(
+      secondTxSigning,
+      signedAt(Transaction, 1),
+    );
+    expect(firstTxSigned.steps[1].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signed,
+    );
+    expect(firstTxSigned.steps[2].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signing,
+    );
+    expect(firstTxSigned.status).toBe(HardwareWalletsSwapsStatus.Waiting);
+
+    const secondTxSigned = hardwareWalletsSwapsReducer(
+      firstTxSigned,
+      signedAt(Transaction, 2),
+    );
+    expect(secondTxSigned.steps[2].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signed,
+    );
+    expect(secondTxSigned.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+  });
+
+  it('advances plain send (flow=send, totalSteps=1) to Submitted after Signing → Signed', () => {
+    const started = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 1, flow: Flow.Send },
+      },
+    );
+
+    const stepSigning = hardwareWalletsSwapsReducer(
+      started,
+      signing(Transaction),
+    );
+    expect(stepSigning.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signing,
+    );
+
+    const stepSigned = hardwareWalletsSwapsReducer(
+      stepSigning,
+      signedEv(Transaction),
+    );
+    expect(stepSigned.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+    expect(stepSigned.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Signed,
+    );
+  });
+
+  it('retries a mid-batch sendbundle rejection by resetting both steps to Waiting', () => {
+    const feeSigned = hardwareWalletsSwapsReducer(
+      hardwareWalletsSwapsReducer(
+        initialHardwareWalletsSwapsState,
+        SENDBUNDLE_START,
+      ),
+      signedEv(FeeTransfer),
+    );
+    const rej = hardwareWalletsSwapsReducer(feeSigned, rejectedEv(Transaction));
+    expect(rej.status).toBe(HardwareWalletsSwapsStatus.Rejected);
+    expect(rej.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Signed);
+    expect(rej.steps[1].status).toBe(HardwareWalletsSwapsStepStatus.Rejected);
+
+    const retried = hardwareWalletsSwapsReducer(rej, {
+      type: HardwareWalletsSwapsEventType.Retry,
+    });
+
+    expect(retried.status).toBe(HardwareWalletsSwapsStatus.Waiting);
+    expect(retried.currentStep).toBe(0);
+    expect(retried.steps[0].status).toBe(Waiting);
+    expect(retried.steps[1].status).toBe(Waiting);
+  });
+
+  it('does NOT produce a FeeTransfer step for a bridge Start that omits flow', () => {
+    // Regression gate: bridge Start without `flow` must never emit FeeTransfer.
+    const result = expectStartBuildsSteps(
+      {
+        totalSteps: 2,
+        spenderAddress: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+        recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      },
+      [
+        {
+          kind: Approval,
+          address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+        },
+        {
+          kind: Transaction,
+          address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+        },
+      ],
+    );
+    expect(result.steps.some((s) => s.kind === FeeTransfer)).toBe(false);
+  });
+
+  it('does NOT produce a FeeTransfer step for an explicit flow=bridge Start', () => {
+    expectStartBuildsSteps(
+      {
+        totalSteps: 2,
+        flow: Flow.Bridge,
+        spenderAddress: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+        recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      },
+      [
+        {
+          kind: Approval,
+          address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+        },
+        {
+          kind: Transaction,
+          address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+        },
+      ],
+    );
+  });
 });
 
 describe('buildStartPayload', () => {
-  type StartEvent = Extract<
-    HardwareWalletsSwapsEvent,
-    { type: HardwareWalletsSwapsEventType.Start }
-  >;
-
-  const evmTx = (to: `0x${string}`): TxData => ({
-    chainId: 1,
-    from: '0x0000000000000000000000000000000000000001',
-    to,
-    value: '0x0',
-    data: '0x',
-    gasLimit: 21000,
-  });
-
   it('builds single-step payload without approval', () => {
     const result = buildStartPayload({
-      trade: evmTx('0xTrade'),
+      trade: evmTx('0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc'),
     }) as StartEvent;
 
     expect(result.type).toBe(HardwareWalletsSwapsEventType.Start);
     expect(result.payload.totalSteps).toBe(1);
     expect(result.payload.spenderAddress).toBeUndefined();
-    expect(result.payload.recipientAddress).toBe('0xTrade');
+    expect(result.payload.recipientAddress).toBe(
+      '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
+    );
   });
 
   it('builds two-step payload with approval addresses', () => {
     const result = buildStartPayload({
-      approval: evmTx('0xSpender'),
-      trade: evmTx('0xRecipient'),
+      approval: evmTx('0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc'),
+      trade: evmTx('0x70997970C51812dc3A010C7d01b50e0d17dc79C8'),
     }) as StartEvent;
 
     expect(result.type).toBe(HardwareWalletsSwapsEventType.Start);
     expect(result.payload.totalSteps).toBe(2);
-    expect(result.payload.spenderAddress).toBe('0xSpender');
-    expect(result.payload.recipientAddress).toBe('0xRecipient');
+    expect(result.payload.spenderAddress).toBe(
+      '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+    );
+    expect(result.payload.recipientAddress).toBe(
+      '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+    );
   });
 });
