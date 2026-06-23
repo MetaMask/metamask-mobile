@@ -447,6 +447,49 @@ describe('MoneyMetaMaskCard', () => {
     });
   });
 
+  describe('mode="verifying"', () => {
+    it('renders the MetaMask Card title and verification pending banner', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyMetaMaskCard mode="verifying" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.metamask_card.verification_pending')),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onHeaderPress when section header is tapped in verifying mode', () => {
+      const mockHeader = jest.fn();
+      const { getByText } = render(
+        <MoneyMetaMaskCard
+          mode="verifying"
+          onGetNowPress={jest.fn()}
+          onHeaderPress={mockHeader}
+        />,
+      );
+
+      fireEvent.press(getByText(strings('money.metamask_card.title')));
+      expect(mockHeader).toHaveBeenCalled();
+    });
+
+    it('does not render upsell or link content', () => {
+      const { queryByTestId } = render(
+        <MoneyMetaMaskCard mode="verifying" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('upsell mode (default)', () => {
     it('renders only the virtual card row regardless of showMetalCard', () => {
       const { getByTestId, queryByTestId } = render(

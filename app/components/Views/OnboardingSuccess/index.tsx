@@ -145,10 +145,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   return (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
+    <Box twClassName="flex-1 bg-default">
       <Box
         twClassName="flex-1 px-4"
         testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
@@ -161,7 +158,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           {renderContent()}
         </Box>
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="pb-1 gap-y-3">
+        <SafeAreaView
+          edges={['top', 'left', 'right', 'bottom']}
+          style={tw.style('items-center pb-1 gap-y-3')}
+        >
           <Button
             testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
             variant={ButtonVariant.Primary}
@@ -172,9 +172,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             {strings('onboarding_success.done')}
           </Button>
           {renderFooter()}
-        </Box>
+        </SafeAreaView>
       </Box>
-    </SafeAreaView>
+    </Box>
   );
 };
 

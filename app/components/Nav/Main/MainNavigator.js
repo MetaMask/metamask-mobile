@@ -126,7 +126,10 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
+import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -164,6 +167,7 @@ import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
+import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
@@ -188,6 +192,15 @@ const styles = StyleSheet.create({
     height: 50,
   },
 });
+
+// Registered on the root MainNavigator so sheets are reachable from both the
+// Rewards tab (dashboard/onboarding) and REWARDS_FLOW sub-pages. Use
+// animation: 'none' so only the BottomSheet's internal slide runs — without it
+// the native stack slides the entire screen (overlay included) from the bottom.
+const rewardsModalScreenOptions = {
+  ...clearNativeStackNavigatorOptions,
+  ...transparentModalScreenOptions,
+};
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
@@ -327,10 +340,6 @@ const RewardsHome = () => {
   // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
   // this shared entry point prevents the onboarding tab from loading indefinitely.
   useCandidateSubscriptionId();
-  const rewardsModalScreenOptions = {
-    ...transparentModalScreenOptions,
-    contentStyle: { backgroundColor: 'transparent' },
-  };
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
@@ -355,31 +364,6 @@ const RewardsHome = () => {
           component={RewardsOnboardingNavigator}
         />
       )}
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-        component={RewardsBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-        component={RewardsClaimBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-        component={RewardOptInAccountGroupModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-        component={EndOfSeasonClaimBottomSheet}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_SELECT_SHEET}
-        component={RewardsSelectSheet}
-        options={rewardsModalScreenOptions}
-      />
     </NativeStack.Navigator>
   );
 };
@@ -606,6 +590,11 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -849,8 +838,8 @@ const HomeTabs = () => {
           component={WalletTabStackFlow}
         />
 
-        {/* Activity Tab (replaced by Money when feature flag is on) */}
-        {isMoneyAccountEnabled ? (
+        {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
+        {isMoneyAccountVisible ? (
           <Tab.Screen
             name={Routes.MONEY.ROOT}
             options={options.money}
@@ -1042,6 +1031,31 @@ const MainNavigator = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+        component={RewardsBottomSheetModal}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+        component={RewardsClaimBottomSheetModal}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+        component={RewardOptInAccountGroupModal}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+        component={EndOfSeasonClaimBottomSheet}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_SELECT_SHEET}
+        component={RewardsSelectSheet}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
         options={{
@@ -1215,6 +1229,20 @@ const MainNavigator = () => {
             options={{ headerShown: false, ...fadeNativeOptions }}
           />
           <NativeStack.Screen
+            name={Routes.MONEY.FIRST_TIME_DEPOSIT}
+            component={MoneyFirstTimeDepositView}
+            options={{
+              ...clearNativeStackNavigatorOptions,
+              ...transparentModalScreenOptions,
+              gestureEnabled: false,
+            }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.POTENTIAL_EARNINGS}
+            component={MoneyPotentialEarningsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
             name={Routes.MONEY.MODALS.ROOT}
             component={MoneyModalStack}
             options={{
@@ -1225,6 +1253,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.TRANSACTION_DETAILS}
             component={TransactionDetails}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
+            component={MoneyApiActivityDetailsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
@@ -1409,7 +1442,10 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={fullScreenModalSlideFromBottomNativeOptions}
+        options={({ route }) => ({
+          ...fullScreenModalSlideFromBottomNativeOptions,
+          animation: route.params?.animation ?? 'slide_from_right',
+        })}
       />
       <NativeStack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

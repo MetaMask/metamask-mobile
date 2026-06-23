@@ -1,8 +1,8 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
-import { isTokenInWildcardList } from '../../../../UI/Earn/utils/wildcardTokenList';
+import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
+import { isSubsidizedSource } from '../../utils/relayFixedSpread';
 import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
@@ -16,8 +16,15 @@ export interface NoFeeTokenResult {
   symbol: string;
 }
 
+export type NoFeeTokenTagRenderer = (
+  address: string,
+  chainId: string,
+  options?: { testID?: string },
+) => ReactNode;
+
 /**
- * Finds the highest-balance no-fee token among available payment tokens.
+ * Identifies payment tokens whose `(chainId, address)` matches a subsidised
+ * source declared by the `confirmationsRelayFixedSpread` LD flag.
  *
  * Accepts an optional `excludeToken` to de-duplicate against the preferred
  * token row — when the preferred token is already a no-fee token, this hook
@@ -31,20 +38,20 @@ export function usePayWithNoFeeToken({
   noFeeToken: NoFeeTokenResult | undefined;
   isNoFeeToken: (address: string, chainId: string) => boolean;
   renderNoFeeTag: TokenTagRenderer;
+  renderNoFeeTagForToken: NoFeeTokenTagRenderer;
 } {
-  const noFeeTokenList = useSelector(selectMoneyNoFeeTokens);
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { availableTokens } = useTransactionPayAvailableTokens();
 
-  const matchesNoFeeList = useCallback(
-    (symbol: string, chainId: string | undefined): boolean => {
-      if (!chainId) return false;
-      return isTokenInWildcardList(
-        symbol,
-        noFeeTokenList,
-        safeFormatChainIdToHex(chainId),
-      );
+  const matchesSubsidizedSource = useCallback(
+    (address: string | undefined, chainId: string | undefined): boolean => {
+      if (!address || !chainId) return false;
+      return isSubsidizedSource(relayFixedSpread, {
+        address,
+        chainId: safeFormatChainIdToHex(chainId),
+      });
     },
-    [noFeeTokenList],
+    [relayFixedSpread],
   );
 
   const isNoFeeToken = useCallback(
@@ -57,15 +64,16 @@ export function usePayWithNoFeeToken({
 
       if (!token) return false;
 
-      return matchesNoFeeList(token.symbol, token.chainId);
+      return matchesSubsidizedSource(token.address, token.chainId);
     },
-    [availableTokens, matchesNoFeeList],
+    [availableTokens, matchesSubsidizedSource],
   );
 
   const noFeeToken = useMemo(() => {
     const eligible = availableTokens.filter(
       (token: AssetType) =>
-        !token.disabled && matchesNoFeeList(token.symbol, token.chainId),
+        !token.disabled &&
+        matchesSubsidizedSource(token.address, token.chainId),
     );
 
     const sorted = [...eligible].sort(
@@ -89,17 +97,25 @@ export function usePayWithNoFeeToken({
       chainId: match.chainId as Hex,
       symbol: match.symbol,
     };
-  }, [availableTokens, excludeToken, matchesNoFeeList]);
+  }, [availableTokens, excludeToken, matchesSubsidizedSource]);
 
   const renderNoFeeTag: TokenTagRenderer = useCallback(
     (token: AssetType) => {
-      if (!matchesNoFeeList(token.symbol, token.chainId)) {
+      if (!matchesSubsidizedSource(token.address, token.chainId)) {
         return null;
       }
       return <NoFeeTag />;
     },
-    [matchesNoFeeList],
+    [matchesSubsidizedSource],
   );
 
-  return { noFeeToken, isNoFeeToken, renderNoFeeTag };
+  const renderNoFeeTagForToken: NoFeeTokenTagRenderer = useCallback(
+    (address, chainId, options) =>
+      matchesSubsidizedSource(address, chainId) ? (
+        <NoFeeTag testID={options?.testID} />
+      ) : null,
+    [matchesSubsidizedSource],
+  );
+
+  return { noFeeToken, isNoFeeToken, renderNoFeeTag, renderNoFeeTagForToken };
 }

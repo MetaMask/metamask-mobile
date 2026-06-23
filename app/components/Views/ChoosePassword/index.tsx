@@ -367,9 +367,12 @@ const ChoosePassword = () => {
           index: 0,
           routes: [
             {
-              name: Routes.ONBOARDING.SUCCESS,
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
               params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                },
               },
             },
           ],
