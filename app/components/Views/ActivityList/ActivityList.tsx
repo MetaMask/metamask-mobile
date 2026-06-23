@@ -22,7 +22,6 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import {
@@ -50,7 +49,6 @@ import {
   handleUnifiedSwapsTxHistoryItemClick,
 } from '../../UI/Bridge/utils/transaction-history';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
-import TransactionElement from '../../UI/TransactionElement';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 import ListItem from '../../Base/ListItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -87,6 +85,7 @@ import {
 } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { getIntlDateTimeFormatter } from '../../../util/intl';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -137,7 +136,7 @@ const formatDateHeader = (timestamp: number) => {
     return strings('perps.yesterday');
   }
 
-  return new Intl.DateTimeFormat('en-US', {
+  return getIntlDateTimeFormatter('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -244,11 +243,23 @@ const ActivityList = ({
     [nonEvmState?.transactions],
   );
 
-  const currentCurrency = useSelector(selectCurrentCurrency);
-
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedAccountGroupInternalAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
+  );
+  const isQRHardwareAccount = useMemo(
+    () =>
+      isHardwareAccount(selectedInternalAccount?.address ?? '', [
+        ExtendedKeyringTypes.qr,
+      ]),
+    [selectedInternalAccount?.address],
+  );
+  const isLedgerAccount = useMemo(
+    () =>
+      isHardwareAccount(selectedInternalAccount?.address ?? '', [
+        ExtendedKeyringTypes.ledger,
+      ]),
+    [selectedInternalAccount?.address],
   );
   const selectedAccountGroupEvmAddress = useMemo(() => {
     const evmAccount = selectedAccountGroupInternalAccounts.find(
@@ -827,7 +838,7 @@ const ActivityList = ({
     if (groupedItem.type === 'pending-header') {
       return (
         <ListItem.Date style={styles.dateHeader}>
-          {strings('transactions.pending')}
+          {strings('transaction.pending')}
         </ListItem.Date>
       );
     }
@@ -842,38 +853,6 @@ const ActivityList = ({
 
     const { item } = groupedItem;
     const raw = item.raw;
-
-    // Pending local EVM transactions: route to TransactionElement for speed-up/cancel UI.
-    if (raw?.type === 'localTransaction' && item.status === 'pending') {
-      const tx = raw.data.primaryTransaction;
-      return (
-        <TransactionElement
-          tx={tx}
-          i={index}
-          navigation={navigation}
-          txChainId={tx.chainId}
-          selectedAddress={
-            selectedAccountGroupEvmAddress || selectedInternalAccount?.address
-          }
-          onSpeedUpAction={onSpeedUpAction}
-          onCancelAction={onCancelAction}
-          signQRTransaction={signQRTransaction}
-          cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
-          isQRHardwareAccount={isHardwareAccount(
-            selectedInternalAccount?.address ?? '',
-            [ExtendedKeyringTypes.qr],
-          )}
-          isLedgerAccount={isHardwareAccount(
-            selectedInternalAccount?.address ?? '',
-            [ExtendedKeyringTypes.ledger],
-          )}
-          signLedgerTransaction={signLedgerTransaction}
-          currentCurrency={currentCurrency}
-          showBottomBorder
-          location={location}
-        />
-      );
-    }
 
     // Non-EVM bridge transactions: route to MultichainBridgeTransactionListItem.
     if (raw?.type === 'keyringTransaction') {
@@ -895,12 +874,13 @@ const ActivityList = ({
       }
     }
 
-    // All other items (API EVM confirmed, completed local EVM, non-EVM non-bridge):
+    // All other items (API EVM confirmed, completed local EVM, non-EVM non-bridge,
+    // and pending local/remote rows):
     // render from the shared ActivityListItem shape.
     //
     // Preserve the legacy Activity title for swap/bridge rows (e.g.
     // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
-    // history, mirroring TransactionElement. Falls back to the kind-based title.
+    // history. Falls back to the kind-based title.
     const bridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
     const title = bridgeHistoryItem
       ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
@@ -913,6 +893,13 @@ const ActivityList = ({
         index={index}
         onPress={handleActivityItemPress}
         title={title}
+        isQRHardwareAccount={isQRHardwareAccount}
+        isLedgerAccount={isLedgerAccount}
+        onSpeedUpAction={onSpeedUpAction}
+        onCancelAction={onCancelAction}
+        signQRTransaction={signQRTransaction}
+        signLedgerTransaction={signLedgerTransaction}
+        cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
       />
     );
   };
