@@ -277,7 +277,20 @@ jest.mock('../../hooks/useAssetBalances', () => ({
 }));
 
 jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToCardPage: () => mockUseNavigateToCardPage(),
+  useNavigateToCardPage: (...args: unknown[]) =>
+    mockUseNavigateToCardPage(...args),
+}));
+
+const mockUseRegistrationSettings = jest.fn(() => ({
+  data: null,
+  isLoading: false,
+  error: null,
+  fetchData: jest.fn(),
+}));
+
+jest.mock('../../hooks/useRegistrationSettings', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseRegistrationSettings(...args),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -1132,6 +1145,12 @@ describe('CardHome Component', () => {
       navigateToTravelPage: mockNavigateToTravelPage,
       navigateToCardTosPage: mockNavigateToCardTosPage,
     });
+    mockUseRegistrationSettings.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
 
     mockUseSwapBridgeNavigation.mockReturnValue({
       goToSwaps: mockGoToSwaps,
@@ -1413,7 +1432,110 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('opens mailto link when contact support item is pressed', async () => {
+  it('loads registration settings on Card Home', () => {
+    render();
+
+    expect(mockUseRegistrationSettings).toHaveBeenCalledWith();
+  });
+
+  it('passes dynamic TOS URL to Card navigation actions', () => {
+    const dynamicTosUrl = 'https://docs.baanx.us/metamask/terms.pdf';
+    mockUseRegistrationSettings.mockReturnValue({
+      data: {
+        countries: [],
+        usStates: [],
+        links: {
+          us: {
+            termsAndConditions: dynamicTosUrl,
+            accountOpeningDisclosure: '',
+            noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
+          },
+          intl: {
+            termsAndConditions: '',
+            rightToInformation: '',
+          },
+        },
+        config: {
+          us: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+          intl: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+        },
+      },
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
+    setupMockSelectors({ userLocation: 'us' });
+
+    render();
+
+    expect(mockUseNavigateToCardPage).toHaveBeenCalledWith(
+      expect.any(Object),
+      dynamicTosUrl,
+    );
+  });
+
+  it('opens dynamic support email when contact support item is pressed', async () => {
+    const dynamicSupportEmail = 'us-support@cl-cards.com';
+    mockUseRegistrationSettings.mockReturnValue({
+      data: {
+        countries: [],
+        usStates: [],
+        links: {
+          us: {
+            termsAndConditions: '',
+            accountOpeningDisclosure: '',
+            noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
+          },
+          intl: {
+            termsAndConditions: '',
+            rightToInformation: '',
+          },
+        },
+        config: {
+          us: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: dynamicSupportEmail,
+          },
+          intl: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+        },
+      },
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
+    setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    const contactSupportItem = screen.getByTestId(
+      CardHomeSelectors.CONTACT_SUPPORT_ITEM,
+    );
+    fireEvent.press(contactSupportItem);
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        `mailto:${dynamicSupportEmail}`,
+      );
+    });
+  });
+
+  it('opens fallback support email when contact support item is pressed', async () => {
     setupMockSelectors({ isAuthenticated: true });
     setupLoadCardDataMock({ isAuthenticated: true });
 
