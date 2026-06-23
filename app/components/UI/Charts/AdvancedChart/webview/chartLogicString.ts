@@ -621,6 +621,37 @@ function isOwnStringKey(key) {
   );
 }
 
+/**
+ * Indicators that render in a dedicated pane below the main series.
+ * Keep in sync with SUB_PANE_INDICATORS in TokenDetails constants.
+ */
+var SUB_PANE_INDICATOR_NAMES = { MACD: true, RSI: true };
+
+function isSubPaneIndicator(name) {
+  return isOwnStringKey(name) && SUB_PANE_INDICATOR_NAMES[name] === true;
+}
+
+function hasActiveSubPaneIndicators() {
+  if (!window.activeStudies) return false;
+  var found = false;
+  window.activeStudies.forEach(function (_studyId, name) {
+    if (isSubPaneIndicator(name)) found = true;
+  });
+  return found;
+}
+
+function afterSubPaneIndicatorAdded(chart, indicatorName) {
+  if (isSubPaneIndicator(indicatorName)) {
+    scheduleApplySubPaneHeightRatio(chart);
+  }
+}
+
+function afterSubPaneIndicatorRemoved(chart, indicatorName) {
+  if (isSubPaneIndicator(indicatorName) && hasActiveSubPaneIndicators()) {
+    scheduleApplySubPaneHeightRatio(chart);
+  }
+}
+
 /** Reads CONFIG.subPaneHeightRatio; null means TradingView default pane sizing. */
 function getSubPaneHeightRatio() {
   const ratio = window.CONFIG && window.CONFIG.subPaneHeightRatio;
@@ -628,13 +659,6 @@ function getSubPaneHeightRatio() {
     return null;
   }
   return ratio;
-}
-
-function hasActiveSubPaneIndicators() {
-  return (
-    window.activeStudies &&
-    (window.activeStudies.has('RSI') || window.activeStudies.has('MACD'))
-  );
 }
 
 function applySubPaneHeightRatio(chart) {
@@ -770,12 +794,9 @@ function handleAddIndicator(payload) {
       .then(function (studyId) {
         window.legendStudyOrder.set(indicatorName, studyId);
         window.activeStudies.set(indicatorName, studyId);
-        const isSubPane = indicatorName === 'RSI' || indicatorName === 'MACD';
         subscribeStudyDataLoaded(studyId, function () {
           refreshStudyLegendFromExport();
-          if (isSubPane) {
-            scheduleApplySubPaneHeightRatio(chart);
-          }
+          afterSubPaneIndicatorAdded(chart, indicatorName);
         });
         notifyIndicatorAdded(indicatorName, studyId);
       })
@@ -802,15 +823,12 @@ function handleRemoveIndicator(payload) {
 
   try {
     let chart = window.chartWidget.activeChart();
-    const isSubPane = indicatorName === 'RSI' || indicatorName === 'MACD';
     chart.removeEntity(studyId);
     window.activeStudies.delete(indicatorName);
     window.legendStudyOrder.delete(indicatorName);
     refreshStudyLegendFromExport();
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
-    if (isSubPane && hasActiveSubPaneIndicators()) {
-      scheduleApplySubPaneHeightRatio(chart);
-    }
+    afterSubPaneIndicatorRemoved(chart, indicatorName);
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
