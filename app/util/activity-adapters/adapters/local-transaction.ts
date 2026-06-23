@@ -315,6 +315,17 @@ export function mapLocalTransaction(
     const withdrawTx = nested.find(
       (n) => n.type === TransactionType.predictWithdraw,
     );
+    // NOTE: TransactionType.predictClaim is intentionally NOT handled here.
+    // Unlike deposits/withdrawals (which the Polymarket feed doesn't return, so
+    // this local copy is their only source), claims ARE returned by the feed and
+    // mapped to `predictionClaimWinnings` (with the won amount) in
+    // predict-activity.ts. Labeling the on-chain claim copy here would surface a
+    // SECOND claim row in the Predictions bucket, and it can't dedup against the
+    // feed row (synthetic vs real hash — see the cross-source dedup note in
+    // adapters/dedup.ts). So the claim's on-chain tx falls through to the
+    // generic kind for now. TODO(activity-redesign): when "All" lands and
+    // cross-source dedup is in place, suppress this on-chain copy in favor of
+    // the feed's authoritative claim row.
     const fundsTx = depositTx ?? withdrawTx;
     if (!fundsTx) {
       return undefined;
