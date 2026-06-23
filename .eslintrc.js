@@ -201,11 +201,12 @@ module.exports = {
           'interface',
         ],
         '@typescript-eslint/no-explicit-any': 'error',
-        // Surface JSDoc @deprecated annotations at every use-site (warn for now;
-        // ratchet to 'error' once the BN.js → BigInt migration is complete).
-        // Pairs with the `import-x/no-restricted-paths` fence on
-        // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
+        // NOTE: `@typescript-eslint/no-deprecated` was removed. It is a
+        // type-aware rule whose 5.6k+ warnings were almost entirely the
+        // BN.js → BigInt migration. That migration is now enforced by the
+        // resolver-based `import-x/no-restricted-paths` fence below (blocks new
+        // importers) plus `scripts/bn-migration-burndown.sh` (tracks the
+        // remaining importers; run via `yarn lint:bn-burndown`).
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
