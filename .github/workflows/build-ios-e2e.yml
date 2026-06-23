@@ -118,7 +118,7 @@ jobs:
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
-          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.ipa"]'
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
           metadata-artifact-name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           github-token: ${{ github.token }}
 
@@ -144,7 +144,7 @@ jobs:
           EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           EXPECTED_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
           EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build.outputs.source-sha }}
-          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.ipa"]'
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
           METADATA_FILE: .e2e-reusable-metadata/ios/ios.json
         run: |
           set -euo pipefail
@@ -185,8 +185,8 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.ipa
-          path: ios/build/output
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: ${{ steps.find-reusable-build.outputs.run-id }}
@@ -417,8 +417,7 @@ jobs:
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           HAS_TEST_OVERRIDES: true
-          IS_SIM_BUILD: 'false'
-          PROFILE: 'development'
+          IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
@@ -442,7 +441,7 @@ jobs:
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
           yarn build:repack:ios
-          echo "📦 Final IPA size: $(du -sh "ios/build/output/MetaMask.ipa" | cut -f1)"
+          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
         env:
           PLATFORM: ios
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
@@ -471,14 +470,31 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      - name: Verify iOS IPA exists
+      # Xcode on case-insensitive APFS can store the bundle executable with wrong case (e.g. "metamask"
+      # vs CFBundleExecutable "MetaMask"), causing xcrun simctl install to fail with a case-sensitive
+      # directory lookup on the test runner. actions/upload-artifact also strips execute permissions.
+      - name: Fix iOS bundle executable case and permissions before upload
         run: |
-          IPA_PATH="ios/build/output/MetaMask.ipa"
-          if [ ! -f "$IPA_PATH" ]; then
-            echo "❌ IPA not found at $IPA_PATH"
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "Could not read CFBundleExecutable from Info.plist"
             exit 1
           fi
-          echo "✅ IPA found: $(du -sh "$IPA_PATH" | cut -f1)"
+
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "Bundle executable not found: $BUNDLE_EXEC"
+            exit 1
+          fi
+
+          # Two-step rename to fix case on case-insensitive APFS (direct rename is a no-op)
+          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+          fi
+
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
         shell: bash
 
       - name: Write iOS E2E build metadata
@@ -493,7 +509,7 @@ jobs:
           GITHUB_REF_NAME_VALUE: ${{ github.ref_name }}
           GITHUB_EVENT_NAME_VALUE: ${{ github.event_name }}
           GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
-          ARTIFACT_NAMES: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.ipa"]'
+          ARTIFACT_NAMES: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
         run: |
           set -euo pipefail
           mkdir -p .e2e-build-metadata
@@ -527,25 +543,25 @@ jobs:
             }' > .e2e-build-metadata/ios.json
           cat .e2e-build-metadata/ios.json
 
-      # Upload the signed iOS .ipa file for real device installation
-      - name: Upload iOS IPA Artifact (Device) (Namespace)
+      # Upload the iOS .app file that works in simulators
+      - name: Upload iOS APP Artifact (Simulator) (Namespace)
         id: upload-app-namespace
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.ipa
-          path: ios/build/output/MetaMask.ipa
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true
 
-      - name: Upload iOS IPA Artifact (Device) (current)
+      - name: Upload iOS APP Artifact (Simulator) (current)
         id: upload-app
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.ipa
-          path: ios/build/output/MetaMask.ipa
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true
