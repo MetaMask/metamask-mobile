@@ -10,6 +10,7 @@ The Engine singleton is the core of the MetaMask Mobile app. It is responsible f
   - The callback should return a restricted controller messenger with the appropriate allowed events and actions
   - Add the controller name to the union type `MessengerClientsToInitialize` in `Engine/types.ts`
   - Add the controller entry to `MESSENGER_FACTORIES` in `Engine/messengers/index.ts`
+
 - Create an initialization function for the controller
   - This function will be used to initialize the controller
   - It should exist in the `Engine/controllers` folder and follow the pattern of existing controllers such as `Engine/controllers/address-book-controller-init`
@@ -19,8 +20,10 @@ The Engine singleton is the core of the MetaMask Mobile app. It is responsible f
 - Enable listening to the controller's state change event
   - This state change event is responsible for propagating the controller's state to Redux
   - Add the controller's state change event name to `BACKGROUND_STATE_CHANGE_EVENT_NAMES` in `Engine/constants.ts`
+
 - Add the controller to the Engine's context
   - This allows the controller to be accessed via `Engine.context` when imported in other files
   - Add the controller entry to the object that `this.context` is initially set to
+
 - Assign files to CODEOWNERS
   - Add both `app/core/Engine/controllers/<example-controller>` and `app/core/Engine/messengers/<example-controller-messenger>` to the `CODEOWNERS` file and assign to them to the appropriate team
