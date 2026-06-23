@@ -95,7 +95,7 @@ const TRANSACTION_UPDATE_ERROR_TOAST_BASE = {
   iconName: IconName.CircleX,
   iconColor: IconColor.Error,
   backgroundColor: BoxBackgroundColor.Transparent,
-};
+} as const;
 
 /**
  * Toast configuration for speed-up / cancel failures (legacy Transactions list and unified view).
@@ -113,6 +113,7 @@ export function getTransactionUpdateErrorToastOptions(
     ...TRANSACTION_UPDATE_ERROR_TOAST_BASE,
     labelOptions: [{ label: title, isBold: true }],
     descriptionOptions: description ? { description } : undefined,
+    hasNoTimeout: false,
   };
 }
 
