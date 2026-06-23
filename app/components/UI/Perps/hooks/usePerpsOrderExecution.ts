@@ -16,7 +16,6 @@ import {
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';
-import { PERPS_CHART_ANALYTICS_PROPERTY } from '../utils/analytics/chartInstrumentation';
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange (before position fetch). */
@@ -111,8 +110,7 @@ export function usePerpsOrderExecution(
                 orderParams.trackingData.source;
             }
             if (chartLibrary) {
-              partialProps[PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY] =
-                chartLibrary;
+              partialProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
             }
             if (orderParams.trackingData?.tradeWithToken === true) {
               if (orderParams.trackingData.mmPayTokenSelected != null) {
@@ -188,8 +186,7 @@ export function usePerpsOrderExecution(
             orderParams.trackingData as { chartLibrary?: string } | undefined
           )?.chartLibrary;
           if (chartLibrary) {
-            failedProps[PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY] =
-              chartLibrary;
+            failedProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
           }
           if (orderParams.trackingData?.tradeWithToken === true) {
             if (orderParams.trackingData.mmPayTokenSelected != null) {
@@ -263,8 +260,7 @@ export function usePerpsOrderExecution(
           orderParams.trackingData as { chartLibrary?: string } | undefined
         )?.chartLibrary;
         if (chartLibrary) {
-          exceptionProps[PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY] =
-            chartLibrary;
+          exceptionProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
         }
         if (orderParams.trackingData?.tradeWithToken === true) {
           if (orderParams.trackingData.mmPayTokenSelected != null) {

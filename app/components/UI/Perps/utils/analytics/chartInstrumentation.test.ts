@@ -1,36 +1,30 @@
 import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
-  PERPS_CHART_ANALYTICS_PROPERTY,
-  PERPS_CHART_ANALYTICS_VALUE,
 } from './chartInstrumentation';
 
 describe('chartInstrumentation', () => {
-  it('exports chart analytics property keys', () => {
-    expect(PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY).toBe('chart_library');
-    expect(PERPS_CHART_ANALYTICS_PROPERTY.ASSET_TYPE).toBe('asset_type');
-  });
-
-  it('exports chart analytics values', () => {
-    expect(PERPS_CHART_ANALYTICS_VALUE.CHART_LIBRARY.ADVANCED).toBe('advanced');
-    expect(PERPS_CHART_ANALYTICS_VALUE.CHART_LIBRARY.LIGHTWEIGHT).toBe(
-      'lightweight',
-    );
-    expect(PERPS_CHART_ANALYTICS_VALUE.ASSET_TYPE.PERP).toBe('perp');
-  });
-
   it('returns the advanced chart library value when advanced chart is enabled', () => {
-    expect(getPerpsChartLibrary(true)).toBe('advanced');
+    expect(getPerpsChartLibrary(true)).toBe(
+      PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+    );
   });
 
   it('returns the lightweight chart library value when advanced chart is disabled', () => {
-    expect(getPerpsChartLibrary(false)).toBe('lightweight');
+    expect(getPerpsChartLibrary(false)).toBe(
+      PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+    );
   });
 
-  it('returns reusable chart analytics properties', () => {
+  it('returns reusable chart analytics properties from core constants', () => {
     expect(getPerpsChartAnalyticsProperties(true)).toStrictEqual({
-      chart_library: 'advanced',
-      asset_type: 'perp',
+      [PERPS_EVENT_PROPERTY.CHART_LIBRARY]:
+        PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+      [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
     });
   });
 });
