@@ -1,20 +1,10 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
 import type {
   PredictMarketGame,
   PredictOutcome,
@@ -24,6 +14,7 @@ import type {
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { OutcomesContent } from './PredictGameOutcomeCards';
 import PredictMarketOutcomeResolved from '../PredictMarketOutcomeResolved';
+import PredictResolvedOutcomesDropdown from '../PredictResolvedOutcomesDropdown';
 import { usePricedOutcomeGroup } from './usePricedOutcomeGroup';
 import { getOutcomeGroupLabel } from '../../utils/outcomeGroupLabel';
 import { countOutcomeGroupOutcomes } from '../../utils/outcomeGroups';
@@ -75,7 +66,6 @@ ResolvedOutcomeGroup.displayName = 'ResolvedOutcomeGroup';
 
 const PredictGameResultsDropdown = memo(
   ({ groups }: { groups: PredictOutcomeGroup[] }) => {
-    const tw = useTailwind();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const outcomeCount = useMemo(
@@ -91,70 +81,23 @@ const PredictGameResultsDropdown = memo(
       setIsExpanded((previousValue) => !previousValue);
     }, []);
 
-    if (outcomeCount === 0) {
-      return null;
-    }
-
     return (
-      <Pressable
-        onPress={handlePress}
-        style={({ pressed }) =>
-          tw.style(
-            'w-full rounded-xl bg-muted px-4 py-3 mt-2 mb-4',
-            pressed && 'bg-pressed',
-          )
+      <PredictResolvedOutcomesDropdown
+        count={outcomeCount}
+        isExpanded={isExpanded}
+        onToggle={handlePress}
+        containerTestID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN}
+        countTestID={
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_COUNT
         }
-        accessibilityRole="button"
-        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN}
+        contentTestID={
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_CONTENT
+        }
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-3"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="font-medium"
-              color={TextColor.TextDefault}
-            >
-              {strings('predict.resolved_outcomes')}
-            </Text>
-            <Box twClassName="px-2 py-0.5 rounded bg-muted">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                testID={
-                  PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_COUNT
-                }
-              >
-                {outcomeCount}
-              </Text>
-            </Box>
-          </Box>
-          <Icon
-            name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-          />
-        </Box>
-        {isExpanded && (
-          <Box
-            testID={
-              PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_CONTENT
-            }
-          >
-            {groups.map((group) => (
-              <ResolvedOutcomeGroup key={group.key} group={group} />
-            ))}
-          </Box>
-        )}
-      </Pressable>
+        {groups.map((group) => (
+          <ResolvedOutcomeGroup key={group.key} group={group} />
+        ))}
+      </PredictResolvedOutcomesDropdown>
     );
   },
 );

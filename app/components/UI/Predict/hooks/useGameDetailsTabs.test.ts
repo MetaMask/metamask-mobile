@@ -23,12 +23,18 @@ const createMockPosition = (id = 'pos-1'): PredictPosition =>
 const createOutcome = (
   id: string,
   status: PredictOutcome['status'] = 'open',
-): PredictOutcome =>
-  ({
-    id,
-    status,
-    tokens: [],
-  }) as PredictOutcome;
+): PredictOutcome => ({
+  id,
+  providerId: 'test-provider',
+  marketId: 'test-market',
+  title: id,
+  description: `${id} description`,
+  image: '',
+  status,
+  tokens: [],
+  volume: 0,
+  groupItemTitle: id,
+});
 
 const createGroup = (
   key: string,
