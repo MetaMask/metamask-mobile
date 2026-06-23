@@ -317,10 +317,8 @@ const OnboardingInterestQuestionnaire = () => {
               key={option.id}
               onPress={() => handleOptionPress(option.id)}
               style={tw.style(
-                'flex-row items-center rounded-full px-4 py-3 mb-3',
-                isSelected
-                  ? 'border-2 border-default'
-                  : 'border border-border-muted',
+                'flex-row items-center rounded-full px-4 py-3 mb-3 border-2',
+                isSelected ? 'border-default' : 'border-border-muted',
               )}
               testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
               accessibilityRole="checkbox"
