@@ -14,7 +14,7 @@ import { RootState } from '../../../../../reducers';
 import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import { useTransactionPayPrimaryRequiredToken } from './useTransactionPayData';
 import { hasTransactionType } from '../../utils/transaction';
 import Logger from '../../../../../util/Logger';
 
@@ -30,10 +30,7 @@ export function useTransactionPayToken(): {
     selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
 
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const primaryRequiredToken = (requiredTokens ?? []).find(
-    (token) => !token.skipIfBalance,
-  );
+  const primaryRequiredToken = useTransactionPayPrimaryRequiredToken();
 
   const isNative =
     payToken && payToken?.address === getNativeTokenAddress(payToken?.chainId);

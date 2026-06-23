@@ -34,6 +34,7 @@ import {
 import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
+  useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
@@ -147,10 +148,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
+    const primaryRequiredToken = useTransactionPayPrimaryRequiredToken();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
+    // Withdraw flows never have required tokens (user receives, not pays),
+    // so only gate on primaryRequiredToken for deposit/swap flows.
+    const isAwaitingRequiredToken =
+      !disablePay && !isWithdraw && !primaryRequiredToken;
+
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
@@ -159,7 +168,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       hideAccountSelector && !fiatEverSelectedRef.current;
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
-    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -245,6 +253,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       supportAccountSelection && !accountOverride;
 
     const { headlessBuyError } = useConfirmationContext();
+
+    if (!transactionMeta || isAwaitingRequiredToken) {
+      return <CustomAmountInfoSkeleton />;
+    }
 
     return (
       <Box style={styles.container}>

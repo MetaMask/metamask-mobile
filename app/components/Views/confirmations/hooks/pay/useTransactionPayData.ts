@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import {
@@ -19,6 +20,15 @@ export function useTransactionPayQuotes() {
 
 export function useTransactionPayRequiredTokens() {
   return useTransactionPayData(selectTransactionPayTokensByTransactionId);
+}
+
+export function useTransactionPayPrimaryRequiredToken() {
+  const requiredTokens = useTransactionPayRequiredTokens();
+
+  return useMemo(
+    () => requiredTokens?.find((token) => !token.skipIfBalance),
+    [requiredTokens],
+  );
 }
 
 export function useTransactionPaySourceAmounts() {

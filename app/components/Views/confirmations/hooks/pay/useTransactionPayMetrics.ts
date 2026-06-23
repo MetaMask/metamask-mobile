@@ -14,8 +14,8 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
 import {
+  useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
@@ -62,9 +62,7 @@ export function useTransactionPayMetrics() {
     [tokens],
   );
 
-  const primaryRequiredToken = useTransactionPayRequiredTokens().find(
-    (t) => !t.skipIfBalance,
-  );
+  const primaryRequiredToken = useTransactionPayPrimaryRequiredToken();
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
 
   if (!automaticPayToken.current && payToken) {

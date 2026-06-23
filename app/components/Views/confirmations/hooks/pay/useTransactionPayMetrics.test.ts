@@ -22,8 +22,8 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
+  useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
   useTransactionPayFiatPayment,
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -91,8 +91,8 @@ describe('useTransactionPayMetrics', () => {
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
 
-  const useTransactionPayRequiredTokensMock = jest.mocked(
-    useTransactionPayRequiredTokens,
+  const useTransactionPayPrimaryRequiredTokenMock = jest.mocked(
+    useTransactionPayPrimaryRequiredToken,
   );
 
   const useTransactionPayAvailableTokensMock = jest.mocked(
@@ -122,11 +122,9 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop as never,
     });
 
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        amountHuman: TOKEN_AMOUNT_MOCK,
-      } as TransactionPayRequiredToken,
-    ]);
+    useTransactionPayPrimaryRequiredTokenMock.mockReturnValue({
+      amountHuman: TOKEN_AMOUNT_MOCK,
+    } as TransactionPayRequiredToken);
 
     updateConfirmationMetricMock.mockReturnValue({
       type: 'test',
