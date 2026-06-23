@@ -834,7 +834,7 @@ function getThemeLastPriceLineColor(theme) {
 }
 
 function getSeriesColorOverrides(lineColor, lastPriceLineColor) {
-  const pillColor = lastPriceLineColor != null ? lastPriceLineColor : lineColor;
+  const pillColor = lastPriceLineColor ?? lineColor;
   return {
     'mainSeriesProperties.lineStyle.color': lineColor,
     'mainSeriesProperties.lineStyle.colorType': 'solid',
@@ -885,7 +885,7 @@ function applySeriesColors() {
   if (!window.chartWidget || !window.isChartReady) {
     return;
   }
-  const theme = (window.CONFIG && window.CONFIG.theme) || {};
+  const theme = window.CONFIG?.theme || {};
   const lineColor = getThemeLineColor(theme);
   try {
     window.chartWidget.applyOverrides(
@@ -1022,7 +1022,7 @@ function toSubscriptDigitsChart(n) {
   return String(n)
     .split('')
     .map(function (digit) {
-      return SUBSCRIPT_DIGITS_CHART[parseInt(digit, 10)];
+      return SUBSCRIPT_DIGITS_CHART[Number.parseInt(digit, 10)];
     })
     .join('');
 }
