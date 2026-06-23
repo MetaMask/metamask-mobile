@@ -34,7 +34,7 @@ export interface PriceAlert {
   createdAt: string;
 }
 
-export const PRICE_ALERT_QUICK_PERCENTAGES = [5, 10, 20, 30] as const;
+export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   usd: '$',

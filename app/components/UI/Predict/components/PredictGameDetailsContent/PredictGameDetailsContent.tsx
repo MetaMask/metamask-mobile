@@ -131,6 +131,7 @@ const PredictGameDetailsContentComponent: React.FC<
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel={strings('predict.buttons.back')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
           <Icon
             name={IconName.ArrowLeft}
@@ -154,6 +155,7 @@ const PredictGameDetailsContentComponent: React.FC<
       </Box>
 
       <ScrollView
+        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         stickyHeaderIndices={stickyHeaderIndices}

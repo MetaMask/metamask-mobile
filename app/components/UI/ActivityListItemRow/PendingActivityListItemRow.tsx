@@ -6,11 +6,12 @@
 import React, { useCallback } from 'react';
 import { View, useColorScheme } from 'react-native';
 import { useSelector } from 'react-redux';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { getTransactionIcon } from '../../../util/transaction-icons';
@@ -72,12 +73,13 @@ export function PendingActivityListItemRow({
   );
 
   const subtitleLeadingAccessory = isQueued ? (
-    <Icon
-      name={IconName.Pending}
-      size={IconSize.Sm}
-      color={IconColor.Alternative}
-      style={styles.subtitleLeadingIcon}
-    />
+    <View style={styles.subtitleLeadingIcon}>
+      <Icon
+        name={IconName.Clock}
+        size={IconSize.Xs}
+        color={IconColor.IconAlternative}
+      />
+    </View>
   ) : undefined;
 
   return (
