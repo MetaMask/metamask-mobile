@@ -825,6 +825,30 @@ describe('usePayWithCryptoSection', () => {
     );
   });
 
+  it('does not clear the payment override when opening the other assets modal', () => {
+    useSelectorMock.mockReturnValue(PaymentOverride.MoneyAccount);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'tx-other-assets',
+      txParams: {},
+    } as never);
+
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const otherAssetsRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-other-assets',
+    );
+
+    act(() => {
+      otherAssetsRow?.onPress?.();
+    });
+
+    expect(setTransactionConfigMock).not.toHaveBeenCalled();
+  });
+
   it('renders the last-used tag on the preferred row when the last-used token matches it', () => {
     isLastUsedMock.mockImplementation(
       (address, chainId) =>
@@ -1016,6 +1040,57 @@ describe('usePayWithCryptoSection', () => {
       expect(result.current?.rows[0]).toEqual(
         expect.objectContaining({ id: 'crypto-other-assets' }),
       );
+    });
+
+    it('renders the no-fee token row without a checkmark when money account is selected', () => {
+      const noFeeTokenMock = {
+        address: '0xfeeaddress0000000000000000000000000000000' as Hex,
+        balanceUsd: '0.14',
+        chainId: '0x1' as Hex,
+        symbol: 'MUSD',
+      };
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: noFeeTokenMock,
+        isNoFeeToken: isNoFeeTokenSharedMock,
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const noFeeRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-no-fee-token',
+      );
+
+      expect(noFeeRow).toEqual(
+        expect.objectContaining({
+          id: 'crypto-no-fee-token',
+          isSelected: false,
+          trailingElement: 'none',
+        }),
+      );
+    });
+
+    it('omits the no-fee token row when it matches MUSD on MONAD', () => {
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: {
+          address: MUSD_TOKEN_ADDRESS,
+          balanceUsd: '0.20',
+          chainId: CHAIN_IDS.MONAD,
+          symbol: 'mUSD',
+        },
+        isNoFeeToken: isNoFeeTokenSharedMock,
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const noFeeRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-no-fee-token',
+      );
+
+      expect(noFeeRow).toBeUndefined();
     });
 
     it('clears paymentOverride when preferred crypto token is pressed', () => {

@@ -129,11 +129,10 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const shouldShowNoFeeTokens = !isWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
-    clearPaymentOverride();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       dismissOnSelectCount: 2,
     });
-  }, [clearPaymentOverride, navigation]);
+  }, [navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (!preferredToken) {
@@ -311,16 +310,22 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       selectedTokenDisplay &&
       isMatchingPayToken(selectedTokenDisplay, noFeeToken);
 
+    const isNoFeeTokenMoneyAccountToken =
+      isMoneyAccountSelected &&
+      isMatchingPayToken(noFeeToken, {
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD,
+      });
+
     if (
       shouldShowNoFeeTokens &&
       noFeeToken &&
-      !isDedicatedSectionOwningSelection &&
-      !noFeeTokenDuplicatesSelectedRow
+      !noFeeTokenDuplicatesSelectedRow &&
+      !isNoFeeTokenMoneyAccountToken
     ) {
-      const isNoFeeTokenSelected = isMatchingPayToken(
-        selectedToken,
-        noFeeToken,
-      );
+      const isNoFeeTokenSelected =
+        !isDedicatedSectionOwningSelection &&
+        isMatchingPayToken(selectedToken, noFeeToken);
 
       const noFeeAddress = noFeeToken.address;
       const noFeeChainId = noFeeToken.chainId;

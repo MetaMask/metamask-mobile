@@ -34,6 +34,7 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
+import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPaymentOverride';
 
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
 const mockRenderNoFeeTag = jest.fn(() => null);
@@ -65,6 +66,7 @@ jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
+jest.mock('../../../hooks/pay/sections/useClearPaymentOverride');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay', () => ({
   ...jest.requireActual('../../../utils/transaction-pay'),
@@ -236,9 +238,13 @@ describe('PayWithModal', () => {
   const usePredictBalanceTokenFilterMock = jest.mocked(
     usePredictBalanceTokenFilter,
   );
+  const clearPaymentOverrideMock = jest.fn();
+  const useClearPaymentOverrideMock = jest.mocked(useClearPaymentOverride);
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    useClearPaymentOverrideMock.mockReturnValue(clearPaymentOverrideMock);
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -312,6 +318,14 @@ describe('PayWithModal', () => {
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
       });
+    });
+
+    it('clears the payment override when a token is selected', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Test Token 1'));
+
+      expect(clearPaymentOverrideMock).toHaveBeenCalled();
     });
 
     it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {

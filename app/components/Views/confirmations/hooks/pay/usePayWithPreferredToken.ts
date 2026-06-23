@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import {
-  SetPayTokenRequest,
-  useAutomaticTransactionPayToken,
-} from './useAutomaticTransactionPayToken';
+import { SetPayTokenRequest } from './useAutomaticTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isMatchingPayToken } from '../../utils/transaction-pay';
@@ -28,45 +25,47 @@ export function usePayWithPreferredToken({
 }: {
   preferredToken?: SetPayTokenRequest;
 } = {}): UsePayWithPreferredTokenResult {
-  const automaticToken = useAutomaticTransactionPayToken({
-    preferredToken,
-  });
-
   const { payToken } = useTransactionPayToken();
   const { availableTokens, hasTokens } = useTransactionPayAvailableTokens();
   const { balanceUsd: liveBalanceUsd } = usePayTokenAccountBalance();
 
+  const highestBalanceToken = useMemo(() => {
+    const heldOverrideToken = preferredToken
+      ? availableTokens.find((token) =>
+          isMatchingPayToken(token, preferredToken),
+        )
+      : undefined;
+
+    if (heldOverrideToken?.chainId && !heldOverrideToken.disabled) {
+      return heldOverrideToken;
+    }
+
+    return [...availableTokens]
+      .filter((token) => Boolean(token.chainId) && !token.disabled)
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0))[0];
+  }, [availableTokens, preferredToken]);
+
   const preferredTokenCandidate = useMemo(() => {
-    if (!automaticToken) {
+    if (!highestBalanceToken?.chainId) {
       return undefined;
     }
 
-    const selectedToken = payToken;
-
-    if (selectedToken && isMatchingPayToken(selectedToken, automaticToken)) {
+    if (payToken && isMatchingPayToken(highestBalanceToken, payToken)) {
       return {
-        address: selectedToken.address,
+        address: payToken.address,
         balanceUsd: liveBalanceUsd,
-        chainId: selectedToken.chainId,
-        symbol: selectedToken.symbol,
+        chainId: payToken.chainId,
+        symbol: payToken.symbol,
       };
     }
 
-    const availableToken = availableTokens.find((token) =>
-      isMatchingPayToken(token, automaticToken),
-    );
-
-    if (!availableToken?.chainId) {
-      return undefined;
-    }
-
     return {
-      address: availableToken.address as Hex,
-      balanceUsd: `${availableToken.fiat?.balance ?? 0}`,
-      chainId: availableToken.chainId as Hex,
-      symbol: availableToken.symbol,
+      address: highestBalanceToken.address as Hex,
+      balanceUsd: `${highestBalanceToken.fiat?.balance ?? 0}`,
+      chainId: highestBalanceToken.chainId as Hex,
+      symbol: highestBalanceToken.symbol,
     };
-  }, [automaticToken, availableTokens, liveBalanceUsd, payToken]);
+  }, [highestBalanceToken, liveBalanceUsd, payToken]);
 
   return useMemo(
     () => ({

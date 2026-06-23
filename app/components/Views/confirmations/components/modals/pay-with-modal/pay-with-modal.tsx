@@ -38,6 +38,7 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
+import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPaymentOverride';
 
 interface PayWithModalParams {
   /**
@@ -87,6 +88,7 @@ export function PayWithModal() {
   );
 
   const { renderNoFeeTag } = usePayWithNoFeeToken();
+  const clearPaymentOverride = useClearPaymentOverride();
   const tagRenderers = useMemo(
     () => (isWithdraw ? undefined : [renderNoFeeTag]),
     [isWithdraw, renderNoFeeTag],
@@ -133,6 +135,8 @@ export function PayWithModal() {
         if (dismissOnSelectCount > 1) {
           navigation.dispatch(StackActions.pop(dismissOnSelectCount));
         }
+
+        clearPaymentOverride();
 
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
@@ -190,6 +194,7 @@ export function PayWithModal() {
       close(onClosed);
     },
     [
+      clearPaymentOverride,
       close,
       dismissOnSelectCount,
       isPredictContext,
