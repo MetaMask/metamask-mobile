@@ -466,6 +466,50 @@ describe('Engine', () => {
         fetchError,
       );
     });
+
+    it('clears cached remote flags when basic functionality is disabled at init', () => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const controller = engine.context.RemoteFeatureFlagController;
+
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+
+    it('subscribes to basic functionality changes', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(store.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('syncs controller when basic functionality changes', () => {
+      jest.mocked(store.subscribe).mockClear();
+      const engine = Engine.init(TEST_ANALYTICS_ID, {});
+      const subscribeCallback = jest.mocked(store.subscribe).mock
+        .calls[0][0] as () => void;
+      const controller = engine.context.RemoteFeatureFlagController;
+      const disableSpy = jest.spyOn(controller, 'disable');
+      const updateSpy = jest.spyOn(controller, 'update');
+
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      subscribeCallback();
+
+      expect(disableSpy).toHaveBeenCalled();
+      expect(updateSpy).toHaveBeenCalled();
+    });
   });
 
   describe('ConnectivityController startup seeding', () => {
