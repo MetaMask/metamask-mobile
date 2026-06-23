@@ -87,11 +87,14 @@ export function PayWithModal() {
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
 
+  const isMoneyWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const { renderNoFeeTag } = usePayWithNoFeeToken();
   const clearPaymentOverride = useClearPaymentOverride();
   const tagRenderers = useMemo(
-    () => (isWithdraw ? undefined : [renderNoFeeTag]),
-    [isWithdraw, renderNoFeeTag],
+    () => (isWithdraw && !isMoneyWithdraw ? undefined : [renderNoFeeTag]),
+    [isWithdraw, isMoneyWithdraw, renderNoFeeTag],
   );
 
   const close = useCallback((onClosed?: () => void) => {
