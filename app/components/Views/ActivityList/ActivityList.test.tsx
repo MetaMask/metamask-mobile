@@ -14,6 +14,8 @@ import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import Routes from '../../../constants/navigation/Routes';
+import decodeTransaction from '../../UI/TransactionElement/utils';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -29,6 +31,8 @@ jest.mock('../../../selectors/accountsController', () => ({
 
 jest.mock('../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn((state) => state.currentCurrency),
+  selectConversionRateByChainId: jest.fn(),
+  selectCurrencyRates: jest.fn(),
 }));
 
 jest.mock('../../../selectors/multichain/multichain', () => ({
@@ -50,6 +54,7 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn((state) => state.evmConfigs),
   selectProviderType: jest.fn((state) => state.providerType),
   selectAllConfiguredEvmChainIds: jest.fn((state) => state.enabledEvm),
+  selectTickerByChainId: jest.fn(),
 }));
 
 jest.mock('../../../selectors/multichainNetworkController', () => ({
@@ -58,6 +63,31 @@ jest.mock('../../../selectors/multichainNetworkController', () => ({
 
 jest.mock('../../../selectors/transactionController', () => ({
   selectRelatedChainIdsByTransactionId: jest.fn((state) => state.related),
+  selectSwapsTransactions: jest.fn(),
+}));
+
+jest.mock('../../../selectors/tokenRatesController', () => ({
+  selectContractExchangeRatesByChainId: jest.fn(),
+}));
+
+jest.mock('../../../selectors/settings', () => ({
+  selectPrimaryCurrency: jest.fn(),
+}));
+
+jest.mock('../../../selectors/tokensController', () => ({
+  selectTokensByChainIdAndWalletAddress: jest.fn(),
+}));
+
+jest.mock('../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+
+jest.mock('../../UI/TransactionElement/utils', () => ({
+  __esModule: true,
+  default: jest.fn(async () => [
+    { actionKey: 'Sent ETH' },
+    { hash: '0xconfirmed', renderFrom: '0xfrom', renderTo: '0xto' },
+  ]),
 }));
 
 jest.mock('../../../selectors/bridgeStatusController', () => ({
@@ -537,16 +567,93 @@ describe('ActivityList', () => {
     );
   });
 
-  it('navigates to transaction details when a confirmed row is pressed', () => {
+  it('navigates to transaction details when a confirmed row is pressed', async () => {
     render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.any(String),
+    // The press handler decodes the tx (async) before navigating.
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          screen: expect.any(String),
+        }),
+      ),
+    );
+  });
+
+  it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {
+    const decodeMock = jest.mocked(decodeTransaction);
+    type DecodeResult = Awaited<ReturnType<typeof decodeTransaction>>;
+    let resolveFirst: (value: DecodeResult) => void = () => undefined;
+    let resolveSecond: (value: DecodeResult) => void = () => undefined;
+    decodeMock
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          }),
+      );
+
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+
+    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
+    fireEvent.press(screen.getByTestId('row-0xlocal'));
+
+    resolveSecond([{ actionKey: 'Approve' }, { hash: '0xlocal' }]);
+    resolveFirst([{ actionKey: 'Sent' }, { hash: '0xconfirmed' }]);
+
+    await waitFor(() => {
+      const detailCalls = mockNavigate.mock.calls.filter(
+        (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+      );
+      expect(detailCalls).toHaveLength(1);
+    });
+
+    const detailCalls = mockNavigate.mock.calls.filter(
+      (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+    );
+    expect(detailCalls[0][1].params.tx.hash).toBe('0xlocal');
+  });
+
+  it('falls back to a minimal details view when decoding throws', async () => {
+    jest
+      .mocked(decodeTransaction)
+      .mockRejectedValueOnce(new Error('decode failed'));
+
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+
+    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
+
+    await waitFor(() => {
+      const detailCalls = mockNavigate.mock.calls.filter(
+        (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+      );
+      expect(detailCalls).toHaveLength(1);
+    });
+
+    const call = mockNavigate.mock.calls.find(
+      (c) => c[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+    );
+    // Minimal transactionDetails are built from the item (addresses via
+    // getActivityFromTo) rather than the decoded data.
+    expect(call?.[1].params.transactionDetails).toEqual(
       expect.objectContaining({
-        screen: expect.any(String),
+        hash: '0xconfirmed',
+        renderFrom: '0xevm',
+        renderTo: '0xto',
+        transactionType: 'contractInteraction',
       }),
+    );
+    expect(call?.[1].params.transactionElement).toEqual(
+      expect.objectContaining({ actionKey: expect.any(String) }),
     );
   });
 
