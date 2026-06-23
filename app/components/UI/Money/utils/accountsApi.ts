@@ -1,11 +1,25 @@
 import type { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { areAddressesEqual } from '../../../../util/address';
-import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
+import {
+  isMusdTokenOnChain,
+  MUSD_MONEY_ACCOUNT_CHAIN_IDS,
+} from '../../Earn/constants/musd';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 
 export const METAMASK_CARD_PAYMENT_TYPE = 'METAMASK_CARD_PAYMENT';
 export const METAMASK_CARD_CASHBACK_TYPE = 'METAMASK_CARD_CASHBACK';
+
+/**
+ * Baanx card-cashback multisend operator observed on Monad (and Linea).
+ * Temporary client-side signal until Accounts API assigns
+ * `METAMASK_CARD_CASHBACK`.
+ */
+const CARD_CASHBACK_MULTISEND_FROM =
+  '0xb978703B01a60c7fbD4541D6c29299C65C8e61EA';
+
+/** `multiSend` entrypoint on card-cashback payout transactions. */
+const CARD_CASHBACK_MULTISEND_METHOD_ID = '0x0d49b711';
 
 const ALLOWED_CHAIN_IDS = new Set(
   MUSD_MONEY_ACCOUNT_CHAIN_IDS.map((c) => c.toLowerCase()),
@@ -30,6 +44,8 @@ interface AccountsApiTransaction {
   isError?: boolean;
   /** API-assigned category, e.g. "METAMASK_CARD_PAYMENT". */
   transactionType?: string;
+  /** Contract call selector, e.g. multisend `0x0d49b711`. */
+  methodId?: string;
   valueTransfers?: AccountsApiValueTransfer[];
 }
 
@@ -129,7 +145,7 @@ export function parseAccountsApiActivity(
       }
       return [{ ...parsed, kind: 'card', paidTo: transfer.to as Hex }];
     }
-    if (tx.transactionType === METAMASK_CARD_CASHBACK_TYPE) {
+    if (isCashbackTransaction(tx)) {
       const transfer = inboundTransfer(tx, moneyAddress);
       const parsed = parseSettlement(tx, transfer);
       if (!parsed || !transfer) {
@@ -141,4 +157,48 @@ export function parseAccountsApiActivity(
     }
     return [];
   });
+}
+
+function hasMusdValueTransfer(tx: AccountsApiTransaction): boolean {
+  const chainId = parseChainId(tx.chainId);
+  if (!chainId) {
+    return false;
+  }
+  return (tx.valueTransfers ?? []).some((vt) =>
+    isMusdTokenOnChain(vt.contractAddress, chainId),
+  );
+}
+
+/**
+ * Classify card-cashback rows. Uses the Accounts API type when present;
+ * otherwise falls back to Baanx multisend heuristics (mUSD payout from the
+ * known operator address).
+ */
+function isCashbackTransaction(tx: AccountsApiTransaction): boolean {
+  if (tx.isError) {
+    return false;
+  }
+  if (tx.transactionType === METAMASK_CARD_CASHBACK_TYPE) {
+    return true;
+  }
+  if (tx.transactionType === METAMASK_CARD_PAYMENT_TYPE) {
+    return false;
+  }
+  if (!parseChainId(tx.chainId)) {
+    return false;
+  }
+  if (
+    !areAddressesEqual(tx.from, CARD_CASHBACK_MULTISEND_FROM) ||
+    !hasMusdValueTransfer(tx)
+  ) {
+    return false;
+  }
+  if (
+    tx.methodId &&
+    tx.methodId.toLowerCase() !==
+      CARD_CASHBACK_MULTISEND_METHOD_ID.toLowerCase()
+  ) {
+    return false;
+  }
+  return true;
 }
