@@ -23,6 +23,7 @@ export const SocialLeaderboardEventProperties = {
   LATENCY_MS: 'latency_ms',
   MARKET_CAP: 'market_cap',
   NOTIFICATION_TYPE: 'notification_type',
+  NOTIFICATION_SUBTYPE: 'notification_subtype',
   PAY_WITH_TOKEN: 'pay_with_token',
   RECEIVE_TOKEN: 'receive_token',
   PRESET_VALUE: 'preset_value',
@@ -85,7 +86,8 @@ export type SocialLeaderboardSource =
   | 'trader_profile'
   | 'profile_position'
   | 'asset_details'
-  | 'market_insights';
+  | 'market_insights'
+  | 'security_trust';
 
 export type LeaderboardScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -119,4 +121,5 @@ export type QuickBuySheetSource = Extract<
   | 'leaderboard'
   | 'asset_details'
   | 'market_insights'
+  | 'security_trust'
 >;

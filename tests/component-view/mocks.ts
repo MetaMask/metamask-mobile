@@ -268,6 +268,7 @@ jest.mock('../../app/core/Engine', () => {
         addTransaction: jest.fn().mockResolvedValue({}),
         getTransactions: jest.fn().mockReturnValue([]),
         updateEditableParams: jest.fn(),
+        updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),
         getNonceLock: jest
           .fn()
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
@@ -405,6 +406,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
             szDecimals: 2,
           },
           {
@@ -415,6 +417,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),

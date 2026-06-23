@@ -2,7 +2,7 @@ import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
-import { BalanceProjection } from '../../balance-projection';
+import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
@@ -60,12 +60,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
+import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
@@ -73,6 +75,7 @@ import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
+import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
@@ -133,7 +136,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
+    // TRAM-3623 headless ramps funnel. The adapter owns screen-viewed tracking
+    // and derives ramp_surface from the tx type, so non-money flows stay inert.
+    const { trackAmountCommitted, trackContinue } =
+      useFiatFunnelMetricsAdapter();
+
     const { isNative: isNativePayToken } = useTransactionPayToken();
+    const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens: hasAvailableTokens } =
@@ -157,6 +166,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
     const { alerts } = useAlerts();
+    const accountNoFundsAlert = useAccountNoFundsAlert();
+    const hasAccountNoFunds = accountNoFundsAlert.length > 0;
     const hasNoQuotesAlert = alerts.some(
       (a) => a.key === AlertKeys.NoPayTokenQuotes,
     );
@@ -203,6 +214,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         } else {
           await updateTokenAmount();
         }
+        // Amount committed (pre-quote) funnel event; only fires once the amount
+        // has been successfully applied above (no-op for non-money flows).
+        trackAmountCommitted();
       } catch (error) {
         Logger.error(
           error as Error,
@@ -218,6 +232,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
+      trackAmountCommitted,
       transactionId,
       updateTokenAmount,
     ]);
@@ -268,7 +283,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
-              {disablePay !== true && hasPaymentOption && <PayWithRow />}
+              {disablePay !== true &&
+                (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
             </>
           )}
           {isResultReady && (
@@ -304,7 +320,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && hasPaymentOption && (
+          {isKeyboardVisible && (hasPaymentOption || hasAccountNoFunds) && (
             <DepositKeyboard
               hidePercentageButtons={
                 Boolean(selectedFiatPaymentMethodId) ||
@@ -316,14 +332,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
+              hasMax={
+                (hasMax || isMoneyDepositNoFee) &&
+                (isWithdraw || !isNativePayToken)
+              }
             />
           )}
-          {!hasPaymentOption && <BuySection />}
+          {!hasPaymentOption && !hasAccountNoFunds && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={disableConfirm || isAccountSelectionNeeded}
+              onContinue={trackContinue}
             />
           )}
         </Box>
@@ -410,7 +430,12 @@ function BuySection() {
 function ConfirmButton({
   alertTitle,
   disableConfirm,
-}: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
+  onContinue,
+}: Readonly<{
+  alertTitle: string | undefined;
+  disableConfirm?: boolean;
+  onContinue?: () => void;
+}>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
@@ -426,13 +451,15 @@ function ConfirmButton({
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
+    // Continue / Add Funds CTA funnel event; no-op for non-money flows.
+    onContinue?.();
     try {
       await onConfirm();
     } catch (error) {
       setIsConfirmationSubmitting(false);
       throw error;
     }
-  }, [onConfirm, setIsConfirmationSubmitting]);
+  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
 
   return (
     <Button

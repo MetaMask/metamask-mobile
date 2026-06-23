@@ -47,6 +47,12 @@ interface UsePerpsHomeDataReturn {
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
   stocksAndCommoditiesMarkets: PerpsMarketData[]; // Combined stocks & commodities markets
   forexMarkets: PerpsMarketData[]; // Forex markets
+  /**
+   * True when the raw (unfiltered) market list is non-empty. Reflects the
+   * full set that PerpsTopMoversSection ranks, including HIP-3 and any market
+   * type not bucketed into the home-screen explore slices.
+   */
+  hasMarkets: boolean;
   recentActivity: PerpsTransaction[];
   sortBy: SortField;
   isLoading: {
@@ -390,6 +396,7 @@ export const usePerpsHomeData = ({
     commoditiesMarkets: searchedCommoditiesMarkets,
     stocksAndCommoditiesMarkets: searchedStocksAndCommoditiesMarkets,
     forexMarkets: searchedForexMarkets,
+    hasMarkets: allMarkets.length > 0,
     recentActivity: limitedActivity,
     sortBy,
     // Hooks handle reconnection internally: clearCache() sends null →
