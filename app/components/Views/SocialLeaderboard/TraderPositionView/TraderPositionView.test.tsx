@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
@@ -103,6 +109,21 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 jest.mock('./components/QuickBuy', () => ({
   __esModule: true,
   default: () => null,
+}));
+
+// Resolves the tradable perp market set used by the Trade CTA's xyz/HIP-3
+// gating. Mocked because the real hook reaches into the Perps stream provider,
+// which this minimal-store test does not mount.
+const mockUseTradablePerpsMarketSymbols = jest.fn();
+jest.mock('../../../UI/WhatsHappening/hooks', () => ({
+  useTradablePerpsMarketSymbols: () => mockUseTradablePerpsMarketSymbols(),
+}));
+
+// PerpsTradeButton wraps itself in PerpsStreamProvider; stub it to a passthrough
+// so the real stream-manager singleton isn't pulled into this minimal-store test.
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
 }));
 
 jest.mock('../../../../util/haptics', () => {
@@ -222,6 +243,10 @@ describe('TraderPositionView', () => {
       json: () => Promise.resolve({ prices: [] }),
     }) as jest.Mock;
     mockGetAssetImageUrl.mockReturnValue('https://example.com/token.png');
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set<string>(),
+      isLoading: false,
+    });
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -237,7 +262,14 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('trader1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+      ).getByText('trader1'),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -275,6 +307,22 @@ describe('TraderPositionView', () => {
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('title section onLayout sets header height for scroll animation', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const titleSectionWrapper = screen.getByTestId(
+      TraderPositionViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+    );
+    fireEvent(titleSectionWrapper, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
+    });
+
+    expect(titleSectionWrapper).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -430,6 +478,157 @@ describe('TraderPositionView', () => {
           TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
         ),
       ).not.toBeOnTheScreen();
+    });
+
+    describe('HIP-3 markets', () => {
+      it('hides the provider prefix in the displayed symbol', () => {
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.getAllByText('SPCX').length).toBeGreaterThanOrEqual(1);
+        expect(screen.queryByText('cash:SPCX')).toBeNull();
+      });
+
+      it('links an xyz market directly without a tradable-set check', () => {
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'xyz:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
+
+      it('links another HIP-3 provider to its xyz equivalent when that market exists', () => {
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set(['xyz:SPCX']),
+          isLoading: false,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
+
+      it('disables the Trade button as Unsupported market when the loaded market list lacks the xyz market', () => {
+        // A populated set that does not include the target is a definitive
+        // "no such market" — only then do we disable.
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set(['BTC', 'ETH', 'xyz:OTHER']),
+          isLoading: false,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.getByText('Unsupported market')).toBeOnTheScreen();
+
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockPlayImpact).not.toHaveBeenCalled();
+      });
+
+      it('stays enabled (optimistic) while the market list is still loading', () => {
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set<string>(),
+          isLoading: true,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.queryByText('Unsupported market')).toBeNull();
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
+
+      it('stays optimistic when the market set is empty even with isLoading false (fetch in flight / empty cache)', () => {
+        // usePerpsMarkets can report isLoading:false with an empty list while a
+        // fetch is still in flight; an empty set must not lock the button into
+        // a false "Unsupported market".
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set<string>(),
+          isLoading: false,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.queryByText('Unsupported market')).toBeNull();
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
     });
   });
 

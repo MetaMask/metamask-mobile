@@ -23,14 +23,9 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
-import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
-import { onchainItem, type MoneyActivityItem } from '../../types/moneyActivity';
-import {
-  MoneyActivityFilter,
-  MOCK_CARD_TRANSACTIONS,
-} from '../../constants/mockActivityData';
+import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { type MoneyActivityItem } from '../../types/moneyActivity';
+import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
@@ -125,7 +120,6 @@ const MoneyActivityView = () => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
-
   const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
@@ -134,35 +128,11 @@ const MoneyActivityView = () => {
   useMountEffect(trackScreenViewed);
 
   const {
-    allTransactions,
-    deposits,
-    transfers,
+    buckets,
+    isLoading: showActivityLoading,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyAccountTransactions();
-  const { cardTransactions, isLoading: isCardActivityLoading } =
-    useMoneyAccountCardTransactions();
-
-  // Mock mode shows curated demo data only — never merge real card spends (or
-  // their loading state) into it.
-  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
-
-  // In mock mode, use the curated mock card spend; otherwise the real ones.
-  const cardItems = mockDataEnabled ? MOCK_CARD_TRANSACTIONS : cardTransactions;
-
-  // Card spends are outgoing, so they belong with transfers (and in "All").
-  const allItems = useMemo(
-    () => mergeMoneyActivity(allTransactions, cardItems),
-    [allTransactions, cardItems],
-  );
-  const depositItems = useMemo(
-    () => deposits.map(onchainItem).sort((a, b) => b.time - a.time),
-    [deposits],
-  );
-  const transferItems = useMemo(
-    () => mergeMoneyActivity(transfers, cardItems),
-    [transfers, cardItems],
-  );
+  } = useMoneyActivityItems();
 
   const handleFilterPress = useCallback(
     (
@@ -201,15 +171,7 @@ const MoneyActivityView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  const filtered = useMemo(() => {
-    if (filter === MoneyActivityFilter.All) {
-      return allItems;
-    }
-    if (filter === MoneyActivityFilter.Deposits) {
-      return depositItems;
-    }
-    return transferItems;
-  }, [filter, allItems, depositItems, transferItems]);
+  const filtered = buckets[filter];
 
   const sections = useMemo(
     () => buildSections(filtered, I18n.locale),
@@ -342,7 +304,7 @@ const MoneyActivityView = () => {
         </Button>
       </Box>
 
-      {showCardActivityLoading ? (
+      {showActivityLoading ? (
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box

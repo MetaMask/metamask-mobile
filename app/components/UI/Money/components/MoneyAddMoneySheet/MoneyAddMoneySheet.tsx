@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
@@ -156,7 +156,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit({ autoSelectFiatPayment: true });
+    startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleMoveMusd = useCallback(() => {
@@ -209,7 +209,11 @@ const MoneyAddMoneySheet: React.FC = () => {
     ...(isFiatDepositEnabled
       ? [
           {
-            label: strings('money.add_money_sheet.deposit_funds'),
+            label: strings(
+              Platform.OS === 'android'
+                ? 'money.add_money_sheet.deposit_funds_android'
+                : 'money.add_money_sheet.deposit_funds',
+            ),
             icon: IconName.Card,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,

@@ -138,9 +138,9 @@ export function mapKeyringTransaction({
       chainId,
       status,
       timestamp,
+      hash: transaction.id,
       raw: { type: 'keyringTransaction', data: transaction },
       data: {
-        hash: transaction.id,
         from,
         to,
         token,
@@ -154,9 +154,9 @@ export function mapKeyringTransaction({
       chainId,
       status,
       timestamp,
+      hash: transaction.id,
       raw: { type: 'keyringTransaction', data: transaction },
       data: {
-        hash: transaction.id,
         from,
         to,
         token: getToken(transaction.to, 'in'),
@@ -170,9 +170,9 @@ export function mapKeyringTransaction({
       chainId,
       status,
       timestamp,
+      hash: transaction.id,
       raw: { type: 'keyringTransaction', data: transaction },
       data: {
-        hash: transaction.id,
         destinationToken: getToken(transaction.to, 'in'),
         sourceToken: getToken(transaction.from, 'out'),
       },
@@ -184,9 +184,9 @@ export function mapKeyringTransaction({
     chainId,
     status,
     timestamp,
+    hash: transaction.id,
     raw: { type: 'keyringTransaction', data: transaction },
     data: {
-      hash: transaction.id,
       from,
       to,
       transactionType: transaction.type,

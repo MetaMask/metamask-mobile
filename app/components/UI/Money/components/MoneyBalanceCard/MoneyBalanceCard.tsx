@@ -26,7 +26,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
-import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
@@ -43,6 +43,7 @@ import {
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
@@ -63,8 +64,11 @@ const MoneyBalanceCard = () => {
   const { navigateToMoneyHome } = useMoneyNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const isOnboardingEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
   const hasOtherPrimaryCtaOnHome = useSelector(
-    selectWalletHomeOnboardingFlowVisible,
+    selectShouldShowWalletHomeOnboardingSteps,
   );
 
   const {
@@ -96,8 +100,6 @@ const MoneyBalanceCard = () => {
     !isUnavailable &&
     totalFiatRaw === '0';
 
-  const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
-
   const balanceText = totalFiatFormatted ?? '';
 
   const buttonLabelKey = 'money.balance_card.add';
@@ -116,9 +118,7 @@ const MoneyBalanceCard = () => {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    containerTestId = isNewUser
-      ? MoneyBalanceCardTestIds.NEW_USER_CONTAINER
-      : MoneyBalanceCardTestIds.EMPTY_CONTAINER;
+    containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
@@ -136,14 +136,32 @@ const MoneyBalanceCard = () => {
 
   const handleCardPress = useCallback(() => {
     trackSurfaceClicked({
-      redirect_target: hasSeenMoneyOnboarding
-        ? SCREEN_NAMES.MONEY_HOME
-        : SCREEN_NAMES.MONEY_ONBOARDING,
+      redirect_target:
+        hasSeenMoneyOnboarding || !isOnboardingEnabled
+          ? SCREEN_NAMES.MONEY_HOME
+          : SCREEN_NAMES.MONEY_ONBOARDING,
     });
     navigateToMoneyHome();
-  }, [hasSeenMoneyOnboarding, navigateToMoneyHome, trackSurfaceClicked]);
+  }, [
+    hasSeenMoneyOnboarding,
+    isOnboardingEnabled,
+    navigateToMoneyHome,
+    trackSurfaceClicked,
+  ]);
 
   const handleAddPress = useCallback(() => {
+    if (!hasSeenMoneyOnboarding && isOnboardingEnabled) {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        label_key: buttonLabelKey,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+      navigation.navigate(Routes.MONEY.ONBOARDING);
+      return;
+    }
+
+    // Initiate deposit
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
@@ -156,7 +174,13 @@ const MoneyBalanceCard = () => {
         message: '[MoneyBalanceCard] Failed to initiate deposit',
       }),
     );
-  }, [buttonLabelKey, initiateDeposit, trackButtonClicked]);
+  }, [
+    hasSeenMoneyOnboarding,
+    initiateDeposit,
+    isOnboardingEnabled,
+    navigation,
+    trackButtonClicked,
+  ]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({

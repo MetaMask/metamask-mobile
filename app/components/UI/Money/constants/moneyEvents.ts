@@ -29,6 +29,7 @@ export enum BOTTOM_SHEET_NAMES {
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
+  MONEY_GEO_BLOCK_SHEET = 'money_geo_block_sheet',
 }
 
 export enum REDIRECT_TARGETS_TYPES {

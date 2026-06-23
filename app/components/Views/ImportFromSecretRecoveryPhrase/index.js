@@ -43,7 +43,6 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
@@ -56,6 +55,8 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
+  IconName as DSIconName,
   Label,
   Text,
   TextColor,
@@ -100,6 +101,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -121,6 +123,7 @@ const ImportFromSecretRecoveryPhrase = ({
   );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+  const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const confirmPasswordInput = useRef();
 
@@ -236,50 +239,9 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-  const headerLeft = () => (
-    <TouchableOpacity
-      onPress={onBackPress}
-      testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
-    >
-      <Icon
-        name={IconName.ArrowLeft}
-        size={24}
-        color={colors.text.default}
-        style={tw.style('ml-4')}
-      />
-    </TouchableOpacity>
-  );
-
-  const headerRight = () =>
-    currentStep === 0 ? (
-      <TouchableOpacity
-        onPress={onQrCodePress}
-        testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
-      >
-        <Icon
-          name={IconName.Scan}
-          size={24}
-          color={colors.text.default}
-          onPress={onQrCodePress}
-          style={tw.style('mr-4')}
-        />
-      </TouchableOpacity>
-    ) : (
-      <Box />
-    );
-
+  // The header is rendered in-screen via HeaderStandard, so hide the native one.
   const updateNavBar = () => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-          headerRight,
-        },
-        colors,
-        false,
-      ),
-    );
+    navigation.setOptions({ headerShown: false });
   };
 
   useEffect(() => {
@@ -579,10 +541,26 @@ const ImportFromSecretRecoveryPhrase = ({
   const uniqueId = useMemo(() => uuidv4(), []);
 
   const content = (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
+    <Box twClassName="flex-1 bg-default">
+      <HeaderStandard
+        includesTopInset
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+          onPress: onBackPress,
+          testID: ImportFromSeedSelectorsIDs.BACK_BUTTON_ID,
+        }}
+        endButtonIconProps={
+          currentStep === 0
+            ? [
+                {
+                  iconName: DSIconName.Scan,
+                  onPress: onQrCodePress,
+                  testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+                },
+              ]
+            : undefined
+        }
+      />
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
@@ -619,19 +597,40 @@ const ImportFromSecretRecoveryPhrase = ({
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
+                    {isAddDeviceSyncEnabled && (
+                      <>
+                        {' '}
+                        {strings('import_from_seed.or')}{' '}
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          color={TextColor.PrimaryDefault}
+                          onPress={() =>
+                            navigation.navigate(
+                              Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+                            )
+                          }
+                        >
+                          {strings(
+                            'import_from_seed.import_wallet_from_extension',
+                          )}
+                        </Text>
+                      </>
+                    )}
                   </Text>
-                  <TouchableOpacity
-                    onPress={showWhatIsSeedPhrase}
-                    testID={
-                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
-                    }
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Md}
-                      color={colors.icon.alternative}
-                    />
-                  </TouchableOpacity>
+                  {!isAddDeviceSyncEnabled && (
+                    <TouchableOpacity
+                      onPress={showWhatIsSeedPhrase}
+                      testID={
+                        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                      }
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Md}
+                        color={colors.icon.alternative}
+                      />
+                    </TouchableOpacity>
+                  )}
                 </Box>
                 <SrpInputGrid
                   ref={srpInputGridRef}
@@ -811,7 +810,8 @@ const ImportFromSecretRecoveryPhrase = ({
                 />
               </Box>
 
-              <Box
+              <SafeAreaView
+                edges={['bottom']}
                 style={tw.style(
                   'w-full gap-y-4 mt-auto',
                   Platform.OS === 'android' ? 'mb-6' : 'mb-4',
@@ -828,13 +828,16 @@ const ImportFromSecretRecoveryPhrase = ({
                 >
                   {strings('import_from_seed.import_create_password_cta')}
                 </Button>
-              </Box>
+              </SafeAreaView>
             </Box>
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
       {currentStep === 0 && (
-        <Box twClassName="px-4 py-4 bg-default">
+        <SafeAreaView
+          edges={['bottom']}
+          style={tw.style('px-4 py-4 bg-default')}
+        >
           <Button
             variant={ButtonVariant.Primary}
             onPress={handleContinueImportFlow}
@@ -845,7 +848,7 @@ const ImportFromSecretRecoveryPhrase = ({
           >
             {strings('import_from_seed.continue')}
           </Button>
-        </Box>
+        </SafeAreaView>
       )}
       {currentStep === 0 && isKeyboardVisible && (
         <KeyboardStickyView
@@ -861,7 +864,7 @@ const ImportFromSecretRecoveryPhrase = ({
         </KeyboardStickyView>
       )}
       <ScreenshotDeterrent enabled isSRP />
-    </SafeAreaView>
+    </Box>
   );
 
   return <KeyboardProvider>{content}</KeyboardProvider>;
