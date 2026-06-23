@@ -4549,8 +4549,8 @@ describe('RewardsController', () => {
       );
     });
 
-    it('does NOT call login when opt-in status check throws', async () => {
-      // Arrange — the OIS endpoint fails; enrollment is unknown.
+    it('falls through to login when opt-in status check throws', async () => {
+      // Arrange — the OIS endpoint fails; fall back to mobile-login like main.
       const unknownAccount: InternalAccount = {
         address: '0x123',
         type: 'eip155:eoa',
@@ -4574,6 +4574,20 @@ describe('RewardsController', () => {
           if (method === 'RewardsDataService:getOptInStatus') {
             return Promise.reject(new Error('Network error'));
           }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return Promise.resolve('0xsignature');
+          }
+          if (method === 'RewardsDataService:login') {
+            return Promise.resolve({
+              sessionId: 'session123',
+              subscription: {
+                id: 'sub123',
+                referralCode: 'REF123',
+                accounts: [],
+                features: { vip: { enabled: false } },
+              },
+            });
+          }
           return Promise.resolve(undefined);
         },
       );
@@ -4584,16 +4598,16 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Act — respectSkipSilentAuth=true so the OIS pre-gate runs.
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
+
       const result = await testController.performSilentAuth(
         unknownAccount,
         false,
         true,
       );
 
-      // Assert — unknown enrollment must NOT fall through to mobile-login.
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+      expect(result).toBe('sub123');
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:login',
         expect.anything(),
       );
@@ -8441,6 +8455,235 @@ describe('RewardsController', () => {
         true,
       );
       expect(controller.state.activeAccount).toBeDefined();
+
+      getOptInStatusSpy.mockRestore();
+      performSilentAuthSpy.mockRestore();
+    });
+
+    it('updates activeAccount when switching to a group where no accounts are opted in', async () => {
+      const oldEnrolledCaip = 'eip155:1:0x1111111111111111' as CaipAccountId;
+      const notEnrolledAccount1 = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Not Enrolled 1',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+      const notEnrolledAccount2 = {
+        address: '0x3333333333333333',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-2',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Not Enrolled 2',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+      const expectedActiveCaip = 'eip155:1:0x2222222222222222' as CaipAccountId;
+      const cachedOptInCheckTimestamp = 50;
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: oldEnrolledCaip,
+            hasOptedIn: true,
+            subscriptionId: 'old-subscription',
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          accounts: {
+            [oldEnrolledCaip]: {
+              account: oldEnrolledCaip,
+              hasOptedIn: true,
+              subscriptionId: 'old-subscription',
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            [expectedActiveCaip]: {
+              account: expectedActiveCaip,
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: cachedOptInCheckTimestamp,
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockReturnValueOnce([
+        notEnrolledAccount1,
+        notEnrolledAccount2,
+      ]);
+
+      const getOptInStatusSpy = jest
+        .spyOn(controller, 'getOptInStatus')
+        .mockResolvedValue({
+          ois: [false, false],
+          sids: [null, null],
+        });
+      const performSilentAuthSpy = jest.spyOn(controller, 'performSilentAuth');
+
+      await controller.handleAuthenticationTrigger('account-group-changed');
+
+      expect(performSilentAuthSpy).not.toHaveBeenCalled();
+      expect(controller.state.activeAccount).toEqual({
+        account: expectedActiveCaip,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: cachedOptInCheckTimestamp,
+      });
+      expect(controller.state.accounts[expectedActiveCaip]).toEqual(
+        controller.state.activeAccount,
+      );
+
+      getOptInStatusSpy.mockRestore();
+      performSilentAuthSpy.mockRestore();
+    });
+
+    it('does not slide lastFreshOptInStatusCheck when bulk OIS uses cached not-opted-in state', async () => {
+      const notEnrolledAccount = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Not Enrolled',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+      const notEnrolledCaip = 'eip155:1:0x2222222222222222' as CaipAccountId;
+      const cachedOptInCheckTimestamp = 50;
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            [notEnrolledCaip]: {
+              account: notEnrolledCaip,
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: cachedOptInCheckTimestamp,
+            },
+          },
+        },
+      });
+
+      const getOptInStatusSpy = jest
+        .spyOn(controller, 'getOptInStatus')
+        .mockResolvedValue({
+          ois: [false],
+          sids: [null],
+        });
+      const performSilentAuthSpy = jest.spyOn(controller, 'performSilentAuth');
+
+      mockMessenger.call.mockReturnValue([notEnrolledAccount]);
+
+      await controller.handleAuthenticationTrigger('account-group-changed');
+      await controller.handleAuthenticationTrigger('account-group-changed');
+
+      expect(performSilentAuthSpy).not.toHaveBeenCalled();
+      expect(
+        controller.state.accounts[notEnrolledCaip]?.lastFreshOptInStatusCheck,
+      ).toBe(cachedOptInCheckTimestamp);
+
+      getOptInStatusSpy.mockRestore();
+      performSilentAuthSpy.mockRestore();
+    });
+
+    it('seeds candidate state when bulk OIS reports false and no prior account state exists', async () => {
+      const notEnrolledAccount = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Not Enrolled',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+      const notEnrolledCaip = 'eip155:1:0x2222222222222222' as CaipAccountId;
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockReturnValueOnce([notEnrolledAccount]);
+      const getOptInStatusSpy = jest
+        .spyOn(controller, 'getOptInStatus')
+        .mockResolvedValue({ ois: [false], sids: [null] });
+
+      await controller.handleAuthenticationTrigger('account-group-changed');
+
+      expect(controller.state.activeAccount).toEqual({
+        account: notEnrolledCaip,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+      expect(
+        controller.state.activeAccount?.lastFreshOptInStatusCheck,
+      ).toBeUndefined();
+
+      getOptInStatusSpy.mockRestore();
+    });
+
+    it('falls back to performSilentAuth when bulk OIS fails', async () => {
+      const newAccount = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'New Group Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValueOnce([newAccount]);
+      const getOptInStatusSpy = jest
+        .spyOn(controller, 'getOptInStatus')
+        .mockRejectedValue(new Error('Network error'));
+      const performSilentAuthSpy = jest
+        .spyOn(controller, 'performSilentAuth')
+        .mockResolvedValue(null);
+
+      await controller.handleAuthenticationTrigger('account-group-changed');
+
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        newAccount,
+        false,
+        true,
+      );
 
       getOptInStatusSpy.mockRestore();
       performSilentAuthSpy.mockRestore();

@@ -1216,6 +1216,23 @@ export class RewardsController extends BaseController<
           const account = sortedAccounts[i];
           if (bulkOptInStatus && bulkOptInStatus[i] === false) {
             // Known not opted in — skip session mint for this account.
+            const skippedCaip = this.convertInternalAccountToCaipAccountId(
+              account as InternalAccount,
+            );
+            if (skippedCaip && !this.#getAccountState(skippedCaip)) {
+              // Seed missing state so setActiveAccountFromCandidate can run
+              // later. Do not set lastFreshOptInStatusCheck here — fresh OIS
+              // owns that timestamp.
+              this.update((state) => {
+                state.accounts[skippedCaip] = {
+                  account: skippedCaip,
+                  hasOptedIn: false,
+                  subscriptionId: null,
+                  perpsFeeDiscount: null,
+                  lastPerpsDiscountRateFetched: null,
+                };
+              });
+            }
             continue;
           }
           try {
@@ -1437,17 +1454,8 @@ export class RewardsController extends BaseController<
           });
           return null;
         }
-      } catch (error) {
-        // Opt-in status could not be determined. Treat unknown enrollment as
-        // "do not mint a session": abort silent auth instead of falling
-        // through to mobile-login, which would 401 for non-enrolled accounts
-        // and spam the backend on every account switch.
-        Logger.log(
-          'RewardsController: Failed to determine opt-in status, skipping silent auth',
-          internalAccount.address,
-          error instanceof Error ? error.message : String(error),
-        );
-        return null;
+      } catch {
+        // Continue with silent login attempt when OIS is unavailable.
       }
     }
 
