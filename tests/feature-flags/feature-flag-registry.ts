@@ -3781,17 +3781,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsWatchlistV2Enabled: {
-    name: 'perpsWatchlistV2Enabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '7.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   perpsHip3AllowlistMarkets: {
     name: 'perpsHip3AllowlistMarkets',
     type: FeatureFlagType.Remote,

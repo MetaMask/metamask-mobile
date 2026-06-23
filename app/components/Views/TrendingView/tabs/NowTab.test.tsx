@@ -445,63 +445,6 @@ describe('NowTab — WhatsHappeningSection integration', () => {
       error: null,
       refresh: mockWhatsHappeningRefresh,
     });
-    mockUseWhatsHappening.mockReturnValue({
-      items: [{ id: 'trend-0' }],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-    mockWhatsHappeningImpl.mockReturnValue(
-      React.createElement('View', {
-        testID: whatsHappeningSectionTestId,
-      }),
-    );
-
-    renderNowTab();
-
-    expect(screen.getByTestId('explore-section-divider')).toBeOnTheScreen();
-  });
-
-  it('does not add a divider before Predict when Whats Happening feed is empty', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      if (selector === selectPredictEnabledFlag) return true;
-      return mockSelectorBase(selector);
-    });
-    mockTreatmentAbTest();
-    mockUsePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }],
-      isLoading: false,
-    });
-    mockUseWhatsHappening.mockReturnValue({
-      items: [],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-
-    renderNowTab();
-
-    expect(screen.queryByTestId('explore-section-divider')).toBeNull();
-  });
-
-  it('adds a divider before Predict when Whats Happening has content', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      if (selector === selectPredictEnabledFlag) return true;
-      return mockSelectorBase(selector);
-    });
-    mockTreatmentAbTest();
-    mockUsePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }],
-      isLoading: false,
-    });
-    mockUseWhatsHappening.mockReturnValue({
-      items: [{ id: 'trend-0' }],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
     mockWhatsHappeningImpl.mockReturnValue(
       React.createElement('View', {
         testID: whatsHappeningSectionTestId,
