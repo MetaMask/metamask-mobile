@@ -43,4 +43,24 @@ describe('rampOrderActivityDisplayInfo', () => {
       status: 'pending',
     });
   });
+
+  it('formats failed orders with string payment methods and invalid amounts', () => {
+    const order = {
+      providerOrderId: 'order-1',
+      status: RampsOrderStatus.Failed,
+      provider: { name: 'Transak' },
+      paymentMethod: 'Wire transfer',
+      cryptoAmount: 'invalid',
+      fiatAmount: 'invalid',
+      fiatCurrency: { symbol: 'USD' },
+    } as unknown as RampsOrder;
+
+    expect(rampOrderActivityDisplayInfo(order)).toMatchObject({
+      label: 'Deposit failed',
+      description: 'Wire transfer',
+      primaryAmount: '',
+      fiatAmount: '',
+      status: 'failed',
+    });
+  });
 });
