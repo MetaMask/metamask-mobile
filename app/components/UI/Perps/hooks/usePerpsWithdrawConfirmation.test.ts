@@ -6,6 +6,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectDefaultEndpointByChainId } from '../../../../selectors/networkController';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
@@ -30,6 +31,11 @@ jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
 jest.mock('../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../selectors/networkController'),
   selectDefaultEndpointByChainId: jest.fn(),
@@ -50,6 +56,7 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('./usePerpsToasts', () => jest.fn());
 
 const MOCK_ACCOUNT = '0x1234567890123456789012345678901234567890' as Hex;
+const MOCK_EVM_ACCOUNT = '0x9999999999999999999999999999999999999999' as Hex;
 const MOCK_TRANSFER_DATA = '0xabcdef' as Hex;
 const MOCK_NETWORK_CLIENT_ID = 'arbitrum-mainnet';
 const mockNavigateToConfirmation = jest.fn();
@@ -71,6 +78,9 @@ describe('usePerpsWithdrawConfirmation', () => {
   const mockSelectDefaultEndpointByChainId = jest.mocked(
     selectDefaultEndpointByChainId,
   );
+  const mockSelectSelectedInternalAccountByScope = jest.mocked(
+    selectSelectedInternalAccountByScope,
+  );
   const mockUseConfirmNavigation = jest.mocked(useConfirmNavigation);
   const mockUseNavigation = jest.mocked(useNavigation);
   const mockUsePerpsToasts = jest.mocked(usePerpsToasts);
@@ -80,6 +90,9 @@ describe('usePerpsWithdrawConfirmation', () => {
     retryWithdraw = undefined;
 
     mockSelectSelectedInternalAccountAddress.mockReturnValue(MOCK_ACCOUNT);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      (() => undefined) as never,
+    );
     mockSelectDefaultEndpointByChainId.mockReturnValue({
       networkClientId: MOCK_NETWORK_CLIENT_ID,
     } as never);
@@ -152,6 +165,50 @@ describe('usePerpsWithdrawConfirmation', () => {
         },
       ],
     });
+  });
+
+  it('uses the selected group EVM account for the batch when the account tree is available', async () => {
+    const stateWithAccountTree = {
+      engine: { backgroundState: { AccountTreeController: {} } },
+    };
+    (useSelector as jest.Mock).mockImplementation(((
+      selector: (state: object) => unknown,
+    ) => selector(stateWithAccountTree)) as typeof useSelector);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue((() => ({
+      address: MOCK_EVM_ACCOUNT,
+    })) as never);
+
+    const { result } = renderHook(() => usePerpsWithdrawConfirmation());
+
+    await act(async () => {
+      await result.current.withdrawWithConfirmation();
+    });
+
+    expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledWith(
+      stateWithAccountTree,
+    );
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ from: MOCK_EVM_ACCOUNT }),
+    );
+  });
+
+  it('falls back to the globally selected account when the account tree is unavailable', async () => {
+    // Default useSelector mock passes an empty state (no AccountTreeController),
+    // so the scoped EVM lookup is skipped in favour of the selected account.
+    mockSelectSelectedInternalAccountByScope.mockReturnValue((() => ({
+      address: MOCK_EVM_ACCOUNT,
+    })) as never);
+
+    const { result } = renderHook(() => usePerpsWithdrawConfirmation());
+
+    await act(async () => {
+      await result.current.withdrawWithConfirmation();
+    });
+
+    expect(mockSelectSelectedInternalAccountByScope).not.toHaveBeenCalled();
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ from: MOCK_ACCOUNT }),
+    );
   });
 
   it('navigates back and shows a retryable error toast when addTransactionBatch fails', async () => {
