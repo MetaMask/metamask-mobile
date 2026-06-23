@@ -107,18 +107,6 @@ function sendToReactNative(type, payload) {
   }
 }
 
-var CHART_INTERVAL_LOG_PREFIX = 'ChartInterval';
-
-function logChartInterval(phase, extra) {
-  var msg = CHART_INTERVAL_LOG_PREFIX + ' ' + phase;
-  if (extra != null) {
-    try {
-      msg += ' ' + JSON.stringify(extra);
-    } catch (e) {}
-  }
-  sendToReactNative('DEBUG', { message: msg });
-}
-
 /**
  * Posts \`CHART_LAYOUT_SETTLED\` to React Native so the native skeleton overlay can hide.
  *
@@ -203,9 +191,6 @@ function tryCompleteLayoutSettleAfterDataCore() {
     refreshStudyLegendFromExport();
   }
 
-  logChartInterval('webview_layout_settle_complete', {
-    resolution: window.currentResolution,
-  });
   scheduleChartLayoutSettledNotify();
 }
 
@@ -246,9 +231,6 @@ function queueTryCompleteLayoutSettleAfterData() {
  * **Errors:** Use \`abortDeferredLayoutSettleAndNotify\` so RN never stays stuck with the skeleton on.
  */
 function beginDeferredLayoutSettleAfterOhlcvReload() {
-  logChartInterval('webview_layout_settle_begin', {
-    resolution: window.currentResolution,
-  });
   clearMmLayoutSettleFallbackTimer();
   window.__mmLayoutSettlePending = true;
   window.__mmLayoutSettleFallbackTimer = setTimeout(function () {
@@ -502,13 +484,6 @@ function handleSetOHLCVData(payload) {
 
   let newResolution = detectResolution(window.ohlcvData);
 
-  logChartInterval('webview_set_ohlcv', {
-    barCount: window.ohlcvData.length,
-    newResolution: newResolution,
-    isChartReady: !!window.isChartReady,
-    hasWidget: !!window.chartWidget,
-  });
-
   function scheduleVisibleRangeAfterDataLoad(chart) {
     if (visibleFromMs == null) {
       try {
@@ -547,10 +522,6 @@ function handleSetOHLCVData(payload) {
     try {
       let chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
-        logChartInterval('webview_set_resolution', {
-          from: previousResolution,
-          to: newResolution,
-        });
         chart.setResolution(newResolution, function () {
           try {
             chart.resetData();
@@ -562,10 +533,6 @@ function handleSetOHLCVData(payload) {
           }
         });
       } else {
-        logChartInterval('webview_reset_data', {
-          resolution: newResolution,
-          sameResolution: true,
-        });
         try {
           chart.resetData();
           beginDeferredLayoutSettleAfterOhlcvReload();

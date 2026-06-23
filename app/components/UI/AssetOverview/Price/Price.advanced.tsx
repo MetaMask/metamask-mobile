@@ -41,10 +41,6 @@ import TimeRangeSelector, {
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
-import {
-  logChartInterval,
-  markIntervalTap,
-} from '../../Charts/AdvancedChart/chartIntervalLog';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
@@ -654,15 +650,6 @@ const PriceAdvanced = ({
 
   const handleInlineIntervalSelect = useCallback(
     (interval: string) => {
-      markIntervalTap();
-      logChartInterval('interval_select', {
-        fromInterval: displayInterval,
-        toInterval: interval,
-        ohlcvSeriesKey,
-        hasChartBeenRevealed,
-        chartLoading,
-        chartInitFailed,
-      });
       setDisplayInterval(interval);
       setChartInterval(interval);
 
@@ -683,44 +670,9 @@ const PriceAdvanced = ({
       createEventBuilder,
       chartType,
       activeIndicators,
-      displayInterval,
-      ohlcvSeriesKey,
-      hasChartBeenRevealed,
-      chartLoading,
-      chartInitFailed,
       setChartInterval,
     ],
   );
-
-  useEffect(() => {
-    logChartInterval('ui_chart_loading', {
-      chartLoading,
-      ohlcvSeriesKey,
-      barCount: ohlcvData.length,
-    });
-  }, [chartLoading, ohlcvSeriesKey, ohlcvData.length]);
-
-  useEffect(() => {
-    logChartInterval('ui_pending_state', {
-      isInitialChartPending,
-      hasChartBeenRevealed,
-      shouldShowTechnicalIndicators,
-      chartInitFailed,
-      chartLoading,
-      ohlcvSeriesKey,
-    });
-  }, [
-    isInitialChartPending,
-    hasChartBeenRevealed,
-    shouldShowTechnicalIndicators,
-    chartInitFailed,
-    chartLoading,
-    ohlcvSeriesKey,
-  ]);
-
-  useEffect(() => {
-    logChartInterval('series_key_change', { ohlcvSeriesKey });
-  }, [ohlcvSeriesKey]);
 
   // TradingView Advanced Charts Bar.time expects milliseconds
   // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/

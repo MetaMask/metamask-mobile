@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { OHLCVBar } from './AdvancedChart.types';
-import { logChartInterval } from './chartIntervalLog';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
 const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
@@ -130,14 +129,6 @@ export const useOHLCVChart = ({
     setHasMore(false);
     setHasEmptyData(false);
 
-    const fetchStartedAt = Date.now();
-    logChartInterval('ohlcv_fetch_start', {
-      assetId,
-      timePeriod,
-      interval,
-      vsCurrency,
-    });
-
     try {
       const result = await fetchOHLCV(
         assetId,
@@ -151,37 +142,15 @@ export const useOHLCVChart = ({
         setOhlcvData(result.data.map(mapCandle));
         setNextCursor(result.nextCursor || null);
         setHasMore(result.hasNext);
-        logChartInterval('ohlcv_fetch_end', {
-          assetId,
-          timePeriod,
-          interval,
-          durationMs: Date.now() - fetchStartedAt,
-          barCount: result.data.length,
-          hasNext: result.hasNext,
-        });
       }
     } catch (e) {
       if (!controller.signal.aborted) {
         setOhlcvData([]); // Clear data on error to show error state
         setError(e instanceof Error ? e.message : 'Unknown error');
-        logChartInterval('ohlcv_fetch_error', {
-          assetId,
-          timePeriod,
-          interval,
-          durationMs: Date.now() - fetchStartedAt,
-          error: e instanceof Error ? e.message : 'Unknown error',
-        });
       }
     } finally {
       if (!controller.signal.aborted) {
         setIsLoading(false);
-      } else {
-        logChartInterval('ohlcv_fetch_aborted', {
-          assetId,
-          timePeriod,
-          interval,
-          durationMs: Date.now() - fetchStartedAt,
-        });
       }
     }
   }, [assetId, timePeriod, interval, vsCurrency]);
