@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.82.1]
 
+### Added
+
+- Added support for Predict the Pitch campaign deeplink (#32266)
+
 ## [7.82.0]
 
 ### Added
