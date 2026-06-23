@@ -292,10 +292,7 @@ class PlaywrightUtilities {
         const isTransient = this.isTransientIosTerminateError(error);
         const message = error instanceof Error ? error.message : String(error);
 
-        if (
-          isTransient &&
-          attempt < IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS
-        ) {
+        if (isTransient && attempt < IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS) {
           logger.warn(
             `terminateApp(${bundleId}) transient failure ` +
               `(attempt ${attempt}/${IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS}); ` +
