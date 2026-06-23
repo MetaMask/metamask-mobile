@@ -1,12 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
-import type { BrowserStackConfig } from '../../../types';
+import { Platform, type BrowserStackConfig } from '../../../types';
 import type { ProjectConfig } from '../../common/types';
-import {
-  DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS,
-  DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
-  DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
-} from '../../../Constants';
 import { createLogger, LogLevel } from '../../../logger';
 
 const logger = createLogger({
@@ -30,10 +25,8 @@ export class BrowserStackConfigBuilder {
   build() {
     const platformName = this.project.use.platform;
     const projectName = path.basename(process.cwd());
-    const appBsUrl = this.project.use.app?.buildPath;
+    const appBsUrl = this.project.use.buildPath;
     const device = this.project.use.device as BrowserStackConfig;
-    const isLocal = process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-    const geoLocation = process.env.BROWSERSTACK_GEO_LOCATION || 'SE';
 
     if (!appBsUrl) {
       throw new Error('BrowserStack app URL (buildPath) is required');
@@ -70,24 +63,6 @@ export class BrowserStackConfigBuilder {
       `Building BrowserStack config with device build identifier: ${process.env.GITHUB_ACTIONS === 'true' ? `CI ${process.env.GITHUB_RUN_ID}` : process.env.USER}`,
     );
 
-    const connectionRetryTimeoutMs = Number.parseInt(
-      process.env.BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS ?? '',
-      10,
-    );
-    const connectionRetryTimeout = Number.isFinite(connectionRetryTimeoutMs)
-      ? connectionRetryTimeoutMs
-      : DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS;
-
-    logger.info(
-      `BrowserStack WebDriver connectionRetryTimeout: ${connectionRetryTimeout}ms`,
-    );
-    logger.info(
-      `BrowserStack idleTimeout: ${DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS}s, newCommandTimeout: ${DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS}s`,
-    );
-    logger.info(
-      `BrowserStack local: ${isLocal}, geoLocation: ${isLocal ? 'disabled for local sessions' : geoLocation}`,
-    );
-
     return {
       port: 443,
       path: '/wd/hub',
@@ -96,27 +71,27 @@ export class BrowserStackConfigBuilder {
       user: username,
       key: accessKey,
       hostname: 'hub.browserstack.com',
-      // Default webdriver is 120s; BS session POST often exceeds that on busy grids.
-      connectionRetryTimeout,
-      connectionRetryCount: 3,
       capabilities: {
+        // W3C standard capability — must be at the top level
+        platformName: platformName === 'android' ? 'Android' : 'iOS',
+
+        // BrowserStack vendor capabilities
         'bstack:options': {
           debug: true,
-          local: isLocal,
+          local: true,
+          ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+            ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
+            : {}),
           interactiveDebugging: true,
           networkLogsOptions: {
             captureContent: true,
           },
           networkLogs: true,
           appiumVersion: '3.1.0',
-          idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
+          idleTimeout: 180,
           deviceName: device.name,
           osVersion: device.osVersion,
-          platformName,
           deviceOrientation: device.orientation,
-          projectName:
-            process.env.BROWSERSTACK_PROJECT_NAME ||
-            `${projectName} ${platformName}`,
           buildName:
             process.env.BROWSERSTACK_BUILD_NAME ||
             `${projectName} ${platformName}`,
@@ -124,35 +99,31 @@ export class BrowserStackConfigBuilder {
           buildIdentifier:
             process.env.GITHUB_ACTIONS === 'true' ? '' : process.env.USER,
           appProfiling: true,
-          selfHeal: device.selfHeal ?? true,
+          selfHeal: true,
           networkProfile: '4g-lte-advanced-good',
-          ...(!isLocal ? { geoLocation } : {}),
+          // geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
           enableCameraImageInjection: device.enableCameraImageInjection,
-          ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-            ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
+          ...(process.env.BROWSERSTACK_RN_PLAYGROUND_URL
+            ? { otherApps: [process.env.BROWSERSTACK_RN_PLAYGROUND_URL] }
             : {}),
         },
-        ...(device.otherApps && device.otherApps.length > 0
-          ? { 'appium:otherApps': device.otherApps as string[] }
-          : {}),
+
+        // Appium capabilities
+        'appium:deviceName': device.name,
+        'appium:platformVersion': device.osVersion,
+        'appium:automationName':
+          platformName === Platform.ANDROID ? 'UiAutomator2' : 'XCUITest',
+        'appium:app': appBsUrl,
         ...(platformName === 'android'
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
-              'appium:disableIdLocatorAutocompletion': true,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
-              'appium:shouldUseCompactResponses': true,
-              'appium:elementResponseAttributes':
-                'name,label,value,type,enabled,visible,rect',
             }),
-        'appium:newCommandTimeout':
-          DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
-        'appium:automationName':
-          platformName === 'android' ? 'UiAutomator2' : 'XCUITest',
+        'appium:newCommandTimeout': 300,
         'appium:autoGrantPermissions': true,
-        'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
@@ -161,18 +132,18 @@ export class BrowserStackConfigBuilder {
         'appium:settings[waitForSelectorTimeout]': 1000,
         'appium:includeSafariInWebviews': true,
         'appium:chromedriverAutodownload': true,
-        'appium:waitForQuiescence': false, // Don't wait for app idle
-        'appium:animationCoolOffTimeout': 0, // Skip animation wait
-        'appium:reduceMotion': true, // Reduce iOS animations
+        'appium:waitForQuiescence': false,
+        'appium:animationCoolOffTimeout': 0,
+        'appium:reduceMotion': true,
         'appium:customSnapshotTimeout': 15,
-        'appium:waitForIdleTimeout': 0, // Don't wait for idle
-        'appium:disableWindowAnimation': true, // Disable animations
-        'appium:skipDeviceInitialization': true, // Skip init (faster startup)
+        'appium:waitForIdleTimeout': 0,
+        'appium:disableWindowAnimation': true,
+        'appium:skipDeviceInitialization': true,
         'appium:bstackPageSource': {
           enable: true,
           samplesX: 3,
           samplesY: 3,
-          maxDepth: 100,
+          maxDepth: 15,
         },
       },
     };

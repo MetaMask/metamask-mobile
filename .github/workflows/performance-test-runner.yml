@@ -129,16 +129,8 @@ jobs:
         run: yarn setup:github-ci
         working-directory: '.'
 
-      - name: BrowserStack Env Setup
-        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
-        with:
-          username: ${{ secrets.BROWSERSTACK_USERNAME }}
-          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-          project-name: ${{ github.repository }}
-
       - name: Compute BrowserStack Local Identifier
         id: bs-local-id
-        if: inputs.build_type == 'mm-connect'
         run: |
           # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
           BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
@@ -152,24 +144,6 @@ jobs:
             exit 1
           fi
           echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
-
-      - name: Setup BrowserStack Local
-        if: inputs.build_type == 'mm-connect'
-        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
-        with:
-          local-testing: start
-          local-identifier: ${{ steps.bs-local-id.outputs.value }}
-          # Use same args for all build types. Do not use --include-hosts for mm-connect:
-          # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
-          local-args: '--force-local --verbose'
-
-      - name: Wait for BrowserStack Local
-        if: inputs.build_type == 'mm-connect'
-        run: |
-          echo "Waiting for BrowserStack Local to be ready..."
-          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090
-          sleep 15
-          echo "BrowserStack Local should be ready now"
 
       - name: Set Test Environment
         run: |
@@ -216,10 +190,16 @@ jobs:
               ;;
           esac
 
+          APP_URL="${{ inputs.browserstack_app_url }}"
+          PLATFORM_PREFIX="${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}"
+
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.browserstack_app_url }}"
+            echo "BROWSERSTACK_${PLATFORM_PREFIX}_APP_URL=$APP_URL"
+            echo "BROWSERSTACK_${PLATFORM_PREFIX}_CLEAN_APP_URL=$APP_URL"
+            echo "BROWSERSTACK_${PLATFORM_PREFIX}_ONBOARDING_PERF_APP_URL=$APP_URL"
+            echo "BROWSERSTACK_${PLATFORM_PREFIX}_SEEDLESS_PERF_APP_URL=$APP_URL"
             if [ -n "${{ inputs.browserstack_playground_url }}" ]; then
               echo "BROWSERSTACK_RN_PLAYGROUND_URL=${{ inputs.browserstack_playground_url }}"
             fi
@@ -245,8 +225,8 @@ jobs:
       - name: Run Tests
         continue-on-error: true
         env:
-          BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ inputs.build_type == 'mm-connect' && steps.bs-local-id.outputs.value || '' }}
+          BROWSERSTACK_LOCAL: 'true'
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ steps.bs-local-id.outputs.value }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
           GREP_TAGS: ${{ inputs.grep_tags }}
         working-directory: '.'

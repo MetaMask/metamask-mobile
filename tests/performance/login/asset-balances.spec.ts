@@ -1,15 +1,17 @@
-import { test } from '../../framework/fixtures/playwright';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 
 import TimerHelper from '../../framework/TimerHelper';
 
 import WalletView from '../../page-objects/wallet/WalletView';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-
-import { System, PerformanceAssetLoading } from '../../tags.performance.js';
+import {
+  PerformanceLogin,
+  PerformanceAssetLoading,
+} from '../../tags.performance.js';
 
 /* Scenario: Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${System} ${PerformanceAssetLoading}`, () => {
-  test(
+perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+  perfTest(
     'Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
@@ -17,7 +19,7 @@ test.describe(`${System} ${PerformanceAssetLoading}`, () => {
 
       const balanceStableTimer = new TimerHelper(
         'Time since the user navigates to wallet tab until the balance stabilizes',
-        { ios: 40000, android: 20000 },
+        { ios: 25000, android: 40000 },
         currentDeviceDetails.platform,
       );
       await balanceStableTimer.measure(async () => {
