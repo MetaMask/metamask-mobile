@@ -30,7 +30,7 @@ on:
         description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
       run_appium_ios:
-        description: 'Whether Appium iOS smoke tests should be forced to run via the run-appium-ios-tests PR label'
+        description: 'Whether Appium iOS smoke tests should also run on a PR via the run-appium-ios-tests label'
         value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
 
 jobs:
@@ -224,10 +224,6 @@ jobs:
                 "$IS_FORK" != "true" && \
                 "$RUN_APPIUM_IOS_LABEL" == "true" ]]; then
             RUN_APPIUM_IOS=true
-            if [[ "$IOS" != "true" ]]; then
-              IOS=true
-              MSG="${MSG:+$MSG; }E2E iOS forced (run-appium-ios-tests label)"
-            fi
           fi
 
           E2E_NEEDED=false

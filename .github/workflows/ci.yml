@@ -1154,10 +1154,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        (
-          needs.get_requirements.outputs.run_appium_ios == 'true' ||
-          !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
-        )
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1235,7 +1232,8 @@ jobs:
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
     # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add the run-appium-ios-tests label to force a run.
+    # PRs: skipped by default; add run-appium-ios-tests to also run Appium iOS
+    # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
         !cancelled() &&
@@ -1263,12 +1261,9 @@ jobs:
       runner_provider: current
       selected_tags: >-
         ${{
-          needs.get_requirements.outputs.run_appium_ios == 'true' && '["ALL"]' ||
-          (
-            (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
-             needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-            '["ALL"]'
-          )
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
         }}
     secrets: inherit
 
