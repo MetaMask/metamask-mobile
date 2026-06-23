@@ -1,0 +1,2 @@
+app/components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx(649,13): error TS2322: Type '{ isClaimablePositionsLoading: boolean; hasPositivePnl: boolean; marketStatus: PredictMarketStatus; singleOutcomeMarket: boolean; isMarketLoading: boolean; market: PredictMarketWithSeries; ... 4 more ...; isClaimPending: boolean; }' is not assignable to type 'IntrinsicAttributes & PredictMarketDetailsActionsProps'.
+  Property 'yesPercentage' does not exist on type 'IntrinsicAttributes & PredictMarketDetailsActionsProps'.

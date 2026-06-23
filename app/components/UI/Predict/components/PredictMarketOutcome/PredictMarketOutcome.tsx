@@ -36,6 +36,7 @@ import {
   formatPercentage,
   formatVolume,
 } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
@@ -81,7 +82,7 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
 
   // BUY CTAs use the best ask (what the user actually pays), not the odds mid.
   const getTokenBuyPrice = (token: PredictOutcomeToken): number =>
-    token.buyPrice ?? token.price;
+    getDisplayBuyPrice(token) ?? token.price;
 
   const getTitle = (): string => {
     if (isClosed && outcomeToken) {

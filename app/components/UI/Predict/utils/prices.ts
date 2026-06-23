@@ -8,6 +8,16 @@ export const isValidPrice = (price: number | undefined): price is number =>
   typeof price === 'number' && Number.isFinite(price) && price > 0;
 
 /**
+ * Price to display on a BUY CTA from an already-priced token: the best ask
+ * (`buyPrice`) when present, otherwise the token's mid `price`. Use this for
+ * any "what you pay to buy" label so it never falls back to the odds mid on a
+ * wide-spread market.
+ */
+export const getDisplayBuyPrice = (
+  token: PredictOutcomeToken | undefined,
+): number | undefined => token?.buyPrice ?? token?.price;
+
+/**
  * Price to display on a BUY CTA: the best ask (what the user actually pays).
  * Precedence: live WS best ask > REST ask (`entry.buy`) > static token price.
  */

@@ -122,4 +122,41 @@ describe('useOpenOutcomes', () => {
     expect(result.current.openOutcomes[0].tokens[1].buyPrice).toBe(0.66);
     expect(result.current.yesPercentage).toBe(63);
   });
+
+  it('falls back to the base token price for both odds and buyPrice when no live or REST prices exist', () => {
+    mockUseLiveMarketPrices.mockReturnValue({
+      getPrice: () => undefined,
+    });
+    // usePredictPrices already mocked to empty results in beforeEach.
+
+    const { result } = renderHook(() =>
+      useOpenOutcomes({ market: createMarket() }),
+    );
+
+    const token = result.current.openOutcomes[0].tokens[0];
+    expect(token.price).toBe(0.51); // base mid
+    expect(token.buyPrice).toBe(0.51); // ask falls back to base mid
+    expect(result.current.yesPercentage).toBe(51);
+  });
+
+  it('preserves token object identity across re-renders when prices are unchanged', () => {
+    const makeGetPrice = () => (tokenId: string) =>
+      tokenId === 'up-token'
+        ? { tokenId, price: 0.7, bestBid: 0.5, bestAsk: 0.9 }
+        : { tokenId, price: 0.3, bestBid: 0.1, bestAsk: 0.5 };
+
+    mockUseLiveMarketPrices.mockReturnValue({ getPrice: makeGetPrice() });
+
+    const market = createMarket();
+    const { result, rerender } = renderHook(() => useOpenOutcomes({ market }));
+    const firstToken = result.current.openOutcomes[0].tokens[0];
+
+    // New getPrice reference but identical values forces the memo to recompute
+    // and exercise the identity-preservation reuse path.
+    mockUseLiveMarketPrices.mockReturnValue({ getPrice: makeGetPrice() });
+    rerender({});
+    const secondToken = result.current.openOutcomes[0].tokens[0];
+
+    expect(secondToken).toBe(firstToken);
+  });
 });

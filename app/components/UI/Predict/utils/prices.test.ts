@@ -3,7 +3,11 @@ import type {
   PredictOutcomeToken,
   PriceUpdate,
 } from '../types';
-import { getPredictBuyPrice, getPredictMidPrice } from './prices';
+import {
+  getDisplayBuyPrice,
+  getPredictBuyPrice,
+  getPredictMidPrice,
+} from './prices';
 
 const token: PredictOutcomeToken = {
   id: 'token-1',
@@ -80,5 +84,38 @@ describe('getPredictMidPrice', () => {
     expect(
       getPredictMidPrice(token, undefined, createRestPrices(0.92, 0)),
     ).toBe(0.51);
+  });
+
+  it('returns undefined when no token is provided', () => {
+    expect(
+      getPredictMidPrice(undefined, livePrice, createRestPrices(0.9, 0.1)),
+    ).toBeUndefined();
+  });
+
+  it('ignores a one-sided live book and uses the REST mid instead', () => {
+    // Live has only a valid ask (no bid) -> skip live mid, use REST mid 0.5.
+    const oneSidedLive: PriceUpdate = {
+      tokenId: 'token-1',
+      price: 0.7,
+      bestBid: 0,
+      bestAsk: 0.71,
+    };
+    expect(
+      getPredictMidPrice(token, oneSidedLive, createRestPrices(0.6, 0.4)),
+    ).toBeCloseTo(0.5);
+  });
+});
+
+describe('getDisplayBuyPrice', () => {
+  it('returns the ask (buyPrice) when present', () => {
+    expect(getDisplayBuyPrice({ ...token, buyPrice: 0.92 })).toBe(0.92);
+  });
+
+  it('falls back to the mid price when buyPrice is absent', () => {
+    expect(getDisplayBuyPrice(token)).toBe(0.51);
+  });
+
+  it('returns undefined for an undefined token', () => {
+    expect(getDisplayBuyPrice(undefined)).toBeUndefined();
   });
 });

@@ -1,6 +1,7 @@
 import { PredictEventValues } from '../constants/eventNames';
 import type { PredictMarket, PredictOutcomeToken } from '../types';
 import type { PredictEntryPoint } from '../types/navigation';
+import { getDisplayBuyPrice } from './prices';
 
 export function parseAnalyticsProperties(
   market: PredictMarket | undefined,
@@ -20,7 +21,7 @@ export function parseAnalyticsProperties(
     transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
     liquidity: market?.liquidity,
     volume: market?.volume,
-    sharePrice: outcomeToken?.price,
+    sharePrice: getDisplayBuyPrice(outcomeToken),
     marketType:
       market?.outcomes?.length === 1
         ? PredictEventValues.MARKET_TYPE.BINARY
