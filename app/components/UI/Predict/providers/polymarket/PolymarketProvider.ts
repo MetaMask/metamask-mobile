@@ -266,6 +266,19 @@ const isWithinWindow = ({
   (startSeconds === undefined || timestamp >= startSeconds) &&
   (endSeconds === undefined || timestamp <= endSeconds);
 
+/**
+ * Whether an error from the crypto price history fetch is an expected,
+ * transient availability issue (low-level network failure or a non-OK HTTP
+ * response from the upstream endpoint) rather than an unexpected bug. These are
+ * routinely produced while polling an unreachable endpoint and should not raise
+ * error-level Sentry events.
+ */
+const isTransientPriceHistoryError = (error: Error): boolean =>
+  error instanceof TypeError ||
+  /network request failed|failed to get crypto price history/i.test(
+    error.message,
+  );
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -1344,15 +1357,28 @@ export class PolymarketProvider implements PredictProvider {
         error,
       );
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('getCryptoPriceHistory', {
-          symbol,
-          eventStartTime,
-          variant,
-          endDate,
-        } as Record<string, unknown>),
-      );
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
+      const errorContext = this.getErrorContext('getCryptoPriceHistory', {
+        symbol,
+        eventStartTime,
+        variant,
+        endDate,
+      } as Record<string, unknown>);
+
+      // Transient network/availability failures are expected while polling and
+      // would otherwise flood Sentry with error-level events. Record them as
+      // breadcrumbs (Logger.log) instead, and reserve Logger.error for
+      // unexpected failures.
+      if (isTransientPriceHistoryError(normalizedError)) {
+        Logger.log(
+          'Predict crypto price history fetch failed (transient network/availability):',
+          normalizedError.message,
+          errorContext,
+        );
+      } else {
+        Logger.error(normalizedError, errorContext);
+      }
 
       throw error;
     }
