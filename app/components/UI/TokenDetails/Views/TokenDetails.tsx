@@ -404,6 +404,8 @@ const TokenDetails: React.FC<{
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
+        token={token}
+        securityData={securityData}
         onBackPress={() => navigation.goBack()}
         onSharePress={handleShare}
         onPriceAlertPress={

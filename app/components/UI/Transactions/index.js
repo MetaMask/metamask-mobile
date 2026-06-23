@@ -914,6 +914,7 @@ class Transactions extends PureComponent {
               }
               contentContainerStyle={styles.listContentContainer}
               style={baseStyles.flexGrow}
+              showsVerticalScrollIndicator={false}
               scrollIndicatorInsets={{ right: 1 }}
               onScroll={this.onScroll}
               scrollEnabled={!isChartBeingTouched}

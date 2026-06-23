@@ -220,6 +220,7 @@ const MultichainTransactionsView = ({
               }
               onScroll={onScroll}
               scrollEnabled={!isChartBeingTouched}
+              showsVerticalScrollIndicator={false}
             />
           )}
         </PriceChartContext.Consumer>
