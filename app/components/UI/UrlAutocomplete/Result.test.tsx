@@ -10,29 +10,31 @@ jest.mock('../../../core/AppConstants', () => ({
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 }));
 
-// Mock Badge component to avoid deep import chain through notifications
-jest.mock('../../../component-library/components/Badges/Badge', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => React.createElement(View, { testID: 'badge' }),
-    BadgeVariant: {
-      Network: 'network',
-      Status: 'status',
-      NotificationsKinds: 'notificationsKinds',
-    },
-  };
-});
 
-// Mock BadgeWrapper
-jest.mock('../../../component-library/components/Badges/BadgeWrapper', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) =>
+    BadgeWrapper: ({
+      children,
+    }: {
+      children?: React.ReactNode;
+    }) =>
       React.createElement(View, { testID: 'badge-wrapper' }, children),
+    BadgeNetwork: () =>
+      React.createElement(View, { testID: 'badge-network' }),
+    Box: ({
+      children,
+      ...rest
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => React.createElement(View, rest, children),
+    Icon: () => React.createElement(View, { testID: 'ds-icon' }),
+    IconName: { Speedometer: 'speedometer' },
+    IconSize: { Md: 'md' },
+    BoxAlignItems: { Center: 'center' },
+    BoxJustifyContent: { Center: 'center' },
   };
 });
 
@@ -46,7 +48,7 @@ jest.mock('../../../selectors/tokenBalancesController', () => ({
 
 // Mock Balance component's NetworkBadgeSource to avoid deep import chain
 jest.mock('../AssetOverview/Balance/Balance', () => ({
-  NetworkBadgeSource: jest.fn(() => ({ uri: 'mock-badge-uri' })),
+  NetworkBadgeSource: jest.fn(() => 'mock-badge-uri'),
 }));
 
 // Mock navigation
