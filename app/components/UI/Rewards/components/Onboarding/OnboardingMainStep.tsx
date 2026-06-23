@@ -231,12 +231,16 @@ const OnboardingMainStep: React.FC = () => {
     });
   }, [optin, canContinue, referralCode, isPrefilledReferral]);
 
-  // Auto-redirect + analytics tracking
+  // Post-opt-in: push the dashboard with a native slide transition. RewardsHome
+  // registers both onboarding and dashboard in the same stack; the parent
+  // conditional remount alone would swap instantly with no animation.
   useFocusEffect(
     useCallback(() => {
       if (subscriptionId) {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
-      } else if (!hasTrackedOnboardingStart.current) {
+        return;
+      }
+      if (!hasTrackedOnboardingStart.current) {
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.REWARDS_ONBOARDING_STARTED,

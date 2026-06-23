@@ -778,8 +778,8 @@ describe('OnboardingMainStep', () => {
     });
   });
 
-  describe('auto-redirect to dashboard', () => {
-    it('navigates to dashboard when subscriptionId exists on focus', () => {
+  describe('post-opt-in transition', () => {
+    it('navigates to dashboard with a stack push when subscriptionId exists on focus', () => {
       setupSelectors(new Map([[selectRewardsSubscriptionId, 'sub-123']]));
 
       renderWithProviders(<OnboardingMainStep />);
