@@ -174,7 +174,7 @@ export const selectPredictWorldCupScreenEnabledFlag = createSelector(
 
 export const selectPredictWorldCupHubV2EnabledFlag = createSelector(
   selectPredictWorldCupConfig,
-  (config) => config.showHubV2,
+  (config) => config.enabled && config.showWorldCupScreen && config.showHubV2,
 );
 
 export const selectPredictPortfolioEnabledFlag = createSelector(

@@ -30,3 +30,15 @@ export const buildPredictWorldCupHubTabs = (
     label: strings('predict.world_cup.tabs.props'),
   },
 ];
+
+/**
+ * Maps an incoming `initialTab` route param (used by the legacy V1 World Cup
+ * screen) to a V2 hub tab. Only an explicit `props` request opens the Props
+ * tab; anything else (including undefined) falls back to the default Games tab.
+ */
+export const resolvePredictWorldCupHubInitialTab = (
+  requestedTab?: string | null,
+): PredictWorldCupHubTabKey =>
+  requestedTab?.trim().toLowerCase() === PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS
+    ? PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS
+    : PREDICT_WORLD_CUP_HUB_DEFAULT_TAB;

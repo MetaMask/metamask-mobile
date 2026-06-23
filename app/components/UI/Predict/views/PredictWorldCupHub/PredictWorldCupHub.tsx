@@ -42,9 +42,9 @@ import type {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarket as PredictMarketType } from '../../types';
 import {
-  PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
   PREDICT_WORLD_CUP_HUB_TAB_KEYS,
   buildPredictWorldCupHubTabs,
+  resolvePredictWorldCupHubInitialTab,
   type PredictWorldCupHubTab,
   type PredictWorldCupHubTabKey,
 } from '../../constants/worldCupHubTabs';
@@ -151,6 +151,7 @@ type GamesListItem =
 interface GamesTabContentProps {
   sections: PredictWorldCupStageSection[];
   isFetching: boolean;
+  error: string | null;
   refetch: () => Promise<void>;
   entryPoint?: PredictEntryPoint;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -159,6 +160,7 @@ interface GamesTabContentProps {
 const GamesTabContent: React.FC<GamesTabContentProps> = ({
   sections,
   isFetching,
+  error,
   refetch,
   entryPoint,
   transactionActiveAbTests,
@@ -245,6 +247,17 @@ const GamesTabContent: React.FC<GamesTabContentProps> = ({
     );
   }
 
+  if (error && sections.length === 0) {
+    return (
+      <Box
+        twClassName="flex-1"
+        testID={PREDICT_WORLD_CUP_HUB_TEST_IDS.ERROR_STATE}
+      >
+        <PredictOffline onRetry={handleRefresh} />
+      </Box>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <Box
@@ -267,7 +280,6 @@ const GamesTabContent: React.FC<GamesTabContentProps> = ({
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}
-      estimatedItemSize={120}
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }
@@ -285,14 +297,12 @@ interface PropsTabContentProps {
   config: ReturnType<typeof selectPredictWorldCupConfig>;
   entryPoint?: PredictEntryPoint;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  onWinnerTileBuyPress?: () => void;
 }
 
 const PropsTabContent: React.FC<PropsTabContentProps> = ({
   config,
   entryPoint,
   transactionActiveAbTests,
-  onWinnerTileBuyPress,
 }) => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -313,6 +323,16 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
     config,
   });
 
+  // The winner market is rendered in the dedicated header module, so exclude it
+  // from the props feed list to avoid rendering it twice.
+  const filteredMarketData = useMemo(
+    () =>
+      winnerMarket
+        ? marketData.filter((market) => market.id !== winnerMarket.id)
+        : marketData,
+    [marketData, winnerMarket],
+  );
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -330,14 +350,16 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
 
   const renderItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <PredictMarket
-        market={item}
-        entryPoint={entryPoint}
-        testID={`${PREDICT_WORLD_CUP_HUB_TEST_IDS.MARKET_CARD}-props-${index}`}
-        predictFeedTab={PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}
-        predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
-        transactionActiveAbTests={transactionActiveAbTests}
-      />
+      <Box twClassName="px-4">
+        <PredictMarket
+          market={item}
+          entryPoint={entryPoint}
+          testID={`${PREDICT_WORLD_CUP_HUB_TEST_IDS.MARKET_CARD}-props-${index}`}
+          predictFeedTab={PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}
+          predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
+      </Box>
     ),
     [entryPoint, transactionActiveAbTests],
   );
@@ -364,7 +386,6 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
             entryPoint={entryPoint}
             predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
             transactionActiveAbTests={transactionActiveAbTests}
-            onTileBuyPress={onWinnerTileBuyPress}
           />
         )}
         <Text
@@ -376,13 +397,7 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
         </Text>
       </>
     ),
-    [
-      winnerMarket,
-      entryPoint,
-      transactionActiveAbTests,
-      onWinnerTileBuyPress,
-      tw,
-    ],
+    [winnerMarket, entryPoint, transactionActiveAbTests, tw],
   );
 
   if (isFetching && !isRefreshing && !isFetchingMore) {
@@ -394,7 +409,6 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
             entryPoint={entryPoint}
             predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
             transactionActiveAbTests={transactionActiveAbTests}
-            onTileBuyPress={onWinnerTileBuyPress}
           />
         )}
         <Box twClassName="px-4">
@@ -421,7 +435,6 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
             entryPoint={entryPoint}
             predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
             transactionActiveAbTests={transactionActiveAbTests}
-            onTileBuyPress={onWinnerTileBuyPress}
           />
         )}
         <PredictOffline onRetry={handleRefresh} />
@@ -432,7 +445,7 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
   return (
     <FlashList
       testID={PREDICT_WORLD_CUP_HUB_TEST_IDS.PROPS_LIST}
-      data={marketData}
+      data={filteredMarketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       onEndReached={handleEndReached}
@@ -444,7 +457,6 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
       }
       contentContainerStyle={tw.style('pb-4')}
       showsVerticalScrollIndicator={false}
-      estimatedItemSize={150}
     />
   );
 };
@@ -480,17 +492,25 @@ const PredictWorldCupHub: React.FC = () => {
     sections: gamesSections,
     isLive,
     isFetching: isGamesFetching,
+    error: gamesError,
     refetch: refetchGames,
-  } = usePredictWorldCupGamesSections(config);
+  } = usePredictWorldCupGamesSections(config, { enabled: isScreenEnabled });
   const tabs = useMemo(() => buildPredictWorldCupHubTabs(isLive), [isLive]);
 
-  const [activeTab, setActiveTab] = useState<PredictWorldCupHubTabKey>(
-    PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
+  const initialTab = useMemo(
+    () => resolvePredictWorldCupHubInitialTab(route.params?.initialTab),
+    [route.params?.initialTab],
   );
+  const [activeTab, setActiveTab] =
+    useState<PredictWorldCupHubTabKey>(initialTab);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     if (isScreenEnabled) return;
-    navigation.navigate(Routes.PREDICT.MARKET_LIST as never, {
+    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
       entryPoint: route.params?.entryPoint,
       ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
     });
@@ -506,7 +526,7 @@ const PredictWorldCupHub: React.FC = () => {
 
     Engine.context.PredictController.trackFeedViewed({
       sessionId: feedSessionId,
-      feedTab: PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
+      feedTab: initialTab,
       predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
       numPagesViewed: feedPageViewCount.current,
       sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
@@ -514,14 +534,20 @@ const PredictWorldCupHub: React.FC = () => {
       isSessionEnd: false,
     });
     hasTrackedInitialFeedViewed.current = true;
-  }, [entryPoint, feedSessionId, feedSessionStartTime, isScreenEnabled]);
+  }, [
+    entryPoint,
+    feedSessionId,
+    feedSessionStartTime,
+    initialTab,
+    isScreenEnabled,
+  ]);
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
       return;
     }
-    navigation.navigate(Routes.PREDICT.MARKET_LIST as never, {
+    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
       entryPoint: route.params?.entryPoint,
       ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
     });
@@ -571,18 +597,6 @@ const PredictWorldCupHub: React.FC = () => {
     scrollActiveTabIntoView(activeTab, true);
   }, [activeTab, scrollActiveTabIntoView]);
 
-  const handleWinnerTileBuyPress = useCallback(() => {
-    Engine.context.PredictController.trackFeedViewed({
-      sessionId: feedSessionId,
-      feedTab: PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS,
-      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-      numPagesViewed: feedPageViewCount.current,
-      sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
-      entryPoint,
-      isSessionEnd: false,
-    });
-  }, [entryPoint, feedSessionId, feedSessionStartTime]);
-
   if (!isScreenEnabled) return null;
 
   return (
@@ -621,6 +635,7 @@ const PredictWorldCupHub: React.FC = () => {
           <GamesTabContent
             sections={gamesSections}
             isFetching={isGamesFetching}
+            error={gamesError}
             refetch={refetchGames}
             entryPoint={entryPoint}
             transactionActiveAbTests={transactionActiveAbTests}
@@ -630,7 +645,6 @@ const PredictWorldCupHub: React.FC = () => {
             config={config}
             entryPoint={entryPoint}
             transactionActiveAbTests={transactionActiveAbTests}
-            onWinnerTileBuyPress={handleWinnerTileBuyPress}
           />
         )}
       </Box>

@@ -2,6 +2,7 @@ import {
   buildPredictWorldCupHubTabs,
   PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
   PREDICT_WORLD_CUP_HUB_TAB_KEYS,
+  resolvePredictWorldCupHubInitialTab,
 } from './worldCupHubTabs';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -51,6 +52,41 @@ describe('worldCupHubTabs', () => {
 
       expect(tabsLive[1].hasLiveDot).toBeFalsy();
       expect(tabsNotLive[1].hasLiveDot).toBeFalsy();
+    });
+  });
+
+  describe('resolvePredictWorldCupHubInitialTab', () => {
+    it('resolves an explicit props request to the Props tab', () => {
+      expect(resolvePredictWorldCupHubInitialTab('props')).toBe(
+        PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS,
+      );
+    });
+
+    it('is case- and whitespace-insensitive for props', () => {
+      expect(resolvePredictWorldCupHubInitialTab('  PROPS  ')).toBe(
+        PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS,
+      );
+    });
+
+    it('falls back to the default Games tab for games', () => {
+      expect(resolvePredictWorldCupHubInitialTab('games')).toBe(
+        PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
+      );
+    });
+
+    it('falls back to the default Games tab for unknown keys', () => {
+      expect(resolvePredictWorldCupHubInitialTab('anything-else')).toBe(
+        PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
+      );
+    });
+
+    it('falls back to the default Games tab when undefined or null', () => {
+      expect(resolvePredictWorldCupHubInitialTab(undefined)).toBe(
+        PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
+      );
+      expect(resolvePredictWorldCupHubInitialTab(null)).toBe(
+        PREDICT_WORLD_CUP_HUB_DEFAULT_TAB,
+      );
     });
   });
 });

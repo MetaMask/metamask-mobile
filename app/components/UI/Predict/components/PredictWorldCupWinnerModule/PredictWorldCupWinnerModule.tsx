@@ -94,7 +94,6 @@ interface PredictWorldCupWinnerModuleProps {
   entryPoint?: PredictEntryPoint;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  onTileBuyPress?: () => void;
 }
 
 const PredictWorldCupWinnerModule: React.FC<
@@ -104,7 +103,6 @@ const PredictWorldCupWinnerModule: React.FC<
   entryPoint: propEntryPoint,
   predictScreen,
   transactionActiveAbTests,
-  onTileBuyPress,
 }) => {
   const tw = useTailwind();
   const navigation =
@@ -115,7 +113,6 @@ const PredictWorldCupWinnerModule: React.FC<
 
   const handleTilePress = useCallback(
     (outcome: PredictOutcome, outcomeToken: PredictOutcomeToken) => {
-      onTileBuyPress?.();
       executeGuardedAction(
         () => {
           openBuySheet({
@@ -140,7 +137,6 @@ const PredictWorldCupWinnerModule: React.FC<
       predictScreen,
       resolvedEntryPoint,
       transactionActiveAbTests,
-      onTileBuyPress,
     ],
   );
 

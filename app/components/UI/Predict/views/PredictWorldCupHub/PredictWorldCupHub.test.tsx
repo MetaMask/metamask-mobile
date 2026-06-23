@@ -10,6 +10,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockTrackFeedViewed = jest.fn();
+let mockRouteParams: Record<string, unknown> | undefined;
 let mockIsScreenEnabled = true;
 let mockConfig = {
   ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
@@ -17,28 +18,9 @@ let mockConfig = {
   showWorldCupScreen: true,
 };
 
-const mockUsePredictWorldCupMarkets = jest.fn(() => ({
-  marketData: [],
-  isFetching: false,
-  isFetchingMore: false,
-  error: null,
-  hasMore: false,
-  refetch: jest.fn(),
-  fetchMore: jest.fn(),
-}));
-
-const mockUsePredictWorldCupGamesSections = jest.fn(() => ({
-  sections: [],
-  isLive: false,
-  isFetching: false,
-}));
-
-const mockUsePredictWorldCupWinnerMarket = jest.fn(() => ({
-  market: null,
-  isFetching: false,
-  error: null,
-  refetch: jest.fn(),
-}));
+const mockUsePredictWorldCupMarkets = jest.fn();
+const mockUsePredictWorldCupGamesSections = jest.fn();
+const mockUsePredictWorldCupWinnerMarket = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -58,7 +40,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
   }),
-  useRoute: () => ({ params: undefined }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -138,6 +120,14 @@ jest.mock('../../components/PredictWorldCupWinnerModule', () => {
   };
 });
 
+jest.mock('../../components/PredictOffline', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Text testID="predict-offline">offline</Text>,
+  };
+});
+
 jest.mock('../../hooks/usePredictWorldCupHub', () => ({
   usePredictWorldCupGamesSections: (...args: unknown[]) =>
     mockUsePredictWorldCupGamesSections(...args),
@@ -160,6 +150,7 @@ describe('PredictWorldCupHub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
+    mockRouteParams = undefined;
     mockIsScreenEnabled = true;
     mockConfig = {
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
@@ -170,6 +161,7 @@ describe('PredictWorldCupHub', () => {
       sections: [],
       isLive: false,
       isFetching: false,
+      error: null,
       refetch: jest.fn(),
     });
     mockUsePredictWorldCupMarkets.mockReturnValue({
@@ -354,5 +346,138 @@ describe('PredictWorldCupHub', () => {
         feedTab: PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS,
       }),
     );
+  });
+
+  it('opens the Props tab when navigated with initialTab="props"', () => {
+    mockRouteParams = { initialTab: 'props' };
+
+    render(<PredictWorldCupHub />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.PROPS_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.GAMES_LIST),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('tracks the initial feedViewed with the resolved initialTab', () => {
+    mockRouteParams = { initialTab: 'props' };
+
+    render(<PredictWorldCupHub />);
+
+    expect(mockTrackFeedViewed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        feedTab: PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS,
+      }),
+    );
+  });
+
+  it('defaults to the Games tab for unknown initialTab values', () => {
+    mockRouteParams = { initialTab: 'something-else' };
+    mockUsePredictWorldCupGamesSections.mockReturnValue({
+      sections: [
+        {
+          key: 'final',
+          label: 'Final',
+          markets: [
+            {
+              id: 'm-1',
+              title: 'Final Match',
+              outcomes: [],
+              parentMarketId: null,
+            },
+          ],
+          isFetching: false,
+        },
+      ],
+      isLive: false,
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.GAMES_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.PROPS_LIST),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not render the winner market twice in the Props feed', () => {
+    mockUsePredictWorldCupWinnerMarket.mockReturnValue({
+      market: {
+        id: 'winner',
+        title: 'Winner Duplicate',
+        outcomes: [],
+        parentMarketId: null,
+      },
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [
+        {
+          id: 'winner',
+          title: 'Winner Duplicate',
+          outcomes: [],
+          parentMarketId: null,
+        },
+        {
+          id: 'other',
+          title: 'Other Market',
+          outcomes: [],
+          parentMarketId: null,
+        },
+      ],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.MARKET_CARD}-props-0`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.MARKET_CARD}-props-1`,
+      ),
+    ).not.toBeOnTheScreen();
+    // The winner title appears only once (in the header winner module).
+    expect(screen.getAllByText('Winner Duplicate')).toHaveLength(1);
+  });
+
+  it('renders the offline state in the Games tab when the games hook errors', () => {
+    mockUsePredictWorldCupGamesSections.mockReturnValue({
+      sections: [],
+      isLive: false,
+      isFetching: false,
+      error: 'network down',
+      refetch: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.ERROR_STATE),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-offline')).toBeOnTheScreen();
   });
 });

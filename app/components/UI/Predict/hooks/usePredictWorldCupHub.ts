@@ -6,7 +6,6 @@ import { filterStandaloneMarkets } from '../utils/feed';
 import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import type { PredictMarket } from '../types';
 import type { PredictWorldCupConfig } from '../types/flags';
-import { usePredictWorldCupAvailability } from './usePredictWorldCup';
 
 type WorldCupHubDataConfig = Pick<
   PredictWorldCupConfig,
@@ -24,6 +23,7 @@ export interface UsePredictWorldCupGamesSectionsResult {
   sections: PredictWorldCupStageSection[];
   isLive: boolean;
   isFetching: boolean;
+  error: string | null;
   refetch: () => Promise<void>;
 }
 
@@ -47,8 +47,17 @@ export const usePredictWorldCupGamesSections = (
     })),
   });
 
-  const { availability, refetch: refetchAvailability } =
-    usePredictWorldCupAvailability(config, { enabled });
+  // Only the live availability flag is consumed here, so query it directly
+  // instead of pulling in the full availability fan-out (live + props +
+  // per-stage) from usePredictWorldCupAvailability.
+  const {
+    data: isLive,
+    error: liveError,
+    refetch: refetchLiveAvailability,
+  } = useQuery({
+    ...predictQueries.worldCup.options.availability.live(config),
+    enabled,
+  });
 
   const sections = useMemo<PredictWorldCupStageSection[]>(
     () =>
@@ -72,14 +81,25 @@ export const usePredictWorldCupGamesSections = (
 
   const isFetching = stageQueryResults.some((r) => r.isLoading);
 
+  const error =
+    liveError?.message ??
+    stageQueryResults.find((r) => r.error)?.error?.message ??
+    null;
+
   const refetch = useCallback(async () => {
     await Promise.all([
       ...stageQueryResults.map((r) => r.refetch()),
-      refetchAvailability(),
+      refetchLiveAvailability(),
     ]);
-  }, [stageQueryResults, refetchAvailability]);
+  }, [stageQueryResults, refetchLiveAvailability]);
 
-  return { sections, isLive: availability.live, isFetching, refetch };
+  return {
+    sections,
+    isLive: isLive ?? false,
+    isFetching,
+    error,
+    refetch,
+  };
 };
 
 export interface UsePredictWorldCupWinnerMarketResult {

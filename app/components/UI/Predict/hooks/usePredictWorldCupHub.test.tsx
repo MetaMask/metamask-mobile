@@ -21,16 +21,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('./usePredictWorldCup', () => ({
-  usePredictWorldCupAvailability: () => ({
-    availability: { live: false, props: true, stages: {} },
-    isFetching: false,
-    isLoading: false,
-    errors: [],
-    refetch: jest.fn(),
-  }),
-}));
-
 jest.mock('../utils/feed', () => ({
   filterStandaloneMarkets: (markets: PredictMarket[]) => markets,
 }));
@@ -162,6 +152,55 @@ describe('usePredictWorldCupGamesSections', () => {
     );
 
     expect(result.current.isLive).toBe(false);
+  });
+
+  it('returns null error by default', () => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupGamesSections({
+          ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          stages: [],
+        }),
+      { wrapper: Wrapper },
+    );
+
+    expect(result.current.error).toBeNull();
+  });
+
+  it('exposes an error message when a stage query fails', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetMarkets.mockRejectedValue(new Error('network down'));
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupGamesSections({
+          ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          stages: [{ key: 'final', eventIds: ['evt-final'] }],
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.error).toBe('network down'));
+  });
+
+  it('does not run queries when disabled', () => {
+    const { Wrapper } = createWrapper();
+
+    renderHook(
+      () =>
+        usePredictWorldCupGamesSections(
+          {
+            ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+            stages: [{ key: 'final', eventIds: ['evt-final'] }],
+          },
+          { enabled: false },
+        ),
+      { wrapper: Wrapper },
+    );
+
+    expect(mockGetMarkets).not.toHaveBeenCalled();
   });
 });
 

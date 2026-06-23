@@ -113,27 +113,6 @@ describe('PredictWorldCupWinnerModule', () => {
     );
   });
 
-  it('calls onTileBuyPress callback when a tile is pressed', () => {
-    const onTileBuyPress = jest.fn();
-    const outcome = createOutcome({ id: 'o-france' });
-    const market = createMarket([outcome]);
-
-    render(
-      <PredictWorldCupWinnerModule
-        market={market}
-        onTileBuyPress={onTileBuyPress}
-      />,
-    );
-
-    fireEvent.press(
-      screen.getByTestId(
-        `${PREDICT_WORLD_CUP_WINNER_MODULE_TEST_IDS.TILE}-${outcome.id}`,
-      ),
-    );
-
-    expect(onTileBuyPress).toHaveBeenCalledWith();
-  });
-
   it('renders the heading with the who_will_win string', () => {
     const market = createMarket([createOutcome()]);
 
