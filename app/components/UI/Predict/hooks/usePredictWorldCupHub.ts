@@ -50,11 +50,7 @@ export const usePredictWorldCupGamesSections = (
   // Only the live availability flag is consumed here, so query it directly
   // instead of pulling in the full availability fan-out (live + props +
   // per-stage) from usePredictWorldCupAvailability.
-  const {
-    data: isLive,
-    error: liveError,
-    refetch: refetchLiveAvailability,
-  } = useQuery({
+  const { data: isLive, refetch: refetchLiveAvailability } = useQuery({
     ...predictQueries.worldCup.options.availability.live(config),
     enabled,
   });
@@ -81,10 +77,11 @@ export const usePredictWorldCupGamesSections = (
 
   const isFetching = stageQueryResults.some((r) => r.isLoading);
 
-  const error =
-    liveError?.message ??
-    stageQueryResults.find((r) => r.error)?.error?.message ??
-    null;
+  // Only stage (content) query failures should surface as an offline/error
+  // state. The live-availability query just powers the Games tab live dot, so
+  // its failure must not hide the normal empty state when stages return no
+  // markets.
+  const error = stageQueryResults.find((r) => r.error)?.error?.message ?? null;
 
   const refetch = useCallback(async () => {
     await Promise.all([
