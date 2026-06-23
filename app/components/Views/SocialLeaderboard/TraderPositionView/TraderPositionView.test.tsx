@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
@@ -256,7 +262,14 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('trader1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+      ).getByText('trader1'),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -294,6 +307,22 @@ describe('TraderPositionView', () => {
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('title section onLayout sets header height for scroll animation', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const titleSectionWrapper = screen.getByTestId(
+      TraderPositionViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+    );
+    fireEvent(titleSectionWrapper, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
+    });
+
+    expect(titleSectionWrapper).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {

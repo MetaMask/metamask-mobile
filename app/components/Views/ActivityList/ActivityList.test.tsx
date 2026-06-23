@@ -87,7 +87,7 @@ jest.mock('@shopify/flash-list', () => {
           testID,
         }: {
           data: unknown[];
-          keyExtractor: (item: unknown) => string;
+          keyExtractor: (item: unknown, index: number) => string;
           ListEmptyComponent?: React.ReactElement | (() => React.ReactElement);
           ListFooterComponent?: React.ReactElement | null;
           ListHeaderComponent?: React.ReactElement;
@@ -116,7 +116,10 @@ jest.mock('@shopify/flash-list', () => {
             {ListHeaderComponent}
             {data.length
               ? data.map((item, index) => (
-                  <View key={keyExtractor(item)}>
+                  <View
+                    key={keyExtractor(item, index)}
+                    testID={`mock-key-${keyExtractor(item, index)}`}
+                  >
                     {renderItem({ item, index })}
                   </View>
                 ))
@@ -233,34 +236,24 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     onPress,
     title,
   }: {
-    item: { hash?: string };
+    item: {
+      hash?: string;
+      status?: string;
+      raw?: { type: string; data: { primaryTransaction: { id: string } } };
+    };
     onPress: (item: unknown) => void;
     title?: string;
   }) => {
     const { Text, TouchableOpacity } = jest.requireActual('react-native');
+    const hash = item.hash ?? 'no-hash';
     return (
-      <TouchableOpacity
-        testID={`row-${item.hash ?? 'no-hash'}`}
-        onPress={() => onPress(item)}
-      >
+      <TouchableOpacity testID={`row-${hash}`} onPress={() => onPress(item)}>
         <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
     );
   },
   resolveActivityListItemTitle: jest.fn(() => 'Activity title'),
 }));
-
-jest.mock('../../UI/TransactionElement', () => {
-  const { Text, View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ tx }: { tx: { id: string } }) => (
-      <View testID={`pending-${tx.id}`}>
-        <Text>Pending tx</Text>
-      </View>
-    ),
-  };
-});
 
 jest.mock('../../UI/MultichainBridgeTransactionListItem', () => {
   const { Text, View } = jest.requireActual('react-native');
@@ -485,13 +478,15 @@ describe('ActivityList', () => {
     );
   });
 
-  it('renders local pending and confirmed transaction rows', () => {
+  it('renders local pending and confirmed transaction rows via ActivityListItemRow', () => {
     render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
 
     expect(
       screen.getByTestId(ActivityListSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('pending-local-id')).toBeOnTheScreen();
+    // Pending local EVM rows now render through ActivityListItemRow, not the
+    // legacy TransactionElement.
+    expect(screen.getByTestId('row-0xlocal')).toBeOnTheScreen();
     expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
   });
 
@@ -553,6 +548,49 @@ describe('ActivityList', () => {
         screen: expect.any(String),
       }),
     );
+  });
+
+  it('uses unique chain-aware fallback keys for rows without hashes', () => {
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              {
+                ...confirmedItem,
+                chainId: 'eip155:1',
+                hash: undefined,
+                raw: undefined,
+                timestamp: 123,
+              },
+              {
+                ...confirmedItem,
+                chainId: 'eip155:137',
+                hash: undefined,
+                raw: undefined,
+                timestamp: 123,
+              },
+            ],
+          },
+        ],
+      },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+    selectorValues.enabledEvm = ['0x1', '0x89'];
+
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+
+    expect(
+      screen.getByTestId('mock-key-eip155:1-contractInteraction-123-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('mock-key-eip155:137-contractInteraction-123-2'),
+    ).toBeOnTheScreen();
   });
 
   it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {
