@@ -602,6 +602,27 @@ describe('PolymarketProvider', () => {
       expect(result.results[0].entry).toEqual({ buy: 0, sell: 0 });
     });
 
+    it('coerces malformed (non-numeric) prices to zero instead of NaN', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'tok-1': { BUY: 'not-a-number', SELL: '0.92' },
+        }),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      // Valid ask is kept; malformed bid falls back to 0 (never NaN).
+      expect(result.results[0].entry.buy).toBe(0.92);
+      expect(result.results[0].entry.sell).toBe(0);
+      expect(Number.isNaN(result.results[0].entry.sell)).toBe(false);
+    });
+
     it('throws when queries are empty', async () => {
       const provider = createProvider();
       await expect(provider.getPrices({ queries: [] })).rejects.toThrow(

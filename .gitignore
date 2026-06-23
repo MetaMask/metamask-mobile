@@ -228,3 +228,9 @@ release-signoffs.json
 
 # Build environment validation
 build-env.json
+
+# Local typecheck / validation output
+*.tsccheck.log
+.tsccheck.log
+predict_tsc.log
+predict_tsc_summary.txt

@@ -1435,6 +1435,13 @@ export class PolymarketProvider implements PredictProvider {
       >;
       const data = (await response.json()) as PolymarketPricesResponse;
 
+      // Guard against malformed upstream payloads: a non-numeric string would
+      // otherwise produce NaN and propagate into UI/analytics calculations.
+      const toFinitePrice = (value: string | undefined): number => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+
       const results: PriceResult[] = queries.map((query) => {
         const priceData = data[query.outcomeTokenId];
         return {
@@ -1443,8 +1450,8 @@ export class PolymarketProvider implements PredictProvider {
           outcomeTokenId: query.outcomeTokenId,
           entry: {
             // Polymarket SELL = best ask = price to buy; BUY = best bid = price to sell.
-            buy: priceData?.SELL ? Number(priceData.SELL) : 0,
-            sell: priceData?.BUY ? Number(priceData.BUY) : 0,
+            buy: toFinitePrice(priceData?.SELL),
+            sell: toFinitePrice(priceData?.BUY),
           },
         };
       });
