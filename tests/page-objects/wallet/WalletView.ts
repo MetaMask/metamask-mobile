@@ -50,6 +50,19 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
+  private isAndroidAppium(): boolean {
+    return FrameworkDetector.isAppium() && !PlatformDetector.isIOS();
+  }
+
+  /**
+   * Map Detox scroll direction to swipe args for `wallet-scroll-view` (iOS).
+   */
+  private mapWalletHomeScrollToSwipe(
+    scrollDirection: 'up' | 'down',
+  ): 'up' | 'down' {
+    return scrollDirection === 'down' ? 'up' : 'down';
+  }
+
   /**
    * Scroll the wallet homepage by swiping inside `wallet-scroll-view`.
    * `scrollDirection` matches Detox semantics (`down` reveals content below).
@@ -58,20 +71,97 @@ class WalletView {
     scrollDirection: 'up' | 'down',
     percent = 0.45,
   ): Promise<void> {
-    const swipeDirection = scrollDirection === 'down' ? 'up' : 'down';
+    if (this.isAndroidAppium()) {
+      await this.scrollWalletHomeAndroid(scrollDirection, percent);
+      return;
+    }
+
+    const swipeDirection = this.mapWalletHomeScrollToSwipe(scrollDirection);
     await UnifiedGestures.swipe(this.walletScrollView, swipeDirection, {
       percentage: percent,
       description: `Scroll wallet homepage ${scrollDirection}`,
     });
   }
 
-  /** Scroll until `target` is visible on the wallet homepage (Appium). */
+  /**
+   * Android wallet homepage: use bounded W3C swipes inside the scroll view.
+   * `mobile:scrollGesture` with `up` triggers pull-to-refresh; starting the
+   * gesture near the top edge is unreliable even with `direction: down`.
+   */
+  private async scrollWalletHomeAndroid(
+    scrollDirection: 'up' | 'down',
+    percent = 0.45,
+  ): Promise<void> {
+    const container = await asPlaywrightElement(this.walletScrollView);
+    const location = await container.unwrap().getLocation();
+    const size = await container.unwrap().getSize();
+    const centerX = Math.floor(location.x + size.width / 2);
+    const travel = Math.floor(
+      size.height * Math.min(Math.max(percent, 0.1), 0.9),
+    );
+    const fingerDirection = scrollDirection === 'down' ? 'up' : 'down';
+
+    const fromY =
+      fingerDirection === 'up'
+        ? location.y + Math.floor(size.height * 0.75)
+        : location.y + Math.floor(size.height * 0.35);
+    const toY = fingerDirection === 'up' ? fromY - travel : fromY + travel;
+
+    await PlaywrightGestures.swipe({
+      scrollParams: { direction: fingerDirection },
+      percent,
+      duration: 600,
+      from: { x: centerX, y: fromY },
+      to: { x: centerX, y: toY },
+    });
+  }
+
+  /** Scroll until `target` is visible on the wallet homepage. */
   private async scrollWalletHomeToElement(
     target: EncapsulatedElementType,
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
   ): Promise<void> {
+    // Android: scrollIntoView inside the scroll view works reliably.
+    // iOS: scrollIntoView gets stuck on the homepage; use bounded swipe loops instead.
+    if (this.isAndroidAppium()) {
+      const scrollView = await asPlaywrightElement(this.walletScrollView);
+      const element = await asPlaywrightElement(target);
+      await PlaywrightGestures.scrollIntoView(element, {
+        scrollableElement: scrollView,
+        scrollParams: {
+          direction: direction === 'down' ? 'up' : 'down',
+        },
+        maxScrolls: maxAttempts,
+      });
+      await Assertions.expectElementToBeVisible(target, {
+        timeout: 5_000,
+        description,
+      });
+      return;
+    }
+
+    if (FrameworkDetector.isAppium()) {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        try {
+          await Assertions.expectElementToBeVisible(target, {
+            timeout: 1_500,
+            description,
+          });
+          return;
+        } catch {
+          await this.scrollWalletHome(direction, 0.5);
+        }
+      }
+
+      await Assertions.expectElementToBeVisible(target, {
+        timeout: 5_000,
+        description,
+      });
+      return;
+    }
+
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       try {
         await Assertions.expectElementToBeVisible(target, {
@@ -164,15 +254,24 @@ class WalletView {
           Math.max(8, Math.ceil(timeout / 2_000)),
         );
         if (overshootSwipe) {
-          await Gestures.swipe(
-            this.walletScrollView,
-            overshootSwipe.direction,
-            {
-              percentage: overshootSwipe.percentage ?? 0.15,
-              speed: 'slow',
-              elemDescription: `Overshoot swipe for ${description}`,
-            },
-          );
+          const overshootScrollDirection =
+            overshootSwipe.direction === 'up' ? 'down' : 'up';
+          if (this.isAndroidAppium()) {
+            await this.scrollWalletHomeAndroid(
+              overshootScrollDirection,
+              overshootSwipe.percentage ?? 0.15,
+            );
+          } else {
+            await Gestures.swipe(
+              this.walletScrollView,
+              overshootSwipe.direction,
+              {
+                percentage: overshootSwipe.percentage ?? 0.15,
+                speed: 'slow',
+                elemDescription: `Overshoot swipe for ${description}`,
+              },
+            );
+          }
         }
         await PlaywrightGestures.waitAndTap(
           await asPlaywrightElement(target as EncapsulatedElementType),
@@ -1059,7 +1158,14 @@ class WalletView {
 
     await encapsulatedAction({
       detox: scrollAndTapWithFallback,
-      appium: scrollAndTapWithFallback,
+      appium: async () => {
+        await this.scrollAndTapSection(
+          this.predictionsSectionHeader,
+          'Predictions section',
+          direction,
+          getScrollOptions(direction),
+        );
+      },
     });
   }
 

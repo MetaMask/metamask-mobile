@@ -532,35 +532,14 @@ export class AppiumGestureStrategy implements GestureStrategy {
     const location = await container.unwrap().getLocation();
     const size = await container.unwrap().getSize();
 
-    // `swipeDirection` follows iOS/W3C finger semantics (swipe up → content
-    // moves down). Android `mobile: scrollGesture` uses scroll semantics instead.
-    const scrollGestureDirection =
-      AppiumGestureStrategy.toAndroidScrollGestureDirection(swipeDirection);
-
     await drv.execute('mobile: scrollGesture', {
       left: location.x,
       top: location.y,
       width: size.width,
       height: size.height,
-      direction: scrollGestureDirection,
+      direction: swipeDirection,
       percent,
     });
-  }
-
-  /**
-   * Android `mobile: scrollGesture` direction is inverted relative to iOS/W3C
-   * swipe direction for vertical scrolling.
-   */
-  private static toAndroidScrollGestureDirection(
-    swipeDirection: 'up' | 'down' | 'left' | 'right',
-  ): 'up' | 'down' | 'left' | 'right' {
-    if (swipeDirection === 'up') {
-      return 'down';
-    }
-    if (swipeDirection === 'down') {
-      return 'up';
-    }
-    return swipeDirection;
   }
 
   /**
