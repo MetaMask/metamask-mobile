@@ -23,6 +23,7 @@ import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../select
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
 
 export interface PriceLegacyProps {
+  title?: string;
   prices: TokenPrice[];
   priceDiff: number;
   currentPrice: number;
@@ -38,6 +39,7 @@ export interface PriceLegacyProps {
 }
 
 const PriceLegacy = ({
+  title,
   prices,
   priceDiff,
   currentPrice,
@@ -138,6 +140,7 @@ const PriceLegacy = ({
   return (
     <>
       <TokenPriceTitleHub
+        title={title}
         price={price}
         displayDiff={displayDiff}
         comparePrice={comparePrice}

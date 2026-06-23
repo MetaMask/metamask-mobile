@@ -7,9 +7,24 @@ import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
 const mockNavigate = jest.fn();
+const mockCopyContractAddress = jest.fn();
+const mockResolveTokenContractAddress = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../hooks/useCopyTokenContractAddress', () => ({
+  useCopyTokenContractAddress: () => mockCopyContractAddress,
+}));
+
+jest.mock('../../AssetOverview/utils/getTokenDetails', () => ({
+  resolveTokenContractAddress: (...args: unknown[]) =>
+    mockResolveTokenContractAddress(...args),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  formatAddress: jest.fn((address: string) => `${address.slice(0, 7)}...short`),
 }));
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
@@ -84,6 +99,9 @@ describe('TokenDetailsInlineHeader', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockResolveTokenContractAddress.mockReturnValue(
+      '0x0000000000000000000000000000000000000000',
+    );
   });
 
   describe('security badge', () => {
@@ -146,10 +164,36 @@ describe('TokenDetailsInlineHeader', () => {
       expect(mockOnBackPress).toHaveBeenCalledTimes(1);
     });
 
-    it('renders asset title', () => {
+    it('renders asset ticker as title', () => {
+      const { getByText, queryByText } = renderHeader();
+
+      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(queryByText('Ethereum')).toBeNull();
+    });
+
+    it('renders short contract address in description', () => {
       const { getByText } = renderHeader();
 
-      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getByText('0x00000...short')).toBeOnTheScreen();
+    });
+
+    it('renders copy button and calls onCopyAddress when pressed', () => {
+      const mockOnCopyAddress = jest.fn();
+      const { getByTestId } = renderHeader({
+        onCopyAddress: mockOnCopyAddress,
+      });
+
+      fireEvent.press(getByTestId('copy-contract-address-button'));
+
+      expect(mockCopyContractAddress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render description or copy button when contract address is null', () => {
+      mockResolveTokenContractAddress.mockReturnValue(null);
+      const { queryByTestId, queryByText } = renderHeader();
+
+      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+      expect(queryByText('0x00000...short')).toBeNull();
     });
 
     it('renders price alert button when onPriceAlertPress is provided', () => {

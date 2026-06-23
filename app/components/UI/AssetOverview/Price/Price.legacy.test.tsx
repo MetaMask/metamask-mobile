@@ -79,6 +79,20 @@ describe('PriceLegacy', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders token name as TitleHub title when provided', () => {
+    const { getByText } = renderWithProvider(
+      <PriceLegacy {...baseProps} title="Ethereum" />,
+    );
+
+    expect(getByText('Ethereum')).toBeOnTheScreen();
+  });
+
+  it('does not render token name row when title is omitted', () => {
+    const { queryByText } = renderWithProvider(<PriceLegacy {...baseProps} />);
+
+    expect(queryByText('Ethereum')).toBeNull();
+  });
+
   it('shows loading skeletons when isLoading is true', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <PriceLegacy {...baseProps} isLoading />,

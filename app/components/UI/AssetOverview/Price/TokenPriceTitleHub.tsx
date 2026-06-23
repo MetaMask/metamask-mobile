@@ -18,6 +18,7 @@ import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 export type TokenPriceChangeFormat = 'absoluteSubscript' | 'signedCurrency';
 
 export interface TokenPriceTitleHubProps {
+  title?: string;
   price: number;
   displayDiff: number | null;
   comparePrice: number | null;
@@ -73,6 +74,7 @@ const getChangeTextColor = (
 };
 
 export const TokenPriceTitleHub = ({
+  title,
   price,
   displayDiff,
   comparePrice,
@@ -113,7 +115,7 @@ export const TokenPriceTitleHub = ({
 
   return (
     <TitleHub
-      twClassName="px-4 pb-3"
+      twClassName="px-4 pb-3 pt-4"
       amount={
         isLoading ? (
           <Box twClassName="pt-2">

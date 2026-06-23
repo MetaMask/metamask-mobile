@@ -240,6 +240,7 @@ const mockAsset: TokenI = {
 
 const baseProps: PriceAdvancedProps = {
   asset: mockAsset,
+  title: 'Test Token',
   currentPrice: 105,
   currentCurrency: 'USD',
   priceDiff: 5,
@@ -290,6 +291,20 @@ describe('PriceAdvanced', () => {
     expect(
       getByTestId(TokenOverviewSelectorsIDs.TOKEN_PRICE),
     ).toBeOnTheScreen();
+  });
+
+  it('renders token name as TitleHub title when provided', () => {
+    const { getByText } = render(<PriceAdvanced {...baseProps} />);
+
+    expect(getByText('Test Token')).toBeOnTheScreen();
+  });
+
+  it('does not render token name row when title is omitted', () => {
+    const { queryByText } = render(
+      <PriceAdvanced {...baseProps} title={undefined} />,
+    );
+
+    expect(queryByText('Test Token')).toBeNull();
   });
 
   it('shows loading skeletons when isLoading is true', () => {

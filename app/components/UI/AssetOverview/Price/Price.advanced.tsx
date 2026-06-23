@@ -138,6 +138,7 @@ function getAdvancedChartVisibilityTraceRequest(
 
 export interface PriceAdvancedProps {
   asset: TokenI;
+  title?: string;
   currentPrice: number;
   currentCurrency: string;
   /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
@@ -157,6 +158,7 @@ export interface PriceAdvancedProps {
 
 const PriceAdvanced = ({
   asset,
+  title,
   currentPrice,
   currentCurrency,
   priceDiff,
@@ -872,6 +874,7 @@ const PriceAdvanced = ({
   if (shouldFallbackToLegacy) {
     return (
       <PriceLegacy
+        title={title}
         prices={prices}
         timePeriod={timePeriod}
         chartNavigationButtons={chartNavigationButtons}
@@ -892,6 +895,7 @@ const PriceAdvanced = ({
     <>
       {!isNaN(currentPrice) && (
         <TokenPriceTitleHub
+          title={title}
           price={displayPrice}
           displayDiff={displayDiff}
           comparePrice={dynamicComparePrice}
