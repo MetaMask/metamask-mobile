@@ -1018,9 +1018,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const isDomainFilter =
       typeFilter === ActivityTypeFilter.Perps ||
       typeFilter === ActivityTypeFilter.Predictions;
-    const { handleScroll } = useTransactionAutoScroll(groupedData, listRef, {
+
+    const { handleScroll } = useTransactionAutoScroll(data, listRef, {
       enabled: !isDomainFilter,
-      keyExtractor: generateGroupedKey,
+      keyExtractor: (item) =>
+        item.hash ?? `${item.chainId}-${item.timestamp}-${item.type}`,
     });
 
     useImperativeHandle(
