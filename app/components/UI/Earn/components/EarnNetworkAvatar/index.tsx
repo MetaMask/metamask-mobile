@@ -1,10 +1,12 @@
 import React from 'react';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 import { TokenI } from '../../../Tokens/types';
 import styleSheet from './EarnNetworkAvatar.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 
 interface EarnNetworkAvatarProps {
   token: TokenI;
@@ -29,9 +31,9 @@ export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
   return (
     <AvatarToken
       name={token.symbol}
-      imageSource={{ uri: token.image }}
-      size={AvatarSize.Md}
-      style={styles.networkAvatar}
+      src={token.image ? { uri: token.image } : undefined}
+      size={AvatarTokenSize.Md}
+      twClassName="h-8 w-8 shrink-0"
       testID={`earn-token-avatar-${token.symbol}`}
     />
   );
