@@ -253,6 +253,9 @@ function handleMessage(event) {
       case 'SET_LINE_CHROME':
         handleSetLineChrome(message.payload);
         break;
+      case 'SET_SUB_PANE_LAYOUT':
+        handleSetSubPaneLayout(message.payload);
+        break;
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
         break;
@@ -609,6 +612,85 @@ function isOwnStringKey(key) {
   );
 }
 
+/** Reads CONFIG.subPaneHeightRatio; null means TradingView default pane sizing. */
+function getSubPaneHeightRatio() {
+  const ratio = window.CONFIG && window.CONFIG.subPaneHeightRatio;
+  if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+    return null;
+  }
+  return ratio;
+}
+
+function hasActiveSubPaneIndicators() {
+  return (
+    window.activeStudies &&
+    (window.activeStudies.has('RSI') || window.activeStudies.has('MACD'))
+  );
+}
+
+function applySubPaneHeightRatio(chart) {
+  const ratio = getSubPaneHeightRatio();
+  if (ratio === null || !chart) return;
+  try {
+    const heights = chart.getAllPanesHeight();
+    if (heights.length < 2) return;
+    const total = heights.reduce(function (sum, h) {
+      return sum + h;
+    }, 0);
+    const bottomCount = heights.length - 1;
+    const MIN_MAIN_PX = 72;
+
+    let bottomTotal = Math.round(total * ratio * bottomCount);
+    let main = total - bottomTotal;
+    if (main < MIN_MAIN_PX) {
+      main = MIN_MAIN_PX;
+      bottomTotal = total - main;
+    }
+
+    const newHeights = [main];
+    let remaining = bottomTotal;
+    for (let i = 0; i < bottomCount; i++) {
+      const h =
+        i === bottomCount - 1
+          ? remaining
+          : Math.floor(bottomTotal / bottomCount);
+      newHeights.push(h);
+      remaining -= h;
+    }
+    chart.setAllPanesHeight(newHeights);
+  } catch (e) {}
+}
+
+function scheduleApplySubPaneHeightRatio(chart) {
+  if (getSubPaneHeightRatio() === null) return;
+  waitForChartRenderCompletion(function () {
+    applySubPaneHeightRatio(chart);
+    waitForChartRenderCompletion(function () {
+      applySubPaneHeightRatio(chart);
+    });
+  });
+}
+
+function handleSetSubPaneLayout(payload) {
+  window.CONFIG = window.CONFIG || {};
+  const ratio = payload && payload.heightRatio;
+  if (ratio === null || ratio === undefined) {
+    delete window.CONFIG.subPaneHeightRatio;
+    return;
+  }
+  if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+    return;
+  }
+  window.CONFIG.subPaneHeightRatio = ratio;
+  if (
+    window.chartWidget &&
+    window.isChartReady &&
+    hasActiveSubPaneIndicators()
+  ) {
+    scheduleApplySubPaneHeightRatio(window.chartWidget.activeChart());
+  }
+}
+
 function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload || !payload.name) return;
@@ -679,7 +761,13 @@ function handleAddIndicator(payload) {
       .then(function (studyId) {
         window.legendStudyOrder.set(indicatorName, studyId);
         window.activeStudies.set(indicatorName, studyId);
-        subscribeStudyDataLoaded(studyId, refreshStudyLegendFromExport);
+        const isSubPane = indicatorName === 'RSI' || indicatorName === 'MACD';
+        subscribeStudyDataLoaded(studyId, function () {
+          refreshStudyLegendFromExport();
+          if (isSubPane) {
+            scheduleApplySubPaneHeightRatio(chart);
+          }
+        });
         notifyIndicatorAdded(indicatorName, studyId);
       })
       .catch(function (error) {

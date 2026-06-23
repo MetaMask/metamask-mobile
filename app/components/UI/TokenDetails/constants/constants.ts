@@ -83,7 +83,6 @@ export type TokenDetailsExitAction =
   | 'app_backgrounded';
 
 /**
- * Technical indicators that occupy the sub-pane below the main chart.
- * These indicators are mutually exclusive - only one can be active at a time.
+ * Technical indicators that occupy a sub-pane below the main chart.
  */
 export const SUB_PANE_INDICATORS = ['MACD', 'RSI'] as const;

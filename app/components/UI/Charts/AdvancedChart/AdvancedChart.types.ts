@@ -175,6 +175,7 @@ export type RNToWebViewMessageType =
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
   | 'SET_LINE_CHROME'
+  | 'SET_SUB_PANE_LAYOUT'
   | 'SET_POSITION_LINES'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
@@ -247,6 +248,15 @@ export interface ToggleVolumePayload {
 
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
+/**
+ * When `heightRatio` is a number in (0, 1], RSI/MACD sub-panes use that fraction of total
+ * chart height each (via `setAllPanesHeight`). When `null` or omitted, TradingView default
+ * pane sizing applies.
+ */
+export interface SetSubPaneLayoutPayload {
+  heightRatio: number | null;
+}
+
 export interface SetMAVisibilityPayload {
   visible: string[];
 }
@@ -263,6 +273,7 @@ export type RNToWebViewMessage =
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
+  | { type: 'SET_SUB_PANE_LAYOUT'; payload: SetSubPaneLayoutPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
@@ -470,6 +481,12 @@ export interface AdvancedChartProps {
    * `CHART_READY`, RN sends `SET_LINE_CHROME` with `resolveLineChromeOptions(lineChrome)`.
    */
   lineChrome?: LineChromeOptions;
+
+  /**
+   * Fraction of total chart height for each RSI/MACD sub-pane (0–1). Omit or pass `null` for
+   * TradingView default pane sizing. With two sub-panes active, bottom area ≈ 2× this value.
+   */
+  subPaneHeightRatio?: number | null;
 
   /** Callback when chart is ready */
   onChartReady?: () => void;
