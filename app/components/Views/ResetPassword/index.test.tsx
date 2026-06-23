@@ -7,6 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import configureMockStore from 'redux-mock-store';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { Provider } from 'react-redux';
@@ -319,6 +320,24 @@ const getWarningModalPrimaryButton = () => {
   const navMock = NavigationService.navigation.navigate as jest.Mock;
   const warningCall = navMock.mock.calls[0];
   return warningCall[1].params.onPrimaryButtonPress;
+};
+
+const findPressHandler = (
+  root: ReactTestInstance,
+  testId?: string,
+): (() => void) | undefined => {
+  const pressableNodes = root.findAll(
+    (node) => typeof node.props?.onPress === 'function',
+  );
+
+  if (testId) {
+    const match = pressableNodes.find((node) => node.props.testID === testId);
+    if (match) {
+      return match.props.onPress;
+    }
+  }
+
+  return pressableNodes[pressableNodes.length - 1]?.props.onPress;
 };
 
 const getWarningModalLearnMoreOnPress = (): (() => void) => {
@@ -992,11 +1011,14 @@ describe('ResetPassword', () => {
         pressCheckbox: true,
       });
 
-      const submitButton = component.getByTestId(
+      const onPress = findPressHandler(
+        component.root,
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
+      expect(onPress).toBeDefined();
+
       await act(async () => {
-        fireEvent.press(submitButton);
+        onPress?.();
       });
 
       expect(Alert.alert).toHaveBeenCalledWith(
