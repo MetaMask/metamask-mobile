@@ -2,6 +2,7 @@ import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
 } from '../../constants/onboarding';
+import type { JsonMap } from './analytics.types';
 
 export const ONBOARDING_IMPLEMENTATION_TYPE_NATIVE = 'native' as const;
 
@@ -22,18 +23,19 @@ export enum OnboardingCompletedAccountType {
   Lattice = 'Lattice',
 }
 
-export interface WalletSetupCompletedProps {
+export interface WalletSetupCompletedProps extends JsonMap {
   wallet_setup_type: string;
   new_wallet: boolean;
   account_type?: AccountType | string;
   is_basic_functionality_enabled?: boolean;
 }
 
-export type OnboardingCompletedAnalyticsProps = WalletSetupCompletedProps & {
+export interface OnboardingCompletedAnalyticsProps
+  extends Omit<WalletSetupCompletedProps, 'account_type'> {
   account_type?: OnboardingCompletedAccountType;
   implementation_type: typeof ONBOARDING_IMPLEMENTATION_TYPE_NATIVE;
   onboarding_type: OnboardingType;
-};
+}
 
 const SOCIAL_ACCOUNT_TYPE_PREFIXES = ['metamask_', 'imported_'] as const;
 
