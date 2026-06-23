@@ -1,4 +1,3 @@
-import type { Json } from '@metamask/utils';
 import type { MessengerClientInitFunction } from '../../types';
 import {
   SeedlessOnboardingController,
@@ -10,96 +9,58 @@ import {
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 import type {
   EncryptionKey,
+  EncryptionResult,
   KeyDerivationOptions,
 } from '../../../Encryptor/types';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
+import { trackSeedlessLegacyDataVaultDecrypt } from './trackSeedlessLegacyDataVaultDecrypt';
 
-const encryptor = new Encryptor({
+const baseEncryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
 
 /**
- * Encryption result interface expected by the SeedlessOnboardingController.
- * Uses 'data' instead of 'cipher' per @metamask/browser-passworder standard.
- */
-interface ControllerEncryptionResult {
-  data: string;
-  iv: string;
-  salt?: string;
-  lib?: string;
-  keyMetadata?: KeyDerivationOptions;
-}
-
-/**
- * Normalizes a serialized vault so the mobile Encryptor can decrypt it
- * regardless of whether the vault was written by the adapter (using 'data')
- * or by the original mobile Encryptor (using 'cipher').
+ * Seedless-only encryptor wrapper (ADR TO-590).
  *
- * Background: the SeedlessOnboardingController stores vaults via
- * encryptWithKey (adapter, 'data' field) and via encryptWithDetail (mobile
- * Encryptor, 'cipher' field).  The mobile Encryptor's decrypt / decryptWithDetail
- * always reads 'cipher', so vaults produced by the adapter must be normalized
- * before being handed to those methods.
+ * Replaces the old encryptorAdapter glue: mobile uses `cipher` as the canonical
+ * encrypted payload field, but legacy SeedlessOnboardingController vaults may
+ * still store `data`. Migration 144 rewrites persisted vaults; this class
+ * handles unmigrated runtime decrypts.
+ *
+ * Delegates to a separate baseEncryptor instance because Encryptor methods are
+ * class-field arrow functions — super.decryptWithKey is not available.
  */
-function normalizeVaultFormat(text: string): string {
-  const payload: Record<string, unknown> = JSON.parse(text);
-  if (payload.data !== undefined && payload.cipher === undefined) {
-    return JSON.stringify({ ...payload, cipher: payload.data });
-  }
-  return text;
-}
-
-/**
- * Adapter that wraps the mobile Encryptor to be compatible with
- * SeedlessOnboardingController's VaultEncryptor interface.
- * Maps 'cipher' <-> 'data' between mobile and controller formats.
- */
-const encryptorAdapter = {
-  ...encryptor,
-  encryptWithKey: async (
+class SeedlessEncryptor extends Encryptor {
+  decryptWithKey = async (
     key: EncryptionKey,
-    data: Json,
-  ): Promise<ControllerEncryptionResult> => {
-    const result = await encryptor.encryptWithKey(key, data);
-    return {
-      data: result.cipher,
-      iv: result.iv,
-      salt: result.salt,
-      lib: result.lib,
-      keyMetadata: result.keyMetadata,
-    };
-  },
-  decryptWithKey: async (
-    key: EncryptionKey,
-    // Accept both adapter format ('data') and legacy mobile format ('cipher').
-    // 'data' is intentionally optional here: pre-adapter vaults only carry
-    // 'cipher', so making 'data' required would be a lie about the runtime
-    // shape and would allow the fallback to be silently removed.
-    encryptedObject: Omit<ControllerEncryptionResult, 'data'> & {
-      data?: string;
-      cipher?: string;
-    },
+    payload: EncryptionResult & { data?: string },
   ): Promise<unknown> => {
-    const cipher = encryptedObject.data ?? encryptedObject.cipher;
+    const cipher = payload.cipher ?? payload.data;
     if (!cipher) {
       throw new Error(
-        'SeedlessOnboardingController encryptorAdapter: vault is missing both "data" and "cipher" fields',
+        'Encrypted payload is missing both "cipher" and "data" fields',
       );
     }
-    return encryptor.decryptWithKey(key, {
-      cipher,
-      iv: encryptedObject.iv,
-      salt: encryptedObject.salt,
-      lib: encryptedObject.lib,
-      keyMetadata: encryptedObject.keyMetadata,
-    });
-  },
-  decrypt: async (password: string, text: string): Promise<unknown> =>
-    encryptor.decrypt(password, normalizeVaultFormat(text)),
-  decryptWithDetail: async (password: string, text: string) =>
-    encryptor.decryptWithDetail(password, normalizeVaultFormat(text)),
-};
+
+    if (!payload.cipher && payload.data) {
+      trackSeedlessLegacyDataVaultDecrypt({
+        lib: payload.lib,
+        source: 'seedlessEncryptor',
+      });
+    }
+
+    const newPayload = {
+      ...payload,
+      cipher: payload.cipher ?? payload.data,
+    };
+    return baseEncryptor.decryptWithKey(key, newPayload);
+  };
+}
+
+const encryptor = new SeedlessEncryptor({
+  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+});
 
 /**
  * Initialize the SeedlessOnboardingController.
@@ -108,7 +69,11 @@ const encryptorAdapter = {
  * @returns The SeedlessOnboardingController.
  */
 export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
-  SeedlessOnboardingController<EncryptionKey>,
+  SeedlessOnboardingController<
+    EncryptionKey,
+    KeyDerivationOptions,
+    EncryptionResult
+  >,
   SeedlessOnboardingControllerMessenger
 > = (request) => {
   if (!web3AuthNetwork) {
@@ -124,11 +89,15 @@ export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
     persistedState.SeedlessOnboardingController ??
     getDefaultSeedlessOnboardingControllerState();
 
-  const controller = new SeedlessOnboardingController({
+  const controller = new SeedlessOnboardingController<
+    EncryptionKey,
+    KeyDerivationOptions,
+    EncryptionResult
+  >({
     messenger: controllerMessenger,
     state:
       seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
-    encryptor: encryptorAdapter,
+    encryptor,
     network: web3AuthNetwork as Web3AuthNetwork,
     passwordOutdatedCacheTTL: 15_000, // 15 seconds
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
