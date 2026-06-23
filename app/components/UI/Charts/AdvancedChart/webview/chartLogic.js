@@ -148,6 +148,7 @@ function clearMmLayoutSettleFallbackTimer() {
  * - No-ops if `__mmLayoutSettlePending` is false (idempotent / avoids double-fire).
  * - Clears the pending flag and the fallback timer, then runs `applyChartScaleLayout` and line
  *   overlays when applicable, then `scheduleChartLayoutSettledNotify`.
+ * - Refreshes the custom study legend when indicators/MAs are active (see inline comment below).
  */
 function tryCompleteLayoutSettleAfterDataCore() {
   if (!window.__mmLayoutSettlePending) {
@@ -163,6 +164,23 @@ function tryCompleteLayoutSettleAfterDataCore() {
       }
     }
   } catch (e) {}
+
+  /**
+   * Interval / time-range hot reload (`handleSetOHLCVData` → `resetData`) keeps MA and sub-pane
+   * studies mounted; TradingView recalculates their series from the new bars, but our legend is a
+   * separate DOM overlay (`#study-legend-overlay`) fed by a one-shot `chart.exportData()` snapshot
+   * in `refreshStudyLegendFromExport`. Without re-export here, pills like MA(10) would keep showing
+   * the pre-switch value even though the plotted line already moved (regression vs WebView remount,
+   * which recreated studies and triggered legend refresh via `subscribeStudyDataLoaded`).
+   */
+  if (
+    window.legendStudyOrder.size > 0 ||
+    window.activeStudies.size > 0 ||
+    window.maStudies.size > 0
+  ) {
+    refreshStudyLegendFromExport();
+  }
+
   scheduleChartLayoutSettledNotify();
 }
 
@@ -3227,6 +3245,13 @@ const LEGEND_RETRY_DELAY_MS = 100;
 const LEGEND_RENDER_TIMEOUT_MS = 3000;
 let _legendTimeoutId = null;
 
+/**
+ * Rebuilds `#study-legend-overlay` from TradingView `chart.exportData()` (last bar per study).
+ *
+ * Called when studies are added/removed, on crosshair dismiss, and after OHLCV hot reload
+ * completes in `tryCompleteLayoutSettleAfterDataCore` so MA/indicator pills reflect the new
+ * resolution (studies recalculate internally; this overlay does not update automatically).
+ */
 function refreshStudyLegendFromExport() {
   if (!isLegendOverlayEnabled()) return;
   if (!window.chartWidget || !window.isChartReady) return;
