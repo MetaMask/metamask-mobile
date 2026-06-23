@@ -7,8 +7,6 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ListItem from '../../Base/ListItem';
 import { toDateFormat } from '../../../util/date';
 import { useTheme } from '../../../util/theme';
@@ -16,26 +14,20 @@ import { createStyles } from './ActivityListAccountImportTimeRow.styles';
 
 interface ActivityListAccountImportTimeRowProps {
   importTime: number;
-  navigation: AppNavigationProp;
+  onPress: () => void;
 }
 
 export const ActivityListAccountImportTimeRow = ({
   importTime,
-  navigation,
+  onPress,
 }: ActivityListAccountImportTimeRowProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const handlePress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.IMPORT_WALLET_TIP,
-    });
-  };
-
   return (
     <View style={styles.row}>
       <TouchableOpacity
-        onPress={handlePress}
+        onPress={onPress}
         style={styles.rowBody}
         testID="activity-list-account-import-time-row"
       >

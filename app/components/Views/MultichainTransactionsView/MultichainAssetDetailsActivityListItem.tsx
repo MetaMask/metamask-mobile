@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { Transaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -36,7 +36,7 @@ export const MultichainAssetDetailsActivityListItem = ({
     chainId,
   });
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     trackEvent(
       createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
         .addProperties(
@@ -53,7 +53,15 @@ export const MultichainAssetDetailsActivityListItem = ({
       screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
       params: { displayData, transaction },
     });
-  };
+  }, [
+    chainId,
+    createEventBuilder,
+    displayData,
+    location,
+    navigation,
+    trackEvent,
+    transaction,
+  ]);
 
   return (
     <Box twClassName="px-4">

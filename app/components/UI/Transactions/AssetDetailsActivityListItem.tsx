@@ -85,6 +85,12 @@ export const AssetDetailsActivityListItem = ({
     [currentChainId, navigation, onCancelAction, onSpeedUpAction, tokenChainId],
   );
 
+  const handleImportTimePress = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.IMPORT_WALLET_TIP,
+    });
+  }, [navigation]);
+
   const shouldRenderImportTime =
     Boolean(tx.insertImportTime) &&
     typeof accountImportTime === 'number' &&
@@ -92,7 +98,7 @@ export const AssetDetailsActivityListItem = ({
   const importTimeRow = shouldRenderImportTime ? (
     <ActivityListAccountImportTimeRow
       importTime={accountImportTime}
-      navigation={navigation}
+      onPress={handleImportTimePress}
     />
   ) : null;
 
