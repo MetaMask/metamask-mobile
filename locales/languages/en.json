@@ -5646,6 +5646,7 @@
   },
   "transaction_update_toast": {
     "title": "Transaction update failed",
+    "amount_update_title": "Error",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
   "payment_request": {
