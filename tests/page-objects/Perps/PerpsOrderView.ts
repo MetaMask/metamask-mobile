@@ -238,54 +238,6 @@ class PerpsOrderView {
     return Matchers.getElementByID(testId);
   }
 
-  private getTpslPriceInput(
-    inputTestId:
-      | typeof PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT
-      | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-  ): EncapsulatedElementType {
-    return Matchers.getElementByID(inputTestId);
-  }
-
-  private get tpslSetButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
-  }
-
-  private get tpslAutoCloseTitle(): EncapsulatedElementType {
-    return Matchers.getElementByText('Auto close');
-  }
-
-  private async ensureTpslKeypadVisible(
-    input: EncapsulatedElementType,
-    focusInputElemDescription: string,
-    probeKey: string = '2',
-  ): Promise<void> {
-    const probeKeyElement = this.getTpslKeypadKey(probeKey);
-
-    await UnifiedGestures.waitAndTap(input, {
-      description: focusInputElemDescription,
-      checkForDisplayed: true,
-      checkForEnabled: false,
-    });
-
-    const isProbeKeyVisible = await Utilities.isElementVisible(
-      probeKeyElement,
-      2000,
-    );
-
-    if (!isProbeKeyVisible) {
-      await UnifiedGestures.waitAndTap(input, {
-        description: `${focusInputElemDescription} (refocus keypad)`,
-        checkForDisplayed: true,
-        checkForEnabled: false,
-      });
-    }
-
-    await Assertions.expectElementToBeVisible(probeKeyElement, {
-      description: `TPSL keypad key ${probeKey} is visible`,
-      timeout: 10000,
-    });
-  }
-
   // Required for next test
   async setAmountUSD(amount: string): Promise<void> {
     await encapsulatedAction({
@@ -403,28 +355,47 @@ class PerpsOrderView {
       | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
     focusInputElemDescription: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.tpslAutoCloseTitle, {
-      description: 'TPSL Auto close screen visible',
-      timeout: 15000,
-    });
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText('Auto close'),
+      {
+        description: 'TPSL Auto close screen visible',
+        timeout: 15000,
+      },
+    );
 
-    const input = this.getTpslPriceInput(inputTestId);
-    await this.ensureTpslKeypadVisible(input, focusInputElemDescription);
+    const input = Matchers.getElementByID(inputTestId);
 
-    for (const ch of price) {
-      const keypadKey = this.getTpslKeypadKey(ch);
-      const isKeyVisible = await Utilities.isElementVisible(keypadKey, 1500);
-
-      if (!isKeyVisible) {
+    await Utilities.executeWithRetry(
+      async () => {
         await UnifiedGestures.waitAndTap(input, {
-          description: `${focusInputElemDescription} (restore keypad for ${ch})`,
+          description: focusInputElemDescription,
           checkForDisplayed: true,
           checkForEnabled: false,
         });
+        await Assertions.expectElementToBeVisible(
+          this.getTpslKeypadKey(price[0] ?? '2'),
+          {
+            description: 'TPSL keypad visible',
+            timeout: 5000,
+          },
+        );
+      },
+      {
+        timeout: 20000,
+        interval: 1000,
+        description: 'Open TPSL keypad',
+        elemDescription: focusInputElemDescription,
+      },
+    );
 
-        await Assertions.expectElementToBeVisible(keypadKey, {
-          description: `TPSL keypad key ${ch} visible after refocus`,
-          timeout: 10000,
+    for (const ch of price) {
+      const keypadKey = this.getTpslKeypadKey(ch);
+
+      if (!(await Utilities.isElementVisible(keypadKey, 1500))) {
+        await UnifiedGestures.waitAndTap(input, {
+          description: `${focusInputElemDescription} (refocus keypad)`,
+          checkForDisplayed: true,
+          checkForEnabled: false,
         });
       }
 
@@ -440,11 +411,14 @@ class PerpsOrderView {
       checkForDisplayed: true,
       checkForEnabled: false,
     });
-    await UnifiedGestures.waitAndTap(this.tpslSetButton, {
-      description: 'Confirm TP/SL (Set)',
-      checkForDisplayed: true,
-      checkForEnabled: true,
-    });
+    await UnifiedGestures.waitAndTap(
+      Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      {
+        description: 'Confirm TP/SL (Set)',
+        checkForDisplayed: true,
+        checkForEnabled: true,
+      },
+    );
   }
 
   /**
