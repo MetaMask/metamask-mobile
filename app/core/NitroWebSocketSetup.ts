@@ -1,6 +1,6 @@
 /**
  * Replaces global.WebSocket with react-native-nitro-websockets (libwebsockets + mbedTLS,
- * no JS-bridge overhead) and prewarms the MetaMask backend gateway on cold start.
+ * no JS-bridge overhead).
  *
  * The adapter is W3C-compatible and supports all call styles used in this codebase:
  * - .onX assignment — app code, @metamask/core-backend, Polymarket
@@ -14,13 +14,10 @@
  */
 import {
   NitroWebSocket,
-  prewarmOnAppStart,
   type WebSocketMessageEvent as NitroMessageEvent,
   type WebSocketCloseEvent as NitroCloseEvent,
 } from 'react-native-nitro-websockets';
 import { hasTestOverrides } from '../util/test/utils';
-
-const GATEWAY_URL = 'wss://gateway.api.cx.metamask.io/v1';
 
 type BinaryType = 'arraybuffer' | 'blob';
 
@@ -317,19 +314,16 @@ class NitroWebSocketAdapter {
 }
 
 /**
- * Installs NitroWebSocketAdapter as global.WebSocket and registers the MetaMask
- * backend gateway for native prewarm on each subsequent cold start.
- * Android: NitroWebSocketAutoPrewarmer.prewarmOnStart (MainApplication.kt).
- * iOS: auto-bootstrapped via the Nitro +load hook.
+ * Installs NitroWebSocketAdapter as global.WebSocket.
+ *
+ * WebSocket prewarm is intentionally omitted here: BackendWebSocketService always
+ * appends ?token=<JWT> to the gateway URL, so a tokenless prewarm URL would never
+ * be reused by the real connection and would produce a spurious unauthenticated
+ * WS upgrade on every cold start. Prewarm should be registered by the auth layer
+ * once a valid token is available.
  */
 export function installProductionNitroWebSocket(): void {
   global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
-
-  try {
-    prewarmOnAppStart(GATEWAY_URL);
-  } catch {
-    // Non-fatal: prewarm failure means a cold connection on next use, not a broken socket.
-  }
 }
 
 if (!hasTestOverrides) {

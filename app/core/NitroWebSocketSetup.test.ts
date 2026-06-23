@@ -1,7 +1,4 @@
-import {
-  NitroWebSocket,
-  prewarmOnAppStart,
-} from 'react-native-nitro-websockets';
+import { NitroWebSocket } from 'react-native-nitro-websockets';
 
 interface MockNitroMessageEvent {
   isBinary: boolean;
@@ -48,15 +45,11 @@ jest.mock('react-native-nitro-websockets', () => ({
     };
     return mockWsInstance;
   }),
-  prewarmOnAppStart: jest.fn(),
 }));
 
 import './NitroWebSocketSetup';
 
 const MockNitroWebSocket = jest.mocked(NitroWebSocket);
-const mockPrewarmOnAppStart = jest.mocked(prewarmOnAppStart);
-
-const GATEWAY_URL = 'wss://gateway.api.cx.metamask.io/v1';
 
 describe('NitroWebSocketSetup', () => {
   describe('module-level side effects', () => {
@@ -65,15 +58,10 @@ describe('NitroWebSocketSetup', () => {
 
       expect(MockNitroWebSocket).toHaveBeenCalled();
     });
-
-    it('registers the MetaMask gateway URL for native prewarm', () => {
-      expect(mockPrewarmOnAppStart).toHaveBeenCalledWith(GATEWAY_URL);
-    });
   });
 
   describe('hasTestOverrides guard', () => {
-    it('skips installation and prewarm when hasTestOverrides is true', async () => {
-      const localPrewarm = jest.fn();
+    it('skips installation when hasTestOverrides is true', async () => {
       const sentinel = function sentinelWebSocket() {
         // Sentinel: must remain untouched if the guard works correctly.
       };
@@ -83,7 +71,6 @@ describe('NitroWebSocketSetup', () => {
       await jest.isolateModulesAsync(async () => {
         jest.doMock('react-native-nitro-websockets', () => ({
           NitroWebSocket: jest.fn(),
-          prewarmOnAppStart: localPrewarm,
         }));
         jest.doMock('../util/test/utils', () => ({
           hasTestOverrides: true,
@@ -93,29 +80,6 @@ describe('NitroWebSocketSetup', () => {
       });
 
       expect(global.WebSocket).toBe(sentinel);
-      expect(localPrewarm).not.toHaveBeenCalled();
-
-      global.WebSocket = previousWebSocket;
-    });
-  });
-
-  describe('prewarm error handling', () => {
-    it('does not throw when prewarmOnAppStart throws', async () => {
-      const previousWebSocket = global.WebSocket;
-
-      await jest.isolateModulesAsync(async () => {
-        jest.doMock('react-native-nitro-websockets', () => ({
-          NitroWebSocket: jest.fn(),
-          prewarmOnAppStart: jest.fn(() => {
-            throw new Error('prewarm boom');
-          }),
-        }));
-        jest.doMock('../util/test/utils', () => ({
-          hasTestOverrides: false,
-        }));
-
-        await expect(import('./NitroWebSocketSetup')).resolves.toBeDefined();
-      });
 
       global.WebSocket = previousWebSocket;
     });
