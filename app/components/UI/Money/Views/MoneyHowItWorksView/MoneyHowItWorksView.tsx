@@ -34,7 +34,13 @@ import { formatNoFeeTokenBullets } from '../../utils/depositFaqTokens';
 import AppConstants from '../../../../../core/AppConstants';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
-import { SCREEN_NAMES } from '../../constants/moneyEvents';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  MONEY_URLS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const localStyles = StyleSheet.create({
@@ -139,7 +145,7 @@ const MoneyHowItWorksView = () => {
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
 
-  const { trackScreenViewed } = useMoneyAnalytics({
+  const { trackScreenViewed, trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
   });
 
@@ -150,8 +156,15 @@ const MoneyHowItWorksView = () => {
   }, [navigation]);
 
   const handleCardFeesPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.CARD_FEES,
+      component_name: COMPONENT_NAMES.FAQ_ITEM,
+      label_key: 'money.how_it_works_page.faq_a4_link',
+      redirect_target: MONEY_URLS.CARD_FEES,
+    });
     Linking.openURL(AppConstants.CARD.CARD_FEES_URL);
-  }, []);
+  }, [trackButtonClicked]);
 
   return (
     <Box
