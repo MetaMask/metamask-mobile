@@ -6,7 +6,6 @@ import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import { selectTokenIndicators } from '../../../../reducers/user/selectors';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 
 const mockNavigate = jest.fn();
@@ -36,6 +35,17 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../AssetOverview/Price/hooks/useTokenChartPreferences', () => ({
+  useTokenChartPreferences: () => ({
+    chartType: 'line',
+    chartInterval: '15m',
+    indicators: [],
+    setChartType: jest.fn(),
+    setChartInterval: jest.fn(),
+    setIndicators: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
@@ -118,13 +128,10 @@ const defaultProps = {
   balanceFiatUsd: 50,
 };
 
-const setupSelectorMock = (geolocation?: string, indicators: string[] = []) => {
+const setupSelectorMock = (geolocation?: string) => {
   (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
     if (selector === getDetectedGeolocation) {
       return geolocation;
-    }
-    if (selector === selectTokenIndicators) {
-      return indicators;
     }
     return undefined;
   });
