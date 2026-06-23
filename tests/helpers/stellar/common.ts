@@ -1,12 +1,13 @@
+import { AccountListBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { DappVariants } from '../../framework/Constants';
 import { loginToApp } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-
-export const STELLAR_ACCOUNT_ADDRESS =
-  'GDEM2RN4QLPSSPGSPSKSEQ3XXFGM4X4BRH4X4EOPABHAXBVV6OQ6YE6K';
+import Utilities from '../../framework/Utilities';
+import Assertions from '../../framework/Assertions';
+import Matchers from '../../framework/Matchers';
 
 export const withStellarAccountSnap = async (
   testFn: () => Promise<void>,
@@ -26,6 +27,22 @@ export const withStellarAccountSnap = async (
 
       await WalletView.tapIdenticon();
       await AccountListBottomSheet.tapAddAccountButtonV2({ shouldWait: true });
+      await Utilities.executeWithRetry(
+        async () => {
+          const button = Matchers.getElementByID(
+            AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+            0,
+          );
+          await Assertions.expectElementToHaveText(button, 'Add account', {
+            timeout: 5000,
+          });
+        },
+        {
+          timeout: 90_000,
+          interval: 2_000,
+          description: 'Wait for Stellar account creation to finish',
+        },
+      );
       await AccountListBottomSheet.dismissAccountListModalV2();
 
       await testFn();

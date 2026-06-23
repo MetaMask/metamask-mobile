@@ -69,7 +69,6 @@ export class XlmAccountProvider extends SnapAccountProvider {
   }
 
   discoverAccounts(): Promise<Bip44Account<KeyringAccount>[]> {
-    // Account discovery ships in a future @metamask/multichain-account-service release.
     return Promise.resolve([]);
   }
 }
