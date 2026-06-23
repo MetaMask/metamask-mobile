@@ -4469,17 +4469,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsAdvancedCharts: {
-    name: 'tokenDetailsAdvancedCharts',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '7.74.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   tokenDetailsTechnicalIndicators: {
     name: 'tokenDetailsTechnicalIndicators',
     type: FeatureFlagType.Remote,
