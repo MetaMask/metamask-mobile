@@ -3,7 +3,7 @@ import { parseAccountsApiActivity } from './accountsApi';
 const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
 const REWARDER_ADDRESS = '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0';
-const CASHBACK_MULTISEND_FROM = '0xb978703B01a60c7fbD4541D6c29299C65C8e61EA';
+const CASHBACK_MULTISEND_TO = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
 
 const cardPaymentRow = {
   hash: '0x2b45bda071d8feff265c541e251a5e035e5f55270f8ad288dcd80f6740793847',
@@ -50,8 +50,8 @@ const unclassifiedCashbackRow = {
   hash: '0x126be466696f2e3d124c97dedd7a6abd02e31883f544e92f80de732d566b9b16',
   timestamp: '2026-06-22T21:41:12.000Z',
   chainId: 143,
-  from: CASHBACK_MULTISEND_FROM,
-  to: '0xc7f1b2228fbf28451c7bf791c4f610111f0f32cb',
+  from: '0xb978703B01a60c7fbD4541D6c29299C65C8e61EA',
+  to: CASHBACK_MULTISEND_TO,
   isError: false,
   methodId: '0x0d49b711',
   transactionType: 'GENERIC_CONTRACT_CALL',
@@ -226,7 +226,7 @@ describe('parseAccountsApiActivity', () => {
           data: [
             {
               ...unclassifiedCashbackRow,
-              from: '0x0000000000000000000000000000000000000001',
+              to: '0x0000000000000000000000000000000000000001',
             },
             {
               ...unclassifiedCashbackRow,

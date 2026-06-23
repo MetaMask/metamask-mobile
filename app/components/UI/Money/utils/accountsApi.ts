@@ -11,12 +11,17 @@ export const METAMASK_CARD_PAYMENT_TYPE = 'METAMASK_CARD_PAYMENT';
 export const METAMASK_CARD_CASHBACK_TYPE = 'METAMASK_CARD_CASHBACK';
 
 /**
- * Baanx card-cashback multisend operator observed on Monad (and Linea).
+ * Baanx card-cashback multisend contracts observed on Monad and Linea.
  * Temporary client-side signal until Accounts API assigns
  * `METAMASK_CARD_CASHBACK`.
  */
-const CARD_CASHBACK_MULTISEND_FROM =
-  '0xb978703B01a60c7fbD4541D6c29299C65C8e61EA';
+const CARD_CASHBACK_MULTISEND_TARGETS: readonly string[] = [
+  '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+  '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+  '0x40A695A16C213afEf1c87Fd471Fb73157b948f3f',
+  '0x144c1cE815Bd1Eb71678978fE8641cC4e3fd59e6',
+  '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
+];
 
 /** `multiSend` entrypoint on card-cashback payout transactions. */
 const CARD_CASHBACK_MULTISEND_METHOD_ID = '0x0d49b711';
@@ -169,10 +174,16 @@ function hasMusdValueTransfer(tx: AccountsApiTransaction): boolean {
   );
 }
 
+function isCashbackMultisendTarget(to: string): boolean {
+  return CARD_CASHBACK_MULTISEND_TARGETS.some((addr) =>
+    areAddressesEqual(to, addr),
+  );
+}
+
 /**
  * Classify card-cashback rows. Uses the Accounts API type when present;
- * otherwise falls back to Baanx multisend heuristics (mUSD payout from the
- * known operator address).
+ * otherwise falls back to Baanx multisend heuristics (mUSD payout via a
+ * known multisend contract).
  */
 function isCashbackTransaction(tx: AccountsApiTransaction): boolean {
   if (tx.isError) {
@@ -187,10 +198,7 @@ function isCashbackTransaction(tx: AccountsApiTransaction): boolean {
   if (!parseChainId(tx.chainId)) {
     return false;
   }
-  if (
-    !areAddressesEqual(tx.from, CARD_CASHBACK_MULTISEND_FROM) ||
-    !hasMusdValueTransfer(tx)
-  ) {
+  if (!isCashbackMultisendTarget(tx.to) || !hasMusdValueTransfer(tx)) {
     return false;
   }
   if (
