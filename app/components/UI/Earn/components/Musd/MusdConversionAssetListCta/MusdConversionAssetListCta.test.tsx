@@ -94,7 +94,6 @@ describe('MusdConversionAssetListCta', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
 
     (
