@@ -831,5 +831,11 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/perps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "8.2.0-preview-9de9aa4"
+    }
   }
 }

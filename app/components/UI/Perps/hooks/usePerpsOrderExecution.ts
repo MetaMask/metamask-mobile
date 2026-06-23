@@ -78,9 +78,7 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
-          const chartLibrary = (
-            orderParams.trackingData as { chartLibrary?: string } | undefined
-          )?.chartLibrary;
+          const chartLibrary = orderParams.trackingData?.chartLibrary;
 
           // Check if order was partially filled
           const orderSize = Number.parseFloat(orderParams.size.toString());
@@ -184,9 +182,7 @@ export function usePerpsOrderExecution(
             failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
               orderParams.trackingData.source;
           }
-          const chartLibrary = (
-            orderParams.trackingData as { chartLibrary?: string } | undefined
-          )?.chartLibrary;
+          const chartLibrary = orderParams.trackingData?.chartLibrary;
           if (chartLibrary) {
             failedProps[PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY] =
               chartLibrary;
@@ -259,9 +255,7 @@ export function usePerpsOrderExecution(
           exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
             orderParams.trackingData.source;
         }
-        const chartLibrary = (
-          orderParams.trackingData as { chartLibrary?: string } | undefined
-        )?.chartLibrary;
+        const chartLibrary = orderParams.trackingData?.chartLibrary;
         if (chartLibrary) {
           exceptionProps[PERPS_CHART_ANALYTICS_PROPERTY.CHART_LIBRARY] =
             chartLibrary;
