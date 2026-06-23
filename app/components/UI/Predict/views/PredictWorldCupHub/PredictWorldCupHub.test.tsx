@@ -37,6 +37,7 @@ const mockUsePredictWorldCupWinnerMarket = jest.fn(() => ({
   market: null,
   isFetching: false,
   error: null,
+  refetch: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -184,6 +185,7 @@ describe('PredictWorldCupHub', () => {
       market: null,
       isFetching: false,
       error: null,
+      refetch: jest.fn(),
     });
   });
 
@@ -300,6 +302,7 @@ describe('PredictWorldCupHub', () => {
       },
       isFetching: false,
       error: null,
+      refetch: jest.fn(),
     });
 
     render(<PredictWorldCupHub />);

@@ -47,29 +47,37 @@ export const usePredictWorldCupGamesSections = (
     })),
   });
 
-  const { availability } = usePredictWorldCupAvailability(config, { enabled });
+  const { availability, refetch: refetchAvailability } =
+    usePredictWorldCupAvailability(config, { enabled });
 
-  const sections = useMemo<PredictWorldCupStageSection[]>(() => config.stages
-      .map((stage, index) => {
-        const result = stageQueryResults[index];
-        const rawMarkets = result?.data ?? [];
-        const markets = getVisiblePredictMarkets(
-          filterStandaloneMarkets(rawMarkets),
-        );
-        return {
-          key: stage.key,
-          label: resolvePredictWorldCupStageLabel(stage),
-          markets,
-          isFetching: result?.isLoading ?? false,
-        };
-      })
-      .filter((section) => section.markets.length > 0), [config.stages, stageQueryResults]);
+  const sections = useMemo<PredictWorldCupStageSection[]>(
+    () =>
+      config.stages
+        .map((stage, index) => {
+          const result = stageQueryResults[index];
+          const rawMarkets = result?.data ?? [];
+          const markets = getVisiblePredictMarkets(
+            filterStandaloneMarkets(rawMarkets),
+          );
+          return {
+            key: stage.key,
+            label: resolvePredictWorldCupStageLabel(stage),
+            markets,
+            isFetching: result?.isLoading ?? false,
+          };
+        })
+        .filter((section) => section.markets.length > 0),
+    [config.stages, stageQueryResults],
+  );
 
   const isFetching = stageQueryResults.some((r) => r.isLoading);
 
   const refetch = useCallback(async () => {
-    await Promise.all(stageQueryResults.map((r) => r.refetch()));
-  }, [stageQueryResults]);
+    await Promise.all([
+      ...stageQueryResults.map((r) => r.refetch()),
+      refetchAvailability(),
+    ]);
+  }, [stageQueryResults, refetchAvailability]);
 
   return { sections, isLive: availability.live, isFetching, refetch };
 };
@@ -78,6 +86,7 @@ export interface UsePredictWorldCupWinnerMarketResult {
   market: PredictMarket | null;
   isFetching: boolean;
   error: string | null;
+  refetch: () => Promise<void>;
 }
 
 /**
@@ -108,21 +117,30 @@ export const usePredictWorldCupWinnerMarket = (
     [winnerStage],
   );
 
-  const { data, isLoading, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch: queryRefetch,
+  } = useQuery({
     ...queryOptions,
     enabled,
   });
 
   const market = useMemo(() => {
-    if (!data || data.length === 0) {
-      return null;
-    }
-    return data[0];
+    if (!data || data.length === 0) return null;
+    const visible = getVisiblePredictMarkets(filterStandaloneMarkets(data));
+    return visible[0] ?? null;
   }, [data]);
+
+  const refetch = useCallback(async () => {
+    await queryRefetch();
+  }, [queryRefetch]);
 
   return {
     market,
     isFetching: isLoading,
     error: error?.message ?? null,
+    refetch,
   };
 };

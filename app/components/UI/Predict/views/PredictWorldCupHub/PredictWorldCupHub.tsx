@@ -14,7 +14,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useTailwind ,
+import {
+  useTailwind,
   Theme,
   ThemeProvider as DesignSystemThemeProvider,
   useTheme as useDesignSystemTheme,
@@ -228,7 +229,7 @@ const GamesTabContent: React.FC<GamesTabContentProps> = ({
 
   const getItemType = useCallback((item: GamesListItem) => item.type, []);
 
-  if (isFetching && !isRefreshing) {
+  if (isFetching && !isRefreshing && sections.length === 0) {
     return (
       <Box twClassName="flex-1 px-4">
         <PredictMarketSkeleton
@@ -296,7 +297,8 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { market: winnerMarket } = usePredictWorldCupWinnerMarket(config);
+  const { market: winnerMarket, refetch: refetchWinner } =
+    usePredictWorldCupWinnerMarket(config);
 
   const {
     marketData,
@@ -314,11 +316,11 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await refetch();
+      await Promise.all([refetch(), refetchWinner()]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetch]);
+  }, [refetch, refetchWinner]);
 
   const handleEndReached = useCallback(() => {
     if (hasMore && !isFetchingMore) {
@@ -413,6 +415,15 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
         twClassName="flex-1"
         testID={PREDICT_WORLD_CUP_HUB_TEST_IDS.ERROR_STATE}
       >
+        {winnerMarket && (
+          <PredictWorldCupWinnerModule
+            market={winnerMarket}
+            entryPoint={entryPoint}
+            predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
+            transactionActiveAbTests={transactionActiveAbTests}
+            onTileBuyPress={onWinnerTileBuyPress}
+          />
+        )}
         <PredictOffline onRetry={handleRefresh} />
       </Box>
     );
