@@ -28,9 +28,23 @@ import {
   selectAllConfiguredEvmChainIds,
   selectEvmNetworkConfigurationsByChainId,
   selectProviderType,
+  selectTickerByChainId,
 } from '../../../selectors/networkController';
 import { selectAllConfiguredNonEvmChainIds } from '../../../selectors/multichainNetworkController';
-import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
+import {
+  selectRelatedChainIdsByTransactionId,
+  selectSwapsTransactions,
+} from '../../../selectors/transactionController';
+import {
+  selectConversionRateByChainId,
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
+import { selectTokensByChainIdAndWalletAddress } from '../../../selectors/tokensController';
+import { store } from '../../../store';
+import decodeTransaction from '../../UI/TransactionElement/utils';
 import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import {
@@ -69,6 +83,10 @@ import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { type ActivityListItem } from './types';
 import {
+  formatActivityListDateHeader,
+  getActivityFromTo,
+  getActivityValue,
+  getGroupedActivityListItemKey,
   groupActivityListItems,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
@@ -85,7 +103,6 @@ import {
 } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
-import { getIntlDateTimeFormatter } from '../../../util/intl';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -97,51 +114,10 @@ const updateIncomingTransactions = () =>
     }
   ).updateIncomingTransactions();
 
-const generateKey = (item: ActivityListItem): string => {
-  const hash = item.hash;
-  if (hash) {
-    return `${item.chainId}:${hash}`;
-  }
-  return `${item.chainId}:${item.timestamp}:${item.type}`;
-};
-
-const generateGroupedKey = (item: GroupedActivityListItem): string => {
-  if (item.type === 'pending-header') {
-    return 'pending-header';
-  }
-
-  if (item.type === 'date-header') {
-    return `date-header-${item.date}`;
-  }
-
-  return generateKey(item.item);
-};
-
-const isSameLocalDay = (date: Date, otherDate: Date) =>
-  date.getFullYear() === otherDate.getFullYear() &&
-  date.getMonth() === otherDate.getMonth() &&
-  date.getDate() === otherDate.getDate();
-
-const formatDateHeader = (timestamp: number) => {
-  const date = new Date(timestamp);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
-  if (isSameLocalDay(date, today)) {
-    return strings('perps.today');
-  }
-
-  if (isSameLocalDay(date, yesterday)) {
-    return strings('perps.yesterday');
-  }
-
-  return getIntlDateTimeFormatter('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
-};
+const generateGroupedKey = (
+  item: GroupedActivityListItem,
+  index: number = 0,
+): string => getGroupedActivityListItemKey(item, index);
 
 const noop = () => undefined;
 
@@ -150,34 +126,6 @@ const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const prefix = strings('transactions.view_full_history_on');
 
   return blockExplorerName ? `${prefix} ${blockExplorerName}` : prefix;
-};
-
-const getActivityValue = (item: ActivityListItem) => {
-  const { data } = item;
-
-  if ('token' in data && data.token?.symbol) {
-    return `${data.token.amount ?? ''} ${data.token.symbol}`.trim();
-  }
-
-  if ('destinationToken' in data && data.destinationToken?.symbol) {
-    return `${data.destinationToken.amount ?? ''} ${
-      data.destinationToken.symbol
-    }`.trim();
-  }
-
-  if ('sourceToken' in data && data.sourceToken?.symbol) {
-    return `${data.sourceToken.amount ?? ''} ${data.sourceToken.symbol}`.trim();
-  }
-
-  return undefined;
-};
-
-const getActivityFromTo = (item: ActivityListItem) => {
-  const { data } = item;
-  return {
-    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
-    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
-  };
 };
 
 interface ActivityListProps {
@@ -645,10 +593,18 @@ const ActivityList = ({
     }
   }, [refetch]);
 
+  // Guards against out-of-order async decodes: each press claims a token, and
+  // only the most recent press is allowed to open the details sheet. Without
+  // this, tapping row A then row B before A's decode resolves could navigate to
+  // A last and show the wrong transaction.
+  const activityPressTokenRef = useRef(0);
+
   const handleActivityItemPress = useCallback(
-    (item: ActivityListItem) => {
+    async (item: ActivityListItem) => {
       const { raw } = item;
       if (!raw) return;
+
+      const pressToken = (activityPressTokenRef.current += 1);
 
       const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
       const actionKey = resolveActivityListItemTitle(
@@ -715,29 +671,72 @@ const ActivityList = ({
         return;
       }
 
-      const { from, to } = getActivityFromTo(item);
-      const value = getActivityValue(item);
+      const txChainId = tx.chainId;
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TRANSACTION_DETAILS,
-        params: {
-          tx,
-          transactionElement: {
-            actionKey,
-            value,
+      // Decode the EVM transaction the same way the legacy list does, so the
+      // detail sheet's From/To and Amount/gas/total fields are populated.
+      // The unified list is multi-chain, so the per-chain rates/ticker/tokens
+      // are read from the store for this tx's chain rather than via hooks.
+      try {
+        const state = store.getState();
+        const [transactionElement, transactionDetails] =
+          await decodeTransaction({
+            tx,
+            selectedAddress: selectedEvmAddress,
+            chainId: txChainId,
+            txChainId,
+            ticker: selectTickerByChainId(state, txChainId),
+            conversionRate: selectConversionRateByChainId(state, txChainId),
+            currencyRates: selectCurrencyRates(state),
+            currentCurrency: selectCurrentCurrency(state),
+            contractExchangeRates: selectContractExchangeRatesByChainId(
+              state,
+              txChainId,
+            ),
+            primaryCurrency: selectPrimaryCurrency(state),
+            swapsTransactions: selectSwapsTransactions(state),
+            tokens: selectTokensByChainIdAndWalletAddress(
+              state,
+              txChainId,
+              selectedEvmAddress,
+            ),
+            selectedInternalAccount: selectSelectedInternalAccount(state),
+          });
+
+        if (activityPressTokenRef.current !== pressToken) return;
+
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.TRANSACTION_DETAILS,
+          params: {
+            tx,
+            transactionElement,
+            transactionDetails,
+            showSpeedUpModal: noop,
+            showCancelModal: noop,
           },
-          transactionDetails: {
-            hash: item.hash,
-            renderFrom: from,
-            renderTo: to,
-            renderValue: value,
-            transactionType: item.type,
-            txChainId: tx.chainId,
+        });
+      } catch {
+        if (activityPressTokenRef.current !== pressToken) return;
+        const { from, to } = getActivityFromTo(item);
+        const value = getActivityValue(item);
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.TRANSACTION_DETAILS,
+          params: {
+            tx,
+            transactionElement: { actionKey, value },
+            transactionDetails: {
+              hash: item.hash,
+              renderFrom: from,
+              renderTo: to,
+              renderValue: value,
+              transactionType: item.type,
+              txChainId,
+            },
+            showSpeedUpModal: noop,
+            showCancelModal: noop,
           },
-          showSpeedUpModal: noop,
-          showCancelModal: noop,
-        },
-      });
+        });
+      }
     },
     [
       bridgeHistory,
@@ -846,7 +845,7 @@ const ActivityList = ({
     if (groupedItem.type === 'date-header') {
       return (
         <ListItem.Date style={styles.dateHeader}>
-          {formatDateHeader(groupedItem.date)}
+          {formatActivityListDateHeader(groupedItem.date)}
         </ListItem.Date>
       );
     }

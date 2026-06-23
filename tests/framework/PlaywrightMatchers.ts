@@ -146,15 +146,16 @@ export default class PlaywrightMatchers {
 
     this.logFind('text', `${text}${exactMatch ? ' (exact)' : ''}`);
     const isAndroid = await PlatformDetector.isAndroid();
+    const escapedText = text.replace(/'/g, "\\'");
     let xpath: string;
     if (exactMatch) {
       xpath = isAndroid
-        ? `//*[@name='${text}' or @label='${text}' or @text='${text}' or @content-desc='${text}']`
-        : `//*[@name='${text}' or @label='${text}' or @text='${text}']`;
+        ? `//*[@name='${escapedText}' or @label='${escapedText}' or @text='${escapedText}' or @content-desc='${escapedText}']`
+        : `//*[@name='${escapedText}' or @label='${escapedText}' or @text='${escapedText}']`;
     } else {
       xpath = isAndroid
-        ? `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}') or contains(@content-desc,'${text}')]`
-        : `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`;
+        ? `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}') or contains(@content-desc,'${escapedText}')]`
+        : `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}')]`;
     }
     return await this.getElementByXPath(xpath, options);
   }

@@ -33,7 +33,10 @@ import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
-import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  slideFromRightNativeOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
   ToastContext,
@@ -104,7 +107,6 @@ import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/Onboarding
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
-import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
@@ -634,10 +636,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
       component={NFTAutoDetectionModal}
     />
-    <NativeStack.Screen
-      name={Routes.MODAL.WHATS_NEW}
-      component={WhatsNewModal}
-    />
     {isNetworkUiRedesignEnabled() ? (
       <NativeStack.Screen
         name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
@@ -1115,7 +1113,8 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
         options={{
-          animation: 'slide_from_right',
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
           contentStyle: { backgroundColor: colors.background.default },
         }}
       />

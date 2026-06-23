@@ -1166,6 +1166,365 @@ describe('AdvancedChart', () => {
     });
   });
 
+  it('calls onChartLayoutSettled when CHART_LAYOUT_SETTLED is received', () => {
+    const onChartLayoutSettled = jest.fn();
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartLayoutSettled={onChartLayoutSettled}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
+    expect(onChartLayoutSettled).toHaveBeenCalledTimes(1);
+  });
+
+  it('removeIndicator does not postMessage before chart is ready', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
+
+    act(() => {
+      ref.current?.removeIndicator('RSI');
+    });
+
+    expect(mockPostMessage).not.toHaveBeenCalled();
+  });
+
+  it('removeIndicator posts REMOVE_INDICATOR when chart is ready', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    const { getByTestId } = render(
+      <AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    act(() => {
+      ref.current?.removeIndicator('RSI');
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'REMOVE_INDICATOR',
+        payload: { name: 'RSI' },
+      }),
+    );
+  });
+
+  it('with webViewInstanceKey, does not require onLoadEnd after ohlcvSeriesKey change', () => {
+    const staleBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
+      { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
+    ];
+    const freshBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={staleBars}
+        ohlcvSeriesKey="range-a"
+        webViewInstanceKey="asset|usd"
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={staleBars}
+        ohlcvSeriesKey="range-b"
+        webViewInstanceKey="asset|usd"
+      />,
+    );
+    rerender(
+      <AdvancedChart
+        ohlcvData={freshBars}
+        ohlcvSeriesKey="range-b"
+        webViewInstanceKey="asset|usd"
+      />,
+    );
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: freshBars },
+      }),
+    );
+  });
+
+  it('with webViewInstanceKey, does not show skeleton after first reveal on series key change', () => {
+    const altBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+    const onSkeletonHidden = jest.fn();
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        ohlcvSeriesKey="range-a"
+        webViewInstanceKey="asset|usd"
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={altBars}
+        ohlcvSeriesKey="range-b"
+        webViewInstanceKey="asset|usd"
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+  });
+
+  it('with webViewInstanceKey, waits for fresh OHLCV without remounting WebView', () => {
+    const staleBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
+      { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
+    ];
+    const freshBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={staleBars}
+        ohlcvSeriesKey="range-a"
+        webViewInstanceKey="asset|usd"
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={staleBars}
+        ohlcvSeriesKey="range-b"
+        webViewInstanceKey="asset|usd"
+      />,
+    );
+
+    expect(
+      mockPostMessage.mock.calls.filter((call) => {
+        try {
+          return JSON.parse(call[0] as string).type === 'SET_OHLCV_DATA';
+        } catch {
+          return false;
+        }
+      }),
+    ).toHaveLength(0);
+
+    mockPostMessage.mockClear();
+    rerender(
+      <AdvancedChart
+        ohlcvData={freshBars}
+        ohlcvSeriesKey="range-b"
+        webViewInstanceKey="asset|usd"
+      />,
+    );
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: freshBars },
+      }),
+    );
+  });
+
+  it('with webViewInstanceKey, calls onChartLayoutSettled on interval refresh without calling onSkeletonHidden again', () => {
+    const altBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+    const onSkeletonHidden = jest.fn();
+    const onChartLayoutSettled = jest.fn();
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        ohlcvSeriesKey="range-a"
+        webViewInstanceKey="asset|usd"
+        onSkeletonHidden={onSkeletonHidden}
+        onChartLayoutSettled={onChartLayoutSettled}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+
+    onSkeletonHidden.mockClear();
+    onChartLayoutSettled.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={altBars}
+        ohlcvSeriesKey="range-b"
+        webViewInstanceKey="asset|usd"
+        onSkeletonHidden={onSkeletonHidden}
+        onChartLayoutSettled={onChartLayoutSettled}
+      />,
+    );
+
+    act(() => {
+      getByTestId('mock-webview').props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
+    expect(onSkeletonHidden).not.toHaveBeenCalled();
+    expect(onChartLayoutSettled).toHaveBeenCalledTimes(1);
+  });
+
+  it('with webViewInstanceKey, requires WebView load after webViewInstanceKey change', () => {
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        ohlcvSeriesKey="range-a"
+        webViewInstanceKey="asset-a|usd"
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        ohlcvSeriesKey="range-a"
+        webViewInstanceKey="asset-b|usd"
+      />,
+    );
+
+    expect(
+      mockPostMessage.mock.calls.filter((call) => {
+        try {
+          return JSON.parse(call[0] as string).type === 'SET_OHLCV_DATA';
+        } catch {
+          return false;
+        }
+      }),
+    ).toHaveLength(0);
+
+    const webViewAfterInstanceChange = getByTestId('mock-webview');
+    act(() => {
+      webViewAfterInstanceChange.props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: MOCK_BARS },
+      }),
+    );
+  });
+
   it('does not show skeleton when adding indicators after initial reveal', () => {
     const onSkeletonHidden = jest.fn();
     const { getByTestId, queryByTestId, rerender } = render(
