@@ -1,11 +1,19 @@
 import { createSelector } from 'reselect';
-import { selectBasicFunctionalityEnabled } from '../settings';
 import { StateWithPartialEngine } from './types';
 
 // Access the controller state directly
 export const selectRemoteFeatureFlagControllerState = (
   state: StateWithPartialEngine,
 ) => state.engine.backgroundState.RemoteFeatureFlagController;
+
+const selectBasicFunctionalityEnabledForRemoteFlags = (
+  state: StateWithPartialEngine,
+): boolean => {
+  if ('settings' in state && state.settings != null) {
+    return Boolean(state.settings.basicFunctionalityEnabled);
+  }
+  return true;
+};
 
 export const selectRawFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
@@ -39,7 +47,7 @@ export const selectRemoteFeatureFlagsUnfiltered =
  * Returns an empty object when basic functionality is disabled.
  */
 export const selectRemoteFeatureFlags = createSelector(
-  selectBasicFunctionalityEnabled,
+  selectBasicFunctionalityEnabledForRemoteFlags,
   selectRemoteFeatureFlagsMerged,
   (isBasicFunctionalityEnabled, remoteFeatureFlags) => {
     if (!isBasicFunctionalityEnabled) {
