@@ -376,7 +376,7 @@ describe('moneyAccountTransactions', () => {
 
       await expect(
         updateMoneyAccountDepositTokenAmount(mockTransactionMeta, '1.0'),
-      ).rejects.toThrow('Failed to preview deposit shares');
+      ).rejects.toThrow('RPC connection refused');
     });
   });
 
@@ -792,7 +792,7 @@ describe('moneyAccountTransactions', () => {
 
       await expect(
         getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '1.0'),
-      ).rejects.toThrow('Failed to preview deposit shares');
+      ).rejects.toThrow('RPC timeout');
     });
   });
 

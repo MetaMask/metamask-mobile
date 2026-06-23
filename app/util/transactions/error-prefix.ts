@@ -22,16 +22,18 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getCallErrorMessage(error: unknown): string | undefined {
+  const errorRecord = error as Record<string, unknown>;
+
   if (
     !(error instanceof Error) ||
-    typeof (error as Record<string, unknown>).reason !== 'string' ||
-    (error as Record<string, unknown>).code !== 'CALL_EXCEPTION' ||
+    typeof errorRecord.reason !== 'string' ||
+    errorRecord.code !== 'CALL_EXCEPTION' ||
     !error.message.includes('code=CALL_EXCEPTION')
   ) {
     return undefined;
   }
 
-  const { method, reason, transaction } = error as {
+  const { method, reason, transaction } = errorRecord as {
     method?: string;
     reason: string;
     transaction?: { data?: string };
