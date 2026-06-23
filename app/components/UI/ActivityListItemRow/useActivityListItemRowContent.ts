@@ -16,7 +16,10 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../Earn/constants/musd';
-import { renderShortAddress } from '../../../util/address';
+import {
+  renderShortAddress,
+  safeToChecksumAddress,
+} from '../../../util/address';
 import {
   applyDisplaySign,
   type ActivityKind,
@@ -669,13 +672,18 @@ function resolveAmount(
 ): string | undefined {
   if (!token) return undefined;
 
-  const humanAmount = getHumanReadableTokenAmount(token);
-  if (humanAmount === undefined) return undefined;
-
-  const displayAmount = formatTokenQuantity(humanAmount);
+  const displayAmount = token.isUnlimitedApproval
+    ? strings('confirm.unlimited')
+    : getHumanReadableTokenAmount(token);
+  if (displayAmount === undefined) {
+    return undefined;
+  }
+  const formattedAmount = token.isUnlimitedApproval
+    ? displayAmount
+    : formatTokenQuantity(displayAmount);
   const amount = token.symbol
-    ? `${displayAmount} ${token.symbol}`
-    : displayAmount;
+    ? `${formattedAmount} ${token.symbol}`
+    : formattedAmount;
   const isSpendingCapActivity =
     activityType === 'approveSpendingCap' ||
     activityType === 'increaseSpendingCap' ||
@@ -685,6 +693,17 @@ function resolveAmount(
   });
 
   return isSpendingCapActivity ? amount : applyDisplaySign(amount, signPrefix);
+}
+
+function shouldUsePrimaryFiatFallback(
+  itemType: ActivityListItem['type'],
+  secondaryToken: TokenAmount | undefined,
+) {
+  if (secondaryToken) {
+    return false;
+  }
+
+  return !['swap', 'bridge', 'wrap', 'unwrap', 'convert'].includes(itemType);
 }
 
 function formatTokenQuantity(amount: string): string {
@@ -770,6 +789,34 @@ function getMusdNativeExchangeRate({
   return 1 / usdConversionRate;
 }
 
+/**
+ * Looks up a token's market `price` from contractExchangeRates. Market data is
+ * keyed by checksummed addresses, but the lookup address is lowercased (CAIP
+ * asset references are normalized to lowercase), so try the checksum first and
+ * fall back to a case-insensitive match. Mirrors `getTokenToEthPrice` in
+ * `Money/utils/moneyActivityFiat`.
+ */
+function getMarketPriceForAddress(
+  contractExchangeRates:
+    | Record<string, { price?: number | null } | undefined>
+    | undefined,
+  address: string,
+): number | null | undefined {
+  if (!contractExchangeRates) return undefined;
+
+  const checksum = safeToChecksumAddress(address);
+  if (checksum) {
+    const price = contractExchangeRates[checksum]?.price;
+    if (price !== undefined && price !== null) return price;
+  }
+
+  const lower = address.toLowerCase();
+  const key = Object.keys(contractExchangeRates).find(
+    (k) => k.toLowerCase() === lower,
+  );
+  return key !== undefined ? contractExchangeRates[key]?.price : undefined;
+}
+
 function resolveFiatAmount({
   activityType,
   contractExchangeRates,
@@ -790,6 +837,7 @@ function resolveFiatAmount({
   usdConversionRate: number | null | undefined;
 }): string | undefined {
   if (!token || !currentCurrency || !hexChainId) return undefined;
+  if (token.isUnlimitedApproval) return undefined;
 
   const humanAmount = getHumanReadableTokenAmount(token);
   if (humanAmount === undefined) return undefined;
@@ -800,7 +848,7 @@ function resolveFiatAmount({
   const exchangeRate = isNativeAsset(token)
     ? 1
     : lookupToken
-      ? (contractExchangeRates?.[lookupToken.address]?.price ??
+      ? (getMarketPriceForAddress(contractExchangeRates, lookupToken.address) ??
         (lookupToken.symbol === MUSD_TOKEN.symbol
           ? getMusdNativeExchangeRate({ usdConversionRate })
           : undefined))
@@ -861,17 +909,32 @@ export function useActivityListItemRowContent(
     networkChainId,
   );
   const primaryAmount = resolveAmount(primaryToken, item.type);
+  const resolvedSecondaryAmount = resolveAmount(secondaryToken, item.type);
+  const secondaryFiatAmount = resolveFiatAmount({
+    activityType: item.type,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    hexChainId,
+    token: secondaryToken,
+    usdConversionRate,
+  });
+  const primaryFiatAmount = shouldUsePrimaryFiatFallback(
+    item.type,
+    secondaryToken,
+  )
+    ? resolveFiatAmount({
+        activityType: item.type,
+        contractExchangeRates,
+        conversionRate,
+        currentCurrency,
+        hexChainId,
+        token: primaryToken,
+        usdConversionRate,
+      })
+    : undefined;
   const secondaryAmount =
-    resolveAmount(secondaryToken, item.type) ??
-    resolveFiatAmount({
-      activityType: item.type,
-      contractExchangeRates,
-      conversionRate,
-      currentCurrency,
-      hexChainId,
-      token: primaryToken,
-      usdConversionRate,
-    });
+    resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount;
 
   return {
     ...content,

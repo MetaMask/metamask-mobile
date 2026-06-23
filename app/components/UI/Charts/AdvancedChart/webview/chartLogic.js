@@ -149,6 +149,7 @@ function clearMmLayoutSettleFallbackTimer() {
  * - No-ops if `__mmLayoutSettlePending` is false (idempotent / avoids double-fire).
  * - Clears the pending flag and the fallback timer, then runs `applyChartScaleLayout` and line
  *   overlays when applicable, then `scheduleChartLayoutSettledNotify`.
+ * - Refreshes the custom study legend when indicators/MAs are active (see inline comment below).
  */
 function tryCompleteLayoutSettleAfterDataCore() {
   if (!window.__mmLayoutSettlePending) {
@@ -164,6 +165,23 @@ function tryCompleteLayoutSettleAfterDataCore() {
       }
     }
   } catch (e) {}
+
+  /**
+   * Interval / time-range hot reload (`handleSetOHLCVData` → `resetData`) keeps MA and sub-pane
+   * studies mounted; TradingView recalculates their series from the new bars, but our legend is a
+   * separate DOM overlay (`#study-legend-overlay`) fed by a one-shot `chart.exportData()` snapshot
+   * in `refreshStudyLegendFromExport`. Without re-export here, pills like MA(10) would keep showing
+   * the pre-switch value even though the plotted line already moved (regression vs WebView remount,
+   * which recreated studies and triggered legend refresh via `subscribeStudyDataLoaded`).
+   */
+  if (
+    window.legendStudyOrder.size > 0 ||
+    window.activeStudies.size > 0 ||
+    window.maStudies.size > 0
+  ) {
+    refreshStudyLegendFromExport();
+  }
+
   scheduleChartLayoutSettledNotify();
 }
 
@@ -818,6 +836,31 @@ function generatePaletteShades(hex) {
   return shades;
 }
 
+// ============================================
+// Theme color helpers (series line, last-price overlays, end dot)
+// ============================================
+
+/**
+ * Ambient / series stroke color: line chart, filled last-close pill, line-end dot.
+ * Falls back to successColor when lineColorOverride is unset (ambient feature off).
+ * @param {object} [theme] — defaults to window.CONFIG.theme
+ */
+function getThemeLineColor(theme) {
+  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
+  return t.lineColor || t.successColor;
+}
+
+/**
+ * Custom dashed last-price horizontal_line. Honors currentPriceLineColorOverride when set,
+ * else matches series line / filled pill via {@link getThemeLineColor}.
+ * @param {object} [theme] — defaults to window.CONFIG.theme
+ */
+function getThemeLastPriceLineColor(theme) {
+  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
+  const lineColor = getThemeLineColor(t);
+  return t.currentPriceColor || lineColor;
+}
+
 function getSeriesColorOverrides(color) {
   return {
     'mainSeriesProperties.lineStyle.color': color,
@@ -848,8 +891,7 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  const color =
-    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color = getThemeLineColor();
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     let series = window.chartWidget.activeChart().getSeries();
@@ -895,8 +937,8 @@ function handleSetThemeColors(payload) {
   applySeriesColors();
 
   let chart = window.chartWidget.activeChart();
-  let lineColor = theme.lineColor || theme.successColor;
-  let currentPriceColor = theme.currentPriceColor || lineColor;
+  let lineColor = getThemeLineColor(theme);
+  let lastPriceLineColor = getThemeLastPriceLineColor(theme);
 
   // Update volume study colors if present
   if (window.volumeStudyId) {
@@ -927,7 +969,7 @@ function handleSetThemeColors(payload) {
   if (window.lastPriceShapeId) {
     try {
       chart.getShapeById(window.lastPriceShapeId).setProperties({
-        linecolor: theme.currentPriceColor || theme.successColor,
+        linecolor: lastPriceLineColor,
       });
     } catch (e) {}
   }
@@ -935,7 +977,7 @@ function handleSetThemeColors(payload) {
   if (window.lineLastPriceShapeId) {
     try {
       chart.getShapeById(window.lineLastPriceShapeId).setProperties({
-        linecolor: currentPriceColor,
+        linecolor: lastPriceLineColor,
       });
     } catch (e) {}
   }
@@ -1412,7 +1454,7 @@ function updateVisibleEdgeOutlinePriceLabel() {
 
   const theme = (w.CONFIG && w.CONFIG.theme) || {};
   const upColor = theme.successColor || '#0C9F76';
-  const lineColor = theme.lineColor || upColor;
+  const lineColor = getThemeLineColor(theme) || upColor;
   const downColor = theme.errorColor || '#E06470';
   let outlineColor = ct === 2 ? lineColor : upColor;
   if (ct === 1) {
@@ -2163,8 +2205,7 @@ function handleSetChartType(payload) {
     let ac = window.chartWidget.activeChart();
     ac.setChartType(type);
 
-    const color =
-      window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+    const color = getThemeLineColor();
     let series = ac.getSeries();
     if (type === 2) {
       series.setChartStyleProperties(2, {
@@ -2318,7 +2359,7 @@ function handleSetPositionLines(payload) {
 }
 
 // ============================================
-// Last close: green dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
+// Last close: dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
 // same styles as crosshair labels in AdvancedChartTemplate)
 // ============================================
 window.lastPriceShapeId = null;
@@ -2374,8 +2415,7 @@ function createLastPriceLine() {
 
   let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   let chart = window.chartWidget.activeChart();
-  let color =
-    window.CONFIG.theme.currentPriceColor || window.CONFIG.theme.successColor;
+  let color = getThemeLastPriceLineColor();
   let candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
   let candlePrice =
     candlePt && isFinite(candlePt.price) ? candlePt.price : lastBar.close;
@@ -2460,10 +2500,7 @@ function createLineLastPriceLine() {
 
   let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   let chart = window.chartWidget.activeChart();
-  const color =
-    window.CONFIG.theme.currentPriceColor ||
-    window.CONFIG.theme.lineColor ||
-    window.CONFIG.theme.successColor;
+  const color = getThemeLastPriceLineColor();
   let seriesPt = resolveLineEndOverlayPoint(chart);
   let linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3245,8 +3282,7 @@ function refreshLineEndDot() {
     return;
   }
 
-  const color =
-    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color = getThemeLineColor();
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
@@ -3686,6 +3722,13 @@ const LEGEND_RETRY_DELAY_MS = 100;
 const LEGEND_RENDER_TIMEOUT_MS = 3000;
 let _legendTimeoutId = null;
 
+/**
+ * Rebuilds `#study-legend-overlay` from TradingView `chart.exportData()` (last bar per study).
+ *
+ * Called when studies are added/removed, on crosshair dismiss, and after OHLCV hot reload
+ * completes in `tryCompleteLayoutSettleAfterDataCore` so MA/indicator pills reflect the new
+ * resolution (studies recalculate internally; this overlay does not update automatically).
+ */
 function refreshStudyLegendFromExport() {
   if (!isLegendOverlayEnabled()) return;
   if (!window.chartWidget || !window.isChartReady) return;
@@ -4515,7 +4558,7 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesColorOverrides(theme.lineColor || theme.successColor),
+        getSeriesColorOverrides(getThemeLineColor(theme)),
       ),
 
       loading_screen: {

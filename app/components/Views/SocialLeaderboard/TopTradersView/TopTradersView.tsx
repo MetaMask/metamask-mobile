@@ -58,8 +58,11 @@ import {
 import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
+import {
+  ALL_CHAINS,
+  PERP_CHAINS,
+  SPOT_CHAINS,
+} from '../../shared/top-traders-constants';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
@@ -67,9 +70,6 @@ import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 type TabFilter = 'all' | 'tokens' | 'perps';
 
 const LEADERBOARD_LIMIT = 50;
-
-const ALL_CHAINS = [...SPOT_CHAINS, 'hyperliquid'];
-const PERP_CHAINS = ['hyperliquid'];
 
 const getTabFilters = (): { key: TabFilter; label: string }[] => [
   {
@@ -344,6 +344,7 @@ const TopTradersView = () => {
 
   return (
     <SafeAreaView
+      edges={['top']}
       style={tw.style('flex-1 bg-default')}
       testID={TopTradersViewSelectorsIDs.CONTAINER}
     >

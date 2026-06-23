@@ -18,7 +18,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import Logger from '../../../../../util/Logger';
+
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
@@ -27,7 +27,7 @@ jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../../../UI/Money/utils/moneyAccountTransactions');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../transactions/useTransactionAccountOverride');
-jest.mock('../../../../../util/Logger');
+
 jest.mock('./useTransactionPayData');
 
 const moneyAccountDepositMeta: Partial<TransactionMeta> = {
@@ -81,8 +81,6 @@ describe('useUpdateTransactionPayAmount', () => {
     useTransactionPayRequiredTokens,
   );
   const updateTokenAmountMock = jest.fn();
-  const loggerErrorMock = jest.mocked(Logger.error);
-
   beforeEach(() => {
     jest.resetAllMocks();
     updateAtomicBatchDataMock.mockResolvedValue('0x0');
@@ -179,7 +177,7 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
   });
 
-  it('logs an error when updateAtomicBatchData rejects', async () => {
+  it('rejects and logs when updateAtomicBatchData rejects', async () => {
     const error = new Error('boom');
     updateAtomicBatchDataMock.mockRejectedValue(error);
     updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([
@@ -188,33 +186,22 @@ describe('useUpdateTransactionPayAmount', () => {
 
     const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
 
-    result.current.updateTransactionPayAmount('1.23');
-
-    await flushPromises();
-
-    expect(loggerErrorMock).toHaveBeenCalledWith(
-      error,
-      expect.stringContaining(
-        'Failed to update transaction pay amount in nested transaction',
-      ),
-    );
+    await expect(
+      result.current.updateTransactionPayAmount('1.23'),
+    ).rejects.toThrow('boom');
   });
 
-  it('logs an error when updateMoneyAccountDepositTokenAmount rejects', async () => {
+  it('rejects and logs when updateMoneyAccountDepositTokenAmount rejects', async () => {
     const error = new Error('rpc failure');
     updateMoneyAccountDepositTokenAmountMock.mockRejectedValue(error);
 
     const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
 
-    result.current.updateTransactionPayAmount('1.23');
-
-    await flushPromises();
+    await expect(
+      result.current.updateTransactionPayAmount('1.23'),
+    ).rejects.toThrow('rpc failure');
 
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-    expect(loggerErrorMock).toHaveBeenCalledWith(
-      error,
-      expect.stringContaining('Failed to prepare Money Account deposit'),
-    );
   });
 
   it('calls updateAtomicBatchData for each update returned from updateMoneyAccountWithdrawTokenAmount', async () => {
@@ -281,21 +268,17 @@ describe('useUpdateTransactionPayAmount', () => {
     );
   });
 
-  it('logs an error when updateMoneyAccountWithdrawTokenAmount rejects', async () => {
+  it('rejects and logs when updateMoneyAccountWithdrawTokenAmount rejects', async () => {
     const error = new Error('withdraw rpc failure');
     updateMoneyAccountWithdrawTokenAmountMock.mockRejectedValue(error);
 
     const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
 
-    result.current.updateTransactionPayAmount('4.56');
-
-    await flushPromises();
+    await expect(
+      result.current.updateTransactionPayAmount('4.56'),
+    ).rejects.toThrow('withdraw rpc failure');
 
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-    expect(loggerErrorMock).toHaveBeenCalledWith(
-      error,
-      expect.stringContaining('Failed to prepare Money Account withdraw'),
-    );
   });
 
   describe('syncMoneyAccountDepositRequiredAssets', () => {
@@ -408,7 +391,7 @@ describe('useUpdateTransactionPayAmount', () => {
       expect(updateTransactionMock).not.toHaveBeenCalled();
     });
 
-    it('logs an error when updateTransaction throws', async () => {
+    it('rejects and logs when updateTransaction throws', async () => {
       const error = new Error('updateTransaction failed');
       updateTransactionMock.mockImplementation(() => {
         throw error;
@@ -418,14 +401,9 @@ describe('useUpdateTransactionPayAmount', () => {
         transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
       });
 
-      result.current.updateTransactionPayAmount('1');
-
-      await flushPromises();
-
-      expect(loggerErrorMock).toHaveBeenCalledWith(
-        error,
-        'Failed to sync Money Account deposit requiredAssets amount',
-      );
+      await expect(
+        result.current.updateTransactionPayAmount('1'),
+      ).rejects.toThrow('updateTransaction failed');
     });
 
     it('still applies money account deposit updates after syncing requiredAssets', async () => {
