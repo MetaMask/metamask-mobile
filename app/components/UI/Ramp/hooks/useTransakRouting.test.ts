@@ -175,14 +175,7 @@ jest.mock('../../../../selectors/rampsController', () => ({
   selectTokens: jest.fn(),
 }));
 
-jest.mock('../Deposit/orderProcessor', () => ({
-  depositOrderToFiatOrder: jest.fn((order) => ({
-    ...order,
-    orderType: 'BUY',
-  })),
-}));
-
-jest.mock('../Deposit/utils', () => ({
+jest.mock('../utils/depositUtils', () => ({
   generateThemeParameters: jest.fn(() => ({ theme: 'light' })),
 }));
 
@@ -254,7 +247,7 @@ jest.mock('@metamask/ramps-controller', () => ({
   normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
 }));
 
-jest.mock('../Deposit/constants', () => ({
+jest.mock('../constants', () => ({
   REDIRECTION_URL: 'https://redirect.example.com',
 }));
 
