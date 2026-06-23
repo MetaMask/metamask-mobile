@@ -7168,6 +7168,7 @@
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
+      "deposit_funds_android": "Debit card",
       "bank_account": "Bank account",
       "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
