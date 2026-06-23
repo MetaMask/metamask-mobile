@@ -1,6 +1,6 @@
 import React from 'react';
-import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
-import { BackHandler, Platform } from 'react-native';
+import { fireEvent, screen, act } from '@testing-library/react-native';
+import { BackHandler, Platform, View, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import OnboardingInterestQuestionnaire from './OnboardingInterestQuestionnaire';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
@@ -12,6 +12,40 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+
+const MockView = View;
+const MockPressable = Pressable;
+const MockText = Text;
+
+jest.mock('./OtherBottomSheet', () => ({
+  __esModule: true,
+  default: function MockOtherBottomSheet({
+    onClose,
+    onDone,
+    onRemove,
+  }: {
+    onClose: () => void;
+    onDone: (value: string) => void;
+    onRemove: () => void;
+  }) {
+    return (
+      <MockView testID="mock-other-bottom-sheet">
+        <MockPressable
+          testID="mock-other-done"
+          onPress={() => onDone('Custom usage')}
+        >
+          <MockText>Done</MockText>
+        </MockPressable>
+        <MockPressable testID="mock-other-close" onPress={onClose}>
+          <MockText>Close</MockText>
+        </MockPressable>
+        <MockPressable testID="mock-other-remove" onPress={onRemove}>
+          <MockText>Remove</MockText>
+        </MockPressable>
+      </MockView>
+    );
+  },
+}));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -98,33 +132,17 @@ describe('OnboardingInterestQuestionnaire', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders updated option labels from i18n', () => {
-      renderComponent();
-
-      expect(
-        screen.getByText(
-          strings(
-            'onboarding_interest_questionnaire.option_buy_and_sell_crypto',
-          ),
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(
-          strings('onboarding_interest_questionnaire.option_advanced_trades'),
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders all six option cards in the grid', () => {
+    it('renders all seven option rows', () => {
       renderComponent();
 
       const optionIds = [
-        'buy_and_sell_crypto',
-        'consolidate_wallets',
-        'advanced_trades',
-        'predict_sports_events',
-        'crypto_as_money',
-        'connect_apps_sites',
+        'swap_tokens',
+        'trade_perpetuals',
+        'prediction_markets',
+        'send_receive_crypto',
+        'earn_and_spend',
+        'use_other_crypto_apps',
+        'other',
       ];
 
       optionIds.forEach((id) => {
@@ -136,13 +154,21 @@ describe('OnboardingInterestQuestionnaire', () => {
       });
     });
 
-    it('renders the Continue button', () => {
+    it('renders the Next button', () => {
       renderComponent();
 
       expect(
         screen.getByTestId(
           OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
         ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Skip button', () => {
+      renderComponent();
+
+      expect(
+        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON),
       ).toBeOnTheScreen();
     });
   });
@@ -226,7 +252,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       renderComponent();
 
       const option = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
       );
 
       fireEvent.press(option);
@@ -238,7 +264,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       renderComponent();
 
       const option = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
       );
 
       fireEvent.press(option);
@@ -250,24 +276,101 @@ describe('OnboardingInterestQuestionnaire', () => {
     it('allows selecting multiple options independently', () => {
       renderComponent();
 
-      const buyOption = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
+      const swapOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
       );
-      const predictOption = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}predict_sports_events`,
+      const perpsOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}trade_perpetuals`,
       );
 
-      fireEvent.press(buyOption);
-      fireEvent.press(predictOption);
+      fireEvent.press(swapOption);
+      fireEvent.press(perpsOption);
 
-      expect(buyOption.props.accessibilityState.checked).toBe(true);
-      expect(predictOption.props.accessibilityState.checked).toBe(true);
+      expect(swapOption.props.accessibilityState.checked).toBe(true);
+      expect(perpsOption.props.accessibilityState.checked).toBe(true);
     });
   });
 
-  describe('Continue button behaviour', () => {
-    it('fires Submitted with skipped=true and empty array when no option selected', async () => {
+  describe('Other option', () => {
+    it('renders an edit icon for the Other row', () => {
       renderComponent();
+
+      expect(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_ICON_PREFIX}other`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the bottom sheet by default', () => {
+      renderComponent();
+
+      expect(
+        screen.queryByTestId('mock-other-bottom-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the bottom sheet when Other is pressed', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+
+      expect(screen.getByTestId('mock-other-bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('displays entered text below Other after Done', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      expect(
+        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).toHaveTextContent('Custom usage');
+    });
+
+    it('removes other text and deselects option when Remove is pressed', () => {
+      renderComponent();
+
+      const otherOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+      );
+
+      fireEvent.press(otherOption);
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      expect(otherOption.props.accessibilityState.checked).toBe(true);
+      expect(
+        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).toHaveTextContent('Custom usage');
+
+      fireEvent.press(otherOption);
+      fireEvent.press(screen.getByTestId('mock-other-remove'));
+
+      expect(otherOption.props.accessibilityState.checked).toBe(false);
+      expect(
+        screen.queryByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Next button behaviour', () => {
+    it('fires Submitted and navigates to fund wallet with selections', async () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
+        ),
+      );
 
       await act(async () => {
         fireEvent.press(
@@ -286,101 +389,21 @@ describe('OnboardingInterestQuestionnaire', () => {
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           question_type: 'interest',
-          selected_interests: [],
-          item_count: 0,
-          skipped: true,
-        }),
-      );
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-    });
-
-    it('includes account_type in Submitted event when route supplies accountType', async () => {
-      mockInterestQuestionnaireRouteParams.accountType = 'hardware_wallet';
-
-      renderComponent();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
-
-      expect(builderInstance.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          question_type: 'interest',
-          selected_interests: [],
-          skipped: true,
-          account_type: 'hardware_wallet',
-        }),
-      );
-    });
-
-    it('fires Submitted with skipped=false and correct interests when options selected', async () => {
-      renderComponent();
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
-        ),
-      );
-      fireEvent.press(
-        screen.getByTestId(
-          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}predict_sports_events`,
-        ),
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
-
-      expect(builderInstance.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          question_type: 'interest',
-          selected_interests: expect.arrayContaining([
-            'buy_and_sell_crypto',
-            'predict_sports_events',
-          ]),
-          item_count: 2,
+          selected_interests: ['swap_tokens'],
+          item_count: 1,
           skipped: false,
         }),
       );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.FUND_WALLET,
+        expect.objectContaining({
+          onComplete: mockOnComplete,
+          selectedInterests: ['swap_tokens'],
+        }),
+      );
     });
 
-    it('navigates to crypto experience questionnaire with onComplete on Continue', async () => {
-      renderComponent();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
-          expect.objectContaining({
-            onComplete: mockOnComplete,
-          }),
-        );
-      });
-      expect(mockOnComplete).not.toHaveBeenCalled();
-    });
-
-    it('passes accountType to crypto experience when route supplies accountType', async () => {
-      mockInterestQuestionnaireRouteParams.accountType = 'imported';
-
+    it('navigates to fund wallet when no option is selected', async () => {
       renderComponent();
 
       await act(async () => {
@@ -392,12 +415,44 @@ describe('OnboardingInterestQuestionnaire', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+        Routes.ONBOARDING.FUND_WALLET,
         expect.objectContaining({
           onComplete: mockOnComplete,
-          accountType: 'imported',
+          selectedInterests: [],
         }),
       );
+    });
+  });
+
+  describe('Skip button behaviour', () => {
+    it('fires Submitted with skipped=true and completes onboarding on Skip', async () => {
+      renderComponent();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
+          ),
+        );
+      });
+
+      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
+
+      expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+        2,
+        MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED,
+      );
+      expect(builderInstance.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'interest',
+          selected_interests: [],
+          item_count: 0,
+          skipped: true,
+        }),
+      );
+
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

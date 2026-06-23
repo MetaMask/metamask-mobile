@@ -10,7 +10,7 @@ const TREATMENT_ROLLOUT_THRESHOLD = 0.25;
  * `@metamask/remote-feature-flag-controller` so the same analytics id maps to a
  * stable value in [0, 1) (aligned with other app sampling, e.g. network RPC tracking).
  *
- * LaunchDarkly flag for this experiment: `tradeTMCU722AbtestOnboardingInterestQuestion`.
+ * LaunchDarkly flag for this experiment: `onboarding_interest_questionnaire_enabled`.
  *
  * Call once per onboarding flow after metrics are enabled and an analytics ID exists.
  */

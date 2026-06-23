@@ -33,14 +33,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock(
-  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
-  () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => (): Promise<boolean> =>
-      Promise.resolve(false),
-  }),
-);
-
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Import analytics to access mocks

@@ -9,21 +9,22 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { analytics } from '../../../util/analytics/analytics';
-import Logger from '../../../util/Logger';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
-
-jest.mock('../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-  },
-}));
 
 const mockOptinMetricsTestOnboardingSlice = {
   events: [] as unknown[],
   accountType: undefined as string | undefined,
 };
+
+const mockFeatureFlagState = {
+  isInterestQuestionnaireEnabled: false,
+};
+
+jest.mock('../../../selectors/featureFlagController/onboarding', () => ({
+  selectOnboardingInterestQuestionnaireEnabled: () =>
+    mockFeatureFlagState.isInterestQuestionnaireEnabled,
+}));
 
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
@@ -44,14 +45,6 @@ jest.mock('react-redux', () => {
     ),
   };
 });
-
-const mockGetShouldShow = jest.fn();
-jest.mock(
-  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
-  () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => mockGetShouldShow,
-  }),
-);
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -122,6 +115,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
   beforeEach(() => {
     mockOptinMetricsTestOnboardingSlice.events = [];
     mockOptinMetricsTestOnboardingSlice.accountType = undefined;
+    mockFeatureFlagState.isInterestQuestionnaireEnabled = false;
     jest.clearAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -149,8 +143,8 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
   });
 
   describe('when basic usage data is unchecked', () => {
-    it('does not navigate to the interest questionnaire regardless of eligibility', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
+    it('does not navigate to the interest questionnaire regardless of feature flag', async () => {
+      mockFeatureFlagState.isInterestQuestionnaireEnabled = true;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -173,9 +167,9 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
   });
 
-  describe('when basic usage data is checked and eligibility returns false', () => {
+  describe('when basic usage data is checked and feature flag is disabled', () => {
     it('calls navigation reset to HomeNav instead of navigating to questionnaire', async () => {
-      mockGetShouldShow.mockResolvedValue(false);
+      mockFeatureFlagState.isInterestQuestionnaireEnabled = false;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -199,73 +193,9 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
   });
 
-  describe('when basic usage data is checked and eligibility throws', () => {
-    it('falls back to resetting navigation so onboarding is not blocked', async () => {
-      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.anything(),
-        );
-        expect(mockReset).toHaveBeenCalledWith(
-          expect.objectContaining({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          }),
-        );
-      });
-    });
-
-    it('logs Error rejections from the eligibility check', async () => {
-      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({ message: 'eligibility failed' }),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      });
-    });
-
-    it('wraps non-Error rejections before logging', async () => {
-      mockGetShouldShow.mockRejectedValue('string failure');
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({ message: 'string failure' }),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      });
-    });
-  });
-
-  describe('when basic usage data is checked and eligibility returns true', () => {
+  describe('when basic usage data is checked and feature flag is enabled', () => {
     it('navigates to the interest questionnaire with onComplete callback', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
+      mockFeatureFlagState.isInterestQuestionnaireEnabled = true;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -286,7 +216,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
 
     it('includes accountType in navigation params when onboarding account type is set in Redux', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
+      mockFeatureFlagState.isInterestQuestionnaireEnabled = true;
       mockOptinMetricsTestOnboardingSlice.accountType = 'imported';
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });

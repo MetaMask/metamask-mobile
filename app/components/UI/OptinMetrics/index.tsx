@@ -59,8 +59,7 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
-import Logger from '../../../util/Logger';
+import { selectOnboardingInterestQuestionnaireEnabled } from '../../../selectors/featureFlagController/onboarding';
 import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
@@ -84,6 +83,9 @@ const OptinMetrics = () => {
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const isInterestQuestionnaireEnabled = useSelector(
+    selectOnboardingInterestQuestionnaireEnabled,
+  );
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -104,9 +106,6 @@ const OptinMetrics = () => {
         : { width: 200, height: 180 },
     [isMediumDevice],
   );
-
-  const getShouldShowQuestionnaire =
-    useOnboardingInterestQuestionnaireEligibility();
 
   /**
    * Temporary disabling the back button so users can't go back
@@ -231,19 +230,7 @@ const OptinMetrics = () => {
 
     dispatch(clearOnboardingEvents());
 
-    let shouldShowInterestQuestionnaire = false;
-    if (isBasicUsageChecked) {
-      try {
-        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
-      } catch (error) {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      }
-    }
-
-    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+    if (isBasicUsageChecked && isInterestQuestionnaireEnabled) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
@@ -259,7 +246,7 @@ const OptinMetrics = () => {
     dispatch,
     continueNavigation,
     accountType,
-    getShouldShowQuestionnaire,
+    isInterestQuestionnaireEnabled,
     navigation,
   ]);
 

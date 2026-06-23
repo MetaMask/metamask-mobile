@@ -100,6 +100,8 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectOnboardingInterestQuestionnaireEnabled } from '../../../selectors/featureFlagController/onboarding';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 
 interface KeyringState {
@@ -149,6 +151,11 @@ const ChoosePassword = () => {
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
+
+  const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const isInterestQuestionnaireEnabled = useSelector(
+    selectOnboardingInterestQuestionnaireEnabled,
+  );
 
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
@@ -316,6 +323,23 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
+  const continueNavigation = useCallback(() => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
+          params: {
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+            },
+          },
+        },
+      ],
+    });
+  }, [navigation]);
+
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData) => {
       dispatch(passwordSetAction());
@@ -363,20 +387,14 @@ const ChoosePassword = () => {
           Logger.error(analyticsError as Error);
         }
 
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-                },
-              },
-            },
-          ],
-        });
+        if (isInterestQuestionnaireEnabled) {
+          navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+            onComplete: continueNavigation,
+            ...(reduxAccountType && { accountType: reduxAccountType }),
+          });
+        } else {
+          continueNavigation();
+        }
       } else {
         const seedPhrase = await tryExportSeedPhrase(password);
         (
@@ -393,9 +411,12 @@ const ChoosePassword = () => {
     [
       dispatch,
       isSelected,
-      metrics,
-      navigation,
       route.params?.provider,
+      navigation,
+      continueNavigation,
+      reduxAccountType,
+      isInterestQuestionnaireEnabled,
+      metrics,
       tryExportSeedPhrase,
       password,
     ],

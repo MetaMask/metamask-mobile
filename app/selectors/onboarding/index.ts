@@ -14,6 +14,28 @@ export const selectOnboardingAccountType = createSelector(
   (onboardingState) => onboardingState.accountType,
 );
 
+const EMPTY_QUESTIONNAIRE = { interests: [] as string[] };
+
+export const selectOnboardingQuestionnaire = createSelector(
+  selectOnboarding,
+  (onboardingState) => onboardingState.questionnaire ?? EMPTY_QUESTIONNAIRE,
+);
+
+export const selectOnboardingInterests = createSelector(
+  selectOnboardingQuestionnaire,
+  (questionnaire) => questionnaire.interests ?? [],
+);
+
+export const selectOnboardingInterestOtherText = createSelector(
+  selectOnboardingQuestionnaire,
+  (questionnaire) => questionnaire.interestOtherText,
+);
+
+export const selectOnboardingCryptoExperience = createSelector(
+  selectOnboardingQuestionnaire,
+  (questionnaire) => questionnaire.cryptoExperience,
+);
+
 export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
   selectOnboarding,
   (onboardingState) =>
