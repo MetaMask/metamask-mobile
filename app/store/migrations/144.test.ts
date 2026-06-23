@@ -234,9 +234,9 @@ describe(`Migration ${migrationVersion}: heal wiped niche-chain token metadata`,
 
       migrate(state);
 
-      expect(
-        Object.keys(getAssetsController(state).assetsInfo),
-      ).toHaveLength(0);
+      expect(Object.keys(getAssetsController(state).assetsInfo)).toHaveLength(
+        0,
+      );
     },
   );
 
@@ -403,9 +403,7 @@ describe(`Migration ${migrationVersion}: heal wiped niche-chain token metadata`,
 
     migrate(state);
 
-    expect(
-      state.engine.backgroundState.AssetsController,
-    ).toBeUndefined();
+    expect(state.engine.backgroundState.AssetsController).toBeUndefined();
   });
 
   it('falls back to symbol when token name is missing and preserves image/aggregators', () => {

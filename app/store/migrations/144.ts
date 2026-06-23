@@ -444,7 +444,10 @@ export default function migrate(state: unknown): unknown {
     }
 
     // Step 1: gather every token whose metadata is eligible to be healed.
-    const restorable = collectRestorableAssets(backgroundState, assetsController);
+    const restorable = collectRestorableAssets(
+      backgroundState,
+      assetsController,
+    );
     if (restorable.length === 0) {
       return state;
     }
@@ -453,7 +456,10 @@ export default function migrate(state: unknown): unknown {
     for (const { accountId, assetId, info } of restorable) {
       // `assetsInfo` is a global registry; fill gaps only, never overwrite.
       if (
-        !Object.prototype.hasOwnProperty.call(assetsController.assetsInfo, assetId)
+        !Object.prototype.hasOwnProperty.call(
+          assetsController.assetsInfo,
+          assetId,
+        )
       ) {
         assetsController.assetsInfo[assetId] = info;
       }
