@@ -77,6 +77,11 @@ const smokeTags = {
     description:
       'Tests the MetaMask Snaps extensibility platform. Covers snap lifecycle: installation from npm, enabling/disabling installed snaps, and removal with keyring warnings for snaps managing accounts. Tests snap Ethereum provider access: eth_chainId, eth_accounts, personal_sign, eth_signTypedData_v4, and wallet_switchEthereumChain. Validates snap dialog systems for alerts and confirmations with approve/cancel flows. Tests snap capabilities: persistent state management (snap_manageState for set/get/clear), network access for external API calls, WebAssembly (WASM) execution, interactive UI rendering with JSX components, cronjob scheduling for background tasks, entropy generation for randomness, file handling, and BIP-32/BIP-44 key derivation for account management. Also covers preinstalled snaps, snap UI links, lifecycle events, user preference access, image handling in snap UIs, and background event listeners. Snaps enable non-EVM chain support like Solana account derivation.',
   },
+  smokeMMConnect: {
+    tag: 'SmokeMMConnect:',
+    description:
+      'Tests MetaMask Connect (SDK Connect) dApp connection flows via mobile browser and RN playground. Covers wallet-to-dapp connection approval, multichain scope verification, EVM/Wagmi signing, chain switching, multi-client sessions, session timeout/rejection, and RN playground dual-app flows. Select when changes touch SDKConnectV2, connection/sign/switch-chain modals, deeplink handling, mobile browser integration, RN playground integration, or page objects under tests/page-objects/MMConnect/.',
+  },
 };
 
 const flaskTags = {};
@@ -144,6 +149,7 @@ const {
   SmokeSeedlessOnboarding,
   SmokeBrowser,
   SmokeSnaps,
+  SmokeMMConnect,
 } = createSmokeDescribeFunctions(smokeTags);
 
 const {
@@ -188,6 +194,7 @@ export {
   RegressionTrade,
   RegressionSampleFeature,
   SmokeSnaps,
+  SmokeMMConnect,
   SmokePerformance,
   FixtureValidation,
 };

@@ -1138,7 +1138,9 @@ async function collectE2ETestTimes() {
  * Counts executed performance scenarios by scanning *.spec.js files
  * under tests/performance/ and counting non-skipped test() calls.
  *
- * The top-level subdirectory (login, onboarding, mm-connect) determines the
+ * Historical performance artifacts may still use mm-connect paths; Appium smoke
+ * MM Connect tests live under tests/smoke-appium/mm-connect (SmokeMMConnect).
+ * The top-level subdirectory (login, onboarding) determines the
  * category for per-category metrics.
  */
 async function collectPerformanceTestCounts() {

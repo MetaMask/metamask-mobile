@@ -1,6 +1,12 @@
-# MetaMask Connect E2E Tests
+# MetaMask Connect Appium Smoke Tests (`SmokeMMConnect`)
 
-This directory contains playwright-based E2E tests for MetaMask Connect flows.
+This directory contains Appium smoke E2E tests for MetaMask Connect flows. They run on PR CI via the `appium-mmconnect-android-smoke` job and locally with:
+
+```bash
+yarn appium-smoke:mmconnect:android
+```
+
+Specs use the `SmokeMMConnect` tag (see `tests/tags.js`). Only `connection-multichain.spec.ts` is active on CI; 11 specs remain `test.skip` ([WAPI-1511](https://consensyssoftware.atlassian.net/browse/WAPI-1511)).
 
 ## Test Files
 
@@ -199,21 +205,16 @@ Then run:
 
 ```bash
 # From the metamask-mobile root
-yarn run-playwright:mm-connect-android-local
+yarn appium-smoke:mmconnect:android
 ```
 
-Or run individual RN playground specs:
+Or run individual specs:
 
 ```bash
-# Multichain + Solana test
-npx playwright test tests/performance/mm-connect/multichain-rn-connect.spec.js \
-  --project mm-connect-android-local \
-  --config tests/playwright.config.ts
-
-# Legacy EVM test
-npx playwright test tests/performance/mm-connect/legacy-evm-rn-connect.spec.js \
-  --project mm-connect-android-local \
-  --config tests/playwright.config.ts
+yarn playwright test tests/smoke-appium/mm-connect/multichain-rn-evm.spec.ts \
+  --config tests/playwright.smoke-appium.config.ts \
+  --project android-smoke \
+  --grep SmokeMMConnect
 ```
 
 ### What the Test Covers
@@ -323,6 +324,10 @@ The other three spec files (`connection-evm`, `connection-multichain`,
 `connection-wagmi`) use a **local web server** that serves the Browser
 Playground dApp in Chrome. These tests do not require a separate APK — the dApp
 server is started automatically in `test.beforeAll`.
+
+**CI:** `appium-mmconnect-android-smoke` uses the `google_apis` Android system
+image so Chrome (`com.android.chrome`) is preinstalled. The default Appium smoke
+image (`default` / AOSP) does not include Chrome.
 
 On **BrowserStack**, the tunnel (**BrowserStack Local**) must be running and
 `BROWSERSTACK_LOCAL=true` must be set so devices can reach that server (see the

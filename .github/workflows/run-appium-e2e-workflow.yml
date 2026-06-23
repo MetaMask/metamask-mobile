@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: 'current'
+      android-tag:
+        description: 'Android system image tag (default = AOSP; google_apis includes Chrome for browser dApp tests)'
+        required: false
+        type: string
+        default: 'default'
 
 permissions:
   contents: read
@@ -84,7 +89,7 @@ jobs:
           setup-simulator: 'true'
           android-avd-name: appium_smoke_avd
           android-api-level: '34'
-          android-tag: default
+          android-tag: ${{ inputs.android-tag }}
           android-abi: x86_64
           android-device: pixel_5
           configure-keystores: 'false'
@@ -263,6 +268,13 @@ jobs:
         run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
         env:
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
+
+      - name: Fetch RN Playground APK for SmokeMMConnect
+        if: ${{ inputs.test_suite_tag == 'SmokeMMConnect' && inputs.platform == 'android' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
+        run: ./tests/scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
 
       - name: Run Appium smoke tests (Android)
         id: run-tests-android

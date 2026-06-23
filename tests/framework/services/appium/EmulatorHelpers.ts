@@ -510,7 +510,8 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
 
   logger.info(`Starting Android emulator: ${avdName}`);
 
-  // Appium smoke CI uses AOSP (`default` image) — lighter cold boot than google_apis.
+  // Appium smoke CI uses AOSP (`default` image) by default — lighter cold boot than google_apis.
+  // Browser-based MMConnect specs override to `google_apis` so Chrome is preinstalled.
   // RAM/CPU flags align with Detox CI where noted; cores overridable via env.
   const args = ['-avd', avdName];
   if (isCI) {
