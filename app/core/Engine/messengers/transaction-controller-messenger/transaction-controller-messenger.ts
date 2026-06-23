@@ -66,14 +66,12 @@ import type {
 } from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
 export function getTransactionControllerMessenger(
-  rootMessenger: RootMessenger,
-): TransactionControllerMessenger {
-  const messenger = new Messenger<
-    'TransactionController',
+  rootMessenger: RootMessenger<
     MessengerActions<TransactionControllerMessenger>,
-    MessengerEvents<TransactionControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<TransactionControllerMessenger>
+  >,
+): TransactionControllerMessenger {
+  const messenger: TransactionControllerMessenger = new Messenger({
     namespace: 'TransactionController',
     parent: rootMessenger,
   });
@@ -150,19 +148,19 @@ type InitMessengerEvents =
   | SmartTransactionsControllerSmartTransactionEvent
   | SmartTransactionsControllerSmartTransactionConfirmationDoneEvent;
 
-export type TransactionControllerInitMessenger = ReturnType<
-  typeof getTransactionControllerInitMessenger
+export type TransactionControllerInitMessenger = Messenger<
+  'TransactionControllerInit',
+  InitMessengerActions,
+  InitMessengerEvents
 >;
 
 export function getTransactionControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'TransactionControllerInit',
-    InitMessengerActions,
-    InitMessengerEvents,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<TransactionControllerInitMessenger>,
+    MessengerEvents<TransactionControllerInitMessenger>
+  >,
+): TransactionControllerInitMessenger {
+  const messenger: TransactionControllerInitMessenger = new Messenger({
     namespace: 'TransactionControllerInit',
     parent: rootMessenger,
   });
@@ -199,6 +197,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:updateTransaction',
       'TransactionPayController:getAmountData',
       'TransactionPayController:getDelegationTransaction',
+      'TransactionPayController:getFiatOptions',
       'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',

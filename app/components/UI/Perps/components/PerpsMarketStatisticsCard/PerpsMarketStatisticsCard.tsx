@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -140,7 +141,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Sm}
-              color={IconColor.Alternative}
+              color={IconColor.IconAlternative}
             />
           </TouchableOpacity>
         )}
@@ -182,7 +183,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                   <Icon
                     name={IconName.Info}
                     size={IconSize.Sm}
-                    color={IconColor.Alternative}
+                    color={IconColor.IconAlternative}
                   />
                 </TouchableOpacity>
               </View>
@@ -216,7 +217,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                   <Icon
                     name={IconName.Info}
                     size={IconSize.Sm}
-                    color={IconColor.Alternative}
+                    color={IconColor.IconAlternative}
                   />
                 </TouchableOpacity>
               </View>
@@ -246,7 +247,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                   <Icon
                     name={IconName.Info}
                     size={IconSize.Sm}
-                    color={IconColor.Alternative}
+                    color={IconColor.IconAlternative}
                   />
                 </TouchableOpacity>
               </View>

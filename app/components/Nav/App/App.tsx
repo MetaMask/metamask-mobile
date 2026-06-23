@@ -33,7 +33,10 @@ import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
-import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  slideFromRightNativeOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
   ToastContext,
@@ -79,6 +82,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
+import MAPickerSheet from '../../UI/Charts/AdvancedChart/MAPickerSheet';
 import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
@@ -103,7 +107,6 @@ import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/Onboarding
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
-import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
@@ -120,6 +123,7 @@ import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
+import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
@@ -162,6 +166,7 @@ import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDet
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
+import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -294,6 +299,11 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
         component={ImportFromSecretRecoveryPhrase}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+        component={AddDeviceToWallet}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -448,6 +458,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={MoreTokenActionsMenu}
     />
     <NativeStack.Screen
+      name={Routes.SHEET.MA_PICKER}
+      component={MAPickerSheet}
+    />
+    <NativeStack.Screen
       name={Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET}
       component={SecurityBadgeBottomSheet}
     />
@@ -594,6 +608,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       />
     }
     <NativeStack.Screen
+      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+      component={VerificationCodeBottomSheet}
+    />
+    <NativeStack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
       component={SRPQuiz}
       initialParams={{ ...props.route.params }}
@@ -617,10 +635,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
       component={NFTAutoDetectionModal}
-    />
-    <NativeStack.Screen
-      name={Routes.MODAL.WHATS_NEW}
-      component={WhatsNewModal}
     />
     {isNetworkUiRedesignEnabled() ? (
       <NativeStack.Screen
@@ -1064,6 +1078,11 @@ const AppFlow = () => {
         component={ConnectHardwareWalletFlow}
       />
       <NativeStack.Screen
+        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+        component={AddDeviceToWallet}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
         component={MultichainAccountDetails}
       />
@@ -1094,7 +1113,8 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
         options={{
-          animation: 'slide_from_right',
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
           contentStyle: { backgroundColor: colors.background.default },
         }}
       />

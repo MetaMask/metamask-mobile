@@ -616,6 +616,8 @@
     "invalid_qr_code_title": "Invalid QR Code",
     "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
     "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "or": "or",
+    "import_wallet_from_extension": "import from the MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -1103,6 +1105,7 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
+      "unsupported_market": "Unsupported market",
       "bought": "Bought",
       "sold": "Sold",
       "no_trades": "No trades yet",
@@ -3039,7 +3042,7 @@
       "buy_sell": "Buy/Sell",
       "perps": "Perps",
       "predictions": "Predictions",
-      "metamask_card": "MetaMask Card",
+      "metamask_card": "Card",
       "money": "Money"
     },
     "empty_state": {
@@ -3969,6 +3972,34 @@
     "feature_flag_override": {
       "title": "Feature flag override",
       "description": "Override the feature flags for the app locally."
+    },
+    "add_device": {
+      "title": "Add device",
+      "enter_your_password": "Enter your password",
+      "enter_your_password_desc": "For account security, enter your password to view the QR code.",
+      "continue": "Continue",
+      "add_wallets": "Add wallets",
+      "add_wallets_desc": "Pick the wallets you’d like to use on this device. You can add or remove them later.",
+      "select_all": "Select all",
+      "scan_qr_code": "Scan QR code",
+      "scan_qr_code_desc": "Scan this with the MetaMask app on the device you want to add.",
+      "enter_verification_code": "Enter verification code",
+      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
+      "add_device_to_wallet": "Add this device to wallet",
+      "points": {
+        "one": "Open MetaMask on your other device",
+        "two": "Go to",
+        "two_bold_one": "Settings",
+        "two_bold_two": "Add device",
+        "two_icon": ">",
+        "three": "Scan the QR code with this device",
+        "four": "Enter the security code on your extension"
+      },
+      "scan_qr_code_button": "Scan QR code",
+      "enter_code_on_extension": "Enter code on extension",
+      "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
+      "done": "Done",
+      "device_added": "Device added"
     }
   },
   "aes_crypto_test_form": {
@@ -4116,6 +4147,7 @@
   },
   "price_alerts": {
     "create_title": "Create {{ticker}} price alert",
+    "edit_title": "Edit {{ticker}} price alert",
     "price_reaches": "Price reaches",
     "price_change": "Price change",
     "enter_target_price": "Enter target price",
@@ -4126,6 +4158,7 @@
     "quick_percentage": "{{percentage}}%",
     "price_change_under_development": "This experience is currently under development",
     "set_price_alert": "Set price alert",
+    "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
     "delete_success": "Price alert deleted.",
     "duplicate_threshold": "An alert at this price already exists.",
@@ -4224,6 +4257,8 @@
       "3y": "3Y",
       "all": "All"
     },
+    "ma_picker_title": "Moving average",
+    "done": "Done",
     "no_chart_data": {
       "title": "No chart data",
       "description": "We could not fetch any data for this token",
@@ -4529,6 +4564,7 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "submitted": "Submitted",
+    "queued": "Queued",
     "failed": "Failed",
     "cancelled": "Cancelled",
     "signed": "Pending",
@@ -4910,7 +4946,8 @@
     "between_account": "Transfer between my accounts",
     "others": "Others",
     "memo": "Memo",
-    "network": "Network"
+    "network": "Network",
+    "custom": "Custom"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
@@ -5609,6 +5646,7 @@
   },
   "transaction_update_toast": {
     "title": "Transaction update failed",
+    "amount_update_title": "Error",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
   "payment_request": {
@@ -7131,6 +7169,7 @@
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
+      "deposit_funds_android": "Debit card",
       "bank_account": "Bank account",
       "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
@@ -7224,6 +7263,10 @@
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
+      "cashback": "mUSD back",
+      "card": "Card",
+      "purchase": "Purchase",
+      "musd_back": "mUSD back",
       "converted": "Converted",
       "depositing": "Depositing",
       "converting": "Converting",
@@ -7235,11 +7278,14 @@
       "received_from": "From: {{address}}",
       "failed": "Failed"
     },
-    "card_details": {
-      "title": "Card transaction",
+    "api_activity_details": {
+      "card_title": "Card transaction",
+      "cashback_title": "mUSD back",
       "you_spent": "You spent",
+      "you_earned": "You earned",
       "completed": "Completed",
       "paid_to": "Paid to",
+      "received_from": "Received from",
       "date": "Date"
     },
     "convert_stablecoins": {
@@ -7992,6 +8038,7 @@
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Date",
+    "network": "Network",
     "total_gas_fee": "Total gas fee",
     "estimated_completion": "Est. completion",
     "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
@@ -8001,6 +8048,8 @@
     "view_on_block_explorer": "View on block explorer",
     "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
     "transaction_details": "Transaction details",
+    "you_swapped": "You swapped",
+    "you_received": "You received",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
   },
@@ -8157,6 +8206,8 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
+    "link_metamask_extension" : "Import accounts from MetaMask extension",
+    "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
       "account_name": "Account name",
@@ -9422,9 +9473,9 @@
       "stats_title": "Stats",
       "label_rank": "Rank",
       "label_your_rank": "Your rank",
-      "label_roi": "ROI",
+      "label_roi": "ROI (after fees)",
       "label_total_volume": "Total volume",
-      "label_pnl": "PnL",
+      "label_pnl": "PnL (after fees)",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
       "positions_open_section": "Open",
@@ -9690,6 +9741,7 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, markets and URLs",
+    "quick_trade": "Quick Buy & Sell",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
