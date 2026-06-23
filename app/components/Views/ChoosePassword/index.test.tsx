@@ -48,10 +48,6 @@ jest.mock('../../../util/mnemonic', () => ({
   ),
 }));
 
-jest.mock('../../../util/region/isUsaDeviceRegion', () => ({
-  isUsaDeviceRegion: jest.fn(() => false),
-}));
-
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((_phrase) => new Uint8Array([1, 2, 3])),
 }));
@@ -71,7 +67,7 @@ import {
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
-import { isUsaDeviceRegion } from '../../../util/region/isUsaDeviceRegion';
+import Engine from '../../../core/Engine';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -85,9 +81,8 @@ OAuthLoginService.updateMarketingOptInStatus = jest
   .fn()
   .mockResolvedValue({ is_opt_in: true });
 
-const mockIsUsaDeviceRegion = isUsaDeviceRegion as jest.MockedFunction<
-  typeof isUsaDeviceRegion
->;
+const mockRefreshGeolocation = Engine.context.GeolocationController
+  .refreshGeolocation as jest.Mock;
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -112,6 +107,9 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountTrackerController: {
       refresh: jest.fn().mockResolvedValue(undefined),
+    },
+    GeolocationController: {
+      refreshGeolocation: jest.fn().mockResolvedValue('GB'),
     },
   },
 }));
@@ -186,7 +184,7 @@ jest
   .mockImplementation(mockRunAfterInteractions);
 
 const mockStore = configureMockStore();
-const initialState = {
+const createInitialState = (geolocationLocation = 'GB') => ({
   user: {
     passwordSet: true,
     seedphraseBackedUp: false,
@@ -195,6 +193,10 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      GeolocationController: {
+        location: geolocationLocation,
+        status: 'loaded',
+      },
     },
   },
   security: {
@@ -203,8 +205,8 @@ const initialState = {
   onboarding: {
     events: [],
   },
-};
-const store = mockStore(initialState);
+});
+let store = mockStore(createInitialState());
 ReduxService.store = store as unknown as ReduxStore;
 
 const mockNavigation = {
@@ -327,7 +329,9 @@ describe('ChoosePassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
-    mockIsUsaDeviceRegion.mockReturnValue(false);
+    store = mockStore(createInitialState());
+    ReduxService.store = store as unknown as ReduxStore;
+    mockRefreshGeolocation.mockResolvedValue('GB');
     mockRoute.params = {
       [ONBOARDING]: true,
       [PROTECT]: true,
@@ -992,11 +996,12 @@ describe('ChoosePassword', () => {
   describe('Marketing API', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      mockIsUsaDeviceRegion.mockReturnValue(false);
+      mockRefreshGeolocation.mockResolvedValue('GB');
     });
 
     it('defaults marketing opt-in to checked for USA OAuth users without toggling the checkbox', async () => {
-      mockIsUsaDeviceRegion.mockReturnValue(true);
+      store = mockStore(createInitialState('US'));
+      ReduxService.store = store as unknown as ReduxStore;
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -1030,7 +1035,8 @@ describe('ChoosePassword', () => {
     });
 
     it('defaults marketing opt-in to unchecked for non-USA OAuth users without toggling the checkbox', async () => {
-      mockIsUsaDeviceRegion.mockReturnValue(false);
+      store = mockStore(createInitialState('GB'));
+      ReduxService.store = store as unknown as ReduxStore;
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -1064,7 +1070,8 @@ describe('ChoosePassword', () => {
     });
 
     it('keeps the acknowledgement checkbox unchecked by default for USA non-OAuth users', async () => {
-      mockIsUsaDeviceRegion.mockReturnValue(true);
+      store = mockStore(createInitialState('US'));
+      ReduxService.store = store as unknown as ReduxStore;
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,

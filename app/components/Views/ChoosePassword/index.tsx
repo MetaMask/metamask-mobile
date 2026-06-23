@@ -100,6 +100,8 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 
 interface KeyringState {
@@ -133,9 +135,10 @@ const ChoosePassword = () => {
   const dispatch = useDispatch();
   const metrics = useAnalytics();
 
-  const [isSelected, setIsSelected] = useState(() =>
-    getDefaultMarketingOptInChecked(route.params?.oauthLoginSuccess === true),
-  );
+  const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
+  const geoLocation = useSelector(selectGeolocationLocation);
+  const [isSelected, setIsSelected] = useState(false);
+  const marketingOptInTouchedRef = useRef(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -155,6 +158,43 @@ const ChoosePassword = () => {
     [route.params?.oauthLoginSuccess],
   );
 
+  useEffect(() => {
+    if (!isSocialLoginUser || marketingOptInTouchedRef.current) {
+      return;
+    }
+
+    const applyDefaultIfUsa = (location: string | undefined) => {
+      if (getDefaultMarketingOptInChecked(true, location)) {
+        setIsSelected(true);
+      }
+    };
+
+    if (geoLocation && geoLocation !== UNKNOWN_LOCATION) {
+      applyDefaultIfUsa(geoLocation);
+      return;
+    }
+
+    let cancelled = false;
+    Promise.resolve(
+      Engine.context.GeolocationController?.refreshGeolocation?.(),
+    )
+      .then((location) => {
+        if (!cancelled && !marketingOptInTouchedRef.current) {
+          applyDefaultIfUsa(location);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSocialLoginUser, geoLocation]);
+
+  const setSelection = useCallback(() => {
+    marketingOptInTouchedRef.current = true;
+    setIsSelected((prev) => !prev);
+  }, []);
+
   const track = useCallback(
     (event: IMetaMetricsEvent | ITrackingEvent, properties?: JsonMap) => {
       const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
@@ -168,10 +208,6 @@ const ChoosePassword = () => {
     },
     [dispatch],
   );
-
-  const setSelection = useCallback(() => {
-    setIsSelected((prev) => !prev);
-  }, []);
 
   const tryExportSeedPhrase = useCallback(async (pwd: string) => {
     const context = Engine.context;
