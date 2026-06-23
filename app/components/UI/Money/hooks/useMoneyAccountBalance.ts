@@ -63,8 +63,8 @@ const useMoneyAccountBalance = (
     refetchInterval: FIVE_MINUTES_MS,
   }) as UseQueryResult<NormalizedVaultApyResponse>;
 
-  const musdFiatRateValue = useSelector(selectMusdFiatRate);
-  const isMusdFiatRateMissing = musdFiatRateValue === undefined;
+  const musdFiatRate = useSelector(selectMusdFiatRate);
+  const isMusdFiatRateMissing = musdFiatRate === undefined;
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
 
@@ -137,7 +137,7 @@ const useMoneyAccountBalance = (
       tokenTotal: computedTokenTotal,
       totalFiat: isBalanceFetchError
         ? undefined
-        : totalDecimal.times(musdFiatRateValue),
+        : totalDecimal.times(musdFiatRate),
       withdrawableMusd: computedWithdrawableMusd,
     };
   }, [
@@ -145,7 +145,7 @@ const useMoneyAccountBalance = (
     isBalanceFetchError,
     moneyBalanceQuery.data,
     isMusdFiatRateMissing,
-    musdFiatRateValue,
+    musdFiatRate,
   ]);
 
   const totalFiatFormatted =

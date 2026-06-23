@@ -116,7 +116,3 @@ export const TOAST_TRACKING_CLEANUP_DELAY_MS = 5000;
  * This is a safety fallback to ensure geo-blocking is always active.
  */
 export const DEFAULT_MUSD_BLOCKED_COUNTRIES = ['GB'];
-
-export const MUSD_LEGACY_RATE_CHAIN_ID = CHAIN_IDS.MAINNET;
-
-export const MUSD_UNIFIED_RATE_CHAIN_ID = CHAIN_IDS.MONAD;

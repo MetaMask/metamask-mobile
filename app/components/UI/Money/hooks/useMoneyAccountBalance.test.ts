@@ -93,8 +93,7 @@ function setupDefaultSelectors(
 ) {
   const lastKnownBalance = options.lastKnownBalance ?? null;
   const remoteApyConfig = options.remoteApyConfig ?? DEFAULT_REMOTE_APY_CONFIG;
-  // Use hasOwnProperty to distinguish "not provided" from "explicitly undefined",
-  // since destructuring defaults would silently override explicit undefined.
+  // Use hasOwnProperty to distinguish "not provided" from "explicitly undefined"
   const musdFiatRate = Object.prototype.hasOwnProperty.call(
     options,
     'musdFiatRate',

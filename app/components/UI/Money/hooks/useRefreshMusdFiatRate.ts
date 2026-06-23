@@ -8,12 +8,10 @@ import Logger from '../../../../util/Logger';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import {
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-  MUSD_UNIFIED_RATE_CHAIN_ID,
-  MUSD_LEGACY_RATE_CHAIN_ID,
-} from '../../Earn/constants/musd';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../Earn/constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
+// Module scoped promise to avoid multiple concurrent refreshes
 let refreshMusdFiatRatePromise: Promise<void> | undefined;
 
 const LOG_PREFIX = '[useRefreshMusdFiatRate]';
@@ -24,16 +22,15 @@ const doRefreshMusdFiatRate = async (
   legacyRateNativeCurrency: string | undefined,
 ): Promise<void> => {
   Logger.log(`${LOG_PREFIX} refreshing mUSD fiat rate`);
+
   if (isAssetsUnifyStateEnabled) {
     if (!selectedEvmAccount) return;
     await Engine.context.AssetsController.getAssets([selectedEvmAccount], {
-      chainIds: [toEvmCaipChainId(MUSD_UNIFIED_RATE_CHAIN_ID)],
+      chainIds: [toEvmCaipChainId(CHAIN_IDS.MONAD)],
       dataTypes: ['price'],
       forceUpdate: true,
       assetsForPriceUpdate: [
-        MUSD_TOKEN_ASSET_ID_BY_CHAIN[
-          MUSD_UNIFIED_RATE_CHAIN_ID
-        ] as Caip19AssetId,
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD] as Caip19AssetId,
       ],
     }).catch((error: unknown) =>
       Logger.error(error as Error, {
@@ -43,10 +40,19 @@ const doRefreshMusdFiatRate = async (
     return;
   }
 
-  if (!legacyRateNativeCurrency) return;
+  if (!legacyRateNativeCurrency) {
+    Logger.error(
+      new Error(`${LOG_PREFIX} Legacy rate native currency is missing`),
+      {
+        message: `${LOG_PREFIX} mUSD price refresh (legacy) failed`,
+      },
+    );
+    return;
+  }
+
   await Engine.context.TokenRatesController.updateExchangeRates([
     {
-      chainId: MUSD_LEGACY_RATE_CHAIN_ID,
+      chainId: CHAIN_IDS.MONAD,
       nativeCurrency: legacyRateNativeCurrency,
     },
   ]).catch((error: unknown) =>
@@ -68,12 +74,13 @@ const useRefreshMusdFiatRate = (): (() => Promise<void>) => {
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
   );
+
   const selectedEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const legacyRateNativeCurrency =
-    networkConfigurations?.[MUSD_LEGACY_RATE_CHAIN_ID]?.nativeCurrency;
+    networkConfigurations?.[CHAIN_IDS.MONAD]?.nativeCurrency;
 
   return useCallback((): Promise<void> => {
     if (refreshMusdFiatRatePromise) {
@@ -85,9 +92,15 @@ const useRefreshMusdFiatRate = (): (() => Promise<void>) => {
         isAssetsUnifyStateEnabled,
         selectedEvmAccount,
         legacyRateNativeCurrency,
-      ).finally(() => {
-        refreshMusdFiatRatePromise = undefined;
-      });
+      )
+        .catch((error: unknown) => {
+          Logger.error(error as Error, {
+            message: `${LOG_PREFIX} mUSD price refresh threw`,
+          });
+        })
+        .finally(() => {
+          refreshMusdFiatRatePromise = undefined;
+        });
 
       return refreshMusdFiatRatePromise;
     } catch (error) {

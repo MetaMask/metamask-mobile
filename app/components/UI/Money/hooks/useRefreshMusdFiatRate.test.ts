@@ -48,7 +48,7 @@ jest.mock('../../../../selectors/networkController', () => ({
 const mockUseSelector = jest.mocked(useSelector);
 
 const MOCK_EVM_ACCOUNT = { id: 'mock-account', address: '0xMock' };
-const MOCK_NETWORK_CONFIGS = { '0x1': { nativeCurrency: 'ETH' } };
+const MOCK_NETWORK_CONFIGS = { '0x8f': { nativeCurrency: 'MON' } };
 
 function setupSelectors({
   isAssetsUnifyStateEnabled = false,
@@ -130,7 +130,7 @@ describe('useRefreshMusdFiatRate', () => {
   });
 
   describe('legacy path (isAssetsUnifyStateEnabled = false)', () => {
-    it('calls TokenRatesController.updateExchangeRates with mainnet and its native currency', async () => {
+    it('calls TokenRatesController.updateExchangeRates with Monad and its native currency', async () => {
       setupSelectors({ isAssetsUnifyStateEnabled: false });
 
       const { result } = renderHook(() => useRefreshMusdFiatRate());
@@ -141,11 +141,11 @@ describe('useRefreshMusdFiatRate', () => {
 
       expect(mockUpdateExchangeRates).toHaveBeenCalledTimes(1);
       expect(mockUpdateExchangeRates).toHaveBeenCalledWith([
-        { chainId: '0x1', nativeCurrency: 'ETH' },
+        { chainId: '0x8f', nativeCurrency: 'MON' },
       ]);
     });
 
-    it('does not call TokenRatesController.updateExchangeRates when mainnet native currency is missing', async () => {
+    it('does not call TokenRatesController.updateExchangeRates when Monad native currency is missing', async () => {
       setupSelectors({
         isAssetsUnifyStateEnabled: false,
         networkConfigurations: {},

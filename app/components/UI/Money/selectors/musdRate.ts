@@ -12,9 +12,8 @@ import { toChecksumAddress } from '../../../../util/address';
 import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-  MUSD_LEGACY_RATE_CHAIN_ID,
-  MUSD_UNIFIED_RATE_CHAIN_ID,
 } from '../../Earn/constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const selectAssetsPrice = (
   state: RootState,
@@ -38,13 +37,14 @@ export const selectMusdFiatRate = createSelector(
   ): number | undefined => {
     // Unified assets state uses AssetsController assetsPrice.
     if (isAssetsUnifyStateEnabled) {
-      const monadAssetId =
-        MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_UNIFIED_RATE_CHAIN_ID];
-      const price = monadAssetId ? assetsPrice[monadAssetId]?.price : undefined;
+      const monadMusdAssetId = MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD];
+      const price = monadMusdAssetId
+        ? assetsPrice[monadMusdAssetId]?.price
+        : undefined;
       return typeof price === 'number' ? price : undefined;
     }
 
-    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_LEGACY_RATE_CHAIN_ID];
+    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MONAD];
     if (!musdAddress) {
       return undefined;
     }
@@ -52,13 +52,13 @@ export const selectMusdFiatRate = createSelector(
     // Legacy pricing fallback uses TokenRatesController market data.
     const checksumAddress = toChecksumAddress(musdAddress);
     const nativeCurrency =
-      networkConfigurations?.[MUSD_LEGACY_RATE_CHAIN_ID]?.nativeCurrency;
+      networkConfigurations?.[CHAIN_IDS.MONAD]?.nativeCurrency;
     const conversionRate = nativeCurrency
       ? currencyRates?.[nativeCurrency]?.conversionRate
       : undefined;
     const priceInNativeCurrency =
-      marketData?.[MUSD_LEGACY_RATE_CHAIN_ID]?.[checksumAddress]?.price ??
-      marketData?.[MUSD_LEGACY_RATE_CHAIN_ID]?.[musdAddress]?.price;
+      marketData?.[CHAIN_IDS.MONAD]?.[checksumAddress]?.price ??
+      marketData?.[CHAIN_IDS.MONAD]?.[musdAddress]?.price;
 
     if (!conversionRate || priceInNativeCurrency === undefined) {
       return undefined;
