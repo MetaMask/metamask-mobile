@@ -78,6 +78,7 @@ import {
   CardStateWarning,
   CardStatus,
   CardType,
+  type RegistrationSettingsResponse,
 } from '../../types';
 import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
@@ -262,6 +263,13 @@ const mockUseSwapBridgeNavigation = jest.fn(() => ({
   goToSwaps: mockGoToSwaps,
 }));
 
+interface RegistrationSettingsHookReturn {
+  data: RegistrationSettingsResponse | null;
+  isLoading: boolean;
+  error: Error | null;
+  fetchData: jest.Mock;
+}
+
 jest.mock('../../hooks/useCardHomeData', () => ({
   __esModule: true,
   useCardHomeData: jest.fn(),
@@ -277,20 +285,24 @@ jest.mock('../../hooks/useAssetBalances', () => ({
 }));
 
 jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToCardPage: (...args: unknown[]) =>
-    mockUseNavigateToCardPage(...args),
+  useNavigateToCardPage: (
+    navigation: unknown,
+    cardTermsAndConditionsUrl?: string,
+  ) => mockUseNavigateToCardPage(navigation, cardTermsAndConditionsUrl),
 }));
 
-const mockUseRegistrationSettings = jest.fn(() => ({
-  data: null,
-  isLoading: false,
-  error: null,
-  fetchData: jest.fn(),
-}));
+const mockUseRegistrationSettings = jest.fn<RegistrationSettingsHookReturn, []>(
+  () => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    fetchData: jest.fn(),
+  }),
+);
 
 jest.mock('../../hooks/useRegistrationSettings', () => ({
   __esModule: true,
-  default: (...args: unknown[]) => mockUseRegistrationSettings(...args),
+  default: () => mockUseRegistrationSettings(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
