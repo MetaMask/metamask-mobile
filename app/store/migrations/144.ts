@@ -13,18 +13,14 @@ import { ensureValidState } from './util';
 export const migrationVersion = 144;
 
 /**
- * Migration 144: Assets Controller Metadata Healing Migration
+ * Assets Controller Metadata Healing Migration
  * Issue: https://consensyssoftware.atlassian.net/browse/ASSETS-3346
  * Incident: #incident-metamask-1731
  *
- * Background: After a prior defect in AssetsController, metadata
- * (`AssetsController.assetsInfo`) for custom tokens were wiped. Most popular
- * chains support auto-detection and can self-heal, however not all chains
- * support auto-detection.
+ * Background: After a prior defect in AssetsController, metadata for custom tokens were wiped
+ * - Most popular chains support auto-detection and can self-heal, however not all.
  *
- * Fix: This migration restores metadata for custom tokens on niche EVM chains
- * (that are unable to auto-detect/self-heal) using the legacy
- * `TokensController.allTokens` state.
+ * Fix: This migration restores metadata for custom tokens on niche EVM chains (that are unable to auto-detect/self-heal)
  */
 
 interface AssetInfo {
@@ -44,8 +40,11 @@ interface AssetsControllerShape {
 }
 
 interface RestorableAsset {
+  /** Account UUID owning the token, or undefined if no mapping exists. */
   accountId: string | undefined;
+  /** Checksummed CAIP-19 asset ID (e.g. 'eip155:14/erc20:0x…'). */
   assetId: string;
+  /** Metadata to write into `assetsInfo` (only used to fill a gap). */
   info: AssetInfo;
 }
 
@@ -53,8 +52,7 @@ const EVM_ASSET_PREFIX = 'eip155:';
 const EVM_ADDRESS_REGEX = /^(0x)?[0-9a-fA-F]{40}$/u;
 
 /**
- * Popular networks (covered by the Accounts API) can self-heal through
- * auto-detection and therefore must not be touched by this migration.
+ * Popular networks (covered by the Accounts API) can self-heal through auto-detection.
  */
 const ACCOUNT_API_SUPPORTED_CHAIN_IDS = new Set<string>([
   'eip155:1', // Ethereum Mainnet
@@ -71,248 +69,66 @@ const ACCOUNT_API_SUPPORTED_CHAIN_IDS = new Set<string>([
   'eip155:59144', // Linea
 ]);
 
-function readPath(root: unknown, path: string[]): unknown {
-  let cursor = root;
-
-  for (const key of path) {
-    if (!isObject(cursor) || !hasProperty(cursor, key)) {
-      return undefined;
-    }
-
-    cursor = cursor[key];
-  }
-
-  return cursor;
-}
-
 /**
- * Return a typed view of `backgroundState.AssetsController`, ensuring the
- * sub-maps the migration reads/writes exist. Returns `null` when the controller
- * is absent (unified assets state not in use), in which case there is nothing to
- * heal.
+ * Heal `AssetsController.assetsInfo` entries that were wiped for tokens on niche
+ * EVM chains (chains not covered by the accounts API, e.g. Flare / chainId 14).
  *
- * @param backgroundState - The engine background state.
- */
-function getAssetsController(
-  backgroundState: Record<string, unknown>,
-): AssetsControllerShape | null {
-  if (
-    !hasProperty(backgroundState, 'AssetsController') ||
-    !isObject(backgroundState.AssetsController)
-  ) {
-    return null;
-  }
-
-  const assetsController = backgroundState.AssetsController as Record<
-    string,
-    unknown
-  >;
-
-  ensureRecordObject(assetsController, 'assetsInfo');
-  ensureRecordObject(assetsController, 'assetsBalance');
-  ensureRecordObject(assetsController, 'customAssets');
-  ensureRecordObject(assetsController, 'assetPreferences');
-
-  return assetsController as unknown as AssetsControllerShape;
-}
-
-function ensureRecordObject(
-  container: Record<string, unknown>,
-  key: string,
-): void {
-  if (!isObject(container[key])) {
-    container[key] = {};
-  }
-}
-
-function buildAddressToIdMap(
-  backgroundState: Record<string, unknown>,
-): Record<string, string> {
-  const accounts = readPath(backgroundState, [
-    'AccountsController',
-    'internalAccounts',
-    'accounts',
-  ]);
-
-  if (!isObject(accounts)) {
-    return {};
-  }
-
-  const addressToId: Record<string, string> = {};
-
-  for (const [accountId, account] of Object.entries(accounts)) {
-    if (
-      isObject(account) &&
-      typeof account.address === 'string' &&
-      account.address
-    ) {
-      addressToId[account.address.toLowerCase()] = accountId;
-    }
-  }
-
-  return addressToId;
-}
-
-/**
- * Collect the set of CAIP-19 asset IDs (lowercased) marked `hidden: true` in
- * `AssetsController.assetPreferences`. Lowercasing lets callers compare against
- * checksummed asset IDs case-insensitively.
+ * What the migration does: It will use the old AssetsControllers state (TokensController.allTokens)
+ * to restore the metadata for the tokens on niche chains on the new AssetsController state (AssetsController.assetsInfo).
  *
- * @param assetsController - The AssetsController view.
- */
-function collectHiddenAssetIds(
-  assetsController: AssetsControllerShape,
-): Set<string> {
-  const hidden = new Set<string>();
-
-  for (const [assetId, preference] of Object.entries(
-    assetsController.assetPreferences,
-  )) {
-    if (isObject(preference) && preference.hidden === true) {
-      hidden.add(assetId.toLowerCase());
-    }
-  }
-
-  return hidden;
-}
-
-/**
- * Collect the lowercase token addresses ignored (hidden) in the legacy
- * `TokensController.allIgnoredTokens` for a given chain and account. The account
- * key is matched case-insensitively.
+ * What it deliberately skips:
+ * - Accounts-API-supported chains — see `ACCOUNT_API_SUPPORTED_CHAIN_IDS`.
+ * - Tokens the user hid/removed, detected via either the legacy `TokensController.allIgnoredTokens` or the new `AssetsController.assetPreferences` (`hidden: true`).
+ * - Non-EVM assets and ERC-721s.
  *
- * @param allIgnoredTokens - The legacy `allIgnoredTokens` map (possibly missing).
- * @param hexChainId - The hex chain ID being processed.
- * @param accountAddress - The account address whose ignored list to read.
+ * The migration only runs when `AssetsController` state already exists (i.e. the
+ * unified assets state is in use); otherwise there is nothing to heal.
+ *
+ * @param state - The persisted redux state to migrate.
  */
-function collectIgnoredAddresses(
-  allIgnoredTokens: unknown,
-  hexChainId: string,
-  accountAddress: string,
-): Set<string> {
-  const result = new Set<string>();
-
-  if (!isObject(allIgnoredTokens)) {
-    return result;
+export default function migrate(state: unknown): unknown {
+  if (!ensureValidState(state, migrationVersion)) {
+    return state;
   }
 
-  const chainEntry = allIgnoredTokens[hexChainId];
-  if (!isObject(chainEntry)) {
-    return result;
-  }
+  try {
+    const { backgroundState } = state.engine;
 
-  const lowerAccount = accountAddress.toLowerCase();
-  for (const [address, list] of Object.entries(chainEntry)) {
-    if (address.toLowerCase() !== lowerAccount || !Array.isArray(list)) {
-      continue;
+    const ac = getAssetsController(backgroundState);
+    if (!ac) {
+      return state;
     }
 
-    for (const ignored of list) {
-      if (typeof ignored === 'string') {
-        result.add(ignored.toLowerCase());
+    // Step 1: gather every token whose metadata is eligible to be healed.
+    const restorable = collectRestorableAssets(backgroundState, ac);
+    if (restorable.length === 0) {
+      return state;
+    }
+
+    // Step 2: heal each one. Writes are idempotent (fill gaps / dedupe).
+    for (const { accountId, assetId, info } of restorable) {
+      // `assetsInfo` is a global registry; fill gaps only, never overwrite.
+      ac.assetsInfo[assetId] ??= info;
+
+      // Ensure the asset is tracked for its account.
+      if (accountId) {
+        addCustomAsset(ac, accountId, assetId);
       }
     }
-  }
-
-  return result;
-}
-
-function isAccountApiSupportedChain(caip2: string): boolean {
-  return ACCOUNT_API_SUPPORTED_CHAIN_IDS.has(caip2.toLowerCase());
-}
-
-function hexChainIdToCaip2(hexChainId: string): string | null {
-  if (!isHexString(hexChainId)) {
-    return null;
-  }
-
-  const decimalChainId = Number.parseInt(hexChainId, 16);
-  if (!Number.isSafeInteger(decimalChainId) || decimalChainId <= 0) {
-    return null;
-  }
-
-  return `${EVM_ASSET_PREFIX}${decimalChainId}`;
-}
-
-function buildErc20AssetId(caip2: string, tokenAddress: string): string | null {
-  if (!EVM_ADDRESS_REGEX.test(tokenAddress)) {
-    return null;
-  }
-
-  return `${caip2}/erc20:${getChecksumAddress(tokenAddress as Hex)}`;
-}
-
-function buildEvmAssetInfo(token: Record<string, unknown>): AssetInfo {
-  const symbol = typeof token.symbol === 'string' ? token.symbol : '';
-  const name =
-    typeof token.name === 'string' && token.name ? token.name : symbol;
-
-  const assetInfo: AssetInfo = {
-    type: 'erc20',
-    symbol,
-    name,
-    decimals: typeof token.decimals === 'number' ? token.decimals : 0,
-  };
-
-  if (typeof token.image === 'string' && token.image) {
-    assetInfo.image = token.image;
-  }
-
-  if (Array.isArray(token.aggregators)) {
-    const aggregators = token.aggregators.filter(
-      (aggregator): aggregator is string => typeof aggregator === 'string',
+  } catch (error) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: heal wiped AssetsController metadata for niche-chain tokens failed: ${getErrorMessage(
+          error,
+        )}`,
+      ),
     );
-
-    if (aggregators.length > 0) {
-      assetInfo.aggregators = aggregators;
-    }
   }
 
-  return assetInfo;
+  return state;
 }
 
-/**
- * Resolve a raw `TokensController` token entry to the CAIP-19 asset ID that
- * should be healed, or `null` when the token must be skipped (not an object,
- * missing/invalid address, an ERC-721, or hidden in either controller).
- *
- * @param token - Raw token entry from `allTokens`.
- * @param caip2 - The CAIP-2 chain ID of the token's chain (e.g. 'eip155:14').
- * @param ignoredAddresses - Lowercase addresses hidden via legacy `allIgnoredTokens`.
- * @param hiddenAssetIds - Lowercase asset IDs hidden via new `assetPreferences`.
- */
-function getRestorableAssetId(
-  token: unknown,
-  caip2: string,
-  ignoredAddresses: Set<string>,
-  hiddenAssetIds: Set<string>,
-): string | null {
-  if (!isObject(token) || typeof token.address !== 'string' || !token.address) {
-    return null;
-  }
-
-  // Skip NFTs — AssetsController tracks them separately.
-  if (token.isERC721 === true) {
-    return null;
-  }
-
-  const assetId = buildErc20AssetId(caip2, token.address);
-  if (!assetId) {
-    return null;
-  }
-
-  // Skip tokens the user hid/removed — in the legacy controller…
-  if (ignoredAddresses.has(token.address.toLowerCase())) {
-    return null;
-  }
-
-  // …or in the new controller.
-  if (hiddenAssetIds.has(assetId.toLowerCase())) {
-    return null;
-  }
-
-  return assetId;
-}
+// ─── Collection (Step 1) ─────────────────────────────────────────────────────
 
 /**
  * Walk the legacy `TokensController.allTokens` and return a flat list of tokens
@@ -321,26 +137,24 @@ function getRestorableAssetId(
  * Everything that must be left alone is filtered out here: unparseable or
  * accounts-API-supported chains, non-EVM/ERC-721 entries, invalid addresses,
  * and tokens the user hid/removed (legacy `allIgnoredTokens` or new
- * `assetPreferences`).
+ * `assetPreferences`). Whether an entry already exists in `assetsInfo` /
+ * `customAssets` is left to the (idempotent) application step.
  *
- * @param backgroundState - The engine background state.
- * @param assetsController - The AssetsController view.
+ * @param data - The migration data root.
+ * @param ac - The AssetsController view.
  */
 function collectRestorableAssets(
-  backgroundState: Record<string, unknown>,
-  assetsController: AssetsControllerShape,
+  data: Record<string, unknown>,
+  ac: AssetsControllerShape,
 ): RestorableAsset[] {
-  const allTokens = readPath(backgroundState, [
-    'TokensController',
-    'allTokens',
-  ]);
+  const allTokens = readPath(data, ['TokensController', 'allTokens']);
   if (!isObject(allTokens)) {
     return [];
   }
 
-  const addressToId = buildAddressToIdMap(backgroundState);
-  const hiddenAssetIds = collectHiddenAssetIds(assetsController);
-  const allIgnoredTokens = readPath(backgroundState, [
+  const addressToId = buildAddressToIdMap(data);
+  const hiddenAssetIds = collectHiddenAssetIds(ac);
+  const allIgnoredTokens = readPath(data, [
     'TokensController',
     'allIgnoredTokens',
   ]);
@@ -394,91 +208,311 @@ function collectRestorableAssets(
 }
 
 /**
+ * Resolve a raw `TokensController` token entry to the CAIP-19 asset ID that
+ * should be healed, or `null` when the token must be skipped (not an object,
+ * missing/invalid address, an ERC-721, or hidden in either controller).
+ *
+ * @param token - Raw token entry from `allTokens`.
+ * @param caip2 - The CAIP-2 chain ID of the token's chain (e.g. 'eip155:14').
+ * @param ignoredAddresses - Lowercase addresses hidden via legacy `allIgnoredTokens`.
+ * @param hiddenAssetIds - Lowercase asset IDs hidden via new `assetPreferences`.
+ */
+function getRestorableAssetId(
+  token: unknown,
+  caip2: string,
+  ignoredAddresses: Set<string>,
+  hiddenAssetIds: Set<string>,
+): string | null {
+  if (!isObject(token) || typeof token.address !== 'string' || !token.address) {
+    return null;
+  }
+
+  // Skip NFTs — AssetsController tracks them separately.
+  if (token.isERC721 === true) {
+    return null;
+  }
+
+  const assetId = buildErc20AssetId(caip2, token.address);
+  if (!assetId) {
+    return null;
+  }
+
+  // Skip tokens the user hid/removed — in the legacy controller…
+  if (ignoredAddresses.has(token.address.toLowerCase())) {
+    return null;
+  }
+
+  // …or in the new controller.
+  if (hiddenAssetIds.has(assetId.toLowerCase())) {
+    return null;
+  }
+
+  return assetId;
+}
+
+// ─── State setup ───────────────────────────────────────────────────────────────
+
+/**
+ * Return a typed view of `data.AssetsController`, ensuring the sub-maps the
+ * migration reads/writes exist. Returns `null` when the controller is absent
+ * (unified assets state not in use), in which case there is nothing to heal.
+ *
+ * @param data - The migration data root.
+ */
+function getAssetsController(
+  data: Record<string, unknown>,
+): AssetsControllerShape | null {
+  if (
+    !hasProperty(data, 'AssetsController') ||
+    !isObject(data.AssetsController)
+  ) {
+    return null;
+  }
+
+  const ac = data.AssetsController as Record<string, unknown>;
+  ensureRecordObject(ac, 'assetsInfo');
+  ensureRecordObject(ac, 'assetsBalance');
+  ensureRecordObject(ac, 'customAssets');
+  ensureRecordObject(ac, 'assetPreferences');
+
+  return ac as unknown as AssetsControllerShape;
+}
+
+/**
+ * Ensure a controller sub-key is an object map, creating an empty object when
+ * absent or invalid.
+ *
+ * @param container - Parent object containing the map field.
+ * @param key - Field name to verify.
+ */
+function ensureRecordObject(
+  container: Record<string, unknown>,
+  key: string,
+): void {
+  if (!isObject(container[key])) {
+    container[key] = {};
+  }
+}
+
+/**
+ * Build a map from lowercase account address to account UUID using
+ * `AccountsController.internalAccounts.accounts`.
+ *
+ * @param data - The migration data root.
+ */
+function buildAddressToIdMap(
+  data: Record<string, unknown>,
+): Record<string, string> {
+  const accounts = readPath(data, [
+    'AccountsController',
+    'internalAccounts',
+    'accounts',
+  ]);
+
+  if (!isObject(accounts)) {
+    return {};
+  }
+
+  const addressToId: Record<string, string> = {};
+
+  for (const [accountId, account] of Object.entries(accounts)) {
+    if (
+      isObject(account) &&
+      typeof account.address === 'string' &&
+      account.address
+    ) {
+      addressToId[account.address.toLowerCase()] = accountId;
+    }
+  }
+
+  return addressToId;
+}
+
+/**
+ * Collect the set of CAIP-19 asset IDs (lowercased) marked `hidden: true` in
+ * `AssetsController.assetPreferences`. Lowercasing lets callers compare against
+ * checksummed asset IDs case-insensitively.
+ *
+ * @param ac - The AssetsController view.
+ */
+function collectHiddenAssetIds(ac: AssetsControllerShape): Set<string> {
+  const hidden = new Set<string>();
+
+  for (const [assetId, preference] of Object.entries(ac.assetPreferences)) {
+    if (isObject(preference) && preference.hidden === true) {
+      hidden.add(assetId.toLowerCase());
+    }
+  }
+
+  return hidden;
+}
+
+/**
+ * Collect the lowercase token addresses ignored (hidden) in the legacy
+ * `TokensController.allIgnoredTokens` for a given chain and account. The account
+ * key is matched case-insensitively.
+ *
+ * @param allIgnoredTokens - The legacy `allIgnoredTokens` map (possibly missing).
+ * @param hexChainId - The hex chain ID being processed.
+ * @param accountAddress - The account address whose ignored list to read.
+ */
+function collectIgnoredAddresses(
+  allIgnoredTokens: unknown,
+  hexChainId: string,
+  accountAddress: string,
+): Set<string> {
+  const result = new Set<string>();
+
+  if (!isObject(allIgnoredTokens)) {
+    return result;
+  }
+
+  const chainEntry = allIgnoredTokens[hexChainId];
+  if (!isObject(chainEntry)) {
+    return result;
+  }
+
+  const lowerAccount = accountAddress.toLowerCase();
+  for (const [address, list] of Object.entries(chainEntry)) {
+    if (address.toLowerCase() !== lowerAccount || !Array.isArray(list)) {
+      continue;
+    }
+
+    for (const ignored of list) {
+      if (typeof ignored === 'string') {
+        result.add(ignored.toLowerCase());
+      }
+    }
+  }
+
+  return result;
+}
+
+// ─── CAIP-19 / encoding helpers ────────────────────────────────────────────────
+
+/**
+ * Whether a CAIP-2 chain ID belongs to a network supported by the accounts API
+ * (per the frozen `ACCOUNT_API_SUPPORTED_CHAIN_IDS` snapshot), whose token
+ * metadata self-heals at runtime and therefore must not be touched.
+ *
+ * @param caip2 - The CAIP-2 chain ID (e.g. 'eip155:14').
+ */
+function isAccountApiSupportedChain(caip2: string): boolean {
+  return ACCOUNT_API_SUPPORTED_CHAIN_IDS.has(caip2.toLowerCase());
+}
+
+/**
+ * Convert a hex chain ID (e.g. '0x1') to a CAIP-2 chain ID (e.g. 'eip155:1').
+ * Returns null when the input cannot be parsed.
+ *
+ * @param hexChainId - The hex-encoded EVM chain ID.
+ */
+function hexChainIdToCaip2(hexChainId: string): string | null {
+  if (!isHexString(hexChainId)) {
+    return null;
+  }
+
+  const decimalChainId = Number.parseInt(hexChainId, 16);
+  if (!Number.isSafeInteger(decimalChainId) || decimalChainId <= 0) {
+    return null;
+  }
+
+  return `${EVM_ASSET_PREFIX}${decimalChainId}`;
+}
+
+/**
+ * Build the checksummed CAIP-19 asset ID for an ERC-20 token. Returns null when
+ * the address cannot be parsed.
+ *
+ * @param caip2 - The CAIP-2 chain ID (e.g. 'eip155:14').
+ * @param tokenAddress - The ERC-20 contract address.
+ */
+function buildErc20AssetId(caip2: string, tokenAddress: string): string | null {
+  if (!EVM_ADDRESS_REGEX.test(tokenAddress)) {
+    return null;
+  }
+
+  return `${caip2}/erc20:${getChecksumAddress(tokenAddress as Hex)}`;
+}
+
+/**
+ * Read a nested path on an object, returning `undefined` if any intermediate
+ * key is missing or not an object.
+ *
+ * @param root - The object to read from.
+ * @param path - Sequence of keys to traverse.
+ */
+function readPath(root: unknown, path: string[]): unknown {
+  let cursor = root;
+
+  for (const key of path) {
+    if (!isObject(cursor) || !hasProperty(cursor, key)) {
+      return undefined;
+    }
+
+    cursor = cursor[key];
+  }
+
+  return cursor;
+}
+
+/**
+ * Build an `AssetInfo` from a raw TokensController token entry.
+ *
+ * @param token - Raw token object.
+ */
+function buildEvmAssetInfo(token: Record<string, unknown>): AssetInfo {
+  const symbol = typeof token.symbol === 'string' ? token.symbol : '';
+  const name =
+    typeof token.name === 'string' && token.name ? token.name : symbol;
+
+  const assetInfo: AssetInfo = {
+    type: 'erc20',
+    symbol,
+    name,
+    decimals: typeof token.decimals === 'number' ? token.decimals : 0,
+  };
+
+  if (typeof token.image === 'string' && token.image) {
+    assetInfo.image = token.image;
+  }
+
+  if (Array.isArray(token.aggregators)) {
+    const aggregators = token.aggregators.filter(
+      (aggregator): aggregator is string => typeof aggregator === 'string',
+    );
+
+    if (aggregators.length > 0) {
+      assetInfo.aggregators = aggregators;
+    }
+  }
+
+  return assetInfo;
+}
+
+/**
  * Add `assetId` to `customAssets[accountId]` if it's not already tracked in
  * `assetsBalance` (mutual exclusion) and not already present in `customAssets`.
+ * Returns true when a write occurred.
  *
- * @param assetsController - The AssetsController view.
+ * @param ac - The AssetsController view.
  * @param accountId - The account UUID.
  * @param assetId - CAIP-19 asset identifier.
  */
 function addCustomAsset(
-  assetsController: AssetsControllerShape,
+  ac: AssetsControllerShape,
   accountId: string,
   assetId: string,
-): void {
-  const accountBalance = assetsController.assetsBalance[accountId] as unknown;
-  if (isObject(accountBalance) && hasProperty(accountBalance, assetId)) {
-    return;
+): boolean {
+  if (ac.assetsBalance[accountId]?.[assetId]) {
+    return false;
   }
 
-  if (!Array.isArray(assetsController.customAssets[accountId])) {
-    assetsController.customAssets[accountId] = [];
+  const accountCustomAssets = ac.customAssets[accountId] ?? [];
+  if (accountCustomAssets.includes(assetId)) {
+    return false;
   }
 
-  if (assetsController.customAssets[accountId].includes(assetId)) {
-    return;
-  }
-
-  assetsController.customAssets[accountId].push(assetId);
-}
-
-/**
- * Heal `AssetsController.assetsInfo` entries that were wiped for tokens on niche
- * EVM chains (chains not covered by the accounts API, e.g. Flare / chainId 14).
- *
- * The migration only runs when `AssetsController` state already exists (i.e. the
- * unified assets state is in use); otherwise there is nothing to heal.
- *
- * @param state - The persisted redux state.
- */
-export default function migrate(state: unknown): unknown {
-  if (!ensureValidState(state, migrationVersion)) {
-    return state;
-  }
-
-  try {
-    const { backgroundState } = state.engine;
-
-    const assetsController = getAssetsController(backgroundState);
-    if (!assetsController) {
-      return state;
-    }
-
-    // Step 1: gather every token whose metadata is eligible to be healed.
-    const restorable = collectRestorableAssets(
-      backgroundState,
-      assetsController,
-    );
-    if (restorable.length === 0) {
-      return state;
-    }
-
-    // Step 2: heal each one. Writes are idempotent (fill gaps / dedupe).
-    for (const { accountId, assetId, info } of restorable) {
-      // `assetsInfo` is a global registry; fill gaps only, never overwrite.
-      if (
-        !Object.prototype.hasOwnProperty.call(
-          assetsController.assetsInfo,
-          assetId,
-        )
-      ) {
-        assetsController.assetsInfo[assetId] = info;
-      }
-
-      // Ensure the asset is tracked for its account.
-      if (accountId) {
-        addCustomAsset(assetsController, accountId, assetId);
-      }
-    }
-  } catch (error) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: heal wiped AssetsController metadata for niche-chain tokens failed: ${getErrorMessage(
-          error,
-        )}`,
-      ),
-    );
-  }
-
-  return state;
+  ac.customAssets[accountId] = [...accountCustomAssets, assetId];
+  return true;
 }
