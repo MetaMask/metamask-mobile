@@ -8,6 +8,7 @@ import Logger from '../../../../../util/Logger';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { DeepLinkModalLinkType } from '../../../types/deepLink.types';
 
 jest.mock('../../../../NavigationService');
@@ -36,6 +37,13 @@ jest.mock('../../../../../components/UI/Money/selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
+  }),
+);
+
 describe('handleMoney', () => {
   let mockNavigate: jest.Mock;
   const mockState = {} as ReturnType<typeof ReduxService.store.getState>;
@@ -52,6 +60,9 @@ describe('handleMoney', () => {
     jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(true);
     jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(true);
     jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(true);
+    jest
+      .mocked(selectMoneyOnboardingStepperAnimationEnabled)
+      .mockReturnValue(true);
   });
 
   it('opens unsupported deep link modal when money account flag is disabled', () => {
@@ -93,6 +104,20 @@ describe('handleMoney', () => {
     handleMoney();
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+  });
+
+  it('navigates to MONEY.HOME when flag is disabled even if onboarding not seen', () => {
+    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
+    jest
+      .mocked(selectMoneyOnboardingStepperAnimationEnabled)
+      .mockReturnValue(false);
+
+    handleMoney();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('navigates to MONEY.HOME when user has already seen onboarding', () => {
