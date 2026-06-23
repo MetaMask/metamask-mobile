@@ -254,7 +254,15 @@ const mockUseAssetBalances = jest.fn(() =>
 const mockNavigateToTravelPage = jest.fn();
 const mockNavigateToCardTosPage = jest.fn();
 
-const mockUseNavigateToCardPage = jest.fn(() => ({
+interface NavigateToCardPageHookReturn {
+  navigateToTravelPage: jest.Mock;
+  navigateToCardTosPage: jest.Mock;
+}
+
+const mockUseNavigateToCardPage = jest.fn<
+  NavigateToCardPageHookReturn,
+  [unknown, string | undefined]
+>(() => ({
   navigateToTravelPage: mockNavigateToTravelPage,
   navigateToCardTosPage: mockNavigateToCardTosPage,
 }));
