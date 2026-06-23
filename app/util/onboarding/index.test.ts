@@ -2,19 +2,6 @@ import { Dimensions } from 'react-native';
 import Device from '../device';
 import { getScreenDimensions } from './index';
 
-jest.mock('../../store/storage-wrapper', () => ({
-  getItem: jest.fn(),
-}));
-
-jest.mock('../../components/UI/WhatsNewModal', () => ({
-  whatsNewList: {
-    minAppVersion: '1.0.0',
-    maxLastAppVersion: '2.0.0',
-    onlyUpdates: false,
-    slides: [],
-  },
-}));
-
 jest.mock('../device', () => ({
   isSmallDevice: jest.fn(),
   isMediumDevice: jest.fn(),
