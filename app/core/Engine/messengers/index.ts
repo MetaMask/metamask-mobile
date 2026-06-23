@@ -1,5 +1,4 @@
 import { noop } from 'lodash';
-import { getAccountsControllerMessenger } from './accounts-controller-messenger';
 import {
   getAccountTreeControllerInitMessenger,
   getAccountTreeControllerMessenger,
@@ -116,7 +115,6 @@ import {
   getDelegationControllerInitMessenger,
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
-import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
@@ -126,7 +124,6 @@ import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
-import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
   getMultichainRoutingServiceMessenger,
@@ -165,10 +162,6 @@ import {
  * The messenger factories for the messenger clients that have been modularized.
  */
 export const MESSENGER_FACTORIES = {
-  AccountsController: {
-    getMessenger: getAccountsControllerMessenger,
-    getInitMessenger: noop,
-  },
   AccountTrackerController: {
     getMessenger: getAccountTrackerControllerMessenger,
     getInitMessenger: noop,
@@ -179,10 +172,6 @@ export const MESSENGER_FACTORIES = {
   },
   AddressBookController: {
     getMessenger: getAddressBookControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ConnectivityController: {
-    getMessenger: getConnectivityControllerMessenger,
     getInitMessenger: noop,
   },
   AssetsContractController: {
@@ -385,10 +374,6 @@ export const MESSENGER_FACTORIES = {
   },
   PhishingController: {
     getMessenger: getPhishingControllerMessenger,
-    getInitMessenger: noop,
-  },
-  RemoteFeatureFlagController: {
-    getMessenger: getRemoteFeatureFlagControllerMessenger,
     getInitMessenger: noop,
   },
   RewardsController: {
