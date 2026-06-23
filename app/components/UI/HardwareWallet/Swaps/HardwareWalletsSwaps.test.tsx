@@ -106,14 +106,25 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
+    call: jest.fn(),
+  },
+  context: {
+    TransactionController: {
+      state: { transactions: [] },
+      addTransactionBatch: jest.fn().mockResolvedValue(undefined),
+    },
   },
   acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
 }));
-const mockAccept = (
-  jest.requireMock('../../../../core/Engine') as {
-    acceptPendingApproval: jest.Mock;
-  }
-).acceptPendingApproval;
+const mockEngine = jest.requireMock('../../../../core/Engine') as {
+  acceptPendingApproval: jest.Mock;
+  context: {
+    TransactionController: { addTransactionBatch: jest.Mock };
+  };
+};
+const mockAccept = mockEngine.acceptPendingApproval;
+const mockAddTransactionBatch =
+  mockEngine.context.TransactionController.addTransactionBatch;
 
 const MOCK_APPROVAL_REQUEST = {
   id: 'test-approval-id',
@@ -910,6 +921,22 @@ describe('HardwareWalletsSwaps', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
     });
 
+    it('dispatches Failed when ensureDeviceReady resolves false', async () => {
+      setSendRouteParams({ withGasToken: true, withApproval: true });
+      mockEnsureDeviceReady.mockResolvedValue(false);
+
+      const { store, getByTestId } = renderSendScreen({});
+
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
+      });
+
+      expect(mockAccept).not.toHaveBeenCalled();
+      expect(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+      ).toBeDefined();
+    });
+
     it('submit calls Engine.acceptPendingApproval with the prepared tx meta', async () => {
       setSendRouteParams({ withGasToken: true, withApproval: true });
 
@@ -958,17 +985,20 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       expect(mockAccept).not.toHaveBeenCalled();
+      expect(mockAddTransactionBatch).not.toHaveBeenCalled();
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
     it('dispatches TRANSACTION_FAILED when approval request is missing on submit', async () => {
       setSendRouteParams({ withGasToken: true, withApproval: false });
+      mockAddTransactionBatch.mockClear();
 
       const { store } = renderSendScreen({});
 
       await waitFor(() => {
         expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
       });
+      expect(mockAddTransactionBatch).not.toHaveBeenCalled();
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
   });
