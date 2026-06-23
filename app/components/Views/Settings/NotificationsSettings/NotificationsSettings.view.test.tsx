@@ -52,7 +52,7 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
 const SECTION_TITLES = {
   walletActivity: 'Wallet Activity',
   perps: 'Trading Activity',
-  agenticCli: 'MetaMask CLI',
+  agenticCli: 'Agentic CLI',
   socialAI: 'Trading Signals',
   marketing: 'Updates and Rewards',
 };
