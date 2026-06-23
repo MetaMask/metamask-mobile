@@ -1,9 +1,24 @@
 import React from 'react';
+import { useWindowDimensions, Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
-import { Text } from 'react-native';
 import VipSplashScreenLayout, {
   VIP_SPLASH_SCREEN_TEST_IDS,
 } from './VipSplashScreenLayout';
+import {
+  VIP_SPLASH_FOX_HEIGHT,
+  VIP_SPLASH_FOX_WIDTH,
+  VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES,
+} from './Vip.constants';
+
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    width: 375,
+    height: 812,
+    scale: 2,
+    fontScale: 1,
+  })),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -105,6 +120,12 @@ const defaultProps = {
 describe('VipSplashScreenLayout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useWindowDimensions).mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 2,
+      fontScale: 1,
+    });
   });
 
   it('renders the shared splash content and primary button label', () => {
@@ -153,5 +174,51 @@ describe('VipSplashScreenLayout', () => {
 
     expect(getByTestId('vip-splash-footer')).toBeOnTheScreen();
     expect(getByText('Referred by TESTCODE')).toBeOnTheScreen();
+  });
+
+  it('uses the default fox image dimensions on larger screens', () => {
+    const { getByTestId } = render(<VipSplashScreenLayout {...defaultProps} />);
+
+    expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.FOX).props).toMatchObject({
+      width: VIP_SPLASH_FOX_WIDTH,
+      height: VIP_SPLASH_FOX_HEIGHT,
+    });
+  });
+
+  it('scales the fox image down on small screens', () => {
+    jest.mocked(useWindowDimensions).mockReturnValue({
+      width: 320,
+      height: VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES - 1,
+      scale: 2,
+      fontScale: 1,
+    });
+
+    const { getByTestId } = render(<VipSplashScreenLayout {...defaultProps} />);
+    const expectedWidth = 260;
+
+    expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.FOX).props).toMatchObject({
+      width: expectedWidth,
+      height: Math.round(
+        expectedWidth * (VIP_SPLASH_FOX_HEIGHT / VIP_SPLASH_FOX_WIDTH),
+      ),
+    });
+  });
+
+  it('uses compact button heights on small screens', () => {
+    jest.mocked(useWindowDimensions).mockReturnValue({
+      width: 320,
+      height: VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES - 1,
+      scale: 2,
+      fontScale: 1,
+    });
+
+    const { getByTestId } = render(<VipSplashScreenLayout {...defaultProps} />);
+
+    expect(
+      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.ACCEPT_BUTTON).props.style,
+    ).toEqual(expect.arrayContaining(['h-10']));
+    expect(
+      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON).props.style,
+    ).toEqual(expect.arrayContaining(['h-8']));
   });
 });
