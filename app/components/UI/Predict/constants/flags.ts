@@ -55,6 +55,7 @@ export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   showMainFeedBanner: false,
   showMainFeedTab: false,
   showWorldCupScreen: false,
+  showHubBanner: false,
   tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
   gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
   stages: [],

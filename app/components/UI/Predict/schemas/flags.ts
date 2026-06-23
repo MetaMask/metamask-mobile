@@ -73,6 +73,10 @@ export const PredictWorldCupSchema = defaulted(
       boolean(),
       () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showWorldCupScreen,
     ),
+    showHubBanner: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showHubBanner,
+    ),
     tagSlug: defaulted(string(), () => DEFAULT_PREDICT_WORLD_CUP_FLAG.tagSlug),
     gamesTagId: defaulted(
       string(),

@@ -36,6 +36,7 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
   showMainFeedBanner: boolean;
   showMainFeedTab: boolean;
   showWorldCupScreen: boolean;
+  showHubBanner: boolean;
   tagSlug: string;
   gamesTagId: string;
   bannerImage?: {

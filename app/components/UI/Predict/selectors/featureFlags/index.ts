@@ -172,6 +172,12 @@ export const selectPredictWorldCupScreenEnabledFlag = createSelector(
   (config) => config.enabled && config.showWorldCupScreen,
 );
 
+export const selectPredictWorldCupHubBannerEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  // TODO: remove hardcoded true before merging — local testing only
+  (_config) => true,
+);
+
 export const selectPredictPortfolioEnabledFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictPortfolioEnabled,
