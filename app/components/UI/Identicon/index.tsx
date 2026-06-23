@@ -4,9 +4,21 @@ import { Image, ImageStyle, StyleProp } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 import { useTheme } from '../../../util/theme';
 import { useSelector } from 'react-redux';
-import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+} from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+
+const AVATAR_SIZE_TO_ACCOUNT_SIZE: Record<AvatarSize, AvatarAccountSize> = {
+  [AvatarSize.Xs]: AvatarAccountSize.Xs,
+  [AvatarSize.Sm]: AvatarAccountSize.Sm,
+  [AvatarSize.Md]: AvatarAccountSize.Md,
+  [AvatarSize.Lg]: AvatarAccountSize.Lg,
+  [AvatarSize.Xl]: AvatarAccountSize.Xl,
+};
 
 interface IdenticonProps {
   /**
@@ -79,9 +91,9 @@ const Identicon: React.FC<IdenticonProps> = ({
 
   const avatar = (
     <AvatarAccount
-      type={avatarAccountType}
-      accountAddress={address}
-      size={avatarSize}
+      variant={getAvatarAccountVariant(avatarAccountType)}
+      address={address}
+      size={AVATAR_SIZE_TO_ACCOUNT_SIZE[avatarSize]}
     />
   );
 
