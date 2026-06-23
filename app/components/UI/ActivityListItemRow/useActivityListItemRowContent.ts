@@ -672,13 +672,18 @@ function resolveAmount(
 ): string | undefined {
   if (!token) return undefined;
 
-  const humanAmount = getHumanReadableTokenAmount(token);
-  if (humanAmount === undefined) return undefined;
-
-  const displayAmount = formatTokenQuantity(humanAmount);
+  const displayAmount = token.isUnlimitedApproval
+    ? strings('confirm.unlimited')
+    : getHumanReadableTokenAmount(token);
+  if (displayAmount === undefined) {
+    return undefined;
+  }
+  const formattedAmount = token.isUnlimitedApproval
+    ? displayAmount
+    : formatTokenQuantity(displayAmount);
   const amount = token.symbol
-    ? `${displayAmount} ${token.symbol}`
-    : displayAmount;
+    ? `${formattedAmount} ${token.symbol}`
+    : formattedAmount;
   const isSpendingCapActivity =
     activityType === 'approveSpendingCap' ||
     activityType === 'increaseSpendingCap' ||
@@ -832,6 +837,7 @@ function resolveFiatAmount({
   usdConversionRate: number | null | undefined;
 }): string | undefined {
   if (!token || !currentCurrency || !hexChainId) return undefined;
+  if (token.isUnlimitedApproval) return undefined;
 
   const humanAmount = getHumanReadableTokenAmount(token);
   if (humanAmount === undefined) return undefined;

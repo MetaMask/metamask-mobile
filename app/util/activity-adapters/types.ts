@@ -59,6 +59,7 @@ export type ActivityKind =
 export interface TokenAmount {
   amount?: string;
   decimals?: number;
+  isUnlimitedApproval?: boolean;
   symbol?: string;
   // CAIP-19 asset id (from adapters)
   assetId?: string;

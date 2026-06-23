@@ -528,19 +528,6 @@ describe('MainNavigator', () => {
       expect(rampSellScreen).toBeDefined();
     });
 
-    it('includes Deposit route', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const depositScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.DEPOSIT.ID,
-      );
-
-      expect(depositScreen).toBeDefined();
-    });
-
     it('includes Settings view route', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,

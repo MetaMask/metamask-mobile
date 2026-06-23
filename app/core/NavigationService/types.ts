@@ -67,12 +67,11 @@ import type {
   RampBuySellParams,
   RampOrderDetailsParams,
   RampAggregatorBuildQuoteParams,
-  DepositBuildQuoteParams,
   SimpleRampBuildQuoteParams,
   WebviewModalParams,
   KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
-import type { DepositNavigationParams } from '../../components/UI/Ramp/Deposit/types/navigationParams';
+import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
 
 // Transactions params
 import type {
@@ -299,11 +298,11 @@ export interface RootStackParamList extends ParamListBase {
   /**
    * BuildQuote route is shared between:
    * - Ramp Aggregator: uses RampAggregatorBuildQuoteParams (showBack, assetId, amount, currency)
-   * - Deposit: uses DepositBuildQuoteParams (shouldRouteImmediately)
+   * - Unified buy (Ramp): uses SimpleRampBuildQuoteParams
    */
   BuildQuote:
     | RampAggregatorBuildQuoteParams
-    | DepositBuildQuoteParams
+    | SimpleRampBuildQuoteParams
     | undefined;
   BuildQuoteHasStarted: undefined;
   Quotes: undefined;
@@ -392,7 +391,6 @@ export interface RootStackParamList extends ParamListBase {
   RootModalFlow: RootModalFlowParams | NestedNavigationParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
-  WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
