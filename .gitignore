@@ -58,6 +58,9 @@ ios/GoogleService-Info.plist
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# React Compiler bailout log (generated at build time)
+react-compiler.log
 .yalc
 yalc.lock
 

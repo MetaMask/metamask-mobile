@@ -58,6 +58,7 @@ jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
     noFeeToken: undefined,
     isNoFeeToken: () => false,
     renderNoFeeTag: mockRenderNoFeeTag,
+    renderNoFeeTagForToken: () => null,
   }),
 }));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -460,6 +461,39 @@ describe('PayWithModal', () => {
 
       expect(await findByText('Withdraw Token')).toBeOnTheScreen();
       expect(mockRenderNoFeeTag).not.toHaveBeenCalled();
+    });
+
+    it('renders no-fee tags for Money Account withdrawals', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.moneyAccountWithdraw,
+        nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const withdrawToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xWithdrawToken',
+        balance: '1',
+        balanceInSelectedCurrency: '$1.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        name: 'Withdraw Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'WITHDRAW',
+      } as AssetType;
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [withdrawToken]),
+      );
+
+      const { findByText } = render();
+
+      expect(await findByText('Withdraw Token')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).toHaveBeenCalled();
     });
 
     it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {

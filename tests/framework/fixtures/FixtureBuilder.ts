@@ -500,28 +500,6 @@ class FixtureBuilder {
   }
 
   /**
-   * Seeds the ramps unified buy V2 flag in RemoteFeatureFlagController so deeplinks
-   * and early navigation match the intended path before the remote config API responds.
-   * Uses minimumVersion 0.0.0 so any E2E app build passes the version gate.
-   */
-  withRampsUnifiedBuyRemoteFlagsSeededForE2E(options?: {
-    rampsUnifiedBuyV2?: boolean;
-  }) {
-    const rampsUnifiedBuyV2 = options?.rampsUnifiedBuyV2 ?? true;
-    merge(this.fixture.state.engine.backgroundState, {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          rampsUnifiedBuyV2: {
-            enabled: rampsUnifiedBuyV2,
-            minimumVersion: '0.0.0',
-          },
-        },
-      },
-    });
-    return this;
-  }
-
-  /**
    * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
    * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
    * @param countryCode - ISO country code (e.g. 'AR' for Argentina).
