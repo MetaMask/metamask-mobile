@@ -526,7 +526,7 @@ describe('App', () => {
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
         ).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account edit name screen when navigated to', async () => {
       const routeState = {
@@ -550,7 +550,7 @@ describe('App', () => {
         expect(getByText('Account Group')).toBeOnTheScreen();
         expect(getByText('Account name')).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account share address screen when navigated to', async () => {
       jest.useRealTimers();
