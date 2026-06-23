@@ -5,6 +5,17 @@ import { mockTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { getCardWebBaseUrlForMetaMaskEnv } from '../../util/mapCardWebUrl';
+
+// Card web base URL resolver — `process.env.METAMASK_ENVIRONMENT` is inlined at
+// transform time, so we mock the resolver to drive the environment per-test.
+jest.mock('../../util/mapCardWebUrl', () => ({
+  getCardWebBaseUrlForMetaMaskEnv: jest.fn(),
+}));
+
+const mockGetCardWebBaseUrl = getCardWebBaseUrlForMetaMaskEnv as jest.Mock;
+const PRD_BASE_URL = 'https://card.metamask.io';
+const DEV_BASE_URL = 'https://ew2foxdev-card.foxcard.io';
 
 // Navigation
 const mockGoBack = jest.fn();
@@ -134,11 +145,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 let mockOnLoadStart: (() => void) | null = null;
 let mockOnLoadEnd: (() => void) | null = null;
 let mockOnError: (() => void) | null = null;
-let mockOnMessage: ((event: { nativeEvent: { data: string } }) => void) | null =
-  null;
+let mockOnMessage:
+  | ((event: { nativeEvent: { data: string; url?: string } }) => void)
+  | null = null;
 let mockOnNavigationStateChange: ((navState: { url: string }) => void) | null =
   null;
 let mockInjectedJavaScript: string | undefined;
+let mockSource: { uri?: string } | undefined;
 
 jest.mock('@metamask/react-native-webview', () => {
   const ActualReact = jest.requireActual('react');
@@ -151,15 +164,19 @@ jest.mock('@metamask/react-native-webview', () => {
       onMessage,
       onNavigationStateChange,
       injectedJavaScript,
+      source,
       testID,
     }: {
       onLoadStart?: () => void;
       onLoadEnd?: () => void;
       onError?: () => void;
       onHttpError?: () => void;
-      onMessage?: (event: { nativeEvent: { data: string } }) => void;
+      onMessage?: (event: {
+        nativeEvent: { data: string; url?: string };
+      }) => void;
       onNavigationStateChange?: (navState: { url: string }) => void;
       injectedJavaScript?: string;
+      source?: { uri?: string };
       testID?: string;
     }) => {
       mockOnLoadStart = onLoadStart || null;
@@ -168,10 +185,13 @@ jest.mock('@metamask/react-native-webview', () => {
       mockOnMessage = onMessage || null;
       mockOnNavigationStateChange = onNavigationStateChange || null;
       mockInjectedJavaScript = injectedJavaScript;
+      mockSource = source;
       return ActualReact.createElement(View, { testID });
     },
   };
 });
+
+const CARD_LOGIN_URL = 'https://card.metamask.io/account/login';
 
 const renderComponent = () =>
   render(
@@ -189,6 +209,8 @@ describe('ForgotPasswordModal', () => {
     mockOnMessage = null;
     mockOnNavigationStateChange = null;
     mockInjectedJavaScript = undefined;
+    mockSource = undefined;
+    mockGetCardWebBaseUrl.mockReturnValue(PRD_BASE_URL);
     mockRouteParams = {};
     mockPersistedLocation = null;
     setThemeAppearance(AppThemeKey.light);
@@ -198,6 +220,13 @@ describe('ForgotPasswordModal', () => {
     it('renders the WebView', () => {
       const { getByTestId } = renderComponent();
       expect(getByTestId('forgot-password-webview')).toBeTruthy();
+    });
+
+    it('loads the production password reset URL by default', () => {
+      renderComponent();
+      expect(mockSource?.uri).toBe(
+        'https://card.metamask.io/account/password/request',
+      );
     });
 
     it('shows the loading overlay initially', () => {
@@ -396,6 +425,7 @@ describe('ForgotPasswordModal', () => {
       act(() => {
         mockOnMessage?.({
           nativeEvent: {
+            url: CARD_LOGIN_URL,
             data: JSON.stringify({
               type: 'card_route',
               path: '/account/login',
@@ -416,6 +446,7 @@ describe('ForgotPasswordModal', () => {
         });
         mockOnMessage?.({
           nativeEvent: {
+            url: CARD_LOGIN_URL,
             data: JSON.stringify({
               type: 'card_route',
               path: '/account/login',
@@ -433,6 +464,7 @@ describe('ForgotPasswordModal', () => {
       act(() => {
         mockOnMessage?.({
           nativeEvent: {
+            url: 'https://card.metamask.io/account/password/request',
             data: JSON.stringify({
               type: 'card_route',
               path: '/account/password/request',
@@ -444,12 +476,33 @@ describe('ForgotPasswordModal', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
+    it('ignores a forged login message from a non-card origin', () => {
+      renderComponent();
+
+      act(() => {
+        mockOnMessage?.({
+          nativeEvent: {
+            url: 'https://evil.example.com/account/login',
+            data: JSON.stringify({
+              type: 'card_route',
+              path: '/account/login',
+            }),
+          },
+        });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
     it('does not throw on non-JSON message data', () => {
       renderComponent();
 
       expect(() => {
         act(() => {
-          mockOnMessage?.({ nativeEvent: { data: 'not-json' } });
+          mockOnMessage?.({
+            nativeEvent: { url: CARD_LOGIN_URL, data: 'not-json' },
+          });
         });
       }).not.toThrow();
       expect(mockGoBack).not.toHaveBeenCalled();
@@ -480,6 +533,7 @@ describe('ForgotPasswordModal', () => {
       act(() => {
         mockOnMessage?.({
           nativeEvent: {
+            url: CARD_LOGIN_URL,
             data: JSON.stringify({
               type: 'card_route',
               path: '/account/login',
@@ -509,6 +563,7 @@ describe('ForgotPasswordModal', () => {
         });
         mockOnMessage?.({
           nativeEvent: {
+            url: CARD_LOGIN_URL,
             data: JSON.stringify({
               type: 'card_route',
               path: '/account/login',
@@ -556,6 +611,66 @@ describe('ForgotPasswordModal', () => {
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_PASSWORD_RESET_COMPLETED,
       );
+    });
+  });
+
+  describe('Environment-specific URLs', () => {
+    it('loads the dev password reset URL on the dev environment', () => {
+      mockGetCardWebBaseUrl.mockReturnValue(DEV_BASE_URL);
+      renderComponent();
+
+      expect(mockSource?.uri).toBe(`${DEV_BASE_URL}/account/password/request`);
+    });
+
+    it('closes the modal when navigation reaches the dev login URL', () => {
+      mockGetCardWebBaseUrl.mockReturnValue(DEV_BASE_URL);
+      renderComponent();
+
+      act(() => {
+        mockOnNavigationStateChange?.({
+          url: `${DEV_BASE_URL}/account/login`,
+        });
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the modal when a dev-origin SPA route message reaches the login path', () => {
+      mockGetCardWebBaseUrl.mockReturnValue(DEV_BASE_URL);
+      renderComponent();
+
+      act(() => {
+        mockOnMessage?.({
+          nativeEvent: {
+            url: `${DEV_BASE_URL}/account/login`,
+            data: JSON.stringify({
+              type: 'card_route',
+              path: '/account/login',
+            }),
+          },
+        });
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close for a production-origin login message on the dev environment', () => {
+      mockGetCardWebBaseUrl.mockReturnValue(DEV_BASE_URL);
+      renderComponent();
+
+      act(() => {
+        mockOnMessage?.({
+          nativeEvent: {
+            url: CARD_LOGIN_URL,
+            data: JSON.stringify({
+              type: 'card_route',
+              path: '/account/login',
+            }),
+          },
+        });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 });

@@ -25,12 +25,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
-import { isCardLoginUrl } from '../../../../../util/url';
+import { isCardLoginUrl, isCardUrl } from '../../../../../util/url';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
+import { getCardWebBaseUrlForMetaMaskEnv } from '../../util/mapCardWebUrl';
 import { useSelector } from 'react-redux';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import type { CardLocation } from '../../types';
@@ -150,6 +151,13 @@ const ForgotPasswordModal: React.FC = () => {
   const [retryKey, setRetryKey] = useState(0);
   const hasClosedRef = useRef(false);
 
+  // The reset/login web flow lives on a different host per environment.
+  const cardBaseUrl = useMemo(
+    () => getCardWebBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT),
+    [],
+  );
+  const passwordResetUrl = `${cardBaseUrl}${AppConstants.CARD.PASSWORD_RESET_PATH}`;
+
   const injectedJavaScript = useMemo(
     () =>
       buildInjectedJavaScript(
@@ -213,16 +221,19 @@ const ForgotPasswordModal: React.FC = () => {
 
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
-      if (isCardLoginUrl(navState.url)) {
+      if (isCardLoginUrl(navState.url, cardBaseUrl)) {
         closeOnLoginReached();
       }
     },
-    [closeOnLoginReached],
+    [closeOnLoginReached, cardBaseUrl],
   );
 
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
       try {
+        if (!isCardUrl(event.nativeEvent.url, cardBaseUrl)) {
+          return;
+        }
         const data = JSON.parse(event.nativeEvent.data);
         if (
           data?.type === 'card_route' &&
@@ -235,7 +246,7 @@ const ForgotPasswordModal: React.FC = () => {
         // ignore non-JSON messages
       }
     },
-    [closeOnLoginReached],
+    [closeOnLoginReached, cardBaseUrl],
   );
 
   return (
@@ -276,7 +287,7 @@ const ForgotPasswordModal: React.FC = () => {
         <View style={tw.style('flex-1')}>
           <WebView
             key={retryKey}
-            source={{ uri: AppConstants.CARD.PASSWORD_RESET_URL }}
+            source={{ uri: passwordResetUrl }}
             onLoadStart={handleLoadStart}
             onLoadEnd={handleLoadEnd}
             onError={handleError}
