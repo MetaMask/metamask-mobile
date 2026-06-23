@@ -240,7 +240,6 @@ const mockAsset: TokenI = {
 
 const baseProps: PriceAdvancedProps = {
   asset: mockAsset,
-  title: 'Test Token',
   currentPrice: 105,
   currentCurrency: 'USD',
   priceDiff: 5,
@@ -293,16 +292,8 @@ describe('PriceAdvanced', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders token name as TitleHub title when provided', () => {
-    const { getByText } = render(<PriceAdvanced {...baseProps} />);
-
-    expect(getByText('Test Token')).toBeOnTheScreen();
-  });
-
-  it('does not render token name row when title is omitted', () => {
-    const { queryByText } = render(
-      <PriceAdvanced {...baseProps} title={undefined} />,
-    );
+  it('does not render token name in price header', () => {
+    const { queryByText } = render(<PriceAdvanced {...baseProps} />);
 
     expect(queryByText('Test Token')).toBeNull();
   });

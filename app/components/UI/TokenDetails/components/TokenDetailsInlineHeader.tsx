@@ -2,6 +2,8 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 import React, { useMemo } from 'react';
 import {
+  Box,
+  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   HeaderSubpage,
@@ -71,22 +73,42 @@ export const TokenDetailsInlineHeader = ({
     : undefined;
 
   const titleEndAccessory = useMemo(() => {
-    if (securityData?.resultType === 'Verified' && securityConfig.badge) {
+    const showVerified =
+      securityData?.resultType === 'Verified' && securityConfig.badge;
+    const showStock = isStockToken(token as BridgeToken);
+
+    const verifiedBadge = showVerified ? (
+      <ButtonIcon
+        iconName={securityConfig.badge!.icon}
+        size={ButtonIconSize.Sm}
+        onPress={handleSecurityBadgePress}
+        iconProps={{ color: securityConfig.badge!.iconColor }}
+        testID="security-badge-verified"
+        accessibilityLabel={securityConfig.label}
+      />
+    ) : null;
+
+    const stockBadge = showStock ? (
+      <StockBadge token={token as BridgeToken} />
+    ) : null;
+
+    if (!verifiedBadge && !stockBadge) {
+      return undefined;
+    }
+
+    if (verifiedBadge && stockBadge) {
       return (
-        <ButtonIcon
-          iconName={securityConfig.badge.icon}
-          size={ButtonIconSize.Sm}
-          onPress={handleSecurityBadgePress}
-          iconProps={{ color: securityConfig.badge.iconColor }}
-          testID="security-badge-verified"
-          accessibilityLabel={securityConfig.label}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="items-center gap-1"
+        >
+          {verifiedBadge}
+          {stockBadge}
+        </Box>
       );
     }
-    if (!token.name && isStockToken(token as BridgeToken)) {
-      return <StockBadge token={token as BridgeToken} />;
-    }
-    return undefined;
+
+    return verifiedBadge ?? stockBadge;
   }, [
     securityData?.resultType,
     securityConfig.badge,

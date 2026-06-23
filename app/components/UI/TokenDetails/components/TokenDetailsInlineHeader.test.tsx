@@ -9,6 +9,7 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 const mockNavigate = jest.fn();
 const mockCopyContractAddress = jest.fn();
 const mockResolveTokenContractAddress = jest.fn();
+const mockIsStockToken = jest.fn(() => false);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -29,9 +30,17 @@ jest.mock('../../../../util/address', () => ({
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isStockToken: jest.fn(() => false),
+    isStockToken: mockIsStockToken,
   }),
 }));
+
+jest.mock('../../shared/StockBadge/StockBadge', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Text testID="stock-badge">Stock</Text>,
+  };
+});
 
 jest.mock('../../Assets/components/AssetLogo/AssetLogo', () => ({
   __esModule: true,
@@ -99,6 +108,7 @@ describe('TokenDetailsInlineHeader', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsStockToken.mockReturnValue(false);
     mockResolveTokenContractAddress.mockReturnValue(
       '0x0000000000000000000000000000000000000000',
     );
@@ -138,6 +148,63 @@ describe('TokenDetailsInlineHeader', () => {
           chainId: '0x1',
         }),
       });
+    });
+  });
+
+  describe('stock badge', () => {
+    it('renders stock badge for named stock tokens', () => {
+      mockIsStockToken.mockReturnValue(true);
+
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          name: 'Apple Inc',
+          ticker: 'AAPL',
+          symbol: 'AAPL',
+        },
+      });
+
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+    });
+
+    it('renders stock badge for symbol-only stock tokens', () => {
+      mockIsStockToken.mockReturnValue(true);
+
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          name: undefined,
+          ticker: 'AAPL',
+          symbol: 'AAPL',
+        },
+      });
+
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+    });
+
+    it('does not render stock badge when token is not a stock token', () => {
+      mockIsStockToken.mockReturnValue(false);
+
+      const { queryByTestId } = renderHeader();
+
+      expect(queryByTestId('stock-badge')).toBeNull();
+    });
+
+    it('renders both verified and stock badges when applicable', () => {
+      mockIsStockToken.mockReturnValue(true);
+
+      const { getByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+        token: {
+          ...mockToken,
+          name: 'Apple Inc',
+          ticker: 'AAPL',
+          symbol: 'AAPL',
+        },
+      });
+
+      expect(getByTestId('security-badge-verified')).toBeOnTheScreen();
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
     });
   });
 

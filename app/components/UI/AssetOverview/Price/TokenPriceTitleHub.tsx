@@ -18,7 +18,6 @@ import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 export type TokenPriceChangeFormat = 'absoluteSubscript' | 'signedCurrency';
 
 export interface TokenPriceTitleHubProps {
-  title?: string;
   price: number;
   displayDiff: number | null;
   comparePrice: number | null;
@@ -74,7 +73,6 @@ const getChangeTextColor = (
 };
 
 export const TokenPriceTitleHub = ({
-  title,
   price,
   displayDiff,
   comparePrice,

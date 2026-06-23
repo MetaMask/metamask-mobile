@@ -49,13 +49,10 @@ const Price = (props: PriceProps) => {
     ...rest
   } = props;
 
-  const title = asset.name || undefined;
-
   if (isAdvancedChartEnabled) {
     return (
       <PriceAdvanced
         asset={asset}
-        title={title}
         prices={prices}
         timePeriod={timePeriod}
         chartNavigationButtons={chartNavigationButtons}
@@ -69,7 +66,6 @@ const Price = (props: PriceProps) => {
   }
   return (
     <PriceLegacy
-      title={title}
       prices={prices}
       timePeriod={timePeriod}
       chartNavigationButtons={chartNavigationButtons}
