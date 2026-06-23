@@ -40,8 +40,12 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
         await CreateNewWallet();
 
         // Capture live app state
-        commandQueueServer.requestStateExport();
-        const exported = await commandQueueServer.getExportedState();
+        const exported = await commandQueueServer.requestAndWaitForExportedState(
+          {
+            timeout: 10000,
+            maxAttempts: 3,
+          },
+        );
 
         // Read the committed default fixture (existing-user baseline)
         const fixture = readFixtureFile('default-fixture.json');
