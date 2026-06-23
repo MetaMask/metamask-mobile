@@ -1,5 +1,4 @@
 export const MoneyBalanceCardTestIds = {
-  NEW_USER_CONTAINER: 'money-balance-card-new-user-container',
   EMPTY_CONTAINER: 'money-balance-card-empty-container',
   FUNDED_CONTAINER: 'money-balance-card-funded-container',
   ERROR_CONTAINER: 'money-balance-card-error-container',

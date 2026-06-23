@@ -67,9 +67,11 @@ export class EmulatorConfigBuilder {
       // connectionRetryCount: 0 — no retries on session creation; a timeout
       // here is not a transient error and retrying just doubles the wait.
       // Preinstalled WDA: prepare-ios-appium-runner already launched WDA on CI.
+      // Must exceed wdaLaunchTimeout (120 s) + wdaConnectionTimeout (30 s) = 150 s
+      // so the client doesn't abort before Appium finishes the WDA handshake.
       // Prebuilt/cold paths still need minutes for xcodebuild or first launch.
       connectionRetryTimeout: usePreinstalledWda
-        ? 90 * 1000
+        ? 3 * 60 * 1000
         : usePrebuiltWda
           ? 5 * 60 * 1000
           : 12 * 60 * 1000,
@@ -115,17 +117,19 @@ export class EmulatorConfigBuilder {
               'appium:updatedWDABundleId':
                 process.env.IOS_WDA_BUNDLE_ID?.trim() ||
                 'com.facebook.WebDriverAgentRunner',
-              'appium:wdaLaunchTimeout': 60_000,
-              'appium:wdaConnectionTimeout': 10_000,
-              'appium:simulatorStartupTimeout': 120_000,
+              // CI evidence shows intermittent WDA launch/proxy timeouts at 60s/10s.
+              // Give the preinstalled path more room on loaded runners.
+              'appium:wdaLaunchTimeout': 120_000,
+              'appium:wdaConnectionTimeout': 30_000,
+              'appium:simulatorStartupTimeout': 180_000,
             }
           : usePrebuiltWda
             ? {
                 // Prebuilt WDA on CI: xcodebuild test-without-building (~minutes).
-                'appium:wdaLaunchTimeout': 60_000,
-                'appium:wdaConnectionTimeout': 10_000,
+                'appium:wdaLaunchTimeout': 120_000,
+                'appium:wdaConnectionTimeout': 30_000,
                 // Sim is booted in getDriver(); this covers XCUITest attach on loaded CI hosts.
-                'appium:simulatorStartupTimeout': 180_000,
+                'appium:simulatorStartupTimeout': 240_000,
               }
             : {
                 // Cold WDA build (local dev / cache miss): allow up to 10 min.
