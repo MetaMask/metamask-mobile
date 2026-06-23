@@ -5,7 +5,7 @@ import {
 } from '../../../mocks/mockLiveGame';
 import type { GameUpdate } from '../../../types';
 
-const MOCK_UPDATE_INTERVAL_MS = 20_000;
+const MOCK_UPDATE_INTERVAL_MS = 12_000;
 
 /**
  * Scripted stand-in for `useLiveGameUpdates` used by the Game Live screen's

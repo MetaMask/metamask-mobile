@@ -36,8 +36,8 @@ interface PlayerShooting {
   attempts: number;
 }
 
-const DEFAULT_FILLER_INTERVAL_MS: [number, number] = [8_000, 20_000];
-const DEFAULT_FLASH_INTERVAL_MS = 75_000;
+const DEFAULT_FILLER_INTERVAL_MS: [number, number] = [3_500, 9_000];
+const DEFAULT_FLASH_INTERVAL_MS = 40_000;
 const DEFAULT_FLASH_WINDOW_MS = 15_000;
 const DEFAULT_MAX_BACKLOG = 200;
 
