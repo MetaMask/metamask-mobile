@@ -29,6 +29,12 @@ export const selectQrSyncPrimaryMnemonic = createSelector(
     )?.value ?? null,
 );
 
+export const selectQrSyncHasImportPlan = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) =>
+    qrSyncState.importPlan !== null && qrSyncState.importPlan.length > 0,
+);
+
 export const selectQrSyncIsBusy = createSelector(
   selectQrSyncPhase,
   (phase) =>
@@ -50,11 +56,14 @@ export type QrSyncPresentation = 'instructions' | 'device-linked' | 'error';
 /** Maps controller phase to the add-device screen body (OTP uses a separate sheet). */
 export const selectQrSyncPresentation = createSelector(
   selectQrSyncPhase,
-  (phase): QrSyncPresentation => {
+  selectQrSyncHasImportPlan,
+  (phase, hasImportPlan): QrSyncPresentation => {
     switch (phase) {
       case QrSyncPhases.AWAITING_SYNC_READY:
       case QrSyncPhases.REVIEWING_IMPORT:
         return 'device-linked';
+      case QrSyncPhases.COMPLETED:
+        return hasImportPlan ? 'device-linked' : 'instructions';
       case QrSyncPhases.FAILED:
         return 'error';
       default:

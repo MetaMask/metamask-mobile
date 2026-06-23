@@ -22,11 +22,13 @@ import {
   createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
+  // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
 import {
   selectQrSyncError,
+  selectQrSyncHasImportPlan,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
   selectQrSyncPresentation,
@@ -64,7 +66,9 @@ const AddDeviceToWallet = () => {
   const navigation = useNavigation();
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
+  const hasNavigatedToImportRef = useRef(false);
   const presentation = useSelector(selectQrSyncPresentation);
+  const hasImportPlan = useSelector(selectQrSyncHasImportPlan);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
@@ -98,6 +102,19 @@ const AddDeviceToWallet = () => {
     hasOpenedVerificationSheetRef.current = true;
     showVerificationSheet();
   }, [shouldShowOtpSheet, showVerificationSheet]);
+
+  useEffect(() => {
+    if (!hasImportPlan || hasNavigatedToImportRef.current) {
+      return;
+    }
+
+    hasNavigatedToImportRef.current = true;
+
+    navigation.navigate(Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, {
+      initialStep: 1,
+      qrSyncImport: true,
+    });
+  }, [hasImportPlan, navigation]);
 
   const submitQrPayload = useCallback(async (qrPayload: string) => {
     await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);

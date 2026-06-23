@@ -172,7 +172,7 @@ const ImportFromSecretRecoveryPhrase = ({
   }, [seedPhrase]);
 
   useEffect(() => {
-    if (qrSyncPrimaryMnemonic) {
+    if (isQrSyncImport && qrSyncPrimaryMnemonic) {
       setSeedPhrase(qrSyncPrimaryMnemonic.split(SPACE_CHAR));
       setCurrentStep(1);
     }

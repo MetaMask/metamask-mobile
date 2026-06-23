@@ -1,6 +1,6 @@
 import type {
   ControllerGetStateAction,
-  ControllerStateChangedEvent,
+  ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 
@@ -31,7 +31,7 @@ export type QrSyncControllerActions = ControllerGetStateAction<
 >;
 
 /** Controller-local events emitted by the QR sync controller namespace. */
-export type QrSyncControllerEvents = ControllerStateChangedEvent<
+export type QrSyncControllerEvents = ControllerStateChangeEvent<
   typeof QR_SYNC_CONTROLLER_NAME,
   QrSyncControllerState
 >;
@@ -39,6 +39,6 @@ export type QrSyncControllerEvents = ControllerStateChangedEvent<
 /** Typed messenger used by the QR sync controller. */
 export type QrSyncControllerMessenger = Messenger<
   typeof QR_SYNC_CONTROLLER_NAME,
-  QrSyncControllerActions,
-  QrSyncControllerEvents
+  QrSyncControllerActions | never,
+  QrSyncControllerEvents | never
 >;
