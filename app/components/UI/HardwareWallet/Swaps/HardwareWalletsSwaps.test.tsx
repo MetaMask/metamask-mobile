@@ -908,7 +908,7 @@ describe('HardwareWalletsSwaps', () => {
       );
     });
 
-    it('cancel calls navigation.goBack (NOT Routes.BRIDGE.BRIDGE_VIEW)', () => {
+    it('cancel navigates to send confirmation', () => {
       setSendRouteParams({ withGasToken: true, withApproval: true });
 
       const { getByTestId } = renderSendScreen({});
@@ -917,8 +917,14 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
       );
 
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+        screen: Routes.SEND.RECIPIENT,
+      });
     });
 
     it('dispatches Failed when ensureDeviceReady resolves false', async () => {

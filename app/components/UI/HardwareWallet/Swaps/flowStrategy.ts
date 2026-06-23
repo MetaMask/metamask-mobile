@@ -18,8 +18,8 @@ export enum Flow {
 
 /**
  * Kind of navigation to perform when the user cancels.
- * - `GoBack`: pop the current screen (send flow — multiple entry points).
- * - `Navigate`: push a specific route (bridge flow — always `BRIDGE_VIEW`).
+ * - `GoBack`: pop the current screen.
+ * - `Navigate`: navigate to a specific route (and optional nested params).
  */
 export enum CancelTargetType {
   GoBack = 'goBack',
@@ -29,8 +29,10 @@ export enum CancelTargetType {
 /** Where to navigate on cancel. Discriminated by `type`. */
 export interface CancelTarget {
   type: CancelTargetType;
-  /** Route to push. Required when `type === CancelTargetType.Navigate`. */
+  /** Route to navigate to. Required when `type === CancelTargetType.Navigate`. */
   route?: string;
+  /** Nested navigator params (e.g. send confirm screen inside `Routes.SEND.DEFAULT`). */
+  params?: Record<string, unknown>;
 }
 
 /** Bridge-only submission payload (a selected quote + analytics context). */
@@ -141,7 +143,11 @@ export function resolveFlowStrategy(input: {
         approvalRequestId: routeParams.approvalRequestId,
       },
       cancelTarget: {
-        type: CancelTargetType.GoBack,
+        type: CancelTargetType.Navigate,
+        route: Routes.SEND.DEFAULT,
+        params: {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        },
       },
     };
   }

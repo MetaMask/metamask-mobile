@@ -620,7 +620,15 @@ describe('useDeviceConnectionFlow', () => {
     });
 
     it('connects and runs readiness check', async () => {
-      const mockAdapter = createMockAdapter();
+      const mockAdapter = createMockAdapter({
+        // First call is from ensureDeviceReady's async setup — must stay pending
+        // so connect still sees pendingReadyResolveRef and calls setDeviceId.
+        // Second call is connect's post-connect readiness check.
+        ensureDeviceReady: jest
+          .fn()
+          .mockResolvedValueOnce(false)
+          .mockResolvedValueOnce(true),
+      });
       const refs = createMockRefs();
       refs.adapterRef.current = mockAdapter;
       const options = createDefaultOptions({ refs });

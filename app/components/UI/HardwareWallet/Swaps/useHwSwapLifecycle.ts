@@ -280,6 +280,11 @@ export function useHwSwapLifecycle({
     const target = strategy.cancelTarget;
     if (target.type === CancelTargetType.GoBack) {
       navigation.goBack();
+    } else if (target.params) {
+      navigation.navigate(
+        target.route as string,
+        target.params as Record<string, unknown>,
+      );
     } else {
       navigation.navigate(target.route as string);
     }
@@ -294,7 +299,7 @@ export function useHwSwapLifecycle({
   }, [dispatch, cancelCurrentBatch, navigateOnCancel, clearCachedSubmission]);
 
   const retryFallback = useCallback(() => {
-    // Retry data missing → reset + cancel-navigation (send: goBack, bridge: BRIDGE_VIEW).
+    // Retry data missing → reset + cancel-navigation (send: confirm screen, bridge: BRIDGE_VIEW).
     dispatch(resetHardwareWalletsSwaps());
     navigateOnCancel();
   }, [dispatch, navigateOnCancel]);
