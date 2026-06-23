@@ -39,7 +39,6 @@ export function useTransactionAutoScroll<T>(
 
   // Track the first item ID to detect when a new item is added to the top
   const previousFirstItemIdRef = useRef<string | null>(null);
-  const previousDataLengthRef = useRef(0);
 
   /**
    * Track user scrolling to prevent disruptive auto-scrolls
@@ -90,22 +89,16 @@ export function useTransactionAutoScroll<T>(
     if (isInitialRenderRef.current) {
       isInitialRenderRef.current = false;
       previousFirstItemIdRef.current = currentFirstItemId;
-      previousDataLengthRef.current = data.length;
       return;
     }
 
-    // Detect if a new item was added
-    const listGrew = data.length > previousDataLengthRef.current;
     const firstItemChanged =
       previousFirstItemIdRef.current !== null &&
       currentFirstItemId !== null &&
       currentFirstItemId !== previousFirstItemIdRef.current;
 
-    // Only scroll if we have valid item data and a change occurred
     const hasNewItem =
-      data.length > 0 &&
-      currentFirstItemId !== null &&
-      (listGrew || firstItemChanged);
+      data.length > 0 && currentFirstItemId !== null && firstItemChanged;
 
     if (hasNewItem && listRef.current) {
       // Clear any pending scroll
@@ -133,7 +126,6 @@ export function useTransactionAutoScroll<T>(
     }
 
     previousFirstItemIdRef.current = currentFirstItemId;
-    previousDataLengthRef.current = data.length;
   }, [data, enabled, delay, keyExtractor, listRef]);
 
   /**

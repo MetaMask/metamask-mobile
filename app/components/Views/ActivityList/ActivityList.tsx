@@ -631,6 +631,25 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter === ActivityTypeFilter.All ||
       typeFilter === ActivityTypeFilter.Predictions;
 
+    const perpsFilterActive =
+      typeFilter === ActivityTypeFilter.Perps ||
+      typeFilter === ActivityTypeFilter.All;
+    const predictFilterActive =
+      typeFilter === ActivityTypeFilter.Predictions ||
+      typeFilter === ActivityTypeFilter.All;
+
+    const perpsActivatedRef = useRef(false);
+    const predictActivatedRef = useRef(false);
+    if (isPerpsEnabled && perpsFilterActive) {
+      perpsActivatedRef.current = true;
+    }
+    if (isPredictEnabled && predictFilterActive) {
+      predictActivatedRef.current = true;
+    }
+    const shouldMountPerpsSource = isPerpsEnabled && perpsActivatedRef.current;
+    const shouldMountPredictSource =
+      isPredictEnabled && predictActivatedRef.current;
+
     const isFetchingMoreActivity =
       isFetchingNextPage ||
       (isPerpsEnabled &&
@@ -996,7 +1015,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const listRef = useRef<FlashListRef<GroupedActivityListItem>>(null);
 
+    const isDomainFilter =
+      typeFilter === ActivityTypeFilter.Perps ||
+      typeFilter === ActivityTypeFilter.Predictions;
     const { handleScroll } = useTransactionAutoScroll(groupedData, listRef, {
+      enabled: !isDomainFilter,
       keyExtractor: generateGroupedKey,
     });
 
@@ -1152,6 +1175,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           <PriceChartContext.Consumer>
             {({ isChartBeingTouched }) => (
               <AnimatedFlashList
+                key={`${typeFilter ?? 'all'}|${
+                  networkFilter?.join(',') ?? 'all'
+                }`}
                 ref={listRef}
                 data={items}
                 testID={ActivityListSelectorsIDs.CONTAINER}
@@ -1164,6 +1190,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                     : renderEmptyList
                 }
                 ListFooterComponent={footerComponent}
+                maintainVisibleContentPosition={{
+                  autoscrollToTopThreshold: 100,
+                }}
                 style={baseStyles.flexGrow}
                 contentContainerStyle={tw.style('px-4 pb-8')}
                 refreshControl={
@@ -1182,13 +1211,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               />
             )}
           </PriceChartContext.Consumer>
-          {/* Renderless perps feed — mounts the perps providers only when enabled */}
-          {isPerpsEnabled ? (
+          {shouldMountPerpsSource ? (
             <PerpsActivitySource onChange={setPerpsSource} />
           ) : null}
-          {/* Renderless predict feed — gated so its Polygon-ensure side effect
-            never runs for users without Predict enabled */}
-          {isPredictEnabled ? (
+          {shouldMountPredictSource ? (
             <PredictActivitySource onChange={setPredictSource} />
           ) : null}
           {/* Speed up / Cancel modals */}

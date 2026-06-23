@@ -463,6 +463,7 @@ let mockPerpsSourceState: {
 
 jest.mock('./hooks/PerpsActivitySource', () => {
   const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
   return {
     INITIAL_PERPS_ACTIVITY_SOURCE_STATE: {
       items: [],
@@ -477,7 +478,9 @@ jest.mock('./hooks/PerpsActivitySource', () => {
       ReactActual.useEffect(() => {
         onChange(mockPerpsSourceState);
       }, [onChange]);
-      return null;
+      return ReactActual.createElement(View, {
+        testID: 'perps-source-mounted',
+      });
     },
   };
 });
@@ -494,6 +497,7 @@ let mockPredictSourceState: {
 
 jest.mock('./hooks/PredictActivitySource', () => {
   const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
   return {
     INITIAL_PREDICT_ACTIVITY_SOURCE_STATE: {
       items: [],
@@ -508,7 +512,9 @@ jest.mock('./hooks/PredictActivitySource', () => {
       ReactActual.useEffect(() => {
         onChange(mockPredictSourceState);
       }, [onChange]);
-      return null;
+      return ReactActual.createElement(View, {
+        testID: 'predict-source-mounted',
+      });
     },
   };
 });
@@ -516,7 +522,6 @@ jest.mock('./hooks/PredictActivitySource', () => {
 const mockNavigate = jest.fn();
 const mockFetchNextPage = jest.fn();
 const mockRefetch = jest.fn(() => Promise.resolve());
-const mockOnScroll = jest.fn();
 
 const selectorValues = {
   bridgeHistory: {
@@ -659,7 +664,7 @@ describe('ActivityList', () => {
   });
 
   it('navigates to transaction details when a confirmed row is pressed', async () => {
-    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+    render(<ActivityList header={<></>} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
 
@@ -693,7 +698,7 @@ describe('ActivityList', () => {
           }),
       );
 
-    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+    render(<ActivityList header={<></>} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
     fireEvent.press(screen.getByTestId('row-0xlocal'));
@@ -719,7 +724,7 @@ describe('ActivityList', () => {
       .mocked(decodeTransaction)
       .mockRejectedValueOnce(new Error('decode failed'));
 
-    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+    render(<ActivityList header={<></>} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
 
@@ -781,7 +786,7 @@ describe('ActivityList', () => {
     (useLocalActivityItems as jest.Mock).mockReturnValue([]);
     selectorValues.enabledEvm = ['0x1', '0x89'];
 
-    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+    render(<ActivityList header={<></>} />);
 
     expect(
       screen.getByTestId('mock-key-eip155:1-send-123-1'),
@@ -1105,6 +1110,35 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
 
     expect(screen.getByTestId('row-predict-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-source-mounted')).toBeOnTheScreen();
+  });
+
+  it('does NOT mount the predict source on the default Transactions tab', () => {
+    selectorValues.predictEnabled = true;
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(screen.queryByTestId('predict-source-mounted')).toBeNull();
+  });
+
+  it('does NOT mount the perps source on the Transactions tab', () => {
+    selectorValues.perpsEnabled = true;
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(screen.queryByTestId('perps-source-mounted')).toBeNull();
+  });
+
+  it('keeps the perps source mounted after switching away from Perps (no refetch churn)', () => {
+    selectorValues.perpsEnabled = true;
+
+    const { rerender } = render(
+      <ActivityList typeFilter={ActivityTypeFilter.Perps} />,
+    );
+    expect(screen.getByTestId('perps-source-mounted')).toBeOnTheScreen();
+
+    rerender(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+    expect(screen.getByTestId('perps-source-mounted')).toBeOnTheScreen();
   });
 
   it('does not render predict items when the predict flag is disabled', () => {
