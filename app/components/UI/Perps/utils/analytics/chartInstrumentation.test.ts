@@ -15,23 +15,32 @@ jest.mock('@metamask/perps-controller', () => ({
 }));
 
 import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
 } from './chartInstrumentation';
 
 describe('chartInstrumentation', () => {
   it('returns the advanced chart library value when advanced chart is enabled', () => {
-    expect(getPerpsChartLibrary(true)).toBe('advanced');
+    expect(getPerpsChartLibrary(true)).toBe(
+      PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+    );
   });
 
   it('returns the lightweight chart library value when advanced chart is disabled', () => {
-    expect(getPerpsChartLibrary(false)).toBe('lightweight');
+    expect(getPerpsChartLibrary(false)).toBe(
+      PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+    );
   });
 
-  it('returns reusable chart analytics properties', () => {
+  it('returns reusable chart analytics properties from core constants', () => {
     expect(getPerpsChartAnalyticsProperties(true)).toStrictEqual({
-      chart_library: 'advanced',
-      asset_type: 'perp',
+      [PERPS_EVENT_PROPERTY.CHART_LIBRARY]:
+        PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+      [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
     });
   });
 });
