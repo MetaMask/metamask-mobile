@@ -100,9 +100,15 @@ describe('useFollowedTraders', () => {
         {
           id: 'trader-1',
           username: 'trader1',
+          address: '0x1',
           avatarUri: 'https://example.com/a1.png',
         },
-        { id: 'trader-2', username: 'trader2', avatarUri: undefined },
+        {
+          id: 'trader-2',
+          username: 'trader2',
+          address: '0x2',
+          avatarUri: undefined,
+        },
       ]);
     });
   });
