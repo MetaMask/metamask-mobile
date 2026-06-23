@@ -2,11 +2,33 @@
 import React, { memo } from 'react';
 import { Image, ImageStyle, StyleProp } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import { useSelector } from 'react-redux';
-import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+
+const AVATAR_SIZE_TO_ACCOUNT_SIZE: Record<AvatarSize, AvatarAccountSize> = {
+  [AvatarSize.Xs]: AvatarAccountSize.Xs,
+  [AvatarSize.Sm]: AvatarAccountSize.Sm,
+  [AvatarSize.Md]: AvatarAccountSize.Md,
+  [AvatarSize.Lg]: AvatarAccountSize.Lg,
+  [AvatarSize.Xl]: AvatarAccountSize.Xl,
+};
+
+const AVATAR_ACCOUNT_TYPE_TO_VARIANT: Record<
+  AvatarAccountType,
+  AvatarAccountVariant
+> = {
+  [AvatarAccountType.JazzIcon]: AvatarAccountVariant.Jazzicon,
+  [AvatarAccountType.Blockies]: AvatarAccountVariant.Blockies,
+  [AvatarAccountType.Maskicon]: AvatarAccountVariant.Maskicon,
+};
 
 interface IdenticonProps {
   /**
@@ -79,9 +101,9 @@ const Identicon: React.FC<IdenticonProps> = ({
 
   const avatar = (
     <AvatarAccount
-      type={avatarAccountType}
-      accountAddress={address}
-      size={avatarSize}
+      variant={AVATAR_ACCOUNT_TYPE_TO_VARIANT[avatarAccountType]}
+      address={address}
+      size={AVATAR_SIZE_TO_ACCOUNT_SIZE[avatarSize]}
     />
   );
 
