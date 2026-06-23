@@ -80,7 +80,7 @@ export type PositionSide = 'long' | 'short';
  */
 export interface PositionLines {
   side: PositionSide;
-  entryPrice: number;
+  entryPrice?: number;
   currentPrice?: number;
   takeProfitPrice?: number;
   stopLossPrice?: number;
@@ -119,6 +119,7 @@ export interface TradeMarker {
  * colors are passed in rather than read from the shared chart `CONFIG.theme`.
  */
 export interface PositionLineColors {
+  currentPrice?: string;
   entry: string;
   takeProfit: string;
   stopLoss: string;

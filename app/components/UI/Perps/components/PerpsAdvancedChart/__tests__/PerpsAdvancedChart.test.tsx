@@ -6,6 +6,7 @@ import {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
+import { advancedChartLineChromePresets } from '../../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import type { AdvancedChartProps } from '../../../../Charts/AdvancedChart/AdvancedChart.types';
 import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
@@ -106,7 +107,8 @@ describe('PerpsAdvancedChart', () => {
 
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
-        currentPriceLineColorOverride: mockTheme.colors.text.default,
+        lineChrome: advancedChartLineChromePresets.perps.lineChrome,
+        currentPriceLineColorOverride: mockTheme.colors.background.muted,
         volumeSuccessColorOverride: volumeColors.success,
         volumeErrorColorOverride: volumeColors.error,
       }),
@@ -143,6 +145,31 @@ describe('PerpsAdvancedChart', () => {
     renderChart({ onLatestPriceChange });
 
     expect(onLatestPriceChange).toHaveBeenCalledWith(42050);
+  });
+
+  it('passes latest close as the unlabeled current-price guide', () => {
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      latestBar: {
+        time: 1000,
+        open: 42000,
+        high: 42100,
+        low: 41900,
+        close: 42050,
+        volume: 100,
+      },
+    });
+
+    renderChart();
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        positionLines: {
+          side: 'long',
+          currentPrice: 42050,
+        },
+      }),
+    );
   });
 
   it('passes mapped position lines to AdvancedChart', () => {
@@ -416,15 +443,19 @@ describe('mapTpslToPositionLines', () => {
 });
 
 describe('getPerpsPositionLineColors', () => {
-  it('maps the four overlay lines to the matching theme tokens (parity with the Lightweight chart)', () => {
+  it('maps overlay lines to the matching theme tokens', () => {
     const colors = {
-      text: { alternative: 'token-text-alternative' },
+      text: {
+        default: 'token-text-default',
+        alternative: 'token-text-alternative',
+      },
       success: { default: 'token-success-default' },
       warning: { default: 'token-warning-default' },
       error: { default: 'token-error-default' },
     } as unknown as Colors;
 
     expect(getPerpsPositionLineColors(colors)).toEqual({
+      currentPrice: 'token-text-default',
       entry: 'token-text-alternative',
       takeProfit: 'token-success-default',
       stopLoss: 'token-warning-default',
