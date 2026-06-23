@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow } from '../utils';
 import { acceptVipInvite } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
@@ -106,7 +107,7 @@ const RewardsVipViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewVip) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
     }
   }, [canViewVip, navigation]);
 
