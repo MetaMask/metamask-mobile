@@ -1,6 +1,6 @@
 import { FeatureId } from '@metamask/bridge-controller';
 
-import type { QuickBuySheetSource } from '../../../../analytics';
+import type { QuickBuySheetSource } from '../analytics';
 
 export function getQuickBuyFeatureId(source?: QuickBuySheetSource): FeatureId {
   switch (source) {
