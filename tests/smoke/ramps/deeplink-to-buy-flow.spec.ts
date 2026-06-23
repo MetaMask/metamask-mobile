@@ -44,7 +44,7 @@ describe(SmokeMoney('Buy Crypto Deeplinks'), () => {
 
         // V2: chainId-only deeplink resolves to native ETH and opens BuildQuote directly.
         await Assertions.expectTextDisplayed('Buy ETH');
-        await Assertions.expectTextDisplayed('USD');
+        await Assertions.expectTextDisplayed('on Ethereum Main Network');
       },
     );
   });
