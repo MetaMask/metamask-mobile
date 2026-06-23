@@ -8,6 +8,7 @@ import React, {
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
+import { ActivityIndicator } from 'react-native';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -94,6 +95,7 @@ const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
+  const [isHandlingCallback, setIsHandlingCallback] = useState(false);
   const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
@@ -354,14 +356,17 @@ const Checkout = () => {
     async (navState: WebViewNavigation) => {
       recordUrlChange(navState.url);
 
+      const isCallbackNavigation = navState.url.startsWith(callbackBaseUrl);
       if (
         !hasCallbackFlow ||
         isRedirectionHandledRef.current ||
-        !navState.url.startsWith(callbackBaseUrl) ||
+        !isCallbackNavigation ||
         navState.loading !== false
       ) {
         return;
       }
+
+      setIsHandlingCallback(true);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_CALLBACK_DETECTED)
@@ -454,6 +459,7 @@ const Checkout = () => {
         });
       } catch (navError) {
         closeSourceRef.current = 'callback_error';
+        setIsHandlingCallback(false);
         Logger.error(navError as Error, {
           message: 'UnifiedCheckout: error handling callback',
         });
@@ -572,11 +578,18 @@ const Checkout = () => {
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => {
       if (url.startsWith(callbackBaseUrl)) {
+        if (hasCallbackFlow || onNavigationStateChange) {
+          setIsHandlingCallback(true);
+        }
         if (hasCallbackFlow) {
-          void handleNavigationStateChange({
+          handleNavigationStateChange({
             url,
             loading: false,
-          } as WebViewNavigation);
+          } as WebViewNavigation).catch((callbackError) => {
+            Logger.error(callbackError as Error, {
+              message: 'UnifiedCheckout: error forwarding callback URL',
+            });
+          });
         } else if (onNavigationStateChange) {
           handleNavigationStateChangeWithDedup({ url });
         }
@@ -673,6 +686,7 @@ const Checkout = () => {
               ctaOnPress={() => {
                 setKey((prevKey) => prevKey + 1);
                 setError('');
+                setIsHandlingCallback(false);
                 isRedirectionHandledRef.current = false;
                 lastLoadCompleteUrlRef.current = null;
                 loadUrlErrorsRef.current.clear();
@@ -701,70 +715,78 @@ const Checkout = () => {
         twClassName={surfaceClass}
       >
         {sharedHeader}
-        <WebView
-          key={key}
-          style={styles.webview}
-          source={{ uri }}
-          userAgent={userAgent ?? undefined}
-          onHttpError={(syntheticEvent) => {
-            const { nativeEvent } = syntheticEvent;
-            const errorUrl = nativeEvent.url;
-            const isInitialUrl = errorUrl === initialUriRef.current;
-            const isTerminal =
-              isInitialUrl || errorUrl.startsWith(callbackBaseUrl);
+        {isHandlingCallback ? (
+          <ScreenLayout>
+            <ScreenLayout.Body>
+              <ActivityIndicator testID={CHECKOUT_TEST_IDS.CALLBACK_LOADING} />
+            </ScreenLayout.Body>
+          </ScreenLayout>
+        ) : (
+          <WebView
+            key={key}
+            style={styles.webview}
+            source={{ uri }}
+            userAgent={userAgent ?? undefined}
+            onHttpError={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              const errorUrl = nativeEvent.url;
+              const isInitialUrl = errorUrl === initialUriRef.current;
+              const isTerminal =
+                isInitialUrl || errorUrl.startsWith(callbackBaseUrl);
 
-            loadUrlErrorsRef.current.add(errorUrl);
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
-              )
-                .addProperties({
-                  ...buildBaseProps({
-                    checkoutSessionId,
-                    providerName,
-                    ...headlessBaseOverrides,
-                  }),
-                  url_path: redactUrlForAnalytics(errorUrl),
-                  status_code: nativeEvent.statusCode,
-                  is_initial_url: isInitialUrl,
-                  error_message: strings(
-                    'fiat_on_ramp_aggregator.webview_received_error',
-                    { code: nativeEvent.statusCode },
-                  ),
-                })
-                .build(),
-            );
-
-            if (isTerminal) {
-              closeSourceRef.current = 'http_error';
-              const webviewHttpError = strings(
-                'fiat_on_ramp_aggregator.webview_received_error',
-                { code: nativeEvent.statusCode },
+              loadUrlErrorsRef.current.add(errorUrl);
+              trackEvent(
+                createEventBuilder(
+                  MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+                )
+                  .addProperties({
+                    ...buildBaseProps({
+                      checkoutSessionId,
+                      providerName,
+                      ...headlessBaseOverrides,
+                    }),
+                    url_path: redactUrlForAnalytics(errorUrl),
+                    status_code: nativeEvent.statusCode,
+                    is_initial_url: isInitialUrl,
+                    error_message: strings(
+                      'fiat_on_ramp_aggregator.webview_received_error',
+                      { code: nativeEvent.statusCode },
+                    ),
+                  })
+                  .build(),
               );
-              if (failHeadlessCheckout(new Error(webviewHttpError))) {
-                return;
+
+              if (isTerminal) {
+                closeSourceRef.current = 'http_error';
+                const webviewHttpError = strings(
+                  'fiat_on_ramp_aggregator.webview_received_error',
+                  { code: nativeEvent.statusCode },
+                );
+                if (failHeadlessCheckout(new Error(webviewHttpError))) {
+                  return;
+                }
+                setError(webviewHttpError);
+              } else {
+                Logger.log(
+                  `Checkout: HTTP error ${nativeEvent.statusCode} for auxiliary resource: ${errorUrl}`,
+                );
               }
-              setError(webviewHttpError);
-            } else {
-              Logger.log(
-                `Checkout: HTTP error ${nativeEvent.statusCode} for auxiliary resource: ${errorUrl}`,
-              );
+            }}
+            allowsInlineMediaPlayback
+            enableApplePay
+            paymentRequestEnabled
+            mediaPlaybackRequiresUserAction={false}
+            onLoadStart={handleLoadStart}
+            onLoadEnd={handleLoadEnd}
+            onNavigationStateChange={
+              hasCallbackFlow
+                ? handleNavigationStateChange
+                : handleNavigationStateChangeWithDedup
             }
-          }}
-          allowsInlineMediaPlayback
-          enableApplePay
-          paymentRequestEnabled
-          mediaPlaybackRequiresUserAction={false}
-          onLoadStart={handleLoadStart}
-          onLoadEnd={handleLoadEnd}
-          onNavigationStateChange={
-            hasCallbackFlow
-              ? handleNavigationStateChange
-              : handleNavigationStateChangeWithDedup
-          }
-          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          testID={CHECKOUT_TEST_IDS.WEBVIEW}
-        />
+            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+            testID={CHECKOUT_TEST_IDS.WEBVIEW}
+          />
+        )}
       </BottomSheet>
     );
   }

@@ -1,4 +1,5 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import type { Hex } from '@metamask/utils';
 
 /**
@@ -37,7 +38,8 @@ export type AccountsApiActivity =
  **/
 export type MoneyActivityItem =
   | { kind: 'onchain'; id: string; time: number; tx: TransactionMeta }
-  | { kind: 'accountsApi'; id: string; time: number; tx: AccountsApiActivity };
+  | { kind: 'accountsApi'; id: string; time: number; tx: AccountsApiActivity }
+  | { kind: 'rampOrder'; id: string; time: number; order: RampsOrder };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
   kind: 'onchain',
@@ -53,4 +55,24 @@ export const accountsApiItem = (
   id: tx.hash,
   time: tx.time,
   tx,
+});
+
+function toEpochMs(value: unknown): number {
+  if (typeof value === 'number' && value > 0) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const ms = new Date(value).getTime();
+    if (!Number.isNaN(ms)) {
+      return ms;
+    }
+  }
+  return 0;
+}
+
+export const rampOrderItem = (order: RampsOrder): MoneyActivityItem => ({
+  kind: 'rampOrder',
+  id: order.providerOrderId,
+  time: toEpochMs(order.createdAt),
+  order,
 });

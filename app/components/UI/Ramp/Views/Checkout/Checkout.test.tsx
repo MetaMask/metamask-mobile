@@ -668,14 +668,24 @@ describe('Checkout', () => {
         onNavigationStateChange: mockCallback,
       });
 
-      renderWithProvider(<Checkout />, {}, true, false);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
 
-      const result = capturedOnShouldStartLoadWithRequest?.({
-        url: callbackUrl,
+      let result: boolean | undefined;
+      act(() => {
+        result = capturedOnShouldStartLoadWithRequest?.({
+          url: callbackUrl,
+        });
       });
 
       expect(result).toBe(false);
       expect(mockCallback).toHaveBeenCalledWith({ url: callbackUrl });
+      expect(getByTestId('checkout-callback-loading')).toBeOnTheScreen();
+      expect(queryByTestId('checkout-webview')).toBeNull();
       expect(shouldStartLoadWithRequest).not.toHaveBeenCalled();
     });
 
@@ -692,13 +702,23 @@ describe('Checkout', () => {
         cryptocurrency: 'ETH',
       });
 
-      renderWithProvider(<Checkout />, {}, true, false);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
 
-      const result = capturedOnShouldStartLoadWithRequest?.({
-        url: callbackUrl,
+      let result: boolean | undefined;
+      act(() => {
+        result = capturedOnShouldStartLoadWithRequest?.({
+          url: callbackUrl,
+        });
       });
 
       expect(result).toBe(false);
+      expect(getByTestId('checkout-callback-loading')).toBeOnTheScreen();
+      expect(queryByTestId('checkout-webview')).toBeNull();
       await waitFor(() => {
         expect(mockNavigation.reset).toHaveBeenCalledWith({
           index: 0,
