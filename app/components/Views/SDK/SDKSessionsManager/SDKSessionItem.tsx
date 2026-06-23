@@ -5,7 +5,6 @@ import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
   BadgeStatusState,
@@ -13,6 +12,8 @@ import Badge, {
 } from '../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import {
+  AvatarFavicon,
+  AvatarFaviconSize,
   Button,
   ButtonBaseSize,
   ButtonVariant,
@@ -132,7 +133,11 @@ export const SDKSessionItem = ({
         }
       >
         {icon ? (
-          <AvatarFavicon imageSource={{ uri: icon }} />
+          <AvatarFavicon
+            src={{ uri: icon }}
+            name={sessionName}
+            size={AvatarFaviconSize.Md}
+          />
         ) : (
           <AvatarToken name={sessionName} isHaloEnabled size={AvatarSize.Md} />
         )}
