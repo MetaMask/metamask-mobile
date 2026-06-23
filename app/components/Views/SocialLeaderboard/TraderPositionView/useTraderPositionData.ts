@@ -44,6 +44,8 @@ const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
   All: 3 * 365 * 24 * 60 * 60 * 1000,
 };
 
+const TRADE_FOCUS_PREFETCH_PERIODS: readonly TimePeriod[] = ['1M', 'All'];
+
 /**
  * Hyperliquid candle interval + baseline candle count per chart period. The base
  * count fills the period's default window when a position has no (or only recent)
@@ -324,48 +326,59 @@ export function useTraderPositionData(
     };
   }, [positionParam, caipChainId, currentCurrency]);
 
-  // ── Hyperliquid perps: lazy per-period candleSnapshot ────────────────────
-  // Fetch ONLY the selected period (cached per position), so a period hits the
-  // network the first time it's opened and is reused thereafter. The candle count
-  // is anchored back to the earliest trade (capped at the API max) so closed
-  // positions still frame their trades.
+  // ── Hyperliquid perps: cached candleSnapshot data ─────────────────────────
+  // Fetch the selected period plus 1M/All ahead of trade taps. Trade focus only
+  // jumps between 1M and All, so warming both avoids a fresh network request on
+  // most taps. The candle count is anchored back to the earliest trade (capped at
+  // the API max) so closed positions still frame their trades.
   useEffect(() => {
     if (!positionParam || !isPerp) return;
 
-    // Already fetched for this position + period → reuse, no network call.
-    if (perpCache.key === perpKey && perpCache.prices[activeTimePeriod]) {
+    const periodsToFetch = Array.from(
+      new Set([activeTimePeriod, ...TRADE_FOCUS_PREFETCH_PERIODS]),
+    ).filter(
+      (period) => !(perpCache.key === perpKey && perpCache.prices[period]),
+    );
+
+    if (!periodsToFetch.length) {
       setIsPricesLoading(false);
       return;
     }
 
-    setIsPricesLoading(true);
+    const isFetchingActivePeriod = periodsToFetch.includes(activeTimePeriod);
+    setIsPricesLoading(isFetchingActivePeriod);
     let cancelled = false;
     const nowMs = Date.now();
-    const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[activeTimePeriod];
-    const limit = resolveHyperliquidCandleLimit({
-      interval,
-      baseLimit,
-      earliestTradeMs,
-      nowMs,
-    });
 
     // fetchHyperliquidHistoricalPrices never rejects (it logs + returns [] on
     // failure), so the empty result is cached and we don't refetch in a loop.
-    fetchHyperliquidHistoricalPrices({
-      symbol: positionParam.tokenSymbol,
-      interval,
-      limit,
-      nowMs,
-    }).then((fetched) => {
-      if (cancelled) return;
-      setPerpCache((prev) => ({
-        key: perpKey,
-        prices:
-          prev.key === perpKey
-            ? { ...prev.prices, [activeTimePeriod]: fetched }
-            : { [activeTimePeriod]: fetched },
-      }));
-      setIsPricesLoading(false);
+    periodsToFetch.forEach((period) => {
+      const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[period];
+      const limit = resolveHyperliquidCandleLimit({
+        interval,
+        baseLimit,
+        earliestTradeMs,
+        nowMs,
+      });
+
+      fetchHyperliquidHistoricalPrices({
+        symbol: positionParam.tokenSymbol,
+        interval,
+        limit,
+        nowMs,
+      }).then((prices) => {
+        if (cancelled) return;
+        setPerpCache((prev) => ({
+          key: perpKey,
+          prices:
+            prev.key === perpKey
+              ? { ...prev.prices, [period]: prices }
+              : { [period]: prices },
+        }));
+        if (period === activeTimePeriod) {
+          setIsPricesLoading(false);
+        }
+      });
     });
 
     return () => {

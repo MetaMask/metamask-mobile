@@ -43,7 +43,10 @@ import TraderPositionPnLCard from './components/TraderPositionPnLCard';
 import TraderTradesSection from './components/TraderTradesSection';
 import TraderPositionSkeleton from './components/TraderPositionSkeleton';
 import TraderPositionFallback from './components/TraderPositionFallback';
-import { useTraderPositionData } from './useTraderPositionData';
+import {
+  useTraderPositionData,
+  type TimePeriod,
+} from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
@@ -61,7 +64,10 @@ import {
 } from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import type { Trade } from '@metamask/social-controllers';
-import type { TradeFocusRequest } from './components/TraderAdvancedChart';
+import {
+  getTradeFocusSpanMs,
+  type TradeFocusRequest,
+} from './components/TraderAdvancedChart';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -346,14 +352,35 @@ const TraderPositionView = () => {
   // on every tap so re-tapping the same trade re-centers it.
   const focusNonceRef = useRef(0);
   const [focusRequest, setFocusRequest] = useState<TradeFocusRequest>();
-  const handleTradePress = useCallback((trade: Trade) => {
-    focusNonceRef.current += 1;
-    setFocusRequest({
-      id: trade.transactionHash,
-      timestamp: trade.timestamp,
-      nonce: focusNonceRef.current,
-    });
-  }, []);
+  const handleRequestFocusTimePeriod = useCallback(
+    (timePeriod: TimePeriod) => {
+      setActiveTimePeriod(timePeriod);
+      setFocusRequest((current) =>
+        current
+          ? {
+              ...current,
+              timePeriod,
+              spanMs: getTradeFocusSpanMs(timePeriod),
+            }
+          : current,
+      );
+    },
+    [setActiveTimePeriod],
+  );
+
+  const handleTradePress = useCallback(
+    (trade: Trade) => {
+      focusNonceRef.current += 1;
+      setFocusRequest({
+        id: trade.transactionHash,
+        timestamp: trade.timestamp,
+        nonce: focusNonceRef.current,
+        timePeriod: activeTimePeriod,
+        spanMs: getTradeFocusSpanMs(activeTimePeriod),
+      });
+    },
+    [activeTimePeriod],
+  );
 
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
@@ -410,6 +437,7 @@ const TraderPositionView = () => {
               activeTimePeriod={activeTimePeriod}
               onScrubPercentChange={setScrubPercent}
               focusRequest={focusRequest}
+              onRequestTimePeriod={handleRequestFocusTimePeriod}
             />
 
             <TraderTimePeriodSelector

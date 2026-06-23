@@ -41,6 +41,8 @@ export interface TraderPositionChartSectionProps {
   onScrubPercentChange?: (percent: number | null) => void;
   /** When set, the AdvancedChart slides to center this trade. */
   focusRequest?: TradeFocusRequest;
+  /** Request a wider period when the focused trade is older than loaded chart data. */
+  onRequestTimePeriod?: (period: TimePeriod) => void;
 }
 
 const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
@@ -54,6 +56,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   activeTimePeriod,
   onScrubPercentChange,
   focusRequest,
+  onRequestTimePeriod,
 }) => (
   <PriceChartProvider>
     <Box twClassName="mx-4 my-3">
@@ -64,6 +67,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           activeTimePeriod={activeTimePeriod}
           trades={trades}
           focusRequest={focusRequest}
+          onRequestTimePeriod={onRequestTimePeriod}
           historicalPrices={historicalPrices}
           priceDiff={priceDiff}
           isPricesLoading={isPricesLoading}

@@ -5,6 +5,8 @@ import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { useOHLCVChart } from '../../../../UI/Charts/AdvancedChart/useOHLCVChart';
 import type { OHLCVBar } from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
 import TraderAdvancedChart, {
+  getRecommendedTradeFocusPeriod,
+  getTradeFocusSpanMs,
   mapTradesToAdvancedMarkers,
 } from './TraderAdvancedChart';
 
@@ -88,6 +90,43 @@ const defaultProps = {
   isPricesLoading: false,
   onChartIndexChange: jest.fn(),
 };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+describe('getRecommendedTradeFocusPeriod', () => {
+  const now = 1_700_000_000_000;
+  const ago = (ms: number) => now - ms;
+
+  it('uses only 1M and All for spot trade focus', () => {
+    expect(
+      getRecommendedTradeFocusPeriod(ago(30 * 60 * 1000), false, now),
+    ).toBe('1M');
+    expect(
+      getRecommendedTradeFocusPeriod(ago(12 * 60 * 60 * 1000), false, now),
+    ).toBe('1M');
+    expect(getRecommendedTradeFocusPeriod(ago(3 * DAY_MS), false, now)).toBe(
+      '1M',
+    );
+    expect(getRecommendedTradeFocusPeriod(ago(30 * DAY_MS), false, now)).toBe(
+      '1M',
+    );
+    expect(getRecommendedTradeFocusPeriod(ago(31 * DAY_MS), false, now)).toBe(
+      'All',
+    );
+  });
+
+  it('uses only 1M and All for perp trade focus', () => {
+    expect(getRecommendedTradeFocusPeriod(ago(30 * 60 * 1000), true, now)).toBe(
+      '1M',
+    );
+    expect(getRecommendedTradeFocusPeriod(ago(30 * DAY_MS), true, now)).toBe(
+      '1M',
+    );
+    expect(getRecommendedTradeFocusPeriod(ago(31 * DAY_MS), true, now)).toBe(
+      'All',
+    );
+  });
+});
 
 describe('mapTradesToAdvancedMarkers', () => {
   const baseTrade = (overrides: Partial<Trade> = {}): Trade => ({
@@ -338,7 +377,7 @@ describe('TraderAdvancedChart', () => {
     expect(queryByTestId('advanced-chart')).toBeNull();
   });
 
-  it('centers and pulses a trade when focusRequest changes (normalizing seconds → ms)', () => {
+  it('centers and pulses a trade in the current period when its data is loaded', () => {
     setOHLCV(makeBars(20));
 
     const { rerender } = render(<TraderAdvancedChart {...defaultProps} />);
@@ -348,20 +387,84 @@ describe('TraderAdvancedChart', () => {
     rerender(
       <TraderAdvancedChart
         {...defaultProps}
-        focusRequest={{ id: '0xbuy', timestamp: 1_700_000_060, nonce: 1 }}
+        focusRequest={{
+          id: '0xbuy',
+          timestamp: 1_700_000_060,
+          nonce: 1,
+          timePeriod: '1D',
+          spanMs: getTradeFocusSpanMs('1D'),
+        }}
       />,
     );
-    expect(mockFocusTime).toHaveBeenCalledWith(1_700_000_060_000);
+    expect(mockFocusTime).toHaveBeenCalledWith(1_700_000_060_000, {
+      spanMs: getTradeFocusSpanMs('1D'),
+    });
     expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xbuy');
 
     // Re-tapping (new nonce) re-centers and re-pulses, even with the same trade.
     rerender(
       <TraderAdvancedChart
         {...defaultProps}
-        focusRequest={{ id: '0xbuy', timestamp: 1_700_000_060, nonce: 2 }}
+        focusRequest={{
+          id: '0xbuy',
+          timestamp: 1_700_000_060,
+          nonce: 2,
+          timePeriod: '1D',
+          spanMs: getTradeFocusSpanMs('1D'),
+        }}
       />,
     );
     expect(mockFocusTime).toHaveBeenCalledTimes(2);
     expect(mockPulseTradeMarker).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not focus when the selected widest period still lacks the trade time', () => {
+    const bars = makeBars(20);
+    setOHLCV(bars);
+    const mockRequestTimePeriod = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="All"
+        focusRequest={{
+          id: '0xold',
+          timestamp: bars[0].time - DAY_MS,
+          nonce: 1,
+          timePeriod: 'All',
+          spanMs: getTradeFocusSpanMs('All'),
+        }}
+        onRequestTimePeriod={mockRequestTimePeriod}
+      />,
+    );
+
+    expect(mockFocusTime).not.toHaveBeenCalled();
+    expect(mockPulseTradeMarker).not.toHaveBeenCalled();
+    expect(mockRequestTimePeriod).not.toHaveBeenCalled();
+  });
+
+  it('requests the next wider period when loaded bars start after the focused trade', () => {
+    const bars = makeBars(20);
+    setOHLCV(bars);
+    const mockRequestTimePeriod = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1M"
+        focusRequest={{
+          id: '0xold',
+          timestamp: bars[0].time - DAY_MS,
+          nonce: 1,
+          timePeriod: '1M',
+          spanMs: getTradeFocusSpanMs('1M'),
+        }}
+        onRequestTimePeriod={mockRequestTimePeriod}
+      />,
+    );
+
+    expect(mockFocusTime).not.toHaveBeenCalled();
+    expect(mockPulseTradeMarker).not.toHaveBeenCalled();
+    expect(mockRequestTimePeriod).toHaveBeenCalledWith('All');
   });
 });

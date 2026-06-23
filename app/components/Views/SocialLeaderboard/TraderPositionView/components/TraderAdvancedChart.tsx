@@ -27,6 +27,19 @@ import TraderPriceChart from './TraderPriceChart';
 const EMPTY_INDICATORS: IndicatorType[] = [];
 /** Stable empty-bar reference so the spot path doesn't churn the perp memo. */
 const EMPTY_OHLCV: OHLCVBar[] = [];
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+const MONTH_MS = 30 * DAY_MS;
+
+const TRADE_FOCUS_PERIOD_ORDER: readonly TimePeriod[] = ['1M', 'All'];
+
+const TRADE_FOCUS_SPAN_MS: Record<TimePeriod, number> = {
+  '1H': HOUR_MS,
+  '1D': DAY_MS,
+  '1W': 7 * DAY_MS,
+  '1M': MONTH_MS,
+  All: 365 * DAY_MS,
+};
 
 /**
  * Maps the Social Trading period selector (which includes `All`) onto the
@@ -53,6 +66,43 @@ const CHART_VS_CURRENCY = 'usd';
 
 /** Normalize a trade timestamp: treat values < 1e12 as seconds → convert to ms. */
 const normalizeTs = (ts: number) => (ts > 0 && ts < 1e12 ? ts * 1000 : ts);
+
+export function getTradeFocusSpanMs(period: TimePeriod): number {
+  return TRADE_FOCUS_SPAN_MS[period];
+}
+
+export function getRecommendedTradeFocusPeriod(
+  timestamp: number,
+  _isPerp: boolean,
+  nowMs: number = Date.now(),
+): TimePeriod {
+  const tradeTime = normalizeTs(timestamp);
+  const ageMs = Number.isFinite(tradeTime)
+    ? Math.max(0, nowMs - tradeTime)
+    : Number.POSITIVE_INFINITY;
+
+  return ageMs <= MONTH_MS ? '1M' : 'All';
+}
+
+function getNextWiderTradeFocusPeriod(period: TimePeriod): TimePeriod | null {
+  const index = TRADE_FOCUS_PERIOD_ORDER.indexOf(period);
+  return index >= 0 ? (TRADE_FOCUS_PERIOD_ORDER[index + 1] ?? null) : null;
+}
+
+function getFallbackTradeFocusPeriod(
+  currentPeriod: TimePeriod,
+  timestamp: number,
+  isPerp: boolean,
+): TimePeriod | null {
+  if (currentPeriod === 'All') return null;
+
+  const recommendedPeriod = getRecommendedTradeFocusPeriod(timestamp, isPerp);
+  if (currentPeriod === recommendedPeriod) {
+    return getNextWiderTradeFocusPeriod(currentPeriod);
+  }
+
+  return recommendedPeriod;
+}
 
 /**
  * Linear-interpolated `close` along the OHLCV line at `timeMs`, mirroring the
@@ -132,6 +182,8 @@ export interface TradeFocusRequest {
   id: string;
   timestamp: number;
   nonce: number;
+  timePeriod: TimePeriod;
+  spanMs: number;
 }
 
 export interface TraderAdvancedChartProps {
@@ -153,6 +205,8 @@ export interface TraderAdvancedChartProps {
   trades: readonly Trade[];
   /** When set, the chart slides to center this trade's time (see {@link TradeFocusRequest}). */
   focusRequest?: TradeFocusRequest;
+  /** Request a wider period when the target trade is older than loaded chart data. */
+  onRequestTimePeriod?: (period: TimePeriod) => void;
   /**
    * Price history. For perps this is the live chart series (Hyperliquid); for spot
    * it is the fallback used when the OHLCV feed has insufficient coverage.
@@ -184,6 +238,7 @@ const TraderAdvancedChart = ({
   activeTimePeriod,
   trades,
   focusRequest,
+  onRequestTimePeriod,
   historicalPrices,
   priceDiff,
   isPricesLoading,
@@ -193,26 +248,44 @@ const TraderAdvancedChart = ({
 }: TraderAdvancedChartProps) => {
   const vsCurrency = CHART_VS_CURRENCY;
   const chartRef = useRef<AdvancedChartRef>(null);
-
-  // Slide the chart to center a tapped trade and pulse its marker.
-  // `focusRequest.nonce` changes on every tap so re-tapping re-centers/re-pulses.
-  useEffect(() => {
-    if (!focusRequest) return;
-    chartRef.current?.focusTime(normalizeTs(focusRequest.timestamp));
-    chartRef.current?.pulseTradeMarker(focusRequest.id);
-  }, [focusRequest]);
+  const handledFocusNonceRef = useRef<number | null>(null);
 
   const timeRange = SOCIAL_PERIOD_TO_TIME_RANGE[activeTimePeriod];
   const config = TIME_RANGE_CONFIGS[timeRange];
+  const monthConfig = TIME_RANGE_CONFIGS[SOCIAL_PERIOD_TO_TIME_RANGE['1M']];
+  const allConfig = TIME_RANGE_CONFIGS[SOCIAL_PERIOD_TO_TIME_RANGE.All];
 
   // Spot: OHLCV from the MetaMask price API. A no-op (no fetch) when there is no
   // assetId — i.e. for perps, which supply their series via `historicalPrices`.
-  const spot = useOHLCVChart({
-    assetId: assetId ?? '',
+  // Trade taps only target 1M/All, so keep both warm and use their cached hook
+  // state when selected.
+  const monthSpot = useOHLCVChart({
+    assetId: !isPerp ? (assetId ?? '') : '',
+    timePeriod: monthConfig.timePeriod,
+    interval: monthConfig.interval,
+    vsCurrency,
+  });
+  const allSpot = useOHLCVChart({
+    assetId: !isPerp ? (assetId ?? '') : '',
+    timePeriod: allConfig.timePeriod,
+    interval: allConfig.interval,
+    vsCurrency,
+  });
+  const activeSpot = useOHLCVChart({
+    assetId:
+      !isPerp && activeTimePeriod !== '1M' && activeTimePeriod !== 'All'
+        ? (assetId ?? '')
+        : '',
     timePeriod: config.timePeriod,
     interval: config.interval,
     vsCurrency,
   });
+  const spot =
+    activeTimePeriod === '1M'
+      ? monthSpot
+      : activeTimePeriod === 'All'
+        ? allSpot
+        : activeSpot;
 
   // Perps (Hyperliquid) have no CAIP asset id and no spot OHLCV feed; their price
   // history is already fetched as a line series (`historicalPrices`, from the
@@ -343,6 +416,60 @@ const TraderAdvancedChart = ({
   const shouldFallback =
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || !!chartError);
+
+  // Slide the chart to center a tapped trade only after the current period's
+  // loaded bars actually contain the target time. If not, ask the parent to
+  // fallback to the month/all focus ranges and re-check after reload.
+  useEffect(() => {
+    if (!focusRequest || chartLoading || shouldFallback) return;
+    if (activeTimePeriod !== focusRequest.timePeriod) return;
+    if (handledFocusNonceRef.current === focusRequest.nonce) return;
+
+    const tradeTime = normalizeTs(focusRequest.timestamp);
+    const firstBarTime = ohlcvData[0]?.time;
+    const latestBarTime = ohlcvData[ohlcvData.length - 1]?.time;
+
+    if (
+      !Number.isFinite(tradeTime) ||
+      firstBarTime == null ||
+      latestBarTime == null
+    ) {
+      return;
+    }
+
+    if (tradeTime >= firstBarTime && tradeTime <= latestBarTime) {
+      const chart = chartRef.current;
+      if (!chart) return;
+      chart.focusTime(tradeTime, {
+        spanMs: focusRequest.spanMs ?? getTradeFocusSpanMs(activeTimePeriod),
+      });
+      chart.pulseTradeMarker(focusRequest.id);
+      handledFocusNonceRef.current = focusRequest.nonce;
+      return;
+    }
+
+    if (tradeTime < firstBarTime) {
+      const fallbackPeriod = getFallbackTradeFocusPeriod(
+        activeTimePeriod,
+        focusRequest.timestamp,
+        isPerp,
+      );
+      if (fallbackPeriod && onRequestTimePeriod) {
+        onRequestTimePeriod(fallbackPeriod);
+        return;
+      }
+    }
+
+    handledFocusNonceRef.current = focusRequest.nonce;
+  }, [
+    activeTimePeriod,
+    chartLoading,
+    focusRequest,
+    isPerp,
+    ohlcvData,
+    onRequestTimePeriod,
+    shouldFallback,
+  ]);
 
   if (shouldFallback) {
     return (
