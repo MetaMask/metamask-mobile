@@ -254,6 +254,55 @@ export async function setupSSEMockRequest(
 }
 
 /**
+ * Completes envelope-less JSON-RPC mock responses ({ result }/{ error }
+ * without jsonrpc/id) by echoing the request's jsonrpc version and id —
+ * what a real RPC server does. Strict RPC clients (e.g. the Solana SDK
+ * used by snaps) reject responses whose envelope is missing or whose id
+ * does not match the request, while tolerant EVM clients mask the defect;
+ * a hardcoded id in the mock would still break the strict ones.
+ */
+const applyJsonRpcEnvelope = async (
+  request: { body: { getText: () => Promise<string | undefined> } },
+  response: unknown,
+): Promise<unknown> => {
+  if (
+    !response ||
+    typeof response !== 'object' ||
+    Array.isArray(response) ||
+    'jsonrpc' in response ||
+    !('result' in response || 'error' in response)
+  ) {
+    return response;
+  }
+
+  const bodyText = await safeGetBodyText(request);
+  if (!bodyText) {
+    return response;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(bodyText);
+  } catch {
+    return response;
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return response;
+  }
+
+  const rpcRequest = parsed as { jsonrpc?: unknown; id?: unknown };
+  if (rpcRequest.jsonrpc === undefined) {
+    return response;
+  }
+
+  return {
+    jsonrpc: rpcRequest.jsonrpc,
+    id: rpcRequest.id ?? null,
+    ...response,
+  };
+};
+
+/**
  * Helper to mock a POST request with complex body matching through the mobile proxy pattern
  *
  * @param mockServer - The mock server instance
@@ -327,10 +376,39 @@ export const setupMockPostRequest = async (
 
       return {
         statusCode,
-        json: response,
+        json: await applyJsonRpcEnvelope(request, response),
       };
     });
 };
+
+/**
+ * Mocks a network-level failure for a URL: the connection is closed without
+ * any HTTP response, so clients observe a connection error (e.g. the in-app
+ * browser renders its network-error screen) instead of an HTTP status. Use
+ * for tests that depend on a request FAILING without relying on live DNS
+ * resolution in CI.
+ */
+export async function setupMockNetworkFailure(
+  server: Mockttp,
+  request: { requestMethod: 'GET' | 'POST'; url: string | RegExp },
+  priority?: number,
+) {
+  const builder =
+    request.requestMethod === 'POST'
+      ? server.forPost('/proxy')
+      : server.forGet('/proxy');
+
+  await builder
+    .matching((req) => {
+      const url = getDecodedProxiedURL(req.url);
+      if (request.url instanceof RegExp) {
+        return request.url.test(url);
+      }
+      return url.includes(String(request.url));
+    })
+    .asPriority(priority ?? 999)
+    .thenCloseConnection();
+}
 
 /**
  * Helper to intercept and transform URLs through the mobile proxy pattern
