@@ -13,6 +13,7 @@ import {
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
 import { BridgeToken } from '../../types';
+import { BRIDGE_CHAINID_TO_DEFAULT_FROM_TOKEN } from '../../constants/default-swap-dest-tokens';
 
 /**
  * Hook that provides a function to auto-update the destination token when the source changes.
@@ -79,7 +80,10 @@ export const useAutoUpdateDestToken = () => {
         // Fall back to native token if:
         // 1. No default dest token exists for this chain, OR
         // 2. Default dest equals source token
-        expectedDestToken = nativeToken;
+        // 3. No default "from" token is defined in BRIDGE_CHAINID_TO_DEFAULT_FROM_TOKEN.
+        const defaultFromToken =
+          BRIDGE_CHAINID_TO_DEFAULT_FROM_TOKEN[newSourceToken.chainId];
+        expectedDestToken = defaultFromToken ?? nativeToken;
       }
 
       // Only dispatch if expected dest is different from current dest
