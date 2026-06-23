@@ -689,6 +689,39 @@ describe('Checkout', () => {
       expect(shouldStartLoadWithRequest).not.toHaveBeenCalled();
     });
 
+    it('does not replace the WebView for custom callback URLs without an orderId', () => {
+      const { shouldStartLoadWithRequest } = jest.requireMock(
+        '../../../../../util/browser',
+      ) as { shouldStartLoadWithRequest: jest.Mock };
+      const callbackUrl = `${callbackBaseUrl}?status=cancelled`;
+      const mockCallback = jest.fn();
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Transak',
+        onNavigationStateChange: mockCallback,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      let result: boolean | undefined;
+      act(() => {
+        result = capturedOnShouldStartLoadWithRequest?.({
+          url: callbackUrl,
+        });
+      });
+
+      expect(result).toBe(false);
+      expect(mockCallback).toHaveBeenCalledWith({ url: callbackUrl });
+      expect(getByTestId('checkout-webview')).toBeOnTheScreen();
+      expect(queryByTestId('checkout-callback-loading')).toBeNull();
+      expect(shouldStartLoadWithRequest).not.toHaveBeenCalled();
+    });
+
     it('blocks callback URL loads and handles callback flow params directly', async () => {
       const { shouldStartLoadWithRequest } = jest.requireMock(
         '../../../../../util/browser',

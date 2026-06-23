@@ -259,6 +259,49 @@ describe('MoneyActivityView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders pending ramp orders in the Pending section', () => {
+    const moneyAddress = '0x0000000000000000000000000000000000000001';
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress,
+      mockDataEnabled: false,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />, {
+      state: {
+        engine: {
+          backgroundState: {
+            RampsController: {
+              orders: [
+                {
+                  providerOrderId: 'transak-pending-order-1',
+                  walletAddress: moneyAddress,
+                  status: RampsOrderStatus.Pending,
+                  createdAt: 1782241698969,
+                  cryptoAmount: '4.96',
+                  fiatAmount: 6.14,
+                  fiatCurrency: { symbol: 'USD' },
+                  cryptoCurrency: { symbol: 'MUSD' },
+                  orderType: 'BUY',
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('activity-mock-ramp-transak-pending-order-1'),
+    ).toBeOnTheScreen();
+  });
+
   it('omits the Pending section when nothing is in flight', () => {
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: MOCK_DEPOSITS.filter(

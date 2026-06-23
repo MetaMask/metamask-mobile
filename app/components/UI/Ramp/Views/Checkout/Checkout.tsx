@@ -578,7 +578,8 @@ const Checkout = () => {
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => {
       if (url.startsWith(callbackBaseUrl)) {
-        if (hasCallbackFlow || onNavigationStateChange) {
+        const hasOrderId = parseUrl(url).query.orderId != null;
+        if (hasCallbackFlow || (onNavigationStateChange && hasOrderId)) {
           setIsHandlingCallback(true);
         }
         if (hasCallbackFlow) {
