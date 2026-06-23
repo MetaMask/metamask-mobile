@@ -59,6 +59,7 @@ import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
 import PulsingLiveDot from '../../components/PulsingLiveDot/PulsingLiveDot';
 import PredictWorldCupWinnerModule from '../../components/PredictWorldCupWinnerModule';
+import PredictWorldCupHubBanner from '../../components/PredictWorldCupHubBanner';
 import { PredictEventValues } from '../../constants/eventNames';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -596,6 +597,8 @@ const PredictWorldCupHub: React.FC = () => {
         onBack={handleBack}
         includesTopInset
       />
+
+      <PredictWorldCupHubBanner />
 
       <Box twClassName="flex-1">
         <ScrollView
