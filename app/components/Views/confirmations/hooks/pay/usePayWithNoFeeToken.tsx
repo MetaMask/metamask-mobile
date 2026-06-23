@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
@@ -33,6 +33,12 @@ const isMonadMusd = (address: string, chainId: string) =>
   chainId?.toLowerCase() === MONAD_MUSD_TARGET.chainId.toLowerCase() &&
   address?.toLowerCase() === MONAD_MUSD_TARGET.address.toLowerCase();
 
+export type NoFeeTokenTagRenderer = (
+  address: string,
+  chainId: string,
+  options?: { testID?: string },
+) => ReactNode;
+
 /**
  * Identifies payment tokens that incur no Relay fixed-spread fee.
  *
@@ -54,6 +60,7 @@ export function usePayWithNoFeeToken({
   noFeeToken: NoFeeTokenResult | undefined;
   isNoFeeToken: (address: string, chainId: string) => boolean;
   renderNoFeeTag: TokenTagRenderer;
+  renderNoFeeTagForToken: NoFeeTokenTagRenderer;
 } {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { availableTokens } = useTransactionPayAvailableTokens();
@@ -134,5 +141,13 @@ export function usePayWithNoFeeToken({
     [matchesNoFee],
   );
 
-  return { noFeeToken, isNoFeeToken, renderNoFeeTag };
+  const renderNoFeeTagForToken: NoFeeTokenTagRenderer = useCallback(
+    (address, chainId, options) =>
+      matchesNoFee(address, chainId) ? (
+        <NoFeeTag testID={options?.testID} />
+      ) : null,
+    [matchesNoFee],
+  );
+
+  return { noFeeToken, isNoFeeToken, renderNoFeeTag, renderNoFeeTagForToken };
 }

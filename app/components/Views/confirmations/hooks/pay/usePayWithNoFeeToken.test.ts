@@ -440,6 +440,42 @@ describe('usePayWithNoFeeToken', () => {
     });
   });
 
+  it('renderNoFeeTagForToken returns a non-null node for a matching token', () => {
+    const tokens = [createMockToken('0xAAA', 'USDC', '0x1', 100)];
+
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: tokens,
+      hasTokens: true,
+    });
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(
+      result.current.renderNoFeeTagForToken('0xAAA', '0x1'),
+    ).not.toBeNull();
+  });
+
+  it('renderNoFeeTagForToken returns null for a non-matching token', () => {
+    const tokens = [createMockToken('0xAAA', 'USDC', '0x1', 100)];
+
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xBBB')));
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: tokens,
+      hasTokens: true,
+    });
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(result.current.renderNoFeeTagForToken('0xAAA', '0x1')).toBeNull();
+  });
+
   describe('Money Account withdrawal — directional no-fee', () => {
     const ETH_DEST = '0xdddddddddddddddddddddddddddddddddddddddd';
 

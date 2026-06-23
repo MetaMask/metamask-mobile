@@ -139,7 +139,12 @@ function deriveSubtitle(
       const destSymbol =
         sourceTokenSymbol ??
         (isMoneyWithdrawTx(tx) ? MONEY_WITHDRAW_TOKEN_SYMBOL : undefined);
-      return destSymbol ? `${MUSD_TOKEN.symbol} → ${destSymbol}` : undefined;
+      // A plain mUSD send (destination is mUSD too) collapses to just "mUSD",
+      // mirroring the deposit row; only a cross-token withdrawal keeps the
+      // "mUSD → X" pair, where the destination token carries real information.
+      return destSymbol && destSymbol !== MUSD_TOKEN.symbol
+        ? `${MUSD_TOKEN.symbol} → ${destSymbol}`
+        : MUSD_TOKEN.symbol;
     }
     case 'received': {
       const sender = tx.txParams?.from;
@@ -212,10 +217,11 @@ export function useMoneyTransactionDisplayInfo(
   });
 
   return useMemo(() => {
-    const sourceTokenSymbol =
-      payToken?.symbol ??
-      nativeTicker ??
-      (isMusdToken(payTokenAddress) ? MUSD_TOKEN.symbol : undefined);
+    // mUSD is registered with the uppercase symbol "MUSD"; canonicalise it to
+    // the branded "mUSD" so subtitles never leak the registry casing.
+    const sourceTokenSymbol = isMusdToken(payTokenAddress)
+      ? MUSD_TOKEN.symbol
+      : (payToken?.symbol ?? nativeTicker);
     const kind = classifyMoneyActivity(tx);
     const status = getMoneyActivityStatus(tx);
     const isIncoming = isIncomingMoneyTransactionMeta(tx);
