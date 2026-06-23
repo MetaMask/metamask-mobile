@@ -976,6 +976,24 @@ describe('ActivityList', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides the load-more indicator for a domain fetch not shown under the active filter', () => {
+    selectorValues.predictEnabled = true;
+    mockPredictSourceState = {
+      items: [predictItem],
+      isLoading: false,
+      error: null,
+      loadMore: jest.fn(() => Promise.resolve()),
+      hasMore: true,
+      isFetchingMore: true,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(
+      screen.queryByTestId(ActivityListSelectorsIDs.LOAD_MORE_INDICATOR),
+    ).toBeNull();
+  });
+
   it('shows the loading indicator (not the empty state) while Perps is still loading after the EVM query settles', () => {
     selectorValues.perpsEnabled = true;
     // Perps source still loading with nothing yet...

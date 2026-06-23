@@ -622,10 +622,23 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       });
     }, [navigation, nonEvmExplorerUrl, trackEvent, createEventBuilder]);
 
+    const perpsRelevantForFilter =
+      typeFilter === undefined ||
+      typeFilter === ActivityTypeFilter.All ||
+      typeFilter === ActivityTypeFilter.Perps;
+    const predictRelevantForFilter =
+      typeFilter === undefined ||
+      typeFilter === ActivityTypeFilter.All ||
+      typeFilter === ActivityTypeFilter.Predictions;
+
     const isFetchingMoreActivity =
       isFetchingNextPage ||
-      (isPerpsEnabled && Boolean(perpsSource.isFetchingMore)) ||
-      (isPredictEnabled && Boolean(predictSource.isFetchingMore));
+      (isPerpsEnabled &&
+        perpsRelevantForFilter &&
+        Boolean(perpsSource.isFetchingMore)) ||
+      (isPredictEnabled &&
+        predictRelevantForFilter &&
+        Boolean(predictSource.isFetchingMore));
 
     const footerComponent = useMemo(() => {
       if (isFetchingMoreActivity) {
@@ -914,18 +927,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       lastConfirmedEvmIndex >= 0
         ? generateGroupedKey(groupedData[lastConfirmedEvmIndex])
         : undefined;
-
-    // Perps/Predict paginate independently; only advance a domain source whose
-    // rows are actually shown under the current type filter (avoids fetching
-    // history the user can't see).
-    const perpsRelevantForFilter =
-      typeFilter === undefined ||
-      typeFilter === ActivityTypeFilter.All ||
-      typeFilter === ActivityTypeFilter.Perps;
-    const predictRelevantForFilter =
-      typeFilter === undefined ||
-      typeFilter === ActivityTypeFilter.All ||
-      typeFilter === ActivityTypeFilter.Predictions;
 
     const onViewableItemsChanged = useCallback(
       ({
