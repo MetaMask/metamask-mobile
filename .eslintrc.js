@@ -297,7 +297,7 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.mjs'],
+      files: ['scripts/**/*.mjs', 'mm-client-cli.config.mjs'],
       parser: '@babel/eslint-parser',
       parserOptions: {
         requireConfigFile: false,
@@ -317,7 +317,9 @@ module.exports = {
       files: [
         'scripts/**/*.{js,ts}',
         'tests/tools/**/*.{js,ts}',
+        'tests/e2e/llm-workflow/**/*.{js,ts}',
         'app.config.js',
+        'mm-client-cli.config.mjs',
       ],
       rules: {
         'no-console': 'off',
