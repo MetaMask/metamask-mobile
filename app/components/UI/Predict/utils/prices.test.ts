@@ -3,7 +3,7 @@ import type {
   PredictOutcomeToken,
   PriceUpdate,
 } from '../types';
-import { getPredictBuyPrice } from './prices';
+import { getPredictBuyPrice, getPredictMidPrice } from './prices';
 
 const token: PredictOutcomeToken = {
   id: 'token-1',
@@ -46,6 +46,39 @@ describe('getPredictBuyPrice', () => {
   it('falls back to the static token price when no live or REST buy price exists', () => {
     expect(
       getPredictBuyPrice(token, undefined, createRestPrices(0, 0.38)),
+    ).toBe(0.51);
+  });
+});
+
+describe('getPredictMidPrice', () => {
+  it('prefers the live mid (bestBid + bestAsk) / 2 for odds', () => {
+    // bestBid 0.69, bestAsk 0.71 -> mid 0.70
+    expect(
+      getPredictMidPrice(token, livePrice, createRestPrices(0.9, 0.1)),
+    ).toBeCloseTo(0.7);
+  });
+
+  it('falls back to the REST mid (ask + bid) / 2 when live prices are missing', () => {
+    // entry.buy = ask = 0.92, entry.sell = bid = 0.34 -> mid 0.63 (Almeria case)
+    expect(
+      getPredictMidPrice(token, undefined, createRestPrices(0.92, 0.34)),
+    ).toBeCloseTo(0.63);
+  });
+
+  it('does not return a tradeable side as the mid', () => {
+    const mid = getPredictMidPrice(
+      token,
+      undefined,
+      createRestPrices(0.92, 0.34),
+    );
+    expect(mid).not.toBe(0.92); // not the ask
+    expect(mid).not.toBe(0.34); // not the bid
+  });
+
+  it('falls back to the static token price when a full book is unavailable', () => {
+    // Only one side present -> cannot compute a mid -> use token.price.
+    expect(
+      getPredictMidPrice(token, undefined, createRestPrices(0.92, 0)),
     ).toBe(0.51);
   });
 });
