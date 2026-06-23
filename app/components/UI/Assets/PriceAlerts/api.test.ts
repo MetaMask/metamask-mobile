@@ -41,7 +41,7 @@ jest.mock('../../../../core/AppConstants', () => ({
   PRICE_ALERTS_API: { URL: 'https://price-alerts.api.cx.metamask.io' },
 }));
 
-const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/alerts/v1';
+const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/v1/alerts';
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
