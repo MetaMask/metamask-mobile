@@ -1,4 +1,5 @@
 import { isEvmTxData, type QuoteResponse } from '@metamask/bridge-controller';
+import { Flow } from './flowStrategy';
 
 /**
  * Status of the hardware wallet swap flow state machine.
@@ -14,12 +15,11 @@ export enum HardwareWalletsSwapsStatus {
   Cancelled = 'cancelled',
 }
 
-/**
- * Identifies whether a step is a token approval or the actual bridge/swap transaction.
- */
+/** Kind of a signing step. `FeeTransfer` is send-only  — distinct from `Transaction` so a Sendbundle's two same-typed txs can advance by kind. */
 export enum HardwareWalletsSwapsStepKind {
   Approval = 'approval',
   Transaction = 'transaction',
+  FeeTransfer = 'feeTransfer',
 }
 
 /**
@@ -89,17 +89,27 @@ export type HardwareWalletsSwapsEvent =
         totalSteps: number;
         spenderAddress?: string;
         recipientAddress?: string;
+        /** Signing origin. `Flow.Send` produces a Sendbundle `[Transaction, FeeTransfer]` (or `[Transaction]` for plain send); default `Flow.Bridge`. */
+        flow?: Flow;
+        /** Sendbundle only: gas-fee-token address backing the `FeeTransfer` step. Tracker matches it against `txParams.to`. */
+        gasTokenAddress?: string;
       };
     }
   | {
       type:
         | HardwareWalletsSwapsEventType.Signing
         | HardwareWalletsSwapsEventType.Signed;
-      payload: { stepKind: HardwareWalletsSwapsStepKind };
+      payload: {
+        stepKind: HardwareWalletsSwapsStepKind;
+        stepIndex?: number;
+      };
     }
   | {
       type: HardwareWalletsSwapsEventType.Rejected;
-      payload?: { stepKind: HardwareWalletsSwapsStepKind };
+      payload?: {
+        stepKind: HardwareWalletsSwapsStepKind;
+        stepIndex?: number;
+      };
     }
   | { type: HardwareWalletsSwapsEventType.DeviceDisconnected }
   | { type: HardwareWalletsSwapsEventType.TransactionFailed }
@@ -149,16 +159,27 @@ export const initialHardwareWalletsSwapsState: HardwareWalletsSwapsState = {
   disconnectedStep: null,
 };
 
-/**
- * Builds the step array for a hardware wallet swap flow.
- * For multi-step flows (totalSteps > 1), the first step is an Approval;
- * all other steps are Transactions.
- */
+/** Builds the step array. Bridge/default: step 0 is `Approval` when totalSteps>1. Send: `[Transaction, FeeTransfer]` (2) or `[Transaction]` (1) — the device signs the send first, then the fee transfer.  */
 function buildSteps(
   totalSteps: number,
   spenderAddress?: string,
   recipientAddress?: string,
+  flow: Flow = Flow.Bridge,
+  gasTokenAddress?: string,
 ): HardwareWalletsSwapsStep[] {
+  if (flow === Flow.Send) {
+    return Array.from({ length: totalSteps }, (_, index) => {
+      const isFeeTransfer = totalSteps > 1 && index === totalSteps - 1;
+      return {
+        kind: isFeeTransfer
+          ? HardwareWalletsSwapsStepKind.FeeTransfer
+          : HardwareWalletsSwapsStepKind.Transaction,
+        status: HardwareWalletsSwapsStepStatus.Waiting,
+        address: isFeeTransfer ? gasTokenAddress : recipientAddress,
+      };
+    });
+  }
+
   const hasApproval = totalSteps > 1;
   return Array.from({ length: totalSteps }, (_, index) => ({
     kind:
@@ -192,7 +213,17 @@ function isCurrentStepKind(
 function findStepIndexByKind(
   steps: HardwareWalletsSwapsStep[],
   stepKind: HardwareWalletsSwapsStepKind,
+  stepIndex?: number,
 ): number {
+  if (
+    stepIndex !== undefined &&
+    steps[stepIndex]?.kind === stepKind &&
+    steps[stepIndex].status !== HardwareWalletsSwapsStepStatus.Signed &&
+    steps[stepIndex].status !== HardwareWalletsSwapsStepStatus.Rejected
+  ) {
+    return stepIndex;
+  }
+
   return steps.findIndex(
     (step) =>
       step.kind === stepKind &&
@@ -210,8 +241,9 @@ function updateStepStatusByKind(
   steps: HardwareWalletsSwapsStep[],
   stepKind: HardwareWalletsSwapsStepKind,
   status: HardwareWalletsSwapsStepStatus,
+  stepIndex?: number,
 ): HardwareWalletsSwapsStep[] {
-  const targetIndex = findStepIndexByKind(steps, stepKind);
+  const targetIndex = findStepIndexByKind(steps, stepKind, stepIndex);
   if (targetIndex < 0) return steps;
 
   return steps.map((step, index) =>
@@ -238,6 +270,8 @@ export function hardwareWalletsSwapsReducer(
           totalSteps,
           event.payload.spenderAddress,
           event.payload.recipientAddress,
+          event.payload.flow,
+          event.payload.gasTokenAddress,
         ),
         disconnectedStep: null,
       };
@@ -256,6 +290,7 @@ export function hardwareWalletsSwapsReducer(
       const signingIndex = findStepIndexByKind(
         state.steps,
         event.payload.stepKind,
+        event.payload.stepIndex,
       );
       if (signingIndex < 0) return state;
       const signingStep = state.steps[signingIndex];
@@ -274,13 +309,13 @@ export function hardwareWalletsSwapsReducer(
           state.steps,
           event.payload.stepKind,
           HardwareWalletsSwapsStepStatus.Signing,
+          event.payload.stepIndex,
         ),
       };
     }
     case HardwareWalletsSwapsEventType.Signed: {
       if (
         state.status === HardwareWalletsSwapsStatus.Rejected ||
-        state.status === HardwareWalletsSwapsStatus.Submitted ||
         state.status === HardwareWalletsSwapsStatus.Failed ||
         state.status === HardwareWalletsSwapsStatus.Disconnected ||
         state.status === HardwareWalletsSwapsStatus.Cancelled
@@ -291,6 +326,7 @@ export function hardwareWalletsSwapsReducer(
       const signedIndex = findStepIndexByKind(
         state.steps,
         event.payload.stepKind,
+        event.payload.stepIndex,
       );
       if (signedIndex < 0) return state;
 
@@ -306,6 +342,7 @@ export function hardwareWalletsSwapsReducer(
           state.steps,
           event.payload.stepKind,
           HardwareWalletsSwapsStepStatus.Signed,
+          event.payload.stepIndex,
         ),
       };
     }
@@ -316,7 +353,13 @@ export function hardwareWalletsSwapsReducer(
 
       const stepKind =
         event.payload?.stepKind ?? state.steps[state.currentStep]?.kind;
-      if (stepKind && !isCurrentStepKind(state, stepKind)) {
+      const stepIndex = event.payload?.stepIndex;
+      const isValidTarget =
+        stepKind &&
+        (stepIndex !== undefined
+          ? state.steps[stepIndex]?.kind === stepKind
+          : isCurrentStepKind(state, stepKind));
+      if (!isValidTarget) {
         return state;
       }
 
@@ -328,6 +371,7 @@ export function hardwareWalletsSwapsReducer(
               state.steps,
               stepKind,
               HardwareWalletsSwapsStepStatus.Rejected,
+              stepIndex,
             )
           : state.steps.map((step, index) =>
               index === state.currentStep
