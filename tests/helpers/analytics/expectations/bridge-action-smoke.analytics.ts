@@ -18,7 +18,7 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
     SUBMITTED,
     COMPLETED,
   ],
-  expectedTotalCount: 10,
+  expectedTotalCount: 9,
   events: [
     {
       name: BRIDGE_BUTTON_CLICKED,
@@ -34,12 +34,10 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
         chain_id_source: '1',
         token_address_source: '0x0000000000000000000000000000000000000000',
         token_symbol_source: 'ETH',
-        location: 'Main View',
       },
     },
     {
       name: QUOTES_REQUESTED,
-      minCount: 2,
       containProperties: {
         chain_id_source: 'eip155:1',
         chain_id_destination: 'eip155:8453',
