@@ -490,6 +490,31 @@ export class AppiumGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     // XCUITest does not implement `mobile: scrollGesture` (Android-only).
     if (PlatformDetector.isIOS()) {
+      const container = await asPlaywrightElement(scrollView);
+      const location = await container.unwrap().getLocation();
+      const size = await container.unwrap().getSize();
+      const centerX = Math.floor(location.x + size.width / 2);
+      const travel = Math.floor(
+        size.height * Math.min(Math.max(percent, 0.1), 0.9),
+      );
+
+      if (swipeDirection === 'up' || swipeDirection === 'down') {
+        const fromY =
+          swipeDirection === 'up'
+            ? location.y + Math.floor(size.height * 0.8)
+            : location.y + Math.floor(size.height * 0.2);
+        const toY = swipeDirection === 'up' ? fromY - travel : fromY + travel;
+
+        await PlaywrightGestures.swipe({
+          scrollParams: { direction: swipeDirection },
+          percent,
+          duration: 600,
+          from: { x: centerX, y: fromY },
+          to: { x: centerX, y: toY },
+        });
+        return;
+      }
+
       await PlaywrightGestures.swipe({
         scrollParams: { direction: swipeDirection },
         percent,
@@ -507,14 +532,35 @@ export class AppiumGestureStrategy implements GestureStrategy {
     const location = await container.unwrap().getLocation();
     const size = await container.unwrap().getSize();
 
+    // `swipeDirection` follows iOS/W3C finger semantics (swipe up → content
+    // moves down). Android `mobile: scrollGesture` uses scroll semantics instead.
+    const scrollGestureDirection =
+      AppiumGestureStrategy.toAndroidScrollGestureDirection(swipeDirection);
+
     await drv.execute('mobile: scrollGesture', {
       left: location.x,
       top: location.y,
       width: size.width,
       height: size.height,
-      direction: swipeDirection,
+      direction: scrollGestureDirection,
       percent,
     });
+  }
+
+  /**
+   * Android `mobile: scrollGesture` direction is inverted relative to iOS/W3C
+   * swipe direction for vertical scrolling.
+   */
+  private static toAndroidScrollGestureDirection(
+    swipeDirection: 'up' | 'down' | 'left' | 'right',
+  ): 'up' | 'down' | 'left' | 'right' {
+    if (swipeDirection === 'up') {
+      return 'down';
+    }
+    if (swipeDirection === 'down') {
+      return 'up';
+    }
+    return swipeDirection;
   }
 
   /**

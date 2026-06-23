@@ -51,13 +51,17 @@ class WalletView {
   }
 
   /**
-   * Scroll the wallet homepage down by swiping inside `wallet-scroll-view`.
-   * Uses the scroll container bounds — fixed screen coordinates often do nothing on iOS.
+   * Scroll the wallet homepage by swiping inside `wallet-scroll-view`.
+   * `scrollDirection` matches Detox semantics (`down` reveals content below).
    */
-  private async scrollWalletHomeDown(percent = 0.45): Promise<void> {
-    await UnifiedGestures.swipe(this.walletScrollView, 'up', {
+  private async scrollWalletHome(
+    scrollDirection: 'up' | 'down',
+    percent = 0.45,
+  ): Promise<void> {
+    const swipeDirection = scrollDirection === 'down' ? 'up' : 'down';
+    await UnifiedGestures.swipe(this.walletScrollView, swipeDirection, {
       percentage: percent,
-      description: 'Scroll wallet homepage down',
+      description: `Scroll wallet homepage ${scrollDirection}`,
     });
   }
 
@@ -65,6 +69,7 @@ class WalletView {
   private async scrollWalletHomeToElement(
     target: EncapsulatedElementType,
     description: string,
+    direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
   ): Promise<void> {
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
@@ -75,7 +80,7 @@ class WalletView {
         });
         return;
       } catch {
-        await this.scrollWalletHomeDown(0.5);
+        await this.scrollWalletHome(direction, 0.5);
       }
     }
 
@@ -155,6 +160,7 @@ class WalletView {
         await this.scrollWalletHomeToElement(
           target as EncapsulatedElementType,
           description,
+          direction,
           Math.max(8, Math.ceil(timeout / 2_000)),
         );
         if (overshootSwipe) {
@@ -1023,43 +1029,37 @@ class WalletView {
       return;
     }
 
-    await encapsulatedAction({
-      detox: async () => {
-        const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
-          overshootSwipe: options.overshootSwipe ?? {
-            direction:
-              scrollDirection === 'down' ? ('up' as const) : ('down' as const),
-            percentage: 0.15,
-          },
-        });
-
-        try {
-          await this.scrollAndTapSection(
-            this.predictionsSectionHeader,
-            'Predictions section',
-            direction,
-            { ...getScrollOptions(direction), timeout: 60_000 },
-          );
-        } catch {
-          const fallbackDirection = direction === 'down' ? 'up' : 'down';
-          await this.scrollAndTapSection(
-            this.predictionsSectionHeader,
-            'Predictions section',
-            fallbackDirection,
-            { ...getScrollOptions(fallbackDirection), timeout: 60_000 },
-          );
-        }
+    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
+      overshootSwipe: options.overshootSwipe ?? {
+        direction:
+          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
+        percentage: 0.15,
       },
-      appium: async () => {
-        await this.scrollWalletHomeToElement(
+      timeout: 60_000,
+    });
+
+    const scrollAndTapWithFallback = async () => {
+      try {
+        await this.scrollAndTapSection(
           this.predictionsSectionHeader,
           'Predictions section',
+          direction,
+          getScrollOptions(direction),
         );
-        await UnifiedGestures.waitAndTap(this.predictionsSectionHeader, {
-          description: 'Predictions section',
-          timeout: 30_000,
-        });
-      },
+      } catch {
+        const fallbackDirection = direction === 'down' ? 'up' : 'down';
+        await this.scrollAndTapSection(
+          this.predictionsSectionHeader,
+          'Predictions section',
+          fallbackDirection,
+          getScrollOptions(fallbackDirection),
+        );
+      }
+    };
+
+    await encapsulatedAction({
+      detox: scrollAndTapWithFallback,
+      appium: scrollAndTapWithFallback,
     });
   }
 
@@ -1083,6 +1083,7 @@ class WalletView {
         await this.scrollWalletHomeToElement(
           this.predictionsSectionHeader,
           'Predictions section',
+          direction,
           24,
         );
       },
