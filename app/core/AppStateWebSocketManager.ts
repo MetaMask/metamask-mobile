@@ -15,6 +15,12 @@ export class AppStateWebSocketManager {
   private appStateSubscription: NativeEventSubscription | null = null;
   private webSocketService: BackendWebSocketService | null = null;
 
+  // Rapid state changes (background→active→background faster than a connect/disconnect
+  // resolves) are serialised: only one operation runs at a time and the most-recently
+  // requested state is always the one ultimately applied.
+  private _pendingState: AppStateStatus | null = null;
+  private _processing = false;
+
   /**
    * Initialize the manager with WebSocket service
    *
@@ -36,25 +42,39 @@ export class AppStateWebSocketManager {
   }
 
   /**
-   * Handle app state changes for WebSocket lifecycle management
+   * Handle app state changes for WebSocket lifecycle management.
+   *
+   * Non-reentrant: if a connect/disconnect is already in flight, the new state
+   * is recorded as pending and processed immediately after the current operation
+   * completes. Only the latest pending state is kept — intermediate states that
+   * arrive while processing are coalesced so the socket always ends up in the
+   * correct final state without concurrent connect/disconnect calls.
    *
    * @param nextAppState - The new app state
    */
   private async handleAppStateChange(
     nextAppState: AppStateStatus,
   ): Promise<void> {
-    if (!this.webSocketService) {
-      return;
+    this._pendingState = nextAppState;
+    if (this._processing) return;
+    this._processing = true;
+
+    while (this._pendingState !== null) {
+      const state = this._pendingState;
+      this._pendingState = null;
+      await this._applyState(state);
     }
 
+    this._processing = false;
+  }
+
+  private async _applyState(state: AppStateStatus): Promise<void> {
+    if (!this.webSocketService) return;
     try {
-      if (nextAppState === 'background') {
-        // Disconnect WebSocket when app goes to background to save resources
+      if (state === 'background') {
         await this.webSocketService.disconnect();
         Logger.log('WebSocket disconnected due to app entering background');
-      } else if (nextAppState === 'active') {
-        // Reconnect WebSocket when app becomes active
-        // The WebSocket service will check its enabledCallback internally
+      } else if (state === 'active') {
         await this.webSocketService.connect();
         Logger.log(
           'WebSocket reconnection attempt completed (service handles feature flag check)',
