@@ -570,8 +570,28 @@ const Checkout = () => {
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
-    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
-    [],
+    ({ url }: { url: string }) => {
+      if (url.startsWith(callbackBaseUrl)) {
+        if (hasCallbackFlow) {
+          void handleNavigationStateChange({
+            url,
+            loading: false,
+          } as WebViewNavigation);
+        } else if (onNavigationStateChange) {
+          handleNavigationStateChangeWithDedup({ url });
+        }
+
+        return false;
+      }
+
+      return shouldStartLoadWithRequest(url, Logger);
+    },
+    [
+      hasCallbackFlow,
+      handleNavigationStateChange,
+      handleNavigationStateChangeWithDedup,
+      onNavigationStateChange,
+    ],
   );
 
   const fireClosedRef = useRef<() => void>(() => {
