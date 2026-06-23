@@ -109,8 +109,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
 
-    discoverAccounts(
-      Engine.context.KeyringController.state.keyrings[0].metadata.id,
+    Promise.resolve(
+      discoverAccounts(
+        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+      ),
     ).catch((error: unknown) => {
       Logger.error(
         error as Error,

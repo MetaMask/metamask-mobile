@@ -10,7 +10,10 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { ONBOARDING_SUCCESS_FLOW , AccountType } from '../../../constants/onboarding';
+import {
+  ONBOARDING_SUCCESS_FLOW,
+  AccountType,
+} from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
@@ -334,7 +337,8 @@ describe('OnboardingSuccessComponent', () => {
 
 describe('OnboardingSuccess', () => {
   beforeEach(() => {
-    mockDiscoverAccounts.mockReset();
+    mockDiscoverAccounts.mockClear();
+    mockDiscoverAccounts.mockResolvedValue(0);
     mockRouteParams = {};
   });
 
