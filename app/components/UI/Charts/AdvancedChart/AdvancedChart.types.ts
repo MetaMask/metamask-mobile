@@ -480,6 +480,11 @@ export interface AdvancedChartProps {
   onSkeletonHidden?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
+  /**
+   * Pre-`CHART_READY` failure (CDN, library boot, widget init). When set, AdvancedChart
+   * skips its error UI and delegates to the parent (e.g. legacy chart fallback).
+   */
+  onInitFailed?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
   /**
