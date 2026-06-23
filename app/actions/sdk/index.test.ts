@@ -1,7 +1,9 @@
 import {
   ActionType,
   disconnectAll,
-  updateWC2Metadata,
+  setWC2SessionMetadata,
+  updateWC2SessionMetadata,
+  removeWC2SessionMetadata,
   updateConnection,
   removeConnection,
   addConnection,
@@ -27,18 +29,41 @@ describe('SDK Actions', () => {
     });
   });
 
-  it('creates updateWC2Metadata action', () => {
+  it('creates setWC2SessionMetadata action', () => {
+    const channelId = 'pairing-topic-1';
     const metadata = {
-      id: 'test-id',
       name: 'test',
       url: 'https://test.com',
       icon: 'https://test.com/icon.png',
     };
-    const action = updateWC2Metadata(metadata);
+    const action = setWC2SessionMetadata(channelId, metadata);
 
     expect(action).toEqual({
-      type: ActionType.WC2_METADATA,
+      type: ActionType.SET_WC2_SESSION_METADATA,
+      channelId,
       metadata,
+    });
+  });
+
+  it('creates updateWC2SessionMetadata action', () => {
+    const channelId = 'pairing-topic-1';
+    const metadata = { lastVerifiedUrl: 'https://test.com' };
+    const action = updateWC2SessionMetadata(channelId, metadata);
+
+    expect(action).toEqual({
+      type: ActionType.UPDATE_WC2_SESSION_METADATA,
+      channelId,
+      metadata,
+    });
+  });
+
+  it('creates removeWC2SessionMetadata action', () => {
+    const channelId = 'pairing-topic-1';
+    const action = removeWC2SessionMetadata(channelId);
+
+    expect(action).toEqual({
+      type: ActionType.REMOVE_WC2_SESSION_METADATA,
+      channelId,
     });
   });
 

@@ -2013,12 +2013,13 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
-      const metadata = wc2MetadataCalls[0][0].metadata;
-      expect(metadata.verifyContext).toEqual({
+      const setAction = wc2MetadataCalls[0][0];
+      expect(setAction.channelId).toBe('verify-test-pairing');
+      expect(setAction.metadata.verifyContext).toEqual({
         isScam: true,
         validation: 'INVALID',
         verifiedOrigin: 'https://malicious-site.com',
@@ -2052,12 +2053,13 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
-      const metadata = wc2MetadataCalls[0][0].metadata;
-      expect(metadata.verifyContext).toEqual({
+      const setAction = wc2MetadataCalls[0][0];
+      expect(setAction.channelId).toBe('verify-test-pairing');
+      expect(setAction.metadata.verifyContext).toEqual({
         isScam: false,
         validation: 'VALID',
         verifiedOrigin: 'https://example.com',
@@ -2082,12 +2084,11 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
-      const metadata = wc2MetadataCalls[0][0].metadata;
-      expect(metadata.verifyContext).toBeUndefined();
+      expect(wc2MetadataCalls[0][0].metadata.verifyContext).toBeUndefined();
     });
 
     it('dispatches undefined verifyContext when verified object is missing', async () => {
@@ -2108,12 +2109,11 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
-      const metadata = wc2MetadataCalls[0][0].metadata;
-      expect(metadata.verifyContext).toBeUndefined();
+      expect(wc2MetadataCalls[0][0].metadata.verifyContext).toBeUndefined();
     });
 
     it('defaults validation to UNKNOWN when validation field is absent', async () => {
@@ -2143,16 +2143,37 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal);
 
       const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
-        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+        (call: any) => call[0]?.type === ActionType.SET_WC2_SESSION_METADATA,
       );
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
-      const metadata = wc2MetadataCalls[0][0].metadata;
-      expect(metadata.verifyContext).toEqual({
+      const setAction = wc2MetadataCalls[0][0];
+      expect(setAction.metadata.verifyContext).toEqual({
         isScam: false,
         validation: 'UNKNOWN',
         verifiedOrigin: 'https://example.com',
       });
+    });
+
+    it('dispatches removeWC2SessionMetadata when requestPermissions throws', async () => {
+      const permissionsController = (
+        Engine.context as unknown as {
+          PermissionController: { requestPermissions: jest.Mock };
+        }
+      ).PermissionController;
+      permissionsController.requestPermissions.mockRejectedValueOnce(
+        new Error('user rejected'),
+      );
+
+      const proposal = createProposal(undefined, { id: 3001 });
+
+      await manager.onSessionProposal(proposal);
+
+      const removeCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.REMOVE_WC2_SESSION_METADATA,
+      );
+      expect(removeCalls.length).toBeGreaterThan(0);
+      expect(removeCalls[0][0].channelId).toBe('verify-test-pairing');
     });
   });
 

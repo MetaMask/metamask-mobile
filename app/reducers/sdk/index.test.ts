@@ -19,8 +19,9 @@ describe('SDK Reducer', () => {
     lastAuthorized: Date.now(),
   };
 
-  const mockWC2Metadata = {
-    id: 'wc2-id',
+  const channelId = 'pairing-topic-1';
+  const otherChannelId = 'pairing-topic-2';
+  const mockWC2SessionMetadata = {
     url: 'https://dapp.com',
     name: 'Test DApp',
     icon: 'https://dapp.com/icon.png',
@@ -32,35 +33,49 @@ describe('SDK Reducer', () => {
     );
   });
 
-  describe('WC2_METADATA', () => {
-    it('should update wc2Metadata', () => {
+  describe('SET_WC2_SESSION_METADATA', () => {
+    it('inserts a per-channel entry on an empty map', () => {
       const action = {
-        type: ActionType.WC2_METADATA as const,
-        metadata: mockWC2Metadata,
+        type: ActionType.SET_WC2_SESSION_METADATA as const,
+        channelId,
+        metadata: mockWC2SessionMetadata,
       };
 
       const result = sdkReducer(initialState, action);
-      expect(result.wc2Metadata).toEqual(mockWC2Metadata);
+      expect(result.wc2SessionMetadata[channelId]).toEqual(
+        mockWC2SessionMetadata,
+      );
     });
 
-    it('should clear wc2Metadata when undefined', () => {
-      const stateWithMetadata: SDKState = {
+    it('overwrites an existing entry without touching siblings', () => {
+      const stateWithExisting: SDKState = {
         ...initialState,
-        wc2Metadata: mockWC2Metadata,
+        wc2SessionMetadata: {
+          [otherChannelId]: { url: 'u', name: 'n', icon: 'i' },
+          [channelId]: { url: 'old', name: 'old', icon: 'old' },
+        },
       };
 
       const action = {
-        type: ActionType.WC2_METADATA as const,
-        metadata: undefined,
+        type: ActionType.SET_WC2_SESSION_METADATA as const,
+        channelId,
+        metadata: mockWC2SessionMetadata,
       };
 
-      const result = sdkReducer(stateWithMetadata, action);
-      expect(result.wc2Metadata).toBeUndefined();
+      const result = sdkReducer(stateWithExisting, action);
+      expect(result.wc2SessionMetadata[channelId]).toEqual(
+        mockWC2SessionMetadata,
+      );
+      expect(result.wc2SessionMetadata[otherChannelId]).toEqual({
+        url: 'u',
+        name: 'n',
+        icon: 'i',
+      });
     });
 
-    it('should store wc2Metadata with verifyContext', () => {
+    it('stores verifyContext alongside the metadata', () => {
       const metadataWithVerify = {
-        ...mockWC2Metadata,
+        ...mockWC2SessionMetadata,
         verifyContext: {
           isScam: true,
           validation: WC2VerifyValidation.INVALID,
@@ -69,28 +84,107 @@ describe('SDK Reducer', () => {
       };
 
       const action = {
-        type: ActionType.WC2_METADATA as const,
+        type: ActionType.SET_WC2_SESSION_METADATA as const,
+        channelId,
         metadata: metadataWithVerify,
       };
 
       const result = sdkReducer(initialState, action);
-      expect(result.wc2Metadata).toEqual(metadataWithVerify);
-      expect(result.wc2Metadata?.verifyContext?.isScam).toBe(true);
-      expect(result.wc2Metadata?.verifyContext?.validation).toBe('INVALID');
-      expect(result.wc2Metadata?.verifyContext?.verifiedOrigin).toBe(
-        'https://malicious-dapp.com',
-      );
+      expect(result.wc2SessionMetadata[channelId]).toEqual(metadataWithVerify);
+      expect(
+        result.wc2SessionMetadata[channelId].verifyContext?.isScam,
+      ).toBe(true);
+      expect(
+        result.wc2SessionMetadata[channelId].verifyContext?.validation,
+      ).toBe('INVALID');
+      expect(
+        result.wc2SessionMetadata[channelId].verifyContext?.verifiedOrigin,
+      ).toBe('https://malicious-dapp.com');
+    });
+  });
+
+  describe('UPDATE_WC2_SESSION_METADATA', () => {
+    it('shallow-merges into an existing entry', () => {
+      const stateWithExisting: SDKState = {
+        ...initialState,
+        wc2SessionMetadata: { [channelId]: mockWC2SessionMetadata },
+      };
+
+      const action = {
+        type: ActionType.UPDATE_WC2_SESSION_METADATA as const,
+        channelId,
+        metadata: { lastVerifiedUrl: 'https://verified.example' },
+      };
+
+      const result = sdkReducer(stateWithExisting, action);
+      expect(result.wc2SessionMetadata[channelId]).toEqual({
+        ...mockWC2SessionMetadata,
+        lastVerifiedUrl: 'https://verified.example',
+      });
     });
 
-    it('should store wc2Metadata without verifyContext', () => {
+    it('no-ops when the entry does not exist', () => {
       const action = {
-        type: ActionType.WC2_METADATA as const,
-        metadata: mockWC2Metadata,
+        type: ActionType.UPDATE_WC2_SESSION_METADATA as const,
+        channelId,
+        metadata: { lastVerifiedUrl: 'https://verified.example' },
       };
 
       const result = sdkReducer(initialState, action);
-      expect(result.wc2Metadata).toEqual(mockWC2Metadata);
-      expect(result.wc2Metadata?.verifyContext).toBeUndefined();
+      expect(result).toBe(initialState);
+      expect(result.wc2SessionMetadata[channelId]).toBeUndefined();
+    });
+
+    it('does not affect sibling entries', () => {
+      const sibling = { url: 'u', name: 'n', icon: 'i' };
+      const stateWithExisting: SDKState = {
+        ...initialState,
+        wc2SessionMetadata: {
+          [channelId]: mockWC2SessionMetadata,
+          [otherChannelId]: sibling,
+        },
+      };
+
+      const action = {
+        type: ActionType.UPDATE_WC2_SESSION_METADATA as const,
+        channelId,
+        metadata: { lastVerifiedUrl: 'https://verified.example' },
+      };
+
+      const result = sdkReducer(stateWithExisting, action);
+      expect(result.wc2SessionMetadata[otherChannelId]).toBe(sibling);
+    });
+  });
+
+  describe('REMOVE_WC2_SESSION_METADATA', () => {
+    it('removes an existing entry without touching siblings', () => {
+      const sibling = { url: 'u', name: 'n', icon: 'i' };
+      const stateWithExisting: SDKState = {
+        ...initialState,
+        wc2SessionMetadata: {
+          [channelId]: mockWC2SessionMetadata,
+          [otherChannelId]: sibling,
+        },
+      };
+
+      const action = {
+        type: ActionType.REMOVE_WC2_SESSION_METADATA as const,
+        channelId,
+      };
+
+      const result = sdkReducer(stateWithExisting, action);
+      expect(result.wc2SessionMetadata[channelId]).toBeUndefined();
+      expect(result.wc2SessionMetadata[otherChannelId]).toBe(sibling);
+    });
+
+    it('no-ops when the entry is already absent', () => {
+      const action = {
+        type: ActionType.REMOVE_WC2_SESSION_METADATA as const,
+        channelId,
+      };
+
+      const result = sdkReducer(initialState, action);
+      expect(result).toBe(initialState);
     });
   });
 

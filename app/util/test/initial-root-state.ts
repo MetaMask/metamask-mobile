@@ -58,6 +58,7 @@ const initialRootState: RootState = {
     approvedHosts: {},
     dappConnections: {},
     v2Connections: {},
+    wc2SessionMetadata: {},
   },
   experimentalSettings: undefined,
   rpcEvents: undefined,

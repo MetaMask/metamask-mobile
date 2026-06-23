@@ -821,7 +821,8 @@
       "approvedHosts": {},
       "connections": {},
       "dappConnections": {},
-      "v2Connections": {}
+      "v2Connections": {},
+      "wc2SessionMetadata": {}
     },
     "security": {
       "allowLoginWithRememberMe": false,

@@ -171,10 +171,14 @@ const createMockStore = (accountGroups = mockAccountGroups) =>
         },
       }),
       sdk: () => ({
-        wc2Metadata: {
-          id: 'test-wc-id',
-          url: 'https://example.com',
-          lastVerifiedUrl: 'https://example.com',
+        v2Connections: {},
+        wc2SessionMetadata: {
+          'wc-story-pairing-topic': {
+            url: 'https://example.com',
+            name: 'Example DApp',
+            icon: '',
+            lastVerifiedUrl: 'https://example.com',
+          },
         },
       }),
     },
