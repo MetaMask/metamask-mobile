@@ -33,7 +33,10 @@ import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
-import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  slideFromRightNativeOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
   ToastContext,
@@ -1115,7 +1118,8 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
         options={{
-          animation: 'slide_from_right',
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
           contentStyle: { backgroundColor: colors.background.default },
         }}
       />
