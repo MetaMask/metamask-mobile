@@ -289,30 +289,32 @@ const TopTradersSection = forwardRef<
           onPress={handleViewAll}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
         />
-        {showSkeletons ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3')}
-            testID="homepage-top-traders-carousel"
-          >
-            {SKELETON_KEYS.map((key) => (
-              <TopTraderCardSkeleton key={key} />
-            ))}
-          </ScrollView>
-        ) : (
-          <FlatList
-            horizontal
-            data={carouselData}
-            renderItem={renderCarouselItem}
-            keyExtractor={keyExtractor}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-            testID="homepage-top-traders-carousel"
-            viewabilityConfig={viewabilityConfig}
-            onViewableItemsChanged={onViewableItemsChanged}
-          />
-        )}
+        <Box paddingTop={3}>
+          {showSkeletons ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              testID="homepage-top-traders-carousel"
+            >
+              {SKELETON_KEYS.map((key) => (
+                <TopTraderCardSkeleton key={key} />
+              ))}
+            </ScrollView>
+          ) : (
+            <FlatList
+              horizontal
+              data={carouselData}
+              renderItem={renderCarouselItem}
+              keyExtractor={keyExtractor}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
+              testID="homepage-top-traders-carousel"
+              viewabilityConfig={viewabilityConfig}
+              onViewableItemsChanged={onViewableItemsChanged}
+            />
+          )}
+        </Box>
       </Box>
     </View>
   );
