@@ -1,6 +1,14 @@
 import { useRef, useEffect, useCallback, RefObject } from 'react';
-import { FlashListRef } from '@shopify/flash-list';
 import Logger from '../../../util/Logger';
+
+/**
+ * Minimal list ref shape this hook needs. Kept independent of the monitored
+ * data type so the watched array (e.g. flat items) and the list ref (e.g. a
+ * grouped FlashList) don't have to share a generic.
+ */
+interface ScrollableListRef {
+  scrollToOffset: (params: { offset: number; animated?: boolean }) => void;
+}
 
 interface UseTransactionAutoScrollOptions<T> {
   /**
@@ -27,7 +35,7 @@ interface UseTransactionAutoScrollOptions<T> {
  */
 export function useTransactionAutoScroll<T>(
   data: T[],
-  listRef: RefObject<FlashListRef<T> | null>,
+  listRef: RefObject<ScrollableListRef | null>,
   options: UseTransactionAutoScrollOptions<T>,
 ) {
   const { enabled = true, delay = 150, keyExtractor } = options;
