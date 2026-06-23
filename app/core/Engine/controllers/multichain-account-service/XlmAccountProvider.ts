@@ -1,9 +1,7 @@
 import type { Bip44Account } from '@metamask/account-api';
 import {
-  AccountCreationType,
   XlmAccountType,
   XlmScope,
-  type CreateAccountOptions,
   type EntropySourceId,
   type KeyringAccount,
 } from '@metamask/keyring-api';
@@ -17,84 +15,16 @@ import {
 import type { Json, SnapId } from '@metamask/snaps-sdk';
 import { STELLAR_WALLET_SNAP_ID } from '../../../SnapKeyring/StellarWalletSnap';
 
-export const XLM_ACCOUNT_PROVIDER_NAME = 'Stellar';
-
-interface RestrictedSnapKeyring {
+interface SnapKeyring {
   createAccount: (options: Record<string, Json>) => Promise<KeyringAccount>;
-  createAccounts: (options: CreateAccountOptions) => Promise<KeyringAccount[]>;
-  removeAccount: (address: string) => Promise<void>;
 }
 
-interface SnapAccountProviderConfig {
-  maxConcurrency?: number;
-  discovery: {
-    enabled?: boolean;
-    maxAttempts: number;
-    timeoutMs: number;
-    backOffMs: number;
-  };
-  createAccounts: {
-    batched: boolean;
-    timeoutMs: number;
-  };
-  resyncAccounts?: {
-    autoRemoveExtraSnapAccounts?: boolean;
-  };
-}
-
-const SNAP_DISCOVER_ACCOUNTS_TRACE_NAME = 'Snap Discover Accounts';
-
-async function withTimeout<T>(
-  fn: () => Promise<T>,
-  timeoutMs: number,
-): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new Error(`Operation timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-  });
-
-  try {
-    return await Promise.race([fn(), timeoutPromise]);
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  }
-}
-
-async function withRetry<T>(
-  fnToExecute: () => Promise<T>,
-  {
-    maxAttempts,
-    backOffMs,
-  }: {
-    maxAttempts: number;
-    backOffMs: number;
-  },
-): Promise<T> {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      return await fnToExecute();
-    } catch (error) {
-      lastError = error;
-      if (attempt < maxAttempts) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, backOffMs);
-        });
-      }
-    }
-  }
-
-  throw lastError;
-}
+type SnapAccountProviderConfig = ConstructorParameters<
+  typeof SnapAccountProvider
+>[2];
 
 export class XlmAccountProvider extends SnapAccountProvider {
-  static readonly NAME = XLM_ACCOUNT_PROVIDER_NAME;
+  static readonly NAME = 'Stellar';
 
   readonly capabilities: KeyringCapabilities;
 
@@ -105,10 +35,7 @@ export class XlmAccountProvider extends SnapAccountProvider {
     super(STELLAR_WALLET_SNAP_ID as SnapId, messenger, config);
     this.capabilities = {
       scopes: [XlmScope.Pubnet, XlmScope.Testnet],
-      bip44: {
-        deriveIndex: true,
-        deriveIndexRange: true,
-      },
+      bip44: { deriveIndex: true, deriveIndexRange: true },
     };
   }
 
@@ -124,7 +51,7 @@ export class XlmAccountProvider extends SnapAccountProvider {
   }
 
   protected createAccountV1(
-    keyring: RestrictedSnapKeyring,
+    keyring: SnapKeyring,
     {
       entropySource,
       groupIndex,
@@ -141,54 +68,8 @@ export class XlmAccountProvider extends SnapAccountProvider {
     });
   }
 
-  async discoverAccounts({
-    entropySource,
-    groupIndex,
-  }: {
-    entropySource: EntropySourceId;
-    groupIndex: number;
-  }): Promise<Bip44Account<KeyringAccount>[]> {
-    return this.withSnap(async ({ client, keyring }) =>
-      this.trace(
-        {
-          name: SNAP_DISCOVER_ACCOUNTS_TRACE_NAME,
-          data: {
-            provider: this.getName(),
-          },
-        },
-        async () => {
-          if (!this.config.discovery.enabled) {
-            return [];
-          }
-
-          const discoveredAccounts = await withRetry(
-            () =>
-              withTimeout(
-                () =>
-                  client.discoverAccounts(
-                    [XlmScope.Pubnet],
-                    entropySource,
-                    groupIndex,
-                  ),
-                this.config.discovery.timeoutMs,
-              ),
-            {
-              maxAttempts: this.config.discovery.maxAttempts,
-              backOffMs: this.config.discovery.backOffMs,
-            },
-          );
-
-          if (!discoveredAccounts.length) {
-            return [];
-          }
-
-          return this.createBip44Accounts(keyring, {
-            type: AccountCreationType.Bip44DeriveIndex,
-            entropySource,
-            groupIndex,
-          });
-        },
-      ),
-    );
+  discoverAccounts(): Promise<Bip44Account<KeyringAccount>[]> {
+    // Account discovery ships in a future @metamask/multichain-account-service release.
+    return Promise.resolve([]);
   }
 }
