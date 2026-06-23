@@ -35,18 +35,10 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
     createAccounts: {
       timeoutMs: 3000,
-      batched: false,
+      batched: true,
     },
     resyncAccounts: {
       autoRemoveExtraSnapAccounts: false,
-    },
-  };
-
-  const solanaSnapAccountProviderConfig = {
-    ...snapAccountProviderConfig,
-    createAccounts: {
-      ...snapAccountProviderConfig.createAccounts,
-      batched: true,
     },
   };
 
@@ -71,7 +63,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
       ),
     ],
     providerConfigs: {
-      [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
+      [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF

@@ -101,6 +101,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -122,6 +123,7 @@ const ImportFromSecretRecoveryPhrase = ({
   );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+  const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const confirmPasswordInput = useRef();
 
@@ -595,19 +597,40 @@ const ImportFromSecretRecoveryPhrase = ({
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
+                    {isAddDeviceSyncEnabled && (
+                      <>
+                        {' '}
+                        {strings('import_from_seed.or')}{' '}
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          color={TextColor.PrimaryDefault}
+                          onPress={() =>
+                            navigation.navigate(
+                              Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+                            )
+                          }
+                        >
+                          {strings(
+                            'import_from_seed.import_wallet_from_extension',
+                          )}
+                        </Text>
+                      </>
+                    )}
                   </Text>
-                  <TouchableOpacity
-                    onPress={showWhatIsSeedPhrase}
-                    testID={
-                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
-                    }
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Md}
-                      color={colors.icon.alternative}
-                    />
-                  </TouchableOpacity>
+                  {!isAddDeviceSyncEnabled && (
+                    <TouchableOpacity
+                      onPress={showWhatIsSeedPhrase}
+                      testID={
+                        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                      }
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Md}
+                        color={colors.icon.alternative}
+                      />
+                    </TouchableOpacity>
+                  )}
                 </Box>
                 <SrpInputGrid
                   ref={srpInputGridRef}
