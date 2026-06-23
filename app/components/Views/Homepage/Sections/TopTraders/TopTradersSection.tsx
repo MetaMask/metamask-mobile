@@ -290,7 +290,7 @@ const TopTradersSection = forwardRef<
           onPress={handleViewAll}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
         />
-        <Box paddingTop={2}>
+        <Box paddingTop={3}>
           {showSkeletons ? (
             <ScrollView
               horizontal
