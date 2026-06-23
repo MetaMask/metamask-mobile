@@ -365,6 +365,27 @@ describe('TransactionDetailsHero', () => {
       ).toBeDefined();
     });
 
+    it('renders two-asset hero for moneyAccountWithdraw with swapped sent/received', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountWithdraw,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '200.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-200\.00 mUSD/)).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+123\.46 TST/)).toBeDefined();
+    });
+
     it('renders fiat deposit hero with green + prefix for moneyAccountDeposit with fiat orderId', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {

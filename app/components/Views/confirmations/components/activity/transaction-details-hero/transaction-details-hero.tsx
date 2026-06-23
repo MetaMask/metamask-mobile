@@ -77,6 +77,7 @@ const TOKEN_ICON_TYPES = [
 
 const TWO_ASSET_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
@@ -194,7 +195,12 @@ export function TransactionDetailsHero() {
     receivedData;
 
   if (showTwoAssetHero) {
-    return <TwoAssetHero sentData={sentData} receivedData={receivedData} />;
+    const { sent, received } = resolveTwoAssetData(
+      transactionMeta,
+      sentData,
+      receivedData,
+    );
+    return <TwoAssetHero sentData={sent} receivedData={received} />;
   }
 
   const showTokenIcon =
@@ -283,6 +289,19 @@ const RECEIVED_OVERRIDE: Partial<
     chainId: CHAIN_IDS.POLYGON as Hex,
   },
 };
+
+function resolveTwoAssetData(
+  transactionMeta: TransactionMeta,
+  sentData: TokenDisplayData,
+  receivedData: TokenDisplayData,
+): { sent: TokenDisplayData; received: TokenDisplayData } {
+  const isOutbound = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  return isOutbound
+    ? { sent: receivedData, received: sentData }
+    : { sent: sentData, received: receivedData };
+}
 
 function toDisplay(
   tokenMeta: NonNullable<ReturnType<typeof useTokenMeta>>,
