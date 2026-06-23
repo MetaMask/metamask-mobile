@@ -229,52 +229,48 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }, LAYOUT_SETTLE_FALLBACK_MS);
     }, [isChartReady, clearLayoutSettleTimeout]);
 
-    const useIntervalHotReload = webViewInstanceKey !== undefined;
-
-    // Default: WebView remounts when `ohlcvSeriesKey` changes (time range / legacy path).
-    useEffect(() => {
-      if (useIntervalHotReload) {
-        return;
-      }
-      if (ohlcvSeriesKey === undefined) {
-        return;
-      }
+    const resetWebViewSessionState = useCallback(() => {
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
       setLayoutSettling(false);
       clearLayoutSettleTimeout();
-      ohlcvSeriesStaleSnapshotRef.current =
-        prevOhlcvSeriesKeyRef.current !== undefined
-          ? prevOhlcvDataRef.current
-          : null;
       activeIndicatorsRef.current.clear();
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
-    }, [useIntervalHotReload, ohlcvSeriesKey, clearLayoutSettleTimeout]);
+    }, [clearLayoutSettleTimeout]);
+
+    const resetForInstanceRemount = useCallback(() => {
+      resetWebViewSessionState();
+      webViewLoadedRef.current = false;
+      prevOhlcvDataRef.current = [];
+      prevOhlcvSeriesKeyRef.current = undefined;
+      ohlcvSeriesStaleSnapshotRef.current = null;
+    }, [resetWebViewSessionState]);
+
+    const useIntervalHotReload = webViewInstanceKey !== undefined;
+
+    // Default: WebView remounts when `ohlcvSeriesKey` changes (time range / legacy path).
+    useEffect(() => {
+      if (useIntervalHotReload || ohlcvSeriesKey === undefined) {
+        return;
+      }
+      resetWebViewSessionState();
+      ohlcvSeriesStaleSnapshotRef.current =
+        prevOhlcvSeriesKeyRef.current !== undefined
+          ? prevOhlcvDataRef.current
+          : null;
+    }, [useIntervalHotReload, ohlcvSeriesKey, resetWebViewSessionState]);
 
     // Technical-indicators path: remount only when `webViewInstanceKey` changes.
     useEffect(() => {
       if (!useIntervalHotReload || !resolvedWebViewKey) {
         return;
       }
-      skeletonHiddenReportedRef.current = false;
-      setChartReadyCount(0);
-      setWebViewLoaded(false);
-      webViewLoadedRef.current = false;
-      setLayoutSettling(false);
-      clearLayoutSettleTimeout();
-      prevOhlcvDataRef.current = [];
-      prevOhlcvSeriesKeyRef.current = undefined;
-      ohlcvSeriesStaleSnapshotRef.current = null;
-      activeIndicatorsRef.current.clear();
-      setAppliedIndicatorCount(0);
-      setLegendRendered(false);
-      prevPositionLinesRef.current = undefined;
-      prevChartTypeRef.current = undefined;
-    }, [useIntervalHotReload, resolvedWebViewKey, clearLayoutSettleTimeout]);
+      resetForInstanceRemount();
+    }, [useIntervalHotReload, resolvedWebViewKey, resetForInstanceRemount]);
 
     // Interval change within the same WebView — keep chart visible, skip stale sends.
     useEffect(() => {
