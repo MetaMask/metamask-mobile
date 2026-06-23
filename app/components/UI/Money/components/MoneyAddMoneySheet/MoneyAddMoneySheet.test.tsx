@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -137,6 +138,25 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the deposit option as "Debit card" without Apple Pay on Android', () => {
+    const originalOS = Platform.OS;
+    Platform.OS = 'android';
+
+    try {
+      const { getByText, queryByText, getByTestId } = renderWithProvider(
+        <MoneyAddMoneySheet />,
+      );
+
+      expect(getByText('Debit card')).toBeOnTheScreen();
+      expect(queryByText('Debit card or Apple Pay')).toBeNull();
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+      ).toBeOnTheScreen();
+    } finally {
+      Platform.OS = originalOS;
+    }
   });
 
   it('renders the Bank account row as a coming-soon, non-pressable option', () => {

@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { View, Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -17,6 +17,7 @@ import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
+  isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
@@ -60,14 +61,7 @@ import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  selectTokenOverviewChartType,
-  selectTokenIndicators,
-} from '../../../../reducers/user/selectors';
-import {
-  setTokenOverviewChartType,
-  setTokenIndicators,
-} from '../../../../actions/user';
+import { useTokenChartPreferences } from './hooks/useTokenChartPreferences';
 import type {
   TimePeriod,
   TokenPrice,
@@ -154,6 +148,7 @@ export interface PriceAdvancedProps {
   /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
   comparePrice: number;
   isLoading: boolean;
+  /** From parent (`Price`); forwarded to {@link PriceLegacy} on fallback only — AdvancedChart uses OHLCV. */
   prices?: TokenPrice[];
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
@@ -178,16 +173,23 @@ const PriceAdvanced = ({
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const chartType = useSelector(selectTokenOverviewChartType);
-  const persistedIndicators = useSelector(selectTokenIndicators);
+  const {
+    chartType,
+    chartInterval: persistedChartInterval,
+    indicators: persistedIndicators,
+    setChartType,
+    setChartInterval,
+    setIndicators,
+  } = useTokenChartPreferences();
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
     selectTokenDetailsTechnicalIndicatorsEnabled,
   );
+  /** `null` = WebView init pending; `false` = chart ready; `true` = init failed → legacy fallback. */
+  const [chartInitFailed, setChartInitFailed] = useState<boolean | null>(null);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -255,8 +257,8 @@ const PriceAdvanced = ({
 
   // Sync activeIndicators to Redux for persistence
   useEffect(() => {
-    dispatch(setTokenIndicators([...activeIndicators]));
-  }, [activeIndicators, dispatch]);
+    setIndicators([...activeIndicators]);
+  }, [activeIndicators, setIndicators]);
 
   const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
 
@@ -295,13 +297,13 @@ const PriceAdvanced = ({
           .addProperties(properties)
           .build(),
       );
-      dispatch(setTokenOverviewChartType(next));
+      setChartType(next);
     },
     [
       chartType,
       createEventBuilder,
       trackEvent,
-      dispatch,
+      setChartType,
       isTechnicalIndicatorsEnabled,
       activeIndicators,
     ],
@@ -357,13 +359,35 @@ const PriceAdvanced = ({
   const config = TIME_RANGE_CONFIGS[timeRange];
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
 
-  const [displayInterval, setDisplayInterval] = useState(
-    wsInterval.toUpperCase(),
+  const resolveDisplayInterval = useCallback(
+    (interval: string | undefined | null) => {
+      const normalised = interval?.toLowerCase();
+      if (isTokenOverviewChartInterval(normalised)) {
+        return normalised.toUpperCase();
+      }
+      return wsInterval.toUpperCase();
+    },
+    [wsInterval],
+  );
+
+  const [displayInterval, setDisplayInterval] = useState(() =>
+    isTechnicalIndicatorsEnabled
+      ? resolveDisplayInterval(persistedChartInterval)
+      : wsInterval.toUpperCase(),
   );
 
   useEffect(() => {
+    if (isTechnicalIndicatorsEnabled) {
+      setDisplayInterval(resolveDisplayInterval(persistedChartInterval));
+      return;
+    }
     setDisplayInterval(wsInterval.toUpperCase());
-  }, [wsInterval]);
+  }, [
+    isTechnicalIndicatorsEnabled,
+    persistedChartInterval,
+    resolveDisplayInterval,
+    wsInterval,
+  ]);
 
   const chartInterval = displayInterval.toLowerCase();
 
@@ -395,6 +419,7 @@ const PriceAdvanced = ({
   } | null>(null);
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    setChartInitFailed(false);
     const open = activeVisibilityTraceRef.current;
     if (!open) {
       return;
@@ -420,6 +445,27 @@ const PriceAdvanced = ({
     });
     activeVisibilityTraceRef.current = null;
   }, []);
+
+  const handleAdvancedChartInitFailed = useCallback((error: string) => {
+    setChartInitFailed(true);
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+      data: {
+        errorMessage: error.slice(0, 200),
+        chartInitFailed: true,
+      },
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    setChartInitFailed(null);
+  }, [ohlcvSeriesKey]);
 
   const {
     ohlcvData,
@@ -551,14 +597,17 @@ const PriceAdvanced = ({
     !hasEmptyData &&
     !chartError;
 
+  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
+
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
    * This prevents a confusing flash where interval/indicator bars appear then disappear
-   * when falling back to legacy chart.
+   * when falling back to legacy chart or while WebView init is still pending.
    */
   const shouldShowTechnicalIndicators =
     isTechnicalIndicatorsEnabled &&
-    !chartLoading &&
+    !isAdvancedChartUiPending &&
     ohlcvData.length >= CHART_DATA_THRESHOLD &&
     !hasEmptyData &&
     !chartError;
@@ -580,6 +629,7 @@ const PriceAdvanced = ({
   const handleInlineIntervalSelect = useCallback(
     (interval: string) => {
       setDisplayInterval(interval);
+      setChartInterval(interval);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
@@ -593,7 +643,13 @@ const PriceAdvanced = ({
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, chartType, activeIndicators],
+    [
+      trackEvent,
+      createEventBuilder,
+      chartType,
+      activeIndicators,
+      setChartInterval,
+    ],
   );
 
   // TradingView Advanced Charts Bar.time expects milliseconds
@@ -746,7 +802,10 @@ const PriceAdvanced = ({
 
   const shouldFallbackToLegacy =
     !chartLoading &&
-    (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+    (ohlcvData.length < CHART_DATA_THRESHOLD ||
+      hasEmptyData ||
+      chartError ||
+      chartInitFailed === true);
 
   useLayoutEffect(() => {
     if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
@@ -937,8 +996,8 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      {/* Unified skeleton bar when feature flag ON and loading */}
-      {isTechnicalIndicatorsEnabled && chartLoading && (
+      {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
+      {isTechnicalIndicatorsEnabled && isAdvancedChartUiPending && (
         <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <Box twClassName="w-full px-4">
@@ -947,23 +1006,21 @@ const PriceAdvanced = ({
           </View>
         </View>
       )}
-      {/* IntervalBar appears when not loading */}
-      {isTechnicalIndicatorsEnabled &&
-        !chartLoading &&
-        shouldShowTechnicalIndicators && (
-          <View style={styles.intervalBarContainer}>
-            <View style={styles.timeRangeSelectorWrap}>
-              <Box twClassName="w-full">
-                <IntervalBar
-                  selectedInterval={displayInterval}
-                  onIntervalSelect={handleInlineIntervalSelect}
-                  chartType={chartType}
-                  onChartTypeSelect={handleChartTypeSelect}
-                />
-              </Box>
-            </View>
+      {/* IntervalBar appears once OHLCV and WebView init have completed */}
+      {isTechnicalIndicatorsEnabled && shouldShowTechnicalIndicators && (
+        <View style={styles.intervalBarContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
+            <Box twClassName="w-full">
+              <IntervalBar
+                selectedInterval={displayInterval}
+                onIntervalSelect={handleInlineIntervalSelect}
+                chartType={chartType}
+                onChartTypeSelect={handleChartTypeSelect}
+              />
+            </Box>
           </View>
-        )}
+        </View>
+      )}
       <Box
         twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
       >
@@ -1005,6 +1062,7 @@ const PriceAdvanced = ({
               onChartTradingViewClicked={handleChartTradingViewClicked}
               onSkeletonHidden={handleAdvancedChartSkeletonHidden}
               onError={handleAdvancedChartError}
+              onInitFailed={handleAdvancedChartInitFailed}
               lineColorOverride={initialAmbientColor}
               successColorOverride={
                 initialAmbientColor ? ambientSuccessGreen : undefined
@@ -1037,7 +1095,7 @@ const PriceAdvanced = ({
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector
-              isChartLoading={chartLoading}
+              isChartLoading={isAdvancedChartUiPending}
               selected={timeRange}
               onSelect={handleTimeRangeSelect}
               chartType={chartType}
