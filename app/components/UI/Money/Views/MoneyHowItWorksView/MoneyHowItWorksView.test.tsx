@@ -6,11 +6,12 @@ import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { SCREEN_NAMES ,
+import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   MONEY_URLS,
+  SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
