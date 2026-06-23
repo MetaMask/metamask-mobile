@@ -386,10 +386,13 @@ class PerpsOrderView {
           checkForDisplayed: true,
           checkForEnabled: false,
         });
-        await Assertions.expectElementToBeVisible(this.getTpslKeypadKey(firstKey), {
-          description: `TPSL keypad key ${firstKey} should be visible`,
-          timeout: 3000,
-        });
+        await Assertions.expectElementToBeVisible(
+          this.getTpslKeypadKey(firstKey),
+          {
+            description: `TPSL keypad key ${firstKey} should be visible`,
+            timeout: 3000,
+          },
+        );
       },
       {
         timeout: 15000,
