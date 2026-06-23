@@ -458,7 +458,7 @@ describe(`Migration ${migrationVersion}: heal wiped niche-chain token metadata`,
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          `Migration ${migrationVersion}: heal wiped AssetsController metadata for niche-chain tokens failed`,
+          `Migration #${migrationVersion} - heal wiped AssetsController metadata for niche-chain tokens failed`,
         ),
       }),
     );

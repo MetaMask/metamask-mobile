@@ -1,10 +1,9 @@
 import {
-  getChecksumAddress,
   getErrorMessage,
   hasProperty,
-  Hex,
-  isHexString,
   isObject,
+  getChecksumAddress,
+  Hex,
 } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 
@@ -49,7 +48,6 @@ interface RestorableAsset {
 }
 
 const EVM_ASSET_PREFIX = 'eip155:';
-const EVM_ADDRESS_REGEX = /^(0x)?[0-9a-fA-F]{40}$/u;
 
 /**
  * Popular networks (covered by the Accounts API) can self-heal through auto-detection.
@@ -78,7 +76,8 @@ const ACCOUNT_API_SUPPORTED_CHAIN_IDS = new Set<string>([
  *
  * What it deliberately skips:
  * - Accounts-API-supported chains — see `ACCOUNT_API_SUPPORTED_CHAIN_IDS`.
- * - Tokens the user hid/removed, detected via either the legacy `TokensController.allIgnoredTokens` or the new `AssetsController.assetPreferences` (`hidden: true`).
+ * - Tokens the user hid/removed, detected via either the legacy
+ * `TokensController.allIgnoredTokens` or the new `AssetsController.assetPreferences` (`hidden: true`).
  * - Non-EVM assets and ERC-721s.
  *
  * The migration only runs when `AssetsController` state already exists (i.e. the
@@ -92,15 +91,15 @@ export default function migrate(state: unknown): unknown {
   }
 
   try {
-    const { backgroundState } = state.engine;
+    const { backgroundState: data } = state.engine;
 
-    const ac = getAssetsController(backgroundState);
+    const ac = getAssetsController(data);
     if (!ac) {
       return state;
     }
 
     // Step 1: gather every token whose metadata is eligible to be healed.
-    const restorable = collectRestorableAssets(backgroundState, ac);
+    const restorable = collectRestorableAssets(data, ac);
     if (restorable.length === 0) {
       return state;
     }
@@ -118,9 +117,7 @@ export default function migrate(state: unknown): unknown {
   } catch (error) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: heal wiped AssetsController metadata for niche-chain tokens failed: ${getErrorMessage(
-          error,
-        )}`,
+        `Migration #${migrationVersion} - heal wiped AssetsController metadata for niche-chain tokens failed: ${getErrorMessage(error)}`,
       ),
     );
   }
@@ -226,13 +223,12 @@ function getRestorableAssetId(
   if (!isObject(token) || typeof token.address !== 'string' || !token.address) {
     return null;
   }
-
   // Skip NFTs — AssetsController tracks them separately.
   if (token.isERC721 === true) {
     return null;
   }
 
-  const assetId = buildErc20AssetId(caip2, token.address);
+  const assetId = buildErc20AssetId(caip2, token.address as Hex);
   if (!assetId) {
     return null;
   }
@@ -241,7 +237,6 @@ function getRestorableAssetId(
   if (ignoredAddresses.has(token.address.toLowerCase())) {
     return null;
   }
-
   // …or in the new controller.
   if (hiddenAssetIds.has(assetId.toLowerCase())) {
     return null;
@@ -308,24 +303,23 @@ function buildAddressToIdMap(
     'internalAccounts',
     'accounts',
   ]);
-
   if (!isObject(accounts)) {
     return {};
   }
 
-  const addressToId: Record<string, string> = {};
-
-  for (const [accountId, account] of Object.entries(accounts)) {
-    if (
-      isObject(account) &&
-      typeof account.address === 'string' &&
-      account.address
-    ) {
-      addressToId[account.address.toLowerCase()] = accountId;
-    }
-  }
-
-  return addressToId;
+  return Object.entries(accounts).reduce<Record<string, string>>(
+    (accumulator, [id, account]) => {
+      if (
+        isObject(account) &&
+        typeof account.address === 'string' &&
+        account.address.length > 0
+      ) {
+        accumulator[account.address.toLowerCase()] = id;
+      }
+      return accumulator;
+    },
+    {},
+  );
 }
 
 /**
@@ -337,13 +331,11 @@ function buildAddressToIdMap(
  */
 function collectHiddenAssetIds(ac: AssetsControllerShape): Set<string> {
   const hidden = new Set<string>();
-
   for (const [assetId, preference] of Object.entries(ac.assetPreferences)) {
     if (isObject(preference) && preference.hidden === true) {
       hidden.add(assetId.toLowerCase());
     }
   }
-
   return hidden;
 }
 
@@ -362,7 +354,6 @@ function collectIgnoredAddresses(
   accountAddress: string,
 ): Set<string> {
   const result = new Set<string>();
-
   if (!isObject(allIgnoredTokens)) {
     return result;
   }
@@ -377,14 +368,12 @@ function collectIgnoredAddresses(
     if (address.toLowerCase() !== lowerAccount || !Array.isArray(list)) {
       continue;
     }
-
     for (const ignored of list) {
       if (typeof ignored === 'string') {
         result.add(ignored.toLowerCase());
       }
     }
   }
-
   return result;
 }
 
@@ -408,16 +397,11 @@ function isAccountApiSupportedChain(caip2: string): boolean {
  * @param hexChainId - The hex-encoded EVM chain ID.
  */
 function hexChainIdToCaip2(hexChainId: string): string | null {
-  if (!isHexString(hexChainId)) {
+  const decimal = Number.parseInt(hexChainId, 16);
+  if (!Number.isFinite(decimal)) {
     return null;
   }
-
-  const decimalChainId = Number.parseInt(hexChainId, 16);
-  if (!Number.isSafeInteger(decimalChainId) || decimalChainId <= 0) {
-    return null;
-  }
-
-  return `${EVM_ASSET_PREFIX}${decimalChainId}`;
+  return `${EVM_ASSET_PREFIX}${decimal}`;
 }
 
 /**
@@ -427,12 +411,12 @@ function hexChainIdToCaip2(hexChainId: string): string | null {
  * @param caip2 - The CAIP-2 chain ID (e.g. 'eip155:14').
  * @param tokenAddress - The ERC-20 contract address.
  */
-function buildErc20AssetId(caip2: string, tokenAddress: string): string | null {
-  if (!EVM_ADDRESS_REGEX.test(tokenAddress)) {
+function buildErc20AssetId(caip2: string, tokenAddress: Hex): string | null {
+  const checksummed = getChecksumAddress(tokenAddress);
+  if (!checksummed) {
     return null;
   }
-
-  return `${caip2}/erc20:${getChecksumAddress(tokenAddress as Hex)}`;
+  return `${caip2}/erc20:${checksummed}`;
 }
 
 /**
@@ -443,17 +427,12 @@ function buildErc20AssetId(caip2: string, tokenAddress: string): string | null {
  * @param path - Sequence of keys to traverse.
  */
 function readPath(root: unknown, path: string[]): unknown {
-  let cursor = root;
-
-  for (const key of path) {
+  return path.reduce<unknown>((cursor, key) => {
     if (!isObject(cursor) || !hasProperty(cursor, key)) {
       return undefined;
     }
-
-    cursor = cursor[key];
-  }
-
-  return cursor;
+    return cursor[key];
+  }, root);
 }
 
 /**
@@ -463,31 +442,28 @@ function readPath(root: unknown, path: string[]): unknown {
  */
 function buildEvmAssetInfo(token: Record<string, unknown>): AssetInfo {
   const symbol = typeof token.symbol === 'string' ? token.symbol : '';
-  const name =
-    typeof token.name === 'string' && token.name ? token.name : symbol;
+  const normalizedName =
+    typeof token.name === 'string' && token.name.length > 0
+      ? token.name
+      : symbol;
+  const decimals = typeof token.decimals === 'number' ? token.decimals : 0;
 
-  const assetInfo: AssetInfo = {
+  const image =
+    typeof token.image === 'string' && token.image.length > 0
+      ? token.image
+      : undefined;
+  const aggregators = Array.isArray(token.aggregators)
+    ? token.aggregators
+    : undefined;
+
+  return {
     type: 'erc20',
     symbol,
-    name,
-    decimals: typeof token.decimals === 'number' ? token.decimals : 0,
+    name: normalizedName,
+    decimals,
+    ...(image ? { image } : {}),
+    ...(aggregators ? { aggregators } : {}),
   };
-
-  if (typeof token.image === 'string' && token.image) {
-    assetInfo.image = token.image;
-  }
-
-  if (Array.isArray(token.aggregators)) {
-    const aggregators = token.aggregators.filter(
-      (aggregator): aggregator is string => typeof aggregator === 'string',
-    );
-
-    if (aggregators.length > 0) {
-      assetInfo.aggregators = aggregators;
-    }
-  }
-
-  return assetInfo;
 }
 
 /**
