@@ -1,14 +1,14 @@
 import { Alert } from 'react-native';
 import ClipboardManager from '../../../../core/ClipboardManager';
 
-const DEV_ENVIRONMENTS = new Set(['rc', 'exp', 'dev', 'test']);
+const DEV_ENVIRONMENTS = new Set(['exp', 'dev', 'test']);
 
 const SUPPRESSED_ERRORS = [
   'MetaMask Tx Signature: User denied transaction signature.',
 ];
 
 /**
- * In non-production builds (rc / exp / dev / test) shows a native Alert
+ * In non-production builds (exp / dev / test) shows a native Alert
  * containing the full error stack trace, with a one-tap "Copy" button.
  *
  * Certain expected user-cancellation errors are suppressed so testers are
