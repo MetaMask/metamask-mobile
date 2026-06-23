@@ -18,7 +18,7 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
-  return new Wallet({
+  const wallet = new Wallet({
     messenger,
     state,
     instanceOptions: {
@@ -34,4 +34,8 @@ export function initializeWallet({
       storageService: getStorageServiceInstanceOptions(),
     },
   });
+
+  wallet.init().catch((error) => console.error(error));
+
+  return wallet;
 }

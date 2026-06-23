@@ -552,15 +552,6 @@ export class Engine {
       ).length,
     });
 
-    // The wallet constructs ConnectivityController but does not seed its initial
-    // status; do that here (fire-and-forget).
-    connectivityController.init().catch((error) => {
-      Logger.error(
-        error as Error,
-        'ConnectivityController: failed to initialize',
-      );
-    });
-
     // Initialize RPC domain validation cache for analytics
     // This runs asynchronously and doesn't block Engine initialization
     initializeRpcProviderDomains().catch((error) => {
