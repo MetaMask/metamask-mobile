@@ -170,11 +170,25 @@ const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
   animation: 'slide_from_right',
 };
 
+const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
+  presentation: 'containedTransparentModal',
+  animation: 'none',
+  contentStyle: { backgroundColor: importedColors.transparent },
+  gestureEnabled: false,
+};
+
 const isAccountSelectorRootModalRoute = (params: object | undefined) =>
   Boolean(
     params &&
       'screen' in params &&
       params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
+  );
+
+const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
+  Boolean(
+    params &&
+      'screen' in params &&
+      params.screen === Routes.MODAL.TRADE_WALLET_ACTIONS,
   );
 
 // Type helper for screen components that use v5 pattern of requiring route props
@@ -1035,11 +1049,19 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={({ route }) =>
-          isAccountSelectorRootModalRoute(route.params)
-            ? accountSelectorTransitionOptions
-            : {}
-        }
+        options={({ route }) => {
+          if (isAccountSelectorRootModalRoute(route.params)) {
+            return accountSelectorTransitionOptions;
+          }
+          if (isTradeWalletActionsRootModalRoute(route.params)) {
+            return tradeWalletActionsRootModalOptions;
+          }
+          return {
+            presentation: 'transparentModal',
+            animation: 'none',
+            contentStyle: { backgroundColor: importedColors.transparent },
+          };
+        }}
       />
       <NativeStack.Screen
         name={Routes.IMPORT_PRIVATE_KEY_VIEW}
