@@ -4,6 +4,7 @@ import {
   isCardUrl,
   isCardTravelUrl,
   isCardTosUrl,
+  isCardLoginUrl,
   isValidASCIIURL,
   toPunycodeURL,
   isSameOrigin,
@@ -102,6 +103,19 @@ describe('URL Check Functions', () => {
       ['invalid url', false],
     ])('returns expected result for %s', (url, expected) => {
       expect(isCardTosUrl(url)).toBe(expected);
+    });
+  });
+
+  describe('isCardLoginUrl', () => {
+    it.each([
+      [`${AppConstants.CARD.URL}${AppConstants.CARD.LOGIN_PATH}`, true],
+      [`${AppConstants.CARD.URL}/account/login?foo=bar`, true],
+      [AppConstants.CARD.PASSWORD_RESET_URL, false],
+      [`${AppConstants.CARD.URL}/account`, false],
+      ['https://example.com/account/login', false],
+      ['invalid url', false],
+    ])('returns expected result for %s', (url, expected) => {
+      expect(isCardLoginUrl(url)).toBe(expected);
     });
   });
 

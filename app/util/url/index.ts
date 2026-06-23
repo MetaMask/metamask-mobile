@@ -65,6 +65,19 @@ export const isCardTosUrl = (url: string) => {
     return false;
   }
 };
+
+export const isCardLoginUrl = (url: string) => {
+  try {
+    const currentUrl = new URL(url);
+    return (
+      currentUrl.origin === AppConstants.CARD.URL &&
+      currentUrl.pathname.startsWith(AppConstants.CARD.LOGIN_PATH)
+    );
+  } catch (error) {
+    Logger.log('Error in isCardLoginUrl', error);
+    return false;
+  }
+};
 /**
  * This method does not use the URL library because it does not support punycode encoding in react native.
  * It compares the original hostname to a punycode version of the hostname.

@@ -112,6 +112,8 @@ export default {
     TRAVEL_URL: 'https://travel.metamask.io/access',
     CARD_TOS_URL:
       'https://www.baanxuk.com/docs/CL-Platform-Terms-of-Use-2026.pdf',
+    PASSWORD_RESET_URL: 'https://card.metamask.io/account/password/request',
+    LOGIN_PATH: '/account/login',
   },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,

@@ -8816,6 +8816,7 @@
       "password_label": "Password",
       "login_button": "Log in",
       "signup_button": "Sign up",
+      "forgot_password_button": "Forgot password?",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "invalid_otp_code": "Incorrect code, please try again",
@@ -8830,6 +8831,11 @@
         "server_error": "Server error. Please try again later.",
         "configuration_error": "Service is temporarily unavailable. Please try again later."
       }
+    },
+    "card_forgot_password": {
+      "load_error": "Something went wrong loading the page. Please try again.",
+      "try_again": "Try again",
+      "reset_success": "Password reset successful"
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
