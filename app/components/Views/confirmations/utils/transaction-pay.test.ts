@@ -26,7 +26,8 @@ import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
- PaymentOverride } from '@metamask/transaction-pay-controller';
+  PaymentOverride,
+} from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import type {
   BlockedTokensListConfig,

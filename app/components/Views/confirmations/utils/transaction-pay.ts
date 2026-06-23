@@ -4,7 +4,8 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride ,
+import {
+  PaymentOverride,
   TransactionFiatPayment,
   TransactionPayRequiredToken,
   TransactionPaymentToken,
