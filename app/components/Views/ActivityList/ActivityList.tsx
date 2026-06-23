@@ -622,10 +622,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       });
     }, [navigation, nonEvmExplorerUrl, trackEvent, createEventBuilder]);
 
+    const isFetchingMoreActivity =
+      isFetchingNextPage ||
+      (isPerpsEnabled && Boolean(perpsSource.isFetchingMore)) ||
+      (isPredictEnabled && Boolean(predictSource.isFetchingMore));
+
     const footerComponent = useMemo(() => {
-      if (isFetchingNextPage) {
+      if (isFetchingMoreActivity) {
         return (
-          <View style={tw.style('items-center justify-center py-4')}>
+          <View
+            style={tw.style('items-center justify-center py-4')}
+            testID={ActivityListSelectorsIDs.LOAD_MORE_INDICATOR}
+          >
             <ActivityIndicator />
           </View>
         );
@@ -666,7 +674,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       blockExplorerUrl,
       nonEvmExplorerUrl,
       showEvmFooter,
-      isFetchingNextPage,
+      isFetchingMoreActivity,
       showNonEvmExplorerLink,
       showNonEvmFooter,
       configBlockExplorerUrl,
@@ -907,31 +915,67 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         ? generateGroupedKey(groupedData[lastConfirmedEvmIndex])
         : undefined;
 
+    // Perps/Predict paginate independently; only advance a domain source whose
+    // rows are actually shown under the current type filter (avoids fetching
+    // history the user can't see).
+    const perpsRelevantForFilter =
+      typeFilter === undefined ||
+      typeFilter === ActivityTypeFilter.All ||
+      typeFilter === ActivityTypeFilter.Perps;
+    const predictRelevantForFilter =
+      typeFilter === undefined ||
+      typeFilter === ActivityTypeFilter.All ||
+      typeFilter === ActivityTypeFilter.Predictions;
+
     const onViewableItemsChanged = useCallback(
       ({
         viewableItems,
       }: {
         viewableItems: ViewToken<GroupedActivityListItem>[];
       }) => {
+        const maxVisibleIndex = viewableItems.reduce(
+          (max, { index }) =>
+            typeof index === 'number' && index > max ? index : max,
+          -1,
+        );
+        if (maxVisibleIndex < 0) return;
+
+        // EVM (API) pagination — prefetch when nearing the last confirmed EVM row.
         if (
-          !hasNextPage ||
-          isFetchingNextPage ||
-          !lastConfirmedEvmKey ||
-          lastConfirmedEvmIndex < 0
+          hasNextPage &&
+          !isFetchingNextPage &&
+          lastConfirmedEvmKey &&
+          lastConfirmedEvmIndex >= 0 &&
+          maxVisibleIndex >=
+            Math.max(lastConfirmedEvmIndex - confirmedEvmOverscan, 0)
         ) {
-          return;
+          fetchNextPage();
         }
 
-        const prefetchIndex = Math.max(
-          lastConfirmedEvmIndex - confirmedEvmOverscan,
-          0,
-        );
-        const isNearPrefetchThreshold = viewableItems.some(
-          ({ index }) => typeof index === 'number' && index >= prefetchIndex,
-        );
+        // Domain sources interleave with EVM by time, so the trigger is nearing
+        // the bottom of the whole list. Each source guards its own in-flight
+        // state, so a redundant call here is a no-op.
+        const isNearListBottom =
+          maxVisibleIndex >=
+          Math.max(groupedData.length - 1 - confirmedEvmOverscan, 0);
+        if (!isNearListBottom) return;
 
-        if (!isNearPrefetchThreshold) return;
-        fetchNextPage();
+        if (
+          isPerpsEnabled &&
+          perpsRelevantForFilter &&
+          perpsSource.hasMore &&
+          !perpsSource.isFetchingMore
+        ) {
+          perpsSource.loadMore?.();
+        }
+        if (
+          isPredictEnabled &&
+          predictRelevantForFilter &&
+          predictSource.hasMore &&
+          !predictSource.isFetchingMore
+        ) {
+          predictSource.loadMore?.();
+        }
       },
       [
         fetchNextPage,
@@ -939,6 +983,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         isFetchingNextPage,
         lastConfirmedEvmIndex,
         lastConfirmedEvmKey,
+        groupedData.length,
+        isPerpsEnabled,
+        perpsRelevantForFilter,
+        perpsSource,
+        isPredictEnabled,
+        predictRelevantForFilter,
+        predictSource,
       ],
     );
 

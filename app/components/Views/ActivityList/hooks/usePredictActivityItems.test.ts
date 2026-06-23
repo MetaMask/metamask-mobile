@@ -115,4 +115,40 @@ describe('usePredictActivityItems', () => {
     // firing every render (which would loop through the lifted-state setter).
     expect(result.current.refetch).toBe(first);
   });
+
+  it('exposes pagination state and loadMore fetches the next page', async () => {
+    const fetchNextPage = jest.fn(() => Promise.resolve());
+    setActivity([buyActivity], {
+      fetchNextPage: fetchNextPage as unknown as ReturnType<
+        typeof usePredictActivity
+      >['fetchNextPage'],
+      hasNextPage: true,
+      isFetchingNextPage: false,
+    });
+
+    const { result } = renderHook(() => usePredictActivityItems());
+
+    expect(result.current.hasMore).toBe(true);
+    expect(result.current.isFetchingMore).toBe(false);
+
+    await result.current.loadMore();
+    expect(fetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it('loadMore is a no-op when there is no next page', async () => {
+    const fetchNextPage = jest.fn(() => Promise.resolve());
+    setActivity([buyActivity], {
+      fetchNextPage: fetchNextPage as unknown as ReturnType<
+        typeof usePredictActivity
+      >['fetchNextPage'],
+      hasNextPage: false,
+      isFetchingNextPage: false,
+    });
+
+    const { result } = renderHook(() => usePredictActivityItems());
+
+    await result.current.loadMore();
+    expect(fetchNextPage).not.toHaveBeenCalled();
+    expect(result.current.hasMore).toBe(false);
+  });
 });

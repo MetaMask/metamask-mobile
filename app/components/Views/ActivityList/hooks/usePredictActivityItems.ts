@@ -31,10 +31,24 @@ export interface UsePredictActivityItemsResult {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  /** Loads the next page of predict history (Polymarket paginates by offset). */
+  loadMore: () => Promise<void>;
+  /** Whether more predict history is available to load. */
+  hasMore: boolean;
+  /** Whether a load-more request is currently in flight. */
+  isFetchingMore: boolean;
 }
 
 export function usePredictActivityItems(): UsePredictActivityItemsResult {
-  const { activity, isLoading, error, refetch } = usePredictActivity();
+  const {
+    activity,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = usePredictActivity();
 
   const items = useMemo(() => {
     const result: ActivityListItem[] = [];
@@ -55,10 +69,18 @@ export function usePredictActivityItems(): UsePredictActivityItemsResult {
     await refetch();
   }, [refetch]);
 
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    await fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
   return {
     items,
     isLoading,
     error: error ? error.message : null,
     refetch: stableRefetch,
+    loadMore,
+    hasMore: Boolean(hasNextPage),
+    isFetchingMore: isFetchingNextPage,
   };
 }

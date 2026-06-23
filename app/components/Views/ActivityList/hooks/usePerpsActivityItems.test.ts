@@ -264,6 +264,37 @@ describe('usePerpsActivityItems', () => {
     expect(result.current.refetch).toBe(refetch);
   });
 
+  it('maps funding pagination onto loadMore/hasMore and loadMore fetches more funding', async () => {
+    const loadMoreFunding = jest.fn(() => Promise.resolve());
+    setHistory([], {
+      loadMoreFunding,
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
+    });
+
+    const { result } = renderHook(() => usePerpsActivityItems());
+
+    expect(result.current.hasMore).toBe(true);
+    expect(result.current.isFetchingMore).toBe(false);
+
+    await result.current.loadMore();
+    expect(loadMoreFunding).toHaveBeenCalledTimes(1);
+  });
+
+  it('loadMore is a no-op when no more funding is available', async () => {
+    const loadMoreFunding = jest.fn(() => Promise.resolve());
+    setHistory([], {
+      loadMoreFunding,
+      hasFundingMore: false,
+      isFetchingMoreFunding: false,
+    });
+
+    const { result } = renderHook(() => usePerpsActivityItems());
+
+    await result.current.loadMore();
+    expect(loadMoreFunding).not.toHaveBeenCalled();
+  });
+
   it('skips the initial fetch until the perps connection is established', () => {
     (usePerpsConnection as jest.Mock).mockReturnValue({ isConnected: false });
 

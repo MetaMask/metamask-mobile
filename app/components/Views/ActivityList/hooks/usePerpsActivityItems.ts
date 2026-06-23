@@ -15,7 +15,7 @@
  * `PerpsStreamProvider`, since `usePerpsTransactionHistory` subscribes to the
  * live-fills stream and the perps connection.
  */
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
@@ -49,6 +49,16 @@ export interface UsePerpsActivityItemsResult {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  /**
+   * Loads older funding history. Trades and deposits/withdrawals are fetched in
+   * full up front; only HyperLiquid funding is windowed, so this is the only
+   * paginated part of perps history.
+   */
+  loadMore: () => Promise<void>;
+  /** Whether more funding history is available to load. */
+  hasMore: boolean;
+  /** Whether a load-more request is currently in flight. */
+  isFetchingMore: boolean;
 }
 
 export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
@@ -71,11 +81,18 @@ export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
     );
   }, [selectedAddress]);
 
-  const { transactions, isLoading, error, refetch } =
-    usePerpsTransactionHistory({
-      accountId,
-      skipInitialFetch: !isConnected,
-    });
+  const {
+    transactions,
+    isLoading,
+    error,
+    refetch,
+    loadMoreFunding,
+    hasFundingMore,
+    isFetchingMoreFunding,
+  } = usePerpsTransactionHistory({
+    accountId,
+    skipInitialFetch: !isConnected,
+  });
 
   const items = useMemo(() => {
     const result: ActivityListItem[] = [];
@@ -92,5 +109,18 @@ export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
     return result;
   }, [transactions]);
 
-  return { items, isLoading, error, refetch };
+  const loadMore = useCallback(async () => {
+    if (!hasFundingMore || isFetchingMoreFunding) return;
+    await loadMoreFunding();
+  }, [loadMoreFunding, hasFundingMore, isFetchingMoreFunding]);
+
+  return {
+    items,
+    isLoading,
+    error,
+    refetch,
+    loadMore,
+    hasMore: hasFundingMore,
+    isFetchingMore: isFetchingMoreFunding,
+  };
 }

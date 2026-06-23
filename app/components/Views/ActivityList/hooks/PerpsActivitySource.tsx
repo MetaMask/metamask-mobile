@@ -20,12 +20,17 @@ export interface PerpsActivitySourceState {
   isLoading: boolean;
   error: string | null;
   refetch?: () => Promise<void>;
+  loadMore?: () => Promise<void>;
+  hasMore?: boolean;
+  isFetchingMore?: boolean;
 }
 
 export const INITIAL_PERPS_ACTIVITY_SOURCE_STATE: PerpsActivitySourceState = {
   items: [],
   isLoading: false,
   error: null,
+  hasMore: false,
+  isFetchingMore: false,
 };
 
 interface PerpsActivitySourceProps {
@@ -33,11 +38,36 @@ interface PerpsActivitySourceProps {
 }
 
 function PerpsActivitySourceInner({ onChange }: PerpsActivitySourceProps) {
-  const { items, isLoading, error, refetch } = usePerpsActivityItems();
+  const {
+    items,
+    isLoading,
+    error,
+    refetch,
+    loadMore,
+    hasMore,
+    isFetchingMore,
+  } = usePerpsActivityItems();
 
   useEffect(() => {
-    onChange({ items, isLoading, error, refetch });
-  }, [items, isLoading, error, refetch, onChange]);
+    onChange({
+      items,
+      isLoading,
+      error,
+      refetch,
+      loadMore,
+      hasMore,
+      isFetchingMore,
+    });
+  }, [
+    items,
+    isLoading,
+    error,
+    refetch,
+    loadMore,
+    hasMore,
+    isFetchingMore,
+    onChange,
+  ]);
 
   return null;
 }

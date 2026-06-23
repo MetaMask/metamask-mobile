@@ -456,6 +456,9 @@ let mockPerpsSourceState: {
   isLoading: boolean;
   error: string | null;
   refetch?: () => Promise<void>;
+  loadMore?: () => Promise<void>;
+  hasMore?: boolean;
+  isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
 
 jest.mock('./hooks/PerpsActivitySource', () => {
@@ -484,6 +487,9 @@ let mockPredictSourceState: {
   isLoading: boolean;
   error: string | null;
   refetch?: () => Promise<void>;
+  loadMore?: () => Promise<void>;
+  hasMore?: boolean;
+  isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
 
 jest.mock('./hooks/PredictActivitySource', () => {
@@ -861,6 +867,113 @@ describe('ActivityList', () => {
 
     expect(screen.getByTestId('row-perps-fill-1')).toBeOnTheScreen();
     expect(screen.queryByTestId('row-0xconfirmed')).toBeNull();
+  });
+
+  const perpsItem = {
+    type: 'perpsOpenLong',
+    chainId: 'eip155:42161',
+    status: 'success',
+    timestamp: 5,
+    hash: 'perps-fill-1',
+    data: { token: { symbol: 'USD' } },
+  };
+  const predictItem = {
+    type: 'predictionPlaced',
+    chainId: 'eip155:137',
+    status: 'success',
+    timestamp: 5,
+    hash: 'predict-1',
+    data: { token: { symbol: 'USDC' } },
+  };
+
+  it('advances the perps source when scrolled near the bottom and more history exists', () => {
+    selectorValues.perpsEnabled = true;
+    const perpsLoadMore = jest.fn(() => Promise.resolve());
+    mockPerpsSourceState = {
+      items: [perpsItem],
+      isLoading: false,
+      error: null,
+      loadMore: perpsLoadMore,
+      hasMore: true,
+      isFetchingMore: false,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+    fireEvent.press(screen.getByTestId('mock-viewable'));
+
+    expect(perpsLoadMore).toHaveBeenCalled();
+  });
+
+  it('does not advance a domain source whose load is already in flight', () => {
+    selectorValues.perpsEnabled = true;
+    const perpsLoadMore = jest.fn(() => Promise.resolve());
+    mockPerpsSourceState = {
+      items: [perpsItem],
+      isLoading: false,
+      error: null,
+      loadMore: perpsLoadMore,
+      hasMore: true,
+      isFetchingMore: true,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+    fireEvent.press(screen.getByTestId('mock-viewable'));
+
+    expect(perpsLoadMore).not.toHaveBeenCalled();
+  });
+
+  it('advances the predict source when scrolled near the bottom and more history exists', () => {
+    selectorValues.predictEnabled = true;
+    const predictLoadMore = jest.fn(() => Promise.resolve());
+    mockPredictSourceState = {
+      items: [predictItem],
+      isLoading: false,
+      error: null,
+      loadMore: predictLoadMore,
+      hasMore: true,
+      isFetchingMore: false,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
+    fireEvent.press(screen.getByTestId('mock-viewable'));
+
+    expect(predictLoadMore).toHaveBeenCalled();
+  });
+
+  it('does not advance the predict source under a non-Predictions filter', () => {
+    selectorValues.predictEnabled = true;
+    const predictLoadMore = jest.fn(() => Promise.resolve());
+    mockPredictSourceState = {
+      items: [predictItem],
+      isLoading: false,
+      error: null,
+      loadMore: predictLoadMore,
+      hasMore: true,
+      isFetchingMore: false,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+    fireEvent.press(screen.getByTestId('mock-viewable'));
+
+    expect(predictLoadMore).not.toHaveBeenCalled();
+  });
+
+  it('shows the load-more indicator while a domain source is fetching more', () => {
+    selectorValues.predictEnabled = true;
+    mockPredictSourceState = {
+      items: [predictItem],
+      isLoading: false,
+      error: null,
+      loadMore: jest.fn(() => Promise.resolve()),
+      hasMore: true,
+      isFetchingMore: true,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
+
+    expect(
+      screen.getByTestId(ActivityListSelectorsIDs.LOAD_MORE_INDICATOR),
+    ).toBeOnTheScreen();
   });
 
   it('shows the loading indicator (not the empty state) while Perps is still loading after the EVM query settles', () => {
