@@ -516,6 +516,89 @@ describe('AdvancedChart', () => {
     expect(onSkeletonHidden).not.toHaveBeenCalled();
   });
 
+  it('delegates pre-ready ERROR to onInitFailed without showing error UI', () => {
+    const onInitFailed = jest.fn();
+    const onError = jest.fn();
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onInitFailed={onInitFailed}
+        onError={onError}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'ERROR',
+            payload: {
+              message: 'Failed to load TradingView library. URL: bad',
+            },
+          }),
+        },
+      });
+    });
+
+    expect(onInitFailed).toHaveBeenCalledWith(
+      'Failed to load TradingView library. URL: bad',
+    );
+    expect(onError).not.toHaveBeenCalled();
+    expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
+    expect(queryByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
+  });
+
+  it('delegates pre-ready native WebView error to onInitFailed without showing error UI', () => {
+    const onInitFailed = jest.fn();
+    const onError = jest.fn();
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onInitFailed={onInitFailed}
+        onError={onError}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onError?.({
+        nativeEvent: { description: 'WebView failed to load' },
+      });
+    });
+
+    expect(onInitFailed).toHaveBeenCalledWith('WebView failed to load');
+    expect(onError).not.toHaveBeenCalled();
+    expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
+    expect(queryByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
+  });
+
+  it('shows error UI for pre-ready ERROR when onInitFailed is not set', () => {
+    const { getByTestId, queryByTestId, getByText } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'ERROR',
+            payload: { message: 'early init error' },
+          }),
+        },
+      });
+    });
+
+    expect(
+      getByText(/Failed to load chart: early init error/),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId('mock-webview')).not.toBeOnTheScreen();
+  });
+
   it('calls onError when chart reports an error', () => {
     const onError = jest.fn();
     const { getByTestId } = render(

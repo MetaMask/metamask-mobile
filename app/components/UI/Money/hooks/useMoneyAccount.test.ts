@@ -476,6 +476,7 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
         isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
       }),
     );
   });

@@ -411,12 +411,12 @@ const TraderProfileView = () => {
                   setTitleSectionHeight(e.nativeEvent.layout.height)
                 }
               >
-                {isLoading || !profile ? (
+                {isLoading && !profile ? (
                   <>
                     <ProfileHeaderSkeleton />
                     <StatsRowSkeleton />
                   </>
-                ) : (
+                ) : profile ? (
                   <>
                     <ProfileHeader
                       profile={profile.profile}
@@ -431,10 +431,10 @@ const TraderProfileView = () => {
                       <StatsRowSkeleton />
                     )}
                   </>
-                )}
+                ) : null}
               </Box>
 
-              {!isLoading && profile && (
+              {profile && (
                 <>
                   <Box twClassName="px-4 pt-3 pb-1">
                     <Button
@@ -483,7 +483,7 @@ const TraderProfileView = () => {
                         testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
                       />
                     </Box>
-                    {!isLoadingPositions && positions.length > 0 && (
+                    {positions.length > 0 && (
                       <SortButton
                         label={strings(SORT_LABEL_KEYS[currentSortKey])}
                         onPress={handleSortPress}
@@ -492,7 +492,7 @@ const TraderProfileView = () => {
                     )}
                   </Box>
 
-                  {isLoadingPositions ? (
+                  {isLoadingPositions && positions.length === 0 ? (
                     POSITION_SKELETON_KEYS.map((key) => (
                       <PositionRowSkeleton key={key} />
                     ))
