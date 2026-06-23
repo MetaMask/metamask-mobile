@@ -8122,7 +8122,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^75.0.0, @metamask/bridge-controller@npm:^75.1.1":
+"@metamask/bridge-controller@npm:^75.1.1":
   version: 75.2.1
   resolution: "@metamask/bridge-controller@npm:75.2.1"
   dependencies:
@@ -8188,31 +8188,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^72.1.0":
-  version: 72.1.0
-  resolution: "@metamask/bridge-status-controller@npm:72.1.0"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^39.0.1"
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/bridge-controller": "npm:^75.0.0"
-    "@metamask/controller-utils": "npm:^12.1.1"
-    "@metamask/gas-fee-controller": "npm:^26.2.2"
-    "@metamask/keyring-controller": "npm:^27.0.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/network-controller": "npm:^32.0.0"
-    "@metamask/polling-controller": "npm:^16.0.6"
-    "@metamask/profile-sync-controller": "npm:^28.1.1"
-    "@metamask/snaps-controllers": "npm:^19.0.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/transaction-controller": "npm:^67.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-    bignumber.js: "npm:^9.1.2"
-    uuid: "npm:^8.3.2"
-  checksum: 10/61b940736a8ce327de7e6bc87ed02a5256b0ad7fd6b3c2118d82592d3019b2c134b1779acdb4ea841df4d1b4f75a4046deb7157563223e98ac74b02d08696fa9
-  languageName: node
-  linkType: hard
-
-"@metamask/bridge-status-controller@npm:^72.2.0":
+"@metamask/bridge-status-controller@npm:^72.1.0, @metamask/bridge-status-controller@npm:^72.2.0":
   version: 72.2.0
   resolution: "@metamask/bridge-status-controller@npm:72.2.0"
   dependencies:
