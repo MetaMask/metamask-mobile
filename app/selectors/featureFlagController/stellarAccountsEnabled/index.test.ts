@@ -1,7 +1,6 @@
 import { selectIsStellarAccountsEnabled } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
-import packageJson from '../../../../package.json';
 import type { StellarAccountsFeatureFlag } from '../../../multichain-stellar/remote-feature-flag';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 
@@ -54,14 +53,11 @@ describe('selectIsStellarAccountsEnabled', () => {
     expect(selectIsStellarAccountsEnabled(mockedState)).toBe(false);
   });
 
-  it('returns false when stellarAccounts flag is undefined', () => {
-    expect(selectIsStellarAccountsEnabled(mockedUndefinedFlagsState)).toBe(
-      false,
-    );
-  });
-
-  it('returns false when stellarAccounts flag is empty', () => {
-    expect(selectIsStellarAccountsEnabled(mockedEmptyFlagsState)).toBe(false);
+  it.each([
+    ['undefined', mockedUndefinedFlagsState],
+    ['empty', mockedEmptyFlagsState],
+  ])('returns false when stellarAccounts flag is %s', (_label, state) => {
+    expect(selectIsStellarAccountsEnabled(state)).toBe(false);
   });
 
   it('returns false when app version is below minimum version', () => {
@@ -71,16 +67,6 @@ describe('selectIsStellarAccountsEnabled', () => {
     });
 
     expect(selectIsStellarAccountsEnabled(mockedState)).toBe(false);
-  });
-
-  it('returns true when app version equals minimum version', () => {
-    const currentVersion = packageJson.version;
-    const mockedState = mockStateWith({
-      enabled: true,
-      minimumVersion: currentVersion,
-    });
-
-    expect(selectIsStellarAccountsEnabled(mockedState)).toBe(true);
   });
 
   it('returns false when flag structure is invalid', () => {

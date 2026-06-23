@@ -79,11 +79,7 @@ class StellarTestDapp {
     });
   }
 
-  get confirmSignMessageButtonSelector(): WebElement {
-    return Matchers.getElementByText('Approve');
-  }
-
-  get confirmTransactionButtonSelector(): WebElement {
+  get confirmApproveButtonSelector(): WebElement {
     return Matchers.getElementByText('Approve');
   }
 
@@ -220,125 +216,96 @@ class StellarTestDapp {
     await this.tapButton(this.signAuthEntryButtonSelector);
   }
 
-  async verifyConnectedAccount(connectionStatus: string): Promise<void> {
+  private async verifyElementText(
+    dataTestId: string,
+    expected: string,
+    description: string,
+    options: { extraXPath?: string; tag?: string } = {},
+  ): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const account = await getTestElement(
-          dataTestIds.testPage.header.account,
-          { extraXPath: '/a' },
-        );
-        const actualText = await account.getText();
+        const element = await getTestElement(dataTestId, options);
+        const actualText = await element.getText();
 
-        if (actualText !== connectionStatus) {
+        if (actualText !== expected) {
           throw new Error(
-            `Expected text containing "${connectionStatus}" but got "${actualText}"`,
+            `Expected "${expected}" but got "${actualText}" (${description})`,
           );
         }
       },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Verify connected account',
+      { timeout: BASE_DEFAULTS.timeout, description },
+    );
+  }
+
+  private async verifyPreTextMatches(
+    dataTestId: string,
+    pattern: RegExp,
+    description: string,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const element = await getTestElement(dataTestId, { tag: 'pre' });
+        const actualText = await element.getText();
+
+        if (!pattern.test(actualText)) {
+          throw new Error(`${description}: ${actualText}`);
+        }
       },
+      { timeout: BASE_DEFAULTS.timeout, description },
+    );
+  }
+
+  async verifyConnectedAccount(connectionStatus: string): Promise<void> {
+    await this.verifyElementText(
+      dataTestIds.testPage.header.account,
+      connectionStatus,
+      'Verify connected account',
+      { extraXPath: '/a' },
     );
   }
 
   async verifyConnectionStatus(connectionStatus: string): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const connectionStatusDiv = await getTestElement(
-          dataTestIds.testPage.header.connectionStatus,
-        );
-        const actualText = await connectionStatusDiv.getText();
-
-        if (actualText !== connectionStatus) {
-          throw new Error(
-            `Expected text containing "${connectionStatus}" but got "${actualText}"`,
-          );
-        }
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Verify connection status',
-      },
+    await this.verifyElementText(
+      dataTestIds.testPage.header.connectionStatus,
+      connectionStatus,
+      'Verify connection status',
     );
   }
 
   async verifySignedMessageMatches(pattern: RegExp): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const signedMessageElement = await getTestElement(
-          dataTestIds.testPage.signMessage.signedMessage,
-          { tag: 'pre' },
-        );
-        const actualText = await signedMessageElement.getText();
-
-        if (!pattern.test(actualText)) {
-          throw new Error(
-            `Signed message does not match pattern: ${actualText}`,
-          );
-        }
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Verify signed message',
-      },
+    await this.verifyPreTextMatches(
+      dataTestIds.testPage.signMessage.signedMessage,
+      pattern,
+      'Verify signed message',
     );
   }
 
   async verifySignedTransactionMatches(pattern: RegExp): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const signedTransactionElement = await getTestElement(
-          dataTestIds.testPage.signTransaction.signedTransaction,
-          { tag: 'pre' },
-        );
-        const actualText = await signedTransactionElement.getText();
-
-        if (!pattern.test(actualText)) {
-          throw new Error(
-            `Signed transaction does not match pattern: ${actualText}`,
-          );
-        }
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Verify signed transaction',
-      },
+    await this.verifyPreTextMatches(
+      dataTestIds.testPage.signTransaction.signedTransaction,
+      pattern,
+      'Verify signed transaction',
     );
   }
 
   async verifySignedAuthEntryMatches(pattern: RegExp): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const signedAuthEntryElement = await getTestElement(
-          dataTestIds.testPage.signAuthEntry.signedAuthEntry,
-          { tag: 'pre' },
-        );
-        const actualText = await signedAuthEntryElement.getText();
-
-        if (!pattern.test(actualText)) {
-          throw new Error(
-            `Signed auth entry does not match pattern: ${actualText}`,
-          );
-        }
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Verify signed auth entry',
-      },
+    await this.verifyPreTextMatches(
+      dataTestIds.testPage.signAuthEntry.signedAuthEntry,
+      pattern,
+      'Verify signed auth entry',
     );
   }
 
   async confirmSignMessage(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
+    await Gestures.waitAndTap(this.confirmApproveButtonSelector);
   }
 
   async confirmTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
+    await Gestures.waitAndTap(this.confirmApproveButtonSelector);
   }
 
   async confirmSignAuthEntry(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
+    await Gestures.waitAndTap(this.confirmApproveButtonSelector);
   }
 }
 
