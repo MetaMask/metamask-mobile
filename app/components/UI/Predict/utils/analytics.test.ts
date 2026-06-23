@@ -1,4 +1,4 @@
-import { parseAnalyticsProperties } from './analytics';
+import { mapClaimFailureReason, parseAnalyticsProperties } from './analytics';
 import {
   Recurrence,
   type PredictMarket,
@@ -17,6 +17,13 @@ jest.mock('../constants/eventNames', () => ({
     MARKET_TYPE: {
       BINARY: 'binary',
       MULTI_OUTCOME: 'multi-outcome',
+    },
+    CLAIM_FAILURE_REASON: {
+      PENDING_RESOLUTION: 'pending_resolution',
+      INSUFFICIENT_GAS: 'insufficient_gas',
+      NETWORK_ERROR: 'network_error',
+      USER_REJECTED: 'user_rejected',
+      UNKNOWN: 'unknown',
     },
   },
 }));
@@ -468,6 +475,34 @@ describe('parseAnalyticsProperties', () => {
       );
 
       expect(result.sharePrice).toBe(0);
+    });
+  });
+
+  describe('mapClaimFailureReason', () => {
+    it.each([
+      ['PREDICT_MARKET_PENDING_RESOLUTION', 'pending_resolution'],
+      ['Market is pending resolution', 'pending_resolution'],
+      ['No claimable positions found', 'pending_resolution'],
+      ['Tried to claim but no positions were won', 'pending_resolution'],
+      ['User denied transaction signature', 'user_rejected'],
+      ['User rejected the request', 'user_rejected'],
+      ['insufficient funds for gas', 'insufficient_gas'],
+      ['out of gas', 'insufficient_gas'],
+      ['network request failed', 'network_error'],
+      ['Request timed out', 'network_error'],
+      ['failed to fetch', 'network_error'],
+      ['Something unexpected happened', 'unknown'],
+    ])('maps "%s" to "%s"', (message, expected) => {
+      expect(mapClaimFailureReason(new Error(message))).toBe(expected);
+    });
+
+    it('accepts a raw string message', () => {
+      expect(mapClaimFailureReason('out of gas')).toBe('insufficient_gas');
+    });
+
+    it('returns unknown for undefined or non-error values', () => {
+      expect(mapClaimFailureReason(undefined)).toBe('unknown');
+      expect(mapClaimFailureReason({ some: 'object' })).toBe('unknown');
     });
   });
 });
