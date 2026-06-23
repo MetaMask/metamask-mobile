@@ -11,6 +11,7 @@ import {
   type CandleData,
 } from '@metamask/perps-controller';
 import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
+import { advancedChartLineChromePresets } from '../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
   type CrosshairData,
@@ -33,7 +34,6 @@ import TradingViewChart, {
   type OhlcData,
   type TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
-import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { getPerpsVolumeColors } from '../../utils/chartColors';
 import performance from 'react-native-performance';
 
@@ -111,6 +111,7 @@ export function mapTpslToPositionLines(
  */
 export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
   return {
+    currentPrice: colors.text.default,
     entry: colors.text.alternative,
     takeProfit: colors.success.default,
     stopLoss: colors.warning.default,
@@ -198,6 +199,23 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     () => mapTpslToPositionLines(tpslLines, positionSize),
     [tpslLines, positionSize],
   );
+
+  const advancedChartPositionLines = useMemo(() => {
+    const currentPrice =
+      latestBar && Number.isFinite(latestBar.close)
+        ? latestBar.close
+        : undefined;
+
+    if (currentPrice === undefined) {
+      return positionLines;
+    }
+
+    return {
+      side: positionLines?.side ?? 'long',
+      ...positionLines,
+      currentPrice,
+    };
+  }, [latestBar, positionLines]);
 
   const positionLineColors = useMemo(
     () => getPerpsPositionLineColors(colors),
@@ -389,12 +407,13 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       realtimeBar={realtimeBar}
       height={height}
       chartType={ChartType.Candles}
+      lineChrome={advancedChartLineChromePresets.perps.lineChrome}
       showVolume
       volumeOverlay={false}
       hidePaneSeparator
       gridLineColorOverride={colors.border.muted}
       isLoading={isLoading}
-      positionLines={positionLines}
+      positionLines={advancedChartPositionLines}
       positionLineColors={positionLineColors}
       rnBackedPagination={{ enabled: true }}
       onFetchOlderBarsRequest={handleFetchOlderBarsRequest}
@@ -403,7 +422,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onSkeletonHidden={handleSkeletonHidden}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
-      currentPriceLineColorOverride={colors.text.default}
+      currentPriceLineColorOverride={colors.background.muted}
       volumeSuccessColorOverride={volumeColors.success}
       volumeErrorColorOverride={volumeColors.error}
     />

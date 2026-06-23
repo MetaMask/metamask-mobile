@@ -68,6 +68,7 @@ window.visibleToMs = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
+window.hasExplicitCurrentPriceLine = false;
 /** Bumped when \`ohlcvData\` is replaced or last bar changes; visible-range dot refresh ignores stale timers. */
 window.lineChartOhlcvEpoch = 0;
 
@@ -1298,7 +1299,9 @@ function applyChartScaleLayout(type) {
           'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
           'paneProperties.vertGridProperties.color': gridLineColor,
           'paneProperties.horzGridProperties.color': gridLineColor,
-          'mainSeriesProperties.showPriceLine': !useCustomDashed,
+          'mainSeriesProperties.showPriceLine':
+            !useCustomDashed && !window.hasExplicitCurrentPriceLine,
+          'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
           'timeScale.borderColor': axisLineColor,
           'scalesProperties.lineColor': axisLineColor,
           'paneProperties.separatorColor': separatorColor,
@@ -1734,13 +1737,15 @@ function updateVisibleEdgeOutlinePriceLabel() {
   const theme = (w.CONFIG && w.CONFIG.theme) || {};
   const upColor = theme.successColor || '#0C9F76';
   const lineColor = getThemeLineColor(theme) || upColor;
+  const currentPriceColor = getThemeLastPriceLineColor(theme) || lineColor;
   const downColor = theme.errorColor || '#E06470';
-  let outlineColor = ct === 2 ? lineColor : upColor;
+  let outlineColor = currentPriceColor;
   if (ct === 1) {
     const o = Number(edgeBar.open);
     const c = Number(edgeBar.close);
-    if (isFinite(o) && isFinite(c) && c < o) {
-      outlineColor = downColor;
+    if (!theme.currentPriceColor) {
+      outlineColor =
+        isFinite(o) && isFinite(c) && c < o ? downColor : upColor;
     }
   }
   elOut.style.borderColor = outlineColor;
@@ -2552,13 +2557,32 @@ function handleSetPositionLines(payload) {
   clearPositionLines();
 
   // null or missing position means "clear only"
-  if (!payload || !payload.position) return;
+  if (!payload || !payload.position) {
+    window.hasExplicitCurrentPriceLine = false;
+    try {
+      window.chartWidget.applyOverrides({
+        'mainSeriesProperties.showPriceLine':
+          !getLineChrome().useCustomDashedLastPriceLine,
+      });
+    } catch (e) {}
+    return;
+  }
 
   let position = payload.position;
+  window.hasExplicitCurrentPriceLine = !!position.currentPrice;
   let theme = window.CONFIG.theme;
+  try {
+    window.chartWidget.applyOverrides({
+      'mainSeriesProperties.showPriceLine':
+        !getLineChrome().useCustomDashedLastPriceLine &&
+        !window.hasExplicitCurrentPriceLine,
+    });
+  } catch (e) {}
   // Position lines are consumer-specific (currently Perps only); the consumer
   // supplies colors via the payload. Fall back to theme-derived defaults.
   let colors = payload.positionLineColors || {};
+  let currentPriceColor =
+    colors.currentPrice || getThemeLastPriceLineColor(theme);
   let entryColor = colors.entry || '#858585';
   let takeProfitColor = colors.takeProfit || theme.successColor;
   let stopLossColor = colors.stopLoss || '#858585';
@@ -2568,12 +2592,27 @@ function handleSetPositionLines(payload) {
     let chart = window.chartWidget.activeChart();
     let lines = [];
 
+    if (position.currentPrice) {
+      lines.push({
+        price: position.currentPrice,
+        color: currentPriceColor,
+        lineStyle: 2,
+        lineWidth: 1,
+        showLabel: false,
+        showPrice: false,
+        horzLabelsAlign: 'right',
+      });
+    }
     if (position.entryPrice) {
       lines.push({
         price: position.entryPrice,
         text: 'Entry',
         color: entryColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
     if (position.takeProfitPrice) {
@@ -2582,6 +2621,10 @@ function handleSetPositionLines(payload) {
         text: 'TP',
         color: takeProfitColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
     if (position.stopLossPrice) {
@@ -2590,6 +2633,10 @@ function handleSetPositionLines(payload) {
         text: 'SL',
         color: stopLossColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
     if (position.liquidationPrice) {
@@ -2598,6 +2645,10 @@ function handleSetPositionLines(payload) {
         text: 'Liq',
         color: liquidationColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
 
@@ -2616,15 +2667,12 @@ function handleSetPositionLines(payload) {
               overrides: {
                 linecolor: line.color,
                 linestyle: line.lineStyle,
-                linewidth: 1,
-                showLabel: true,
+                linewidth: line.lineWidth,
+                showLabel: line.showLabel,
                 textcolor: line.color,
                 fontsize: 11,
-                // Left-aligned so the Entry/TP/SL/Liq text sits on the left edge and does
-                // not overlap the most recent candles on the right. The price value still
-                // renders on the right price axis (showPrice is independent of label align).
-                horzLabelsAlign: 'left',
-                showPrice: true,
+                horzLabelsAlign: line.horzLabelsAlign,
+                showPrice: line.showPrice,
               },
             },
           )
@@ -4958,7 +5006,10 @@ function initChart() {
           'paneProperties.legendProperties.showStudyTitles': false,
           'paneProperties.legendProperties.showStudyArguments': false,
           'paneProperties.legendProperties.showStudyValues': false,
-          'mainSeriesProperties.showPriceLine': !initCustomDashed,
+          'mainSeriesProperties.showPriceLine':
+            !initCustomDashed && !window.hasExplicitCurrentPriceLine,
+          'mainSeriesProperties.priceLineColor':
+            getThemeLastPriceLineColor(theme),
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
