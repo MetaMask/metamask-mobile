@@ -529,6 +529,63 @@ describe('NitroWebSocketSetup', () => {
         ws.dispatchEvent({ type: 'custom' } as unknown as Event),
       ).not.toThrow();
     });
+
+    it('continues dispatching to remaining listeners when one throws', () => {
+      const throwing = jest.fn().mockImplementation(() => {
+        throw new Error('listener boom');
+      });
+      const safe = jest.fn();
+      ws.addEventListener('open', throwing);
+      ws.addEventListener('open', safe);
+
+      expect(() => mockWsInstance.onopen?.()).not.toThrow();
+      expect(throwing).toHaveBeenCalledTimes(1);
+      expect(safe).toHaveBeenCalledTimes(1);
+    });
+
+    it('continues dispatching to addEventListener listeners when the .onX handler throws', () => {
+      ws.onopen = jest.fn().mockImplementation(() => {
+        throw new Error('handler boom');
+      });
+      const listener = jest.fn();
+      ws.addEventListener('open', listener);
+
+      expect(() => mockWsInstance.onopen?.()).not.toThrow();
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('NitroWebSocketAdapter — AbortSignal cleanup on close', () => {
+    it('removes the signal abort-listener from the signal when the socket closes', () => {
+      const controller = new AbortController();
+      const { signal } = controller;
+      const removeEventListenerSpy = jest.spyOn(signal, 'removeEventListener');
+
+      const ws2 = new global.WebSocket('wss://example.com');
+      const listener = jest.fn();
+      ws2.addEventListener('message', listener, { signal });
+
+      // Trigger close — adapter should clean up its abort handler from the signal.
+      mockWsInstance.onclose?.({ code: 1000, reason: 'done', wasClean: true });
+
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'abort',
+        expect.any(Function),
+      );
+    });
+
+    it('does not throw when the signal aborts after the socket has already closed', () => {
+      const controller = new AbortController();
+      const ws2 = new global.WebSocket('wss://example.com');
+      ws2.addEventListener('message', jest.fn(), { signal: controller.signal });
+
+      // Close the socket (removes the abort handler from the signal).
+      mockWsInstance.onclose?.({ code: 1000, reason: 'done', wasClean: true });
+
+      // Aborting the signal after close should be a safe no-op — no double-delete,
+      // no crash, no reference to the now-dead cleanup handler.
+      expect(() => controller.abort()).not.toThrow();
+    });
   });
 
   describe('NitroWebSocketAdapter — .onX and addEventListener composition', () => {
