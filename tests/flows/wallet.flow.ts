@@ -683,13 +683,7 @@ export const loginAndOpenAccountList = async (
 
   await loginToAppPlaywright(loginOptions);
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.walletSwapButton),
-    {
-      description: 'Wallet swap button should be visible after login',
-      timeout: walletTimeout,
-    },
-  );
+  await waitForWalletHomePlaywright(walletTimeout);
 
   await WalletView.tapIdenticon();
 
