@@ -4,6 +4,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 /**
@@ -31,7 +33,19 @@ export function getPerpsControllerMessenger(
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
   });
+
+  // Widen `messenger` to a generic `Messenger<...>` for the delegate call only.
+  // `delegate`'s constraint intersects the delegatee action/event unions with
+  // the root messenger unions, which can hit TypeScript's union complexity limit
+  // as controller action unions grow. Erasing the delegatee's specific unions
+  // avoids that type expansion without changing runtime behavior.
   rootExtendedMessenger.delegate({
+    messenger: messenger as Messenger<
+      'PerpsController',
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'GeolocationController:getGeolocation',
       'NetworkController:getState',
@@ -50,7 +64,6 @@ export function getPerpsControllerMessenger(
       'AccountsController:selectedAccountChange',
       'AccountTreeController:selectedAccountGroupChange',
     ],
-    messenger,
   });
   return messenger;
 }
