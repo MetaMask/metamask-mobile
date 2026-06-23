@@ -39,8 +39,8 @@ SNAPSHOT="scripts/bn-migration-burndown.txt"
 #      deprecated module when the importer itself lives under `app/util/`
 #      (elsewhere, e.g. `app/components/.../utils/number.ts`, `./number` is a
 #      different local module). So family B is searched ONLY within `app/util/`.
-PATTERN_UTIL_NUMBER="(from|import|require)\s*\(?\s*['\"][^'\"]*util/number(/index(\.js)?)?['\"]"
-PATTERN_RELATIVE_NUMBER="(from|import|require)\s*\(?\s*['\"]\.\.?/(\.\.?/)*number(/index(\.js)?)?['\"]"
+PATTERN_UTIL_NUMBER="(from|import|require)[[:space:]]*\(?[[:space:]]*['\"][^'\"]*util/number(/index(\.js)?)?['\"]"
+PATTERN_RELATIVE_NUMBER="(from|import|require)[[:space:]]*\(?[[:space:]]*['\"]\.\.?/(\.\.?/)*number(/index(\.js)?)?['\"]"
 
 MODE="check"
 case "${1:-}" in
@@ -48,7 +48,7 @@ case "${1:-}" in
   --write|write)    MODE="write" ;;
   --list|list)      MODE="list" ;;
   -h|--help|help)
-    grep '^#' "$0" | grep -v '^#!' | sed 's/^#\s\?//'
+    grep '^#' "$0" | grep -v '^#!' | sed 's/^# \{0,1\}//'
     exit 0
     ;;
   *)
@@ -59,12 +59,11 @@ case "${1:-}" in
 esac
 
 # Compute the current, sorted, de-duplicated list of importer file paths.
+GREP_INCLUDES=(--include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx')
 compute_current() {
   {
-    rg --pcre2 --files-with-matches --type-add 'src:*.{ts,tsx,js,jsx}' --type src \
-      "$PATTERN_UTIL_NUMBER" app || true
-    rg --pcre2 --files-with-matches --type-add 'src:*.{ts,tsx,js,jsx}' --type src \
-      "$PATTERN_RELATIVE_NUMBER" app/util || true
+    grep -rEl "${GREP_INCLUDES[@]}" -e "$PATTERN_UTIL_NUMBER" app || true
+    grep -rEl "${GREP_INCLUDES[@]}" -e "$PATTERN_RELATIVE_NUMBER" app/util || true
   } | LC_ALL=C sort -u
 }
 
